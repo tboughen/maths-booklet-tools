@@ -9,6 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -74,7 +75,7 @@ import {
 import { chartEditorLink, parseChartLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
 type Doc = Envelope["document"];
@@ -86,29 +87,8 @@ function fresh() {
   return e;
 }
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return {
-          e: fresh(),
-          recovery: raw,
-          message:
-            "Saved chart data needs recovery. Download the original before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return {
-      e: fresh(),
-      recovery: null,
-      message:
-        "Device storage is unavailable. Save an editable file to keep your work.",
-    };
-  }
-  return { e: fresh(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: fresh, recoveryMessage: "Saved chart data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
 /** Text field that keeps its draft while typing and commits on Enter or leaving
@@ -182,7 +162,6 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
@@ -193,8 +172,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       title: string;
       explanation: string;
     } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view, true),
@@ -258,43 +236,17 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   }
 
   // Autosave with protection for another tab's newer draft.
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (
-        expected.current !== null &&
-        raw !== expected.current &&
-        raw !== text
-      ) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "A newer draft exists in another tab. Its saved data is protected.",
-        );
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "Saved chart data changed in another tab. Download its data before replacing it.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved chart data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -1161,16 +1113,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage(
                       "Saved data changed again. Download this latest copy first.",
                     );
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {

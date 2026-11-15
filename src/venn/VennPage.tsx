@@ -20,7 +20,7 @@ import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   create,
   validate,
@@ -47,7 +47,7 @@ import {
   type Region,
 } from "../../packages/venn-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -107,29 +107,8 @@ function ArrangementIcon({ value }: { value: Arrangement }) {
   );
 }
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return {
-          e: freshVenn(),
-          recovery: raw,
-          message:
-            "Saved Venn data needs recovery. Download the original before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return {
-      e: freshVenn(),
-      recovery: null,
-      message:
-        "Device storage is unavailable. Save an editable file to keep your work.",
-    };
-  }
-  return { e: freshVenn(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: freshVenn, recoveryMessage: "Saved Venn data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 type Draft = {
   type: "region" | "label" | "definition" | "expression";
@@ -146,8 +125,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     history = documentHistory.history;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
-    [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device");
+    [message, setMessage] = useState(startup.message);
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
     [selected, setSelected] = useState<number | null>(null),
@@ -162,8 +140,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       title: string;
       explanation: string;
     } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view),
@@ -354,43 +331,18 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       });
     else open("region", mask, anchor);
   }
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (
-        expected.current !== null &&
-        raw !== expected.current &&
-        raw !== text
-      ) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "A newer draft exists in another tab. Its saved data is protected.",
-        );
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "Saved Venn data changed in another tab. Download its data before replacing it.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  // Autosave with protection for another tab's newer draft.
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved Venn data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -1130,16 +1082,14 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage(
                       "Saved data changed again. Download this latest copy first.",
                     );
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {
