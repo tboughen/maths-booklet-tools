@@ -27,6 +27,7 @@ const CUES: Record<DiagramKind, RegExp> = {
   "factor-tree": /factor tree|prime factor|product of (its )?primes|prime decomposition/,
   "written-method": /written method|column (addition|subtraction|method)|long multiplication|long division|short division|bus stop/,
   "function-machine": /function machine|number machine|input.*output/,
+  "probability-objects": /spinner|\bdice\b|\bdie\b|counters? in a bag|bag (of|contains|has)|beads|marbles|balls in a bag/,
   nets: /\bnets? (of|for)\b|\bnets of\b|is (this|it) a net|folded|opposite face|where does the dot/,
   "algebra-tiles": /algebra tiles?|\btiles?\b|like terms|collect(ing)? (like )?terms|simplif(y|ying) (the )?expression|zero pairs?/,
   "sample-space": /sample space|two dice|both dice|listing outcomes|list(ing)? (all )?(the |the possible )?outcomes|spinners?\b/,

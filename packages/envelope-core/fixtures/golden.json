@@ -1199,6 +1199,108 @@
   "pupilSvg": "544b383671f2d4108d750e3535cd5d3c41703fa430c2a9bfbe96a10e1d8a4334",
   "answerSvg": "4663fee6b4f7fa6af0116e23dcbea399c9c8a7a9eb9e881cfa18cb2fa21469a8"
  },
+ "probability-objects/default": {
+  "schemaVersion": 1,
+  "contentHash": "3f31c3111aa4801350045f7d9156e280aff8827cfccf00c9c82b85bc4e371bff",
+  "pupilSvg": "aa1765c63c6ca9f2977da4506215dafcf26e0e306561868ef18232b246bdc133",
+  "answerSvg": "aa1765c63c6ca9f2977da4506215dafcf26e0e306561868ef18232b246bdc133"
+ },
+ "probability-objects/example-bag-of-counters-worked": {
+  "schemaVersion": 1,
+  "contentHash": "1b62f455ba2d638a1940cd294ac458dc676f0dba9077afdd9d21ef24c070d536",
+  "pupilSvg": "2543421ea6f6d62fa31eee05bc2ef6d4c9a9ff297ece91d8f4de2162764bde04",
+  "answerSvg": "2543421ea6f6d62fa31eee05bc2ef6d4c9a9ff297ece91d8f4de2162764bde04"
+ },
+ "probability-objects/example-bag-of-counters": {
+  "schemaVersion": 1,
+  "contentHash": "1b62f455ba2d638a1940cd294ac458dc676f0dba9077afdd9d21ef24c070d536",
+  "pupilSvg": "2543421ea6f6d62fa31eee05bc2ef6d4c9a9ff297ece91d8f4de2162764bde04",
+  "answerSvg": "2543421ea6f6d62fa31eee05bc2ef6d4c9a9ff297ece91d8f4de2162764bde04"
+ },
+ "probability-objects/example-biased-dice-worked": {
+  "schemaVersion": 1,
+  "contentHash": "9cc1d60572682a8741588d8b28cd7142a061325e29ad8daf8ac344fadc37fe4e",
+  "pupilSvg": "34fdd6bc8d7943582fb6c545486b18e7c8759ad64928a7ae9a9be01179735055",
+  "answerSvg": "34fdd6bc8d7943582fb6c545486b18e7c8759ad64928a7ae9a9be01179735055"
+ },
+ "probability-objects/example-biased-dice": {
+  "schemaVersion": 1,
+  "contentHash": "aeaf434ace7942d82fefb1871925eb93f03f4200abd6ba359e277f8b0ec3fe12",
+  "pupilSvg": "b4f887b348324352443bc5196250ef8384c1fd1bea5e065aac2da4acfc7a1fd1",
+  "answerSvg": "563cf1173f20f537130fbd563cb84b28328b0eefb29438f0fda416efb8442c81"
+ },
+ "probability-objects/example-complete-the-spinner-worked": {
+  "schemaVersion": 1,
+  "contentHash": "d57b57ec8c9b287f120b45c6cd1892325400b67190d155f638e66b6da1c2a2cc",
+  "pupilSvg": "e254fd3af71d7c3bd107467aae197470235269b23ae4082cc60690803170e99c",
+  "answerSvg": "e254fd3af71d7c3bd107467aae197470235269b23ae4082cc60690803170e99c"
+ },
+ "probability-objects/example-complete-the-spinner": {
+  "schemaVersion": 1,
+  "contentHash": "fe026def5f6541be013134838d44fc79f6453ced489b4d9031b59dd6331e891a",
+  "pupilSvg": "50a9cac15bb1730f55fd98f5af9b6c2085a9b292551bd71401d6f0d58a847d79",
+  "answerSvg": "84580b07e3f33023204431ed4b41ad25e16e5cd0a6fe0fbd06f839a52902bc48"
+ },
+ "probability-objects/example-dice-and-spinner-worked": {
+  "schemaVersion": 1,
+  "contentHash": "90ce2748c22952ab57ded0cb7918cf018ed5ca4cd04380213553c4f14d1c7049",
+  "pupilSvg": "2d7ff7251dc2a2db3974caea3f9a6673a7315ef041e7f2e237839b82588d5f86",
+  "answerSvg": "2d7ff7251dc2a2db3974caea3f9a6673a7315ef041e7f2e237839b82588d5f86"
+ },
+ "probability-objects/example-dice-and-spinner": {
+  "schemaVersion": 1,
+  "contentHash": "90ce2748c22952ab57ded0cb7918cf018ed5ca4cd04380213553c4f14d1c7049",
+  "pupilSvg": "2d7ff7251dc2a2db3974caea3f9a6673a7315ef041e7f2e237839b82588d5f86",
+  "answerSvg": "2d7ff7251dc2a2db3974caea3f9a6673a7315ef041e7f2e237839b82588d5f86"
+ },
+ "probability-objects/example-four-sided-worked": {
+  "schemaVersion": 1,
+  "contentHash": "c01ec7c2514c23faebc7454350281e5f3b6278864397095be5971018a59beb97",
+  "pupilSvg": "99f07fbde55814c7c566f9efc6c06318de0756bef4e4e6af54cab7b7bf5ca5d7",
+  "answerSvg": "99f07fbde55814c7c566f9efc6c06318de0756bef4e4e6af54cab7b7bf5ca5d7"
+ },
+ "probability-objects/example-four-sided": {
+  "schemaVersion": 1,
+  "contentHash": "c01ec7c2514c23faebc7454350281e5f3b6278864397095be5971018a59beb97",
+  "pupilSvg": "99f07fbde55814c7c566f9efc6c06318de0756bef4e4e6af54cab7b7bf5ca5d7",
+  "answerSvg": "99f07fbde55814c7c566f9efc6c06318de0756bef4e4e6af54cab7b7bf5ca5d7"
+ },
+ "probability-objects/example-six-sectors-worked": {
+  "schemaVersion": 1,
+  "contentHash": "6eef9cf2e0329ddec0e200d93b69b71eda3a541384462533f8f4eb7ceba5214e",
+  "pupilSvg": "01c595464fdc2bd33e0aae599a2779b4487555f727f99bb4657e9e865a052ca8",
+  "answerSvg": "01c595464fdc2bd33e0aae599a2779b4487555f727f99bb4657e9e865a052ca8"
+ },
+ "probability-objects/example-six-sectors": {
+  "schemaVersion": 1,
+  "contentHash": "6eef9cf2e0329ddec0e200d93b69b71eda3a541384462533f8f4eb7ceba5214e",
+  "pupilSvg": "01c595464fdc2bd33e0aae599a2779b4487555f727f99bb4657e9e865a052ca8",
+  "answerSvg": "01c595464fdc2bd33e0aae599a2779b4487555f727f99bb4657e9e865a052ca8"
+ },
+ "probability-objects/example-two-spinners-worked": {
+  "schemaVersion": 1,
+  "contentHash": "45ff837debbe18ac84ec990fd7a78d1d8d5da22e471525394f03f15388428a4f",
+  "pupilSvg": "63993275a46bf5f95441cfb221699dfe735cfdd492562cee901b91c9393f639a",
+  "answerSvg": "63993275a46bf5f95441cfb221699dfe735cfdd492562cee901b91c9393f639a"
+ },
+ "probability-objects/example-two-spinners": {
+  "schemaVersion": 1,
+  "contentHash": "45ff837debbe18ac84ec990fd7a78d1d8d5da22e471525394f03f15388428a4f",
+  "pupilSvg": "63993275a46bf5f95441cfb221699dfe735cfdd492562cee901b91c9393f639a",
+  "answerSvg": "63993275a46bf5f95441cfb221699dfe735cfdd492562cee901b91c9393f639a"
+ },
+ "probability-objects/example-unequal-sectors-worked": {
+  "schemaVersion": 1,
+  "contentHash": "28bd84bc54337806c9807507bfd11c8c6e5670bdfab1ad1b304c78457e6fb575",
+  "pupilSvg": "19e2b7176666ebf8d8f7a2b4fe99e7e25ff9ca0fd821d0aab1a6728b40d8695c",
+  "answerSvg": "19e2b7176666ebf8d8f7a2b4fe99e7e25ff9ca0fd821d0aab1a6728b40d8695c"
+ },
+ "probability-objects/example-unequal-sectors": {
+  "schemaVersion": 1,
+  "contentHash": "28bd84bc54337806c9807507bfd11c8c6e5670bdfab1ad1b304c78457e6fb575",
+  "pupilSvg": "19e2b7176666ebf8d8f7a2b4fe99e7e25ff9ca0fd821d0aab1a6728b40d8695c",
+  "answerSvg": "19e2b7176666ebf8d8f7a2b4fe99e7e25ff9ca0fd821d0aab1a6728b40d8695c"
+ },
  "nets/default": {
   "schemaVersion": 1,
   "contentHash": "b8d5b725a30210f0722955a1a337968ce189fcc5862d4814dd3044593b5406f2",

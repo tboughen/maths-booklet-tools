@@ -237,6 +237,9 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
   "function-machine"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
+  "probability-objects"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
   nets(doc, out) {
     const nets = Array.isArray(doc.nets) ? (doc.nets as Node[]) : [];
     nets.forEach((n, i) => {

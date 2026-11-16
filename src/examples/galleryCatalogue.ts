@@ -73,6 +73,8 @@ import { examples as functionMachines } from "../../packages/function-machine-co
 import { examples as netExamples } from "../../packages/net-core/src/examples";
 import { renderSvg as netsSvg } from "../../packages/net-core/src";
 import { renderSvg as functionMachineSvg } from "../../packages/function-machine-core/src";
+import { examples as probabilityObjects } from "../../packages/probability-objects-core/src/examples";
+import { renderSvg as probabilityObjectsSvg } from "../../packages/probability-objects-core/src";
 import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/examples";
 import { renderSvg as algebraTilesSvg } from "../../packages/algebra-tile-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
@@ -404,12 +406,21 @@ export const netsGallery = netExamples.map((example) => ({
   make: example.make,
   render: netsSvg,
   worked: true,
-}));export const writtenMethodGallery = writtenMethods.map((example) => ({
+}));
+export const writtenMethodGallery = writtenMethods.map((example) => ({
   id: `wm-${example.id}`,
   title: example.title,
   description: example.note,
   make: example.make,
   render: writtenMethodSvg,
+  worked: true,
+}));
+export const probabilityObjectsGallery = probabilityObjects.map((example) => ({
+  id: `po-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: probabilityObjectsSvg,
   worked: true,
 }));
 export const algebraTilesGallery = algebraTiles.map((example) => ({
