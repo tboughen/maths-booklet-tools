@@ -8,8 +8,13 @@ import {
 import { createPortal } from "react-dom";
 import { WordSetupDialog } from "./WordSetupDialog";
 
+/** The two menus of a diagram tool's action bar: what leaves as a picture, and the editable file. */
+export type MenuKind = "download" | "file";
+
 export interface DownloadAction {
   label: string;
+  /** Which menu of a diagram tool lists the item. File when not given. */
+  menu?: MenuKind;
   action: () => void | Promise<void>;
   disabled?: boolean;
   description?: string;
@@ -27,7 +32,11 @@ export const LINK_DESCRIPTION =
 export const SAVE_DESCRIPTION = "Includes hidden answers.";
 export const WORD_SETUP_LABEL = "First-time Word setup";
 
-/** One active, viewport-bounded menu. Import/recovery dialogs stay outside it. */
+/**
+ * One active, viewport-bounded menu. Import/recovery dialogs stay outside it. A diagram tool has
+ * two buttons, Download and File, and passes the one that is open; a page with a single File
+ * button passes true and gets every item.
+ */
 export function EditorDownloadMenu({
   id,
   open,
@@ -41,7 +50,7 @@ export function EditorDownloadMenu({
   /** Add "First-time Word setup" at the end, for tools that copy for Word. */
   wordHelp?: boolean;
   id: string;
-  open: boolean;
+  open: boolean | MenuKind;
   active?: boolean;
   onClose: () => void;
   actions: DownloadAction[];
@@ -70,10 +79,13 @@ export function EditorDownloadMenu({
   }, [saved]);
   const callbacks = useRef({ onClose, active, open });
   callbacks.current = { onClose, active, open };
+  // The button that opened the menu, kept after it closes so that focus can return there.
+  const kind = useRef<MenuKind | undefined>(undefined);
+  if (typeof open === "string") kind.current = open;
   const trigger = useCallback(
     () =>
       globalThis.document.querySelector<HTMLButtonElement>(
-        `button[aria-controls="${id}"]`,
+        kind.current ? `button[data-menu-id="${id}"][data-menu="${kind.current}"]` : `button[aria-controls="${id}"]`,
       ),
     [id],
   );
@@ -123,7 +135,10 @@ export function EditorDownloadMenu({
       const items = menu.current?.querySelectorAll<HTMLButtonElement>(
         "button:not(:disabled)",
       );
-      const last = trigger()?.dataset.menuFocus === "last";
+      const button = trigger();
+      const last = button?.dataset.menuFocus === "last";
+      // Read once: a later click with the mouse starts from the first item again.
+      delete button?.dataset.menuFocus;
       (last ? items?.[items.length - 1] : items?.[0])?.focus();
       place();
     });
@@ -185,9 +200,10 @@ export function EditorDownloadMenu({
         {wordSetupDialog}
       </>
     );
-  const items: DownloadAction[] = wordHelp
-    ? [...actions, { label: WORD_SETUP_LABEL, action: () => setWordSetup(true), separator: true, picker: true }]
-    : actions;
+  const listed = typeof open === "string" ? actions.filter((item) => (item.menu ?? "file") === open) : actions;
+  const items: DownloadAction[] = wordHelp && open !== "download"
+    ? [...listed, { label: WORD_SETUP_LABEL, action: () => setWordSetup(true), separator: true, picker: true }]
+    : listed;
   async function invoke(item: DownloadAction) {
     if (invoking.current || item.disabled) return;
     invoking.current = true;
@@ -211,7 +227,7 @@ export function EditorDownloadMenu({
       onMessage(
         error instanceof Error
           ? error.message
-          : "This action could not be completed. Try again or save an editable file.",
+          : "This action could not be completed. Try again, or save an editable file from the File menu.",
         true,
       );
     } finally {
@@ -242,7 +258,7 @@ export function EditorDownloadMenu({
       id={id}
       className="resource-download-menu"
       role="menu"
-      aria-label="File"
+      aria-label={open === "download" ? "Download" : "File"}
       aria-busy={busy}
       style={position}
       onKeyDown={(e) => {
@@ -293,7 +309,7 @@ export function EditorDownloadMenu({
     >
       {items.map((item, index) => (
         <div key={item.label}>
-          {item.separator && <div role="separator" />}
+          {item.separator && index > 0 && <div role="separator" />}
           <button
             role="menuitem"
             aria-label={item.label}

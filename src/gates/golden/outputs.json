@@ -646,6 +646,34 @@
    "png600": "2641x1833",
    "pixels": "a2b5dbc580edd0a8"
   },
+  "charts: chart-boxplot-heights": {
+   "json": "3c1d0fc3dd2fb027",
+   "svg": "81eb667a64217ce4",
+   "mm": "126x77.4",
+   "png600": "2976x1828",
+   "pixels": "8488c84acb31abcc"
+  },
+  "charts: chart-boxplot-heights (worked)": {
+   "json": "3c21a2b4763399c1",
+   "svg": "20bf67ee4492afda",
+   "mm": "126x77.4",
+   "png600": "2976x1828",
+   "pixels": "092d0f4b4c96621d"
+  },
+  "charts: chart-boxplot-holiday": {
+   "json": "2ee59e03c79586b5",
+   "svg": "abaa3f8452802dec",
+   "mm": "138.8x77.4",
+   "png600": "3279x1828",
+   "pixels": "7ff4a4ff7ca64acd"
+  },
+  "charts: chart-boxplot-holiday (worked)": {
+   "json": "09b61cc412fef647",
+   "svg": "a351623846dbfae0",
+   "mm": "138.8x77.4",
+   "png600": "3279x1828",
+   "pixels": "2d63c9af9321e0c4"
+  },
   "charts: chart-composite-sales": {
    "json": "231b9298ad7c8010",
    "svg": "6b1bc4b764db39e1",
@@ -813,6 +841,34 @@
    "mm": "165.4x137.3",
    "png600": "3907x3243",
    "pixels": "12683f5f6b01c105"
+  },
+  "charts: chart-stemleaf-heights": {
+   "json": "f3999d4fd6bcf09a",
+   "svg": "5572c253f092c2a0",
+   "mm": "132x34",
+   "png600": "3118x803",
+   "pixels": "74fdd6336aea4bee"
+  },
+  "charts: chart-stemleaf-heights (worked)": {
+   "json": "8e93f45bd3380c8a",
+   "svg": "7df1b3bd9460c436",
+   "mm": "132x34",
+   "png600": "3118x803",
+   "pixels": "149b5a91f0286c99"
+  },
+  "charts: chart-stemleaf-scores": {
+   "json": "88c0bbbb46d2a5cb",
+   "svg": "688423c5d129587f",
+   "mm": "135x54",
+   "png600": "3189x1276",
+   "pixels": "c813ba11d2dd8ce1"
+  },
+  "charts: chart-stemleaf-scores (worked)": {
+   "json": "88c0bbbb46d2a5cb",
+   "svg": "688423c5d129587f",
+   "mm": "135x54",
+   "png600": "3189x1276",
+   "pixels": "c813ba11d2dd8ce1"
   },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
