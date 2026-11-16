@@ -1830,7 +1830,8 @@
               "polygon",
               "cumulative",
               "boxplot",
-              "stemleaf"
+              "stemleaf",
+              "timeseries"
             ]
           },
           "categories": {
@@ -2885,6 +2886,99 @@
               "rows",
               "key",
               "leafMm"
+            ],
+            "additionalProperties": false
+          },
+          "timeseries": {
+            "type": "object",
+            "properties": {
+              "points": {
+                "minItems": 1,
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "group": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "group",
+                    "value",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "slotMm": {
+                "type": "integer",
+                "minimum": 4,
+                "maximum": 40,
+                "multipleOf": 2
+              },
+              "xTitle": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "yAxis": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "max": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "step": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "stepMm": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "maximum": 40,
+                    "multipleOf": 2
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "step",
+                  "stepMm",
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "points",
+              "slotMm",
+              "xTitle",
+              "yAxis"
             ],
             "additionalProperties": false
           }

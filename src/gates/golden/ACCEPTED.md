@@ -708,3 +708,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-stemleaf-scores (worked): added
 - charts: chart-stemleaf-heights: added
 - charts: chart-stemleaf-heights (worked): added
+
+## 2026-11-16: Time series graphs added to the charts tool and connector text
+
+- charts: chart-timeseries-gas: added
+- charts: chart-timeseries-gas (worked): added
+- charts: chart-timeseries-quarters: added
+- charts: chart-timeseries-quarters (worked): added

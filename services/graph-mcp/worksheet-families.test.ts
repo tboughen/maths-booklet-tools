@@ -84,6 +84,17 @@ describe("worksheet diagrams from every family", () => {
     const pdf = await worksheetPdf(rendered.pages, "edexcel graph test", roots);
     expect((await PDFDocument.load(pdf)).getPageCount()).toBe(2);
   }, 60000);
+  it.each(["boxplot-heights", "stemleaf-heights", "timeseries-quarters"])("places the %s chart example in a worksheet, hidden answers pink only on the answers copy", async (example) => {
+    const resource = validate(withDiagram({ tool: "charts", spec: { example } }));
+    for (const view of ["pupil", "answers"] as const) {
+      const rendered = renderResource(resource, { view });
+      const problems = rendered.issues.map((i) => i.message).filter((m) => !/mm wide; the card has|too full|needs .* mm/.test(m));
+      expect(problems, `${example} ${view}`).toEqual([]);
+      expect(rendered.pages[0].includes("#b0125b"), `${example} ${view}`).toBe(view === "answers");
+      const pdf = await worksheetPdf(rendered.pages, `${example} test`, roots);
+      expect((await PDFDocument.load(pdf)).getPageCount()).toBe(2);
+    }
+  }, 60000);
   it("refuses a diagram with both or neither of spec and envelope, and names a bad spec field", () => {
     expect(() => validate(withDiagram({ tool: "venn" }))).toThrow(/envelope or its spec/);
     expect(() => validate(withDiagram({ tool: "venn", spec: {}, envelope: {} }))).toThrow(/envelope or its spec/);
