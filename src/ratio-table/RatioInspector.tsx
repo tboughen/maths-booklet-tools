@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { spokenHeading } from "../../packages/ratio-table-core/src/schema";
 import { ArrowDown, Grid3X3, Table2, Trash2 } from "lucide-react";
 import type {
   RatioDocument,
@@ -165,7 +166,7 @@ export function RatioInspector({
           <Table2 size={17} />
           <h2>
             {selection?.kind === "cell" && row
-              ? `Row ${rowIndex + 1} · ${document.headings[selection.column]?.text}`
+              ? `Row ${rowIndex + 1} · ${spokenHeading(document.headings[selection.column]?.text ?? "")}`
               : selection?.kind === "heading"
                 ? `Column ${selection.column + 1}`
                 : selection?.kind === "headings"
@@ -190,7 +191,7 @@ export function RatioInspector({
             <label className="ratio-label">
               Cell type
               <select
-                aria-label={`Row ${rowIndex + 1} ${document.headings[selection.column].text} cell type`}
+                aria-label={`Row ${rowIndex + 1} ${spokenHeading(document.headings[selection.column].text)} cell type`}
                 value={cellType(row.cells[selection.column])}
                 disabled={pendingInputs}
                 onChange={(event) =>

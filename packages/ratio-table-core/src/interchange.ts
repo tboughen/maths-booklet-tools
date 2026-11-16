@@ -6,6 +6,9 @@ import {
   DEFAULT_HEADINGS,
   documentSchema,
   headingsSchema,
+  headingPowers,
+  letterHeading,
+  spokenHeading,
   ratioEnvelopeSchema,
   ratioSpecSchema,
   rowSchema,
@@ -81,10 +84,10 @@ export function compactHeading(value: string): RatioDocument["headings"][number]
   const v = value.trim(),
     end = v.slice(-1),
     direction = end === "→" ? "right" : end === "↑" ? "up" : end === "↓" ? "down" : "none";
-  const text = (direction === "none" ? v : v.slice(0, -1)).trim();
+  const text = headingPowers((direction === "none" ? v : v.slice(0, -1)).trim());
   return readSchema(headingsSchema.element, {
     text,
-    italic: /^[A-Za-z]$/.test(text),
+    italic: letterHeading(text),
     direction,
   });
 }
@@ -555,7 +558,7 @@ export function describeRatio(envelope: RatioEnvelope, view: "pupil" | "answer" 
         `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "hidden" ? (view === "answer" ? `hidden answer ${c.value}` : c.line ? "answer line" : "empty") : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
     )
     .join("; ");
-  return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
+  return `Ratio table, headings ${d.headings.map((h) => spokenHeading(h.text) + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
 }
 export function encodeRatio(envelope: RatioEnvelope): string {
   return toBase64Url(canonicalRatio(envelope));

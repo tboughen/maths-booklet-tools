@@ -42,11 +42,22 @@ export const headingSchema = z
       .max(12)
       // "/" for units such as m/s (Tim's queue, 11 Nov 2026); "%" and "£" for percentages and
       // money (Tim, 16 Nov 2026).
-      .regex(/^[A-Za-z0-9 _/%£-]+$/),
+      .regex(/^[A-Za-z0-9 _/%£-]+$|^(?:\d+\/)?[A-Za-z]+\^\d$/, "Use letters, digits, spaces, _ / % £ -, or a power such as x^2 or 1/x^2."),
     italic: z.boolean(),
     direction: z.enum(["right", "up", "down", "none"]),
   })
   .strict();
+/** Typed powers become the saved form: "x²" is "x^2", "x³" is "x^3". */
+export const headingPowers = (t: string) => t.replaceAll("²", "^2").replaceAll("³", "^3");
+/** A heading that is one letter, a power of it or 1 over it ("x", "x^2", "1/x") prints the letter italic. */
+export const letterHeading = (t: string) => /^(?:1\/)?[A-Za-z](?:\^\d)?$/.test(t);
+/** A heading as it is read aloud: "x^2" is "x squared", "1/x" is "1 over x". */
+export const spokenHeading = (t: string) =>
+  t
+    .replace(/\^2\b/g, " squared")
+    .replace(/\^3\b/g, " cubed")
+    .replace(/\^(\d)/g, " to the power $1")
+    .replace(/^1\/([A-Za-z])/, "1 over $1");
 export const headingsSchema = z.array(headingSchema).min(1).max(3);
 export const rowSchema = z.object({ id, cells: cellsSchema }).strict();
 export const transitionSchema = z
