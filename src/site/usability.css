@@ -17,6 +17,13 @@
     clip-path: inset(50%) !important;
     white-space: nowrap !important;
   }
+  /* The jump after the action bar shows over the corner of the diagram, so nothing moves. */
+  .booklet-editor .editor-card > .editor-inspector-link:focus-visible {
+    position: absolute;
+    z-index: 6;
+    top: calc(var(--editor-toolbar-height, 58px) + 8px);
+    right: 12px;
+  }
   .booklet-editor .editor-inspector-link:focus-visible,
   .booklet-editor .editor-diagram-link:focus-visible {
     min-height: 40px;

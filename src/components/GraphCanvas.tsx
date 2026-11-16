@@ -318,15 +318,19 @@ export function GraphCanvas({
     height: metrics.height * 0.6,
   };
   const compact = availableWidth < 600;
+  // Fit stops at 400% of print size, the largest step the zoom offers.
   const scale =
     zoom * PRINT_SIZE ||
-    fitResource(
-      paper.width,
-      paper.height,
-      availableWidth,
-      availableHeight,
-      compact ? 168 : 264,
-      144,
+    Math.min(
+      4 * PRINT_SIZE,
+      fitResource(
+        paper.width,
+        paper.height,
+        availableWidth,
+        availableHeight,
+        compact ? 168 : 264,
+        144,
+      ),
     );
   useEffect(() => onScale?.(scale / PRINT_SIZE), [onScale, scale]);
   const paperWidth = paper.width * scale,

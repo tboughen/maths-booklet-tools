@@ -1,7 +1,7 @@
 // The editor frame (docs/tools/APP-HOUSE-STYLE.md): at 1920 x 1080 every diagram tool fills the
 // window under the app bar, the page itself does not scroll, and the diagram's stage takes the
-// room the bars leave. The foot strip holds zoom, print size and one note; a message takes the
-// hint's place in it, so it never resizes the diagram.
+// room the bars leave. The foot strip holds zoom, print size, the hint and the latest message,
+// which has room kept for it, so it never resizes the diagram.
 import { test, expect, type Page } from "@playwright/test";
 import { toolIds } from "../src/site/routes";
 
@@ -31,7 +31,7 @@ test.describe("a message in the foot strip", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
   // The Graph tool has its own toast.
   for (const tool of toolIds.filter((id) => id !== "graph"))
-    test(`${tool}: "Image copied" takes the hint's place in the foot strip and leaves the diagram's stage the same size`, async ({ page }) => {
+    test(`${tool}: "Image copied" shows in the foot strip beside the hint and leaves the diagram's stage the same size`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 900 });
       await page.goto(`/tools/${tool}`);
       await expect(page.locator(STAGE)).toBeVisible();
@@ -39,7 +39,7 @@ test.describe("a message in the foot strip", () => {
       await page.getByRole("button", { name: "Copy image", exact: true }).click();
       const line = page.locator(".site-page:not([hidden]) .editor-foot").getByRole("status").filter({ hasText: /copied/i });
       await expect(line).toBeVisible();
-      await expect(page.locator(".site-page:not([hidden]) .editor-foot .editor-hint:not(.editor-hint--prompt)")).toBeHidden();
+      await expect(page.locator(".site-page:not([hidden]) .editor-foot .editor-hint:not(.editor-hint--prompt)")).toBeVisible();
       const box = (await line.boundingBox())!;
       expect(box.y).toBeGreaterThanOrEqual(before.stageBottom - 1);
       expect(box.y + box.height).toBeLessThanOrEqual(before.cardBottom + 1);
@@ -104,6 +104,29 @@ for (const [width, height, why] of [[600, 900, "narrow"], [1280, 720, "short"]] 
     expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeGreaterThan(height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   });
+
+for (const tool of toolIds)
+  test(`${tool}: on a laptop window too short for the frame, the foot strip is still in view`, async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 650 });
+    await page.goto(`/tools/${tool}`);
+    await expect(page.locator(STAGE)).toBeVisible();
+    const foot = page.locator(".site-page:not([hidden]) .editor-foot");
+    await expect.poll(async () => { const box = (await foot.boundingBox())!; return box.y + box.height; }).toBeLessThanOrEqual(650);
+    await expect(foot.getByRole("combobox", { name: "Preview zoom" })).toBeInViewport();
+  });
+
+test("the keyboard jump to the settings shows over the stage and does not resize the diagram", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/venn");
+  await expect(page.locator(STAGE)).toBeVisible();
+  const before = await frame(page);
+  await page.getByRole("button", { name: "File", exact: true }).focus();
+  await page.keyboard.press("Tab");
+  const jump = page.getByRole("button", { name: "Edit settings ↓", exact: true });
+  await expect(jump).toBeFocused();
+  expect((await jump.boundingBox())!.height).toBeGreaterThanOrEqual(40);
+  expect((await frame(page)).stage).toBe(before.stage);
+});
 
 test("print keeps the stacked page: the frame is for screens only", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

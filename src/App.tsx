@@ -124,7 +124,8 @@ export default function App({ active = true }: { active?: boolean }) {
   const drafts = useGraphDrafts();
   const hasPendingDraft = drafts.hasPending;
   const [previewZoom, setPreviewZoom] = useState(0);
-  const [viewScale, setViewScale] = useState(1);
+  // Told by the canvas once it has measured its space; 0 until then.
+  const [viewScale, setViewScale] = useState(0);
   const blocked = recoveryConflict || copying || drafts.pending;
   const locked = () => recoveryConflict || copying || hasPendingDraft();
   const act = (action: () => void) => {

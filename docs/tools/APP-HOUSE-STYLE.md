@@ -107,7 +107,7 @@ The frame changes screen furniture only. Preview zoom still never changes print 
 ## The foot strip
 
 Every diagram tool ends its card with one strip (`EditorFoot` in `src/site/EditorFoot.tsx`,
-styled by `src/site/editor-foot.css`, 36 px high as `--md-foot-strip`). It replaces the preview
+styled by `src/site/editor-foot.css`, 36 px high as `--md-foot-strip` when it fits on one row). It replaces the preview
 bar above the diagram, the hint banner under it and the separate status line. From the left:
 
 - **Zoom.** Minus, the "Preview zoom" list and plus. Fit says the size the diagram is drawn at
@@ -117,18 +117,22 @@ bar above the diagram, the hint banner under it and the separate status line. Fr
 - **The print size.** "Prints at 12.00 × 8.50 cm, whatever the zoom" (`ResourceSize`).
 - **View-only switches.** Showing hidden answers, editing guides, the number line's "Finish
   drawing". Anything that changes the resource belongs in the settings.
-- **One note, at the right.** The latest message ("Image copied", a failed copy, a protected
-  draft) while there is one, otherwise the tool's hint (`EditorHint`). The message takes the
-  hint's place and the hint keeps its room, so a message never resizes or moves the diagram. A
-  drawing prompt ("Choose the other endpoint") always stays, beside the message.
+- **The note, at the right.** The tool's hint (`EditorHint`) or its drawing prompt ("Choose the
+  other endpoint") at the far right, and the latest message ("Image copied", a failed copy, a
+  protected draft) beside it. Room is kept for the message, so when one arrives the hint does not
+  move and the diagram is never resized. Neither hides the other.
 
-A card narrower than 1,200 px gives the note a row of its own, which is kept even when it is
-empty. Touch screens and windows under 768 px get 44 px controls. The Graph tool still shows its
-messages in its own toast.
+A card at least 1,400 px wide (a 1920 px window) always keeps one row: a long hint takes a
+second line inside the strip. On a narrower card, if the hint and the message's room do not fit
+beside the controls, the note takes a second row. A card under 700 px wide puts the message on
+its own line above the hint, and under 1,200 px drops ", whatever the zoom". Touch screens and windows under 768 px get 44 px controls. On a
+window too short for the editor frame the stage is sized so that the strip still ends inside
+the window. The Graph tool still shows its messages in its own toast.
 
 A tool passes its message as `status` and never draws a status line of its own. Warnings about
 the diagram itself stay where the tool draws them, above the strip. The "Edit settings" jump for
-keyboards now follows the action bar, so one press still skips the diagram.
+keyboards now follows the action bar, so one press still skips the diagram; it shows over the
+corner of the stage, so nothing moves when it appears.
 
 ## Decided, and built in later steps
 

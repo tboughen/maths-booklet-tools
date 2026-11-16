@@ -403,6 +403,19 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 ))}
               </div>
             )}
+            {/* Straight under the diagram, above the entry grid; the editor frame draws it at the card's foot. */}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={
+                <EditorHint tool="two-way-table">Click a cell on the table to edit it. Enter applies; Escape restores.</EditorHint>
+              }
+            >
+              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
+            </EditorFoot>
             <div className="twt-grid-wrap">
               <table className="twt-grid" aria-label="Table entries">
                 <thead>
@@ -503,18 +516,6 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 Add column
               </button>
             </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={
-                <EditorHint tool="two-way-table">Click a cell on the table to edit it. Enter applies; Escape restores.</EditorHint>
-              }
-            >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
-            </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Two-way table settings">
             <ExampleGallery

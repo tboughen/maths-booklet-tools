@@ -13,6 +13,7 @@ import {
   ratioGallery,
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
+import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -107,7 +108,7 @@ export default function RatioTablePage({
   const [exportsOpen, setExportsOpen] = useState(false);
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
-    [viewScale, setViewScale] = useState(1),
+    [viewScale, setViewScale] = useState(0),
     [guides, setGuides] = useState(readGuidesPreference);
   // The preview is the pupil copy unless the teacher asks to see hidden answers. Never saved.
   const [showAnswers, setShowAnswers] = useState(false);
@@ -748,16 +749,7 @@ export default function RatioTablePage({
                 />
                 Editing guides
               </label>
-              {hasRatioAnswers(envelope) && (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={showAnswers}
-                    onChange={(e) => setShowAnswers(e.target.checked)}
-                  />
-                  Teacher preview: show hidden answers
-                </label>
-              )}
+              {hasRatioAnswers(envelope) && <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} />}
             </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">

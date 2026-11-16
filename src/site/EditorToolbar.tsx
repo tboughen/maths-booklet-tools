@@ -104,9 +104,12 @@ function Toolbar(props: EditorToolbarProps) {
       );
       if (!stage?.clientWidth) return;
       const top = stage.getBoundingClientRect().top + window.scrollY;
+      // Leave room for the rows under the stage (the foot strip, any warnings), so on a window too
+      // short for the editor frame the card still ends just above the foot of the window.
+      const under = Math.max(0, parent.getBoundingClientRect().bottom - stage.getBoundingClientRect().bottom);
       parent.style.setProperty(
         "--resource-stage-height",
-        `${Math.max(320, window.innerHeight - top - 20)}px`,
+        `${Math.max(320, window.innerHeight - top - under - 20)}px`,
       );
     };
     measure();

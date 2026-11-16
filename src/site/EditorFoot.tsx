@@ -3,9 +3,9 @@ import { PreviewControls } from "./PreviewControls";
 import "./editor-foot.css";
 
 /**
- * The foot strip of every editor card: zoom, the true print size, any view-only switches, and one
- * note at the end. The note is the latest message ("Image copied") while there is one; otherwise it
- * is the tool's hint. A drawing prompt always stays. Nothing here is part of the resource.
+ * The foot strip of every editor card: zoom, the true print size, any view-only switches, and at
+ * the end the tool's hint or drawing prompt, with the latest message ("Image copied") beside it.
+ * Nothing here is part of the resource.
  */
 export function EditorFoot({
   zoom,
@@ -36,11 +36,10 @@ export function EditorFoot({
       {size}
       {children}
       <div className="editor-foot-note">
-        {status ? (
-          <p className="resource-feedback" role="status">
-            {status}
-          </p>
-        ) : null}
+        {/* Always mounted, so screen readers announce a message when it arrives. */}
+        <p className="resource-feedback" role="status">
+          {status || null}
+        </p>
         {hint}
       </div>
     </div>

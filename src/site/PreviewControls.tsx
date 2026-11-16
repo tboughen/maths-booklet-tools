@@ -9,7 +9,8 @@ const percent = (value: number) => `${Math.round(value * 100)}%`;
  * never saved with a resource and never changes the print size.
  *
  * `zoom` is 0 for "fit the diagram to its space", else one of the steps. `scale` is the size the
- * diagram is drawn at now, so Fit can say its percentage and the steps start from it.
+ * diagram is drawn at now (0 while a page has yet to measure it), so Fit can say its percentage
+ * and the steps start from it.
  */
 export function PreviewControls({
   zoom,
@@ -22,7 +23,7 @@ export function PreviewControls({
 }) {
   const now = zoom || scale;
   const smaller = [...ZOOM_LEVELS].reverse().find((level) => level < now - 0.004);
-  const larger = ZOOM_LEVELS.find((level) => level > now + 0.004);
+  const larger = now > 0 ? ZOOM_LEVELS.find((level) => level > now + 0.004) : undefined;
   return (
     <>
       <span className="preview-zoom" role="group" aria-label="Zoom">
