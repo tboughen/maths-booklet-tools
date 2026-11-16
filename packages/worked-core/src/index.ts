@@ -27,6 +27,8 @@ const LINE = 26;
 const FRACTION_LINE = 38;
 const BUBBLE_ROW = 26;
 const NOTE_LEADING = 13;
+/** The gap between a line of working and its guidance. */
+const NOTE_GAP = 16;
 const MM = 72 / 25.4;
 
 // ---------------------------------------------------------------- schema
@@ -310,33 +312,53 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
     let last: { lhsCentre: number; rhsCentre: number } | undefined;
     const later: (() => void)[] = [];
 
-    const placeNote = (k: number, baseline: number, mark: WorkedMark | undefined, note: string | undefined, watch = false) => {
-      if (!mark && !note) return;
+    // Guidance starts just after the working it belongs to, so it is plain what earns each mark (Tim,
+    // 16 Nov 2026). It falls back to the guidance column when the line is long or the note has had to
+    // move down below an earlier one.
+    let noteLeft = Infinity;
+    const placeNote = (k: number, baseline: number, mark: WorkedMark | undefined, note: string | undefined, watch = false, beside?: number) => {
+      if (!mark && !note) return false;
       let y = Math.max(baseline, noteBottom + NOTE_LEADING);
+      // Close beside its line only when the words fit on that one line; longer guidance would run
+      // down past the working below it.
+      const near = beside !== undefined && y <= baseline + 0.5 ? Math.min(part.notesX, beside + NOTE_GAP) : part.notesX;
+      const oneLine = (from: number) => {
+        const room = d.surface.width - from - 4;
+        if (mark && note) return false;
+        if (mark) return wrap(mark.note, room - noteWidth(mark.code, 9, true) - 13, NOTE_SIZE).length === 1;
+        return wrap(watch ? `Watch out: ${note}` : note ?? "", room, NOTE_SIZE).length === 1;
+      };
+      const x = near < part.notesX && oneLine(near) ? near : part.notesX;
+      const width = d.surface.width - x - 4;
       const top = y - NOTE_SIZE;
-      let svg = "";
+      let svg = "", used = 0;
       if (mark) {
         const chipWidth = noteWidth(mark.code, 9, true) + 8;
-        const words = wrap(mark.note, notesWidth - chipWidth - 5, NOTE_SIZE);
-        svg += chip(mark.code, part.notesX, y);
+        const words = wrap(mark.note, width - chipWidth - 5, NOTE_SIZE);
+        svg += chip(mark.code, x, y);
         // The words keep their place without the chip, so guidance never jumps when the switch changes.
-        words.forEach((l, i) => { svg += `<text x="${n(part.notesX + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(l)}</text>`; });
+        words.forEach((l, i) => { used = Math.max(used, chipWidth + 5 + noteWidth(l, NOTE_SIZE)); svg += `<text x="${n(x + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(l)}</text>`; });
         y += (words.length - 1) * NOTE_LEADING;
         // Its room is kept without the mark notes too, so the layout is the same either way.
-        if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, notesWidth - chipWidth - 5, 9)) { y += 12; if (marks) svg += `<text class="wk-mark" x="${n(part.notesX + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${esc(l)}</text>`; }
+        if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { y += 12; used = Math.max(used, chipWidth + 5 + noteWidth(l, 9)); if (marks) svg += `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${esc(l)}</text>`; }
         if (note) y += NOTE_LEADING;
       }
       if (note) {
         const prefix = watch ? "Watch out:" : "";
-        wrap(prefix ? `${prefix} ${note}` : note, notesWidth, NOTE_SIZE).forEach((l, i) => {
+        wrap(prefix ? `${prefix} ${note}` : note, width, NOTE_SIZE).forEach((l, i) => {
           const body = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>${esc(l.slice(prefix.length))}` : esc(l);
           if (i) y += NOTE_LEADING;
-          svg += `<text x="${n(part.notesX)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}" xml:space="preserve">${body}</text>`;
+          used = Math.max(used, noteWidth(l, NOTE_SIZE) + (i === 0 && prefix ? 4 : 0));
+          svg += `<text x="${n(x)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}" xml:space="preserve">${body}</text>`;
         });
       }
       noteBottom = y + 3;
-      emit(d, k, `<g ${UI}>${svg}</g>`, a.y, [{ x: part.notesX, y: top, width: notesWidth, height: y + 3 - top, what: "guidance" }]);
+      noteLeft = Math.min(noteLeft, x);
+      emit(d, k, `<g ${UI}>${svg}</g>`, a.y, [{ x, y: top, width: Math.min(used + 2, width), height: y + 3 - top, what: "guidance" }]);
+      return x < part.notesX;
     };
+    // Close guidance with an "Also scores" line under it keeps the next working clear of that line.
+    const clearOf = (close: boolean) => { if (close) cursor = Math.max(cursor, noteBottom - 3); };
     const work = (k: number, svg: string, box: Omit<Box, "what">, what = "working") => emit(d, k, `<g ${HAND}>${svg}</g>`, a.y, [{ ...box, what }]);
 
     for (const step of part.steps) {
@@ -351,8 +373,9 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           work(k, maths(lhs, eq - 8 - lw, y) + `<text x="${n(eq)}" y="${n(y)}" font-size="${HAND_SIZE}" fill="${INK}" text-anchor="middle">${esc(step.rel)}</text>` + maths(rhs, eq + 8, y),
             { x: eq - 8 - lw, y: y - HAND_SIZE, width: lw + rw + 16, height: HAND_SIZE * 1.3 });
           last = { lhsCentre: eq - 8 - mathsWidth(lastTerm(lhs)) / 2, rhsCentre: eq + 8 + rw / 2 };
-          placeNote(k, y, step.mark, step.note);
+          const close = placeNote(k, y, step.mark, step.note, false, eq + 8 + rw);
           cursor += h;
+          clearOf(close);
           break;
         }
         case "text": case "carry": {
@@ -366,9 +389,10 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
             svg += `<g ${UI}><rect x="${n(a.x + w + 10)}" y="${n(y - 10)}" width="${n(tagWidth)}" height="14" rx="7" fill="#eef3fa" stroke="#9fb3cc" stroke-width="0.6"/><text x="${n(a.x + w + 16)}" y="${n(y)}" font-size="9" font-weight="600" fill="${CARRY_INK}">${esc(tag)}</text></g>`;
           }
           work(k, svg, { x: a.x, y: y - HAND_SIZE, width: w + (tagWidth ? tagWidth + 10 : 0), height: HAND_SIZE * 1.3 });
-          if (step.kind === "text") placeNote(k, y, step.mark, step.note);
+          const close = step.kind === "text" && placeNote(k, y, step.mark, step.note, false, a.x + w);
           last = undefined;
           cursor += h;
+          clearOf(close);
           break;
         }
         case "bubbles": {
@@ -387,9 +411,10 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           const dg = diagramSvg(step.family, step.envelope);
           const top = cursor + 4;
           work(k, dg.svg.replace("<svg ", `<svg x="${n(a.x)}" y="${n(top)}" width="${n(dg.width)}" height="${n(dg.height)}" `), { x: a.x, y: top, width: dg.width, height: dg.height }, "diagram");
-          placeNote(k, top + 12, step.mark, step.note);
+          const close = placeNote(k, top + 12, step.mark, step.note, false, a.x + dg.width);
           last = undefined;
           cursor = top + dg.height + 6;
+          clearOf(close);
           break;
         }
         case "note":
@@ -444,7 +469,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           // The answer line sits below the working space, so it moves down with any room added there,
           // and room is added when guidance beside the last lines would reach its words.
           const top = Math.min(...boxes.map(b => b.y)), right = Math.max(...boxes.map(b => b.x + b.width));
-          if (noteBottom && right > part.notesX && anchor.y > a.bottom) answerClear = Math.max(answerClear, noteBottom + 3 - top);
+          if (noteBottom && right > noteLeft && anchor.y > a.bottom) answerClear = Math.max(answerClear, noteBottom + 3 - top);
           emit(d, k, svg, anchor.y, boxes);
           break;
         }

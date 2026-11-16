@@ -167,6 +167,23 @@ describe("worked-solution layout", () => {
   });
 });
 
+describe("worked-solution guidance placement", () => {
+  const chipX = (svg: string, words: string) => Number(new RegExp(`<rect x="([\\d.]+)"[^>]*/><text[^>]*>[A-Z]\\d</text></g><text[^>]*>${words}`).exec(svg)?.[1]);
+  it("puts a mark just after the working that earns it", () => {
+    const raw = sample();
+    const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], notesX: 330, steps: [{ kind: "text", text: "3 × 4 = 12", mark: { code: "M1", note: "multiplies" } }, { kind: "answer", value: "12" }] }, raw.parts[1]] });
+    const layout = layoutWorked(data, surfaces);
+    expect(layout.issues).toEqual([]);
+    expect(chipX(layout.overlays.get("a-1")!.svg, "multiplies")).toBeCloseTo(40 + mathsWidth("3 × 4 = 12") + 16, 0);
+  });
+  it("keeps long guidance, and guidance that has moved down, in the guidance column", () => {
+    const raw = sample();
+    const long = "describes the whole method in many words, so it cannot sit on one line beside the working";
+    const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], notesX: 330, steps: [{ kind: "text", text: "3 × 4 = 12", mark: { code: "M1", note: long } }, { kind: "answer", value: "12" }] }, raw.parts[1]] });
+    expect(chipX(layoutWorked(data, surfaces).overlays.get("a-1")!.svg, long.split(" ").slice(0, 3).join(" "))).toBe(330);
+  });
+});
+
 describe("worked-solution written answers", () => {
   it("starts words at the left of a full-width line and centres a value", () => {
     const raw = sample();
