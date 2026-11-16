@@ -46,3 +46,65 @@ test("an axis letter such as t prints at the arrow beside the title", async ({ p
   await expect.poll(async () => (await saved(page))?.axes.x.name).toBe("t");
   await expect(page.locator(".graph-canvas .axis-name--x")).toHaveText("𝑡");
 });
+
+test("a tangent and trapezium strips are added to a graph through points as hidden answers, and a circle is drawn", async ({ page }) => {
+  await page.goto("/tools/graph");
+  await page.evaluate((k) => localStorage.removeItem(k), key);
+  await page.reload();
+  const canvas = page.locator(".graph-canvas");
+
+  await page.getByRole("button", { name: "Graph through points", exact: true }).click();
+  const points = page.getByLabel("Graph points", { exact: true });
+  await points.fill("(0, 0) (1, 1) (2, 4) (3, 9)");
+  await points.press("Enter");
+  await expect.poll(async () => (await saved(page))?.objects[0]?.points).toHaveLength(4);
+
+  await page.getByLabel("Tangent at x", { exact: true }).fill("9");
+  await page.getByRole("button", { name: "Draw tangent" }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await page.getByLabel("Tangent at x", { exact: true }).fill("2");
+  await page.getByRole("button", { name: "Draw tangent" }).click();
+  await expect.poll(async () => (await saved(page))?.objects[1]).toMatchObject({ kind: "straight", display: "segment", answerOnly: true });
+
+  await page.getByRole("button", { name: /^Objects/ }).click();
+  await page.getByRole("button", { name: /^Select Graph 1:/ }).click();
+  await page.getByLabel("Strips from", { exact: true }).fill("0");
+  await page.getByLabel("to", { exact: true }).fill("2");
+  await page.getByLabel("Strips", { exact: true }).fill("2");
+  await page.getByRole("button", { name: "Draw strips" }).click();
+  await expect.poll(async () => (await saved(page))?.objects.filter((o: { kind: string }) => o.kind === "polygon")).toHaveLength(2);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.objects.filter((o: { kind: string }) => o.kind === "polygon")).toHaveLength(0);
+
+  await page.getByRole("button", { name: "Add circle", exact: true }).click();
+  await expect(canvas.locator(".graph-circle")).toHaveCount(1);
+  const radius = page.getByLabel("Circle radius", { exact: true });
+  await radius.fill("2");
+  await radius.press("Enter");
+  await expect.poll(async () => (await saved(page))?.objects.at(-1)).toMatchObject({ kind: "circle", radius: 2 });
+});
+
+test("an equation curve is added, retyped, given a tangent and undone", async ({ page }) => {
+  await page.goto("/tools/graph");
+  await page.evaluate((k) => localStorage.removeItem(k), key);
+  await page.reload();
+  const canvas = page.locator(".graph-canvas");
+
+  await page.getByRole("button", { name: "Equation curve", exact: true }).click();
+  await expect(canvas.locator(".graph-function")).toHaveCount(1);
+  const equation = page.getByLabel("Curve equation", { exact: true });
+  await equation.fill("y = sin");
+  await equation.press("Enter");
+  await expect(page.getByText(/Write a trig graph/)).toBeVisible();
+  await equation.fill("y = x² − 2x − 3");
+  await equation.press("Enter");
+  await expect.poll(async () => (await saved(page))?.objects[0]?.equation).toEqual({ family: "polynomial", a: 1, b: -2, c: -3 });
+
+  await page.getByLabel("Tangent at x", { exact: true }).fill("2");
+  await page.getByRole("button", { name: "Draw tangent" }).click();
+  await expect.poll(async () => (await saved(page))?.objects[1]).toMatchObject({ kind: "straight", answerOnly: true, start: { x: 0, y: -7 }, end: { x: 4, y: 1 } });
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.objects).toHaveLength(1);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.objects[0]?.equation).toEqual({ family: "polynomial", a: 1, b: 0, c: 0 });
+});

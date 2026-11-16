@@ -137,3 +137,68 @@ describe("real-life graph review fixes", () => {
     expect(isDiagramDocument(bad)).toBe(false);
   });
 });
+
+describe("curve working and circles", () => {
+  const curve = { id: "c", kind: "curve", smooth: true, points: [{ x: -2, y: 4 }, { x: -1, y: 1 }, { x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 4 }] } as const;
+  it("draws a tangent as an answer-only segment touching the curve", () => {
+    const e = createGraph({ objects: [curve, { kind: "tangent", of: "c", x: 1, answerOnly: true }] });
+    const t = e.document.objects[1] as { kind: string; display: string; answerOnly?: boolean; start: { x: number; y: number }; end: { x: number; y: number } };
+    expect(t).toMatchObject({ kind: "straight", display: "segment", answerOnly: true });
+    expect((t.start.x + t.end.x) / 2).toBeCloseTo(1, 6);
+    expect((t.start.y + t.end.y) / 2).toBeCloseTo(1, 1);
+    const pupil = renderDiagramSvg(documentFromEnvelope(e), "pupil");
+    const answer = renderDiagramSvg(documentFromEnvelope(e), "answer");
+    expect(answer.length).toBeGreaterThan(pupil.length);
+  });
+  it("splits the area under a curve into trapezium strips", () => {
+    const e = createGraph({ objects: [curve, { kind: "strips", of: "c", from: 0, to: 2, count: 4, shaded: true }] });
+    const strips = e.document.objects.slice(1);
+    expect(strips).toHaveLength(4);
+    expect(strips.every((s) => s.kind === "polygon")).toBe(true);
+    expect(strips.map((s) => s.id)).toEqual(["object-2-strip-1", "object-2-strip-2", "object-2-strip-3", "object-2-strip-4"]);
+  });
+  it("refuses a tangent or strips outside the curve, or of a shape that is not a curve", () => {
+    expect(() => createGraph({ objects: [curve, { kind: "tangent", of: "c", x: 5 }] })).toThrow();
+    expect(() => createGraph({ objects: [curve, { kind: "strips", of: "c", from: 1, to: 1, count: 2 }] })).toThrow();
+    expect(() => createGraph({ objects: [shapeA, { kind: "tangent", of: "a", x: 1 }] })).toThrow();
+  });
+  it("draws a circle, refuses a bad radius and round-trips both validators", async () => {
+    const { isDiagramDocument } = await import("./legacy-validation");
+    const e = createGraph({ objects: [{ kind: "circle", centre: { x: 0, y: 0 }, radius: 3, strokeStyle: "dashed" }] });
+    expect(renderDiagramSvg(documentFromEnvelope(e), "pupil")).toMatch(/<ellipse[^>]*class="graph-circle"/);
+    expect(isDiagramDocument(e.document)).toBe(true);
+    expect((await validateEnvelope(structuredClone(e))).document).toEqual(e.document);
+    expect(() => createGraph({ objects: [{ kind: "circle", centre: { x: 0, y: 0 }, radius: 0 }] })).toThrow();
+  });
+  it("adds a tangent by revision", async () => {
+    const e = createGraph({ objects: [curve] });
+    const r = await reviseGraph({ envelope: e, baseHash: await graphHash(e), operations: [{ op: "add_object", object: { kind: "tangent", of: "c", x: -1 } }] });
+    expect(r.document.objects).toHaveLength(2);
+  });
+});
+
+describe("curve working review fixes", () => {
+  const line = { id: "c", kind: "curve", points: [{ x: -2, y: -2 }, { x: 0, y: 0 }, { x: 3, y: 3 }] } as const;
+  it("refuses strips that cross the x-axis or lie on it", () => {
+    expect(() => createGraph({ objects: [line, { kind: "strips", of: "c", from: -1, to: 2, count: 1 }] })).toThrow(/crosses the x-axis/);
+    const flat = { id: "f", kind: "curve", points: [{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 3, y: 2 }] } as const;
+    expect(() => createGraph({ objects: [flat, { kind: "strips", of: "f", from: 0, to: 2, count: 1 }] })).toThrow(/no area/);
+  });
+  it("gives repeated strips by revision fresh ids and refuses strips in replace_object", async () => {
+    let e = createGraph({ objects: [line] });
+    for (let k = 0; k < 2; k++)
+      e = await reviseGraph({ envelope: e, baseHash: await graphHash(e), operations: [{ op: "add_object", object: { kind: "strips", of: "c", from: 0, to: 2, count: 2 } }] });
+    const ids = e.document.objects.map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    await expect(reviseGraph({ envelope: e, baseHash: await graphHash(e), operations: [{ op: "replace_object", id: "c", object: { kind: "strips", of: "c", from: 0, to: 2, count: 1 } }] })).rejects.toThrow(/add_object/);
+  });
+  it("warns about a circle partly off the grid, and the legacy validator refuses extra circle keys", async () => {
+    const { graphWarnings } = await import("./interchange");
+    const { isDiagramDocument } = await import("./legacy-validation");
+    const e = createGraph({ axes: { x: { negativeSquares: 4, positiveSquares: 4, unitsPerSquare: 1 }, y: { negativeSquares: 4, positiveSquares: 4, unitsPerSquare: 1 } }, objects: [{ kind: "circle", centre: { x: 0, y: 0 }, radius: 5 }] });
+    expect(graphWarnings(e).some((w) => w.includes("part of this circle is off the grid"))).toBe(true);
+    const bad = structuredClone(e.document) as unknown as { objects: Record<string, unknown>[] };
+    bad.objects[0].smooth = true;
+    expect(isDiagramDocument(bad)).toBe(false);
+  });
+});

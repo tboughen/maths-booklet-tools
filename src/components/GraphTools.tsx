@@ -1,4 +1,4 @@
-import { CornerDownLeft, MousePointer2, Plus, Slash, Spline, SquareDashed, Triangle, X } from "lucide-react";
+import { Circle, CornerDownLeft, MousePointer2, Plus, Slash, Spline, SquareDashed, Triangle, X } from "lucide-react";
 import type { DrawingTool } from "../domain/types";
 
 const tools: Array<{
@@ -30,6 +30,8 @@ export function GraphTools({
   onRegion,
   onCurve,
   onReading,
+  onCircle,
+  onFunction,
 }: {
   tool: DrawingTool;
   onToolChange: (tool: DrawingTool) => void;
@@ -38,6 +40,8 @@ export function GraphTools({
   onRegion?: () => void;
   onCurve?: () => void;
   onReading?: () => void;
+  onCircle?: () => void;
+  onFunction?: () => void;
 }) {
   return (
     <section className="panel-card specialist-tools">
@@ -79,6 +83,18 @@ export function GraphTools({
         <button className="secondary-panel-button" onClick={onCurve}>
           <Spline size={16} aria-hidden="true" />
           <span>Graph through points</span>
+        </button>
+      )}
+      {onFunction && (
+        <button className="secondary-panel-button" onClick={onFunction}>
+          <Spline size={16} aria-hidden="true" />
+          <span>Equation curve</span>
+        </button>
+      )}
+      {onCircle && (
+        <button className="secondary-panel-button" onClick={onCircle}>
+          <Circle size={16} aria-hidden="true" />
+          <span>Add circle</span>
         </button>
       )}
       {onReading && (

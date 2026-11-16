@@ -115,7 +115,8 @@ def main():
     sets = {q["paperId"].rsplit("_", 1)[0] for q in questions}
     catalogue["scope"] = {"sets": len(sets), "papers": len(papers), "sourceQuestions": len(questions), "publishedQuestions": len(questions)}
     if catalogue.get("publication"):
-        catalogue["publication"]["description"] = f"{len(questions)} reviewed questions are available. Further questions remain in preparation."
+        catalogue["publication"]["description"] = f"{len(questions)} reviewed questions are available."
+        catalogue["publication"]["status"] = "complete"
     with open(catalogue_path, "w") as f:
         f.write(json.dumps(catalogue, ensure_ascii=False, separators=(",", ":")))
     print(f"add-papers: added {len(added)} questions from {len({q['paperId'] for q in added})} papers; {len(questions)} in all")

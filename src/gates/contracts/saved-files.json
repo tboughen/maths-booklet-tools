@@ -1825,7 +1825,10 @@
               "vline",
               "pie",
               "pictogram",
-              "scatter"
+              "scatter",
+              "histogram",
+              "polygon",
+              "cumulative"
             ]
           },
           "categories": {
@@ -2300,6 +2303,310 @@
               "minor",
               "readings",
               "table"
+            ],
+            "additionalProperties": false
+          },
+          "grouped": {
+            "type": "object",
+            "properties": {
+              "variable": {
+                "type": "string",
+                "pattern": "^[A-Za-z]?$"
+              },
+              "inequality": {
+                "type": "string",
+                "enum": [
+                  "lower-open",
+                  "lower-closed"
+                ]
+              },
+              "classes": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lower": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "upper": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "frequency": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "table": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    },
+                    "graph": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lower",
+                    "upper",
+                    "frequency",
+                    "table",
+                    "graph"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "xAxis": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "max": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "step": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "stepMm": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "maximum": 40,
+                    "multipleOf": 2
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "step",
+                  "stepMm",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "table": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "frequency",
+                  "cumulative"
+                ]
+              },
+              "histogram": {
+                "type": "object",
+                "properties": {
+                  "yAxis": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "max": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "step": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "stepMm": {
+                        "type": "integer",
+                        "minimum": 4,
+                        "maximum": 40,
+                        "multipleOf": 2
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max",
+                      "step",
+                      "stepMm",
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "fill": {
+                    "type": "string",
+                    "enum": [
+                      "white",
+                      "grey"
+                    ]
+                  }
+                },
+                "required": [
+                  "yAxis",
+                  "fill"
+                ],
+                "additionalProperties": false
+              },
+              "polygon": {
+                "type": "object",
+                "properties": {
+                  "yAxis": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "max": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "step": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "stepMm": {
+                        "type": "integer",
+                        "minimum": 4,
+                        "maximum": 40,
+                        "multipleOf": 2
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max",
+                      "step",
+                      "stepMm",
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "yAxis"
+                ],
+                "additionalProperties": false
+              },
+              "cumulative": {
+                "type": "object",
+                "properties": {
+                  "yAxis": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "max": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "step": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "stepMm": {
+                        "type": "integer",
+                        "minimum": 4,
+                        "maximum": 40,
+                        "multipleOf": 2
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max",
+                      "step",
+                      "stepMm",
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "curve": {
+                    "type": "string",
+                    "enum": [
+                      "smooth",
+                      "straight"
+                    ]
+                  },
+                  "fromZero": {
+                    "type": "boolean"
+                  },
+                  "crosses": {
+                    "type": "boolean"
+                  },
+                  "readings": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "axis": {
+                          "type": "string",
+                          "enum": [
+                            "x",
+                            "y"
+                          ]
+                        },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "axis",
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "yAxis",
+                  "curve",
+                  "fromZero",
+                  "crosses",
+                  "readings"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "variable",
+              "inequality",
+              "classes",
+              "xAxis",
+              "table",
+              "histogram",
+              "polygon",
+              "cumulative"
             ],
             "additionalProperties": false
           }
@@ -4695,6 +5002,290 @@
                     "id",
                     "kind",
                     "points"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "const": "function"
+                    },
+                    "equation": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "family": {
+                              "type": "string",
+                              "const": "polynomial"
+                            },
+                            "a": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "b": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "c": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "cubic": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            }
+                          },
+                          "required": [
+                            "family",
+                            "a",
+                            "b",
+                            "c"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "family": {
+                              "type": "string",
+                              "const": "reciprocal"
+                            },
+                            "k": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "c": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            }
+                          },
+                          "required": [
+                            "family",
+                            "k",
+                            "c"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "family": {
+                              "type": "string",
+                              "const": "exponential"
+                            },
+                            "coefficient": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "base": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "c": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            }
+                          },
+                          "required": [
+                            "family",
+                            "coefficient",
+                            "base",
+                            "c"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "family": {
+                              "type": "string",
+                              "const": "trig"
+                            },
+                            "fn": {
+                              "type": "string",
+                              "enum": [
+                                "sin",
+                                "cos",
+                                "tan"
+                              ]
+                            },
+                            "amplitude": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "multiplier": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "shift": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            },
+                            "c": {
+                              "type": "number",
+                              "minimum": -1000000,
+                              "maximum": 1000000
+                            }
+                          },
+                          "required": [
+                            "family",
+                            "fn",
+                            "amplitude",
+                            "multiplier",
+                            "shift",
+                            "c"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "from": {
+                      "type": "number",
+                      "minimum": -1000000,
+                      "maximum": 1000000
+                    },
+                    "to": {
+                      "type": "number",
+                      "minimum": -1000000,
+                      "maximum": 1000000
+                    },
+                    "strokeStyle": {
+                      "type": "string",
+                      "const": "dashed"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Z]′?[0-9]{0,2}$"
+                    },
+                    "namePosition": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "equation"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "const": "circle"
+                    },
+                    "centre": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "radius": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 1000000
+                    },
+                    "strokeStyle": {
+                      "type": "string",
+                      "const": "dashed"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Z]′?[0-9]{0,2}$"
+                    },
+                    "namePosition": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "centre",
+                    "radius"
                   ],
                   "additionalProperties": false
                 },

@@ -251,3 +251,47 @@ test("scatter graphs: a table of values and a broken axis are options that undo"
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(art.locator("path[d*='v-1.5l-2,-1l4,-1.5l-2,-1']")).toHaveCount(0);
 });
+
+test("histograms, frequency polygons and cumulative frequency share one class table", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "histogram-complete")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const outlines = (ink: string) => art.locator(`rect[fill='none'][stroke='${ink}']`);
+  await expect(outlines("black")).toHaveCount(4);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(outlines("#b0125b")).toHaveCount(1);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A bar opens its frequency; a density above the axis is a specific error that blocks export.
+  await page.getByRole("button", { name: /Edit class 1: 0 to 2.5/ }).click();
+  const f = page.getByLabel("Class 1 frequency");
+  await expect(f).toBeFocused();
+  await f.fill("20");
+  await f.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Class 1: the frequency density 8 is above the vertical axis." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(f).toHaveValue("3");
+  // The same classes draw a frequency polygon and a cumulative frequency graph, each on its own vertical axis.
+  await page.getByRole("button", { name: "Frequency polygon" }).click();
+  await page.getByLabel("Vertical axis end").fill("16");
+  await page.getByLabel("Vertical axis end").press("Enter");
+  await page.getByLabel("Vertical axis step", { exact: true }).fill("2");
+  await page.getByLabel("Vertical axis step", { exact: true }).press("Enter");
+  await page.getByLabel("Vertical axis step length").selectOption("10");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(art.locator("path[stroke-width='0.353']")).toHaveCount(2 + 4); // the hidden class hides both lines that reach it: 2 lines and 4 crosses
+  await page.getByRole("button", { name: "Cumulative frequency graph" }).click();
+  await page.getByLabel("Vertical axis end").fill("40");
+  await page.getByLabel("Vertical axis end").press("Enter");
+  await page.getByLabel("Vertical axis step", { exact: true }).fill("5");
+  await page.getByLabel("Vertical axis step", { exact: true }).press("Enter");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "Add a reading" }).click();
+  await page.getByLabel("Reading 1 value").fill("20");
+  await page.getByLabel("Reading 1 value").press("Enter");
+  await expect(art.locator("path[stroke-dasharray]")).toHaveCount(1);
+  const doc = (await saved(page)).document;
+  expect(doc.grouped.classes).toHaveLength(5);
+  expect(doc.grouped.classes[3]).toMatchObject({ frequency: "8", graph: "hidden" });
+  expect(doc.grouped.polygon.yAxis).toMatchObject({ max: "16", step: "2", stepMm: 10 });
+  expect(doc.grouped.histogram.yAxis.max).toBe("4");
+});

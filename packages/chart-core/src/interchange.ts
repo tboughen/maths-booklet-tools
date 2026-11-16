@@ -24,6 +24,8 @@ const axis = z
     minor: z.union([z.literal(1), z.literal(2), z.literal(4), z.literal(5), z.literal(10)]).optional(),
   })
   .strict();
+/** One shared shape, so the connector's schema writes it once. */
+const axisPatch = core.paperAxisSchema.partial().optional();
 const presentation = z
   .object({
     xTitle: z.string().max(40).optional(),
@@ -44,12 +46,22 @@ const presentation = z
         bestFit: core.bestFitSchema.nullable().optional(),
       })
       .optional(),
+    /** Fields merge; xAxis and each kind's settings and yAxis merge field by field; classes replaces all classes. */
+    grouped: core.groupedSchema
+      .partial()
+      .extend({
+        xAxis: axisPatch,
+        histogram: core.groupedSchema.shape.histogram.partial().extend({ yAxis: axisPatch }).optional(),
+        polygon: core.groupedSchema.shape.polygon.partial().extend({ yAxis: axisPatch }).optional(),
+        cumulative: core.groupedSchema.shape.cumulative.partial().extend({ yAxis: axisPatch }).optional(),
+      })
+      .optional(),
   })
   .strict();
 type Presentation = z.infer<typeof presentation>;
 /** Pie, pictogram and scatter settings merge field by field with the current ones; everything else replaces. */
 function present(d: core.ChartDocument, p: Presentation) {
-  const { pie, pictogram, scatter, ...rest } = p;
+  const { pie, pictogram, scatter, grouped, ...rest } = p;
   Object.assign(d, rest);
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
   if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
@@ -60,6 +72,20 @@ function present(d: core.ChartDocument, p: Presentation) {
     if (bestFit === null) delete next.bestFit;
     else if (bestFit) next.bestFit = bestFit;
     d.scatter = next;
+  }
+  if (grouped) {
+    const { xAxis, histogram, polygon, cumulative, ...fields } = grouped,
+      now = core.groupedOf(d);
+    const kind = <K extends core.GroupedKind>(k: K, over: { yAxis?: Partial<core.PaperAxis> } | undefined) =>
+      ({ ...now[k], ...over, yAxis: { ...now[k].yAxis, ...over?.yAxis } }) as core.GroupedSettings[K];
+    d.grouped = {
+      ...now,
+      ...fields,
+      xAxis: { ...now.xAxis, ...xAxis },
+      histogram: kind("histogram", histogram),
+      polygon: kind("polygon", polygon),
+      cumulative: kind("cumulative", cumulative),
+    };
   }
 }
 export const createSchema = z
@@ -238,6 +264,8 @@ export function printFacts(e: core.Envelope, view: "pupil" | "answer" = "pupil")
       gridPitchMm: sc.grid === "none" ? [] : [...steps, ...(sc.grid === "fine" ? steps.map((x) => x / sc.minor) : [])],
     });
   }
+  if (core.groupedKind(shown.document.kind))
+    return guidance({ textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4), gridPitchMm: [2, 10, 20] });
   if (!core.axisKind(shown.document.kind))
     return guidance({ textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4), gridPitchMm: [] });
   const g = core.axesLayout(shown);

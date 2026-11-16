@@ -666,3 +666,14 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - function machines: fm-letters (worked): added
 - function machines: fm-two-machines: added
 - function machines: fm-two-machines (worked): added
+
+## 2026-11-16: Statistical charts gain histograms, frequency polygons and cumulative frequency graphs: adds goldens for the four new gallery examples; no existing output changed
+
+- charts: chart-histogram-puzzle: added
+- charts: chart-histogram-puzzle (worked): added
+- charts: chart-histogram-complete: added
+- charts: chart-histogram-complete (worked): added
+- charts: chart-polygon-plants: added
+- charts: chart-polygon-plants (worked): added
+- charts: chart-cumulative-office: added
+- charts: chart-cumulative-office (worked): added
