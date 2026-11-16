@@ -39,6 +39,8 @@
   --md-text-lg: 18px;
   --md-text-xl: 20px;
   --md-control: 32px;
+  /* The status line kept at the foot of an editor card */
+  --md-status-line: 36px;
   --md-radius: 6px;
   --md-radius-card: 8px;
   --md-radius-key: 4px;

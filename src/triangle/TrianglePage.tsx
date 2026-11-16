@@ -590,14 +590,18 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         el.parentElement
           ?.querySelector(".tr-structure")
           ?.getBoundingClientRect().height ?? 70;
+      // In the editor frame the stylesheet gives the stage its height, so the fit follows that.
+      const framed = getComputedStyle(el).flexGrow === "1";
       setAvailableHeight(
-        Math.max(
-          260,
-          Math.min(
-            innerHeight * 0.65,
-            innerHeight - el.getBoundingClientRect().top - footerHeight - 24,
-          ),
-        ),
+        framed
+          ? el.clientHeight
+          : Math.max(
+              260,
+              Math.min(
+                innerHeight * 0.65,
+                innerHeight - el.getBoundingClientRect().top - footerHeight - 24,
+              ),
+            ),
       );
     };
     measure();
@@ -935,7 +939,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               a vertex to reshape. Select a triangle to add its area.
             </EditorHint>
             <div
-              className="tr-scroll"
+              className="tr-scroll editor-stage"
               ref={scroll}
               style={{ maxHeight: availableHeight }}
             >

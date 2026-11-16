@@ -30,6 +30,7 @@ import {
 } from "./registry";
 import "./house-style.css";
 import "./site.css";
+import "./editor-frame.css";
 import "./resource-utilities.css";
 import "./usability.css";
 import "./refinement.css";
@@ -205,7 +206,7 @@ export default function SiteApp() {
       {bookletTools.map(
         (tool) =>
           visited.includes(tool.id) && (
-            <div key={tool.id} className="site-page" hidden={page !== tool.id}>
+            <div key={tool.id} className="site-page site-page--tool" hidden={page !== tool.id}>
               <LazyPage onReady={pageReady}>
                 <ToolPageContext value={tool.id}>
                   <tool.component active={page === tool.id} />

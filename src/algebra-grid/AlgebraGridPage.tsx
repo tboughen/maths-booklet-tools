@@ -612,7 +612,7 @@ export default function AlgebraGridPage({
               blank until you choose to fill them.
             </EditorHint>
             <div
-              className="ag-scroll"
+              className="ag-scroll editor-stage"
               ref={scroll}
               role="region"
               aria-label="Algebra grid workspace"

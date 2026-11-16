@@ -558,7 +558,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               Click a region or label to edit it.
             </EditorHint>
             <div
-              className="vn-scroll"
+              className="vn-scroll editor-stage"
               ref={fitted.ref}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget && !draft) setSelected(null);

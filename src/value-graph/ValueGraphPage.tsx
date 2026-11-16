@@ -1473,7 +1473,7 @@ export default function ValueGraphPage({
             )}
             {!!renderError && <p role="alert">{renderError}</p>}
 
-            <div className="vg-scroll" ref={fitted.ref}>
+            <div className="vg-scroll editor-stage" ref={fitted.ref}>
               <div
                 className={`vg-editor-frame${compact ? " is-compact" : ""}`}
                 style={{

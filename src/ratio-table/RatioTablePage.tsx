@@ -562,11 +562,6 @@ export default function RatioTablePage({
             </button>
           </section>
         )}
-        {message && (
-          <p role="status" className="resource-feedback">
-            {message}
-          </p>
-        )}
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
@@ -754,6 +749,11 @@ export default function RatioTablePage({
               <p className="ratio-message" role="status">
                 Finish or cancel the current input before exporting. Press Enter
                 to apply it or Escape to cancel.
+              </p>
+            )}
+            {message && (
+              <p role="status" className="resource-feedback">
+                {message}
               </p>
             )}
           </Panel>

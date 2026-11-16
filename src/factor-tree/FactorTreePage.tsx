@@ -415,7 +415,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
             <EditorHint tool="factor-tree">Click a number on the tree to edit, split or circle it. Enter applies; Escape restores.</EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"
