@@ -20,8 +20,8 @@ no attachment show a disabled button and **Not available yet**.
   grey (N). The whole question shows every cut stacked, with the **Total for Question** line the
   cuts leave out. An uncut question shows its own views.
 - The steps file and the handwriting font load only when a worked solution is first opened.
-- Copy image and PNG are switched off for a worked solution until worked exports arrive.
-  Paper Builder keeps its two outputs (questions, mark schemes).
+- Mark notes, step by step and image exports are described in [WORKED-SOLUTIONS.md](WORKED-SOLUTIONS.md).
+  Paper Builder keeps its two outputs (questions, mark schemes) for now.
 
 ## The catalogue attachment
 

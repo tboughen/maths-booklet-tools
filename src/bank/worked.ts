@@ -11,7 +11,13 @@ export interface WorkedPlan {
   /** The "Total for Question" line, added under a whole cut question (its cuts leave it out). */
   total?: { question: number; marks: number };
 }
-export interface WorkedShown { items: (WorkedItem & { overlay?: SurfaceOverlay })[]; steps: number; issues: string[] }
+export interface WorkedShown {
+  items: (WorkedItem & { overlay?: SurfaceOverlay })[];
+  steps: number;
+  /** The step numbers drawn on these surfaces, in order, for step by step. */
+  shownSteps: number[];
+  issues: string[];
+}
 
 /**
  * The surfaces to draw: the served parts' cuts in part view (each part keeps only its own marks),
@@ -35,4 +41,10 @@ export interface WorkedOptions { marks?: boolean; upTo?: number }
 export async function loadWorked(question: BankQuestion, plan: WorkedPlan, options: WorkedOptions = {}): Promise<WorkedShown> {
   const { layoutQuestionWorked } = await import("./workedRender");
   return layoutQuestionWorked(question, plan, options);
+}
+
+/** A PNG of the worked solution with the given options; loads the renderer if it is not loaded yet. */
+export async function workedImageBlob(question: BankQuestion, plan: WorkedPlan, options: WorkedOptions, caption: string): Promise<Blob> {
+  const { workedImage } = await import("./workedRender");
+  return workedImage(question, plan, options, caption);
 }

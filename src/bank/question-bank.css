@@ -444,3 +444,7 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-worked-slice { position: absolute; left: 0; right: 0; overflow: hidden; }
 .qb-worked-ink { position: absolute; inset: 0; pointer-events: none; }
 .qb-worked-ink svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.qb-worked-pupil .wk-mark { display: none; }
+.qb-worked-options { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.qb-worked-options label { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #253e59; }
+.qb-step-count { min-width: 6.5em; text-align: center; font-size: 13px; color: #253e59; font-variant-numeric: tabular-nums; }

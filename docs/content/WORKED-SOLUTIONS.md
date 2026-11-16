@@ -71,9 +71,17 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
 - Step numbers count through every part in order, so step-by-step reveal shows the same steps
   whatever is served.
 
+## In the Question bank
+
+- **Mark notes** (on by default, remembered on this computer) shows the mark codes and "Also scores"
+  lines. Off gives a pupil copy: the guidance words stay and nothing moves.
+- **Step by step** hides every step, then **Next step** and **Previous step** reveal them one at a
+  time in paper order, across the parts shown. Nothing moves as steps appear.
+- **Copy image** and **PNG** export what is shown at 300 dpi, with the working drawn in (fonts are
+  embedded), the current Mark notes and step choices, and the source caption. **Whole question**
+  exports every cut with its total.
+
 ## Still to come
 
-- Step-by-step reveal in Display, and a **Mark notes** switch that hides the mark codes and
-  "Also scores" lines for a pupil copy without moving anything (the renderer already supports both).
-- Worked-solution images and PDFs, and a worked-solutions PDF in Paper Builder.
+- A worked-solutions PDF in Paper Builder.
 - The June 2017 1F pilot data.

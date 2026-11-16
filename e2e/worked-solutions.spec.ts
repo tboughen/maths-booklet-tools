@@ -105,11 +105,10 @@ test("working longer than the printed space adds room instead of shrinking", asy
   expect(Math.abs(surface!.width - question!.width)).toBeLessThan(1);
 });
 
-test("image exports wait for the next step while paper exports keep their two outputs", async ({ page }) => {
+test("paper exports keep their two outputs and the old PDF link is gone", async ({ page }) => {
   await seed(page);
   await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
   await expect(ink(page)).toBeVisible();
-  await expect(page.getByRole("button", { name: "PNG", exact: true })).toBeDisabled();
   await page.getByLabel("Question options", { exact: true }).click();
   await expect(page.getByRole("link", { name: "Worked solution PDF", exact: true })).toHaveCount(0);
   await page.getByLabel("Question options", { exact: true }).click();
@@ -183,4 +182,47 @@ test("a part found by its topic code shows its working over its own cut, and the
   await page.getByRole("button", { name: "Show whole question", exact: true }).click();
   await expect(ink(page).filter({ hasText: "Synthetic working" })).toHaveCount(1);
   await expect(page.locator(".qb-worked-ink svg").last()).toContainText(`Total for Question ${question.number}`);
+});
+
+test("step by step and the Mark notes switch hide parts of the working without moving anything", async ({ page }) => {
+  await seed(page);
+  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await expect(ink(page)).toBeVisible();
+  const visibleSteps = () => ink(page).locator("[data-step]").evaluateAll(groups => groups.filter(g => (g as SVGGElement).style.display !== "none").map(g => (g as SVGGElement).dataset.step));
+  const box = () => ink(page).locator("text", { hasText: "4x + 3" }).first().boundingBox();
+  const before = await box();
+  await page.getByRole("button", { name: "Step by step", exact: true }).click();
+  await expect(page.getByText("Step 0 of 6", { exact: true })).toBeVisible();
+  expect(await visibleSteps()).toEqual([]);
+  await page.getByRole("button", { name: "Next step", exact: true }).click();
+  await page.getByRole("button", { name: "Next step", exact: true }).click();
+  await expect(page.getByText("Step 2 of 6", { exact: true })).toBeVisible();
+  expect(new Set(await visibleSteps())).toEqual(new Set(["1", "2"]));
+  expect(await box()).toEqual(before);
+  await page.getByRole("button", { name: "Previous step", exact: true }).click();
+  expect(new Set(await visibleSteps())).toEqual(new Set(["1"]));
+  await page.getByRole("button", { name: "Step by step", exact: true }).click();
+  expect((await visibleSteps()).length).toBeGreaterThan(5);
+  await expect(ink(page).locator(".wk-mark").first()).toBeVisible();
+  await page.getByRole("checkbox", { name: "Mark notes", exact: true }).uncheck();
+  await expect(ink(page).locator(".wk-mark").first()).toBeHidden();
+  await expect(ink(page).locator("text", { hasText: "subtracts 3 from both sides" })).toBeVisible();
+  expect(await box()).toEqual(before);
+  await page.reload();
+  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "Mark notes", exact: true })).not.toBeChecked();
+});
+
+test("a worked solution exports as an image with its working drawn in", async ({ page }) => {
+  await seed(page, steps(170));
+  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await expect(ink(page)).toBeVisible();
+  const download = page.waitForEvent("download"); await page.getByRole("button", { name: "PNG", exact: true }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe(`${target}-worked-solution-1.png`);
+  const image = await (await PDFDocument.create()).embedPng(await readFile((await file.path())!));
+  // 300 dpi of a 595-point cut, taller than the cut because room was added for the working.
+  expect(image.width).toBe(Math.ceil(595.28 * 300 / 72));
+  expect(image.height).toBeGreaterThan(420 * 300 / 72 + 104);
+  await test.info().attach("worked-export", { path: (await file.path())!, contentType: "image/png" });
 });
