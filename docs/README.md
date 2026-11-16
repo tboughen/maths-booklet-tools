@@ -20,7 +20,7 @@ Start here for any new tool or substantial tool change.
 
 Per-tool records:
 
-- Graph: [MCP diagram outputs](tools/MCP-DIAGRAM-OUTPUTS.md), [direct SVG delivery](tools/DIRECT-SVG-DELIVERY.md), [six-tool MCP](tools/SIX-TOOL-MCP.md).
+- Graph: [exam graph work: transformations, vectors, real-life and curve work](tools/GRAPH-EXAM-WORK.md), [MCP diagram outputs](tools/MCP-DIAGRAM-OUTPUTS.md), [direct SVG delivery](tools/DIRECT-SVG-DELIVERY.md), [six-tool MCP](tools/SIX-TOOL-MCP.md).
 - Ratio tables: [editor](tools/RATIO-TABLE-TOOL.md), [MCP](tools/RATIO-TABLE-MCP.md).
 - Plotting quadratics: [VALUE-GRAPH-TOOL.md](tools/VALUE-GRAPH-TOOL.md).
 - Expanding and factorising: [editor](tools/EXPANDING-FACTORISING.md), [MCP](tools/ALGEBRA-GRID-MCP.md).

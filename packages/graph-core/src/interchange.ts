@@ -29,6 +29,7 @@ import {
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
+import { imageObjects, transformationProblem, type Transformation } from "./transform";
 import { gradientLabelClashes } from "./svg";
 import {
   MAX_INEQUALITY_LENGTH,
@@ -200,6 +201,7 @@ export const equationSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("vertical"), x: numeric }).strict(),
 ]);
 const coordinatesSchema = z.enum(["show", "blank"]);
+const arrowSchema = z.enum(["end", "middle"]);
 const straightInput = {
   id: identifier.optional(),
   start: inputCoordinate.optional(),
@@ -219,7 +221,31 @@ const straightInput = {
   answerOnly: answerOnlyInput,
   labels: labelsInput,
   gradientTriangle: gradientTriangleInput,
+  arrow: arrowSchema
+    .optional()
+    .describe("Segments only: a vector arrowhead at the end, or centred on the middle as exam vector diagrams print it."),
 };
+export const transformationSchema = z
+  .discriminatedUnion("kind", [
+    z.object({ kind: z.literal("translate"), vector: inputCoordinate }).strict(),
+    z.object({ kind: z.literal("reflect"), mirror: equationSchema.describe("y = x is slope 1, intercept 0; x = k is vertical.") }).strict(),
+    z
+      .object({
+        kind: z.literal("rotate"),
+        centre: inputCoordinate,
+        angle: z.union([z.literal(90), z.literal(180), z.literal(270)]),
+        direction: z.enum(["clockwise", "anticlockwise"]).default("clockwise").describe("Ignored for 180°."),
+      })
+      .strict(),
+    z
+      .object({
+        kind: z.literal("enlarge"),
+        centre: inputCoordinate,
+        scaleFactor: numeric.describe("Nonzero, such as 2, \"1/2\" or -2."),
+      })
+      .strict(),
+  ])
+  .describe("Corner i of the image is the image of corner i.");
 // One branch per kind, so a bad field is reported against that kind only (M11).
 export const objectInputSchema = z.discriminatedUnion("kind", [
   z
@@ -275,6 +301,23 @@ export const objectInputSchema = z.discriminatedUnion("kind", [
       (o) => (o.equation ? !o.start && !o.end : !!o.start && !!o.end),
       "A line needs either an equation or two distinct points, not both.",
     ),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("image"),
+      of: identifier.describe("An earlier polygon's id."),
+      transformation: transformationSchema,
+      shaded: z.boolean().optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+      rays: z
+        .boolean()
+        .optional()
+        .describe("Enlargements only: dashed rays from the centre through each corner and its image."),
+    })
+    .strict()
+    .describe("The exact image of an earlier polygon, saved as a polygon. answerOnly when pupils draw it."),
   z
     .object({
       id: identifier.optional(),
@@ -349,6 +392,7 @@ const objectSchema = z.discriminatedUnion("kind", [
         .max(4)
         .optional(),
       gradientTriangle: z.object({ x: finite, run: finite, labels: gradientTriangleLabels.optional() }).strict().optional(),
+      arrow: arrowSchema.optional(),
     })
     .strict(),
   z
@@ -396,6 +440,8 @@ const documentSchema = z
         const problem = polygonProblem(o.vertices);
         if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
       }
+      if (o.kind === "straight" && o.arrow && o.display !== "segment")
+        c.addIssue({ code: "custom", message: `${o.id}: only a segment can carry a vector arrowhead.` });
       if (o.kind === "straight" && o.gradientTriangle && Math.abs(o.gradientTriangle.run) < 1e-12)
         c.addIssue({ code: "custom", message: `${o.id}: a gradient triangle needs a run that is not zero.` });
     }
@@ -482,8 +528,36 @@ export function validateEnvelope(
     );
   return envelope;
 }
-function makeObject(
+/** The objects an input makes: one, or an image with its construction rays. */
+function makeObjects(
   input: z.output<typeof objectInputSchema>,
+  index: number,
+  document: DiagramDocumentV1,
+): GraphObject[] {
+  if (input.kind !== "image") return [makeObject(input, index, document)];
+  const id = input.id ?? `object-${index + 1}`;
+  const source = document.objects.find((o) => o.id === input.of);
+  if (!source || source.kind !== "polygon")
+    throw new GraphError("invalid_graph", `${id}: ${source ? `${input.of} is not a shape` : `no earlier shape has ID ${input.of}`}, so it has no image.`);
+  const t = input.transformation;
+  const transformation: Transformation =
+    t.kind === "rotate" ? { ...t, direction: t.angle === 180 ? "clockwise" : t.direction } : t;
+  const problem = transformationProblem(transformation);
+  if (problem) throw new GraphError("invalid_graph", `${id}: ${problem}`);
+  if (input.rays && t.kind !== "enlarge")
+    throw new GraphError("invalid_graph", `${id}: rays belong to an enlargement only.`);
+  const objects = imageObjects(source, transformation, {
+    id,
+    name: input.name,
+    shaded: input.shaded,
+    answerOnly: input.answerOnly,
+    rays: input.rays,
+  });
+  if (input.namePosition) objects[0].namePosition = input.namePosition;
+  return objects;
+}
+function makeObject(
+  input: Exclude<z.output<typeof objectInputSchema>, { kind: "image" }>,
   index: number,
   document: DiagramDocumentV1,
 ): GraphObject {
@@ -550,6 +624,7 @@ function makeObject(
           },
         }
       : {}),
+    ...(input.arrow ? { arrow: input.arrow } : {}),
   };
 }
 export function createGraph(value: unknown): GraphEnvelope {
@@ -560,9 +635,9 @@ export function createGraph(value: unknown): GraphEnvelope {
   if (input.originLabel === "0") document.originLabel = "0";
   if (input.lines === "bold") document.lines = "bold";
   document.styleProfile = "portable-v1";
-  document.objects = input.objects.map((object, index) =>
-    makeObject(object, index, document),
-  );
+  // One at a time, so an image can refer to a shape made before it.
+  document.objects = [];
+  input.objects.forEach((object, index) => document.objects.push(...makeObjects(object, index, document)));
   return validateEnvelope(createEnvelope(document), true);
 }
 const operationSchema = z.discriminatedUnion("op", [
@@ -690,6 +765,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
                 },
               }
             : {}),
+          ...(o.arrow ? { arrow: o.arrow } : {}),
         },
   );
   document.axes = {
@@ -746,13 +822,13 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
       continue;
     }
     if (op.op === "add_object") {
-      const object = makeObject(op.object, document.objects.length, document);
-      if (!op.object.id) {
+      let id = op.object.id;
+      if (!id) {
         let n = 1;
-        while (document.objects.some((o) => o.id === `object-${n}`)) n++;
-        object.id = `object-${n}`;
+        while (document.objects.some((o) => o.id === `object-${n}` || o.id.startsWith(`object-${n}-ray-`))) n++;
+        id = `object-${n}`;
       }
-      document.objects.push(object);
+      document.objects.push(...makeObjects({ ...op.object, id }, document.objects.length, document));
       continue;
     }
     const index = document.objects.findIndex((o) => o.id === op.id);
@@ -768,11 +844,10 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
           "invalid_graph",
           "Replacing an object must retain its ID.",
         );
-      document.objects[index] = makeObject(
-        { ...op.object, id: op.id },
-        index,
-        document,
-      );
+      const made = makeObjects({ ...op.object, id: op.id }, index, document);
+      if (made.length !== 1)
+        throw new GraphError("invalid_graph", "Replace an image without rays, or remove it and add it again with rays.");
+      document.objects[index] = made[0];
       continue;
     }
     const object = document.objects[index];
