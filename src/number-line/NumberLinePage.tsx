@@ -10,7 +10,7 @@ import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -740,6 +740,17 @@ export default function NumberLinePage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={numberLineGallery}
+                  active={active}
+                  disabled={blocked || !!pending}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -1082,15 +1093,7 @@ export default function NumberLinePage({
             className="inspector-stack nl-inspector"
             aria-label="Number line settings"
           >
-            <ExampleGallery
-              examples={numberLineGallery}
-              active={active}
-              disabled={blocked || !!pending}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             {/* Always mounted, so the cards below stay put as the selection comes and goes (U21). */}
             <section
               className="panel-card nl-context"

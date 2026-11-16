@@ -9,7 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { sampleSpaceGallery } from "../examples/galleryCatalogue";
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
@@ -349,6 +349,16 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={sampleSpaceGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -444,7 +454,6 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                 <EditorHint tool="sample-space">Click a cell on the diagram to edit it. Enter applies; Escape restores.</EditorHint>
               }
             >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
             {(issue || notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
@@ -552,13 +561,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
             </div>
           </Panel>
           <aside className="inspector-stack" aria-label="Sample space settings">
-            <ExampleGallery
-              examples={sampleSpaceGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected cell">
               <h2>{selectedCell && selected ? `Cell: ${rowName(selected.row)}, ${columnName(selected.column)}` : "Selected cell"}</h2>
               {selectedCell && selected ? (

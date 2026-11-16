@@ -6,7 +6,7 @@ import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { algebraGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -498,6 +498,21 @@ export default function AlgebraGridPage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={algebraGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, false, "use worked version")}
+                />
+              }
+              answers={
+                <AnswerPreviewToggle
+                  checked={showAnswers}
+                  onChange={setShowAnswers}
+                />
+              }
               canUndo={history.past.length > 0 && !blocked}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -748,10 +763,6 @@ export default function AlgebraGridPage({
                 </EditorHint>
               }
             >
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                onChange={setShowAnswers}
-              />
             </EditorFoot>
             <div className="ag-resource-footer">
               <span>
@@ -846,13 +857,7 @@ export default function AlgebraGridPage({
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Algebra grid settings">
-            <ExampleGallery
-              examples={algebraGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, false, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card ag-panel">
               <h2>Teaching resource</h2>
               <label>

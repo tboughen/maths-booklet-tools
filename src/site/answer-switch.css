@@ -1,0 +1,101 @@
+/* The answers switch (AnswerPreviewToggle, AnswerCopyToggle). It reads "Show hidden answers"
+   everywhere and turns pink while it is on: in the app, pink means teacher only
+   (docs/tools/APP-HOUSE-STYLE.md). Never part of an export. */
+/* `label` in the selectors outranks the form styles some tool pages give every label. */
+.site-app label.answer-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  color: var(--md-ink-2);
+  font: 500 var(--md-text-sm)/1.2 var(--md-font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* The real checkbox lies over the track, unseen, so a click, a tap or the Space key works it. */
+.site-app label.answer-switch input {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 50%;
+  width: 34px;
+  height: 20px;
+  margin: -10px 0 0;
+  padding: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.answer-switch-track {
+  flex: none;
+  position: relative;
+  box-sizing: border-box;
+  width: 34px;
+  height: 20px;
+  border: 1px solid var(--field-line, #7a8ca2);
+  border-radius: var(--md-radius-pill);
+  background: var(--md-paper);
+  transition: background-color .12s;
+}
+.answer-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--md-ink-3);
+  transition: translate .12s;
+}
+.site-app label.answer-switch:has(input:checked) { color: var(--md-pink); font-weight: 600; }
+.answer-switch input:checked + .answer-switch-track { border-color: var(--md-pink); background: var(--md-pink); }
+.answer-switch input:checked + .answer-switch-track::after { translate: 14px 0; background: #fff; }
+.answer-switch input:focus-visible + .answer-switch-track { outline: 2px solid var(--md-blue); outline-offset: 2px; }
+.answer-switch:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+/* The small pink label. It shows in an editor card only, over the corner of the stage, and lets
+   clicks through to the diagram. Elsewhere the pink switch says it alone, so nothing moves. */
+.answer-chip { display: none; }
+.editor-toolbar .answer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border: 1px solid color-mix(in srgb, var(--md-pink) 35%, transparent);
+  border-radius: var(--md-radius-pill);
+  background: color-mix(in srgb, var(--md-pink) 7%, #fff);
+  color: var(--md-pink);
+  font: 600 var(--md-text-xs)/16px var(--md-font);
+  pointer-events: none;
+}
+.answer-chip svg { flex: none; }
+.answer-chip-note { font-weight: 500; }
+/* In the action bar the switch sits before the copy buttons, with a rule between them. */
+.booklet-editor .editor-toolbar .editor-view-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+@media (min-width: 1200px) {
+  .booklet-editor .editor-toolbar .editor-view-actions { padding-right: 12px; border-right: 1px solid var(--md-line); }
+}
+.booklet-editor .editor-toolbar .editor-view-actions + .editor-copy-actions { margin-left: 4px; }
+.editor-toolbar .answer-chip {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--editor-stage-top, var(--editor-toolbar-height, 58px)) + 4px);
+  left: 8px;
+  max-width: calc(100% - 16px);
+  box-sizing: border-box;
+}
+@media (prefers-reduced-motion: reduce) {
+  .answer-switch-track, .answer-switch-track::after { transition: none; }
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .site-app label.answer-switch { min-height: 44px; }
+}
+@media (forced-colors: active) {
+  .answer-switch input:checked + .answer-switch-track { background: Highlight; border-color: Highlight; }
+  .answer-switch-track::after { background: CanvasText; }
+  .answer-switch input:checked + .answer-switch-track::after { background: HighlightText; }
+}

@@ -4,7 +4,7 @@ export async function showExamples(page: Page) {
   const gallery = page.locator("dialog.example-gallery[open]");
   if (!(await gallery.isVisible()))
     await page
-      .getByRole("button", { name: "Start from an example", exact: true })
+      .getByRole("button", { name: "Examples", exact: true })
       .click();
   await expect(gallery).toBeVisible();
   // Source-regression audits inspect the full retained notes and links. The new

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "./release-fixtures";
 
 /**
- * U21: what is selected is edited in one place, the first settings card under "Start from an example",
+ * U21: what is selected is edited in one place, the first settings card,
  * in every editor that has a selection card. The number line's card stays mounted with nothing selected,
  * so the Draw card below does not jump as the selection comes and goes. (Cuboids and the classic bar model
  * show a "Selected …" picker only when there are several shapes or bars; it already sits at the top.)
