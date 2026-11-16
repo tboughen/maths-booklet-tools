@@ -27,8 +27,11 @@ export interface AxisConfig {
   /** Omitted means "number". */
   format?: AxisNumberFormat;
   /** Words and unit in brackets, such as "Distance from home (km)". Replaces the italic axis
-   * letter when present. */
+   * letter when present, unless the axis also has a name. */
   title?: string;
+  /** The italic letter at the arrow, such as t or v, in place of x or y. With a title, both
+   * print: the letter at the arrow and the title beside the axis, as velocity–time graphs do. */
+  name?: string;
 }
 
 interface BaseObject {
@@ -130,7 +133,29 @@ export interface RegionObject extends BaseObject, NamedObject {
   boundaries: boolean;
 }
 
-export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject;
+/** A graph drawn through points in order (U914, U862, U611): joined by straight pieces, as a
+ * travel graph is, or smooth, as a velocity–time curve or a sketch of y = f(x) is printed. */
+export interface CurveObject extends BaseObject, NamedObject {
+  kind: "curve";
+  /** 2 to 40 points in order, in graph units. */
+  points: Coordinate[];
+  /** A smooth curve through every point. Omitted joins them with straight pieces. */
+  smooth?: true;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+/** Dashed reading lines from a point on a graph to the axes, with an arrowhead on the axis where
+ * the value is read (U862 conversion graphs, U601 graphical solutions). "y" reads y for a given
+ * x: up from the x-axis to the point, then across to the y-axis. "x" reads x for a given y.
+ * "both" drops to both axes with a head on each. A reading line is never named. */
+export interface ReadingObject extends BaseObject, NamedObject {
+  kind: "reading";
+  at: Coordinate;
+  read: "x" | "y" | "both";
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject | CurveObject | ReadingObject;
 
 export interface DiagramDocumentV1 {
   version: 1;

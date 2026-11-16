@@ -31,7 +31,7 @@ export function cloneDefaultDocument(): DiagramDocumentV1 {
   return structuredClone(DEFAULT_DOCUMENT);
 }
 
-export function makeId(prefix: "point" | "straight" | "polygon" | "region" = "straight"): string {
+export function makeId(prefix: "point" | "straight" | "polygon" | "region" | "curve" | "reading" = "straight"): string {
   const suffix =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -459,6 +459,7 @@ export function isAxisConfig(value: unknown): value is AxisConfig {
     (candidate.title === undefined ||
       (typeof candidate.title === "string" &&
         candidate.title.trim().length > 0 &&
-        candidate.title.length <= MAX_AXIS_TITLE_LENGTH))
+        candidate.title.length <= MAX_AXIS_TITLE_LENGTH)) &&
+    (candidate.name === undefined || (typeof candidate.name === "string" && /^[a-zA-Z]$/.test(candidate.name)))
   );
 }

@@ -71,3 +71,69 @@ describe("review fixes", () => {
     expect(r.document.objects.map((o) => o.id)).toEqual(["a", "b"]);
   });
 });
+
+describe("real-life and travel graphs", () => {
+  const travel = {
+    axes: {
+      x: { negativeSquares: 0, positiveSquares: 14, unitsPerSquare: 10, origin: 780, labelEvery: 1, format: "time", title: "Time" },
+      y: { negativeSquares: 0, positiveSquares: 4, unitsPerSquare: 1, title: "Distance from home (km)" },
+    },
+    grid: "2mm",
+    objects: [
+      { id: "trip", kind: "curve", points: [{ x: 780, y: 0 }, { x: 785, y: 0.6 }, { x: 790, y: 0.6 }, { x: 798, y: 2 }, { x: 805, y: 2 }, { x: 820, y: 3.5 }] },
+      { kind: "curve", points: [{ x: 820, y: 3.5 }, { x: 830, y: 3.5 }, { x: 855, y: 0 }], answerOnly: true },
+      { kind: "reading", at: { x: 798, y: 2 }, read: "x", answerOnly: true },
+    ],
+  } as const;
+  it("draws a travel graph as joined pieces, its hidden completion only on the answers copy", () => {
+    const e = createGraph(travel);
+    const pupil = renderDiagramSvg(documentFromEnvelope(e), "pupil");
+    const answer = renderDiagramSvg(documentFromEnvelope(e), "answer");
+    expect((pupil.match(/class="graph-curve"/g) ?? []).length).toBe(1);
+    expect((answer.match(/class="graph-curve"/g) ?? []).length).toBe(2);
+    expect(pupil).not.toContain("graph-reading");
+    expect(answer).toMatch(/class="graph-reading"[^]*?fill="#b0125b"/);
+    expect(pupil).toMatch(/d="M [\d.]+ [\d.]+ L /);
+  });
+  it("draws smooth curves through every point and reading legs that end on the axes", async () => {
+    const { readingLegs, axesCrossing } = await import("./curve");
+    const e = createGraph({ objects: [{ kind: "curve", smooth: true, points: [{ x: 0, y: 5 }, { x: 2, y: 1.6 }, { x: 4, y: 0.9 }] }] });
+    expect(renderDiagramSvg(documentFromEnvelope(e), "pupil")).toMatch(/class="graph-curve"[^>]* d="M [\d.]+ [\d.]+ C /);
+    const legs = readingLegs({ id: "r", kind: "reading", at: { x: 3, y: 2 }, read: "y" }, axesCrossing({ x: { origin: 780 }, y: {} }));
+    expect(legs).toEqual([
+      { start: { x: 3, y: 0 }, end: { x: 3, y: 2 }, head: false },
+      { start: { x: 3, y: 2 }, end: { x: 780, y: 2 }, head: true },
+    ]);
+  });
+  it("prints an axis letter such as t, with the title", () => {
+    const e = createGraph({ axes: { x: { negativeSquares: 0, positiveSquares: 10, unitsPerSquare: 1, name: "t", title: "Time (t seconds)" }, y: { negativeSquares: 0, positiveSquares: 6, unitsPerSquare: 5, title: "Velocity (m/s)" } }, objects: [] });
+    const svg = renderDiagramSvg(documentFromEnvelope(e), "pupil");
+    expect(svg).toContain(">𝑡</text>");
+    expect(svg).toContain("Time (t seconds)");
+    expect(svg).not.toContain(">𝑦</text>");
+  });
+  it("refuses repeated points and a name on a reading", () => {
+    expect(() => createGraph({ objects: [{ kind: "curve", points: [{ x: 1, y: 1 }, { x: 1, y: 1 }] }] })).toThrow(/repeats/);
+    expect(() => createGraph({ objects: [{ kind: "reading", at: { x: 1, y: 1 }, read: "y", name: "A" }] })).toThrow();
+  });
+});
+
+describe("real-life graph review fixes", () => {
+  it("refuses a saved curve with a repeated point, in both validators", async () => {
+    const { isDiagramDocument } = await import("./legacy-validation");
+    const e = createGraph({ objects: [{ kind: "curve", points: [{ x: 0, y: 0 }, { x: 2, y: 2 }] }] });
+    const bad = structuredClone(e);
+    (bad.document.objects[0] as { points: unknown[] }).points = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 2, y: 2 }];
+    expect(() => validateEnvelope(bad)).toThrow(/repeats/);
+    expect(isDiagramDocument(bad.document)).toBe(false);
+  });
+  it("warns about a reading on the axis it reads and rejects extra keys on a saved reading", async () => {
+    const { graphWarnings } = await import("./interchange");
+    const { isDiagramDocument } = await import("./legacy-validation");
+    const e = createGraph({ objects: [{ kind: "reading", at: { x: 0, y: 4 }, read: "y" }] });
+    expect(graphWarnings(e).some((w) => w.includes("sits on the axis it reads"))).toBe(true);
+    const bad = structuredClone(e.document) as unknown as { objects: Record<string, unknown>[] };
+    bad.objects[0].namePosition = { x: 1, y: 1 };
+    expect(isDiagramDocument(bad)).toBe(false);
+  });
+});
