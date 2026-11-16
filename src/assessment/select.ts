@@ -73,7 +73,7 @@ function candidates(catalogue: BankCatalogue, items: AssessmentItem[], prioritie
   }));
   const groups = new Map<string, BankQuestion>();
   for (const q of catalogue.questions) {
-    if (q.review !== "reviewed" || q.tier !== profile.tier || source.has(q.id) || source.has(q.equivalentId || "") || source.has(questionIdentity(q)) || (settings.calculator !== "all" && q.calculator !== (settings.calculator === "yes"))) continue;
+    if (q.review !== "reviewed" || q.tier !== profile.tier || source.has(q.id) || source.has(q.equivalentId || "") || source.has(questionIdentity(q)) || (settings.calculator !== "all" && q.calculator !== (settings.calculator === "yes")) || (q.revisionUse && settings.revision !== "include")) continue;
     if (q.codes.some(code => excluded.has(code)) || !priorities.some(p => q.codes.includes(p.code))) continue;
     groups.set(questionIdentity(q), q);
   }

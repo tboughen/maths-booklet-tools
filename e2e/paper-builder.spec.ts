@@ -5,7 +5,7 @@ import { PDFDocument } from "pdf-lib";
 
 const report=resolve("../../reports/sparx-paper-builder-integration-2026-10-11");
 const outputs=resolve("../../output/pdf/sparx-paper-builder-integration");
-const raw=JSON.parse(await readFile("public/bank/catalogue.json","utf8")) as {questions:{id:string;equivalentId?:string;tier:string;collection:string;calculator:boolean;codes:string[]}[]};
+const raw=JSON.parse(await readFile("public/bank/catalogue.json","utf8")) as {questions:{id:string;equivalentId?:string;tier:string;collection:string;calculator:boolean;codes:string[];revisionUse?:string}[]};
 
 test("all 27 filter combinations have correct table counts and preserve selected code intent",async({page})=>{
   test.setTimeout(90000);
@@ -15,6 +15,8 @@ test("all 27 filter combinations have correct table counts and preserve selected
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("");
   // The table opens on codes with questions; this check covers every code.
   await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Show",exact:true}).selectOption("all");
+  // Cover the whole bank, Year 11 revision programme papers included.
+  await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Year 11 revision papers",exact:true}).selectOption("include");
   const proof=[];
   for(const tier of ["all","F","H"])for(const collection of ["all","past","mock"])for(const calculator of ["all","yes","no"]){
     const builder=page.getByRole("region",{name:"Build a paper by topic",exact:true});
@@ -22,7 +24,7 @@ test("all 27 filter combinations have correct table counts and preserve selected
     await builder.getByRole("combobox",{name:"Paper type",exact:true}).selectOption(collection);
     await builder.getByRole("combobox",{name:"Calculator",exact:true}).selectOption(calculator);
     const rows=await builder.locator("tbody tr").evaluateAll(rows=>rows.map(row=>({code:row.querySelector("td:nth-child(2) button")!.textContent!,available:Number(row.querySelector("td:nth-child(4)")!.textContent)})));
-    expect(rows).toHaveLength(628);
+    expect(rows).toHaveLength(629);
     for(const row of rows){
       const qs=raw.questions.filter(q=>q.codes.includes(row.code)&&(tier==="all"||q.tier===tier)&&(collection==="all"||(/^mock/i.test(q.collection)?"mock":"past")===collection)&&(calculator==="all"||q.calculator===(calculator==="yes")));
       const count=new Set(qs.map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id)).size;
@@ -40,9 +42,11 @@ test("Crossover only shows just the questions shared by a Foundation and a Highe
   await builder.getByRole("combobox",{name:"Show",exact:true}).selectOption("all");
   await builder.getByRole("combobox",{name:"Crossover",exact:true}).selectOption("only");
   await expect(page).toHaveURL(/crossover=only/);
+  // Year 11 revision programme papers are left out unless included.
+  const visible=raw.questions.filter(q=>!q.revisionUse);
   const rows=await builder.locator("tbody tr").evaluateAll(rows=>rows.map(row=>({code:row.querySelector("td:nth-child(2) button")!.textContent!,available:Number(row.querySelector("td:nth-child(4)")!.textContent)})));
   for(const row of rows){
-    const count=new Set(raw.questions.filter(q=>q.equivalentId&&q.codes.includes(row.code)).map(q=>[q.id,q.equivalentId!].sort().join("|"))).size;
+    const count=new Set(visible.filter(q=>q.equivalentId&&q.codes.includes(row.code)).map(q=>[q.id,q.equivalentId!].sort().join("|"))).size;
     expect(row.available,row.code).toBe(count);
   }
   await page.goto("/question-bank?code=U538&crossover=only");
@@ -151,7 +155,7 @@ test("failed scheme fetch has no partial pair; retry and cancellation retain sel
   await page.getByRole("button",{name:"Review paper",exact:true}).click();
   await dialog.getByRole("button",{name:"Prepare both PDFs"}).click();await dialog.getByRole("button",{name:"Cancel export",exact:true}).click();
   await expect(dialog.getByRole("alert")).toContainText("selection is unchanged");
-  const selectedCount=new Set(raw.questions.filter(q=>q.codes.includes("U388")).map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id)).size;
+  const selectedCount=new Set(raw.questions.filter(q=>!q.revisionUse&&q.codes.includes("U388")).map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id)).size;
   await expect(dialog).toContainText(`${selectedCount} complete questions`);await expect(dialog.getByRole("button",{name:"Questions PDF",exact:true})).toHaveCount(0);
 });
 

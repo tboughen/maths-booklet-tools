@@ -7,6 +7,8 @@ export interface Settings extends Profile {
   marksLimit: number | null;
   calculator: "all" | "yes" | "no";
   common: boolean;
+  /** Questions from Year 11 revision programme papers are left out unless this is "include". */
+  revision?: "hide" | "include";
   /** Whole assessment labels (e.g. Q17); their mapped topics are excluded. */
   excludedQuestions?: string[];
 }

@@ -9,7 +9,7 @@ const pupil = (scores: Pupil["scores"]): Pupil => ({ key: "synthetic", identifie
 const item = (label: string, code: string, marks = 2): AssessmentItem => ({ label, codes: [code], marks });
 function question(id: string, code: string, number = 1): BankQuestion {
   const base = bank.questions.find(q => q.tier === "H")!;
-  return { ...base, id, equivalentId: undefined, number, order: number, marks: 2, codes: [code], review: "reviewed", scaleSensitive: false, writingSpacePolicy: "generated",
+  return { ...base, id, equivalentId: undefined, revisionUse: undefined, number, order: number, marks: 2, codes: [code], review: "reviewed", scaleSensitive: false, writingSpacePolicy: "generated",
     parts: [{ ...base.parts[0], label: "whole", marks: 2, codes: [code] }],
     questionViews: [{ ...base.questionViews[0], width: 500, height: 70 }], schemeViews: [{ ...base.schemeViews[0], width: 500, height: 60 }],
     performance: { kind: "estimated", percentage: 85 } };
@@ -77,6 +77,12 @@ describe("class pack topic coverage and exclusions", () => {
       expect(plan.packs.flatMap(p => p.entries).every(e => !e.references.some(r => r.startsWith("Q17")))).toBe(true);
     }
     expect(generateClass(cat, items, [scored], { ...defaults, excludedQuestions: ["Q1", "Q17"] }).packs[0].entries).toEqual([]);
+  });
+  it("leaves Year 11 revision programme questions out unless the teacher includes them", () => {
+    const kept = { ...question("kept", "U753"), revisionUse: "Mini-mock MM1" };
+    const items = [item("Q1", "U753")];
+    expect(generateClass(catalogue(kept), items, [pupil({ Q1: 0 })], defaults).packs[0].entries).toEqual([]);
+    expect(generateClass(catalogue(kept), items, [pupil({ Q1: 0 })], { ...defaults, revision: "include" }).packs[0].entries.map(e => e.question.id)).toEqual(["kept"]);
   });
   it("rejects a whole practice question containing an excluded topic alongside an allowed one", () => {
     const mixed = question("mixed", "U753"); mixed.codes.push("U168");

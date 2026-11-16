@@ -5,7 +5,7 @@ import { draftEntries, draftReducer, emptyDraft, entryParts } from "./paper-buil
 import { emptyRoute, questionIdentity, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
 
 const bank=verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json","utf8")));
-const all=catalogueCoverage(bank,emptyRoute);
+const all=catalogueCoverage(bank,{...emptyRoute,revision:"include"});
 const q=(id:string,codes:string[],tier:"F"|"H"="F",other?:string)=>({id,order:Number(id.replace(/\D/g,""))||1,source:id,paperId:`series_1${tier}`,codes,tier,equivalentId:other,calculator:false,collection:"Exam",marks:4,parts:[{label:"a",codes,marks:4}]} as BankQuestion);
 const f=q("q1",["U1"],"F","q2"),h=q("q2",["U2"],"H","q1"),shared=q("q3",["U1","U2"]),extra=q("q4",["U3"]);
 const fixture={...bank,questions:[f,h,shared,extra],topics:["U1","U2","U3"].map(code=>({...bank.topics[0],code})),aliases:{OLD:"U1"}} as BankCatalogue;
@@ -15,7 +15,7 @@ const tick=(code:string)=>({type:"code" as const,code,checked:true});
 describe("shared paper draft",()=>{
   it("matches independent catalogue counts for every topic in all 27 filter combinations, and with Crossover only for each tier",()=>{
     for(const tier of ["all","F","H"] as const)for(const collection of ["all","past","mock"] as const)for(const calculator of ["all","yes","no"] as const)for(const crossover of (collection==="all"&&calculator==="all"?["all","only"]:["all"]) as ("all"|"only")[]){
-      const filters={tier,collection,calculator,crossover},coverage=catalogueCoverage(bank,filters);
+      const filters={tier,collection,calculator,crossover,revision:"include" as const},coverage=catalogueCoverage(bank,filters);
       for(const topic of bank.topics){
         const raw=bank.questions.filter(q=>(tier==="all"||q.tier===tier)&&(collection==="all"||(/^mock/i.test(q.collection)?"mock":"past")===collection)&&(calculator==="all"||q.calculator===(calculator==="yes"))&&(crossover==="all"||Boolean(q.equivalentId))&&q.codes.includes(topic.code));
         const expected=new Set(raw.map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id));
@@ -25,9 +25,9 @@ describe("shared paper draft",()=>{
         expect(entries.length).toBe(expected.size);
       }
     }
-  });
+  },30000);
   it("derives series and papers from component IDs",()=>{
-    expect([all.examSeries,all.examPapers,all.mockSeries,all.mockPapers,all.groups.size]).toEqual([8,48,8,48,2034]);
+    expect([all.examSeries,all.examPapers,all.mockSeries,all.mockPapers,all.groups.size]).toEqual([15,90,8,48,2941]);
   });
   it("combines overlapping codes and both crossover mappings, retaining an eligible source",()=>{
     const state=draftReducer(draftReducer(emptyDraft(),tick("U1")),tick("U2"));

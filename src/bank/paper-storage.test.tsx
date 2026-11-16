@@ -51,7 +51,7 @@ describe("paper draft saved on this device", () => {
 describe("topic table defaults to codes with questions", () => {
   const bank = verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")));
   const coverage = catalogueCoverage(bank, emptyRoute);
-  const filters = { tier: emptyRoute.tier, calculator: emptyRoute.calculator, collection: emptyRoute.collection, crossover: emptyRoute.crossover };
+  const filters = { tier: emptyRoute.tier, calculator: emptyRoute.calculator, collection: emptyRoute.collection, crossover: emptyRoute.crossover, revision: emptyRoute.revision };
   const covered = bank.topics.filter(t => coverage.codes.get(t.code)?.size).length;
   const uncovered = bank.topics.length - covered;
   const uncoveredCode = bank.topics.find(t => !coverage.codes.get(t.code)?.size)!.code;

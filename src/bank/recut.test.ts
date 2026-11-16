@@ -23,9 +23,9 @@ describe("recut question bank", () => {
 
   it("holds the agreed parts, stems and needs-answer links", () => {
     const cuts = bank.questions.flatMap(q => q.cuts ?? []);
-    expect(cuts.filter(c => c.kind === "part")).toHaveLength(1789);
-    expect(cuts.filter(c => c.kind === "stem")).toHaveLength(556);
-    expect(cuts.filter(c => c.requiresAnswerTo.length)).toHaveLength(77);
+    expect(cuts.filter(c => c.kind === "part")).toHaveLength(2538);
+    expect(cuts.filter(c => c.kind === "stem")).toHaveLength(793);
+    expect(cuts.filter(c => c.requiresAnswerTo.length)).toHaveLength(118);
     // A part that needs an earlier answer is the later part, never the first.
     for (const q of bank.questions) for (const cut of q.cuts ?? []) for (const id of cut.requiresAnswerTo) {
       const ids = (q.cuts ?? []).map(c => c.id);
