@@ -67,6 +67,12 @@ describe("worked-solution data", () => {
     const grid = diagramSvg("algebra-grid", createGrid(2, 3));
     expect(grid.width).toBeGreaterThan(50);
     expect(grid.height).toBeGreaterThan(50);
+    const tree = diagramSvg("factor-tree", { kind: "factor-tree", schemaVersion: 1, rendererVersion: "factor-tree-1", document: {
+      trees: [{ id: "t1", nodes: [{ id: "n1", parent: null, value: { text: "12", show: "show" } }, { id: "n2", parent: "n1", value: { text: "2", show: "show" }, circled: true },
+        { id: "n3", parent: "n1", value: { text: "6", show: "show" } }, { id: "n4", parent: "n3", value: { text: "2", show: "show" }, circled: true },
+        { id: "n5", parent: "n3", value: { text: "3", show: "show" }, circled: true }], product: null }], blankStyle: "dots", levelMm: 13, intentionalError: false } });
+    expect(tree.width).toBeGreaterThan(30);
+    expect(tree.svg).toContain(">12<");
   });
 });
 
@@ -158,6 +164,18 @@ describe("worked-solution layout", () => {
     expect(issues.some(m => /overlap/.test(m))).toBe(true);
     expect(issues.some(m => /longer than its answer line/.test(m))).toBe(true);
     expect(issues.some(m => /no cut called stem-1/.test(m))).toBe(true);
+  });
+});
+
+describe("worked-solution written answers", () => {
+  it("starts words at the left of a full-width line and centres a value", () => {
+    const raw = sample();
+    const at = (align: "left" | "centre") => {
+      const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], steps: [{ kind: "answer", value: "4", align, mark: { code: "A1", note: "cao" } }] }, raw.parts[1]] });
+      return Number(/<g data-step="1">.*?<text x="([\d.]+)"/s.exec(layoutWorked(data, surfaces).overlays.get("a-1")!.svg)?.[1]);
+    };
+    expect(at("left")).toBeCloseTo(336, 0);
+    expect(at("centre")).toBeGreaterThan(380);
   });
 });
 

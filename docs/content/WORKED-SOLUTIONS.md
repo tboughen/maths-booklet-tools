@@ -63,9 +63,10 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   its lower edge; `answers` are the printed answer lines (left end, baseline, length); `notesX` is
   the left edge of the guidance column.
 - Step kinds: `line` (aligned on its sign), `text`, `bubbles`, `diagram` (an algebra grid, ratio
-  table or number line envelope drawn by its own renderer), `carry` (a value from an earlier
+  table, number line or factor tree envelope drawn by its own renderer), `carry` (a value from an earlier
   part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (lines, paths, crosses,
-  rings and labels on any shown surface) and `answer`.
+  rings and labels on any shown surface) and `answer` (centred on its line; `"align": "left"` for
+  written words on a full-width line).
 - Typed maths prints properly: `-` is a minus sign (a hyphen between letters stays), `*` a times
   sign, `<=` and `>=` their signs, `{a/b}` a stacked fraction, `^2` or `^{12}` a power.
 - Step numbers count through every part in order, so step-by-step reveal shows the same steps

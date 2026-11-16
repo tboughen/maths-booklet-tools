@@ -11,6 +11,7 @@ import { renderSvg as renderGrid, validate as validateGrid } from "../../algebra
 import { renderSvg as renderNumberLine, validate as validateNumberLine } from "../../number-line-core/src/index";
 import { renderRatioSvg } from "../../ratio-table-core/src/svg";
 import { validateRatioEnvelope } from "../../ratio-table-core/src/interchange";
+import { renderSvg as renderFactorTree, validate as validateFactorTree } from "../../factor-tree-core/src/index";
 import type { Band } from "./slices";
 export { slices, type Band } from "./slices";
 
@@ -30,6 +31,8 @@ const MM = 72 / 25.4;
 
 // ---------------------------------------------------------------- schema
 
+export const DIAGRAM_FAMILIES = ["algebra-grid", "ratio-table", "number-line", "factor-tree"] as const;
+export type DiagramFamily = typeof DIAGRAM_FAMILIES[number];
 const text = (max: number) => z.string().trim().min(1).max(max);
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
 const coordinate = z.number().finite().min(0).max(2000);
@@ -58,7 +61,7 @@ const stepSchema = z.discriminatedUnion("kind", [
   /** The bubble method: each operation in a bubble under the term it acts on, on both sides. */
   z.object({ kind: z.literal("bubbles"), lhs: text(12), rhs: text(12) }).strict(),
   /** A MathsDock diagram drawn by its own renderer at true size. */
-  z.object({ kind: z.literal("diagram"), family: z.enum(["algebra-grid", "ratio-table", "number-line"]), envelope: z.unknown(), ...beside }).strict(),
+  z.object({ kind: z.literal("diagram"), family: z.enum(DIAGRAM_FAMILIES), envelope: z.unknown(), ...beside }).strict(),
   /** A value carried from an earlier part, tagged "from (a)". */
   z.object({ kind: z.literal("carry"), from: text(12), text: text(80) }).strict(),
   /** Guidance with no mark; "watch" marks a slip the mark scheme itself flags. */
@@ -66,7 +69,9 @@ const stepSchema = z.discriminatedUnion("kind", [
   /** Drawing on a surface, in its points: a graph line, a tangent, a triangle, a ringed point. */
   z.object({ kind: z.literal("draw"), on: id, shapes: z.array(shape).min(1).max(30), ...beside }).strict(),
   /** The final answer, written on the part's answer line, box or table. */
-  z.object({ kind: z.literal("answer"), value: text(60), at: z.number().int().min(0).max(5).default(0), mark: markSchema.optional() }).strict(),
+  z.object({ kind: z.literal("answer"), value: text(90), at: z.number().int().min(0).max(5).default(0), mark: markSchema.optional(),
+    /** Words on a full-width line start at its left; a value sits in the middle of its line. */
+    align: z.enum(["centre", "left"]).default("centre") }).strict(),
 ]);
 const area = z.object({ x: coordinate, y: coordinate, width: z.number().positive().max(2000), bottom: coordinate }).strict()
   .refine(a => a.bottom > a.y, { message: "The working space must end below where it starts.", path: ["bottom"] });
@@ -174,9 +179,10 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
 const scopeCss = (css: string) => css.replace(/(^|})\s*([^{}@]+)\{/g, (_, end: string, selectors: string) => `${end}${selectors.split(",").map(x => `.wk ${x.trim()}`).join(",")}{`);
 
 /** A MathsDock diagram as SVG with its printed size in points. */
-export function diagramSvg(family: "algebra-grid" | "ratio-table" | "number-line", envelope: unknown): { svg: string; width: number; height: number } {
+export function diagramSvg(family: DiagramFamily, envelope: unknown): { svg: string; width: number; height: number } {
   const svg = family === "algebra-grid" ? renderGrid(validateGrid(envelope))
     : family === "number-line" ? renderNumberLine(validateNumberLine(envelope))
+    : family === "factor-tree" ? renderFactorTree(validateFactorTree(envelope))
     : renderRatioSvg(validateRatioEnvelope(envelope).document);
   const root = /^<svg\b[^>]*>/.exec(svg)?.[0] ?? "";
   const size = (name: string) => {
@@ -421,9 +427,10 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           if (!anchor) { issues.push({ surface: part.on, message: `Step ${k}: the part has no answer line ${step.at + 1}.` }); break; }
           const value = mathsText(step.value), w = mathsWidth(value), mark = step.mark;
           if (w > anchor.width) issues.push({ surface: part.on, message: `Step ${k}: the answer is longer than its answer line.` });
-          const lift = hasFraction(value) ? 10 : 0, base = anchor.y - 3 - lift, cx = anchor.x + anchor.width / 2;
-          let svg = `<g ${HAND}>${maths(value, cx - w / 2, base)}</g>`;
-          const boxes: Box[] = [{ x: cx - w / 2, y: base - HAND_SIZE, width: w, height: HAND_SIZE * 1.2 + lift, what: "answer" }];
+          const lift = hasFraction(value) ? 10 : 0, base = anchor.y - 3 - lift;
+          const left = step.align === "left" ? anchor.x + 6 : anchor.x + anchor.width / 2 - w / 2;
+          let svg = `<g ${HAND}>${maths(value, left, base)}</g>`;
+          const boxes: Box[] = [{ x: left, y: base - HAND_SIZE, width: w, height: HAND_SIZE * 1.2 + lift, what: "answer" }];
           if (mark) {
             const chipWidth = noteWidth(mark.code, 9, true) + 8, words = noteWidth(mark.note, NOTE_SIZE) + chipWidth + 5;
             const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7;
