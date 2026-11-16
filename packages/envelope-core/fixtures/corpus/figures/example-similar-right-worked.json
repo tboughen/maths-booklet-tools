@@ -1,0 +1,263 @@
+{
+ "kind": "figures",
+ "schemaVersion": 1,
+ "rendererVersion": "figures-1",
+ "document": {
+  "points": [
+   {
+    "id": "a",
+    "place": {
+     "type": "free",
+     "x": 0,
+     "y": 0
+    },
+    "name": "A",
+    "show": "none"
+   },
+   {
+    "id": "c1",
+    "place": {
+     "type": "free",
+     "x": 28,
+     "y": 0
+    },
+    "name": "C",
+    "show": "none"
+   },
+   {
+    "id": "b",
+    "place": {
+     "type": "free",
+     "x": 28,
+     "y": 16
+    },
+    "name": "B",
+    "show": "none"
+   },
+   {
+    "id": "p",
+    "place": {
+     "type": "free",
+     "x": 52,
+     "y": 0
+    },
+    "name": "P",
+    "show": "none"
+   },
+   {
+    "id": "r",
+    "place": {
+     "type": "free",
+     "x": 122,
+     "y": 0
+    },
+    "name": "R",
+    "show": "none"
+   },
+   {
+    "id": "q",
+    "place": {
+     "type": "free",
+     "x": 122,
+     "y": 40
+    },
+    "name": "Q",
+    "show": "none"
+   }
+  ],
+  "circles": [],
+  "segments": [
+   {
+    "id": "ab",
+    "a": "a",
+    "b": "b",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "9 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "bc",
+    "a": "b",
+    "b": "c1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "hidden",
+     "text": "",
+     "answer": "7.2 cm"
+    },
+    "side": "auto"
+   },
+   {
+    "id": "ca",
+    "a": "c1",
+    "b": "a",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "pq",
+    "a": "p",
+    "b": "q",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "hidden",
+     "text": "",
+     "answer": "22.5 cm"
+    },
+    "side": "auto"
+   },
+   {
+    "id": "qr",
+    "a": "q",
+    "b": "r",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "18 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "rp",
+    "a": "r",
+    "b": "p",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   }
+  ],
+  "angles": [
+   {
+    "id": "a",
+    "at": "a",
+    "from": "c1",
+    "to": "b",
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "bb",
+    "at": "b",
+    "from": "a",
+    "to": "c1",
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "mark": "double",
+    "shade": false
+   },
+   {
+    "id": "cc",
+    "at": "c1",
+    "from": "b",
+    "to": "a",
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "mark": "right",
+    "shade": false
+   },
+   {
+    "id": "p",
+    "at": "p",
+    "from": "r",
+    "to": "q",
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "qq",
+    "at": "q",
+    "from": "p",
+    "to": "r",
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "mark": "double",
+    "shade": false
+   },
+   {
+    "id": "rr",
+    "at": "r",
+    "from": "q",
+    "to": "p",
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "mark": "right",
+    "shade": false
+   }
+  ],
+  "fills": [],
+  "captions": [],
+  "notToScale": true
+ }
+}

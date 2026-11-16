@@ -1402,6 +1402,90 @@
    "png600": "2929x2976",
    "pixels": "b5d6434cb3e86c22"
   },
+  "geometry figures: figures-centre-angle": {
+   "json": "5055cedab9259037",
+   "svg": "141ba7a50241a0a3",
+   "mm": "68.9x73.7",
+   "png600": "1628x1741",
+   "pixels": "535f23c3adb80b4c"
+  },
+  "geometry figures: figures-centre-angle (worked)": {
+   "json": "41a6be2114d3614c",
+   "svg": "141ba7a50241a0a3",
+   "mm": "68.9x73.7",
+   "png600": "1628x1741",
+   "pixels": "535f23c3adb80b4c"
+  },
+  "geometry figures: figures-congruent-four": {
+   "json": "31524fa35d409715",
+   "svg": "46bf5d01d109ef03",
+   "mm": "104.2x96.1",
+   "png600": "2461x2270",
+   "pixels": "e09c43e156829309"
+  },
+  "geometry figures: figures-congruent-four (worked)": {
+   "json": "31524fa35d409715",
+   "svg": "46bf5d01d109ef03",
+   "mm": "104.2x96.1",
+   "png600": "2461x2270",
+   "pixels": "e09c43e156829309"
+  },
+  "geometry figures: figures-parallel-in-triangle": {
+   "json": "dfd4ef26e623bf13",
+   "svg": "916c94325c95df06",
+   "mm": "107.7x55.1",
+   "png600": "2544x1302",
+   "pixels": "d3c1f4f6061dfc15"
+  },
+  "geometry figures: figures-parallel-in-triangle (worked)": {
+   "json": "dfd4ef26e623bf13",
+   "svg": "916c94325c95df06",
+   "mm": "107.7x55.1",
+   "png600": "2544x1302",
+   "pixels": "d3c1f4f6061dfc15"
+  },
+  "geometry figures: figures-similar-right": {
+   "json": "71b5d2fc97aedc04",
+   "svg": "c16e55fc2c1038e9",
+   "mm": "141x58.3",
+   "png600": "3331x1377",
+   "pixels": "6bef1a4f634bb030"
+  },
+  "geometry figures: figures-similar-right (worked)": {
+   "json": "88468e4dac338d80",
+   "svg": "c16e55fc2c1038e9",
+   "mm": "141x58.3",
+   "png600": "3331x1377",
+   "pixels": "6bef1a4f634bb030"
+  },
+  "geometry figures: figures-tangent-cyclic": {
+   "json": "dc467bb746eff378",
+   "svg": "f37af6ff27ec4bb0",
+   "mm": "90.3x66",
+   "png600": "2133x1559",
+   "pixels": "2bd57b9ee23731d0"
+  },
+  "geometry figures: figures-tangent-cyclic (worked)": {
+   "json": "a901f272d385aee5",
+   "svg": "f37af6ff27ec4bb0",
+   "mm": "90.3x66",
+   "png600": "2133x1559",
+   "pixels": "2bd57b9ee23731d0"
+  },
+  "geometry figures: figures-two-tangents": {
+   "json": "f88590a8e47ffc2e",
+   "svg": "7bcb0641117266e8",
+   "mm": "64.9x50",
+   "png600": "1533x1181",
+   "pixels": "2c86f77299a7deee"
+  },
+  "geometry figures: figures-two-tangents (worked)": {
+   "json": "f88590a8e47ffc2e",
+   "svg": "7bcb0641117266e8",
+   "mm": "64.9x50",
+   "png600": "1533x1181",
+   "pixels": "2c86f77299a7deee"
+  },
   "function machines: fm-find-input": {
    "json": "4024e54df08f0057",
    "svg": "8dd28dbe53376d95",
