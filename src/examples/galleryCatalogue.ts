@@ -61,6 +61,8 @@ import { examples as angleExamples } from "../../packages/angle-core/src/example
 import { renderSvg as angleSvg } from "../../packages/angle-core/src";
 import { examples as areaExamples } from "../../packages/area-core/src/examples";
 import { renderSvg as areaSvg } from "../../packages/area-core/src";
+import { examples as figureExamples } from "../../packages/figure-core/src/examples";
+import { renderSvg as figureSvg } from "../../packages/figure-core/src";
 import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
 import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
 import { examples as writtenMethods } from "../../packages/written-method-core/src/examples";
@@ -69,6 +71,8 @@ import { examples as functionMachines } from "../../packages/function-machine-co
 import { examples as netExamples } from "../../packages/net-core/src/examples";
 import { renderSvg as netsSvg } from "../../packages/net-core/src";
 import { renderSvg as functionMachineSvg } from "../../packages/function-machine-core/src";
+import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/examples";
+import { renderSvg as algebraTilesSvg } from "../../packages/algebra-tile-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
 import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
 
@@ -351,6 +355,14 @@ export const areaGallery = areaExamples.map((example) => ({
   render: (e: Parameters<typeof areaSvg>[0]) => areaSvg(e),
   worked: example.worked,
 }));
+export const figuresGallery = figureExamples.map((example) => ({
+  id: `figures-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: (e: Parameters<typeof figureSvg>[0]) => figureSvg(e),
+  worked: example.worked,
+}));
 export const sampleSpaceGallery = sampleSpaces.map((example) => ({
   id: `ss-${example.id}`,
   title: example.title,
@@ -388,5 +400,13 @@ export const netsGallery = netExamples.map((example) => ({
   description: example.note,
   make: example.make,
   render: writtenMethodSvg,
+  worked: true,
+}));
+export const algebraTilesGallery = algebraTiles.map((example) => ({
+  id: `at-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: algebraTilesSvg,
   worked: true,
 }));

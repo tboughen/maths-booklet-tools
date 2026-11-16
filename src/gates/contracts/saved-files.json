@@ -913,6 +913,637 @@
     ],
     "additionalProperties": false
   },
+  "figures": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "figures"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "figures-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "points": {
+            "minItems": 1,
+            "maxItems": 40,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "place": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "free"
+                        },
+                        "x": {
+                          "type": "number",
+                          "minimum": -150,
+                          "maximum": 150
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -150,
+                          "maximum": 150
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "on"
+                        },
+                        "circle": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "deg": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 360
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "circle",
+                        "deg"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "along"
+                        },
+                        "a": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "b": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "t": {
+                          "type": "number",
+                          "minimum": -3,
+                          "maximum": 4
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "a",
+                        "b",
+                        "t"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "meet"
+                        },
+                        "a": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "b": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "c": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "d": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "a",
+                        "b",
+                        "c",
+                        "d"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "tangent"
+                        },
+                        "at": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "mm": {
+                          "type": "number",
+                          "minimum": -200,
+                          "maximum": 200
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "mm"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "tangents"
+                        },
+                        "a": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "b": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "a",
+                        "b"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "foot"
+                        },
+                        "from": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "a": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        },
+                        "b": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9]{0,7}$"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "from",
+                        "a",
+                        "b"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 3
+                },
+                "show": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "dot",
+                    "cross"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "place",
+                "name",
+                "show"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "circles": {
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "centre": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "r": {
+                  "type": "number",
+                  "minimum": 5,
+                  "maximum": 90
+                },
+                "style": {
+                  "type": "string",
+                  "enum": [
+                    "solid",
+                    "dashed",
+                    "dotted"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "centre",
+                "r",
+                "style"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "segments": {
+            "maxItems": 60,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "a": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "b": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "style": {
+                  "type": "string",
+                  "enum": [
+                    "solid",
+                    "dashed",
+                    "dotted"
+                  ]
+                },
+                "extend": {
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 80
+                  }
+                },
+                "ticks": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                "arrows": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                "label": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "value",
+                        "symbol",
+                        "blank",
+                        "answer-line",
+                        "hidden"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "answer": {
+                      "type": "string",
+                      "maxLength": 24
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "text",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                },
+                "side": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "left",
+                    "right"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "a",
+                "b",
+                "style",
+                "extend",
+                "ticks",
+                "arrows",
+                "label",
+                "side"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "angles": {
+            "maxItems": 40,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "at": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "from": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "to": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "label": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "value",
+                        "symbol",
+                        "blank",
+                        "answer-line",
+                        "hidden"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "answer": {
+                      "type": "string",
+                      "maxLength": 24
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "text",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                },
+                "mark": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "arc",
+                    "double",
+                    "triple",
+                    "right"
+                  ]
+                },
+                "shade": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "at",
+                "from",
+                "to",
+                "label",
+                "mark",
+                "shade"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "fills": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "points": {
+                  "minItems": 3,
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9]{0,7}$"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "points"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "captions": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "x": {
+                  "type": "number",
+                  "minimum": -150,
+                  "maximum": 150
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": -150,
+                  "maximum": 150
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "bold": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "x",
+                "y",
+                "text",
+                "bold"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "notToScale": {
+            "type": "boolean"
+          },
+          "fontPt": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 14
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          }
+        },
+        "required": [
+          "points",
+          "circles",
+          "segments",
+          "angles",
+          "fills",
+          "captions",
+          "notToScale"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      },
+      "worked": {
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
+        "minItems": 1,
+        "maxItems": 12,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "Dark-pink guidance for the worked copy, such as \"Multiply both by 3\". Wraps to widthMm."
+            },
+            "x": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
+            },
+            "y": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
+            },
+            "widthMm": {
+              "description": "Wrapping width in mm (default 60).",
+              "type": "number",
+              "minimum": 10,
+              "maximum": 200
+            },
+            "leader": {
+              "description": "Only when the note cannot sit right beside its maths: one straight line from the note to this point.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the top edge."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
   "algebra-grid": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -6186,7 +6817,7 @@
           "widthCm": {
             "default": 14,
             "type": "number",
-            "minimum": 8,
+            "minimum": 4,
             "maximum": 18
           },
           "markers": {
@@ -6206,7 +6837,7 @@
                 },
                 "label": {
                   "type": "string",
-                  "pattern": "^[A-Za-z0-9]{1,3}$"
+                  "pattern": "^(?=.{1,8}$)(?:[A-Za-z0-9]+|[−-]?[0-9]+(?: [0-9]{3})*(?:\\.[0-9]+)?)$"
                 }
               },
               "required": [
@@ -9185,6 +9816,281 @@
           "extend",
           "marks",
           "cellMm",
+          "intentionalError"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      },
+      "worked": {
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
+        "minItems": 1,
+        "maxItems": 12,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "Dark-pink guidance for the worked copy, such as \"Multiply both by 3\". Wraps to widthMm."
+            },
+            "x": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
+            },
+            "y": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
+            },
+            "widthMm": {
+              "description": "Wrapping width in mm (default 60).",
+              "type": "number",
+              "minimum": 10,
+              "maximum": 200
+            },
+            "leader": {
+              "description": "Only when the note cannot sit right beside its maths: one straight line from the note to this point.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the top edge."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
+  "algebra-tiles": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "algebra-tiles"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "algebra-tiles-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "letters": {
+            "type": "object",
+            "properties": {
+              "long": {
+                "type": "string",
+                "pattern": "^[a-km-np-z]$"
+              },
+              "short": {
+                "type": "string",
+                "pattern": "^[a-km-np-z]$"
+              }
+            },
+            "required": [
+              "long",
+              "short"
+            ],
+            "additionalProperties": false
+          },
+          "terms": {
+            "minItems": 1,
+            "maxItems": 16,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -12,
+                  "maximum": 12
+                },
+                "long": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                "short": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                "show": {
+                  "type": "string",
+                  "enum": [
+                    "show",
+                    "hidden"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "count",
+                "long",
+                "short",
+                "show"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "arrangement": {
+            "type": "string",
+            "enum": [
+              "as-written",
+              "grouped"
+            ]
+          },
+          "zeroPairs": {
+            "type": "string",
+            "enum": [
+              "none",
+              "show",
+              "hidden"
+            ]
+          },
+          "labels": {
+            "type": "boolean"
+          },
+          "fill": {
+            "type": "string",
+            "enum": [
+              "colour",
+              "plain"
+            ]
+          },
+          "frame": {
+            "type": "boolean"
+          },
+          "expression": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "intentionalError": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          }
+        },
+        "required": [
+          "letters",
+          "terms",
+          "arrangement",
+          "zeroPairs",
+          "labels",
+          "fill",
+          "frame",
+          "expression",
+          "answer",
           "intentionalError"
         ],
         "additionalProperties": false

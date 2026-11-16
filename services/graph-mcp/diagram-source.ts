@@ -31,6 +31,8 @@ import * as angles from "../../packages/angle-core/src/index";
 import { printFacts as anglesPrintFacts } from "../../packages/angle-core/src/interchange";
 import * as area from "../../packages/area-core/src/index";
 import { printFacts as areaPrintFacts } from "../../packages/area-core/src/interchange";
+import * as figures from "../../packages/figure-core/src/index";
+import { printFacts as figuresPrintFacts } from "../../packages/figure-core/src/interchange";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import { printFacts as ftPrintFacts } from "../../packages/factor-tree-core/src/interchange";
 import * as wm from "../../packages/written-method-core/src/index";
@@ -39,6 +41,8 @@ import * as fm from "../../packages/function-machine-core/src/index";
 import { printFacts as fmPrintFacts } from "../../packages/function-machine-core/src/interchange";
 import * as nets from "../../packages/net-core/src/index";
 import { printFacts as netsPrintFacts } from "../../packages/net-core/src/interchange";
+import * as at from "../../packages/algebra-tile-core/src/index";
+import { printFacts as atPrintFacts } from "../../packages/algebra-tile-core/src/interchange";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { printFacts as ssPrintFacts } from "../../packages/sample-space-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
@@ -77,10 +81,12 @@ export type DiagramSource =
   | { kind: "two-way-table"; envelope: twt.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "angles"; envelope: angles.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "area"; envelope: area.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "figures"; envelope: figures.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "factor-tree"; envelope: ft.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "written-method"; envelope: wm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "function-machine"; envelope: fm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "nets"; envelope: nets.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "algebra-tiles"; envelope: at.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "sample-space"; envelope: ss.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
@@ -128,6 +134,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
     const view = source.outputView ?? "pupil", g = elevations.layout(source.envelope, view);
     return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: elevationsPrintFacts(source.envelope, view) };
   }
+  if (source.kind === "figures") {
+    const view = source.outputView ?? "pupil", g = figures.layout(source.envelope);
+    return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: figuresPrintFacts(source.envelope, view) };
+  }
   if (source.kind === "area") {
     const view = source.outputView ?? "pupil", g = area.layout(source.envelope);
     return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: areaPrintFacts(source.envelope, view) };
@@ -155,6 +165,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "nets") {
     const view = source.outputView ?? "pupil", g = nets.layout(nets.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: netsPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "algebra-tiles") {
+    const view = source.outputView ?? "pupil", g = at.layout(at.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: atPrintFacts(source.envelope, view) };
   }
   if (source.kind === "two-way-table") {
     const view = source.outputView ?? "pupil", g = twt.layout(twt.forView(source.envelope, view));

@@ -1391,6 +1391,72 @@
   "pupilSvg": "8062e61c1c02bce3d204fc05ad23cb8995951e29ded5c893c9feb801aa2bdd02",
   "answerSvg": "8062e61c1c02bce3d204fc05ad23cb8995951e29ded5c893c9feb801aa2bdd02"
  },
+ "algebra-tiles/default": {
+  "schemaVersion": 1,
+  "contentHash": "e2231b9620ba486d845850d9f08c70daa89b6c2d0d8fc29e6b3e2cd2d5bd6e68",
+  "pupilSvg": "411c1c329c21095f8beab2430f924e3af90285b98386e00ecace70d01c102199",
+  "answerSvg": "411c1c329c21095f8beab2430f924e3af90285b98386e00ecace70d01c102199"
+ },
+ "algebra-tiles/example-a2b-ab2-worked": {
+  "schemaVersion": 1,
+  "contentHash": "5722b21930a5dcdcf649805a6e20735180985e0dc513d87eb2496419a2e0506d",
+  "pupilSvg": "b1fb58a65dde8a816f5beb751753510b39c1d79e2a3f0654a3b2fe384c27b550",
+  "answerSvg": "b1fb58a65dde8a816f5beb751753510b39c1d79e2a3f0654a3b2fe384c27b550"
+ },
+ "algebra-tiles/example-a2b-ab2": {
+  "schemaVersion": 1,
+  "contentHash": "afc98b8b706f3e2d401241b91cb7e1c856733fb2442839718737a2f829ed7649",
+  "pupilSvg": "d4e25178a5fe2713a40bd63be477ee07b46c53da17de97121b573af373ab4174",
+  "answerSvg": "66f38dcb57f228a763bbad49e33f0486a94dfb8bb3e87ca13fa24087dfc1ec3d"
+ },
+ "algebra-tiles/example-collect-two-letters-worked": {
+  "schemaVersion": 1,
+  "contentHash": "d9380f73abce96c757b49943a2d4e12200cae3c215ac22f907f8bc0c5f327eb8",
+  "pupilSvg": "9b32e077977a450ac6b803455d051fed8f81fc42d5622dedf9bc8bde8cf3718b",
+  "answerSvg": "9b32e077977a450ac6b803455d051fed8f81fc42d5622dedf9bc8bde8cf3718b"
+ },
+ "algebra-tiles/example-collect-two-letters": {
+  "schemaVersion": 1,
+  "contentHash": "85eb7cc5272a053b9a3434ab71c1e2e752a2975042c4ab6692a1d785ba29372a",
+  "pupilSvg": "d6a5c85beaf74849bfd05cd1087d740ec2c919f0feda0ccd6af709e4d6ef654d",
+  "answerSvg": "9795a969fa73ab82abca2302d9d588b2996fca74899165bcb99b9f9b83a52dd4"
+ },
+ "algebra-tiles/example-draw-the-tiles-worked": {
+  "schemaVersion": 1,
+  "contentHash": "a3ef98545a164edfeb581a98a49a9e515ff094835d26bc55c8ba8240b2c97a05",
+  "pupilSvg": "c5f253d5f964cc0c8dfa5a00e8e250aeca6a551fd66d76e547289f629602a0d1",
+  "answerSvg": "c5f253d5f964cc0c8dfa5a00e8e250aeca6a551fd66d76e547289f629602a0d1"
+ },
+ "algebra-tiles/example-draw-the-tiles": {
+  "schemaVersion": 1,
+  "contentHash": "426366d89dce36eac1ea3b72938c514f6b22f1102b9f30d556f292beb6695e87",
+  "pupilSvg": "0f00094e80bd7becf652dc7362b728cd8c866455da607cdeec7895adcd4d5929",
+  "answerSvg": "0373da5e50628fcba3abbac17881fe5b01b05447712ee09cc2554d4c2a70dbf0"
+ },
+ "algebra-tiles/example-squares-and-products-worked": {
+  "schemaVersion": 1,
+  "contentHash": "96e8bb8d426bb6009c282ad996dc124a0fd45a421d40ae3d9b165830327a0706",
+  "pupilSvg": "3a48f41adb20560d5f9b22a8e6220436e6d088777b26dfa8bca097d6e1ee6ac3",
+  "answerSvg": "3a48f41adb20560d5f9b22a8e6220436e6d088777b26dfa8bca097d6e1ee6ac3"
+ },
+ "algebra-tiles/example-squares-and-products": {
+  "schemaVersion": 1,
+  "contentHash": "d754bbb3738517abd8d50381d35e072b1c568541685675095c22fc557fd8fe54",
+  "pupilSvg": "2284819924b2f0faae74276b306cec6436d9a0f68e64f887e090471937f12a76",
+  "answerSvg": "7e1ca4087b84256f931e5e0e47fe1050c1a43ce9d1047aa42aff128aa87be92b"
+ },
+ "algebra-tiles/example-zero-pairs-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e361d15a51c61a9e48d4ca786014d6a06d373afe7ddc1934da77774cc8dc9cf0",
+  "pupilSvg": "1175ef03aa97b13b7c775fda06d472c13471cb8cbdbb1dd6f27c112c7e69d7ad",
+  "answerSvg": "1175ef03aa97b13b7c775fda06d472c13471cb8cbdbb1dd6f27c112c7e69d7ad"
+ },
+ "algebra-tiles/example-zero-pairs": {
+  "schemaVersion": 1,
+  "contentHash": "0749917e3eddfe95cf9591c739370d1f5a6288cc24fd458a9efedeea93c41f53",
+  "pupilSvg": "38afcfd3b077ea4463363e7cc63069d5a772ff76b38c7a0d5e234a11d4aa70f6",
+  "answerSvg": "f0af6cb5610acab01d2f8cf6aac4e9f096cedca840e8d8975e1c0a47d7bb6b3c"
+ },
  "sample-space/default": {
   "schemaVersion": 1,
   "contentHash": "63ed6ebea15b8030c427989f7595feb183642e946ebfbc64fcf92211e4a4e680",
@@ -1984,5 +2050,65 @@
   "contentHash": "8dbe4d413b07ce0d362551bd5e029d47df8919136b9a0402635c83d82d32c8e1",
   "pupilSvg": "68c342ffc2ec13c1c6cd54ab553a11068c8741e33fb7d45ee2a55f21268c5114",
   "answerSvg": "68c342ffc2ec13c1c6cd54ab553a11068c8741e33fb7d45ee2a55f21268c5114"
+ },
+ "figures/default": {
+  "schemaVersion": 1,
+  "contentHash": "885eb3e1d7cb99328522199d1f313fab6fa21ace342efbfc44a58afd6b5c2997",
+  "pupilSvg": "0043ac8b4c6c84898dd32be8fd01e70a1773d549c900bdde1c6ed6f367515b20",
+  "answerSvg": "0043ac8b4c6c84898dd32be8fd01e70a1773d549c900bdde1c6ed6f367515b20"
+ },
+ "figures/example-centre-angle-worked": {
+  "schemaVersion": 1,
+  "contentHash": "899bfc7bc2d8923aefba412f5bda50454e2bf1cd58580538fc6d11f44756a5c3",
+  "pupilSvg": "141ba7a50241a0a3b8e329e2cc621e22638b4ab85b62ace764eb66b55c4529f7",
+  "answerSvg": "99b7db29f8ccfa143e381567dd55e3383f93e29d0eb4976ee88fbd5a3bff3c6e"
+ },
+ "figures/example-centre-angle": {
+  "schemaVersion": 1,
+  "contentHash": "a6212fc29345edc51a343aa40f0c9e08495eac33c6c54c83ab17a9db83ca5980",
+  "pupilSvg": "141ba7a50241a0a3b8e329e2cc621e22638b4ab85b62ace764eb66b55c4529f7",
+  "answerSvg": "141ba7a50241a0a3b8e329e2cc621e22638b4ab85b62ace764eb66b55c4529f7"
+ },
+ "figures/example-congruent-four": {
+  "schemaVersion": 1,
+  "contentHash": "b8d6077d67e0bed47771e6f767bccd09c35c1329e1364abeffe90ea0798d01ca",
+  "pupilSvg": "46bf5d01d109ef03fd98774f58592bf5e23f20f7c7bbf664e99614b039f34ba3",
+  "answerSvg": "46bf5d01d109ef03fd98774f58592bf5e23f20f7c7bbf664e99614b039f34ba3"
+ },
+ "figures/example-parallel-in-triangle": {
+  "schemaVersion": 1,
+  "contentHash": "72ff6c8427cf46e6d3b34e4f514f34a5083ba23e9cd15bc46d4d0ea31c4b1acb",
+  "pupilSvg": "916c94325c95df061fe3d0123bd12a8132c4dc1acd82f6efe42fecbfc8b29e95",
+  "answerSvg": "916c94325c95df061fe3d0123bd12a8132c4dc1acd82f6efe42fecbfc8b29e95"
+ },
+ "figures/example-similar-right-worked": {
+  "schemaVersion": 1,
+  "contentHash": "247809297db33648fab1104c1f2eb7b959d5e39007418326dfc47caef3d27933",
+  "pupilSvg": "c16e55fc2c1038e9bd299a4553696abbc9770e97f7c22385cca6d4850fd4739e",
+  "answerSvg": "fc7267ffb04a1676e4285980e75b45f2e46f4f79f25b7370837f56d8f07638ec"
+ },
+ "figures/example-similar-right": {
+  "schemaVersion": 1,
+  "contentHash": "d068f3b72175aad8aa6a92eb45c7de82ea6aff32d6410a5153beffa81fefc1c0",
+  "pupilSvg": "c16e55fc2c1038e9bd299a4553696abbc9770e97f7c22385cca6d4850fd4739e",
+  "answerSvg": "c16e55fc2c1038e9bd299a4553696abbc9770e97f7c22385cca6d4850fd4739e"
+ },
+ "figures/example-tangent-cyclic-worked": {
+  "schemaVersion": 1,
+  "contentHash": "d0f1b662eabec145ff93566cabfdddb32162aa72525b1999dc4181f71b9909c3",
+  "pupilSvg": "f37af6ff27ec4bb052d185e03364f2cdea241b6c8a625e8c5d2e3a702a53dd9b",
+  "answerSvg": "0ecb225493ed392d0f6cd4f688f2493bb46e7f845cd53c4503c6389433c0dff3"
+ },
+ "figures/example-tangent-cyclic": {
+  "schemaVersion": 1,
+  "contentHash": "d8bebf215fb4f98bec299edeb4d460c30cfc2d5bec8577f36fcdd47dc8932a55",
+  "pupilSvg": "f37af6ff27ec4bb052d185e03364f2cdea241b6c8a625e8c5d2e3a702a53dd9b",
+  "answerSvg": "f37af6ff27ec4bb052d185e03364f2cdea241b6c8a625e8c5d2e3a702a53dd9b"
+ },
+ "figures/example-two-tangents": {
+  "schemaVersion": 1,
+  "contentHash": "168fd9ef4b4df0c82521daa549c596bdc8d1f370690579c8c6232979401e8720",
+  "pupilSvg": "7bcb0641117266e8210cf142d3c165527b2125d8c5998ecaf34a08e3c6c53b54",
+  "answerSvg": "7bcb0641117266e8210cf142d3c165527b2125d8c5998ecaf34a08e3c6c53b54"
  }
 }

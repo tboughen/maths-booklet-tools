@@ -1,0 +1,460 @@
+{
+ "kind": "figures",
+ "schemaVersion": 1,
+ "rendererVersion": "figures-1",
+ "document": {
+  "points": [
+   {
+    "id": "a1",
+    "place": {
+     "type": "free",
+     "x": 0,
+     "y": 40
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "a2",
+    "place": {
+     "type": "free",
+     "x": 36,
+     "y": 40
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "a3",
+    "place": {
+     "type": "free",
+     "x": 13,
+     "y": 62
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "b1",
+    "place": {
+     "type": "free",
+     "x": 56,
+     "y": 46
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "b2",
+    "place": {
+     "type": "free",
+     "x": 88,
+     "y": 40
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "b3",
+    "place": {
+     "type": "free",
+     "x": 90,
+     "y": 66
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "c1",
+    "place": {
+     "type": "free",
+     "x": 4,
+     "y": -10
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "c2",
+    "place": {
+     "type": "free",
+     "x": 34,
+     "y": -10
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "c3",
+    "place": {
+     "type": "free",
+     "x": 30,
+     "y": 14
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "d1",
+    "place": {
+     "type": "free",
+     "x": 64,
+     "y": -6
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "d2",
+    "place": {
+     "type": "free",
+     "x": 92,
+     "y": -10
+    },
+    "name": "",
+    "show": "none"
+   },
+   {
+    "id": "d3",
+    "place": {
+     "type": "free",
+     "x": 80,
+     "y": 20
+    },
+    "name": "",
+    "show": "none"
+   }
+  ],
+  "circles": [],
+  "segments": [
+   {
+    "id": "a12",
+    "a": "a1",
+    "b": "a2",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "10 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "a23",
+    "a": "a2",
+    "b": "a3",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "a31",
+    "a": "a3",
+    "b": "a1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "b12",
+    "a": "b1",
+    "b": "b2",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "8 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "b23",
+    "a": "b2",
+    "b": "b3",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "10 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "b31",
+    "a": "b3",
+    "b": "b1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "c12",
+    "a": "c1",
+    "b": "c2",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "10 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "c23",
+    "a": "c2",
+    "b": "c3",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "8 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "c31",
+    "a": "c3",
+    "b": "c1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "d12",
+    "a": "d1",
+    "b": "d2",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "d23",
+    "a": "d2",
+    "b": "d3",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "value",
+     "text": "10 cm",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "d31",
+    "a": "d3",
+    "b": "d1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   }
+  ],
+  "angles": [
+   {
+    "id": "a1",
+    "at": "a1",
+    "from": "a2",
+    "to": "a3",
+    "label": {
+     "state": "value",
+     "text": "55",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "a2",
+    "at": "a2",
+    "from": "a3",
+    "to": "a1",
+    "label": {
+     "state": "value",
+     "text": "45",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "b1",
+    "at": "b1",
+    "from": "b2",
+    "to": "b3",
+    "label": {
+     "state": "value",
+     "text": "45",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "c3",
+    "at": "c3",
+    "from": "c1",
+    "to": "c2",
+    "label": {
+     "state": "value",
+     "text": "55",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "d3",
+    "at": "d3",
+    "from": "d1",
+    "to": "d2",
+    "label": {
+     "state": "value",
+     "text": "45",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "d1",
+    "at": "d1",
+    "from": "d2",
+    "to": "d3",
+    "label": {
+     "state": "value",
+     "text": "80",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "fills": [],
+  "captions": [
+   {
+    "id": "ca",
+    "x": 18,
+    "y": 32,
+    "text": "Triangle A",
+    "bold": false
+   },
+   {
+    "id": "cb",
+    "x": 76,
+    "y": 32,
+    "text": "Triangle B",
+    "bold": false
+   },
+   {
+    "id": "cc",
+    "x": 19,
+    "y": -19,
+    "text": "Triangle C",
+    "bold": false
+   },
+   {
+    "id": "cd",
+    "x": 78,
+    "y": -19,
+    "text": "Triangle D",
+    "bold": false
+   }
+  ],
+  "notToScale": true
+ }
+}

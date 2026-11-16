@@ -42,6 +42,8 @@ import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
 import * as nets from "../../net-core/src/index";
 import * as netsIo from "../../net-core/src/interchange";
+import * as at from "../../algebra-tile-core/src/index";
+import * as atIo from "../../algebra-tile-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -54,6 +56,8 @@ import * as angles from "../../angle-core/src/index";
 import * as anglesIo from "../../angle-core/src/interchange";
 import * as area from "../../area-core/src/index";
 import * as areaIo from "../../area-core/src/interchange";
+import * as figures from "../../figure-core/src/index";
+import * as figuresIo from "../../figure-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -72,12 +76,14 @@ export const DIAGRAM_KINDS = [
   "function-machine",
   "nets",
   "written-method",
+  "algebra-tiles",
   "sample-space",
   "triangle",
   "construction",
   "elevations",
   "angles",
   "area",
+  "figures",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -457,6 +463,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     hash: nets.hash,
     svg: (e, view) => nets.renderSvg(nets.forView(e, view, true)),
   }),
+  "algebra-tiles": family<at.Envelope>({
+    kind: "algebra-tiles",
+    label: "algebra tiles diagram",
+    summary: "Algebra tiles for collecting like terms: 1, letter, squared, product and three-letter (a²b, ab²) tiles in two letters, positive and negative (zero pairs), as written or grouped, with the expression and answer blank or hidden for pupils; collected only on request.",
+    route: "/tools/algebra-tiles",
+    answerView: true,
+    envelopeSchema: at.envelopeSchema,
+    createSchema: atIo.createSchema,
+    revisionSchema: atIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = at.validate(raw);
+      check(at.exportIssue(at.forView(e, view)));
+      return e;
+    },
+    create: (input) => atIo.create(input),
+    revise: (input) => atIo.revise(input),
+    hash: at.hash,
+    svg: (e, view) => at.renderSvg(at.forView(e, view, true)),
+  }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",
     label: "triangle diagram",
@@ -551,6 +576,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => areaIo.revise(input),
     hash: area.hash,
     svg: (e, view) => area.renderSvg(e, view),
+  }),
+  figures: family<figures.Envelope>({
+    kind: "figures",
+    label: "geometry figure",
+    summary: "Geometry figures: circles with chords, tangents and radii (circle theorems), similar and congruent triangles and shapes, parallel lines and proofs; named points, side lengths and angles given, letters, blanks or hidden answers.",
+    route: "/tools/figures",
+    answerView: true,
+    envelopeSchema: figures.envelopeSchema,
+    createSchema: figuresIo.createSchema,
+    revisionSchema: figuresIo.revisionSchema,
+    validate: (raw) => {
+      const e = figures.validate(raw);
+      check(figures.exportIssue(e));
+      return e;
+    },
+    create: (input) => figuresIo.create(input),
+    revise: (input) => figuresIo.revise(input),
+    hash: figures.hash,
+    svg: (e, view) => figures.renderSvg(e, view),
   }),
 };
 
