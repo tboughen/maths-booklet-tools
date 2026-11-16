@@ -48,6 +48,8 @@ export const NetsIcon = icon(<><path d="M9 3h6v18H9zM3 9h18v6H3z" /><path classN
 export const BubbleMethodIcon = icon(<><path d="M3 6h7M14 6h7M11 4.5h2M11 7.5h2" /><ellipse className="md-icon-part" cx="6.5" cy="13" rx="3.5" ry="2.5" /><ellipse className="md-icon-part" cx="17.5" cy="13" rx="3.5" ry="2.5" /><path d="M3 20h7M14 20h7" /></>);
 /** Written methods: a column calculation with its answer line. */
 export const WrittenMethodIcon = icon(<><path d="M9 4h.01M13 4h.01M17 4h.01M9 9h.01M13 9h.01M17 9h.01M4 9l2 0M5 8v2" /><path className="md-icon-part" d="M3 13h18" /><path d="M9 18h.01M13 18h.01M17 18h.01" /></>);
+/** Spinners, dice and bags: a spinner with an arrow, beside a dice face. */
+export const ProbabilityObjectsIcon = icon(<><circle cx="9" cy="12" r="7" /><path d="M9 5v14M3 12h12" /><path className="md-icon-part" d="M9 12l3.5-3.5" /><rect className="md-icon-part md-icon-wash" x="16" y="14" width="6" height="6" rx="1.2" /></>);
 /** Graph tool */
 export const GraphIcon = icon(<><path d="M3 15h18M9 3v18" /><path className="md-icon-part" d="M4.5 19.5 19 5" /></>);
 /** Plotting quadratics */

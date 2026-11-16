@@ -2256,6 +2256,118 @@
    "png600": "2480x1228",
    "pixels": "39401777225cc16a"
   },
+  "spinners, dice and bags: po-bag-of-counters": {
+   "json": "1b62f455ba2d638a",
+   "svg": "2543421ea6f6d62f",
+   "mm": "47.8x49.2",
+   "png600": "1129x1162",
+   "pixels": "de31f2496b36a809"
+  },
+  "spinners, dice and bags: po-bag-of-counters (worked)": {
+   "json": "1b62f455ba2d638a",
+   "svg": "2543421ea6f6d62f",
+   "mm": "47.8x49.2",
+   "png600": "1129x1162",
+   "pixels": "de31f2496b36a809"
+  },
+  "spinners, dice and bags: po-biased-dice": {
+   "json": "aeaf434ace7942d8",
+   "svg": "b4f887b348324352",
+   "mm": "126x21",
+   "png600": "2976x496",
+   "pixels": "1a735fdd7bbc1324"
+  },
+  "spinners, dice and bags: po-biased-dice (worked)": {
+   "json": "9cc1d60572682a87",
+   "svg": "34fdd6bc8d794358",
+   "mm": "126x21",
+   "png600": "2976x496",
+   "pixels": "b9470e11cf996436"
+  },
+  "spinners, dice and bags: po-complete-the-spinner": {
+   "json": "fe026def5f6541be",
+   "svg": "50a9cac15bb1730f",
+   "mm": "49.2x49.2",
+   "png600": "1162x1162",
+   "pixels": "e93063eec2d4ecbf"
+  },
+  "spinners, dice and bags: po-complete-the-spinner (worked)": {
+   "json": "d57b57ec8c9b287f",
+   "svg": "e254fd3af71d7c3b",
+   "mm": "49.2x49.2",
+   "png600": "1162x1162",
+   "pixels": "4069549ee8282fbf"
+  },
+  "spinners, dice and bags: po-dice-and-spinner": {
+   "json": "90ce2748c22952ab",
+   "svg": "2d7ff7251dc2a2db",
+   "mm": "78x43.77",
+   "png600": "1842x1034",
+   "pixels": "6cd22afa22761c2a"
+  },
+  "spinners, dice and bags: po-dice-and-spinner (worked)": {
+   "json": "90ce2748c22952ab",
+   "svg": "2d7ff7251dc2a2db",
+   "mm": "78x43.77",
+   "png600": "1842x1034",
+   "pixels": "6cd22afa22761c2a"
+  },
+  "spinners, dice and bags: po-four-sided": {
+   "json": "c01ec7c2514c23fa",
+   "svg": "99f07fbde55814c7",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "3bcee70d8fd726e0"
+  },
+  "spinners, dice and bags: po-four-sided (worked)": {
+   "json": "c01ec7c2514c23fa",
+   "svg": "99f07fbde55814c7",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "3bcee70d8fd726e0"
+  },
+  "spinners, dice and bags: po-six-sectors": {
+   "json": "6eef9cf2e0329dde",
+   "svg": "01c595464fdc2bd3",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "61f955397084686c"
+  },
+  "spinners, dice and bags: po-six-sectors (worked)": {
+   "json": "6eef9cf2e0329dde",
+   "svg": "01c595464fdc2bd3",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "61f955397084686c"
+  },
+  "spinners, dice and bags: po-two-spinners": {
+   "json": "45ff837debbe18ac",
+   "svg": "63993275a46bf5f9",
+   "mm": "80.4x42.86",
+   "png600": "1899x1012",
+   "pixels": "9b1ef6af76fa841d"
+  },
+  "spinners, dice and bags: po-two-spinners (worked)": {
+   "json": "45ff837debbe18ac",
+   "svg": "63993275a46bf5f9",
+   "mm": "80.4x42.86",
+   "png600": "1899x1012",
+   "pixels": "9b1ef6af76fa841d"
+  },
+  "spinners, dice and bags: po-unequal-sectors": {
+   "json": "28bd84bc54337806",
+   "svg": "19e2b7176666ebf8",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "a11e2ecdd98d122e"
+  },
+  "spinners, dice and bags: po-unequal-sectors (worked)": {
+   "json": "28bd84bc54337806",
+   "svg": "19e2b7176666ebf8",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "a11e2ecdd98d122e"
+  },
   "triangles: triangle-base-height": {
    "json": "1e5b05de2d412810",
    "svg": "07ab0d5d9a0a7110",

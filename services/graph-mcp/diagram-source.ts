@@ -41,6 +41,8 @@ import * as fm from "../../packages/function-machine-core/src/index";
 import { printFacts as fmPrintFacts } from "../../packages/function-machine-core/src/interchange";
 import * as bm from "../../packages/bubble-method-core/src/index";
 import { printFacts as bmPrintFacts } from "../../packages/bubble-method-core/src/interchange";
+import * as po from "../../packages/probability-objects-core/src/index";
+import { printFacts as poPrintFacts } from "../../packages/probability-objects-core/src/interchange";
 import * as nets from "../../packages/net-core/src/index";
 import { printFacts as netsPrintFacts } from "../../packages/net-core/src/interchange";
 import * as at from "../../packages/algebra-tile-core/src/index";
@@ -88,6 +90,7 @@ export type DiagramSource =
   | { kind: "written-method"; envelope: wm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "function-machine"; envelope: fm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "bubble-method"; envelope: bm.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "probability-objects"; envelope: po.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "nets"; envelope: nets.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "algebra-tiles"; envelope: at.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "sample-space"; envelope: ss.Envelope; outputView?: "pupil" | "answer" }
@@ -160,6 +163,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "written-method") {
     const view = source.outputView ?? "pupil", g = wm.layout(wm.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: wmPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "probability-objects") {
+    const view = source.outputView ?? "pupil", g = po.layout(po.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: poPrintFacts(source.envelope, view) };
   }
   if (source.kind === "bubble-method") {
     const view = source.outputView ?? "pupil", g = bm.layout(bm.forView(source.envelope, view));

@@ -24,6 +24,7 @@ COPY packages/factor-tree-core packages/factor-tree-core
 COPY packages/written-method-core packages/written-method-core
 COPY packages/function-machine-core packages/function-machine-core
 COPY packages/bubble-method-core packages/bubble-method-core
+COPY packages/probability-objects-core packages/probability-objects-core
 COPY packages/net-core packages/net-core
 COPY packages/algebra-tile-core packages/algebra-tile-core
 COPY packages/sample-space-core packages/sample-space-core
