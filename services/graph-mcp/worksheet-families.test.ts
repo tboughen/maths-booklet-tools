@@ -28,6 +28,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   area: { preset: "l-shape", labels: [{ id: "e1", text: "12 cm" }, { id: "e6", text: "10 cm" }, { id: "area", answer: "85 cm²" }] },
   "sample-space": { rows: ["H", "T"], columns: ["1", "2", "3"], cells: [["H1", { text: "H2", hidden: true }, ""]] },
   "factor-tree": { root: "36", complete: true },
+  nets: { nets: [{ preset: { type: "cube", net: 5 }, faces: [{ mark: "dot" }, null, null, null, null, { mark: { kind: "dot", hidden: true } }] }] },
   "function-machine": { ops: ["× 3", "− 8"], start: "6", complete: true },
   triangle: { widthCm: 8 },
 };

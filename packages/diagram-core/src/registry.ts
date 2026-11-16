@@ -38,6 +38,8 @@ import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
+import * as nets from "../../net-core/src/index";
+import * as netsIo from "../../net-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -66,6 +68,7 @@ export const DIAGRAM_KINDS = [
   "two-way-table",
   "factor-tree",
   "function-machine",
+  "nets",
   "sample-space",
   "triangle",
   "construction",
@@ -412,6 +415,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => fmIo.revise(input),
     hash: fm.hash,
     svg: (e, view) => fm.renderSvg(fm.forView(e, view, true)),
+  }),
+  nets: family<nets.Envelope>({
+    kind: "nets",
+    label: "nets of 3D shapes",
+    summary: "Nets of cubes, cuboids, prisms, pyramids and tetrahedra on squared paper: face letters, dots, shading, corner letters, lengths; hidden faces and labels for pupils.",
+    route: "/tools/nets",
+    answerView: true,
+    envelopeSchema: nets.envelopeSchema,
+    createSchema: netsIo.createSchema,
+    revisionSchema: netsIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = nets.validate(raw);
+      check(nets.exportIssue(nets.forView(e, view)));
+      return e;
+    },
+    create: (input) => netsIo.create(input),
+    revise: (input) => netsIo.revise(input),
+    hash: nets.hash,
+    svg: (e, view) => nets.renderSvg(nets.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",
