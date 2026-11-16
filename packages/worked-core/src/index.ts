@@ -28,6 +28,9 @@ import { renderSvg as renderValueGraph, validate as validateValueGraph } from ".
 import { validateEnvelope as validateGraph } from "../../graph-core/src/interchange";
 import { renderDiagramSvg as renderGraph } from "../../graph-core/src/svg";
 import { renderSvg as renderBarModel, validate as validateBarModel } from "../../bar-model-core/src/v3";
+import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS, WORKING_DASH_POINTS } from "../../graph-core/src/graphStyle";
+import { smoothCurvePath } from "../../graph-core/src/curve";
+import { arrowheadPath } from "../../graph-core/src/arrow";
 import type { Band } from "./slices";
 export { slices, type Band } from "./slices";
 
@@ -322,21 +325,16 @@ export function toPoints(grid: Grid | undefined): (p: Pt) => [number, number] {
   return p => [x(p[0]), y(p[1])];
 }
 
-const DASH = `stroke-dasharray="4 3"`;
+// Dash, arrowheads and curves are shared with the graph tools (graph-core), so a worked solution
+// draws them exactly as the graph family does.
+const DASH = `stroke-dasharray="${WORKING_DASH_POINTS.join(" ")}"`;
 const stroke = (d: string, width = 1.1, extra = "") => `<path d="${d}" stroke="${INK}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" fill="none"${extra ? ` ${extra}` : ""}/>`;
 const pt = (p: Pt) => `${n(p[0])} ${n(p[1])}`;
 const unit = (from: Pt, to: Pt): [number, number] => { const dx = to[0] - from[0], dy = to[1] - from[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
-/** A filled arrowhead with its tip at `tip`, pointing along u. */
-const head = (tip: Pt, u: Pt, length = 7, half = 3) => `<path d="M${pt(tip)}L${pt([tip[0] - u[0] * length - u[1] * half, tip[1] - u[1] * length + u[0] * half])}L${pt([tip[0] - u[0] * length + u[1] * half, tip[1] - u[1] * length - u[0] * half])}Z" fill="${INK}" stroke="none"/>`;
-/** A smooth curve through points (Catmull-Rom as cubic Béziers), so it passes through every plotted point. */
-function smooth(p: Pt[]): string {
-  let d = `M${pt(p[0])}`;
-  for (let i = 0; i < p.length - 1; i++) {
-    const a = p[i - 1] ?? p[i], b = p[i], c = p[i + 1], e = p[i + 2] ?? c;
-    d += `C${pt([b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6])} ${pt([c[0] - (e[0] - b[0]) / 6, c[1] - (e[1] - b[1]) / 6])} ${pt(c)}`;
-  }
-  return d;
-}
+const xy = (p: Pt) => ({ x: p[0], y: p[1] });
+const head = (from: Pt, to: Pt, position: "end" | "middle", size: { length: number; halfWidth: number }) =>
+  `<path d="${arrowheadPath(xy(from), xy(to), position, size.length, size.halfWidth)}" fill="${INK}" stroke="none"/>`;
+const smooth = (p: Pt[]) => smoothCurvePath(p.map(xy));
 
 /** A drawing's SVG in the cut's points, with every point it reaches and the boxes of its labels. */
 export function drawShapes(shapes: Shape[], place: (p: Pt) => [number, number]) {
@@ -375,12 +373,12 @@ export function drawShapes(shapes: Shape[], place: (p: Pt) => [number, number]) 
       case "region": svg += `<path d="M${s.points.map(p => pt(at(p))).join("L")}Z" fill="${INK}" fill-opacity="0.15" stroke="none"/>`; break;
       case "reading": {
         const p = s.points.map(at);
-        svg += stroke(`M${p.map(pt).join("L")}`, 0.9, DASH) + head(p[p.length - 1], unit(p[p.length - 2], p[p.length - 1]), 6, 2.6);
+        svg += stroke(`M${p.map(pt).join("L")}`, 0.9, DASH) + head(p[p.length - 2], p[p.length - 1], "end", READING_ARROWHEAD_POINTS);
         break;
       }
       case "vector": {
-        const a = at(s.from), b = at(s.to), u = unit(a, b);
-        svg += stroke(`M${pt(a)}L${pt(b)}`) + head(s.head === "end" ? b : [(a[0] + b[0]) / 2 + u[0] * 3.5, (a[1] + b[1]) / 2 + u[1] * 3.5], u);
+        const a = at(s.from), b = at(s.to);
+        svg += stroke(`M${pt(a)}L${pt(b)}`) + head(a, b, s.head, VECTOR_ARROWHEAD_POINTS);
         break;
       }
       case "angle": {
