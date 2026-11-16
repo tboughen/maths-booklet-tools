@@ -11,6 +11,11 @@ const SMALL = 10 / 12;
 const part = (size: number) => Math.max(size * SMALL, FONT * SMALL);
 const ROW_HEIGHT = 100;
 const ANSWER_LINE_WIDTH = 60;
+/**
+ * The answer line for a hidden scaling operation ("÷ 3"): 13 mm at standard size, room to write
+ * the sign and a factor by hand (Tim, A7 marking, 16 Nov 2026). 6 mm was too tight.
+ */
+export const FACTOR_LINE_WIDTH = 130;
 /** Saved answers print in the answers copy only, in the house answer colour. */
 export const RATIO_ANSWER_COLOUR = "#b0125b";
 const INK = "#202020";
@@ -50,23 +55,47 @@ export function numberWidth(value: string, size = FONT): number {
 const annotatedLabels = (document: RatioDocument) =>
   document.mode === "annotated" && document.transitions.length > 0 && document.showOperations;
 /** The width an operation label takes beside its arrow. A hidden label reserves a full answer line. */
-function labelSlot(step: RatioDocument["transitions"][number]) {
+export function labelSlot(step: RatioDocument["transitions"][number]) {
   const size = FONT * SMALL,
     total =
       textWidth(step.operation === "multiply" ? "×" : "÷", size) +
       6 +
       numberWidth(step.factor, size);
-  return step.hidden ? Math.max(total, ANSWER_LINE_WIDTH) : total;
+  return step.hidden ? Math.max(total, FACTOR_LINE_WIDTH) : total;
+}
+/** Does this step print on the left (-1) or right (1) side of a two-column table? */
+export const printsOn = (step: RatioDocument["transitions"][number], side: -1 | 1) =>
+  !step.side || step.side === (side < 0 ? "left" : "right");
+/**
+ * Where a step's arrow and operation print: both sides of a two-column table (or the one side it
+ * names), and beside every column of a wider table.
+ */
+export function stepLanes(
+  document: RatioDocument,
+  m: Pick<ReturnType<typeof ratioMetrics>, "tableLeft" | "tableWidth" | "columnWidth">,
+  step: RatioDocument["transitions"][number],
+) {
+  if (document.headings.length !== 2)
+    return document.headings.map((_, column) => ({
+      side: 1 as const,
+      edge: m.tableLeft + column * m.columnWidth + 150,
+      name: `column ${column + 1}`,
+    }));
+  return [
+    { side: -1 as const, edge: m.tableLeft, name: "left" },
+    { side: 1 as const, edge: m.tableLeft + m.tableWidth, name: "right" },
+  ].filter((lane) => printsOn(step, lane.side));
 }
 export function ratioMetrics(document: RatioDocument) {
   const scale = { standard: 1, large: 1.2 }[document.size];
   const annotated =
     document.mode === "annotated" && document.transitions.length > 0;
-  let gutter = 0;
-  if (annotated && (document.showArrows || document.showOperations)) {
+  // The room beside the table for the arrows and operations of these steps.
+  const gutterFor = (steps: RatioDocument["transitions"]) => {
+    if (!annotated || !steps.length || !(document.showArrows || document.showOperations)) return 0;
     const operationWidth = document.showOperations
       ? Math.max(
-          ...document.transitions.map((t) =>
+          ...steps.map((t) =>
             Math.max(
               32 + numberWidth(t.factor, FONT * SMALL),
               t.hidden ? labelSlot(t) + 6 : 0,
@@ -74,11 +103,16 @@ export function ratioMetrics(document: RatioDocument) {
           ),
         )
       : 0;
-    gutter = Math.max(
+    return Math.max(
       document.showArrows ? 48 : 0,
       operationWidth + (document.showArrows ? 62 : 18),
     );
-  }
+  };
+  const gutter = gutterFor(document.transitions);
+  // Two columns: each side is only as wide as the steps printed there.
+  const two = document.headings.length === 2;
+  const gutterLeft = two ? gutterFor(document.transitions.filter((t) => printsOn(t, -1))) : 0,
+    gutterRight = two ? gutterFor(document.transitions.filter((t) => printsOn(t, 1))) : 0;
   for (const heading of document.headings) {
     if (
       textWidth(heading.text, FONT, heading.italic) +
@@ -102,14 +136,14 @@ export function ratioMetrics(document: RatioDocument) {
         );
   // Two-column documents retain their exact lesson layout. Three columns each
   // reserve a scaling lane, so the middle column's operation is explicit too.
-  const columnWidth = 150 + (document.headings.length !== 2 ? gutter : 0),
+  const columnWidth = 150 + (two ? 0 : gutter),
     tableWidth = document.headings.length * columnWidth,
-    width = 30 + tableWidth + (document.headings.length === 2 ? gutter * 2 : 0),
+    width = 30 + tableWidth + gutterLeft + gutterRight,
     height = (document.rows.length + 1) * ROW_HEIGHT + 30;
   return {
     width,
     height,
-    tableLeft: 15 + (document.headings.length === 2 ? gutter : 0),
+    tableLeft: 15 + gutterLeft,
     tableTop: 15,
     columnWidth,
     tableWidth,
@@ -217,16 +251,7 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
     for (const step of document.transitions) {
       const index = document.rows.findIndex((r) => r.id === step.from),
         y = top + 150 + index * 100;
-      const lanes =
-        document.headings.length === 2
-          ? [
-              { side: -1, edge: left },
-              { side: 1, edge: left + 300 },
-            ]
-          : document.headings.map((_, column) => ({
-              side: 1,
-              edge: left + column * m.columnWidth + 150,
-            }));
+      const lanes = stepLanes(document, m, step);
       for (const { side, edge } of lanes) {
         const x = edge + side * 12;
         if (document.showArrows) {

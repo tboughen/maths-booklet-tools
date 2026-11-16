@@ -7205,6 +7205,13 @@
                 },
                 "hidden": {
                   "type": "boolean"
+                },
+                "side": {
+                  "type": "string",
+                  "enum": [
+                    "left",
+                    "right"
+                  ]
                 }
               },
               "required": [

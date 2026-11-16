@@ -16,7 +16,9 @@ import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
 import { headingText, headingFromText } from "./headingText";
 import {
+  labelSlot,
   numberWidth,
+  stepLanes,
   textWidth,
 } from "../../packages/ratio-table-core/src/svg";
 
@@ -295,20 +297,8 @@ export function RatioCanvas({
                 const row = document.rows.findIndex(
                   (row) => row.id === step.from,
                 );
-                const lanes =
-                  document.headings.length === 2
-                    ? [
-                        { edge: m.tableLeft, side: -1 },
-                        {
-                          edge: m.tableLeft + m.tableWidth,
-                          side: 1,
-                        },
-                      ]
-                    : document.headings.map((_, column) => ({
-                        edge: m.tableLeft + column * m.columnWidth + 150,
-                        side: 1,
-                      }));
-                return lanes.flatMap(({ edge, side }, index) => {
+                const lanes = stepLanes(document, m, step);
+                return lanes.flatMap(({ edge, side, name: laneName }, index) => {
                   // Match the printed label's geometry without changing the SVG or saved format.
                   const font = (10 / 72) * 2.54 * 100, // operation labels print at 10 pt (U111)
                     factorWidth = numberWidth(step.factor, font),
@@ -319,15 +309,13 @@ export function RatioCanvas({
                       ) +
                       6 +
                       factorWidth,
+                    // A hidden step centres on its longer answer line, as printed.
                     centre =
                       edge +
-                      side * ((document.showArrows ? 52 : 10) + total / 2),
+                      side *
+                        ((document.showArrows ? 52 : 10) + labelSlot(step) / 2),
                     factorCentre = centre + total / 2 - factorWidth / 2,
-                    inputKey = `inline-factor-${step.from}-${index}`,
-                    laneName =
-                      index === 0 && document.headings.length === 2
-                        ? "left"
-                        : `column ${index + 1}`;
+                    inputKey = `inline-factor-${step.from}-${index}`;
                   return [
                     <button
                       key={`${step.from}-${index}`}
