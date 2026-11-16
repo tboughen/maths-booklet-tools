@@ -106,10 +106,24 @@ const leafItems = [
     .object({
       type: z.literal("table"),
       beside,
-      columns: z.array(text(40)).min(2).max(6),
+      /**
+       * The shaded heading row, printed. Omit it to shade the first of the rows instead, with the
+       * same cell states as any row: a table of values along the page (P11) whose x row holds
+       * blanks or hidden answers.
+       */
+      columns: z.array(text(40)).min(2).max(6).optional(),
       rows: z.array(z.array(cellSchema).min(2).max(6)).min(1).max(12),
     })
-    .strict(),
+    .strict()
+    .superRefine((t, ctx) => {
+      // A short row prints its missing cells empty (as saved sheets always have); a long one has
+      // no column to print in.
+      const want = t.columns?.length ?? t.rows[0]?.length ?? 0;
+      t.rows.forEach((r, i) => {
+        if (r.length > want)
+          ctx.addIssue({ code: "custom", path: ["rows", i], message: `This row has ${r.length} cells but the table has ${want} columns.` });
+      });
+    }),
   z
     .object({
       type: z.literal("choice"),
@@ -322,6 +336,15 @@ export type Card = z.infer<typeof cardSchema>;
 export type Item = z.infer<typeof itemSchema>;
 export type Leaf = z.infer<typeof leafSchema>;
 export type Cell = z.infer<typeof cellSchema>;
+/**
+ * A table's shaded heading row and the rows under it. With columns, the heading row is those
+ * printed headings; without, it is the first row, whose cells keep their states.
+ */
+export function tableRows(item: Extract<Leaf, { type: "table" }>): { head: Cell[]; body: Cell[][] } {
+  return item.columns
+    ? { head: item.columns.map((text) => ({ text, state: "supplied" as const })), body: item.rows }
+    : { head: item.rows[0], body: item.rows.slice(1) };
+}
 export type Diagram = z.infer<typeof diagramSchema>;
 
 export function validate(input: unknown): Resource {

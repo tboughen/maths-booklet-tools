@@ -167,6 +167,8 @@ export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
     return false;
   if (!isAxisConfig(candidate.axes.x) || !isAxisConfig(candidate.axes.y))
     return false;
+  // Only a titled y-axis can print its title above the axis (as the connector schema requires).
+  if (candidate.axes.x.titleAbove || (candidate.axes.y.titleAbove && !candidate.axes.y.title)) return false;
   const xTotal =
     candidate.axes.x.negativeSquares + candidate.axes.x.positiveSquares;
   const yTotal =

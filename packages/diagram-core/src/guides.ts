@@ -23,6 +23,7 @@ import { twoWayTableConfig } from "./guides/two-way-table";
 import { ftConfig } from "./guides/factor-tree";
 import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
+import { poConfig } from "./guides/probability-objects";
 import { netsConfig } from "./guides/nets";
 import { atConfig } from "./guides/algebra-tiles";
 import { ssConfig } from "./guides/sample-space";
@@ -51,7 +52,7 @@ const graphGuide: FamilyGuide = {
     polygonVertices: [3, 12],
     unitsPerSquare: "any positive scale per 1 cm square, such as 0.5, 1, 2, 5, 10, 20, 25, 50; minutes for time axes",
     commonUnitsPerSquare: [0.5, 1, 2, 5, 10, 20, 25, 50],
-    axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title", "name (one letter)"],
+    axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title", "titleAbove: true (y only, title above the axis)", "name (one letter)"],
     grids: ["1cm", "5mm", "2mm", "none"],
     originLabels: ["0", "O"],
     lines: ["normal", "bold"],
@@ -72,7 +73,7 @@ const graphGuide: FamilyGuide = {
     "Transformations: {kind:\"polygon\", vertices:[{x,y},...] (3 to 12 corners in order; it closes itself), shaded?:true, name?:\"A\"} draws a closed shape; its name prints upright in the middle of the shape, as exam papers label shapes. For \"Reflect shape A\" give the image with answerOnly:true, so the pupil copy shows only A. An image is drawn only when asked for: {kind:\"image\", of:<earlier polygon id>, transformation} saves the exact image as an ordinary polygon; rays:true on an enlargement adds dashed rays from the centre. Mark a centre as a named point (a cross) and a mirror line as a line. " +
     "Vectors: a segment takes arrow \"middle\" or \"end\", pointing from start to end. " +
     "Gradient: a segment or line takes gradientTriangle {x, run, labels?} - dashed horizontal and vertical legs from the line at x, run squares across (negative runs go left) and up or down to the line again. labels \"values\" prints the run and rise; \"blank\" leaves dotted spaces on the pupil copy and prints the values in pink on the answers copy; omit labels for bare legs. Choose x and run so the rise is a whole number and the triangle stays on the grid (a warning says if not). Not for vertical or horizontal lines. " +
-    "Real-life graphs: each axis takes unitsPerSquare (any positive scale per 1 cm square, e.g. 5, 10, 25), origin (value where the axes cross), labelEvery (number every nth 1 cm line), format \"time\" (values are minutes after midnight, printed 12 00) and title (words and unit, e.g. \"Distance from home (km)\", replacing the italic letter). grid \"2mm\" or \"5mm\" adds a fine grid inside heavier 1 cm lines; points and line ends may sit on fine lines. An axis name such as \"t\" prints that italic letter at the arrow, with the title too. A travel or real-life graph is one {kind:\"curve\", points:[...]} (straight pieces; smooth:true for a curve such as a velocity-time graph). {kind:\"reading\", at, read:\"y\"|\"x\"|\"both\"} draws dashed reading lines to the axes with a head where the value is read; answerOnly:true for a worked answer. {kind:\"tangent\", of:<curve id>, x, run?, gradientTriangle?} adds a tangent segment touching that curve at x (run = x units each side, default 2 squares); {kind:\"strips\", of, from, to, count 1-10, shaded?} adds trapezium strips under it, saved as shapes. {kind:\"function\", equation:{family, ...}, from?, to?} draws an exact equation curve, for graphical solving with lines and readings, tangents, strips or graph transformations (several curves); for trig graphs set the x-axis unitsPerSquare to e.g. 30 or 45. tangent and strips also take an equation curve. {kind:\"circle\", centre, radius} draws x² + y² = r² style circles (radius in x units; dashed allowed). " +
+    "Real-life graphs: each axis takes unitsPerSquare (any positive scale per 1 cm square, e.g. 5, 10, 25), origin (value where the axes cross), labelEvery (number every nth 1 cm line), format \"time\" (values are minutes after midnight, printed 12 00) and title (words and unit, e.g. \"Distance from home (km)\", replacing the italic letter; y titleAbove:true prints it above the axis, Edexcel style, so a graph beside a table stays narrow). grid \"2mm\" or \"5mm\" adds a fine grid inside heavier 1 cm lines; points and line ends may sit on fine lines. An axis name such as \"t\" prints that italic letter at the arrow, with the title too. A travel or real-life graph is one {kind:\"curve\", points:[...]} (straight pieces; smooth:true for a curve such as a velocity-time graph). {kind:\"reading\", at, read:\"y\"|\"x\"|\"both\"} draws dashed reading lines to the axes with a head where the value is read; answerOnly:true for a worked answer. {kind:\"tangent\", of:<curve id>, x, run?, gradientTriangle?} adds a tangent segment touching that curve at x (run = x units each side, default 2 squares); {kind:\"strips\", of, from, to, count 1-10, shaded?} adds trapezium strips under it, saved as shapes. {kind:\"function\", equation:{family, ...}, from?, to?} draws an exact equation curve, for graphical solving with lines and readings, tangents, strips or graph transformations (several curves); for trig graphs set the x-axis unitsPerSquare to e.g. 30 or 45. tangent and strips also take an equation curve. {kind:\"circle\", centre, radius} draws x² + y² = r² style circles (radius in x units; dashed allowed). " +
     "Sketch questions: grid \"none\" draws sketch axes (no grid, no axis numbers, just the axes with x, y and, with originLabel \"O\", an italic O). Squares still set the size and scale. A segment or line takes labels: up to 4 {at:{x,y}, text, side?} short texts such as \"3\", \"-2\" (printed −2) or \"(0, 3)\" beside a point, usually where it crosses an axis; side defaults to the free corner left of the y-axis or below the x-axis. Labels follow the line's answerOnly, so a sketch answer is a line with answerOnly:true and its intercept labels, and the pupil copy is blank axes. " +
     "Inequality regions: {kind:\"region\", inequalities:[\"y > 2x - 1\",\"x <= 3\",\"y >= 0\"], shade:\"wanted\"|\"unwanted\", boundaries:true, name:\"R\"} shades the region (light grey) and draws each boundary across the grid, dashed for < and >, solid for <= and >=; ranges like \"-2 < x <= 3\" count as two. shade unwanted shades the rest and leaves the region clear. A \"shade the region\" question is answerOnly:true so the pupil copy stays unshaded; give the boundary lines as separate line objects (with boundaries:false on the region) when the question already draws them. " +
     "Example travel graph 12 00 to 14 30, 0 to 30 km: axes {x:{negativeSquares:0,positiveSquares:15,unitsPerSquare:10,origin:720,labelEvery:3,format:\"time\",title:\"Time of day\"}, y:{negativeSquares:0,positiveSquares:6,unitsPerSquare:5,labelEvery:2,title:\"Distance from home (km)\"}}, grid \"2mm\", segments in minutes and km such as {kind:\"segment\",start:{x:720,y:0},end:{x:765,y:25}}.",
@@ -91,7 +92,7 @@ const ratioGuide: FamilyGuide = {
     rows: { minimum: 1, maximum: 6 },
     cellKinds: ["number", "empty", "answer-line", "hidden"],
     headingDirections: ["right", "up", "down", "none"],
-    compactSpec: { columns: "heading strings, optionally ending in → ↑ ↓ (no arrow for plain x | y); x^2 or x² and x^3 print a superscript, 1/x and 1/x^2 a stacked fraction", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]; prefix left: or right: for one side only (two columns)" },
+    compactSpec: { columns: "heading strings up to 16 characters, optionally ending in → ↑ ↓ (no arrow for plain x | y); units such as Time (min), Speed (m/s) or °C widen the column; x^2 or x² and x^3 print a superscript, 1/x and 1/x^2 a stacked fraction", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]; prefix left: or right: for one side only (two columns)" },
     sizes: ["standard", "large"],
     lines: ["normal", "bold"],
     modes: ["simple", "annotated"],
@@ -220,6 +221,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "factor-tree": fromConfig(ftConfig),
   "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
+  "probability-objects": fromConfig(poConfig),
   nets: fromConfig(netsConfig),
   "algebra-tiles": fromConfig(atConfig),
   "sample-space": fromConfig(ssConfig),
@@ -369,6 +371,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
+  "probability-objects": ["spinners", "dice", "bags of counters", "probability of a single event", "equally likely outcomes", "expected outcomes"],
   "algebra-tiles": ["algebra tiles", "collecting like terms", "simplifying expressions", "like and unlike terms (a²b and ab²)", "zero pairs", "writing expressions from tiles"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],

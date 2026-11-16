@@ -247,7 +247,7 @@ try {
         return count;
       };
       for (let column = 0; column < 3; column++) {
-        const edge = metrics.tableLeft + column * metrics.columnWidth + 150;
+        const edge = metrics.tableLeft + column * metrics.columnWidth + metrics.cellWidth;
         if (ink(edge + 9, edge + 41, 175, 256) < 50 ||
             ink(edge + 51, edge + metrics.gutter - 5, 198, 244) < 20)
           throw Error("A three-column arrow or factor lane is blank in the exported SVG.");

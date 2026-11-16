@@ -69,8 +69,8 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
 - Step kinds: `line` (aligned on its sign), `text`, `bubbles`, `diagram` (any MathsDock envelope
   drawn by its own renderer, as the pupil sees it: algebra grid, ratio table, number line, factor
   tree, angles, area, Venn, probability or frequency tree, two-way table, sample space, chart,
-  construction, cuboid, elevations, triangle, value graph, graph, bar model, function machine or
-  written method), `carry` (a value from
+  construction, cuboid, elevations, triangle, value graph, graph, bar model, function machine,
+  written method, figures: circle theorems, similar and congruent shapes), `carry` (a value from
   an earlier part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (shapes on any
   shown surface) and `answer` (centred on its line; `"align": "left"` for written words on a
   full-width line).

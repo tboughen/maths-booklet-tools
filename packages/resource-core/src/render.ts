@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { answerLeaks } from "../../diagram-core/src/answer-leaks";
-import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
+import { diagramEnvelope, LAYOUTS, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
@@ -41,8 +41,6 @@ export interface Ctx<W extends object = { side: number; column: number; question
   diagrams: number;
   issues: (W & { message: string })[];
   where: W;
-  /** Tables keep their natural width (cells at least 14 mm) instead of filling the card: booklets. */
-  compactTables?: boolean;
   /** Maths notation in flowing text: {3/4} prints as a stacked fraction (worksheet `notation: "maths"`). */
   maths?: boolean;
   /** Collects one note per question whose flowing text holds a fraction that will not print stacked. */
@@ -112,18 +110,21 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
   const cellWidth = (t: string, bold = false) =>
     maths ? lineWidth(parseRuns(shown(t), bold ? "bold" : "regular", true), size) : plainWidth(t, size, bold ? "bold" : "regular");
   const tall = (texts: string[]) => texts.some((t) => answerHasFraction(t, maths));
-  const headH = tall(item.columns) ? FRAC_TABLE_ROW : S.tableRow;
+  const { head, body } = tableRows(item);
   const rowH = (r: Cell[]) => {
     const h = r.some((c) => c.state !== "supplied") ? S.tableAnswerRow : S.tableRow;
     return tall(r.map((c) => c.text)) ? Math.max(h, FRAC_TABLE_ROW) : h;
   };
-  const natural = item.columns.map((head, j) =>
-    Math.max(cellWidth(head, true), ...item.rows.map((r) => cellWidth(r[j]?.text ?? ""))) + 5,
+  const headH = rowH(head);
+  const natural = head.map((h, j) =>
+    Math.max(cellWidth(h.text, true), ...body.map((r) => cellWidth(r[j]?.text ?? ""))) + 5,
   );
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) issue(ctx, `A table needs ${n(total - w)} mm more width than the column has.`);
   const roomy = natural.map((v) => Math.max(v, 14));
-  const compact = ctx.compactTables && roomy.reduce((a, b) => a + b, 0) <= w;
+  // A table keeps its natural width (cells at least 14 mm), every cell centred, on worksheets as
+  // in booklets (Tim, 16 Nov 2026); only a table too wide for that is stretched to the column.
+  const compact = roomy.reduce((a, b) => a + b, 0) <= w;
   const widths = compact ? roomy : natural.map((v) => (v * w) / total);
   w = compact ? roomy.reduce((a, b) => a + b, 0) : w;
   const xs = widths.map((_, j) => widths.slice(0, j).reduce((a, b) => a + b, 0));
@@ -140,8 +141,9 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
     });
     y += h;
   };
-  row(item.columns.map((t) => ({ text: t, bold: true })), headH, true);
-  for (const r of item.rows)
+  // The heading row is bold; a hidden answer in it prints like any other, in the answer colour.
+  row(head.map((c) => ({ text: cellText(c), bold: c.state === "supplied", fill: c.state === "hidden" ? ctx.st.answer : undefined })), headH, true);
+  for (const r of body)
     row(
       r.map((c) => ({ text: cellText(c), fill: c.state === "hidden" ? ctx.st.answer : undefined })),
       rowH(r),
@@ -150,7 +152,7 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
   const grid: string[] = [`M0,0H${n(w)}V${n(y)}H0Z`];
   let yy = headH;
   grid.push(`M0,${n(yy)}H${n(w)}`);
-  for (const r of item.rows.slice(0, -1)) {
+  for (const r of body.slice(0, -1)) {
     yy += rowH(r);
     grid.push(`M0,${n(yy)}H${n(w)}`);
   }

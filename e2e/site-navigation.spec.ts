@@ -46,7 +46,7 @@ test("the tool switcher lists every tool, marks the current one and fits a phone
   await page.goto("/tools/number-line");
   await current(page).locator(".tool-switcher-button").click();
   const panel = page.getByRole("dialog", { name: "Switch diagram tool" });
-  await expect(panel.locator(".tool-switcher-groups").getByRole("link")).toHaveCount(24);
+  await expect(panel.locator(".tool-switcher-groups").getByRole("link")).toHaveCount(25);
   await expect(panel.locator('[aria-current="page"]')).toHaveText("Number lines");
   const [box, view] = [(await panel.boundingBox())!, page.viewportSize()!];
   expect(box.x).toBeGreaterThanOrEqual(0);

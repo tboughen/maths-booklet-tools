@@ -339,7 +339,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   const booklet = typesetForPrint(saved);
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
-  const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true, maths: booklet.document.notation === "maths" };
+  const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, maths: booklet.document.notation === "maths" };
   const contentTop = A4.top;
   const contHead = CONTINUED_HEAD;
 
@@ -414,7 +414,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
   const view = options.view ?? "pupil";
-  const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true, maths: doc.notation === "maths" };
+  const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, maths: doc.notation === "maths" };
   const issues: BookletIssue[] = [];
   const contentTop = A4.top;
   const contHead = CONTINUED_HEAD;
