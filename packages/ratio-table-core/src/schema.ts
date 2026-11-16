@@ -50,7 +50,14 @@ export const headingSchema = z
 /** Typed powers become the saved form: "x²" is "x^2", "x³" is "x^3". */
 export const headingPowers = (t: string) => t.replaceAll("²", "^2").replaceAll("³", "^3");
 /** A heading that is one letter, a power of it or 1 over it ("x", "x^2", "1/x") prints the letter italic. */
-export const letterHeading = (t: string) => /^(?:\d+\/)?[A-Za-z](?:\^\d)?$/.test(t);
+export const letterHeading = (t: string) => /^(?:1\/)?[A-Za-z](?:\^\d)?$/.test(t);
+/** A heading as it is read aloud: "x^2" is "x squared", "1/x" is "1 over x". */
+export const spokenHeading = (t: string) =>
+  t
+    .replace(/\^2\b/g, " squared")
+    .replace(/\^3\b/g, " cubed")
+    .replace(/\^(\d)/g, " to the power $1")
+    .replace(/^1\/([A-Za-z])/, "1 over $1");
 export const headingsSchema = z.array(headingSchema).min(1).max(3);
 export const rowSchema = z.object({ id, cells: cellsSchema }).strict();
 export const transitionSchema = z

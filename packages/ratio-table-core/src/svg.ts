@@ -196,7 +196,8 @@ function number(value: string, x: number, y: number, size = FONT, fill = INK): s
  * "1/x" or "1/x^2" a stacked fraction. Letters in an italic heading are italic; digits stay upright.
  * Superscripts print at 10 pt, the house minimum. Other text (m/s, %, £) prints as typed.
  */
-const HEADING_FRACTION = /^(\d+)\/([A-Za-z]+(?:\^\d)?)$/;
+// Only 1 over one letter (or its power) stacks; units such as 60/min or 1/km print inline as typed.
+const HEADING_FRACTION = /^(1)\/([A-Za-z](?:\^\d)?)$/;
 const SUP_RISE = 0.36;
 type HeadingRun = { text: string; sup: boolean };
 function headingRuns(value: string): HeadingRun[] {
@@ -212,12 +213,12 @@ function runsWidth(runs: HeadingRun[], size: number, italic: boolean) {
   return runs.reduce((sum, r) => sum + styledWidth(r.text, r.sup ? Math.max(size * SMALL, FONT * SMALL) : size, italic), 0);
 }
 /** Runs from `left` on one baseline, letters italic when asked, superscripts raised. */
-function runsMarkup(runs: HeadingRun[], left: number, baseline: number, size: number, italic: boolean) {
+function runsMarkup(runs: HeadingRun[], left: number, baseline: number, size: number, italic: boolean, rise = SUP_RISE) {
   let x = left,
     out = "";
   for (const r of runs) {
     const s = r.sup ? Math.max(size * SMALL, FONT * SMALL) : size,
-      y = r.sup ? baseline - size * SUP_RISE : baseline;
+      y = r.sup ? baseline - size * rise : baseline;
     // Letters and other characters in separate pieces, so only letters lean.
     for (const piece of r.text.match(/[A-Za-z]+|[^A-Za-z]+/g) ?? []) {
       const lean = italic && /[A-Za-z]/.test(piece);
@@ -252,7 +253,7 @@ function headingMarkup(heading: RatioDocument["headings"][number], x: number, y:
     text(f[1], x, y - size * 0.15, small) +
     `<path d="M${x - bar / 2} ${y}H${x + bar / 2}" stroke-width="2"/>` +
     // A power in the denominator sits a little lower, so its raised digit clears the bar.
-    runsMarkup(bottom, x - runsWidth(bottom, small, heading.italic) / 2, y + size * 0.78 + (bottom.some((r) => r.sup) ? 5 : 0), small, heading.italic)
+    runsMarkup(bottom, x - runsWidth(bottom, small, heading.italic) / 2, y + size * 0.78 + (bottom.some((r) => r.sup) ? 9 : 0), small, heading.italic, bottom.some((r) => r.sup) ? 0.3 : SUP_RISE)
   );
 }
 const answerLine = (x: number, y: number, width = ANSWER_LINE_WIDTH) =>

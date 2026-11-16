@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { createRatioTable, renderRatioSvg } from "./interchange";
+import { createRatioTable, describeRatio, renderRatioSvg } from "./interchange";
 import { headingWidth } from "./svg";
 
 // Proportion tables for NP17 (Tim, 16 Nov 2026): x | y with no arrows, x² | y and 1/x | y, with
@@ -42,6 +42,15 @@ describe("proportion headings", () => {
     const e = createRatioTable({ columns: ["m/s", "Cost £"], table: [["1", "2"]] });
     expect(renderRatioSvg(e.document)).toContain('text-anchor="middle">m/s</text>');
     expect(headingWidth({ text: "1/x", italic: true, direction: "none" })).toBeLessThan(headingWidth({ text: "1/x", italic: false, direction: "none" }) + 20);
+  });
+
+  it("keeps units such as 60/min and 1/km inline, and reads powers aloud in words", () => {
+    const e = createRatioTable({ columns: ["6/h", "1/km"], table: [["1", "2"]] });
+    const svg = renderRatioSvg(e.document);
+    expect(svg).toContain('text-anchor="middle">6/h</text>');
+    expect(svg).toContain('text-anchor="middle">1/km</text>');
+    const p = createRatioTable({ columns: ["x^2 →", "1/x"], table: [["1", "2"]] });
+    expect(describeRatio(p)).toContain("headings x squared → and 1 over x");
   });
 
   it("refuses a power that is not on one letter group", () => {

@@ -1,4 +1,5 @@
 import { speakRatio } from "./speakRatio";
+import { spokenHeading } from "../../packages/ratio-table-core/src/schema";
 import { previewArt } from "../export/worked";
 import { useEffect, useRef } from "react";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
@@ -244,7 +245,7 @@ export function RatioCanvas({
                     >
                       <NumberInput
                         value={cell.kind === "number" || cell.kind === "hidden" ? cell.value : ""}
-                        label={`Row ${index + 1} ${document.headings[column].text} value`}
+                        label={`Row ${index + 1} ${spokenHeading(document.headings[column].text)} value`}
                         inputKey={`inline-cell-${row.id}-${column}`}
                         allowEmpty
                         onPending={onPending}
@@ -255,7 +256,7 @@ export function RatioCanvas({
                           // Like a spreadsheet: Enter moves down the column. The last row keeps
                           // focus; rows are never added implicitly. Focus after the commit has
                           // re-rendered the cells.
-                          const next = `Row ${index + 2} ${document.headings[column].text} value`;
+                          const next = `Row ${index + 2} ${spokenHeading(document.headings[column].text)} value`;
                           requestAnimationFrame(() =>
                             stage.current
                               ?.querySelector<HTMLInputElement>(

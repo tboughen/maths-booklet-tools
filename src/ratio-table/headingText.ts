@@ -27,6 +27,6 @@ export function headingFromText(heading: Heading, value: string): Heading {
         : "none";
   const text = headingPowers((direction === "none" ? value : value.slice(0, -1)).trim());
   // % and £ are symbols, never italic letters, whatever the heading was before (Tim, 16 Nov 2026).
-  // A power or reciprocal of one letter (x^2, 1/x) has an italic letter, like a plain x.
-  return { ...heading, text, direction, ...(/[%£]/.test(text) ? { italic: false } : letterHeading(text) && /[\^/]/.test(text) ? { italic: true } : {}) };
+  // A changed heading takes its italics from its text, as the compact form does; unchanged text keeps them.
+  return { ...heading, text, direction, ...(text === heading.text ? {} : { italic: letterHeading(text) }) };
 }
