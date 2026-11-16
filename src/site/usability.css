@@ -1,38 +1,4 @@
 /* Preview and inspector furniture only. Export renderers never consume these rules. */
-.booklet-editor .resource-preview-bar,
-.booklet-editor .nl-preview-bar,
-.booklet-editor .cb-preview-bar,
-.booklet-editor .vn-preview-bar,
-.booklet-editor .ag-preview-bar,
-.booklet-editor .tr-preview-bar,
-.booklet-editor .vg-preview-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 18px;
-  padding: 10px 14px;
-  min-height: 54px;
-  font-size: 13px;
-}
-.booklet-editor .preview-zoom {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  flex: 0 1 auto;
-}
-.booklet-editor .preview-zoom select {
-  width: auto;
-  min-width: 145px;
-  max-width: 100%;
-  min-height: 38px;
-  padding: 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--ink);
-  font: inherit;
-}
 /* Beside the resource the settings are already in view, so these jumps stay out of sight until a
    keyboard reaches them: Tab lands on "Edit settings" before the diagram's many hit targets. */
 @media (min-width: 768px) {
@@ -51,6 +17,13 @@
     clip-path: inset(50%) !important;
     white-space: nowrap !important;
   }
+  /* The jump after the action bar shows over the corner of the diagram, so nothing moves. */
+  .booklet-editor .editor-card > .editor-inspector-link:focus-visible {
+    position: absolute;
+    z-index: 6;
+    top: calc(var(--editor-toolbar-height, 58px) + 8px);
+    right: 12px;
+  }
   .booklet-editor .editor-inspector-link:focus-visible,
   .booklet-editor .editor-diagram-link:focus-visible {
     min-height: 40px;
@@ -62,31 +35,6 @@
     font:
       600 13px/1.4 var(--md-font);
   }
-}
-.booklet-editor .example-launch {
-  margin-bottom: 0;
-}
-.booklet-editor .example-launch-button {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  padding: 11px 14px;
-  border: 1px solid #83a8d5;
-  background: #fff;
-  color: #174d89;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  cursor: pointer;
-}
-.booklet-editor .example-launch-button:hover:not(:disabled) {
-  background: var(--blue-soft);
-}
-.booklet-editor .example-launch-button:disabled {
-  opacity: 0.5;
-  cursor: default;
 }
 .booklet-editor .inspector-stack:focus {
   outline: 2px solid var(--blue);
@@ -347,16 +295,10 @@
   }
 }
 @media (max-width: 900px) {
-  .booklet-editor .workspace {
+  /* Left as it was for the worksheet and booklet builders, whose layout this step does not touch. */
+  .booklet-editor.ws-editor .workspace {
     position: relative;
     padding-top: 56px;
-  }
-  .booklet-editor .example-launch-button {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    width: 100%;
   }
   .booklet-editor .editor-inspector-link,
   .booklet-editor .editor-diagram-link {
@@ -370,11 +312,9 @@
     font:
       600 13px/1.4 var(--md-font);
   }
-  .booklet-editor .example-launch {
+  .booklet-editor .inspector-stack > .editor-diagram-link {
     grid-column: 1 / -1;
-  }
-  .booklet-editor .resource-size {
-    flex: 1 1 180px;
+    justify-self: start;
   }
   .booklet-editor .inspector-stack {
     scroll-margin-top: 120px;
@@ -410,14 +350,6 @@
   .booklet-editor .vg-scroll {
     height: 380px;
   }
-  .booklet-editor .preview-zoom {
-    white-space: normal;
-    flex-wrap: wrap;
-  }
-  .booklet-editor .preview-zoom select {
-    min-height: 44px;
-    min-width: 130px;
-  }
   .tool-search {
     align-items: end;
   }
@@ -443,21 +375,6 @@
 .vg-editor-frame.is-compact .vg-axis-end[data-axis="x"] {
   flex-direction: column;
 }
-.booklet-editor .ratio-preview-controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 18px;
-  padding: 10px 14px;
-  min-height: 54px;
-  font-size: 13px;
-}
-.booklet-editor .example-launch-button {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-}
 .tr-floating .tr-options-list {
   gap: 5px;
 }
@@ -480,17 +397,6 @@
 }
 
 /* Detail is explicit when Fit is an overview of dense artwork. */
-.booklet-editor .preview-detail {
-  min-height: 40px;
-  padding: 8px 12px;
-  background: white;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  color: #174d89;
-  font:
-    600 13px/1.4 var(--md-font);
-  cursor: pointer;
-}
 .booklet-editor .nl-scroll {
   height: clamp(240px, calc(100dvh - 600px), 360px);
   min-height: 240px;
@@ -501,10 +407,6 @@
 
 /* Keep the shared row horizontal when Algebra wraps on a phone. A flex basis
    for readout width must never become an artificial vertical spacer. */
-.booklet-editor .ag-preview-bar {
-  flex-direction: row;
-  justify-content: flex-start;
-}
 
 /* Windows high contrast (forced colours). The browser replaces every background and text colour
    with the theme's, so a pressed, selected or active control that differs only by its tint looks
@@ -624,4 +526,15 @@
   margin: 0;
   background: white;
   box-shadow: 0 8px 24px rgba(23, 43, 77, 0.16);
+}
+/* Where a diagram tool's action bar would not fit on one row, Examples and Start again keep their
+   icons only: sooner in a tool with an answers switch, which needs the room. Their names stay as
+   tooltips and for screen readers. */
+@media (max-width: 1180px) {
+  .booklet-editor:not(.ws-editor) .editor-toolbar :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
+  .booklet-editor:not(.ws-editor) .editor-toolbar :is(.example-launch-button, .reset-button) span { display: none; }
+}
+@media (max-width: 1365px) {
+  .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
+  .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) :is(.example-launch-button, .reset-button) span { display: none; }
 }

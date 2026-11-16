@@ -6,10 +6,10 @@ import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { fitResource } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import {
   useEffect,
@@ -820,6 +820,24 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={triangleGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={
+                <AnswerPreviewToggle
+                  checked={showAnswers}
+                  disabled={blocked}
+                  onChange={setShowAnswers}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -912,21 +930,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 if (upload && !blocked) void importFile(upload);
               }}
             />
-            <div className="tr-preview-bar">
-              <PreviewControls
-                zoom={zoom === "fit" ? 0 : Number(zoom)}
-                onZoom={(value) => setZoom(value ? String(value) : "fit")}
-              />
-              <ResourceSize
-                width={exportMetrics.width / 10}
-                height={exportMetrics.height / 10}
-              />
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                disabled={blocked}
-                onChange={setShowAnswers}
-              />
-            </div>
             {showAnswers && (
               <p className="tr-banner">
                 Answer preview only. Copy and image downloads use saved pupil
@@ -934,10 +937,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 settings.
               </p>
             )}
-            <EditorHint tool="triangle">
-              Click a wedge to edit an angle, or a label to edit its text. Drag
-              a vertex to reshape. Select a triangle to add its area.
-            </EditorHint>
             <div
               className="tr-scroll editor-stage"
               ref={scroll}
@@ -1264,6 +1263,25 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom === "fit" ? 0 : Number(zoom)}
+              onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              scale={viewScale}
+              size={
+                <ResourceSize
+                  width={exportMetrics.width / 10}
+                  height={exportMetrics.height / 10}
+                />
+              }
+              status={message}
+              hint={
+                <EditorHint tool="triangle">
+                  Click a wedge to edit an angle, or a label to edit its text. Drag
+                  a vertex to reshape. Select a triangle to add its area.
+                </EditorHint>
+              }
+            >
+            </EditorFoot>
             <div
               className="tr-structure"
               role="group"
@@ -1503,11 +1521,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 available.
               </div>
             )}
-            {!!message && (
-              <div className="tr-feedback" role="status">
-                {message}
-              </div>
-            )}
             {!!notes.length && (
               <div className="tr-warnings">
                 {notes.map((note) => (
@@ -1549,15 +1562,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Triangle settings">
-            <ExampleGallery
-              examples={triangleGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <div className="tr-label-editor-slot" />
             <section className="panel-card tr-panel specialist-tools">
               <h2>Selected object</h2>
@@ -2349,7 +2354,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     if (!blocked) {
                       commit(next);
                       setMessage(
-                        "Answer saved and hidden. Choose Teacher preview: show hidden answers to see it, or use a worked version.",
+                        "Answer saved and hidden. Switch on Show hidden answers to see it, or use a worked version.",
                       );
                     }
                   }}
@@ -2401,7 +2406,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   view.
                 </p>
                 <p className="tr-note">
-                  Teacher preview: show hidden answers is screen only. Downloads keep
+                  Show hidden answers is screen only. Downloads keep
                   saved pupil visibility. Use worked version replaces the
                   current resource; Undo restores it.
                 </p>

@@ -264,7 +264,7 @@ for (const tool of tools) {
     await expect(
       page.locator(".site-page:not([hidden]) .resource-size"),
     ).toHaveText(
-      `Actual export size: ${dimensions.width.toFixed(2)} × ${dimensions.height.toFixed(2)} cm`,
+      `Prints at ${dimensions.width.toFixed(2)} × ${dimensions.height.toFixed(2)} cm, whatever the zoom`,
     );
     const expected = await pixelHash(
       page,
@@ -366,7 +366,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     "File",
     "Undo",
     "Redo",
-    "Reset diagram",
+    "Start again",
   ])
     await expect(
       page.getByRole("button", { name, exact: true }),

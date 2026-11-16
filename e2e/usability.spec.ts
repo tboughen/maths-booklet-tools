@@ -130,7 +130,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       await expect.poll(() => saved(page, key)).toBe(before);
       if (tool === "expanding-factorising" && width === 320) {
         expect(
-          (await page.locator(".ag-preview-bar").boundingBox())!.height,
+          (await page.locator(".editor-foot").boundingBox())!.height,
         ).toBeLessThan(240);
       }
       if (width === 320) {
@@ -148,7 +148,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
     await expect.poll(() => saved(page, key)).not.toBeNull();
     const before = await saved(page, key);
     const launch = page.getByRole("button", {
-      name: "Start from an example",
+      name: "Examples",
       exact: true,
     });
     await launch.click();
@@ -319,7 +319,7 @@ test("invalid notation survives tool navigation; Escape restores exports and mod
   const key = "maths-booklet-tools:number-line:v1";
   const before = await saved(page, key);
   await page
-    .getByRole("button", { name: "Start from an example", exact: true })
+    .getByRole("button", { name: "Examples", exact: true })
     .click();
   await page
     .getByRole("dialog")

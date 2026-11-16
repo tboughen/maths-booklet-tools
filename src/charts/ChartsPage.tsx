@@ -16,10 +16,10 @@ import {
 } from "react";
 import { downloadName } from "../export/filenames";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -675,6 +675,24 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={chartGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={
+                <AnswerCopyToggle
+                  checked={view === "answer"}
+                  disabled={blocked}
+                  onChange={(checked) => setView(checked ? "answer" : "pupil")}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -763,19 +781,6 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 if (upload) void importFile(upload);
               }}
             />
-            <div className="ch-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerCopyToggle
-                checked={view === "answer"}
-                disabled={blocked}
-                onChange={(checked) => setView(checked ? "answer" : "pupil")}
-              />
-            </div>
-            <EditorHint tool="charts">
-              Click a {pie ? "sector" : pictogram ? "row or category" : scatter ? "point" : "bar, line or category label"} to edit its value. Enter
-              applies; Escape restores.
-            </EditorHint>
             <div className="ch-scroll editor-stage" ref={fitted.ref}>
               <div className="ch-stage">
                 <div
@@ -888,13 +893,22 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 )}
               </div>
             </div>
-            {(message || issue || g.notes.length > 0) && (
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint tool="charts">
+                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter ? "point" : "bar, line or category label"} to edit its value. Enter
+                  applies; Escape restores.
+                </EditorHint>
+              }
+            >
+            </EditorFoot>
+            {(issue || g.notes.length > 0) && (
               <div className="ch-status" aria-live="polite">
-                {message && (
-                  <p className="resource-feedback" role="status">
-                    {message}
-                  </p>
-                )}
                 {g.issues.map((x) => (
                   <p key={x} className="ch-error" role="alert">
                     {x}
@@ -907,15 +921,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Chart settings">
-            <ExampleGallery
-              examples={chartGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card ch-panel">
               <h2>Chart type</h2>
               <div className="ch-kinds" role="group" aria-label="Chart type">

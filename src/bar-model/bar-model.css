@@ -183,12 +183,6 @@
   padding: 12px;
   border: 1px solid #ae511c;
 }
-.bm-editor .preview-controls {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px;
-}
 .bm-editor .inspector-stack {
   min-width: 0;
 }

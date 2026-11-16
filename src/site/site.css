@@ -93,7 +93,6 @@ body { background: #f2f5f8; }
 .booklet-editor .graph-canvas { min-height: 0; max-height: 100%; filter: none; }
 .booklet-editor .ratio-stage { min-height: 320px; height: max(320px, calc(100dvh - 332px)); padding: 24px; background: #f6f9fd; }
 .booklet-editor .ratio-paper { box-shadow: 0 2px 12px #15335110; }
-.booklet-editor .ratio-preview-controls { padding: 10px 14px; border-color: #e2e8ef; }
 .booklet-editor .ratio-preview-footer { background: white; border-color: #e2e8ef; }
 .booklet-editor :is(.export-menu,.graph-exchange-menu,.word-help-dialog) { border-radius: 6px; background: white; color: var(--ink); box-shadow: 0 6px 30px #173c6522; }
 .booklet-editor :is(.export-menu,.graph-exchange-menu) { top: 58px; }

@@ -52,7 +52,6 @@
 .vn-selected {
   outline: 1px dashed #517a9e;
 }
-.vn-preview-bar,
 .vn-structure,
 .vn-files,
 .vn-downloads {
@@ -62,14 +61,6 @@
   align-items: center;
   padding: 10px 12px;
   font-size: 12px;
-}
-.vn-preview-bar {
-  justify-content: space-between;
-}
-.vn-preview-bar label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 .vn-structure {
   font-size: var(--button-label, 14px);
@@ -323,8 +314,5 @@
 @media (max-width: 480px) {
   .vn-scroll {
     padding: 16px;
-  }
-  .vn-preview-bar {
-    align-items: flex-start;
   }
 }

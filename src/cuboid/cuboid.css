@@ -54,7 +54,6 @@
 .cb-hit:focus-visible {
   outline: 2px solid var(--blue);
 }
-.cb-preview-bar,
 .cb-structure {
   display: flex;
   align-items: center;
@@ -63,14 +62,6 @@
   padding: 12px;
   background: var(--surface);
   font-size: 13px;
-}
-.cb-preview-bar {
-  justify-content: space-between;
-}
-.cb-preview-bar label {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 .cb-editor button,
 .cb-editor select {
@@ -255,9 +246,6 @@
   .cb-structure-group span {
     min-width: 38px;
   }
-  .cb-preview-bar {
-    gap: 8px;
-  }
   .cb-editor .page-heading-actions {
     max-width: 100%;
   }
@@ -322,12 +310,6 @@
   border-color: var(--blue);
   background: var(--blue-soft);
   box-shadow: inset 3px 0 var(--blue);
-}
-.cb-preview-bar {
-  gap: 10px;
-}
-.cb-preview-bar label {
-  margin: 0;
 }
 .cb-floating {
   position: fixed;

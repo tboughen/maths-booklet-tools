@@ -3,10 +3,10 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -1296,6 +1296,22 @@ export default function ValueGraphPage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={quadraticGallery}
+                  active={active}
+                  disabled={blocked || !!pending}
+                  onUse={(resource, title) => {
+                    ask(
+                      `Open ${title}?`,
+                      "This replaces the current resource. You can undo this.",
+                      () => commit(resource),
+                    );
+                    setExamplePreview(resource);
+                  }}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -1407,19 +1423,6 @@ export default function ValueGraphPage({
                 }
               }}
             />
-            <div className="ratio-preview-controls">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={m.widthCm} height={m.heightCm} />
-            </div>
-            <EditorHint tool="value-table-graph">
-              Click the equation, table or graph to edit it. Blank cells stay
-              blank until you choose to calculate.
-            </EditorHint>
-            {!!message && (
-              <p role="status" className="resource-feedback">
-                {message}
-              </p>
-            )}
             {recoverRaw !== null && (
               <div className="vg-recovery" role="alert">
                 <p>
@@ -1844,6 +1847,19 @@ export default function ValueGraphPage({
                 )}
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint tool="value-table-graph">
+                  Click the equation, table or graph to edit it. Blank cells stay
+                  blank until you choose to calculate.
+                </EditorHint>
+              }
+            />
             <p className="vg-size">
               Axis numbers: 12 pt. Preview zoom does not change print size.
             </p>
@@ -1873,20 +1889,7 @@ export default function ValueGraphPage({
             className="inspector-stack"
             aria-label="Table and graph settings"
           >
-            <ExampleGallery
-              examples={quadraticGallery}
-              active={active}
-              disabled={blocked || !!pending}
-              onUse={(resource, title) => {
-                ask(
-                  `Open ${title}?`,
-                  "This replaces the current resource. You can undo this.",
-                  () => commit(resource),
-                );
-                setExamplePreview(resource);
-              }}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. */}
             {selection && !localSelection ? (
               <InspectorEditor

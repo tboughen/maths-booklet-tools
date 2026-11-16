@@ -6,10 +6,10 @@ import { answerSize, previewArt, workedIssue } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
@@ -449,6 +449,24 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={vennGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={
+                <AnswerCopyToggle
+                  checked={view === "answer"}
+                  disabled={blocked}
+                  onChange={(checked) => setView(checked ? "answer" : "pupil")}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -538,25 +556,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 if (upload) void importFile(upload);
               }}
             />
-            <div className="vn-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerCopyToggle
-                checked={view === "answer"}
-                disabled={blocked}
-                onChange={(checked) => setView(checked ? "answer" : "pupil")}
-              />
-            </div>
-            <EditorHint
-              tool="venn"
-              prompt={
-                mode === "shade"
-                  ? "Shade mode: click a region to shade or clear it."
-                  : undefined
-              }
-            >
-              Click a region or label to edit it.
-            </EditorHint>
             <div
               className="vn-scroll editor-stage"
               ref={fitted.ref}
@@ -659,13 +658,28 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     ))}
               </div>
             </div>
-            {(message || draft || issue || note.length > 0) && (
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="venn"
+                  prompt={
+                    mode === "shade"
+                      ? "Shade mode: click a region to shade or clear it."
+                      : undefined
+                  }
+                >
+                  Click a region or label to edit it.
+                </EditorHint>
+              }
+            >
+            </EditorFoot>
+            {(draft || issue || note.length > 0) && (
               <div className="vn-status" aria-live="polite">
-                {message && (
-                  <p className="resource-feedback" role="status">
-                    {message}
-                  </p>
-                )}
                 {draft && (
                   <p>
                     Apply or cancel the open editor before another edit or
@@ -684,15 +698,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Venn diagram settings">
-            <ExampleGallery
-              examples={vennGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card vn-layout-tools">
               <h2>Diagram tools</h2>
               <div className="vn-structure">

@@ -66,22 +66,6 @@
   background: var(--blue-soft);
   border-color: var(--blue);
 }
-.ag-preview-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 12px 16px;
-}
-.ag-editor .ag-preview-bar label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ag-editor .ag-preview-bar select {
-  width: auto;
-}
 .ag-scroll {
   padding: 28px;
   background: var(--blue-soft);
@@ -272,7 +256,6 @@ details.ag-panel > summary {
     padding: 16px;
     min-height: 280px;
   }
-  .ag-preview-bar,
   .ag-resource-footer {
     align-items: start;
     flex-direction: column;

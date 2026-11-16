@@ -8,12 +8,13 @@ import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
 import { houseRatio } from "./house";
 import { pathLink } from "../site/routes";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import {
   ratioGallery,
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
-import { PreviewControls } from "../site/PreviewControls";
+import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -107,6 +108,7 @@ export default function RatioTablePage({
   const [exportsOpen, setExportsOpen] = useState(false);
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
+    [viewScale, setViewScale] = useState(0),
     [guides, setGuides] = useState(readGuidesPreference);
   // The preview is the pupil copy unless the teacher asks to see hidden answers. Never saved.
   const [showAnswers, setShowAnswers] = useState(false);
@@ -565,6 +567,16 @@ export default function RatioTablePage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={[...ratioTeachingGallery, ...ratioGallery]}
+                  active={active}
+                  disabled={exportDisabled || !!pending}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={hasRatioAnswers(envelope) ? <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} /> : undefined}
               canUndo={!recovery && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -679,47 +691,10 @@ export default function RatioTablePage({
               aria-label="Open editable ratio-table file"
               onChange={(e) => void openFile(e.target.files?.[0])}
             />
-            <div className="ratio-preview-controls">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={metrics.widthCm} height={metrics.heightCm} />
-              <label>
-                <input
-                  type="checkbox"
-                  checked={guides}
-                  onChange={(e) => {
-                    setGuides(e.target.checked);
-                    saveGuidesPreference(e.target.checked);
-                  }}
-                />
-                Editing guides
-              </label>
-              {hasRatioAnswers(envelope) && (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={showAnswers}
-                    onChange={(e) => setShowAnswers(e.target.checked)}
-                  />
-                  Teacher preview: show hidden answers
-                </label>
-              )}
-            </div>
-            <EditorHint
-              tool="ratio-table"
-              prompt={
-                tool === "arrow"
-                  ? arrowFrom
-                    ? "Select the row immediately below."
-                    : "Select a source row, then the row below, or use the arrow settings."
-                  : undefined
-              }
-            >
-              Click a heading, cell or arrow number and type. Click a curved
-              arrow for its settings.
-            </EditorHint>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}
+              onScale={setViewScale}
               guides={guides}
               view={showAnswers && hasRatioAnswers(envelope) ? "answer" : "pupil"}
               inputVersion={inputVersion}
@@ -742,6 +717,40 @@ export default function RatioTablePage({
               )}
               removalColumnIndex={removalColumn}
             />
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={viewScale}
+              size={<ResourceSize width={metrics.widthCm} height={metrics.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="ratio-table"
+                  prompt={
+                    tool === "arrow"
+                      ? arrowFrom
+                        ? "Select the row immediately below."
+                        : "Select a source row, then the row below, or use the arrow settings."
+                      : undefined
+                  }
+                >
+                  Click a heading, cell or arrow number and type. Click a curved
+                  arrow for its settings.
+                </EditorHint>
+              }
+            >
+              <label>
+                <input
+                  type="checkbox"
+                  checked={guides}
+                  onChange={(e) => {
+                    setGuides(e.target.checked);
+                    saveGuidesPreference(e.target.checked);
+                  }}
+                />
+                Editing guides
+              </label>
+            </EditorFoot>
             <div className="ratio-preview-footer">
               <span>Zoom and editing guides do not appear in exports.</span>
             </div>
@@ -751,20 +760,9 @@ export default function RatioTablePage({
                 to apply it or Escape to cancel.
               </p>
             )}
-            {message && (
-              <p role="status" className="resource-feedback">
-                {message}
-              </p>
-            )}
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
-            <ExampleGallery
-              examples={[...ratioTeachingGallery, ...ratioGallery]}
-              active={active}
-              disabled={exportDisabled || !!pending}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <RatioInspector
                 document={document}

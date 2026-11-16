@@ -89,13 +89,9 @@ app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 - The card with the diagram and the settings column share the height the heading leaves.
 - Inside the card, the bars keep their own height and the diagram's stage takes all the rest.
 - The settings column scrolls on its own.
-- The foot of the card (`--md-status-line`, 36 px) is kept for the status line: "Image copied", a
-  failed copy, a protected draft. It always sits there, as the last thing in its own card, so a
-  one-line message never resizes or moves the diagram and never covers anything beside or under
-  the card. A second line takes its room from the stage. Warnings about the diagram itself stay
-  where the tool draws them.
+- The foot strip sits straight under the stage (see below).
 - If a tool's own rows under the diagram leave the stage less than 280 px, the card scrolls
-  instead of squeezing the diagram. The status line then stays at the visible foot of the card.
+  instead of squeezing the diagram.
 - From 1,500 px wide the tool's name and its one-line description share a row.
 
 Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights
@@ -103,17 +99,87 @@ each tool had before.
 
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
-`editor-stage` as a direct child of the card, and showing its message in a `.resource-feedback`
-paragraph inside the card. A tool that fits its diagram in script must measure the stage element, not the window.
+`editor-stage` as a direct child of the card, and putting an `EditorFoot` straight after it. A tool
+that fits its diagram in script must measure the stage element, not the window.
 
 The frame changes screen furniture only. Preview zoom still never changes print size.
+
+## The foot strip
+
+Every diagram tool has one strip straight under its stage (`EditorFoot` in
+`src/site/EditorFoot.tsx`, styled by `src/site/editor-foot.css`, 36 px high as `--md-foot-strip`
+when it fits on one row). It replaces the preview bar above the diagram, the hint banner under it
+and the separate status line. From the left:
+
+- **Zoom.** Minus, the "Preview zoom" list and plus. Fit says the size the diagram is drawn at
+  ("Fit · 245%"), and the steps start from that size. The list keeps one width, so nothing beside
+  it moves when the zoom changes.
+- **Actual size.** Shows the diagram at 100%, its print size; pressing it again returns to Fit.
+- **The print size.** "Prints at 12.00 × 8.50 cm, whatever the zoom" (`ResourceSize`).
+- **View-only switches.** Editing guides, the number line's "Finish drawing". Anything that
+  changes the resource belongs in the settings, and the answers switch is in the action bar.
+- **The note, at the right.** The tool's hint (`EditorHint`) or its drawing prompt ("Choose the
+  other endpoint") at the far right, and the latest message ("Image copied", a failed copy, a
+  protected draft) beside it. Room is kept for the message, so when one arrives the hint does not
+  move. Neither hides the other.
+
+The strip's height follows the width of the card, not what the note says. Room is always kept
+for a message and for a hint of up to two lines, so a message arriving, or a drawing prompt taking
+the tip's place, does not resize the diagram. Text is never cut off: a rare longer message grows
+the strip.
+
+- A card at least 1,500 px wide (a 1920 px window) keeps everything on one row.
+- From 700 to 1,499 px the note always has a row of its own under the controls.
+- Under 700 px the message has its own line above the hint, and the controls wrap.
+- Under 1,200 px the print size drops ", whatever the zoom".
+
+Touch screens and windows under 768 px get 44 px controls. On a window too short for the editor
+frame the stage is sized so that the strip still ends inside the window; rows a tool keeps
+under it follow on. The Graph tool still
+shows its messages in its own toast.
+
+The strip is in the page in the same place it is drawn, straight after the stage, so the
+keyboard and screen readers meet it in the order the eye does. Rows a tool keeps under its diagram
+(an entry grid, a cuboid's notes, a pending note) follow the strip. A tool passes its message as
+`status` and never draws a status line of its own. The "Edit settings" jump for keyboards follows
+the action bar, so one press still skips the diagram; it shows over the corner of the stage, so
+nothing moves when it appears.
+
+## The action bar
+
+The bar above the diagram is the same in every tool (`EditorToolbar`). From the left: Undo, Redo,
+**Examples**, **Start again**. At the right: the answers switch where a tool has hidden answers,
+then Copy image, Copy for Word and File.
+
+- **Examples** opens the "Start from an example" gallery. It used to be a wide button at the top
+  of the settings column, which now starts with the tool's own settings.
+- **Start again** is the reset: it asks first, and Undo brings the work back.
+- Where the bar would not fit on one row, Examples and Start again show their icons only: up to
+  1,180 px wide in every tool, and up to 1,365 px in a tool with an answers switch.
+
+## The answers switch
+
+A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads
+"Show hidden answers" in every tool (`AnswerPreviewToggle` and `AnswerCopyToggle` in
+`src/site/AnswerPreviewToggle.tsx`, styled by `answer-switch.css`). The Worksheet and Booklet
+builders use the same switch, without the label.
+
+- Off, it is a plain grey switch.
+- On, the switch and its words turn pink, and a small pink label appears over the top corner of
+  the diagram: "Teacher view: answers showing", then what a download will hold. A teacher preview
+  says "Screen only: downloads keep the pupil version." A teacher copy says "Downloads show the
+  answers too."
+- The label lies over the stage and lets clicks through, so nothing moves when it appears. It is
+  never part of an export.
+- The switch's full name for screen readers still says which kind it is ("Teacher preview: show
+  hidden answers" or "Teacher copy: show hidden answers").
+
+A tool passes its switch to `EditorToolbar` as `answers`.
 
 ## Decided, and built in later steps
 
 - **Tall windows.** Settings go underneath the work in three columns, so the work keeps the full
   width.
-- **Answers showing.** While hidden answers are on screen, the switch turns pink and a small pink
-  label marks the teacher's view.
 - **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
   is on sits side by side, and switching one off lets the rest grow.
 - **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.

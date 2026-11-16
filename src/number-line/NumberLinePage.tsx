@@ -10,10 +10,10 @@ import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -740,6 +740,17 @@ export default function NumberLinePage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={numberLineGallery}
+                  active={active}
+                  disabled={blocked || !!pending}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -838,34 +849,6 @@ export default function NumberLinePage({
             />
             {titleNote.dialog}
             {worked.dialog}
-            <div className="nl-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={m.widthCm} height={m.heightCm} />
-              {mode !== "select" && (
-                <button
-                  onClick={() => {
-                    setMode("select");
-                    setFirst(null);
-                  }}
-                >
-                  Finish drawing
-                </button>
-              )}
-            </div>
-            <EditorHint
-              tool="number-line"
-              prompt={
-                mode === "select"
-                  ? undefined
-                  : mode === "interval"
-                    ? first
-                      ? "Choose the other endpoint."
-                      : "Choose the first endpoint."
-                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
-              }
-            >
-              Click a circle to change its type; drag to move it.
-            </EditorHint>
             <div
               className="nl-scroll editor-stage"
               ref={fitted.ref}
@@ -1031,11 +1014,40 @@ export default function NumberLinePage({
                 ))}
               </div>
             </div>
-            {message && (
-              <p role="status" className="resource-feedback">
-                {message}
-              </p>
-            )}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="number-line"
+                  prompt={
+                    mode === "select"
+                      ? undefined
+                      : mode === "interval"
+                        ? first
+                          ? "Choose the other endpoint."
+                          : "Choose the first endpoint."
+                        : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
+                  }
+                >
+                  Click a circle to change its type; drag to move it.
+                </EditorHint>
+              }
+            >
+              {mode !== "select" && (
+                <button
+                  onClick={() => {
+                    setMode("select");
+                    setFirst(null);
+                  }}
+                >
+                  Finish drawing
+                </button>
+              )}
+            </EditorFoot>
             {warnings(history.present).map((w) => (
               <p key={w} className="nl-message">
                 {w}
@@ -1081,15 +1093,7 @@ export default function NumberLinePage({
             className="inspector-stack nl-inspector"
             aria-label="Number line settings"
           >
-            <ExampleGallery
-              examples={numberLineGallery}
-              active={active}
-              disabled={blocked || !!pending}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             {/* Always mounted, so the cards below stay put as the selection comes and goes (U21). */}
             <section
               className="panel-card nl-context"

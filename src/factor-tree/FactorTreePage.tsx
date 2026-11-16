@@ -9,12 +9,12 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { factorTreeGallery } from "../examples/galleryCatalogue";
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
@@ -353,6 +353,16 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={factorTreeGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -409,12 +419,6 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                 if (upload) void importFile(upload);
               }}
             />
-            <div className="pt-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
-            </div>
-            <EditorHint tool="factor-tree">Click a number on the tree to edit, split or circle it. Enter applies; Escape restores.</EditorHint>
             <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
@@ -442,13 +446,19 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                 </div>
               </div>
             </div>
-            {(shownMessage || issue || notes.length > 0) && (
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={
+                <EditorHint tool="factor-tree">Click a number on the tree to edit, split or circle it. Enter applies; Escape restores.</EditorHint>
+              }
+            >
+            </EditorFoot>
+            {(issue || notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
-                {shownMessage && (
-                  <p className="resource-feedback" role="status">
-                    {shownMessage}
-                  </p>
-                )}
                 {g.issues.map((x) => (
                   <p key={x} className="pt-error" role="alert">
                     {x}
@@ -461,13 +471,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Factor tree settings">
-            <ExampleGallery
-              examples={factorTreeGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected number">
               <h2>{selected && selectedNode ? `Number: ${nodeName(selected)}` : "Selected number"}</h2>
               {selected && selectedTree && selectedNode ? (

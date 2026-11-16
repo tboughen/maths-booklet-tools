@@ -7,6 +7,8 @@ export type CalculatorFilter = "all" | "yes" | "no";
 export type CollectionFilter = "all" | "past" | "mock";
 /** "only" keeps questions that appear on both a Foundation and a Higher paper (a reviewed `equivalentId` pair). */
 export type CrossoverFilter = "all" | "only";
+/** "hide" (the default) leaves out questions from papers kept for the Year 11 revision programme (`revisionUse`). */
+export type RevisionFilter = "hide" | "include";
 export type ViewRole = "question" | "scheme" | "worked-solution";
 export type RoomLayout = "auto" | "single" | "two";
 
@@ -72,6 +74,8 @@ export interface BankListQuestion {
   writingSpacePolicy?: "source" | "generated" | "none";
   equivalentId?: string;
   equivalentSource?: string;
+  /** Set when the paper is kept for the Year 11 revision programme: its use, such as "Mini-mock MM1". */
+  revisionUse?: string;
   review: "reviewed" | "draft";
   revision: string;
   sourceErrata?: {note: string}[];
@@ -93,7 +97,6 @@ export interface BankQuestionDetail {
   printPages: {width: number; height: number}[];
   /** The question's part and stem cuts; absent when the question is only served whole. */
   cuts?: BankCut[];
-  exportRouting74?: { policy: "q8-classroom-compact74"; scopeSHA256: string; authoritySHA256: string };
 }
 // The split must move exactly these fields; this fails to compile if the two lists drift apart.
 const detailKeysMatch: [Exclude<keyof BankQuestionDetail, DetailKey>, Exclude<DetailKey, keyof BankQuestionDetail>] extends [never, never] ? true : false = true;
@@ -135,6 +138,7 @@ export interface BankRoute {
   calculator: CalculatorFilter;
   collection: CollectionFilter;
   crossover: CrossoverFilter;
+  revision: RevisionFilter;
   question: string;
   /** The question view, counted from 0 here; the address counts from 1 (`view=1` is the first view). */
   view: number;
@@ -142,7 +146,7 @@ export interface BankRoute {
   viewError?: string;
 }
 
-export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", crossover: "all", question: "", view: 0};
+export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", crossover: "all", revision: "hide", question: "", view: 0};
 export const normalizeCode = (code: string) => code.replace(/\s/g, "").toUpperCase();
 
 export function readRoute(search: string, catalogue?: BankCatalogue<BankListQuestion>): BankRoute {
@@ -155,6 +159,8 @@ export function readRoute(search: string, catalogue?: BankCatalogue<BankListQues
     calculator: p.get("calc") === "yes" || p.get("calc") === "no" ? p.get("calc") as CalculatorFilter : "all",
     collection: p.get("collection") === "past" || p.get("collection") === "mock" ? p.get("collection") as CollectionFilter : "all",
     crossover: p.get("crossover") === "only" ? "only" : "all",
+    // A link to a question kept for the Year 11 revision programme opens it, so its papers are included.
+    revision: p.get("revision") === "include" || Boolean(p.get("question") && catalogue?.questions.find(q => q.id === p.get("question"))?.revisionUse) ? "include" : "hide",
     question: p.get("question") || "",
     ...readView(p.get("view"), viewCount(catalogue, p.get("question") || "")),
   };
@@ -193,6 +199,7 @@ export function routeQuery(route: BankRoute): string {
   if (route.calculator !== "all") p.set("calc", route.calculator);
   if (route.collection !== "all") p.set("collection", route.collection);
   if (route.crossover === "only") p.set("crossover", "only");
+  if (route.revision === "include") p.set("revision", "include");
   if (route.question) p.set("question", route.question);
   if (route.view > 0) p.set("view", String(route.view + 1));
   const query = p.toString();
@@ -211,8 +218,9 @@ export function filterQuestions<Q extends BankListQuestion>(catalogue: BankCatal
 
 export const questionIdentity = (q: BankListQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
 
-export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection" | "crossover">): boolean {
+export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection" | "crossover" | "revision">): boolean {
   return (filters.crossover === "all" || Boolean(q.equivalentId)) &&
+    (filters.revision === "include" || !q.revisionUse) &&
     (filters.tier === "all" || q.tier === filters.tier) &&
     (filters.calculator === "all" || q.calculator === (filters.calculator === "yes")) &&
     (filters.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === filters.collection);
@@ -247,10 +255,12 @@ export function exportSelection<Q extends BankListQuestion>(catalogue: BankCatal
   return {questions, marks: questions.reduce((n, q) => n + q.marks, 0), version: catalogue.version};
 }
 
-export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "filtered" | "no-bank-match" | "not-in-pilot" | null {
+export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "filtered" | "revision" | "no-bank-match" | "not-in-pilot" | null {
   const topic = catalogue.topics.find(t => t.code === route.code);
   if (route.code && !topic) return "unknown";
   if (filterQuestions(catalogue, route).length) return null;
+  // Only Year 11 revision programme questions match: say so, since clearing the other filters cannot help.
+  if (route.revision === "hide" && filterQuestions(catalogue, {...route, tier: "all", calculator: "all", collection: "all", crossover: "all", revision: "include"}).length && !filterQuestions(catalogue, {...route, tier: "all", calculator: "all", collection: "all", crossover: "all"}).length) return "revision";
   if (topicQuestions(catalogue, route.code).length) return "filtered";
   return topic?.bankCount === 0 ? "no-bank-match" : "not-in-pilot";
 }
@@ -343,6 +353,7 @@ function checkCatalogue(data: unknown, detail: boolean): BankCatalogue<BankListQ
     const unknownCode = q.codes.find(c => !codes.has(c));
     if (unknownCode !== undefined) failQuestion(QUESTION_FAILED, q.id, `codes (${unknownCode} is not a topic)`);
     if (q.writingSpacePolicy !== undefined && !["source", "generated", "none"].includes(q.writingSpacePolicy)) failQuestion("Question writing-space policy is invalid.", q.id, "writingSpacePolicy");
+    if (q.revisionUse !== undefined && (typeof q.revisionUse !== "string" || !q.revisionUse.trim())) failQuestion(QUESTION_FAILED, q.id, "revisionUse");
     if (q.parts.reduce((sum, p) => sum + p.marks, 0) !== q.marks) failQuestion("Question marks do not match the catalogue.", q.id, "marks");
     if (q.equivalentId) {
       const other = byId.get(q.equivalentId);

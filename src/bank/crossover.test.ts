@@ -1,18 +1,20 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { emptyRoute, exportSelection, filterQuestions, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
+import { emptyRoute as defaultRoute, exportSelection, filterQuestions, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
 
+// These checks cover the whole bank, so Year 11 revision papers are included.
+const emptyRoute = {...defaultRoute, revision: "include" as const};
 const catalogue = verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue);
 const identity = (q: BankQuestion) => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
 const shared = catalogue.questions.filter(q => q.tier === "F" && q.equivalentId);
 
 describe("reviewed Foundation/Higher crossover catalogue", () => {
-  it("retains all paper appearances with 341 reciprocal reviewed pairs across all 48 components", () => {
-    expect(catalogue.questions).toHaveLength(2375);
-    expect(new Set(catalogue.questions.map(q => q.paperId)).size).toBe(96);
-    expect(shared).toHaveLength(341);
-    expect(new Set(shared.map(q => q.paperId)).size).toBe(48);
-    expect(filterQuestions(catalogue, emptyRoute)).toHaveLength(2375);
+  it("retains all paper appearances with 500 reciprocal reviewed pairs across all 69 Foundation components", () => {
+    expect(catalogue.questions).toHaveLength(3441);
+    expect(new Set(catalogue.questions.map(q => q.paperId)).size).toBe(138);
+    expect(shared).toHaveLength(500);
+    expect(new Set(shared.map(q => q.paperId)).size).toBe(69);
+    expect(filterQuestions(catalogue, emptyRoute)).toHaveLength(3441);
   });
 
   it("shows every mapped identity exactly once for every Sparx code and every individual filter", () => {
@@ -53,7 +55,7 @@ describe("reviewed Foundation/Higher crossover catalogue", () => {
       }
     }
     const all = exportSelection(catalogue, catalogue.questions.map(q => q.id));
-    expect(all.questions).toHaveLength(2034);
+    expect(all.questions).toHaveLength(2941);
     expect(all.marks).toBe(catalogue.questions.reduce((sum, q) => sum + q.marks, 0) - shared.reduce((sum, q) => sum + q.marks, 0));
   });
 
@@ -69,9 +71,10 @@ describe("reviewed Foundation/Higher crossover catalogue", () => {
       expect(new Set(found.map(identity)), topic.code).toEqual(identities);
       expect(found.length, topic.code).toBe(identities.size);
     }
-    expect(routeQuery(only)).toBe("?crossover=only");
+    expect(routeQuery(only)).toBe("?crossover=only&revision=include");
     expect(readRoute("?crossover=only").crossover).toBe("only");
     expect(readRoute("?crossover=yes").crossover).toBe("all");
-    expect(routeQuery(emptyRoute)).toBe("");
+    expect(routeQuery(defaultRoute)).toBe("");
+    expect(routeQuery(emptyRoute)).toBe("?revision=include");
   });
 });

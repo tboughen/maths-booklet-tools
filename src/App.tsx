@@ -1,6 +1,6 @@
-import { ExampleGallery } from "./examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
-import { PreviewControls } from "./site/PreviewControls";
+import { EditorFoot } from "./site/EditorFoot";
 import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
 import { graphEnvelope, withGraphAbout, withGraphWorked, type GraphDocument } from "./domain/graphAbout";
@@ -124,6 +124,8 @@ export default function App({ active = true }: { active?: boolean }) {
   const drafts = useGraphDrafts();
   const hasPendingDraft = drafts.hasPending;
   const [previewZoom, setPreviewZoom] = useState(0);
+  // Told by the canvas once it has measured its space; 0 until then.
+  const [viewScale, setViewScale] = useState(0);
   const blocked = recoveryConflict || copying || drafts.pending;
   const locked = () => recoveryConflict || copying || hasPendingDraft();
   const act = (action: () => void) => {
@@ -519,10 +521,18 @@ export default function App({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={graphGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource) => setPendingExample(resource)}
+                  onWorked={(resource) => commit({ ...resource, selectedObjectId: null }, "use worked version")}
+                />
+              }
               onUndo={undo}
               onRedo={redo}
               onReset={resetDiagram}
-              resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -590,20 +600,9 @@ export default function App({ active = true }: { active?: boolean }) {
                 exporting or changing this graph.
               </p>
             )}
-            <div className="resource-preview-bar">
-              <PreviewControls zoom={previewZoom} onZoom={setPreviewZoom} />
-              <ResourceSize
-                width={exportMetrics.widthCm}
-                height={exportMetrics.heightCm}
-              />
-            </div>
-            <EditorHint tool="graph">
-              Choose a tool, then click or drag on the grid. Click a line,
-              segment or cross to change it. Blue handles are editing guides
-              and are never copied.
-            </EditorHint>
             <GraphCanvas
               zoom={previewZoom}
+              onScale={setViewScale}
               disabled={blocked}
               document={document}
               tool={tool}
@@ -613,6 +612,24 @@ export default function App({ active = true }: { active?: boolean }) {
                 act(() => commit(adjustAxis(document, axis, end, delta)))
               }
             />
+            <EditorFoot
+              zoom={previewZoom}
+              onZoom={setPreviewZoom}
+              scale={viewScale}
+              size={
+                <ResourceSize
+                  width={exportMetrics.widthCm}
+                  height={exportMetrics.heightCm}
+                />
+              }
+              hint={
+                <EditorHint tool="graph">
+                  Choose a tool, then click or drag on the grid. Click a line,
+                  segment or cross to change it. Blue handles are editing guides
+                  and are never copied.
+                </EditorHint>
+              }
+            />
           </Panel>
 
           <aside
@@ -620,13 +637,7 @@ export default function App({ active = true }: { active?: boolean }) {
             className="inspector-stack"
             aria-label="Graph settings"
           >
-            <ExampleGallery
-              examples={graphGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) => commit({ ...resource, selectedObjectId: null }, "use worked version")}
-            />
+            <ReturnToDiagram />
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
             {equationOpen ? (

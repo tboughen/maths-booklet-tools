@@ -5,10 +5,10 @@ import { pathLink, readPage } from "../site/routes";
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -420,6 +420,17 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={cuboidGallery}
+                  active={active}
+                  disabled={blocked || !!pending}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -497,20 +508,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               })}
             />
             {titleNote.dialog}
-            <div className="cb-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize
-                width={cropSize.key === cropKey ? cropSize.width : undefined}
-                height={cropSize.key === cropKey ? cropSize.height : undefined}
-                pending={
-                  !issue &&
-                  (cropSize.key !== cropKey ||
-                    (!cropSize.error && cropSize.width === undefined))
-                }
-                error={!!issue || cropSize.error}
-              />
-            </div>
-            <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
             {issue && (
               <p className="cb-export-warning" role="alert">
                 {issue}
@@ -580,6 +577,27 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 </div>
               )}
             </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={
+                <ResourceSize
+                  width={cropSize.key === cropKey ? cropSize.width : undefined}
+                  height={cropSize.key === cropKey ? cropSize.height : undefined}
+                  pending={
+                    !issue &&
+                    (cropSize.key !== cropKey ||
+                      (!cropSize.error && cropSize.width === undefined))
+                  }
+                  error={!!issue || cropSize.error}
+                />
+              }
+              status={message}
+              hint={
+                <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
+              }
+            />
             <div className="cb-structure" aria-label="Cuboid structure">
               <StructureStepper
                 className="cb-structure-group"
@@ -620,11 +638,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               <p className="cb-message cb-error" role="status">
                 Apply or cancel unfinished input before exporting or changing
                 other settings.
-              </p>
-            )}
-            {message && (
-              <p className="resource-feedback" role="status">
-                {message}
               </p>
             )}
             {recovery !== null && (
@@ -695,15 +708,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
             className="inspector-stack cb-inspector"
             aria-label="Cuboid settings"
           >
-            <ExampleGallery
-              examples={cuboidGallery}
-              active={active}
-              disabled={blocked || !!pending}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             {d.shapes.length > 1 && (
               <section className="panel-card cb-settings" aria-label="Cuboids">
                   <label>

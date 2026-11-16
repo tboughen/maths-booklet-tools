@@ -306,7 +306,7 @@ describe("graph builder", () => {
     const confirm = vi.spyOn(window, "confirm");
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Reset diagram" }));
+    await user.click(screen.getByRole("button", { name: "Start again" }));
     // The same in-page confirmation as the other editors, never the browser's own dialog.
     const dialog = screen.getByRole("dialog", { name: "Reset the diagram?" });
     expect(dialog).toHaveTextContent("You can undo it.");

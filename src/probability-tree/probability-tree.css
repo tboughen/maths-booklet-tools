@@ -57,7 +57,6 @@
   outline: 1px dashed #b5487a;
   background: #b5487a10;
 }
-.pt-preview-bar,
 .pt-row {
   display: flex;
   flex-wrap: wrap;
@@ -65,14 +64,6 @@
   align-items: center;
   padding: 10px 12px;
   font-size: 12px;
-}
-.pt-preview-bar {
-  justify-content: space-between;
-}
-.pt-preview-bar label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 .pt-row {
   padding: 8px 0 0;

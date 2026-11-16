@@ -58,23 +58,6 @@
 .booklet-editor .file-menu-button:hover:not(:disabled) {
   background: var(--blue-soft);
 }
-.booklet-editor
-  :is(
-    .resource-preview-bar,
-    .ratio-preview-controls,
-    .nl-preview-bar,
-    .cb-preview-bar,
-    .vn-preview-bar,
-    .ag-preview-bar,
-    .tr-preview-bar
-  ) {
-  min-height: 48px;
-  padding: 6px 12px;
-  gap: 6px 12px;
-}
-.booklet-editor .preview-detail {
-  padding: 6px 10px;
-}
 .booklet-editor .panel-card {
   padding: 14px;
 }

@@ -22,14 +22,14 @@ import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { useResourceFit } from "../site/useResourceFit";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
 import { saveStorage, type Startup } from "./storage";
 import { RatioDialog } from "../ratio-table/RatioDialog";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { houseModel } from "./house";
@@ -530,6 +530,15 @@ export default function LessonBarModelPage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={barLessonGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, title)}
+                  onWorked={(resource) => replace(resource, "", true)}
+                />
+              }
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -539,7 +548,6 @@ export default function LessonBarModelPage({
               onUndo={undo}
               onRedo={redo}
               onReset={() => replace(houseModel(v3.fresh()), "Start a new model?")}
-              resetLabel="New model"
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
@@ -621,13 +629,6 @@ export default function LessonBarModelPage({
                 }
               }}
             />
-            <div className="preview-controls">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-            </div>
-            <EditorHint tool="bar-model">
-              Click a bar name, section label or note on the model to edit it.
-            </EditorHint>
             <div ref={fit.ref} className="bm-scroll editor-stage">
               <div
                 className="bm-stage"
@@ -782,22 +783,25 @@ export default function LessonBarModelPage({
                 )}
               </div>
             </div>
-            <p role="status" className="editor-feedback">
-              {message}
-            </p>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fit.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint tool="bar-model">
+                  Click a bar name, section label or note on the model to edit it.
+                </EditorHint>
+              }
+            />
             {issue && <p role="alert">{issue}</p>}
             {c.warnings(e).map((w) => (
               <p key={w}>{w}</p>
             ))}
           </Panel>
           <div className="inspector-stack">
-            <ExampleGallery
-              examples={barLessonGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, title)}
-              onWorked={(resource) => replace(resource, "", true)}
-            />
+            <ReturnToDiagram />
             {(recovery !== undefined || conflict) && (
               <Panel>
                 <div
