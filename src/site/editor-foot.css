@@ -75,7 +75,6 @@
 }
 .site-app .booklet-editor .editor-foot .resource-size svg { flex: none; color: var(--md-ink-3); }
 .site-app .booklet-editor .editor-foot .resource-size b { color: var(--md-ink); font-weight: 600; }
-.site-app .booklet-editor .editor-foot .answer-copy-note { color: var(--md-pink); font-weight: 600; }
 /* The note: the hint or drawing prompt at the far right and the latest message beside it. It
    has a row of its own, two lines high, so a two-line hint or message changes nothing. The
    message never counts towards the note's width and always has at least 280 px. */

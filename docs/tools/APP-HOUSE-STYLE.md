@@ -154,15 +154,15 @@ then Copy image, Copy for Word and File.
 - **Examples** opens the "Start from an example" gallery. It used to be a wide button at the top
   of the settings column, which now starts with the tool's own settings.
 - **Start again** is the reset: it asks first, and Undo brings the work back.
-- On a window up to 1,100 px wide Examples and Start again show their icons only, so the answers
-  switch shares their row.
+- Where the bar would not fit on one row, Examples and Start again show their icons only: up to
+  1,180 px wide in every tool, and up to 1,365 px in a tool with an answers switch.
 
 ## The answers switch
 
 A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads
 "Show hidden answers" in every tool (`AnswerPreviewToggle` and `AnswerCopyToggle` in
-`src/site/AnswerPreviewToggle.tsx`, styled by `answer-switch.css`; the Worksheet and Booklet
-builders use the same switch).
+`src/site/AnswerPreviewToggle.tsx`, styled by `answer-switch.css`). The Worksheet and Booklet
+builders use the same switch, without the label.
 
 - Off, it is a plain grey switch.
 - On, the switch and its words turn pink, and a small pink label appears over the top corner of

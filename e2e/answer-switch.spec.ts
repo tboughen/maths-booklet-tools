@@ -61,3 +61,32 @@ test("on a phone the label wraps inside the card and the switch is a full-height
   expect((await shown.locator("label.answer-switch").boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
+
+// The action bar keeps to one row where the site is mostly used; Examples and Start again give up
+// their words first (docs/tools/APP-HOUSE-STYLE.md, "The action bar").
+for (const tool of ["venn", "number-line"])
+  test(`${tool}: the action bar is one row from a 1920 px window down to 1200 px`, async ({ page }) => {
+    for (const width of [1920, 1440, 1280, 1200]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`/tools/${tool}`);
+      const bar = page.locator(".site-page:not([hidden]) .editor-toolbar");
+      await expect(bar).toBeVisible();
+      expect((await bar.boundingBox())!.height, `at ${width}`).toBeLessThanOrEqual(60);
+      // With or without their words, both buttons keep their names.
+      await expect(bar.getByRole("button", { name: "Examples", exact: true })).toBeVisible();
+      await expect(bar.getByRole("button", { name: "Start again", exact: true })).toBeVisible();
+    }
+  });
+
+test("the Worksheet builder's switch turns pink without a label, so nothing beside it moves", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/worksheets");
+  const input = page.getByRole("checkbox", { name: "Teacher preview: show hidden answers", exact: true });
+  await expect(input).toBeVisible();
+  const bar = page.locator(".ws-preview-bar").first();
+  const before = await bar.boundingBox();
+  await input.check();
+  await expect(page.locator("label.answer-switch .answer-switch-track").first()).toHaveCSS("background-color", PINK);
+  await expect(page.locator(".answer-chip")).toBeHidden();
+  expect(await bar.boundingBox()).toEqual(before);
+});

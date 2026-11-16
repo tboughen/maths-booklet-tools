@@ -122,9 +122,13 @@ function Toolbar(props: EditorToolbarProps) {
     observer.observe(element);
     observer.observe(parent);
     for (const row of parent.querySelectorAll(":scope > .editor-foot, :scope > .editor-stage")) observer.observe(row);
+    // A row arriving above the stage (a warning, a pending note) moves it without resizing anything.
+    const rows = new MutationObserver(measure);
+    rows.observe(parent, { childList: true });
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();
+      rows.disconnect();
       window.removeEventListener("resize", measure);
     };
   }, []);
@@ -135,7 +139,7 @@ function Toolbar(props: EditorToolbarProps) {
       role="group"
       aria-label="Resource utilities"
     >
-      <div className="tool-group" role="group" aria-label="History and reset">
+      <div className="tool-group" role="group" aria-label="History, examples and start again">
         <HistoryButtons
           canUndo={props.canUndo}
           canRedo={props.canRedo}
@@ -149,7 +153,7 @@ function Toolbar(props: EditorToolbarProps) {
           className="tool-button reset-button"
           disabled={props.resetDisabled}
           aria-label="Start again"
-          title="Start again with a new, blank resource"
+          title="Start again from this tool's starting resource"
           onClick={props.onReset}
         >
           <RotateCcw size={17} aria-hidden="true" />

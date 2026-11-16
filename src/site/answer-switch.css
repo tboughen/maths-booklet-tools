@@ -53,9 +53,10 @@
 .answer-switch input:checked + .answer-switch-track::after { translate: 14px 0; background: #fff; }
 .answer-switch input:focus-visible + .answer-switch-track { outline: 2px solid var(--md-blue); outline-offset: 2px; }
 .answer-switch:has(input:disabled) { opacity: .55; cursor: not-allowed; }
-/* The small pink label. In an editor card it sits over the corner of the stage, under the
-   action bar, and lets clicks through to the diagram. */
-.answer-chip {
+/* The small pink label. It shows in an editor card only, over the corner of the stage, and lets
+   clicks through to the diagram. Elsewhere the pink switch says it alone, so nothing moves. */
+.answer-chip { display: none; }
+.editor-toolbar .answer-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
