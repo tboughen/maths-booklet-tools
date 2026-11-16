@@ -62,8 +62,9 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   question, a question view (`question-1`). `area` is the printed blank working space and `bottom`
   its lower edge; `answers` are the printed answer lines (left end, baseline, length); `notesX` is
   the left edge of the guidance column. A mark or note sits just after the line, grid or table it
-  belongs to when its words fit on that line (Tim, 16 November 2026); longer guidance, and guidance
-  pushed down by an earlier note, uses the column. Marks on drawings stay in the column.
+  belongs to when its words, and any "Also scores" line, each fit on one line (Tim, 16 November
+  2026); working below moves down only if it would reach under that Also line. Longer guidance, and
+  guidance pushed down by an earlier note, uses the column. Marks on drawings stay in the column.
 - Step kinds: `line` (aligned on its sign), `text`, `bubbles`, `diagram` (an algebra grid, ratio
   table, number line or factor tree envelope drawn by its own renderer), `carry` (a value from an earlier
   part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (lines, paths, crosses,

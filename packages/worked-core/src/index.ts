@@ -315,7 +315,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
     // Guidance starts just after the working it belongs to, so it is plain what earns each mark (Tim,
     // 16 Nov 2026). It falls back to the guidance column when the line is long or the note has had to
     // move down below an earlier one.
-    let noteLeft = Infinity;
+    let noteX = 0;
     const placeNote = (k: number, baseline: number, mark: WorkedMark | undefined, note: string | undefined, watch = false, beside?: number) => {
       if (!mark && !note) return false;
       let y = Math.max(baseline, noteBottom + NOTE_LEADING);
@@ -325,7 +325,8 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
       const oneLine = (from: number) => {
         const room = d.surface.width - from - 4;
         if (mark && note) return false;
-        if (mark) return wrap(mark.note, room - noteWidth(mark.code, 9, true) - 13, NOTE_SIZE).length === 1;
+        const words = room - noteWidth(mark?.code ?? "", 9, true) - 13;
+        if (mark) return wrap(mark.note, words, NOTE_SIZE).length === 1 && (!mark.also || wrap(`Also scores: ${mark.also}`, words, 9).length === 1);
         return wrap(watch ? `Watch out: ${note}` : note ?? "", room, NOTE_SIZE).length === 1;
       };
       const x = near < part.notesX && oneLine(near) ? near : part.notesX;
@@ -353,12 +354,15 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         });
       }
       noteBottom = y + 3;
-      noteLeft = Math.min(noteLeft, x);
+      noteX = x;
       emit(d, k, `<g ${UI}>${svg}</g>`, a.y, [{ x, y: top, width: Math.min(used + 2, width), height: y + 3 - top, what: "guidance" }]);
       return x < part.notesX;
     };
-    // Close guidance with an "Also scores" line under it keeps the next working clear of that line.
-    const clearOf = (close: boolean) => { if (close) cursor = Math.max(cursor, noteBottom - 3); };
+    // Close guidance with an "Also scores" line under it: the next working moves down only if it
+    // would reach under that line.
+    let pending: { x: number; bottom: number } | undefined;
+    const clearOf = (close: boolean) => { pending = close ? { x: noteX, bottom: noteBottom } : undefined; };
+    const clearFor = (right: number) => { if (pending && right + 2 > pending.x) cursor = Math.max(cursor, pending.bottom - 3); pending = undefined; };
     const work = (k: number, svg: string, box: Omit<Box, "what">, what = "working") => emit(d, k, `<g ${HAND}>${svg}</g>`, a.y, [{ ...box, what }]);
 
     for (const step of part.steps) {
@@ -369,7 +373,9 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         case "line": {
           const lhs = mathsText(step.lhs), rhs = mathsText(step.rhs);
           const h = hasFraction(lhs) || hasFraction(rhs) ? FRACTION_LINE : LINE;
-          const y = cursor + h * 0.68, lw = mathsWidth(lhs), rw = mathsWidth(rhs);
+          const lw = mathsWidth(lhs), rw = mathsWidth(rhs);
+          clearFor(eq + 8 + rw);
+          const y = cursor + h * 0.68;
           work(k, maths(lhs, eq - 8 - lw, y) + `<text x="${n(eq)}" y="${n(y)}" font-size="${HAND_SIZE}" fill="${INK}" text-anchor="middle">${esc(step.rel)}</text>` + maths(rhs, eq + 8, y),
             { x: eq - 8 - lw, y: y - HAND_SIZE, width: lw + rw + 16, height: HAND_SIZE * 1.3 });
           last = { lhsCentre: eq - 8 - mathsWidth(lastTerm(lhs)) / 2, rhsCentre: eq + 8 + rw / 2 };
@@ -380,8 +386,9 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         }
         case "text": case "carry": {
           const s = mathsText(step.text);
-          const h = hasFraction(s) ? FRACTION_LINE : LINE;
-          const y = cursor + h * 0.68, w = mathsWidth(s);
+          const h = hasFraction(s) ? FRACTION_LINE : LINE, w = mathsWidth(s);
+          clearFor(a.x + w + (step.kind === "carry" ? noteWidth(`from ${step.from}`, 9, true) + 22 : 0));
+          const y = cursor + h * 0.68;
           let svg = maths(s, a.x, y), tagWidth = 0;
           if (step.kind === "carry") {
             const tag = `from ${step.from}`;
@@ -397,18 +404,20 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         }
         case "bubbles": {
           if (!last) { issues.push({ surface: part.on, message: `Step ${k}: bubbles need an equation or inequality line above them.` }); break; }
-          const cy = cursor + BUBBLE_ROW / 2;
           const radius = (t: string) => Math.max(15, handWidth(mathsText(t), 10.5) / 2 + 7);
           const bubble = (cx: number, rx: number, t: string) => `<ellipse cx="${n(cx)}" cy="${n(cy)}" rx="${n(rx)}" ry="9.5" fill="none" stroke="${INK}" stroke-width="0.9"/><text x="${n(cx)}" y="${n(cy + 3.8)}" font-size="10.5" fill="${INK}" text-anchor="middle">${esc(mathsText(t))}</text>`;
           const lr = radius(step.lhs), rr = radius(step.rhs);
           // Each bubble sits under its term; short sides would make them touch, so the right one moves over.
           const lx = Math.max(a.x + lr, last.lhsCentre), rx = Math.max(last.rhsCentre, lx + lr + rr + 8);
+          clearFor(rx + rr);
+          const cy = cursor + BUBBLE_ROW / 2;
           work(k, bubble(lx, lr, step.lhs) + bubble(rx, rr, step.rhs), { x: lx - lr, y: cy - 9.5, width: rx + rr - (lx - lr), height: 19 });
           cursor += BUBBLE_ROW;
           break;
         }
         case "diagram": {
           const dg = diagramSvg(step.family, step.envelope);
+          clearFor(a.x + dg.width);
           const top = cursor + 4;
           work(k, dg.svg.replace("<svg ", `<svg x="${n(a.x)}" y="${n(top)}" width="${n(dg.width)}" height="${n(dg.height)}" `), { x: a.x, y: top, width: dg.width, height: dg.height }, "diagram");
           const close = placeNote(k, top + 12, step.mark, step.note, false, a.x + dg.width);
@@ -469,7 +478,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           // The answer line sits below the working space, so it moves down with any room added there,
           // and room is added when guidance beside the last lines would reach its words.
           const top = Math.min(...boxes.map(b => b.y)), right = Math.max(...boxes.map(b => b.x + b.width));
-          if (noteBottom && right > noteLeft && anchor.y > a.bottom) answerClear = Math.max(answerClear, noteBottom + 3 - top);
+          if (noteBottom && right > noteX && anchor.y > a.bottom) answerClear = Math.max(answerClear, noteBottom + 3 - top);
           emit(d, k, svg, anchor.y, boxes);
           break;
         }

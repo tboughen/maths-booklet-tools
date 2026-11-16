@@ -176,6 +176,20 @@ describe("worked-solution guidance placement", () => {
     expect(layout.issues).toEqual([]);
     expect(chipX(layout.overlays.get("a-1")!.svg, "multiplies")).toBeCloseTo(40 + mathsWidth("3 × 4 = 12") + 16, 0);
   });
+  it("moves the next working down for a close Also scores line only if it would reach under it", () => {
+    const raw = sample();
+    const steps = (also?: string, rhs = "16") => [
+      { kind: "line", lhs: "4x", rhs, mark: { code: "M1", note: "subtracts 3", ...(also ? { also } : {}) } },
+      { kind: "bubbles", lhs: "÷4", rhs: "÷4" }, { kind: "line", lhs: "x", rhs: "4" }, { kind: "answer", value: "4" }];
+    const cy = (s: unknown[]) => /<ellipse cx="[\d.]+" cy="([\d.]+)"/.exec(layoutWorked(parseWorked({ ...raw, parts: [{ ...raw.parts[0], steps: s }, raw.parts[1]] }), surfaces).overlays.get("a-1")!.svg)?.[1];
+    expect(cy(steps("16 ÷ 4", "4 × 4"))).toBe(cy(steps(undefined, "4 × 4")));
+  });
+  it("keeps a mark whose Also scores line is too long for one line in the guidance column", () => {
+    const raw = sample();
+    const also = "a long other route the scheme accepts, written out in full so it runs well past one line";
+    const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], notesX: 330, steps: [{ kind: "text", text: "3 × 4 = 12", mark: { code: "M1", note: "multiplies", also } }, { kind: "answer", value: "12" }] }, raw.parts[1]] });
+    expect(chipX(layoutWorked(data, surfaces).overlays.get("a-1")!.svg, "multiplies")).toBe(330);
+  });
   it("keeps long guidance, and guidance that has moved down, in the guidance column", () => {
     const raw = sample();
     const long = "describes the whole method in many words, so it cannot sit on one line beside the working";
