@@ -31,6 +31,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   "factor-tree": { root: "36", complete: true },
   nets: { nets: [{ preset: { type: "cube", net: 5 }, faces: [{ mark: "dot" }, null, null, null, null, { mark: { kind: "dot", hidden: true } }] }] },  "written-method": { method: "multiply", numbers: ["546", "43"], complete: true },
   "function-machine": { ops: ["× 3", "− 8"], start: "6", complete: true },
+  "probability-objects": { objects: [{ type: "spinner", labels: ["1", { text: "2", hidden: true }, "3", ""] }, { type: "dice" }] },
   "algebra-tiles": { tiles: "2a²b + ab² − a²b", answer: "", collect: true },
   triangle: { widthCm: 8 },
 };

@@ -23,6 +23,7 @@ import { twoWayTableConfig } from "./guides/two-way-table";
 import { ftConfig } from "./guides/factor-tree";
 import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
+import { poConfig } from "./guides/probability-objects";
 import { netsConfig } from "./guides/nets";
 import { atConfig } from "./guides/algebra-tiles";
 import { ssConfig } from "./guides/sample-space";
@@ -220,6 +221,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "factor-tree": fromConfig(ftConfig),
   "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
+  "probability-objects": fromConfig(poConfig),
   nets: fromConfig(netsConfig),
   "algebra-tiles": fromConfig(atConfig),
   "sample-space": fromConfig(ssConfig),
@@ -369,6 +371,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
+  "probability-objects": ["spinners", "dice", "bags of counters", "probability of a single event", "equally likely outcomes", "expected outcomes"],
   "algebra-tiles": ["algebra tiles", "collecting like terms", "simplifying expressions", "like and unlike terms (a²b and ab²)", "zero pairs", "writing expressions from tiles"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],

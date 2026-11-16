@@ -1,0 +1,55 @@
+{
+ "kind": "probability-objects",
+ "schemaVersion": 1,
+ "rendererVersion": "probability-objects-1",
+ "document": {
+  "objects": [
+   {
+    "id": "o1",
+    "type": "spinner",
+    "shape": "polygon",
+    "sectors": [
+     {
+      "label": {
+       "text": "A",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "B",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "C",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "B",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     }
+    ],
+    "rotation": 0,
+    "pointer": "stick",
+    "pointerAngle": 25,
+    "rightAngles": false,
+    "sizeMm": 40,
+    "emptyLabels": "blank",
+    "caption": ""
+   }
+  ]
+ }
+}
