@@ -31,6 +31,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   nets: { nets: [{ preset: { type: "cube", net: 5 }, faces: [{ mark: "dot" }, null, null, null, null, { mark: { kind: "dot", hidden: true } }] }] },  "written-method": { method: "multiply", numbers: ["546", "43"], complete: true },
   "function-machine": { ops: ["× 3", "− 8"], start: "6", complete: true },
   "bubble-method": { start: "y = 3x + 2", steps: [{ bubble: "−2", line: { text: "y − 2 = 3x", hidden: true } }] },
+  "algebra-tiles": { tiles: "2a²b + ab² − a²b", answer: "", collect: true },
   triangle: { widthCm: 8 },
 };
 const clean = (spec: Record<string, unknown> | undefined) => spec && Object.fromEntries(Object.entries(spec).filter(([, v]) => v !== undefined));

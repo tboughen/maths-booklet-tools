@@ -44,6 +44,8 @@ import * as bm from "../../bubble-method-core/src/index";
 import * as bmIo from "../../bubble-method-core/src/interchange";
 import * as nets from "../../net-core/src/index";
 import * as netsIo from "../../net-core/src/interchange";
+import * as at from "../../algebra-tile-core/src/index";
+import * as atIo from "../../algebra-tile-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -75,6 +77,7 @@ export const DIAGRAM_KINDS = [
   "bubble-method",
   "nets",
   "written-method",
+  "algebra-tiles",
   "sample-space",
   "triangle",
   "construction",
@@ -478,6 +481,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => netsIo.revise(input),
     hash: nets.hash,
     svg: (e, view) => nets.renderSvg(nets.forView(e, view, true)),
+  }),
+  "algebra-tiles": family<at.Envelope>({
+    kind: "algebra-tiles",
+    label: "algebra tiles diagram",
+    summary: "Algebra tiles for collecting like terms: 1, letter, squared, product and three-letter (a²b, ab²) tiles in two letters, positive and negative (zero pairs), as written or grouped, with the expression and answer blank or hidden for pupils; collected only on request.",
+    route: "/tools/algebra-tiles",
+    answerView: true,
+    envelopeSchema: at.envelopeSchema,
+    createSchema: atIo.createSchema,
+    revisionSchema: atIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = at.validate(raw);
+      check(at.exportIssue(at.forView(e, view)));
+      return e;
+    },
+    create: (input) => atIo.create(input),
+    revise: (input) => atIo.revise(input),
+    hash: at.hash,
+    svg: (e, view) => at.renderSvg(at.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",

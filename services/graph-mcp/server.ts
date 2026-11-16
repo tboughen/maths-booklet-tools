@@ -183,7 +183,7 @@ export function graphService(options: ServiceOptions) {
       case "graph": return artifacts(source.envelope, format, signal, source.outputView);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal, source.outputView);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
-      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "frequency-tree": case "two-way-table": case "sample-space": case "factor-tree": case "function-machine": case "bubble-method": case "nets": case "written-method": case "triangle": case "construction": case "elevations": case "angles": case "area": return resources.artifacts(source, format, signal);
+      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "frequency-tree": case "two-way-table": case "sample-space": case "factor-tree": case "function-machine": case "bubble-method": case "algebra-tiles": case "nets": case "written-method": case "triangle": case "construction": case "elevations": case "angles": case "area": return resources.artifacts(source, format, signal);
     }
   });
   const resource: ResultBuilder = (s, signal) => resources.result(s as NewSource, signal);
@@ -192,7 +192,7 @@ export function graphService(options: ServiceOptions) {
     "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal, "outputView" in s ? s.outputView : undefined),
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
-    "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, "two-way-table": resource, "factor-tree": resource, "function-machine": resource, "bubble-method": resource, nets: resource, "written-method": resource, "sample-space": resource, triangle: resource, construction: resource, elevations: resource, angles: resource, area: resource,
+    "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, "two-way-table": resource, "factor-tree": resource, "function-machine": resource, "bubble-method": resource, "algebra-tiles": resource, nets: resource, "written-method": resource, "sample-space": resource, triangle: resource, construction: resource, elevations: resource, angles: resource, area: resource,
   } satisfies Record<DiagramKind, ResultBuilder>, (s, signal) => prepareDiagram(s, raster, signal));
   async function result(raw: GraphEnvelope, signal?: AbortSignal, view: "pupil" | "answer" = "pupil") {
     // Imported human graphs acquire the explicit portable profile on the server.
@@ -355,7 +355,7 @@ export function graphService(options: ServiceOptions) {
       limits.request(clientAddress(req, options.trustForwardedFor ?? false));
       if (req.method === "GET" && url.pathname === "/resource/download") {
         const {source, format} = resourceDownloads.verify(url);
-        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model" && source.kind !== "charts" && source.kind !== "probability-tree" && source.kind !== "frequency-tree" && source.kind !== "two-way-table" && source.kind !== "factor-tree" && source.kind !== "written-method" && source.kind !== "function-machine" && source.kind !== "bubble-method" && source.kind !== "nets" && source.kind !== "sample-space" && source.kind !== "triangle" && source.kind !== "construction" && source.kind !== "elevations" && source.kind !== "angles" && source.kind !== "area") throw new GraphError("invalid_download", "Use the original download route for this resource.");
+        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model" && source.kind !== "charts" && source.kind !== "probability-tree" && source.kind !== "frequency-tree" && source.kind !== "two-way-table" && source.kind !== "factor-tree" && source.kind !== "written-method" && source.kind !== "function-machine" && source.kind !== "bubble-method" && source.kind !== "algebra-tiles" && source.kind !== "nets" && source.kind !== "sample-space" && source.kind !== "triangle" && source.kind !== "construction" && source.kind !== "elevations" && source.kind !== "angles" && source.kind !== "area") throw new GraphError("invalid_download", "Use the original download route for this resource.");
         const abort = new AbortController();
         res.once("close", () => {if (!res.writableFinished) abort.abort();});
         const file = await resources.artifacts(source, format, abort.signal);

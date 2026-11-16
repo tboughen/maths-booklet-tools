@@ -35,6 +35,7 @@ const undoRegistry: Record<string, string> = {
   "function-machine": "function-machine/FunctionMachinePage.tsx",
   "bubble-method": "bubble-method/BubbleMethodPage.tsx",
   nets: "nets/NetsPage.tsx",
+  "algebra-tiles": "algebra-tiles/AlgebraTilesPage.tsx",
   "sample-space": "sample-space/SampleSpacePage.tsx",
   worksheets: "worksheet/WorksheetPage.tsx",
   booklets: "booklet/BookletPage.tsx",

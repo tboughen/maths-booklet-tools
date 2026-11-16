@@ -27,6 +27,7 @@ export const galleries: Record<string, Entry[]> = {
   "function machines": gallery.functionMachineGallery as Entry[],
   "bubble method": gallery.bubbleMethodGallery as Entry[],
   nets: gallery.netsGallery as Entry[],
+  "algebra tiles": gallery.algebraTilesGallery as Entry[],
   "sample space diagrams": gallery.sampleSpaceGallery as Entry[],
 };
 

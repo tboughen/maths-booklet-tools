@@ -25,6 +25,7 @@ import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
 import { bmConfig } from "./guides/bubble-method";
 import { netsConfig } from "./guides/nets";
+import { atConfig } from "./guides/algebra-tiles";
 import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
@@ -163,7 +164,7 @@ const lineGuide: FamilyGuide = {
     operations: line.operationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?,lines?:normal|bold,markers?,secondary?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. For \"what number is the arrow pointing to?\" use markers:[{id,value,label?}] (up to 6 down arrows, label up to 3 letters or digits such as A; value may lie between ticks; not with a solution) and axis.minorTicks:true for exam-style long labelled and short unlabelled ticks (for example step 0.1, labelEvery 10). The marker value is the answer the pupil reads: give it only in teaching.answer, kept hidden. Keep solutionVisible, tick-label answer lines, prompt and answer visibility. A second scale (double number line or percentage bar) is spec.secondary:{minimum,maximum,unit (at most 4 characters, such as \"%\" or \"£\"),unitPlace:before|after,style:line|bar,labels:{exactValue:value|hidden|answer-line}}: its values run evenly, one per main tick, printed above the line; style bar draws a closed bar from the first tick to the last, for percentages of an amount. It cannot be combined with a solution or with markers. Use answer-line labels for the values pupils find; never fill them in.",
+    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?,lines?:normal|bold,markers?,secondary?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. For \"what number is the arrow pointing to?\" use markers:[{id,value,label?}] (up to 6 down arrows, label up to 8 chars: A, 3.47, 12 500; value may lie between ticks; not with a solution) and axis.minorTicks:true for exam-style long labelled and short unlabelled ticks (for example step 0.1, labelEvery 10). The marker value is the answer the pupil reads: give it only in teaching.answer, kept hidden. Keep solutionVisible, tick-label answer lines, prompt and answer visibility. A second scale (double number line or percentage bar) is spec.secondary:{minimum,maximum,unit (at most 4 characters, such as \"%\" or \"£\"),unitPlace:before|after,style:line|bar,labels:{exactValue:value|hidden|answer-line}}: its values run evenly, one per main tick, printed above the line; style bar draws a closed bar from the first tick to the last, for percentages of an amount. It cannot be combined with a solution or with markers. Use answer-line labels for the values pupils find; never fill them in.",
   revise:
     "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins and ray); add_point_ray {ray:{id,from,direction:left|right}} (a ray from a point to the end of the line, for sets such as x < −1 or x ≥ 2; at most one each way); remove_point_ray {id}; set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm?,lines?:normal|bold} (normal lines are not saved); add_marker {marker:{id,value,label?}}; set_marker {id,value?,label?} (an empty label removes it); remove_marker {id}; set_secondary {secondary|null}; set_secondary_label {value,state:value|hidden|answer-line} by the exact second-scale value. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
 };
@@ -221,6 +222,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "function-machine": fromConfig(fmConfig),
   "bubble-method": fromConfig(bmConfig),
   nets: fromConfig(netsConfig),
+  "algebra-tiles": fromConfig(atConfig),
   "sample-space": fromConfig(ssConfig),
   triangle: {
     ...fromConfig(triangleConfig),
@@ -368,6 +370,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
   "bubble-method": ["bubble method", "balancing", "solving linear equations", "solving inequalities", "changing the subject"],
+  "algebra-tiles": ["algebra tiles", "collecting like terms", "simplifying expressions", "like and unlike terms (a²b and ab²)", "zero pairs", "writing expressions from tiles"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],

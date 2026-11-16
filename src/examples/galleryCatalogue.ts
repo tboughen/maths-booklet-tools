@@ -71,6 +71,8 @@ import { renderSvg as netsSvg } from "../../packages/net-core/src";
 import { renderSvg as functionMachineSvg } from "../../packages/function-machine-core/src";
 import { examples as bubbleMethods } from "../../packages/bubble-method-core/src/examples";
 import { renderSvg as bubbleMethodSvg } from "../../packages/bubble-method-core/src";
+import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/examples";
+import { renderSvg as algebraTilesSvg } from "../../packages/algebra-tile-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
 import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
 
@@ -398,5 +400,13 @@ export const bubbleMethodGallery = bubbleMethods.map((example) => ({
   description: example.note,
   make: example.make,
   render: bubbleMethodSvg,
+  worked: true,
+}));
+export const algebraTilesGallery = algebraTiles.map((example) => ({
+  id: `at-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: algebraTilesSvg,
   worked: true,
 }));
