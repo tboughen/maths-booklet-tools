@@ -164,7 +164,8 @@ test("a part found by its topic code shows its working over its own cut, and the
     steps: [{ kind: "text", text: "Synthetic working 3 + 4 = 7" }] }] });
   const data = `bank/assets/worked/${question.id}/synthetic.json`;
   question.workedSolution = { schemaVersion: 2, revision: "synthetic", basedOnQuestionRevision: question.revision, data, dataSha256: createHash("sha256").update(body).digest("hex") };
-  catalogue.questions = catalogue.questions.filter(q => q.id === question.id || !q.workedSolution);
+  // Other questions keep their places (a crossover's twin must stay), with no working of their own.
+  for (const other of catalogue.questions) if (other !== question) delete other.workedSolution;
   const document = await PDFDocument.create();
   for (let i = 0; i < 4; i++) document.addPage([600, 800]);
   const pdf = Buffer.from(await document.save());
