@@ -29,7 +29,10 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
   the saved answers.
 - Columns hold titled question cards. Numbers are computed, running across both sides.
 - Card items: `text`, `info` (pale card), `claim` (a pupil's statement), `bullets`, `table`
-  (cells supplied, blank or hidden), `choice` (circle one or tick one), `answerLine` (prefix,
+  (cells supplied, blank or hidden; omit `columns` and the first row becomes the shaded heading
+  row with the same cell states, for a table of values along the page whose x row has blanks or
+  hidden answers, P11, 16 Nov 2026; a table keeps its natural width with cells at least 14 mm,
+  every cell centred, as in booklets, and only stretches to the column when it needs the room), `choice` (circle one or tick one), `answerLine` (prefix,
   suffix, inline groups, and a saved answer of up to 160 characters, printed only on the answers copy;
   raised from 60 on 14 November 2026 at Tim's choice, R27. An answer wider than its line is still
   reported, so the maker shortens it or gives it a longer line rather than letting it run past;

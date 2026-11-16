@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { HEADING_MAX, HEADING_PATTERN } from "../../packages/ratio-table-core/src/schema";
 
 export function HeadingInput({
   value,
@@ -28,9 +29,9 @@ export function HeadingInput({
     try {
       const next = draft.trim();
       const words = next.replace(/ ?[→↑↓]$/, "").replaceAll("²", "^2").replaceAll("³", "^3");
-      if (!(words.length <= 12 && /^[A-Za-z0-9 _/%£-]+$|^(?:\d+\/)?[A-Za-z]+\^\d$/.test(words)))
+      if (!(words.length <= HEADING_MAX && HEADING_PATTERN.test(words)))
         throw Error(
-          "Use a short heading with letters, digits, spaces, underscores, hyphens, slashes (m/s), % or £, or a power such as x^2, x² or 1/x, optionally ending in →, ↑ or ↓.",
+          "Use a short heading with letters, digits, spaces, underscores, hyphens, slashes, brackets, % £ or ° (Time (min), Speed (m/s), °C), or a power such as x^2, x² or 1/x, optionally ending in →, ↑ or ↓.",
         );
       onCommit(next);
       setDraft(next);
@@ -52,7 +53,7 @@ export function HeadingInput({
         aria-label={label}
         aria-invalid={!!error}
         aria-describedby={error ? id : undefined}
-        maxLength={14}
+        maxLength={HEADING_MAX + 2}
         onFocus={onFocus}
         value={draft}
         onChange={(e) => {

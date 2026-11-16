@@ -612,7 +612,6 @@
                                           },
                                           "required": [
                                             "type",
-                                            "columns",
                                             "rows"
                                           ],
                                           "additionalProperties": false
@@ -1140,7 +1139,6 @@
                                                     },
                                                     "required": [
                                                       "type",
-                                                      "columns",
                                                       "rows"
                                                     ],
                                                     "additionalProperties": false
@@ -2435,7 +2433,6 @@
                                           },
                                           "required": [
                                             "type",
-                                            "columns",
                                             "rows"
                                           ],
                                           "additionalProperties": false
@@ -2963,7 +2960,6 @@
                                                     },
                                                     "required": [
                                                       "type",
-                                                      "columns",
                                                       "rows"
                                                     ],
                                                     "additionalProperties": false
@@ -3673,7 +3669,6 @@
                                           },
                                           "required": [
                                             "type",
-                                            "columns",
                                             "rows"
                                           ],
                                           "additionalProperties": false
@@ -4213,7 +4208,6 @@
                                                     },
                                                     "required": [
                                                       "type",
-                                                      "columns",
                                                       "rows"
                                                     ],
                                                     "additionalProperties": false

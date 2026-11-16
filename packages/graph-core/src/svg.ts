@@ -197,12 +197,51 @@ function yAxisTextGeometry(document: DiagramDocumentV1) {
       numbersLeft,
       yNumberFromPlotLeft - axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE),
     );
+  const above = !!document.axes.y.title && document.axes.y.titleAbove === true;
+  if (above) {
+    // Above the axis, the title starts at the y numbers' left edge and runs over the plot,
+    // wrapping only if it is wider than the graph.
+    const left = Math.min(numbersLeft, originFromPlotLeft - TITLE_GAP);
+    const horizontal = (document.axes.x.negativeSquares + document.axes.x.positiveSquares) * UNITS_PER_CM;
+    const title = wrapTitle(document.axes.y.title!, Math.max(horizontal - left, 3 * UNITS_PER_CM));
+    return { originFromPlotLeft, yNumberFromPlotLeft, title, titleLeft: left, above };
+  }
   const title = document.axes.y.title
     ? wrapTitle(document.axes.y.title, Y_TITLE_MAX_WIDTH)
     : [];
   const titleWidth = Math.max(0, ...title.map((l) => proseWidth(l, AXIS_LABEL_FONT_SIZE)));
   const titleLeft = Math.min(numbersLeft, 0) - TITLE_GAP - titleWidth;
-  return { originFromPlotLeft, yNumberFromPlotLeft, title, titleLeft };
+  return { originFromPlotLeft, yNumberFromPlotLeft, title, titleLeft, above };
+}
+
+/** The y-axis arrowhead's size and how far its line runs above the top grid line. */
+function yArrow(document: DiagramDocumentV1) {
+  // Bold axes (U111) get arrowheads 1.5 times as large, so the heavier line stays inside the head.
+  const size = document.lines === "bold" ? 37.5 : 25;
+  // The y-axis reaches far enough above a number on the top line for the arrowhead (drawn
+  // 0.85 of its size back from the line's end) to clear that number's box.
+  const topLabelled = axisTicks(document, "y").some((t) => t.index === document.axes.y.negativeSquares + document.axes.y.positiveSquares);
+  const extension = Math.max(AXIS_ARROW_EXTENSION, topLabelled ? AXIS_LABEL_FONT_SIZE * 0.48 + CROSS_CLEARANCE + size * 0.85 : 0);
+  return { size, extension };
+}
+
+/**
+ * A y title above the axis: its first baseline, measured from the plot's top edge (negative is
+ * above). The last line clears the arrowhead's tip and the axis letter beside it.
+ */
+function yTitleAboveFirstBaseline(document: DiagramDocumentV1, lines: number) {
+  const { size, extension } = yArrow(document);
+  const tip = extension + size * 0.15;
+  const clear = Math.max(tip, axisLetter("y", document.axes.y) ? 30 + AXIS_LABEL_FONT_SIZE * 0.75 : 0);
+  return -(clear + TITLE_GAP) - (lines - 1) * TITLE_LINE_HEIGHT;
+}
+
+/** Room above the plot: fixed, or more for a y title printed above the axis. */
+function exportTopPadding(document: DiagramDocumentV1): number {
+  const y = yAxisTextGeometry(document);
+  if (!y.above) return FIXED_PADDING.top;
+  const capTop = -yTitleAboveFirstBaseline(document, y.title.length) + AXIS_LABEL_FONT_SIZE * 0.8;
+  return Math.max(FIXED_PADDING.top, Math.ceil(capTop + EXPORT_CONTENT_MARGIN));
 }
 
 /** The x title's lines and first baseline, measured down from the plot's bottom edge. */
@@ -230,7 +269,14 @@ export function axisTextPlacement(document: DiagramDocumentV1) {
     xNumberDrop: xNumberDrop(document),
     lineHeight: TITLE_LINE_HEIGHT,
     xTitle: x ? { lines: x.lines, baselineBelowPlot: x.baseline } : null,
-    yTitle: y.title.length ? { lines: y.title, leftFromPlotLeft: y.titleLeft } : null,
+    yTitle: y.title.length
+      ? {
+          lines: y.title,
+          leftFromPlotLeft: y.titleLeft,
+          // Above the axis: the first line's baseline from the plot's top edge (negative is up).
+          ...(y.above ? { firstBaselineFromPlotTop: yTitleAboveFirstBaseline(document, y.title.length) } : {}),
+        }
+      : null,
   };
 }
 
@@ -301,6 +347,13 @@ function exportRightPadding(document: DiagramDocumentV1): number {
       extent,
       (index - total) * UNITS_PER_CM + axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE) / 2,
     );
+  // A y title above the axis can run past the plot when the axis is near its right edge.
+  const y = yAxisTextGeometry(document);
+  if (y.above)
+    extent = Math.max(
+      extent,
+      y.titleLeft + Math.max(...y.title.map((l) => proseWidth(l, AXIS_LABEL_FONT_SIZE))) - total * UNITS_PER_CM,
+    );
   return Math.max(fixed, Math.ceil(extent + EXPORT_CONTENT_MARGIN));
 }
 
@@ -312,7 +365,8 @@ export function getExportMetrics(document: DiagramDocumentV1): ExportMetrics {
   const leftPadding = exportLeftPadding(document);
   const bottomPadding = exportBottomPadding(document);
   const plotRight = leftPadding + horizontalSquares * UNITS_PER_CM;
-  const plotBottom = FIXED_PADDING.top + verticalSquares * UNITS_PER_CM;
+  const plotTop = exportTopPadding(document);
+  const plotBottom = plotTop + verticalSquares * UNITS_PER_CM;
   // Portable STIX x needs a visible margin beyond its actual ink bounds.
   const width = plotRight + exportRightPadding(document);
   const height = plotBottom + bottomPadding;
@@ -325,7 +379,7 @@ export function getExportMetrics(document: DiagramDocumentV1): ExportMetrics {
       width,
       height,
       plotLeft: leftPadding,
-      plotTop: FIXED_PADDING.top,
+      plotTop,
       plotRight,
       plotBottom,
       square: UNITS_PER_CM,
@@ -369,10 +423,9 @@ function axisTickLabelMarkup(
         : x;
   const rectY = baseline - AXIS_LABEL_FONT_SIZE * (tight ? 0.74 : 0.82);
   const className = origin ? "axis-number axis-number-origin" : "axis-number";
-  const originTransform = origin
-    ? ` transform="translate(${n(x)} ${n(baseline)}) skewX(-12) translate(${n(-x)} ${n(-baseline)})"`
-    : "";
-  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}"${originTransform}>${escapeXml(label)}</text></g>`;
+  // A numeric origin label ("0") prints upright like every other axis number; only the letter O
+  // is italic, and that is drawn by originMarkup.
+  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}">${escapeXml(label)}</text></g>`;
 }
 
 /**
@@ -489,8 +542,9 @@ function axisTitlesMarkup(document: DiagramDocumentV1, layout: SvgLayout): strin
   if (y.title.length) {
     const left = layout.plotLeft + y.titleLeft;
     const middle = (layout.plotTop + layout.plotBottom) / 2;
-    const first =
-      middle - ((y.title.length - 1) * TITLE_LINE_HEIGHT) / 2 + AXIS_LABEL_FONT_SIZE * 0.34;
+    const first = y.above
+      ? layout.plotTop + yTitleAboveFirstBaseline(document, y.title.length)
+      : middle - ((y.title.length - 1) * TITLE_LINE_HEIGHT) / 2 + AXIS_LABEL_FONT_SIZE * 0.34;
     parts.push(
       `<text class="axis-title axis-title-y" x="${n(left)}" y="${n(first)}" text-anchor="start">${y.title
         .map((line, i) => `<tspan x="${n(left)}" y="${n(first + i * TITLE_LINE_HEIGHT)}">${escapeXml(line)}</tspan>`)
@@ -562,12 +616,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: st
     yLabels.push(axisTickLabelMarkup(tick.label, yNumberX - shift, y, "end", false, tight));
   }
 
-  // Bold axes (U111) get arrowheads 1.5 times as large, so the heavier line stays inside the head.
-  const arrowSize = document.lines === "bold" ? 37.5 : 25;
-  // The y-axis reaches far enough above a number on the top line for the arrowhead (drawn
-  // 0.85 of its size back from the line's end) to clear that number's box.
-  const topLabelled = axisTicks(document, "y").some((t) => t.index === document.axes.y.negativeSquares + document.axes.y.positiveSquares);
-  const yArrowExtension = Math.max(AXIS_ARROW_EXTENSION, topLabelled ? AXIS_LABEL_FONT_SIZE * 0.48 + CROSS_CLEARANCE + arrowSize * 0.85 : 0);
+  const { size: arrowSize, extension: yArrowExtension } = yArrow(document);
   const originX = origin.x - AXIS_LABEL_FONT_SIZE * 0.38;
   const xLetter = axisLetter("x", document.axes.x), yLetter = axisLetter("y", document.axes.y);
   const xName = !xLetter

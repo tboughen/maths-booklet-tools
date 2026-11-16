@@ -88,10 +88,12 @@ describe("saved worksheets from before the diagram registry", () => {
   // equation on one line with no-break spaces (Tim's A7 marking); with those spaces read as
   // ordinary spaces the comparativeBarCharts pages hash exactly as before.
   const before: Record<string, [string, string]> = {
-    "comparativeBarCharts:pupil": ["177a663be6069a99", "ffec182f4d7d57b0"],
+    // Retaken 16 Nov 2026: worksheet tables keep their natural width (cells at least 14 mm, every
+    // cell centred) instead of stretching across the card (Tim); only the data tables changed.
+    "comparativeBarCharts:pupil": ["1eea9e468a720596", "49f562c3be7876a5"],
     // Answers copy only: since R24 (14 November 2026) bars drawn only because their value was saved
     // hidden print with an answer-colour outline. Only those stroke colours changed.
-    "comparativeBarCharts:answers": ["5a3d44d9e8317a2b", "c4081a24e1a63946"],
+    "comparativeBarCharts:answers": ["4797adcdd2666d25", "cc221009c8d6c0cd"],
     "treeDiagrams:pupil": ["308ae6071c34adf4", "f0fb6fe0dbb13b11"],
     // Answers copy only: since 14 November 2026 a probability tree's revealed answers print in the
     // answer colour, as answer lines, ratio tables and graphs already did. The pupil copy is unchanged.

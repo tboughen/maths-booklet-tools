@@ -2,7 +2,7 @@ import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, answerTexts, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
-import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
+import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
@@ -438,13 +438,14 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
   const cellWidth = (t: string, bold = false) =>
     maths ? lineWidth(parseRuns(shown(t), bold ? "bold" : "regular", true), size) : plainWidth(t, size, bold ? "bold" : "regular");
   const tall = (texts: string[]) => texts.some((t) => answerHasFraction(t, maths));
-  const natural = item.columns.map((head, j) => Math.max(cellWidth(head, true), ...item.rows.map((r) => cellWidth(r[j]?.text ?? ""))) + 5);
+  const { head, body } = tableRows(item);
+  const natural = head.map((h, j) => Math.max(cellWidth(h.text, true), ...body.map((r) => cellWidth(r[j]?.text ?? ""))) + 5);
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) ctx.issues.push({ ...ctx.where, message: `A table needs ${Math.round((total - w) * 100) / 100} mm more width than the column has.` });
-  // Booklets keep a table at its natural width (cells at least 14 mm), every cell centred, as the
-  // SVG layout does; worksheets stretch it across the column.
+  // A table keeps its natural width (cells at least 14 mm), every cell centred, as the SVG layout
+  // does; only a table too wide for that is stretched to the column.
   const roomy = natural.map((v) => Math.max(v, 14));
-  const compact = !!ctx.compactTables && roomy.reduce((a, b) => a + b, 0) <= w;
+  const compact = roomy.reduce((a, b) => a + b, 0) <= w;
   const widths = compact ? roomy : natural.map((v) => (v * w) / total);
   const rule = { color: st.rule, width: 0.35 };
   const border = { top: rule, left: rule, bottom: rule, right: rule };
@@ -469,11 +470,13 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
       { mm: h, exact: true },
       true,
     );
-  const rows = [rowXml(item.columns.map((t) => ({ text: t, bold: true })), tall(item.columns) ? FRAC_TABLE_ROW : S.tableRow, true)];
-  for (const r of item.rows) {
+  const rowH = (r: Cell[]) => {
     const h = r.some((c) => c.state !== "supplied") ? S.tableAnswerRow : S.tableRow;
-    rows.push(rowXml(r.map((c) => ({ text: cellText(c), color: c.state === "hidden" ? st.answer : undefined })), tall(r.map((c) => c.text)) ? Math.max(h, FRAC_TABLE_ROW) : h, false));
-  }
+    return tall(r.map((c) => c.text)) ? Math.max(h, FRAC_TABLE_ROW) : h;
+  };
+  // The heading row is bold; a hidden answer in it prints like any other, in the answer colour.
+  const rows = [rowXml(head.map((c) => ({ text: cellText(c), bold: c.state === "supplied", color: c.state === "hidden" ? st.answer : undefined })), rowH(head), true)];
+  for (const r of body) rows.push(rowXml(r.map((c) => ({ text: cellText(c), color: c.state === "hidden" ? st.answer : undefined })), rowH(r), false));
   return table(widths, rows, indent);
 }
 

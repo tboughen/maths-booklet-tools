@@ -263,11 +263,28 @@ export function AxisSettings({
                     throw Error(`Keep the title to ${MAX_AXIS_TITLE_LENGTH} characters.`);
                   onDocument(
                     editAxis(document, axis, (c) =>
-                      title ? { ...c, title } : without(c, "title"),
+                      title ? { ...c, title } : without(without(c, "title"), "titleAbove"),
                     ),
                   );
                 }}
               />
+              {axis === "y" && config.title && (
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={config.titleAbove === true}
+                    disabled={disabled || drafts.pending}
+                    onChange={(e) =>
+                      onDocument(
+                        editAxis(document, "y", (c) =>
+                          e.target.checked ? { ...c, titleAbove: true } : without(c, "titleAbove"),
+                        ),
+                      )
+                    }
+                  />
+                  Title above the axis
+                </label>
+              )}
               <GraphDraftField
                 id={axis + "-letter"}
                 label={axis + "-axis letter"}
