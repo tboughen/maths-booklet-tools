@@ -234,6 +234,16 @@ describe("geometry figure connector adapter", () => {
       ],
     });
     expect(s.document.points.map((p) => p.id)).toEqual(["c1", "p1"]);
+    // A remove listed before the remove that frees its point works too.
+    const t = await io.revise({
+      envelope: r,
+      baseHash: await c.hash(r),
+      operations: [
+        { op: "remove", what: "point", id: "e" },
+        { op: "remove", what: "point", id: "p1" },
+      ],
+    });
+    expect(t.document.points.map((p) => p.id)).toEqual(["c1"]);
   });
 
   it("keeps point and circle ids apart when finding what is built on them", () => {

@@ -186,7 +186,8 @@ export async function revise(input: unknown): Promise<core.Envelope> {
   if ((await core.hash(v.envelope)) !== v.baseHash) throw Error("stale_hash: Use the exact returned envelope and contentHash.");
   // Every set operation applies first, in order, then every remove, and the result is checked once. So a point and the
   // objects using it can arrive in any order, and a remove sees the figure after the changes that free the object.
-  const ordered = [...v.operations.filter((op) => op.op !== "remove"), ...v.operations.filter((op) => op.op === "remove")];
+  const ordered = v.operations.filter((op) => op.op !== "remove");
+  const removes = v.operations.flatMap((op) => (op.op === "remove" ? [op] : []));
   return withDoc(core.validate(structuredClone(v.envelope)), (d) => {
     for (const op of ordered) {
       if (op.op === "set_point") setPoint(d, op.point);
@@ -195,8 +196,22 @@ export async function revise(input: unknown): Promise<core.Envelope> {
       if (op.op === "set_angle") setAngle(d, op.angle);
       if (op.op === "set_fill") upsert(d.fills, op.fill, () => op.fill);
       if (op.op === "set_caption") upsert(d.captions, op.caption, (b) => ({ ...op.caption, bold: op.caption.bold ?? b?.bold ?? false }));
-      if (op.op === "remove") remove(d, op.what, op.id);
       if (op.op === "set_settings") applySettings(d, op.settings);
+    }
+    // Removes go in whatever order works: one refused because something still uses it is tried again after the rest.
+    let left = removes;
+    while (left.length) {
+      const refused: typeof left = [];
+      let first: unknown = null;
+      for (const op of left)
+        try {
+          remove(d, op.what, op.id);
+        } catch (err) {
+          refused.push(op);
+          first ??= err;
+        }
+      if (refused.length === left.length) throw first;
+      left = refused;
     }
   });
 }
