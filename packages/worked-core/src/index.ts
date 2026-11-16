@@ -494,8 +494,24 @@ const chip = (code: string, x: number, y: number) => `<g class="wk-mark"><rect x
 const UI = `font-family="MathsDock UI, Inter, sans-serif"`;
 const HAND = `font-family="${HAND_FAMILY}, 'Shantell Sans', cursive"`;
 
+/**
+ * Guidance is plain words in the interface font, so it gets light typesetting instead of the working's
+ * maths layout: ^2 and ^3 as raised digits (other powers are raised by noteMarkup), a hyphen used as a minus sign as a true minus.
+ */
+export function noteText(s: string): string {
+  return s.replace(/\^2(?![\d.])/g, "²").replace(/\^3(?![\d.])/g, "³")
+    .replace(/(^|[\s(=×÷+,])-(?=[\d.(a-zA-Zπ√])/g, "$1−").replace(/((?:^|[\s(=])(?:\d[\d.]*[a-zA-Z]?|[a-zA-Z])|[)²³]) - (?=[\d(√π]|[a-zA-Z](?![a-zA-Z]))/g, "$1 − ");
+}
+
+/** One escaped line of guidance, with any remaining power such as ^24 or ^-3 raised and smaller. */
+export function noteMarkup(line: string): string {
+  return esc(line).replace(/\^(−?-?\d+)/g, (_, p: string) => `<tspan dy="-3.5" font-size="7">${p.replace("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`);
+}
+
 /** Guidance at x with its first baseline at y, wrapped to width: a mark chip and words, an "Also scores" line, a note. */
-function guidance(x: number, y0: number, width: number, mark: WorkedMark | undefined, note: string | undefined, watch: boolean, marks: boolean) {
+function guidance(x: number, y0: number, width: number, rawMark: WorkedMark | undefined, rawNote: string | undefined, watch: boolean, marks: boolean) {
+  const mark = rawMark && { ...rawMark, note: noteText(rawMark.note), ...(rawMark.also ? { also: noteText(rawMark.also) } : {}) };
+  const note = rawNote === undefined ? undefined : noteText(rawNote);
   let y = y0, svg = "", used = 0;
   const top = y0 - NOTE_SIZE;
   if (mark) {
@@ -503,16 +519,16 @@ function guidance(x: number, y0: number, width: number, mark: WorkedMark | undef
     const words = wrap(mark.note, width - chipWidth - 5, NOTE_SIZE);
     svg += chip(mark.code, x, y);
     // The words keep their place without the chip, so guidance never jumps when the switch changes.
-    words.forEach((l, i) => { used = Math.max(used, chipWidth + 5 + noteWidth(l, NOTE_SIZE)); svg += `<text x="${n(x + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(l)}</text>`; });
+    words.forEach((l, i) => { used = Math.max(used, chipWidth + 5 + noteWidth(l, NOTE_SIZE)); svg += `<text x="${n(x + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${noteMarkup(l)}</text>`; });
     y += (words.length - 1) * NOTE_LEADING;
     // Its room is kept without the mark notes too, so the layout is the same either way.
-    if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { y += 12; used = Math.max(used, chipWidth + 5 + noteWidth(l, 9)); if (marks) svg += `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${esc(l)}</text>`; }
+    if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { y += 12; used = Math.max(used, chipWidth + 5 + noteWidth(l, 9)); if (marks) svg += `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${noteMarkup(l)}</text>`; }
     if (note) y += NOTE_LEADING;
   }
   if (note) {
     const prefix = watch ? "Watch out:" : "";
     wrap(prefix ? `${prefix} ${note}` : note, width, NOTE_SIZE).forEach((l, i) => {
-      const body = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>${esc(l.slice(prefix.length))}` : esc(l);
+      const body = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>${noteMarkup(l.slice(prefix.length))}` : noteMarkup(l);
       if (i) y += NOTE_LEADING;
       used = Math.max(used, noteWidth(l, NOTE_SIZE) + (i === 0 && prefix ? 4 : 0));
       svg += `<text x="${n(x)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}" xml:space="preserve">${body}</text>`;
@@ -574,8 +590,9 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         const room = d.surface.width - from - 4;
         if (mark && note) return false;
         const words = room - noteWidth(mark?.code ?? "", 9, true) - 13;
-        if (mark) return wrap(mark.note, words, NOTE_SIZE).length === 1 && (!mark.also || wrap(`Also scores: ${mark.also}`, words, 9).length === 1);
-        return wrap(watch ? `Watch out: ${note}` : note ?? "", room, NOTE_SIZE).length === 1;
+        // Measured as guidance() draws it: after typesetting.
+        if (mark) return wrap(noteText(mark.note), words, NOTE_SIZE).length === 1 && (!mark.also || wrap(`Also scores: ${noteText(mark.also)}`, words, 9).length === 1);
+        return wrap(noteText(watch ? `Watch out: ${note}` : note ?? ""), room, NOTE_SIZE).length === 1;
       };
       const x = near < part.notesX && oneLine(near) ? near : part.notesX;
       const g = guidance(x, y, d.surface.width - x - 4, mark, note, watch, marks);
@@ -685,7 +702,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         case "answer": {
           const anchor = part.answers[step.at];
           if (!anchor) { issues.push({ surface: part.on, message: `Step ${k}: the part has no answer line ${step.at + 1}.` }); break; }
-          const value = mathsText(step.value), w = mathsWidth(value), mark = step.mark;
+          const value = mathsText(step.value), w = mathsWidth(value), mark = step.mark && { ...step.mark, note: noteText(step.mark.note), ...(step.mark.also ? { also: noteText(step.mark.also) } : {}) };
           if (w > anchor.width) issues.push({ surface: part.on, message: `Step ${k}: the answer is longer than its answer line.` });
           const lift = hasFraction(value) ? 10 : 0, base = anchor.y - 3 - lift;
           const left = step.align === "left" ? anchor.x + 6 : anchor.x + anchor.width / 2 - w / 2;
@@ -696,8 +713,8 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
             const words = Math.max(noteWidth(mark.note, NOTE_SIZE), also ? noteWidth(also, 9) : 0) + chipWidth + 5;
             // An "Also scores" line sits under the mark's words, just above the answer; its room is kept without the mark notes.
             const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7 - (also ? 12 : 0);
-            svg += `<g ${UI}>${chip(mark.code, x, y)}<text x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(mark.note)}</text>`
-              + (also && marks ? `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y + 11)}" font-size="9" font-style="italic" fill="${PINK}">${esc(also)}</text>` : "") + `</g>`;
+            svg += `<g ${UI}>${chip(mark.code, x, y)}<text x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}">${noteMarkup(mark.note)}</text>`
+              + (also && marks ? `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y + 11)}" font-size="9" font-style="italic" fill="${PINK}">${noteMarkup(also)}</text>` : "") + `</g>`;
             boxes.push({ x, y: y - 10, width: words, height: also ? 24 : 13, what: "answer guidance" });
           }
           // The answer line sits below the working space, so it moves down with any room added there,
