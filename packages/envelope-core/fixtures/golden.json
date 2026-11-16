@@ -1199,6 +1199,72 @@
   "pupilSvg": "544b383671f2d4108d750e3535cd5d3c41703fa430c2a9bfbe96a10e1d8a4334",
   "answerSvg": "4663fee6b4f7fa6af0116e23dcbea399c9c8a7a9eb9e881cfa18cb2fa21469a8"
  },
+ "bubble-method/default": {
+  "schemaVersion": 1,
+  "contentHash": "536cb4d55c25985ef478f89dfc896cbec398d3096a1387036d56a13852affd55",
+  "pupilSvg": "debf651862fbfd999a2d3f2158c7b0414de7f5f4a0eccaf74f8f628056202356",
+  "answerSvg": "debf651862fbfd999a2d3f2158c7b0414de7f5f4a0eccaf74f8f628056202356"
+ },
+ "bubble-method/example-inequality-worked": {
+  "schemaVersion": 1,
+  "contentHash": "2b75efc5ea68ea39d9b81ba3d7ed843a375dc8cd74002db05334616b40e2e343",
+  "pupilSvg": "b3ccdb071467c1cddcff9feadeac927ae3a8c56ab6b2c1baa25bc0a72389a0a4",
+  "answerSvg": "b3ccdb071467c1cddcff9feadeac927ae3a8c56ab6b2c1baa25bc0a72389a0a4"
+ },
+ "bubble-method/example-inequality": {
+  "schemaVersion": 1,
+  "contentHash": "8b3435065a4c950f14b86888598a87e4fe2c3aab0ca36239b6ba300f6d75ec13",
+  "pupilSvg": "88f732561077ef6a7e9ffadd0f0959aa529fa4e5bc992953db379e7cd646d532",
+  "answerSvg": "a9ba126747cb7fdb5b5e1b86ae8047c8f400ed335d6fc81aafb0cadd2b652a99"
+ },
+ "bubble-method/example-solve-equation-worked": {
+  "schemaVersion": 1,
+  "contentHash": "9abf0dbc478452a0357cb4664d2a5ddf8b746eedca5ea3d3f8febce6ef0c76dc",
+  "pupilSvg": "276f50717816ec4d954bbf313b28859b742ce309d5d5d5a424f8293f942d0f1e",
+  "answerSvg": "276f50717816ec4d954bbf313b28859b742ce309d5d5d5a424f8293f942d0f1e"
+ },
+ "bubble-method/example-solve-equation": {
+  "schemaVersion": 1,
+  "contentHash": "e14d8201de81fdfdea0b91e1306d782a1e47e0cfb2482e9723e98951bf24084c",
+  "pupilSvg": "eb8b047b6cec93f6769a7cfaea6c5f3b70ad5af1f296755845cc756600e6d127",
+  "answerSvg": "b4fff7ffe36727e42e8022b370d8e1ce331b1f697521f5b9fb5387eb1d101773"
+ },
+ "bubble-method/example-subject-formula-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e7187602779586c6e93bae91b0963405b3c5f4b656ac2a4f0ff4605331330189",
+  "pupilSvg": "62c85030b3aad530ea367abe36bfb2acfcf3c244dc4f3d9be149a92bf85404c1",
+  "answerSvg": "62c85030b3aad530ea367abe36bfb2acfcf3c244dc4f3d9be149a92bf85404c1"
+ },
+ "bubble-method/example-subject-formula": {
+  "schemaVersion": 1,
+  "contentHash": "ded038f10caa2a4c58eb4d423af07c87fc4d080f83dcb0d74f3e75f5263a9eb6",
+  "pupilSvg": "c96f8e51b42cf8af36569e722f08916801df97f48cc90b2895b7adb5d1c207c4",
+  "answerSvg": "903ef0ddcad8e2c6a707cbd3d1294945a4f4cf51ff2d540460b2e74c4305acfb"
+ },
+ "bubble-method/example-subject-one-step-worked": {
+  "schemaVersion": 1,
+  "contentHash": "0f0362755e7b43b9e712ee82c98b110872133571c8bce640a67d8a00b176cc2c",
+  "pupilSvg": "a0a879f0a362a1bf219fb53719bac665c282562d578ee54e64e2fe922d2afdb0",
+  "answerSvg": "a0a879f0a362a1bf219fb53719bac665c282562d578ee54e64e2fe922d2afdb0"
+ },
+ "bubble-method/example-subject-one-step": {
+  "schemaVersion": 1,
+  "contentHash": "b8629e7b8f66ab4eade1aee530a1fcd1d8cb36894ee66292f0641dcb293d9348",
+  "pupilSvg": "66b1be5cae000b4efd9e2e9655ec96a76b60c27c24fa975ba3b4560fa85ca7e3",
+  "answerSvg": "9c5a701658c5d8c61d4627faf7d91b8b94b443c0fc76eb5837d7f776c03b0d62"
+ },
+ "bubble-method/example-subject-two-steps-worked": {
+  "schemaVersion": 1,
+  "contentHash": "4aba7bd774f9d6611ca5816e8e2be1f0f897c6d22e35b31fca93f9119b222b76",
+  "pupilSvg": "a6e36fa762642b5c6678fd264dfc85faf114986c86c890aed6ad89d05cc38f11",
+  "answerSvg": "a6e36fa762642b5c6678fd264dfc85faf114986c86c890aed6ad89d05cc38f11"
+ },
+ "bubble-method/example-subject-two-steps": {
+  "schemaVersion": 1,
+  "contentHash": "493b93bb8686870a6ebdf00800d17e2fcbdec414f000e948b835f423838e0f90",
+  "pupilSvg": "99cc1b517dccf856ae2924136a79827411948c055f4f84fc113e94b265285a2c",
+  "answerSvg": "6ffab59cf3f1cb90d6c71b03b99910867361399b2f04446d714d04896c3c75a8"
+ },
  "sample-space/default": {
   "schemaVersion": 1,
   "contentHash": "63ed6ebea15b8030c427989f7595feb183642e946ebfbc64fcf92211e4a4e680",

@@ -38,6 +38,8 @@ import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
+import * as bm from "../../bubble-method-core/src/index";
+import * as bmIo from "../../bubble-method-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -66,6 +68,7 @@ export const DIAGRAM_KINDS = [
   "two-way-table",
   "factor-tree",
   "function-machine",
+  "bubble-method",
   "sample-space",
   "triangle",
   "construction",
@@ -412,6 +415,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => fmIo.revise(input),
     hash: fm.hash,
     svg: (e, view) => fm.renderSvg(fm.forView(e, view, true)),
+  }),
+  "bubble-method": family<bm.Envelope>({
+    kind: "bubble-method",
+    label: "bubble method working",
+    summary: "The school's bubble method for solving equations and inequalities and changing the subject: lines aligned on their sign, each operation in a bubble under the term it acts on, on both sides; sides and bubbles blank or hidden for pupils; never worked out for you.",
+    route: "/tools/bubble-method",
+    answerView: true,
+    envelopeSchema: bm.envelopeSchema,
+    createSchema: bmIo.createSchema,
+    revisionSchema: bmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = bm.validate(raw);
+      check(bm.exportIssue(bm.forView(e, view)));
+      return e;
+    },
+    create: (input) => bmIo.create(input),
+    revise: (input) => bmIo.revise(input),
+    hash: bm.hash,
+    svg: (e, view) => bm.renderSvg(bm.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",

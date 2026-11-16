@@ -12,6 +12,7 @@ import { renderSvg as renderNumberLine, validate as validateNumberLine } from ".
 import { renderRatioSvg } from "../../ratio-table-core/src/svg";
 import { validateRatioEnvelope } from "../../ratio-table-core/src/interchange";
 import { renderSvg as renderFactorTree, validate as validateFactorTree } from "../../factor-tree-core/src/index";
+import { renderSvg as renderBubbleMethod, validate as validateBubbleMethod } from "../../bubble-method-core/src/index";
 import { renderSvg as renderAngles, validate as validateAngles } from "../../angle-core/src/index";
 import { renderSvg as renderArea, validate as validateArea } from "../../area-core/src/index";
 import { renderSvg as renderVenn, validate as validateVenn } from "../../venn-core/src/index";
@@ -61,6 +62,7 @@ const RENDERERS = {
   "ratio-table": (e: unknown) => renderRatioSvg(validateRatioEnvelope(e).document),
   "number-line": (e: unknown) => renderNumberLine(validateNumberLine(e)),
   "factor-tree": (e: unknown) => renderFactorTree(validateFactorTree(e)),
+  "bubble-method": (e: unknown) => renderBubbleMethod(validateBubbleMethod(e)),
   "angles": (e: unknown) => renderAngles(validateAngles(e)),
   "area": (e: unknown) => renderArea(validateArea(e)),
   "venn": (e: unknown) => renderVenn(validateVenn(e)),

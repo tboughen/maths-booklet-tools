@@ -162,6 +162,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     inverse: "true explicitly adds machine 1's inverse beneath it, arrows right to left.",
     complete: "true explicitly works every machine out as hidden answers; {hidden:false} prints them, {between:false} leaves the arrows bare.",
   },
+  "bubble-method": {
+    example,
+    worked,
+    start: "The first line, such as \"y = 3x + 2\" or \"2x − 5 < 9\" (default 2x + 3 = 11).",
+    steps: "Up to 8 steps, each {bubble or left/right, leftUnder?, rightUnder?, line}: the bubbles, then the line they lead to (blank if left out).",
+    intentionalError: "true marks an error-spotting task, so bubbles that differ raise no warning.",
+    lines,
+  },
 
   triangle: {
     shape: "right, scalene, isosceles or equilateral.",

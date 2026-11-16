@@ -51,6 +51,7 @@ for (const directory of [
   "packages/area-core",
   "packages/factor-tree-core",
   "packages/function-machine-core",
+  "packages/bubble-method-core",
   "packages/sample-space-core",
   "packages/triangle-core",
   "packages/resource-core",

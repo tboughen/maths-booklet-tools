@@ -1,0 +1,75 @@
+{
+ "kind": "bubble-method",
+ "schemaVersion": 1,
+ "rendererVersion": "bubble-method-1",
+ "document": {
+  "first": {
+   "lhs": {
+    "text": "v",
+    "show": "show"
+   },
+   "rel": "=",
+   "rhs": {
+    "text": "u + at",
+    "show": "show"
+   }
+  },
+  "steps": [
+   {
+    "left": {
+     "op": {
+      "text": "−u",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "−u",
+      "show": "hidden"
+     },
+     "under": 0
+    },
+    "line": {
+     "lhs": {
+      "text": "v − u",
+      "show": "hidden"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "at",
+      "show": "hidden"
+     }
+    }
+   },
+   {
+    "left": {
+     "op": {
+      "text": "÷a",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "÷a",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "line": {
+     "lhs": {
+      "text": "(v − u)/a",
+      "show": "hidden"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "t",
+      "show": "hidden"
+     }
+    }
+   }
+  ],
+  "intentionalError": false
+ }
+}

@@ -677,3 +677,16 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-polygon-plants (worked): added
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
+
+## 2026-11-16: Add the bubble method diagram family (A3, A4.08-09, A6, A10)
+
+- bubble method: bm-subject-one-step: added
+- bubble method: bm-subject-one-step (worked): added
+- bubble method: bm-subject-two-steps: added
+- bubble method: bm-subject-two-steps (worked): added
+- bubble method: bm-subject-formula: added
+- bubble method: bm-subject-formula (worked): added
+- bubble method: bm-solve-equation: added
+- bubble method: bm-solve-equation (worked): added
+- bubble method: bm-inequality: added
+- bubble method: bm-inequality (worked): added

@@ -1,0 +1,75 @@
+{
+ "kind": "bubble-method",
+ "schemaVersion": 1,
+ "rendererVersion": "bubble-method-1",
+ "document": {
+  "first": {
+   "lhs": {
+    "text": "y",
+    "show": "show"
+   },
+   "rel": "=",
+   "rhs": {
+    "text": "3x + 2",
+    "show": "show"
+   }
+  },
+  "steps": [
+   {
+    "left": {
+     "op": {
+      "text": "−2",
+      "show": "show"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "−2",
+      "show": "show"
+     },
+     "under": "auto"
+    },
+    "line": {
+     "lhs": {
+      "text": "y − 2",
+      "show": "show"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "3x",
+      "show": "show"
+     }
+    }
+   },
+   {
+    "left": {
+     "op": {
+      "text": "÷3",
+      "show": "show"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "÷3",
+      "show": "show"
+     },
+     "under": "auto"
+    },
+    "line": {
+     "lhs": {
+      "text": "(y − 2)/3",
+      "show": "show"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "x",
+      "show": "show"
+     }
+    }
+   }
+  ],
+  "intentionalError": false
+ }
+}

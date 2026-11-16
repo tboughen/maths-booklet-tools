@@ -67,6 +67,7 @@ const suites: Suite[] = [
   { name: "area", server: "dev", testMatch: "area.spec.ts" },
   { name: "factor-tree", server: "dev", testMatch: "factor-tree.spec.ts" },
   { name: "function-machine", server: "dev", testMatch: "function-machine.spec.ts" },
+  { name: "bubble-method", server: "dev", testMatch: "bubble-method.spec.ts" },
   { name: "sample-space", server: "dev", testMatch: "sample-space.spec.ts" },
   { name: "worksheet", server: "dev", testMatch: "worksheet.spec.ts", timeout: 60000 },
   { name: "booklet", server: "dev", testMatch: "booklet.spec.ts", timeout: 90000 },
