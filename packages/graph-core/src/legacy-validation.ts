@@ -1,8 +1,9 @@
 import { regionProblem } from "./region";
 import { curveProblem } from "./curve";
+import { functionProblem } from "./function";
 import { LABEL_SIDES, MAX_LABEL_TEXT_LENGTH, OBJECT_NAME_PATTERN } from "./axes";
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
-import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
+import type { Coordinate, DiagramDocumentV1, FunctionEquation, GraphObject } from "./types";
 
 function isGradientTriangle(value: unknown): boolean {
   if (!value || typeof value !== "object") return false;
@@ -39,6 +40,26 @@ function isPointLabel(value: unknown): boolean {
   );
 }
 
+/** The saved equation of an equation curve: exactly its family's keys, all finite numbers. */
+function isFunctionEquation(value: unknown): value is FunctionEquation {
+  if (!value || typeof value !== "object") return false;
+  const e = value as Record<string, unknown>;
+  const keys: Record<string, string[]> = {
+    polynomial: ["a", "b", "c"],
+    reciprocal: ["k", "c"],
+    exponential: ["coefficient", "base", "c"],
+    trig: ["amplitude", "multiplier", "shift", "c"],
+  };
+  const required = typeof e.family === "string" && Object.hasOwn(keys, e.family) ? keys[e.family] : undefined;
+  if (!required) return false;
+  const optional = e.family === "polynomial" ? ["cubic"] : e.family === "trig" ? ["fn"] : [];
+  if (e.family === "trig" && e.fn !== "sin" && e.fn !== "cos" && e.fn !== "tan") return false;
+  if (!Object.keys(e).every((k) => k === "family" || required.includes(k) || optional.includes(k))) return false;
+  const numbers = [...required, ...(e.cubic !== undefined ? ["cubic"] : [])];
+  if (!numbers.every((k) => typeof e[k] === "number" && Number.isFinite(e[k]))) return false;
+  return functionProblem(e as unknown as FunctionEquation) === null;
+}
+
 function isGraphObject(value: unknown): value is GraphObject {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<GraphObject> & Record<string, unknown>;
@@ -59,6 +80,22 @@ function isGraphObject(value: unknown): value is GraphObject {
       (candidate.smooth === undefined || candidate.smooth === true) &&
       (candidate.strokeStyle === undefined || candidate.strokeStyle === "dashed") &&
       curveProblem(candidate.points) === null
+    );
+  if (candidate.kind === "function")
+    return (
+      Object.keys(candidate).every((key) => ["id", "kind", "equation", "from", "to", "strokeStyle", "name", "namePosition", "answerOnly"].includes(key)) &&
+      isFunctionEquation(candidate.equation) &&
+      (candidate.from === undefined || (typeof candidate.from === "number" && Number.isFinite(candidate.from))) &&
+      (candidate.to === undefined || (typeof candidate.to === "number" && Number.isFinite(candidate.to))) &&
+      (candidate.from === undefined || candidate.to === undefined || candidate.to > candidate.from) &&
+      (candidate.strokeStyle === undefined || candidate.strokeStyle === "dashed")
+    );
+  if (candidate.kind === "circle")
+    return (
+      Object.keys(candidate).every((key) => ["id", "kind", "centre", "radius", "strokeStyle", "name", "namePosition", "answerOnly"].includes(key)) &&
+      isCoordinate(candidate.centre) &&
+      typeof candidate.radius === "number" && Number.isFinite(candidate.radius) && candidate.radius > 0 &&
+      (candidate.strokeStyle === undefined || candidate.strokeStyle === "dashed")
     );
   if (candidate.kind === "reading")
     return (

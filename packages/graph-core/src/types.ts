@@ -155,7 +155,37 @@ export interface ReadingObject extends BaseObject, NamedObject {
   read: "x" | "y" | "both";
 }
 
-export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject | CurveObject | ReadingObject;
+/** A circle such as x² + y² = 25: drawn true to the axes' scales, so unequal scales print an
+ * ellipse as a graph paper would. */
+export interface CircleObject extends BaseObject, NamedObject {
+  kind: "circle";
+  centre: Coordinate;
+  /** In graph units, the same distance along either axis. */
+  radius: number;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+/** y = a x² + b x + c (+ cubic x³), y = k/x + c, y = coefficient × baseˣ + c, or the trig graph
+ * y = amplitude × fn(multiplier × x + shift) + c with x in degrees. */
+export type FunctionEquation =
+  | { family: "polynomial"; a: number; b: number; c: number; cubic?: number }
+  | { family: "reciprocal"; k: number; c: number }
+  | { family: "exponential"; coefficient: number; base: number; c: number }
+  | { family: "trig"; fn: "sin" | "cos" | "tan"; amplitude: number; multiplier: number; shift: number; c: number };
+
+/** An equation curve drawn exactly (quadratic, cubic, reciprocal, exponential, trig in degrees),
+ * between from and to when given, else across the grid. */
+export interface FunctionObject extends BaseObject, NamedObject {
+  kind: "function";
+  equation: FunctionEquation;
+  from?: number;
+  to?: number;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject | CurveObject | ReadingObject | CircleObject | FunctionObject;
 
 export interface DiagramDocumentV1 {
   version: 1;
