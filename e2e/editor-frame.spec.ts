@@ -1,8 +1,8 @@
 // The editor frame (docs/tools/APP-HOUSE-STYLE.md): at 1920 x 1080 every diagram tool fills the
 // window under the app bar, the page itself does not scroll, and the diagram's stage takes the
 // room the bars leave. The foot strip sits straight under the stage and holds zoom, print size,
-// the hint and the latest message. Its height depends only on the card's width, never on what
-// the message or hint says, so neither can resize the diagram.
+// the hint and the latest message. Room is kept for the message and for a two-line hint,
+// so neither a message arriving nor a prompt replacing the tip resizes the diagram.
 import { test, expect, type Page } from "@playwright/test";
 import { toolIds } from "../src/site/routes";
 

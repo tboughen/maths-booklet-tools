@@ -123,8 +123,10 @@ and the separate status line. From the left:
   protected draft) beside it. Room is kept for the message, so when one arrives the hint does not
   move. Neither hides the other.
 
-The strip's height depends only on how wide the card is, never on what the hint or the message
-says, so nothing that arrives in it can resize the diagram:
+The strip's height follows the width of the card, not what the note says. Room is always kept
+for a message and for a hint of up to two lines, so a message arriving, or a drawing prompt taking
+the tip's place, does not resize the diagram. Text is never cut off: a rare longer message grows
+the strip.
 
 - A card at least 1,500 px wide (a 1920 px window) keeps everything on one row.
 - From 700 to 1,499 px the note always has a row of its own under the controls.
@@ -132,7 +134,8 @@ says, so nothing that arrives in it can resize the diagram:
 - Under 1,200 px the print size drops ", whatever the zoom".
 
 Touch screens and windows under 768 px get 44 px controls. On a window too short for the editor
-frame the stage is sized so that the strip still ends inside the window. The Graph tool still
+frame the stage is sized so that the strip, and any rows the tool keeps under it, still end
+inside the window. The Graph tool still
 shows its messages in its own toast.
 
 The strip is in the page in the same place it is drawn, straight after the stage, so the

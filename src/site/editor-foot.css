@@ -3,8 +3,9 @@
    latest message beside it. It loads with the tool pages and draws from the house style
    (docs/tools/APP-HOUSE-STYLE.md). Never part of an export.
 
-   Its height depends only on how wide its card is, never on what the hint or message says, so
-   neither a message arriving nor a drawing prompt replacing the tip resizes the diagram. */
+   Its height follows the width of its card, not what the note says: room is always kept for a
+   message and for a hint of up to two lines, so a message arriving or a drawing prompt replacing
+   the tip does not resize the diagram. Longer text is never cut off; it grows the strip. */
 .site-app .booklet-editor .editor-foot {
   flex: none;
   display: flex;
@@ -22,8 +23,9 @@
   container: editor-foot / inline-size;
 }
 .site-app .booklet-editor .editor-foot:last-child { border-radius: 0 0 var(--md-radius-card) var(--md-radius-card); }
-/* Rows a tool keeps under the strip (warnings, an entry grid) start with a line of their own. */
+/* Rows a tool keeps under the strip (warnings, an entry grid) start at the strip's own line. */
 .site-app .booklet-editor .editor-foot:not(:last-child) { border-bottom: 1px solid var(--md-line); }
+.site-app .booklet-editor .editor-card > .editor-foot + * { border-top: 0; }
 /* One size and look for every control in the strip, whatever the tool's own form styles say. */
 .site-app .booklet-editor .editor-foot :is(button, select) {
   box-sizing: border-box;
@@ -92,6 +94,10 @@
 @container editor-foot (min-width: 1500px) {
   .site-app .booklet-editor .editor-foot-note { flex-basis: 0; }
 }
+/* On its own row a long hint takes at most three fifths, so the message keeps two lines' room. */
+@container editor-foot (max-width: 1499px) {
+  .site-app .booklet-editor .editor-foot-note { grid-template-columns: minmax(280px, 1fr) fit-content(60%); }
+}
 /* A narrow card stacks them: the message on a line that is always kept, and under it two lines
    for the hint, so a one-line prompt taking a two-line tip's place changes nothing. */
 @container editor-foot (max-width: 699px) {
@@ -113,7 +119,7 @@
 .editor-hint-live { margin: 0; }
 .editor-hint { display: flex; align-items: center; gap: 6px; min-width: 0; margin: 0; color: var(--md-ink-3); }
 .editor-hint > svg { flex: none; color: var(--md-blue); }
-.editor-hint p { margin: 0; }
+.site-app .booklet-editor .editor-foot .editor-hint p { margin: 0; font: inherit; color: inherit; }
 .editor-hint--prompt { color: var(--md-navy); font-weight: 600; }
 .site-app .booklet-editor .editor-foot .editor-hint-dismiss {
   flex: none;

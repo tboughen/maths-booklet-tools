@@ -353,7 +353,7 @@ test("empty file selection, malformed import and replacement cancellation preser
   event = page.waitForEvent("filechooser");
   await clickResourceAction(page, "Open editable file");
   await (await event).setFiles(bad);
-  await expect(page.locator(".resource-feedback")).not.toBeEmpty();
+  await expect(page.locator(".site-page:not([hidden]) .editor-foot .resource-feedback")).not.toBeEmpty();
   expect(canonical(await saved(page))).toBe(before);
   const good = join(staging, "replacement.json");
   writeFileSync(good, canonical(example("bisector")));

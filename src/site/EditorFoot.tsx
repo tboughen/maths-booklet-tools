@@ -31,7 +31,7 @@ export function EditorFoot({
   children?: ReactNode;
 }) {
   return (
-    <div className="editor-foot" role="group" aria-label="View">
+    <div className="editor-foot" role="group" aria-label="Zoom and print size">
       <PreviewControls zoom={zoom} onZoom={onZoom} scale={scale} />
       {size}
       {children}
