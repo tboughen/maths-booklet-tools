@@ -59,7 +59,7 @@ export class RasterQueue {
     print = false,
     outlined = false,
     signal?: AbortSignal,
-    artifactKind: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "frequency-tree" | "two-way-table" | "factor-tree" | "function-machine" | "nets" | "written-method" | "sample-space" | "triangle" | "construction" | "elevations" | "angles" | "area" = "graph",
+    artifactKind: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "frequency-tree" | "two-way-table" | "factor-tree" | "function-machine" | "algebra-tiles" | "nets" | "written-method" | "sample-space" | "triangle" | "construction" | "elevations" | "angles" | "area" = "graph",
   ): Promise<{ png?: Uint8Array; svg?: string }> {
     if (
       !Number.isSafeInteger(width) ||

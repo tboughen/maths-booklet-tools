@@ -69,6 +69,7 @@ const suites: Suite[] = [
   { name: "written-method", server: "dev", testMatch: "written-method.spec.ts" },
   { name: "function-machine", server: "dev", testMatch: "function-machine.spec.ts" },
   { name: "nets", server: "dev", testMatch: "nets.spec.ts" },
+  { name: "algebra-tiles", server: "dev", testMatch: "algebra-tiles.spec.ts" },
   { name: "sample-space", server: "dev", testMatch: "sample-space.spec.ts" },
   { name: "worksheet", server: "dev", testMatch: "worksheet.spec.ts", timeout: 60000 },
   { name: "booklet", server: "dev", testMatch: "booklet.spec.ts", timeout: 90000 },

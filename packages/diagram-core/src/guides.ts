@@ -24,6 +24,7 @@ import { ftConfig } from "./guides/factor-tree";
 import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
 import { netsConfig } from "./guides/nets";
+import { atConfig } from "./guides/algebra-tiles";
 import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
@@ -219,6 +220,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
   nets: fromConfig(netsConfig),
+  "algebra-tiles": fromConfig(atConfig),
   "sample-space": fromConfig(ssConfig),
   triangle: {
     ...fromConfig(triangleConfig),
@@ -365,6 +367,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
+  "algebra-tiles": ["algebra tiles", "collecting like terms", "simplifying expressions", "like and unlike terms (a²b and ab²)", "zero pairs", "writing expressions from tiles"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],
