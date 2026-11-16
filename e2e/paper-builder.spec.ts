@@ -188,6 +188,9 @@ test("your paper sits beside the codes with a picture of each question, and a cr
   await expect.poll(()=>row.locator("img").evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0&&el.getBoundingClientRect().width)).toBeGreaterThan(300);
   await row.getByRole("button",{name:/^Remove /}).click();
   await expect(paper).toContainText("2 selected codes · 0 distinct questions · 0 marks");await expect(row).toHaveCount(0);
+  // The panel says why it is empty, and the keyboard stays in it.
+  await expect(paper).toContainText("Every matching question has been removed.");
+  await expect(paper.getByRole("button",{name:"Clear paper",exact:true})).toBeFocused();
   await paper.getByRole("button",{name:"Restore 1 removed",exact:true}).click();
   await expect(row).toHaveCount(1);await expect(paper.getByRole("button",{name:/^Restore/})).toHaveCount(0);
   // An upright monitor puts the paper under the codes, with the review button still on screen.

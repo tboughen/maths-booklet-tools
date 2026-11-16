@@ -9,7 +9,7 @@
 .qb-topic-builder { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
 .qb-topic-controls { display: flex; flex-wrap: wrap; gap: 8px; }
 .qb-topic-controls input { flex: 1 1 200px; min-width: 0; min-height: 36px; padding: 6px 10px; font-size: 14px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: #fff; }
-.qb-app .qb-topic-controls select { min-height: 36px; max-width: 176px; border-color: var(--md-line-strong); border-radius: var(--md-radius); }
+.qb-app .qb-topic-controls select { min-height: 36px; max-width: 184px; border-color: var(--md-line-strong); border-radius: var(--md-radius); }
 .qb-topic-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 16px; margin: 0; color: #536579; font-size: 13px; }
 .qb-topic-status strong { color: var(--md-ink); }
 .qb-topic-table-scroll { flex: 1 1 auto; min-height: 110px; overflow: auto; border: 1px solid var(--md-line); border-radius: var(--md-radius-card); background: #fff; }
@@ -32,20 +32,20 @@
 .qb-paper-list { flex: 0 1 auto; min-height: 0; overflow: auto; margin: 0; padding: 0; list-style: none; }
 .qb-paper-list li { display: flex; align-items: center; gap: 12px; padding: 8px 6px 8px 14px; border-bottom: 1px solid #e6ecf3; color: #536579; font-size: 13px; }
 /* The picture keeps one scale, so the top of the question can be read; a narrower panel shows less of its width. */
-.qb-paper-picture { flex: 1 1 0; min-width: 0; height: 96px; overflow: hidden; border: 1px solid var(--md-line); border-radius: var(--md-radius-key); background: #fff; }
+.qb-paper-picture { flex: 0 1 372px; min-width: 0; height: 96px; overflow: hidden; border: 1px solid var(--md-line); border-radius: var(--md-radius-key); background: #fff; }
 .qb-paper-picture img { display: block; width: 372px; max-width: none; }
-.qb-paper-list li > span:nth-child(2) { flex: 0 0 172px; display: grid; gap: 3px; }
+.qb-paper-list li > span:nth-child(2) { flex: 1 0 172px; display: grid; gap: 3px; }
 .qb-paper-list strong { color: var(--md-ink); font-size: 14px; }
 .qb-paper-list i { margin-right: 4px; padding: 1px 8px; border: 1px solid #b3cbdc; border-radius: var(--md-radius-pill); background: var(--md-stage); color: #1d518c; font-size: 12px; font-style: normal; }
 .qb-paper-panel > .qb-small { margin: 0; padding: 10px 14px; color: #536579; font-size: 13px; }
 .qb-paper-panel > .qb-summary-actions { margin-top: auto; padding: 10px 14px; border-top: 1px solid var(--md-line); }
 .qb-paper-panel > .qb-summary-actions > :first-child { margin-right: auto; }
 
-/* An upright or narrow window puts your paper under the codes. */
+/* An upright or narrow window puts your paper under the codes. A window too short for both scrolls them together. */
 @media (max-width: 1000px), (max-aspect-ratio: 1 / 1) {
-  .qb-paper-columns { display: flex; flex-direction: column; }
-  .qb-topic-builder { flex: 1 1 0; }
-  .qb-paper-summary.qb-paper-panel { flex: 0 1 auto; max-height: 38dvh; }
+  .qb-paper-columns { display: flex; flex-direction: column; overflow: auto; }
+  .qb-topic-builder { flex: 1 0 250px; }
+  .qb-paper-summary.qb-paper-panel { flex: none; max-height: 38dvh; }
 }
 /* A phone scrolls the codes as one page and keeps your paper, with its Review button, in view. */
 @media (max-width: 620px) {

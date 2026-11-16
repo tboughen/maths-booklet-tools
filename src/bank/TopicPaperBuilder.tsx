@@ -24,7 +24,7 @@ export function TopicPaperBuilder({catalogue,coverage,overall,filters,draft,entr
   });
   function sortBy(key:Sort) {if(sort===key)setDirection(d=>-d);else {setSort(key);setDirection(key==="code"||key==="title"?1:-1);}}
   const columns: {key:Sort;label:string}[] = [{key:"code",label:"Sparx code"},{key:"title",label:"Topic"},{key:"available",label:"Available"},{key:"included",label:"In paper"},...(filters.tier==="all"?[{key:"foundation" as const,label:"Foundation"},{key:"higher" as const,label:"Higher"}]:[])];
-  const pick = (key: keyof PaperFilters, label: string, options: string[][]) => <select aria-label={label} title={label} value={filters[key]} onChange={e=>onFilters({...filters,[key]:e.target.value} as PaperFilters)}>{options.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select>;
+  const pick = <K extends keyof PaperFilters>(key: K, label: string, options: [PaperFilters[K], string][]) => <select aria-label={label} title={label} value={filters[key]} onChange={e=>onFilters({...filters,[key]:e.target.value} as PaperFilters)}>{options.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select>;
   return <section className="qb-topic-builder" aria-label="Build a paper by topic">
     <div className="qb-topic-controls">
       <input aria-label="Search codes or topics" type="search" placeholder="Search codes or topics" value={search} onChange={e=>setSearch(e.target.value)}/>

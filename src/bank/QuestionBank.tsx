@@ -22,7 +22,7 @@ import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
 import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
-import { createDetailLoader, fetchCatalogueIndex, type BankIndex } from "./catalogueLoader";
+import { createDetailLoader, fetchCatalogueIndex, type BankIndex, type DetailLoader } from "./catalogueLoader";
 import { withPerformance } from "./performance";
 import { PerformanceBadge } from "./PerformanceBadge";
 import "./question-bank.css";
@@ -52,6 +52,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [details,setDetails]=useState<Record<string,BankQuestion>>({});
   const [detailError,setDetailError]=useState("");
   const loader=useMemo(()=>catalogue?createDetailLoader(catalogue):undefined,[catalogue]);
+  // For pictures in the Paper builder: the same files, without redrawing the whole page as each one arrives.
+  const loadViews=useCallback<DetailLoader["load"]>(questions=>loader?loader.load(questions):Promise.reject(new Error("The question bank is still loading.")),[loader]);
   const loadDetails=useCallback(async<Q extends BankListQuestion>(questions:Q[])=>{if(!loader)throw new Error("The question bank is still loading.");const full=await loader.load(questions);setDetails(previous=>full.every(q=>previous[q.id])?previous:{...previous,...Object.fromEntries(full.map(q=>[q.id,q]))});return full;},[loader]);
   const [loadError,setLoadError]=useState("");
   const [reload,setReload]=useState(0);
@@ -120,6 +122,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const overall=useMemo(()=>catalogue?catalogueCoverage(catalogue,{...emptyRoute,revision:"include"}):undefined,[catalogue]);
   const entries=useMemo(()=>coverage?draftEntries(coverage,draft):[],[coverage,draft]);
   // Questions already in the paper that the hidden Year 11 revision papers now leave out.
+  // Questions taken off this paper by hand that would otherwise be on it.
+  const removed=useMemo(()=>coverage&&draft.excluded.length?draftEntries(coverage,{...draft,excluded:[]}).length-entries.length:0,[coverage,draft,entries]);
   const revisionDropped=useMemo(()=>catalogue&&route.revision==="hide"?draftEntries(catalogueCoverage(catalogue,{...filters,revision:"include"}),draft).length-entries.length:0,[catalogue,route.revision,filters,draft,entries]);
   const included=useMemo(()=>new Set(entries.map(e=>e.key)),[entries]);
   const topicsMode=route.bankView==="topics";
@@ -302,7 +306,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   };
 
   // The Paper builder shows it as a panel with a picture of each question; the Question bank as a bar.
-  const yourPaper=(panel=false)=><PaperSummary draft={draft} entries={entries} revisionHidden={revisionDropped} onIncludeRevision={()=>go({...route,revision:"include"})} onUntick={code=>dispatchDraft({type:"code",code,checked:false})} onClear={()=>dispatchDraft({type:"clear"})} onReview={()=>setReviewOpen(true)} panel={panel?{loadDetails,onRemove:key=>dispatchDraft({type:"exclude",key}),onRestore:()=>dispatchDraft({type:"restore"})}:undefined}/>;
+  const yourPaper=(panel=false)=><PaperSummary draft={draft} entries={entries} revisionHidden={revisionDropped} onIncludeRevision={()=>go({...route,revision:"include"})} onUntick={code=>dispatchDraft({type:"code",code,checked:false})} onClear={()=>dispatchDraft({type:"clear"})} onReview={()=>setReviewOpen(true)} panel={panel?{loadDetails:loadViews,removed,onRemove:key=>dispatchDraft({type:"exclude",key}),onRestore:()=>dispatchDraft({type:"restore"})}:undefined}/>;
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
       {!topicsMode&&<><div className="qb-toolbar">
