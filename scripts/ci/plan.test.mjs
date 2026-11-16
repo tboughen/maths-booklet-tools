@@ -43,6 +43,8 @@ test('anything the worked-solution check reads uses the full bank and runs the c
     const plan = pr([path]);
     assert.equal(plan.bank, 'full', path); assert.equal(plan.solutionFiles, true, path); assert.equal(plan.tests, 'all', path);
   }
+  // The worked-solution renderer and its bank-wide check read every steps file, so they need the full bank.
+  for (const path of ['packages/worked-core/src/index.ts', 'src/bank/worked-bank.test.ts']) assert.equal(pr([path]).bank, 'full', path);
 });
 
 test('the lite bank list is a sorted set of bank question folders', () => {
