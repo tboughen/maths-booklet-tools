@@ -3,7 +3,7 @@ import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -206,10 +206,13 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
 /** Width (mm) one inline answer line needs: prefix, suffix and a line that holds its saved answer. */
 export function answerNeed(l: Extract<Leaf, { type: "answerLine" }>, maths: boolean) {
   const widthOf = (s: string) => (maths ? lineWidth(parseRuns(stackAnswerText(s), "regular", true), S.body) : plainWidth(s, S.body));
+  if (l.blanks) return answerFrame(widthOf, l.prefix, l.blanks, l.suffix).width;
   const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
   const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
   return pre + post + Math.max(ANSWER_LINE_MIN, l.answer ? widthOf(l.answer) + 2 : 0);
 }
+/** The texts on an answer line that may hold a stacked fraction. */
+export const answerTexts = (l: Extract<Leaf, { type: "answerLine" }>) => [l.prefix, l.suffix, l.answer, ...(l.blanks ?? []).flatMap((b) => [b.before, b.answer])];
 
 /** `lone`: a single inline line with no inline neighbours, printed short (rule P3). */
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx, lone = false): Frag {
@@ -220,16 +223,23 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
   const runsOf = (s: string) => parseRuns(maths ? stackAnswerText(s) : s, "regular", maths);
   // Plain sheets keep their saved measurements exactly.
   const widthOf = (s: string) => (maths ? lineWidth(runsOf(s), size) : plainWidth(s, size));
-  const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, maths)));
+  const tall = lines.some((l) => answerTexts(l).some((s) => answerHasFraction(s, maths)));
   const h = S.answerRow + (tall ? FRAC_ANSWER_EXTRA : 0);
   const base = h - 2.6;
   const one = lone ? lines[0] : null;
-  const slot = one
+  const slot = one?.blanks
+    ? Math.min(w, answerNeed(one, maths))
+    : one
     ? loneSlot(one.prefix ? widthOf(one.prefix) + 1.8 : 0, one.suffix ? widthOf(one.suffix) + 1.8 : 0, one.answer ? widthOf(one.answer) : 0, w)
     : (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   const out: string[] = [];
   lines.forEach((l, i) => {
     const x0 = i * (slot + ANSWER_SLOT_GAP);
+    if (l.blanks) {
+      out.push(frameSvg(l, x0, base, ctx));
+      if (answerNeed(l, maths) > slot + 0.01) issue(ctx, `An answer frame needs ${n(answerNeed(l, maths) - slot)} mm more width than its row has. Give it a row of its own or a wider column.`);
+      return;
+    }
     const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
     const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
     if (l.prefix) out.push(textSvg(runsOf(l.prefix), x0, base, size, ctx.st.ink));
@@ -247,6 +257,25 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
       out.push(textSvg(runsOf(l.answer), x1 + 2, base - 0.6 - (answerHasFraction(l.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer));
   });
   return { h, svg: out.join("") };
+}
+
+/**
+ * An answer frame from x0 on the baseline: its fixed text and short blanks. The answers copy writes
+ * each saved answer centred on its blank, in the answer colour; the pupil copy has the blanks only.
+ */
+function frameSvg(l: Extract<Leaf, { type: "answerLine" }>, x0: number, base: number, ctx: AnyCtx): string {
+  const size = S.body;
+  const maths = !!ctx.maths;
+  const runsOf = (s: string) => parseRuns(maths ? stackAnswerText(s) : s, "regular", maths);
+  const widthOf = (s: string) => (maths ? lineWidth(runsOf(s), size) : plainWidth(s, size));
+  return answerFrame(widthOf, l.prefix, l.blanks ?? [], l.suffix)
+    .pieces.map((p) => {
+      if (p.kind === "text") return textSvg(runsOf(p.text), x0 + p.x, base, size, ctx.st.ink);
+      const line = `<line x1="${n(x0 + p.x)}" y1="${n(base + 0.8)}" x2="${n(x0 + p.end)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`;
+      if (ctx.view !== "answers" || !p.answer) return line;
+      return line + textSvg(runsOf(p.answer), x0 + (p.x + p.end) / 2, base - 0.6 - (answerHasFraction(p.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer, "middle");
+    })
+    .join("");
 }
 
 function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx): Frag {
@@ -395,7 +424,8 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) frags.push(answerRow(rowLines, w, ctx, group.length === 1));
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
-      const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline ? it.items[0] : null;
+      // An answer frame always takes a row of its own.
+      const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline && !it.items[0].blanks ? it.items[0] : null;
       const textW = w - S.partIndent;
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
@@ -684,7 +714,7 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
 }
 
 /** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
-const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
+const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "before", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
 /** The printed characters in a document part that the worksheet font does not hold, each once. */
 export function missingCharacters(value: unknown): string[] {
   const known = measuredWidths("regular");

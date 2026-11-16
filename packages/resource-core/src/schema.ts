@@ -78,8 +78,24 @@ const answerLine = z
     answer: text(ANSWER_MAX).default(""),
     /** Several short lines side by side on one row (e.g. three totals). */
     inline: z.boolean().default(false),
+    /**
+     * An answer frame: two or more short blanks (20 mm each) on one left-aligned line, with fixed
+     * text before, between and after them, in place of one long line. The prefix comes before the
+     * first blank, each blank's `before` text before it, and the suffix after the last blank:
+     * "( ____ , ____ )" is prefix "(", blanks [{answer:"3"}, {before:",", answer:"-2"}], suffix ")".
+     * Each blank's saved answer prints only in the answers view; leave answer empty.
+     */
+    blanks: z
+      .array(z.object({ before: text(20).default(""), answer: text(40).default("") }).strict())
+      .min(2)
+      .max(4)
+      .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((l, ctx) => {
+    if (l.blanks && l.answer)
+      ctx.addIssue({ code: "custom", path: ["answer"], message: "An answer frame keeps a saved answer in each of its blanks; leave answer empty." });
+  });
 
 const leafItems = [
   z.object({ type: z.literal("text"), beside, text: text(600) }).strict(),
