@@ -495,7 +495,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               }
               menuId="venn-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

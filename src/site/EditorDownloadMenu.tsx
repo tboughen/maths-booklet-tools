@@ -85,7 +85,7 @@ export function EditorDownloadMenu({
   const trigger = useCallback(
     () =>
       globalThis.document.querySelector<HTMLButtonElement>(
-        `button[aria-controls="${id}"]${kind.current ? `[data-menu="${kind.current}"]` : ""}`,
+        kind.current ? `button[data-menu-id="${id}"][data-menu="${kind.current}"]` : `button[aria-controls="${id}"]`,
       ),
     [id],
   );
@@ -135,7 +135,10 @@ export function EditorDownloadMenu({
       const items = menu.current?.querySelectorAll<HTMLButtonElement>(
         "button:not(:disabled)",
       );
-      const last = trigger()?.dataset.menuFocus === "last";
+      const button = trigger();
+      const last = button?.dataset.menuFocus === "last";
+      // Read once: a later click with the mouse starts from the first item again.
+      delete button?.dataset.menuFocus;
       (last ? items?.[items.length - 1] : items?.[0])?.focus();
       place();
     });
@@ -224,7 +227,7 @@ export function EditorDownloadMenu({
       onMessage(
         error instanceof Error
           ? error.message
-          : "This action could not be completed. Try again or save an editable file.",
+          : "This action could not be completed. Try again, or save an editable file from the File menu.",
         true,
       );
     } finally {

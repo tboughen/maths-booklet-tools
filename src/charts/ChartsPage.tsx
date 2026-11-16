@@ -720,7 +720,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               }
               menuId="chart-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

@@ -1,4 +1,5 @@
 import { test, expect } from "./release-fixtures";
+import { menuFor } from "./resource-actions";
 import { toolIds } from "../src/site/routes";
 
 /** U33: every download is mathsdock-<tool>-<content>-<date>.<ext>, built by one helper. */
@@ -6,7 +7,7 @@ for (const tool of toolIds) {
   test(`${tool}: downloads say which tool, what and when`, async ({ page }) => {
     await page.goto(`/tools/${tool}`);
     for (const [label, ext] of [["Download SVG", "svg"], ["Download PDF (actual size)", "pdf"], ["Save editable file", "json"]] as const) {
-      await page.getByRole("button", { name: label.startsWith("Download") ? "Download" : "File", exact: true }).click();
+      await page.getByRole("button", { name: menuFor(label), exact: true }).click();
       const download = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: label, exact: true }).click();
       const name = (await download).suggestedFilename();

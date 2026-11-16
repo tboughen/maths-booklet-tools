@@ -39,8 +39,8 @@ interface EditorToolbarProps {
   onCopyClipboard: () => void;
   /** Which of the two menus is open, if either. */
   menuOpen: MenuKind | false;
-  /** Pressing Download or File: opens that menu, or closes it if it is the one open. */
-  onToggleMenu: (kind: MenuKind) => void;
+  /** Pressing Download or File opens that menu, or closes it if it is the one open. */
+  onMenuChange: (open: MenuKind | false) => void;
   menuId?: string;
   menuDisabled?: boolean;
   /** The tool's `ExampleGallery`: its "Examples" button sits before Start again. */
@@ -194,10 +194,10 @@ function Toolbar(props: EditorToolbarProps) {
             )}
             {props.busy ? "Preparing…" : "Copy for Word"}
           </button>
-          <MenuButton kind="download" label="Download" disabled={props.exportDisabled || props.busy} {...props}>
+          <MenuButton kind="download" label="Download" disabled={props.exportDisabled || props.busy} menuOpen={props.menuOpen} menuId={props.menuId} onMenuChange={props.onMenuChange}>
             <Download className="menu-icon" size={17} aria-hidden="true" />
           </MenuButton>
-          <MenuButton kind="file" label="File" disabled={(props.menuDisabled ?? props.exportDisabled) || props.busy} {...props} />
+          <MenuButton kind="file" label="File" disabled={(props.menuDisabled ?? props.exportDisabled) || props.busy} menuOpen={props.menuOpen} menuId={props.menuId} onMenuChange={props.onMenuChange} />
         </div>
       </div>
       {/* The live region is always mounted, so screen readers announce the notice when it appears. */}
@@ -218,35 +218,39 @@ function Toolbar(props: EditorToolbarProps) {
   );
 }
 
-/** Download or File: a button that opens its menu (`EditorDownloadMenu`), which finds it by `data-menu`. */
+/**
+ * Download or File: a button that opens its menu (`EditorDownloadMenu`), which finds it by
+ * `data-menu-id` and `data-menu`. Only the button whose menu is open says that it controls it.
+ */
 function MenuButton({
   kind,
   label,
   disabled,
   menuOpen,
   menuId,
-  onToggleMenu,
+  onMenuChange,
   children,
-}: Pick<EditorToolbarProps, "menuOpen" | "menuId" | "onToggleMenu"> & { kind: MenuKind; label: string; disabled?: boolean; children?: ReactNode }) {
+}: Pick<EditorToolbarProps, "menuOpen" | "menuId" | "onMenuChange"> & { kind: MenuKind; label: string; disabled?: boolean; children?: ReactNode }) {
   const open = menuOpen === kind;
   return (
     <button
       className="file-menu-button"
       data-menu={kind}
+      data-menu-id={menuId}
       disabled={disabled}
       aria-label={label}
       aria-haspopup="menu"
       aria-expanded={open}
-      aria-controls={menuId}
+      aria-controls={open ? menuId : undefined}
       onKeyDown={(event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
           event.preventDefault();
           event.currentTarget.dataset.menuFocus = event.key === "ArrowUp" ? "last" : "first";
-          if (!open) onToggleMenu(kind);
+          if (!open) onMenuChange(kind);
         }
         if (event.key === "Enter" || event.key === " ") event.currentTarget.dataset.menuFocus = "first";
       }}
-      onClick={() => onToggleMenu(kind)}
+      onClick={() => onMenuChange(open ? false : kind)}
     >
       {children}
       <span>{label}</span> <ChevronDown size={16} aria-hidden="true" />

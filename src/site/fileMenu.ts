@@ -1,6 +1,6 @@
 import { LINK_DESCRIPTION, SAVE_DESCRIPTION, SAVE_EDITABLE_LABEL, type DownloadAction } from "./EditorDownloadMenu";
 
-export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "description">;
+export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "description" | "menu">;
 /**
  * The Download and File menus for diagram editors (improvement item U4): the same items, order, notes and
  * separators in every tool. Pages give only what each item does; the labels, the hidden-answer notes and

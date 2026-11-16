@@ -1351,7 +1351,7 @@ export default function ValueGraphPage({
               }
               menuId="quadratics-downloads"
               menuOpen={exportOpen}
-              onToggleMenu={(kind) => setExportOpen(exportOpen === kind ? false : kind)}
+              onMenuChange={setExportOpen}
             />
             <EditorDownloadMenu
               wordHelp

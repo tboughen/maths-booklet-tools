@@ -868,7 +868,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               }
               menuId="triangle-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

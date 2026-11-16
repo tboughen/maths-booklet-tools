@@ -361,7 +361,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))}
               menuId="tree-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

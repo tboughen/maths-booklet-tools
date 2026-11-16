@@ -606,7 +606,7 @@ export default function RatioTablePage({
               }
               menuId="ratio-table-downloads"
               menuOpen={exportsOpen}
-              onToggleMenu={(kind) => setExportsOpen((open) => (open === kind ? false : kind))}
+              onMenuChange={setExportsOpen}
             />
             <EditorDownloadMenu
               id="ratio-table-downloads"

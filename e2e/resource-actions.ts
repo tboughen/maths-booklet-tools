@@ -1,8 +1,9 @@
 import type { Page } from "@playwright/test";
 type Menu = "Download" | "File";
+const pictures = ["Download SVG", "Download PNG (600 ppi)", "Download PDF (actual size)", "Download answers SVG", "Download answers PNG (600 ppi)", "Download pupil and answers (ZIP)"];
 /** A diagram tool has two menus: Download holds the pictures, File everything else. */
 export const menuFor = (name: string | RegExp): Menu =>
-  (typeof name === "string" ? name : name.source).replace(/^\^/, "").startsWith("Download") ? "Download" : "File";
+  pictures.some((label) => (typeof name === "string" ? label === name : name.test(label))) ? "Download" : "File";
 /** Follow the same common menu route a person uses; successful actions close it. */
 export async function openResourceMenu(page: Page, menu: Menu = "File") {
   const trigger = page.getByRole("button", {

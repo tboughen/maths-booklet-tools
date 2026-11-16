@@ -333,7 +333,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))}
               menuId="twt-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

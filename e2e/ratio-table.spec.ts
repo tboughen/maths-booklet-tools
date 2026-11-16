@@ -1,4 +1,5 @@
 import { clickAway, switchTool } from "./tool-switcher";
+import { menuFor } from "./resource-actions";
 import { editorBase, test, expect } from "./release-fixtures";
 import type { Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
@@ -219,7 +220,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true })
+      .getByRole("button", { name: menuFor(new RegExp(name)), exact: true })
       .click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -602,7 +603,7 @@ test("three-column image and editable exports survive reopening without editor d
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true })
+      .getByRole("button", { name: menuFor(new RegExp(name)), exact: true })
       .click();
     const downloading = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -1098,7 +1099,7 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     ["Download SVG", /^mathsdock-ratio-table-(?!.*answers)(.+-)?\d{4}-\d{2}-\d{2}\.svg$/, false],
     ["Download answers SVG", /^mathsdock-ratio-table-(.+-)?answers-\d{4}-\d{2}-\d{2}\.svg$/, true],
   ] as const) {
-    await page.getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true }).click();
+    await page.getByRole("button", { name: menuFor(new RegExp(`^${name}`)), exact: true }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click();
     const result = await download;

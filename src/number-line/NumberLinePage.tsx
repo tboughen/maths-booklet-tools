@@ -779,7 +779,7 @@ export default function NumberLinePage({
               }
               menuId="number-line-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             {dirty.size > 0 && !busy && !recovery && (
               <p role="status" className="resource-feedback nl-pending-note">

@@ -1,4 +1,5 @@
 import { allTools, clickAway, switchTool } from "./tool-switcher";
+import { menuFor } from "./resource-actions";
 import { showExamples, closeExamples } from "./example-gallery";
 import { toolIds } from "../src/site/routes";
 import { test, expect, editorBase, type Page } from "./release-fixtures";
@@ -120,7 +121,7 @@ async function openMenu(page: Page, menu: "Download" | "File" = "File") {
   await expect(page.getByRole("menu")).toBeVisible();
 }
 async function download(page: Page, label: string) {
-  await openMenu(page, label.startsWith("Download") ? "Download" : "File");
+  await openMenu(page, menuFor(label));
   const event = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: label, exact: true }).click();
   const file = await event;

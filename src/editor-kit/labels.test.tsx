@@ -18,7 +18,7 @@ describe("undo step names", () => {
   it("names the step on the toolbar without changing the buttons' accessible names", () => {
     const noop = vi.fn();
     render(
-      <EditorToolbar canUndo canRedo={false} undoLabel="add row" redoLabel="remove row" onUndo={noop} onRedo={noop} onReset={noop} onCopy={noop} onCopyClipboard={noop} menuOpen={false} onToggleMenu={noop} />,
+      <EditorToolbar canUndo canRedo={false} undoLabel="add row" redoLabel="remove row" onUndo={noop} onRedo={noop} onReset={noop} onCopy={noop} onCopyClipboard={noop} menuOpen={false} onMenuChange={noop} />,
     );
     const undo = screen.getByRole("button", { name: "Undo" });
     expect(undo).toHaveAttribute("title", "Undo add row (Ctrl+Z)");

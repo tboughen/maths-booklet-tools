@@ -547,7 +547,7 @@ export default function App({ active = true }: { active?: boolean }) {
               onCopy={() => void handleCopy()}
               onCopyClipboard={() => void handleCopy(true)}
               menuOpen={exportMenuOpen}
-              onToggleMenu={(kind) => setExportMenuOpen((open) => (open === kind ? false : kind))}
+              onMenuChange={setExportMenuOpen}
             />
             <GraphExchange
               document={document}

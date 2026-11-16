@@ -461,7 +461,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               }
               menuId="cuboids-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

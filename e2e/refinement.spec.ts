@@ -1,4 +1,5 @@
 import { switchTool } from "./tool-switcher";
+import { menuFor } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -56,7 +57,7 @@ const tools = [
 ] as const;
 async function download(page: Page, name: string) {
   await page
-    .getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true })
+    .getByRole("button", { name: menuFor(name), exact: true })
     .click();
   const waiting = page.waitForEvent("download");
   await page.getByRole("menuitem", { name, exact: true }).click();

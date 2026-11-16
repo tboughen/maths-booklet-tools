@@ -140,8 +140,8 @@ describe("Download and File menus of a diagram tool", () => {
   const show = (open: MenuKind) =>
     render(
       <>
-        <button aria-controls="tool-menu" data-menu="download">Download</button>
-        <button aria-controls="tool-menu" data-menu="file">File</button>
+        <button data-menu-id="tool-menu" data-menu="download">Download</button>
+        <button data-menu-id="tool-menu" data-menu="file">File</button>
         <EditorDownloadMenu id="tool-menu" wordHelp open={open} onClose={vi.fn()} onMessage={vi.fn()} actions={actions} />
       </>,
     );

@@ -297,7 +297,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(e, view)))}
               menuId="elevations-downloads"
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

@@ -561,7 +561,7 @@ export default function LessonBarModelPage({
                 )
               }
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu((open) => (open === kind ? false : kind))}
+              onMenuChange={setMenu}
               menuId="bar-model-v2-files"
             />
             <EditorDownloadMenu

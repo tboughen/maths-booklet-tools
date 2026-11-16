@@ -543,7 +543,7 @@ export default function AlgebraGridPage({
                 )
               }
               menuOpen={menu}
-              onToggleMenu={(kind) => setMenu((open) => (open === kind ? false : kind))}
+              onMenuChange={setMenu}
               menuId="algebra-download-menu"
             />
             <EditorDownloadMenu
