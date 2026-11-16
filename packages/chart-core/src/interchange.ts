@@ -48,6 +48,8 @@ const presentation = z
       .optional(),
     /** Fields merge; axis merges field by field; rows replaces every plot. */
     boxplot: core.boxplotSchema.partial().extend({ axis: axisPatch }).optional(),
+    /** Fields merge; key merges field by field; rows replaces every row. */
+    stemleaf: core.stemleafSchema.partial().extend({ key: core.stemleafSchema.shape.key.partial().optional() }).optional(),
     /** Fields merge; xAxis and each kind's settings and yAxis merge field by field; classes replaces all classes. */
     grouped: core.groupedSchema
       .partial()
@@ -63,7 +65,7 @@ const presentation = z
 type Presentation = z.infer<typeof presentation>;
 /** Pie, pictogram and scatter settings merge field by field with the current ones; everything else replaces. */
 function present(d: core.ChartDocument, p: Presentation) {
-  const { pie, pictogram, scatter, grouped, boxplot, ...rest } = p;
+  const { pie, pictogram, scatter, grouped, boxplot, stemleaf, ...rest } = p;
   Object.assign(d, rest);
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
   if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
@@ -74,6 +76,10 @@ function present(d: core.ChartDocument, p: Presentation) {
     if (bestFit === null) delete next.bestFit;
     else if (bestFit) next.bestFit = bestFit;
     d.scatter = next;
+  }
+  if (stemleaf) {
+    const now = core.stemleafOf(d);
+    d.stemleaf = { ...now, ...stemleaf, key: { ...now.key, ...stemleaf.key } };
   }
   if (boxplot) {
     const now = core.boxplotOf(d);

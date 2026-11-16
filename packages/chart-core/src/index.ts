@@ -8,9 +8,11 @@ import { scatterLayout, scatterSvg } from "./scatter";
 import { groupedHidden, groupedKind, groupedLayout, groupedSvg } from "./grouped";
 export { groupedLayout, groupedKind } from "./grouped";
 import { boxplotLayout, boxplotSvg } from "./boxplot";
+import { markKeyRevealed, markLeavesRevealed, markStemRevealed, stemleafLayout, stemleafSvg } from "./stemleaf";
 export { boxplotLayout } from "./boxplot";
+export { stemleafLayout } from "./stemleaf";
 export { scatterLayout } from "./scatter";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, MAX_CLASSES, MAX_BOX_ROWS, boxValueNames, boxplotSchema, groupedSchema, markGraphRevealed, markTableRevealed, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, MAX_CLASSES, MAX_BOX_ROWS, MAX_STEM_ROWS, boxValueNames, boxplotSchema, stemleafSchema, groupedSchema, markGraphRevealed, markTableRevealed, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
 export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
@@ -26,7 +28,7 @@ export const RENDERER_VERSION = "charts-1" as const;
  * graphs need a continuous axis and belong in their own tools. Switching kind never
  * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter", "histogram", "polygon", "cumulative", "boxplot"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter", "histogram", "polygon", "cumulative", "boxplot", "stemleaf"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
@@ -40,9 +42,10 @@ export const kindNames: Record<Kind, string> = {
   polygon: "Frequency polygon",
   cumulative: "Cumulative frequency graph",
   boxplot: "Box plot",
+  stemleaf: "Stem-and-leaf diagram",
 };
 /** Kinds drawn on a categorical axis with a numerical scale. */
-export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram" && kind !== "scatter" && kind !== "boxplot" && !groupedKind(kind);
+export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram" && kind !== "scatter" && kind !== "boxplot" && kind !== "stemleaf" && !groupedKind(kind);
 
 export const fills = [
   "grey",
@@ -123,6 +126,8 @@ export const envelopeSchema = z
         grouped: groupedSchema.optional(),
         /** Box plots: rows of five values on one scale; absent means BOXPLOT_DEFAULTS. */
         boxplot: boxplotSchema.optional(),
+        /** Stem-and-leaf diagrams: rows of a stem and its leaves, and a key; absent means STEMLEAF_DEFAULTS. */
+        stemleaf: stemleafSchema.optional(),
       })
       .strict(),
     ...aboutShape,
@@ -187,6 +192,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
+    if (path.includes("stemleaf"))
+      throw withFields(Error(`Use 1 to ${MAX_STEM_ROWS} rows with stems of at most 6 characters and leaves of at most 40, a key of a stem, a one-digit leaf and at most 32 characters, and a leaves column of 20 to 120 mm.`), parsed.error);
     if (path.includes("boxplot"))
       throw withFields(Error(`Use 1 to ${MAX_BOX_ROWS} box plots with labels of at most 24 characters and values of at most 12 characters, steps of 4 to 40 mm and bands of 20 to 40 mm (even numbers).`), parsed.error);
     if (path.includes("grouped"))
@@ -255,6 +262,19 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
         if (mark && r[k].show === "hidden" && r[k].value.trim()) markRevealed(r[k]);
         r[k].show = "show";
       }
+  const sl = n.document.kind === "stemleaf" ? n.document.stemleaf : undefined;
+  if (sl) {
+    for (const r of sl.rows) {
+      if (mark && r.stemShow === "hidden" && r.stem.trim()) markStemRevealed(r);
+      if (mark && r.leavesShow === "hidden" && r.leaves.trim()) markLeavesRevealed(r);
+      r.stemShow = r.leavesShow = "show";
+    }
+    // A key left empty for pupils prints its answer, when it has one; its box keeps its size.
+    if (sl.key.show === "hidden" && sl.key.stem.trim()) {
+      if (mark) markKeyRevealed(sl.key);
+      sl.key.show = "show";
+    }
+  }
   for (const s of n.document.series)
     for (const c of s.values) {
       if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
@@ -263,10 +283,12 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   return n;
 }
 export const hasHidden = (e: Envelope) =>
-  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document) || scatterHidden(e.document) || (groupedKind(e.document.kind) && !!e.document.grouped && groupedHidden(e.document.grouped, e.document.kind)) || (e.document.kind === "boxplot" && !!e.document.boxplot?.rows.some((r) => boxValueNames.some((k) => r[k].show === "hidden" && r[k].value.trim())));
+  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document) || scatterHidden(e.document) || (groupedKind(e.document.kind) && !!e.document.grouped && groupedHidden(e.document.grouped, e.document.kind)) || (e.document.kind === "boxplot" && !!e.document.boxplot?.rows.some((r) => boxValueNames.some((k) => r[k].show === "hidden" && r[k].value.trim()))) || (e.document.kind === "stemleaf" && !!e.document.stemleaf && stemleafHidden(e.document.stemleaf));
+const stemleafHidden = (s: NonNullable<Envelope["document"]["stemleaf"]>) =>
+  s.rows.some((r) => (r.stemShow === "hidden" && r.stem.trim()) || (r.leavesShow === "hidden" && r.leaves.trim())) || (s.key.show === "hidden" && !!s.key.stem.trim());
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
-export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram" || kind === "scatter" || kind === "boxplot" || groupedKind(kind);
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram" || kind === "scatter" || kind === "boxplot" || kind === "stemleaf" || groupedKind(kind);
 /** A scatter graph with a point, line or reading left for pupils. */
 const scatterHidden = (d: ChartDocument) =>
   d.kind === "scatter" &&
@@ -325,6 +347,10 @@ export function layout(e: Envelope): Frame {
   }
   if (groupedKind(e.document.kind)) {
     const g = groupedLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  if (e.document.kind === "stemleaf") {
+    const g = stemleafLayout(e);
     return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
   }
   if (e.document.kind === "boxplot") {
@@ -523,6 +549,7 @@ export function renderSvg(e: Envelope): string {
   if (e.document.kind === "scatter") return scatterSvg(e);
   if (groupedKind(e.document.kind)) return groupedSvg(e);
   if (e.document.kind === "boxplot") return boxplotSvg(e);
+  if (e.document.kind === "stemleaf") return stemleafSvg(e);
   const d = e.document,
     g = axesLayout(e),
     p = g.plot,
@@ -654,5 +681,11 @@ export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   // Box plots: hide every value (pupils draw the plots) or show them all.
   const bp = n2.document.kind === "boxplot" ? n2.document.boxplot : undefined;
   if (bp) for (const r of bp.rows) for (const k of boxValueNames) r[k].show = show;
+  // Stem-and-leaf diagrams: hide every stem and leaf (pupils complete the diagram); show all also shows the key.
+  const sl = n2.document.kind === "stemleaf" ? n2.document.stemleaf : undefined;
+  if (sl) {
+    for (const r of sl.rows) r.stemShow = r.leavesShow = show;
+    if (show === "show" && sl.key.show === "hidden" && sl.key.stem.trim()) sl.key.show = "show";
+  }
   return n2;
 }

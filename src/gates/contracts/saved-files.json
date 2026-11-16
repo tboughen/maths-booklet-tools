@@ -1829,7 +1829,8 @@
               "histogram",
               "polygon",
               "cumulative",
-              "boxplot"
+              "boxplot",
+              "stemleaf"
             ]
           },
           "categories": {
@@ -2797,6 +2798,93 @@
               "axis",
               "bandMm",
               "line"
+            ],
+            "additionalProperties": false
+          },
+          "stemleaf": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "stem": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "leaves": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "stemShow": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    },
+                    "leavesShow": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "stem",
+                    "leaves",
+                    "stemShow",
+                    "leavesShow"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "key": {
+                "type": "object",
+                "properties": {
+                  "stem": {
+                    "type": "string",
+                    "maxLength": 6
+                  },
+                  "leaf": {
+                    "type": "string",
+                    "maxLength": 1
+                  },
+                  "represents": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden",
+                      "none"
+                    ]
+                  }
+                },
+                "required": [
+                  "stem",
+                  "leaf",
+                  "represents",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              "leafMm": {
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 120
+              }
+            },
+            "required": [
+              "rows",
+              "key",
+              "leafMm"
             ],
             "additionalProperties": false
           }

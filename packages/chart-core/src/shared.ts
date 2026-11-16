@@ -305,3 +305,49 @@ export const BOXPLOT_DEFAULTS: BoxplotSettings = {
   line: "arrow",
 };
 export const boxplotOf = (d: { boxplot?: BoxplotSettings }): BoxplotSettings => d.boxplot ?? BOXPLOT_DEFAULTS;
+
+/**
+ * Stem-and-leaf diagrams as Edexcel prints them: 1 cm rows ruled between, stems to the left of
+ * one vertical line, single-digit leaves spaced along each row, and a boxed key. A row's stem
+ * and its leaves can be hidden separately (pupils complete them); a blank row is an empty ruled
+ * row; the key can be printed, left as an empty "Key:" box for pupils, or left out.
+ */
+export const MAX_STEM_ROWS = 12;
+export const STEM_LEAF_MM = { minimum: 20, maximum: 120, standard: 50 } as const;
+export const stemRowSchema = z
+  .object({
+    stem: z.string().max(6),
+    /** Leaves as typed: single digits, with or without spaces. Never sorted by the tool. */
+    leaves: z.string().max(40),
+    stemShow: shown,
+    leavesShow: shown,
+  })
+  .strict();
+export type StemRow = z.infer<typeof stemRowSchema>;
+export const stemKeyChoices = ["show", "hidden", "none"] as const;
+export const stemKeyNames: Record<(typeof stemKeyChoices)[number], string> = { show: "Printed", hidden: "Empty box for pupils", none: "No key" };
+export const stemleafSchema = z
+  .object({
+    rows: z.array(stemRowSchema).min(1).max(MAX_STEM_ROWS),
+    /** "Key: 1 | 2 represents 12 points" */
+    key: z.object({ stem: plain(6), leaf: plain(1), represents: plain(32), show: z.enum(stemKeyChoices) }).strict(),
+    /** Width of the leaves column, in millimetres. */
+    leafMm: z.number().int().min(STEM_LEAF_MM.minimum).max(STEM_LEAF_MM.maximum),
+  })
+  .strict();
+export type StemleafSettings = z.infer<typeof stemleafSchema>;
+export const blankStemRow = (): StemRow => ({ stem: "", leaves: "", stemShow: "show", leavesShow: "show" });
+/** A new stem-and-leaf diagram: three empty ruled rows and a key box for pupils, never made-up data. */
+export const STEMLEAF_DEFAULTS: StemleafSettings = {
+  rows: [blankStemRow(), blankStemRow(), blankStemRow()],
+  key: { stem: "", leaf: "", represents: "", show: "hidden" },
+  leafMm: STEM_LEAF_MM.standard,
+};
+export const stemleafOf = (d: { stemleaf?: StemleafSettings }): StemleafSettings => d.stemleaf ?? STEMLEAF_DEFAULTS;
+/** The leaves of a row: one digit each, or null where the row holds something else. */
+export function stemLeaves(text: string): string[] | null {
+  const t = text.trim();
+  if (!t) return [];
+  const parts = /[\s,]/.test(t) ? t.split(/[\s,]+/).filter(Boolean) : [...t];
+  return parts.every((p) => /^[0-9]$/.test(p)) ? parts : null;
+}

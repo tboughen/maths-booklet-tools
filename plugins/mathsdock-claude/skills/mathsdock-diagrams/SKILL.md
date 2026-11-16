@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (including histograms, frequency polygons, cumulative frequency graphs and box plots; not time series), probability trees, triangles, constructions, loci and bearings, plans and elevations, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
+description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (including histograms, frequency polygons, cumulative frequency graphs, box plots and stem-and-leaf diagrams; not time series), probability trees, triangles, constructions, loci and bearings, plans and elevations, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
 ---
 
 <!-- Generated from .agents/skills/mathsdock-diagrams/SKILL.md by scripts/plugins/claude-plugin.mjs. Edit the source, then rerun it. -->
@@ -46,7 +46,7 @@ discovered, in the same way: read the family's capabilities, then create or revi
 Everything below applies to both.
 
 What the connector cannot draw: curves on the coordinate `graph` (use `value-graph` for
-quadratics), time series graphs and stem-and-leaf diagrams. Say so plainly. Never present
+quadratics), time series graphs and back-to-back stem-and-leaf diagrams. Say so plainly. Never present
 a substitute image, Markdown table or hand-drawn SVG as the tool's output; offer a labelled
 alternative only if the teacher wants one.
 

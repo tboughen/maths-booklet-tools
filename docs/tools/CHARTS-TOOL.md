@@ -211,6 +211,33 @@ Q12). The papers draw the scale with no axis line, a plain line or an arrowed li
 - **Examples:** June 2017 3H Q9 (compare two box plots, the second hidden) and November 2017 1H
   Q12 (draw a box plot for Year 11 beside Year 7).
 
+## Stem-and-leaf diagrams
+
+Edexcel prints stem-and-leaf diagrams as 1 cm rows with thin rules between them, a stem column
+left of one vertical line, single-digit leaves spaced along each row, and a boxed key (measured
+on November 2017 1F Q10, June 2018 3F Q14, June 2025 1F Q18 and November 2024 3H Q6). Questions
+that ask pupils to draw one print empty ruled rows and an empty "Key:" box.
+
+- **Settings:** `stemleaf {rows, key, leafMm}`. `rows` holds 1 to 12 rows, each
+  `{stem, leaves, stemShow, leavesShow}`; `leaves` is single digits as typed ("2 3 3 4 5" or
+  "23345"). `key` is `{stem, leaf, represents, show}` and prints Key: 1 | 2 represents 12 points;
+  `show` is `show`, `hidden` (an empty Key: box for pupils, the key kept as the answer) or
+  `none`. `leafMm` (20 to 120) is the width of the leaves column. Without `stemleaf` a diagram
+  starts as three empty ruled rows and an empty key box, never made-up data.
+- **Pupil states:** a blank row is an empty ruled row. A row's stem and its leaves hide
+  separately and leave their space for pupils; answers copies print them in pink. A hidden key's
+  box is as wide as its answer, so both copies are the same size.
+- **Never calculated:** leaves print as typed and are never sorted (a note says when a row is
+  out of order, for "spot the mistake" questions); the tool never builds a diagram from raw data.
+- **Validation:** each leaf is one digit; stems are numbers or blank; a printed key needs its
+  stem, leaf and words; every row's leaves must fit the leaves column; the diagram fits 18 cm.
+- **Editor:** Stems and leaves (a row table with Hide Stem and Hide Leaves) and Key and size
+  cards replace the Data and axes cards. Clicking a row focuses its leaves; + and − beside the
+  diagram add or remove the last row.
+- **Examples:** November 2017 1F Q10 (read a printed diagram) and June 2025 1F Q18 (draw one:
+  the ordered diagram and key are saved as hidden answers).
+- **Not included:** back-to-back stem-and-leaf diagrams (none in the bank's papers).
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
@@ -218,8 +245,8 @@ Lines are normal or bold (the Lines control beside Chart height). Bold multiplie
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, time series graphs, comparative pie
-charts of different sizes and stem-and-leaf diagrams (stem-and-leaf diagrams are being added
-next, 16 Nov 2026). Each is a separate, reviewed extension or tool.
+charts of different sizes and back-to-back stem-and-leaf diagrams. Each is a separate,
+reviewed extension or tool.
 
 ## MCP connector
 

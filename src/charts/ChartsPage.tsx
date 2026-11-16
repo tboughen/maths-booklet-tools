@@ -69,6 +69,10 @@ import {
   MAX_CLASSES,
   type GroupedSettings,
   boxplotOf,
+  stemleafOf,
+  blankStemRow,
+  MAX_STEM_ROWS,
+  type StemleafSettings,
   blankBoxRow,
   MAX_BOX_ROWS,
   type BoxplotSettings,
@@ -92,6 +96,7 @@ import "./charts.css";
 import { DraftField } from "./DraftField";
 import { GroupedCards } from "./GroupedCards";
 import { BoxPlotCards } from "./BoxPlotCards";
+import { StemLeafCards } from "./StemLeafCards";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
@@ -452,7 +457,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     gr = groupedOf(d),
     boxplot = d.kind === "boxplot",
     bp = boxplotOf(d),
-    mark = boxplot ? "box plot" : pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : line ? "line" : "bar";
+    stemleaf = d.kind === "stemleaf",
+    sl = stemleafOf(d),
+    mark = stemleaf ? "row" : boxplot ? "box plot" : pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -497,6 +504,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       const next = structuredClone(boxplotOf(n));
       update(next);
       n.boxplot = next;
+    });
+  }
+  /** One undoable edit of the stem-and-leaf diagram. */
+  function patchStemleaf(update: (s: StemleafSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(stemleafOf(n));
+      update(next);
+      n.stemleaf = next;
     });
   }
   function undo() {
@@ -634,7 +649,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs and box plots."
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots and stem-and-leaf diagrams."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -764,6 +779,20 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   {g.targets.map((t) => {
                     const point = scatter ? sc.points[t.category] : null;
                     const klass = grouped ? gr.classes[t.category] : null;
+                    if (stemleaf) {
+                      const id = `ch-stem-leaves-${t.category}`;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          className={`ch-hit ${selected === id ? "ch-selected" : ""}`}
+                          aria-label={`Edit row ${t.category + 1}${sl.rows[t.category]?.stem.trim() ? `: stem ${sl.rows[t.category].stem.trim()}` : ""}`}
+                          disabled={blocked}
+                          style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
+                          onClick={() => focusField(id)}
+                        />
+                      );
+                    }
                     if (boxplot) {
                       const id = `ch-box-median-${t.category}`;
                       return (
@@ -830,7 +859,28 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                {boxplot ? (
+                {stemleaf ? (
+                <StructureStepper
+                  vertical
+                  name="Rows"
+                  caption=""
+                  add={{
+                    label: "Add a row at the end",
+                    title: "Add row",
+                    disabled: blocked || sl.rows.length >= MAX_STEM_ROWS,
+                    onClick: () => {
+                      patchStemleaf((s) => void s.rows.push(blankStemRow()));
+                      requestAnimationFrame(() => focusField(`ch-stem-stem-${sl.rows.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last row (row ${sl.rows.length})`,
+                    title: "Remove last row",
+                    disabled: blocked || sl.rows.length <= 1,
+                    onClick: () => patchStemleaf((s) => void s.rows.pop()),
+                  }}
+                />
+                ) : boxplot ? (
                 <StructureStepper
                   vertical
                   name="Box plots"
@@ -927,7 +977,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               status={message}
               hint={
                 <EditorHint tool="charts">
-                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter || grouped || boxplot ? mark : "bar, line or category label"} to edit its value. Enter
+                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter || grouped || boxplot || stemleaf ? mark : "bar, line or category label"} to edit its value. Enter
                   applies; Escape restores.
                 </EditorHint>
               }
@@ -972,7 +1022,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 ))}
               </div>
             </section>
-            {!scatter && !grouped && !boxplot && (
+            {!scatter && !grouped && !boxplot && !stemleaf && (
             <section className="panel-card ch-panel">
               <h2>Data</h2>
               <div className="ch-table-wrap">
@@ -1139,6 +1189,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
             </section>
             )}
+            {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} />}
             {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} />}
             {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} />}
             {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} />}

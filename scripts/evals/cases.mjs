@@ -166,6 +166,9 @@ export const CASES = [
   { name: 'chart-boxplot', tags: ['charts'], kind: 'charts',
     description: 'A box plot is drawn with the charts tool.',
     prompt: 'Draw a box plot for these test scores: minimum 12, lower quartile 25, median 31, upper quartile 38, maximum 47.' },
+  { name: 'chart-stemleaf', tags: ['charts'], kind: 'charts',
+    description: 'A stem-and-leaf diagram is drawn with the charts tool.',
+    prompt: 'Make a stem-and-leaf diagram of these ages for pupils to read: 23, 27, 31, 34, 34, 38, 42, 45, 51. Key 2 | 3 represents 23 years.' },
 ];
 
 function frontmatter(fields) {

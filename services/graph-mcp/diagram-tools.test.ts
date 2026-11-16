@@ -89,7 +89,7 @@ describe("generic connector tools", () => {
     // M89: every family names the lessons it serves, and the list says what none draws.
     for (const f of listed.families) expect(f.topics.length, f.kind).toBeGreaterThan(0);
     expect(listed.families.find((f) => f.kind === "number-line")!.topics).toContain("inequalities on a number line");
-    expect(listed.notDrawn).toContain("stem-and-leaf diagrams");
+    expect(listed.notDrawn).toContain("back-to-back stem-and-leaf diagrams");
     for (const kind of DIAGRAM_KINDS) {
       const r = await client.callTool({ name: "diagram_capabilities", arguments: { kind } });
       expect(r.isError, kind).not.toBe(true);

@@ -1,4 +1,4 @@
-import { create, validate, GROUPED_DEFAULTS, type BoxRow, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
+import { create, validate, GROUPED_DEFAULTS, type BoxRow, type StemRow, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
 
 type Data = { name: string; fill: Fill; values: string[]; hidden?: number[] };
 function chart(
@@ -57,6 +57,11 @@ function box(label: string, values: [string, string, string, string, string], hi
   const show = hidden ? ("hidden" as const) : ("show" as const);
   const [min, lq, median, uq, max] = values.map((value) => ({ value, show }));
   return { label, min, lq, median, uq, max };
+}
+
+function stems(rows: [string, string][], hidden: boolean): StemRow[] {
+  const show = hidden ? ("hidden" as const) : ("show" as const);
+  return rows.map(([stem, leaves]) => ({ stem, leaves, stemShow: show, leavesShow: show }));
 }
 
 /** Editable starting points. Source examples name the question they adapt;
@@ -368,6 +373,40 @@ export const examples: {
         axis: { min: "130", max: "180", step: "10", stepMm: 20, title: "height (cm)" },
         bandMm: 30,
         line: "arrow",
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "stemleaf-scores",
+    title: "November 2017 1F Q10: read a stem-and-leaf diagram",
+    note: "Jake's scores in 20 games, printed as in the paper, with its key.",
+    sourceId: "1MA1_NOV_2017_1F_Q10",
+    worked: false,
+    make: () => {
+      const e = create();
+      e.document.kind = "stemleaf";
+      e.document.stemleaf = {
+        rows: stems([["0", "9"], ["1", "2 3 3 4 5"], ["2", "5 6 6 6 6 7"], ["3", "1 3 4 6 8"], ["4", "0 2 9"]], false),
+        key: { stem: "1", leaf: "2", represents: "12 points", show: "show" },
+        leafMm: 52,
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "stemleaf-heights",
+    title: "June 2025 1F Q18: draw a stem-and-leaf diagram",
+    note: "Heights of 12 children. The ordered diagram (13 | 5 7 8, 14 | 2 4 6 6 7 9, 15 | 0 2 4) and its key are saved as hidden answers: pupils see three ruled rows and an empty key box.",
+    sourceId: "1MA1_JUN_2025_1F_Q18",
+    worked: true,
+    make: (worked) => {
+      const e = create();
+      e.document.kind = "stemleaf";
+      e.document.stemleaf = {
+        rows: stems([["13", "5 7 8"], ["14", "2 4 6 6 7 9"], ["15", "0 2 4"]], !worked),
+        key: { stem: "13", leaf: "5", represents: "135 cm", show: worked ? "show" : "hidden" },
+        leafMm: 50,
       };
       return validate(e);
     },

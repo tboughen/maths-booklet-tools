@@ -328,3 +328,34 @@ test("box plots: values edit from the plot, hidden values stay answers and an em
   expect(doc.boxplot.rows[2].min).toEqual({ value: "", show: "show" });
   expect(doc.boxplot.line).toBe("line");
 });
+
+test("stem-and-leaf diagrams: rows edit from the diagram, hidden leaves and an empty key box stay answers", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "stemleaf-heights")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const ink = (colour: string) => art.locator(`text[fill='${colour}']`);
+  // Pupils see three empty ruled rows and an empty key box.
+  await expect(ink("black")).toHaveText(["Key:"]);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(ink("#b0125b")).toHaveCount(3 + 12 + 2);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A row opens its leaves; a two-digit leaf is a specific error that blocks export.
+  await page.getByRole("button", { name: "Edit row 2: stem 14" }).click();
+  const leaves = page.getByLabel("Row 2 leaves");
+  await expect(leaves).toBeFocused();
+  await leaves.fill("2 4 66 7 9");
+  await leaves.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Row 2: each leaf is one digit, 0 to 9." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(leaves).toHaveValue("2 4 6 6 7 9");
+  // Show all prints the diagram and the key.
+  await page.getByRole("button", { name: "Show all" }).click();
+  await expect(ink("black")).toHaveCount(3 + 12 + 3);
+  await page.getByRole("button", { name: "Add a row at the end" }).click();
+  await expect(page.getByLabel("Row 4 stem")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  const doc = (await saved(page)).document;
+  expect(doc.stemleaf.rows).toHaveLength(4);
+  expect(doc.stemleaf.rows[1]).toEqual({ stem: "14", leaves: "2 4 6 6 7 9", stemShow: "show", leavesShow: "show" });
+  expect(doc.stemleaf.key.show).toBe("show");
+});

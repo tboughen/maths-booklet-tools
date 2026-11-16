@@ -842,6 +842,34 @@
    "png600": "3907x3243",
    "pixels": "12683f5f6b01c105"
   },
+  "charts: chart-stemleaf-heights": {
+   "json": "f3999d4fd6bcf09a",
+   "svg": "5572c253f092c2a0",
+   "mm": "132x34",
+   "png600": "3118x803",
+   "pixels": "74fdd6336aea4bee"
+  },
+  "charts: chart-stemleaf-heights (worked)": {
+   "json": "8e93f45bd3380c8a",
+   "svg": "7df1b3bd9460c436",
+   "mm": "132x34",
+   "png600": "3118x803",
+   "pixels": "149b5a91f0286c99"
+  },
+  "charts: chart-stemleaf-scores": {
+   "json": "88c0bbbb46d2a5cb",
+   "svg": "688423c5d129587f",
+   "mm": "135x54",
+   "png600": "3189x1276",
+   "pixels": "c813ba11d2dd8ce1"
+  },
+  "charts: chart-stemleaf-scores (worked)": {
+   "json": "88c0bbbb46d2a5cb",
+   "svg": "688423c5d129587f",
+   "mm": "135x54",
+   "png600": "3189x1276",
+   "pixels": "c813ba11d2dd8ce1"
+  },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
    "svg": "fff25f4f64245caf",
