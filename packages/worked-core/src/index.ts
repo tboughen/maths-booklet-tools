@@ -647,15 +647,21 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         }
         case "bubbles": {
           if (!last) { issues.push({ surface: part.on, message: `Step ${k}: bubbles need an equation or inequality line above them.` }); break; }
-          const radius = (t: string) => Math.max(15, handWidth(mathsText(t), 10.5) / 2 + 7);
-          const bubble = (cx: number, rx: number, t: string) => `<ellipse cx="${n(cx)}" cy="${n(cy)}" rx="${n(rx)}" ry="9.5" fill="none" stroke="${INK}" stroke-width="0.9"/><text x="${n(cx)}" y="${n(cy + 3.8)}" font-size="10.5" fill="${INK}" text-anchor="middle">${esc(mathsText(t))}</text>`;
+          // Bubble text is laid out like the working (stacked fractions, powers); a fraction makes both bubbles taller.
+          const tall = hasFraction(mathsText(step.lhs)) || hasFraction(mathsText(step.rhs));
+          const ry = tall ? 15 : 9.5, row = tall ? BUBBLE_ROW + 12 : BUBBLE_ROW;
+          const radius = (t: string) => Math.max(15, mathsWidth(mathsText(t), 10.5) / 2 + 7);
+          const bubble = (cx: number, rx: number, t: string) => {
+            const m = mathsText(t), w = mathsWidth(m, 10.5);
+            return `<ellipse cx="${n(cx)}" cy="${n(cy)}" rx="${n(rx)}" ry="${ry}" fill="none" stroke="${INK}" stroke-width="0.9"/>` + maths(m, cx - w / 2, cy + 3.8, 10.5);
+          };
           const lr = radius(step.lhs), rr = radius(step.rhs);
           // Each bubble sits under its term; short sides would make them touch, so the right one moves over.
           const lx = Math.max(a.x + lr, last.lhsCentre), rx = Math.max(last.rhsCentre, lx + lr + rr + 8);
           clearFor(rx + rr);
-          const cy = cursor + BUBBLE_ROW / 2;
-          work(k, bubble(lx, lr, step.lhs) + bubble(rx, rr, step.rhs), { x: lx - lr, y: cy - 9.5, width: rx + rr - (lx - lr), height: 19 });
-          cursor += BUBBLE_ROW;
+          const cy = cursor + row / 2;
+          work(k, bubble(lx, lr, step.lhs) + bubble(rx, rr, step.rhs), { x: lx - lr, y: cy - ry, width: rx + rr - (lx - lr), height: ry * 2 });
+          cursor += row;
           break;
         }
         case "diagram": {
