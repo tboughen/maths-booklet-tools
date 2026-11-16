@@ -4722,6 +4722,11 @@
                       "time"
                     ]
                   },
+                  "name": {
+                    "description": "Italic letter at the arrow, such as t.",
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]$"
+                  },
                   "title": {
                     "description": "Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y.",
                     "type": "string",
@@ -4771,6 +4776,11 @@
                       "number",
                       "time"
                     ]
+                  },
+                  "name": {
+                    "description": "Italic letter at the arrow, such as t.",
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]$"
                   },
                   "title": {
                     "description": "Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y.",
@@ -5234,6 +5244,142 @@
                     "inequalities",
                     "shade",
                     "boundaries"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "const": "curve"
+                    },
+                    "points": {
+                      "minItems": 2,
+                      "maxItems": 40,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "number",
+                            "minimum": -1000000,
+                            "maximum": 1000000
+                          },
+                          "y": {
+                            "type": "number",
+                            "minimum": -1000000,
+                            "maximum": 1000000
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "smooth": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "strokeStyle": {
+                      "type": "string",
+                      "const": "dashed"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Z]′?[0-9]{0,2}$"
+                    },
+                    "namePosition": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "points"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "const": "reading"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "read": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "y",
+                        "both"
+                      ]
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "at",
+                    "read"
                   ],
                   "additionalProperties": false
                 }

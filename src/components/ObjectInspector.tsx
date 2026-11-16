@@ -1,5 +1,7 @@
 import { GraphDraftField } from "./GraphDraftField";
 import { TransformFields } from "./TransformFields";
+import { curveProblem } from "../../packages/graph-core/src/curve";
+import { MAX_CURVE_POINTS } from "../../packages/graph-core/src/interchange";
 import { makeId } from "../domain/diagram";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
@@ -129,6 +131,20 @@ const vertexValue = (text: string) => {
   const [top, bottom] = text.split("/");
   return bottom === undefined ? Number(top) : Number(top) / Number(bottom);
 };
+/** Reads a curve's points, typed like shape corners: 2 to 40 of them. */
+function parseCurvePoints(text: string): Coordinate[] {
+  const cleaned = text.replaceAll("−", "-");
+  const pair = String.raw`\(\s*(${VERTEX_NUMBER})\s*,\s*(${VERTEX_NUMBER})\s*\)`;
+  const pairs = [...cleaned.matchAll(new RegExp(pair, "g"))];
+  const leftover = cleaned.replace(new RegExp(pair, "g"), "").replace(/[\s,;]/g, "");
+  if (leftover) throw Error("Type each point in brackets, such as (0, 0) (5, 0.6) (10, 0.6).");
+  if (pairs.length < 2 || pairs.length > MAX_CURVE_POINTS) throw Error(`A graph needs 2 to ${MAX_CURVE_POINTS} points.`);
+  if (pairs.some((m) => [m[1], m[2]].some((v) => v.endsWith("/0")))) throw Error("A fraction can't have 0 below the line.");
+  const points = pairs.map((m) => ({ x: vertexValue(m[1]), y: vertexValue(m[2]) }));
+  const problem = curveProblem(points);
+  if (problem) throw Error(`This graph can't be drawn: ${problem}`);
+  return points;
+}
 function parseVertices(text: string): Coordinate[] {
   const cleaned = text.replaceAll("−", "-");
   const pair = String.raw`\(\s*(${VERTEX_NUMBER})\s*,\s*(${VERTEX_NUMBER})\s*\)`;
@@ -158,7 +174,7 @@ function NameAndAnswer({
   drafts: GraphDrafts;
   disabled?: boolean;
 }) {
-  const kind = object.kind === "point" ? "point" : object.kind === "polygon" ? "shape" : object.kind === "region" ? "region" : "line";
+  const kind = object.kind === "point" ? "point" : object.kind === "polygon" ? "shape" : object.kind === "region" ? "region" : object.kind === "curve" ? "graph" : "line";
   return (
     <div className="object-name-fields">
       <GraphDraftField
@@ -166,7 +182,7 @@ function NameAndAnswer({
         label={kind === "shape" || kind === "region" ? `Name printed in the ${kind}` : `Name printed beside the ${kind}`}
         displayLabel="Name"
         inputMode="text"
-        hint={kind === "line" ? "For example L, L1 or L2" : kind === "region" ? "For example R" : "For example A, B or P′"}
+        hint={kind === "line" ? "For example L, L1 or L2" : kind === "region" ? "For example R" : kind === "graph" ? "For example C" : "For example A, B or P′"}
         value={object.name ?? ""}
         drafts={drafts}
         disabled={disabled}
@@ -503,6 +519,96 @@ export function ObjectInspector({
       </section>
     );
   }
+  if (object.kind === "curve")
+    return (
+      <section className="panel-card selection-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">SELECTED OBJECT</p>
+            <h2>{object.smooth ? "Curve through points" : "Graph through points"}</h2>
+          </div>
+        </div>
+        <GraphDraftField
+          id={object.id + "-points"}
+          label="Graph points"
+          displayLabel="Points"
+          inputMode="text"
+          hint="In order, such as (0, 0) (5, 0.6) (10, 0.6)"
+          value={formatVertices(object.points)}
+          drafts={drafts}
+          disabled={disabled}
+          onApplyText={(text) => onUpdate({ ...object, points: parseCurvePoints(text) })}
+        />
+        <div className="segmented" role="group" aria-label="Join the points">
+          <button disabled={disabled || drafts.pending} className={!object.smooth ? "active" : ""} aria-pressed={!object.smooth} onClick={() => { const next = { ...object }; delete next.smooth; onUpdate(next); }}>
+            Straight pieces
+          </button>
+          <button disabled={disabled || drafts.pending} className={object.smooth ? "active" : ""} aria-pressed={!!object.smooth} onClick={() => onUpdate({ ...object, smooth: true })}>
+            Smooth curve
+          </button>
+        </div>
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            disabled={disabled || drafts.pending}
+            checked={object.strokeStyle === "dashed"}
+            onChange={(event) => {
+              const next = { ...object };
+              if (event.target.checked) next.strokeStyle = "dashed";
+              else delete next.strokeStyle;
+              onUpdate(next);
+            }}
+          />{" "}
+          Dashed
+        </label>
+        <NameAndAnswer object={object} onUpdate={onUpdate} drafts={drafts} disabled={disabled} />
+        <p className="panel-note">Arrow keys move the whole graph.</p>
+        <button disabled={disabled || drafts.pending} className="danger-button" onClick={onDelete}>
+          <Trash2 size={16} />
+          Delete graph
+        </button>
+      </section>
+    );
+  if (object.kind === "reading")
+    return (
+      <section className="panel-card selection-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">SELECTED OBJECT</p>
+            <h2>Reading lines</h2>
+          </div>
+        </div>
+        <CoordinateFields drafts={drafts} objectId={object.id} disabled={disabled} prefix="At" value={object.at} onChange={(at) => onUpdate({ ...object, at })} />
+        <div className="line-style-field">
+          <span>Read off</span>
+          <div className="segmented" role="group" aria-label="Read off">
+            {([["y", "y value"], ["x", "x value"], ["both", "Both"]] as const).map(([value, label]) => (
+              <button key={value} disabled={disabled || drafts.pending} className={object.read === value ? "active" : ""} aria-pressed={object.read === value} onClick={() => onUpdate({ ...object, read: value })}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          disabled={disabled || drafts.pending}
+          className={`visibility-button${object.answerOnly ? " active" : ""}`}
+          aria-pressed={!!object.answerOnly}
+          onClick={() => {
+            const next = { ...object };
+            if (object.answerOnly) delete next.answerOnly;
+            else next.answerOnly = true;
+            onUpdate(next);
+          }}
+        >
+          {object.answerOnly ? <EyeOff size={16} /> : <Eye size={16} />}
+          <span>{object.answerOnly ? "Answer only: hidden on the pupil copy" : "On the pupil copy"}</span>
+        </button>
+        <button disabled={disabled || drafts.pending} className="danger-button" onClick={onDelete}>
+          <Trash2 size={16} />
+          Delete reading lines
+        </button>
+      </section>
+    );
   if (object.kind === "region")
     return (
       <RegionFields

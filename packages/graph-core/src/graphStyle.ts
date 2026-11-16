@@ -74,3 +74,19 @@ export function axisNameYGapCentimetres(document: DiagramDocumentV1): number {
 export const VECTOR_ARROWHEAD_POINTS = { length: 7, halfWidth: 3 } as const;
 export const READING_ARROWHEAD_POINTS = { length: 6, halfWidth: 2.6 } as const;
 export const WORKING_DASH_POINTS = [4, 3] as const;
+
+/** A letter in Unicode mathematical italic, as axis letters print (x → 𝑥, t → 𝑡; h is ℎ). */
+export function mathsItalic(letter: string): string {
+  if (letter === "h") return "ℎ";
+  const code = letter.charCodeAt(0);
+  if (code >= 97 && code <= 122) return String.fromCodePoint(0x1d44e + code - 97);
+  if (code >= 65 && code <= 90) return String.fromCodePoint(0x1d434 + code - 65);
+  return letter;
+}
+
+/** The italic letter at an axis arrow: its own name, else x or y, or none when a title replaces it. */
+export function axisLetter(axis: "x" | "y", config: { title?: string; name?: string }): string | null {
+  if (config.name) return mathsItalic(config.name);
+  if (config.title) return null;
+  return axis === "x" ? AXIS_X_NAME : AXIS_Y_NAME;
+}
