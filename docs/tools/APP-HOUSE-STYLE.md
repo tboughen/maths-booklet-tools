@@ -103,17 +103,20 @@ On a tall window, such as a portrait monitor (at least 1,000 px wide and 1,200 p
 wider than four fifths of its height), the settings go underneath the work so that the diagram
 keeps the full width:
 
-- The card with the diagram takes at least five eighths of the height, and all of what the
-  settings leave.
+- The card with the diagram takes two thirds of the height, whatever the settings hold, so
+  nothing done in the settings resizes the diagram.
 - The settings sit under it in three columns, each read from top to bottom. A settings card is
-  never split between two columns.
-- Settings longer than the room left scroll underneath the card. The card stays where it is, so
-  the diagram is in view while a setting changes.
+  never split between two columns. The browser balances the columns, so a card can change column
+  when another grows.
+- Settings longer than the last third scroll underneath the card. The card stays where it is, so
+  the diagram is in view while a setting changes. The scroll bar sits at the window's edge and
+  takes no width from the diagram.
 - The action bar has the whole width, so it keeps its words for longer (see The action bar).
 
 A tool needs nothing of its own for this. Its settings cards must be direct children of
 `.inspector-stack`. The Graph tool and Ratio tables keep theirs inside groups that have no box of
-their own, and `editor-frame.css` names those two groups.
+their own, and `editor-frame.css` names those two groups. Script that scrolls the settings must
+scroll `.workspace` as well, because that is what scrolls on a tall window.
 
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
@@ -181,7 +184,7 @@ then Copy image, Copy for Word, **Download** and **File**.
   with an answers switch. Then the copy, Download and File buttons show their words only: up to
   1,180 px, and up to 1,365 px in a tool with an answers switch. On a tall window, where the bar
   has the whole width, only a tool with an answers switch gives up room: icons only up to
-  1,187 px wide, words only up to 1,052 px.
+  1,172 px wide, words only up to 1,037 px.
 - On a phone the four buttons at the right sit two by two.
 
 ## The answers switch
