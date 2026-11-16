@@ -4,6 +4,8 @@ import {
   STEP_MM,
   groupedTableChoices,
   groupedTableNames,
+  polygonPlotChoices,
+  polygonPlotNames,
   type GroupedKind,
   type GroupedSettings,
   type PaperAxis,
@@ -79,6 +81,7 @@ export function GroupedCards({
     </fieldset>
   );
   const hideWhat = kind === "histogram" ? "bar" : kind === "polygon" ? "point" : "part of the curve";
+  const two = kind === "polygon" && g.polygon.second;
   return (
     <>
       <section className="panel-card ch-panel">
@@ -90,7 +93,8 @@ export function GroupedCards({
                 <th scope="col" aria-label="Class">#</th>
                 <th scope="col">From</th>
                 <th scope="col">To</th>
-                <th scope="col">Frequency</th>
+                <th scope="col">{two ? g.polygon.names[0].trim() || "First frequency" : "Frequency"}</th>
+                {two && <th scope="col">{g.polygon.names[1].trim() || "Second frequency"}</th>}
                 <th scope="col">Hide</th>
               </tr>
             </thead>
@@ -113,6 +117,21 @@ export function GroupedCards({
                       />
                     </td>
                   ))}
+                  {two && (
+                    <td>
+                      <DraftField
+                        id={`ch-class-frequency2-${i}`}
+                        className={selected === `ch-class-frequency2-${i}` ? "ch-field-selected" : ""}
+                        label={`Class ${i + 1} second frequency`}
+                        value={c.frequency2}
+                        maxLength={12}
+                        inputMode="decimal"
+                        disabled={blocked}
+                        invalid={bad(`Class ${i + 1}:`)}
+                        onCommit={(v) => onChange((s) => void (s.classes[i].frequency2 = v))}
+                      />
+                    </td>
+                  )}
                   <td className="ch-class-hide">
                     <label className="ch-hide">
                       <input
@@ -132,8 +151,20 @@ export function GroupedCards({
                         disabled={blocked}
                         onChange={(ev) => onChange((s) => void (s.classes[i].graph = ev.target.checked ? "hidden" : "show"))}
                       />
-                      Graph
+                      {two ? "First" : "Graph"}
                     </label>
+                    {two && (
+                      <label className="ch-hide">
+                        <input
+                          type="checkbox"
+                          aria-label={`Hide the second point for class ${i + 1} for pupils`}
+                          checked={c.graph2 === "hidden"}
+                          disabled={blocked}
+                          onChange={(ev) => onChange((s) => void (s.classes[i].graph2 = ev.target.checked ? "hidden" : "show"))}
+                        />
+                        Second
+                      </label>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -145,7 +176,7 @@ export function GroupedCards({
           the cell for pupils to complete; hide Graph leaves the {hideWhat} for pupils to draw. Use +
           and − beside the graph to add or remove the last class.
           {kind === "histogram" && " Bars are drawn at frequency ÷ class width."}
-          {kind === "polygon" && " Points are plotted at the middle of each class."}
+          {kind === "polygon" && " Points are plotted at the middle of each class, unless you choose a mistake below."}
           {kind === "cumulative" && " Points are plotted at the upper end of each class."}
         </p>
         <div className="ch-fields">
@@ -172,15 +203,15 @@ export function GroupedCards({
           </label>
         </div>
         <div className="ch-row">
-          <button type="button" disabled={blocked} onClick={() => onChange((s) => s.classes.forEach((c) => (c.graph = "hidden")))}>
+          <button type="button" disabled={blocked} onClick={() => onChange((s) => s.classes.forEach((c) => (c.graph = c.graph2 = "hidden")))}>
             Hide the whole graph (pupils draw)
           </button>
           <button
             type="button"
-            disabled={blocked || !(g.classes.some((c) => c.graph === "hidden" || c.table === "hidden") || g.cumulative.readings.some((r) => r.show === "hidden"))}
+            disabled={blocked || !(g.classes.some((c) => c.graph === "hidden" || c.graph2 === "hidden" || c.table === "hidden") || g.cumulative.readings.some((r) => r.show === "hidden"))}
             onClick={() =>
               onChange((s) => {
-                s.classes.forEach((c) => (c.graph = c.table = "show"));
+                s.classes.forEach((c) => (c.graph = c.graph2 = c.table = "show"));
                 s.cumulative.readings.forEach((r) => (r.show = "show"));
               })
             }
@@ -232,6 +263,51 @@ export function GroupedCards({
           </div>
         )}
       </section>
+      {kind === "polygon" && (
+        <section className="panel-card ch-panel">
+          <h2>Polygons and mistakes</h2>
+          <div className="ch-fields">
+            <label className="ch-check">
+              <input type="checkbox" checked={g.polygon.second} disabled={blocked} onChange={(ev) => onChange((s) => void (s.polygon.second = ev.target.checked))} />
+              Two frequency polygons, with a key
+            </label>
+            {g.polygon.second &&
+              ([0, 1] as const).map((k) => (
+                <label key={k}>
+                  {k ? "Second name (dashed)" : "First name"}
+                  <DraftField
+                    label={k ? "Second polygon name" : "First polygon name"}
+                    value={g.polygon.names[k]}
+                    maxLength={24}
+                    disabled={blocked}
+                    invalid={bad("Name both")}
+                    onCommit={(v) => onChange((s) => void (s.polygon.names[k] = v))}
+                  />
+                </label>
+              ))}
+          </div>
+          <div className="ch-fields">
+            <label>
+              Plot at
+              <select aria-label="Plot points at" value={g.polygon.plotAt} disabled={blocked} onChange={(ev) => onChange((s) => void (s.polygon.plotAt = ev.target.value as GroupedSettings["polygon"]["plotAt"]))}>
+                {polygonPlotChoices.map((x) => (
+                  <option key={x} value={x}>
+                    {polygonPlotNames[x]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="ch-check">
+              <input type="checkbox" checked={g.polygon.close} disabled={blocked} onChange={(ev) => onChange((s) => void (s.polygon.close = ev.target.checked))} />
+              Join the last point to the first (mistake)
+            </label>
+          </div>
+          <p className="ch-note">
+            For &quot;identify the mistakes&quot; questions, plot at a class bound or close the polygon.
+            The second polygon is drawn dashed and both are named in a key beside the graph.
+          </p>
+        </section>
+      )}
       {kind === "cumulative" && (
         <section className="panel-card ch-panel">
           <h2>Readings</h2>

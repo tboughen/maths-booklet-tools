@@ -14,7 +14,7 @@ export { boxplotLayout } from "./boxplot";
 export { timeseriesLayout } from "./timeseries";
 export { stemleafLayout } from "./stemleaf";
 export { scatterLayout } from "./scatter";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, MAX_CLASSES, MAX_BOX_ROWS, MAX_STEM_ROWS, MAX_TIMES, timeseriesSchema, stemKeyComplete, boxValueNames, boxplotSchema, stemleafSchema, groupedSchema, markGraphRevealed, markTableRevealed, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, MAX_CLASSES, MAX_BOX_ROWS, MAX_STEM_ROWS, MAX_TIMES, timeseriesSchema, stemKeyComplete, boxValueNames, boxplotSchema, stemleafSchema, groupedSchema, markGraphRevealed, markGraph2Revealed, markTableRevealed, markLabelRevealed, markValue2Revealed, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
 export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
@@ -255,7 +255,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
     for (const c of gr.classes) {
       if (c.graph === "hidden" && mark && c.frequency.trim()) markGraphRevealed(c);
       if (c.table === "hidden" && mark && c.frequency.trim()) markTableRevealed(c);
-      c.graph = c.table = "show";
+      if (c.graph2 === "hidden" && mark && c.frequency2.trim()) markGraph2Revealed(c);
+      c.graph = c.table = c.graph2 = "show";
     }
     for (const r of gr.cumulative.readings) {
       if (r.show === "hidden" && mark) markRevealed(r);
@@ -273,7 +274,9 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   if (ts)
     for (const p of ts.points) {
       if (mark && p.show === "hidden" && p.value.trim()) markRevealed(p);
-      p.show = "show";
+      if (mark && ts.second && p.show2 === "hidden" && p.value2.trim()) markValue2Revealed(p);
+      if (mark && p.labelShow === "hidden" && p.label.trim()) markLabelRevealed(p);
+      p.show = p.show2 = p.labelShow = "show";
     }
   const sl = n.document.kind === "stemleaf" ? n.document.stemleaf : undefined;
   if (sl) {
@@ -691,7 +694,7 @@ export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   const gr = groupedKind(n2.document.kind) ? n2.document.grouped : undefined;
   if (gr) {
     for (const c of gr.classes) {
-      c.graph = show;
+      c.graph = c.graph2 = show;
       if (show === "show") c.table = "show";
     }
     if (show === "show") for (const r of gr.cumulative.readings) r.show = "show";
@@ -701,7 +704,12 @@ export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   if (bp) for (const r of bp.rows) for (const k of boxValueNames) r[k].show = show;
   // Time series: hide every value (pupils plot the graph) or show them all.
   const ts = n2.document.kind === "timeseries" ? n2.document.timeseries : undefined;
-  if (ts) for (const p of ts.points) p.show = show;
+  if (ts)
+    for (const p of ts.points) {
+      p.show = p.show2 = show;
+      // Show all also shows hidden labels; hiding every value leaves the labels as they are.
+      if (show === "show") p.labelShow = "show";
+    }
   // Stem-and-leaf diagrams: hide every stem and leaf (pupils complete the diagram); show all also shows the key.
   const sl = n2.document.kind === "stemleaf" ? n2.document.stemleaf : undefined;
   if (sl) {

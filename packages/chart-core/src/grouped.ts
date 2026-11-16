@@ -7,6 +7,7 @@ import {
   esc,
   formatNumber,
   graphRevealed,
+  graph2Revealed,
   groupedOf,
   n,
   readNumber,
@@ -41,6 +42,29 @@ const CROSS = 1.1;
 const ROW_H = 7.6;
 const TABLE_GAP = 6;
 export const LINE = FONT * 1.15;
+
+/** The second line of a pair (a second frequency polygon or time series) is dashed, so the two read apart in black and white. */
+export const DASH = "2.2 1.2";
+/** A 1 pt cross, as the papers plot points. */
+export const cross = (x: number, y: number, colour: string) =>
+  `<path d="M${n(x - CROSS)},${n(y - CROSS)}l${n(2 * CROSS)},${n(2 * CROSS)}M${n(x - CROSS)},${n(y + CROSS)}l${n(2 * CROSS)},${n(-2 * CROSS)}" stroke="${colour}" stroke-width="${n(POLYGON_W)}" fill="none"/>`;
+export type LineKey = { x: number; y: number; width: number; height: number; names: string[] };
+const KEY_SAMPLE = 10,
+  KEY_ROW = FONT * 1.8;
+/** A key for two lines beside a graph: a solid and a dashed sample, each with a cross, and the names. */
+export function lineKey(names: string[], x: number, y: number): LineKey {
+  const width = KEY_SAMPLE + 3 + Math.max(...names.map((t) => runWidth([{ t: t.trim(), italic: false }])));
+  return { x, y, width, height: 2 * KEY_ROW, names };
+}
+export function keySvg(k: LineKey): string {
+  return k.names
+    .map((name, i) => {
+      const cy = k.y + KEY_ROW * (i + 0.5);
+      const line = `<path d="M${n(k.x)},${n(cy)}h${n(KEY_SAMPLE)}" stroke="black" stroke-width="${n(POLYGON_W)}"${i ? ` stroke-dasharray="${DASH}"` : ""} fill="none"/>`;
+      return line + cross(k.x + KEY_SAMPLE / 2, cy, "black") + richText([{ t: name.trim(), italic: false }], k.x + KEY_SAMPLE + 3, cy + FONT * 0.33, "start");
+    })
+    .join("");
+}
 
 export const groupedKind = (kind: string): kind is GroupedKind => kind === "histogram" || kind === "polygon" || kind === "cumulative";
 
@@ -303,6 +327,9 @@ export function groupedLayout(e: Envelope) {
   // Polygon and cumulative points, with the line or curve parts that belong to each class.
   const points: { index: number; x: number; y: number; drawn: boolean; revealed: boolean }[] = [];
   let curve: { path: string; index: number; drawn: boolean; revealed: boolean }[] = [];
+  // The second frequency polygon, when there is one.
+  const points2: typeof points = [];
+  let curve2: typeof curve = [];
   const readings: GroupedReading[] = [];
   const targets: Target[] = [];
   if (ok) {
@@ -319,6 +346,62 @@ export function groupedLayout(e: Envelope) {
         targets.push({ series: 0, category: c.index, x: X(c.lo), y: Math.min(top, Y(ys.lo) - 4), width: X(c.hi) - X(c.lo), height: Math.max(Y(ys.lo) - top, 4) });
       }
       if (ys.lo !== 0) issues.push("A histogram's vertical axis starts at 0. Change the vertical axis start to 0.");
+    } else if (kind === "polygon") {
+      const pg = g.polygon,
+        sets = pg.second ? [0, 1] : [0];
+      for (const set of sets) {
+        const plotted: { index: number; x: number; y: number; drawn: boolean; revealed: boolean }[] = [];
+        for (const c of classes) {
+          if (!c.valid) continue;
+          let f = c.f;
+          if (set === 1) {
+            const text = c.cell.frequency2.trim();
+            f = text ? readNumber(text) : null;
+            if (text && (f === null || f < 0)) {
+              issues.push(`Class ${c.index + 1}: enter a number of 0 or more for the second frequency, or leave it blank.`);
+              continue;
+            }
+          }
+          if (f === null) continue;
+          if (!inY(f)) {
+            issues.push(`Class ${c.index + 1}: the ${set ? "second " : ""}frequency ${formatNumber(f)} is outside the vertical axis.`);
+            continue;
+          }
+          // Midpoints as they should be; a bound only as a mistake for pupils to spot.
+          const px = pg.plotAt === "lower" ? c.lo : pg.plotAt === "upper" ? c.hi : (c.lo + c.hi) / 2;
+          const drawn = (set ? c.cell.graph2 : c.cell.graph) === "show",
+            shown = set ? graph2Revealed(c.cell) : graphRevealed(c.cell);
+          plotted.push({ index: c.index, x: X(px), y: Y(f), drawn, revealed: shown });
+        }
+        if (issues.some((x) => x.includes("must not overlap"))) plotted.splice(1);
+        for (const q of plotted) {
+          (set ? points2 : points).push(q);
+          targets.push({ series: set, category: q.index, x: q.x - 2.5, y: q.y - 2.5, width: 5, height: 5 });
+        }
+        // A part prints only when both of its points print, so it never gives away a hidden point.
+        // The line breaks at a class with no frequency rather than joining across it.
+        const parts: typeof curve = [];
+        plotted.slice(1).forEach((q, j) => {
+          const a = plotted[j];
+          if (q.index !== a.index + 1) {
+            if (classes.slice(a.index + 1, q.index).some((x) => x.valid && (set ? !x.cell.frequency2.trim() : x.f === null)))
+              notes.push(`The ${set ? "second " : ""}frequency polygon is broken between class ${a.index + 1} and class ${q.index + 1}, where a frequency is blank.`);
+            return;
+          }
+          parts.push({ path: `M${n(a.x)},${n(a.y)}L${n(q.x)},${n(q.y)}`, index: q.index, drawn: q.drawn && a.drawn, revealed: q.revealed || a.revealed });
+        });
+        const first = plotted[0],
+          last = plotted[plotted.length - 1];
+        if (pg.close && plotted.length > 2)
+          parts.push({ path: `M${n(last.x)},${n(last.y)}L${n(first.x)},${n(first.y)}`, index: first.index, drawn: first.drawn && last.drawn, revealed: first.revealed || last.revealed });
+        if (set) curve2 = parts;
+        else curve = parts;
+        if (plotted.length === 1) notes.push(`A frequency polygon needs at least two classes with frequencies to draw a line.`);
+      }
+      if (pg.plotAt !== "midpoint") notes.push(`The points are plotted at the ${pg.plotAt} class bounds, not the midpoints: a mistake for pupils to find.`);
+      if (pg.close) notes.push("The last point is joined to the first: a mistake for pupils to find.");
+      if (pg.second && !(pg.names[0].trim() && pg.names[1].trim())) issues.push("Name both frequency polygons for the key.");
+      if (pg.second && g.table !== "none") issues.push("A table shows one set of frequencies. Choose no table for two frequency polygons.");
     } else {
       const cumulative = kind === "cumulative";
       const plotted: { index: number; p: Point; drawn: boolean; revealed: boolean }[] = [];
@@ -415,13 +498,14 @@ export function groupedLayout(e: Envelope) {
   const xLabelY = y0 + H + 1.5 + FONT * 0.8,
     xTitleY = xLabelY + (xTitle.length ? FONT * 1.7 : 0);
   const lastLabel = runWidth([{ t: formatNumber(xs.ticks[xs.ticks.length - 1] ?? 0), italic: false }]) / 2;
-  const right = Math.max(x0 + W + ARROW + 1.5, X(xs.ticks[xs.ticks.length - 1] ?? 0) + lastLabel, x0 + W / 2 + xTitleWidth / 2, table ? table.x + table.widths[0] + table.widths[1] : 0);
+  const key = kind === "polygon" && g.polygon.second ? lineKey(g.polygon.names, x0 + W + ARROW + 5, y0) : null;
+  const right = Math.max(x0 + W + ARROW + 1.5, key ? key.x + key.width : 0, X(xs.ticks[xs.ticks.length - 1] ?? 0) + lastLabel, x0 + W / 2 + xTitleWidth / 2, table ? table.x + table.widths[0] + table.widths[1] : 0);
   const width = Math.ceil((right + MARGIN) * 10) / 10,
     height = Math.ceil((xTitleY + Math.max(0, xTitle.length - 1) * LINE + FONT * 0.3 + MARGIN) * 10) / 10;
   if (x0 + W / 2 - xTitleWidth / 2 < MARGIN) issues.push("The horizontal axis title is wider than the graph. Use a shorter title or a longer axis.");
   if (width > 180) issues.push("The graph is wider than 18 cm. Use fewer or shorter steps on the horizontal axis.");
   if (height > 260) issues.push("The graph and its table are taller than 26 cm. Use fewer or shorter steps on the vertical axis, or no table.");
-  return { kind, settings: g, width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, X, Y, yTitle, xTitle, xLabelY, xTitleY, table, bars, points, curve, readings, targets, issues, notes };
+  return { kind, settings: g, width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, X, Y, yTitle, xTitle, xLabelY, xTitleY, table, bars, points, curve, points2, curve2, key, readings, targets, issues, notes };
 }
 
 export function groupedSvg(e: Envelope): string {
@@ -483,12 +567,10 @@ export function groupedSvg(e: Envelope): string {
   }
   const lineW = g.kind === "polygon" ? POLYGON_W : DATA_W;
   for (const c of g.curve) if (c.drawn) out.push(`<path d="${c.path}" stroke="${ink(c.revealed)}" stroke-width="${n(lineW)}" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`);
+  for (const c of g.curve2) if (c.drawn) out.push(`<path d="${c.path}" stroke="${ink(c.revealed)}" stroke-width="${n(lineW)}" stroke-dasharray="${DASH}" fill="none"/>`);
   if (g.kind === "polygon" || (g.kind === "cumulative" && s.cumulative.crosses))
-    for (const q of g.points)
-      if (q.drawn)
-        out.push(
-          `<path d="M${n(q.x - CROSS)},${n(q.y - CROSS)}l${n(2 * CROSS)},${n(2 * CROSS)}M${n(q.x - CROSS)},${n(q.y + CROSS)}l${n(2 * CROSS)},${n(-2 * CROSS)}" stroke="${ink(q.revealed)}" stroke-width="${n(POLYGON_W)}" fill="none"/>`,
-        );
+    for (const q of [...g.points, ...g.points2]) if (q.drawn) out.push(cross(q.x, q.y, ink(q.revealed)));
+  if (g.key) out.push(keySvg(g.key));
   const names = { histogram: "Histogram", polygon: "Frequency polygon", cumulative: "Cumulative frequency graph" };
   const label = `${names[g.kind]}${s.xAxis.title.trim() ? ` of ${s.xAxis.title.trim()}` : ""}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.slice(0, gridEnd).join("")}${boldLines(out.slice(gridEnd).join(""), e.document.lines)}</svg>`;
@@ -497,4 +579,5 @@ export function groupedSvg(e: Envelope): string {
 /** Classes with a hidden table cell or graph part that hold a frequency. */
 export const groupedHidden = (g: GroupedSettings, kind: GroupedKind) =>
   g.classes.some((c: GroupedClass) => c.frequency.trim() && ((g.table !== "none" && c.table === "hidden") || c.graph === "hidden")) ||
+  (kind === "polygon" && g.polygon.second && g.classes.some((c) => c.frequency2.trim() && c.graph2 === "hidden")) ||
   (kind === "cumulative" && g.cumulative.readings.some((r) => r.show === "hidden"));

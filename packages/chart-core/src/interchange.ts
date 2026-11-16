@@ -49,7 +49,24 @@ const presentation = z
     /** Fields merge; axis merges field by field; rows replaces every plot. */
     boxplot: core.boxplotSchema.partial().extend({ axis: axisPatch }).optional(),
     /** Fields merge; yAxis merges field by field; points replaces every time. */
-    timeseries: core.timeseriesSchema.partial().extend({ yAxis: axisPatch }).optional(),
+    timeseries: core.timeseriesSchema
+      .partial()
+      .extend({
+        yAxis: axisPatch,
+        // Hidden labels and a second series are optional on each time.
+        points: z
+          .array(
+            core.timePointSchema.extend({
+              labelShow: core.timePointSchema.shape.labelShow.default("show"),
+              value2: core.timePointSchema.shape.value2.default(""),
+              show2: core.timePointSchema.shape.show2.default("show"),
+            }),
+          )
+          .min(1)
+          .max(core.MAX_TIMES)
+          .optional(),
+      })
+      .optional(),
     /** Fields merge; key merges field by field; rows replaces every row. */
     stemleaf: core.stemleafSchema.partial().extend({ key: core.stemleafSchema.shape.key.partial().optional() }).optional(),
     /** Fields merge; xAxis and each kind's settings and yAxis merge field by field; classes replaces all classes. */
@@ -57,6 +74,12 @@ const presentation = z
       .partial()
       .extend({
         xAxis: axisPatch,
+        // A second polygon's frequencies are optional on each class.
+        classes: z
+          .array(core.groupedClassSchema.extend({ frequency2: core.groupedClassSchema.shape.frequency2.default(""), graph2: core.groupedClassSchema.shape.graph2.default("show") }))
+          .min(1)
+          .max(core.MAX_CLASSES)
+          .optional(),
         histogram: core.groupedSchema.shape.histogram.partial().extend({ yAxis: axisPatch }).optional(),
         polygon: core.groupedSchema.shape.polygon.partial().extend({ yAxis: axisPatch }).optional(),
         cumulative: core.groupedSchema.shape.cumulative.partial().extend({ yAxis: axisPatch }).optional(),

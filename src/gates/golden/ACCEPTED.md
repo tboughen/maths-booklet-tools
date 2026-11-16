@@ -786,3 +786,30 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - geometry figures: figures-parallel-in-triangle (worked): added
 - geometry figures: figures-congruent-four: added
 - geometry figures: figures-congruent-four (worked): added
+
+## 2026-11-16: Frequency polygon mistakes and a second polygon, two time series, misleading time series and hidden time labels (SP8 worksheets): four new examples. Existing grouped and time series files gain the new saved fields (json); the time series SVG text changes (round axis join), with pixels unchanged
+
+- charts: chart-cumulative-office: json 4ec2bc817b38838a -> 42c1b12588457e54
+- charts: chart-cumulative-office (worked): json a055d989a3b54742 -> b057c669587e9a9f
+- charts: chart-histogram-complete: json 1f873519eae3b0a7 -> b9f43a66bbf5a79a
+- charts: chart-histogram-complete (worked): json 1dbffbd4e730854f -> b8a64a050e8e7316
+- charts: chart-histogram-puzzle: json 57d69dcfdaf2cd39 -> 9a6d5b2806f971d4
+- charts: chart-histogram-puzzle (worked): json 286adf8570e21434 -> 59442619f7d048e3
+- charts: chart-polygon-plants: json dc30bfbb53f58f11 -> 40a4d8a9be24cdea
+- charts: chart-polygon-plants (worked): json 0defc3ef15b5e6b8 -> 9469cf223fadeb7c
+- charts: chart-timeseries-gas: json 8698f6bba2c6934e -> 547825a53c0e06f4
+- charts: chart-timeseries-gas: svg 323a3cc3aa0ce31f -> b035de1218460e3d
+- charts: chart-timeseries-gas (worked): json 8698f6bba2c6934e -> 547825a53c0e06f4
+- charts: chart-timeseries-gas (worked): svg 323a3cc3aa0ce31f -> b035de1218460e3d
+- charts: chart-timeseries-quarters: json c75dc8e649095815 -> bfc9a3b5b1206906
+- charts: chart-timeseries-quarters: svg 2f5284c6a0283905 -> 3fc3a94d4c7a13c1
+- charts: chart-timeseries-quarters (worked): json 016e64bad96f4942 -> 76dd45c26a867355
+- charts: chart-timeseries-quarters (worked): svg 7ba79046a4fe3632 -> 5eb06f9b866a43f8
+- charts: chart-polygon-mistakes: added
+- charts: chart-polygon-mistakes (worked): added
+- charts: chart-polygon-compare: added
+- charts: chart-polygon-compare (worked): added
+- charts: chart-timeseries-two: added
+- charts: chart-timeseries-two (worked): added
+- charts: chart-timeseries-misleading: added
+- charts: chart-timeseries-misleading (worked): added

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { create, forView, hasHidden, layout, renderSvg, setAllShown, type Envelope } from "./index";
 import { timeseriesLayout } from "./timeseries";
-import { TIMESERIES_DEFAULTS, type TimeseriesSettings } from "./shared";
+import { TIMESERIES_DEFAULTS, blankTimePoint, type TimeseriesSettings } from "./shared";
 import { examples } from "./examples";
 import * as io from "./interchange";
 
@@ -10,7 +10,7 @@ function times(values: string[] = ["20", "35", "30", "45"], change: (s: Timeseri
   const e = create();
   e.document.kind = "timeseries";
   const s = structuredClone(TIMESERIES_DEFAULTS);
-  s.points = values.map((value, i) => ({ label: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"][i] ?? "", group: "", value, show: "show" as const }));
+  s.points = values.map((value, i) => ({ ...blankTimePoint(), label: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"][i] ?? "", group: "", value, show: "show" as const }));
   change(s);
   e.document.timeseries = s;
   return e;
@@ -125,7 +125,7 @@ describe("time series graphs", () => {
 
   it("the examples draw cleanly in both copies", () => {
     const xs = examples.filter((x) => x.id.startsWith("timeseries-"));
-    expect(xs.map((x) => x.id)).toEqual(["timeseries-gas", "timeseries-quarters"]);
+    expect(xs.map((x) => x.id)).toEqual(["timeseries-gas", "timeseries-quarters", "timeseries-two", "timeseries-misleading"]);
     for (const x of xs) for (const worked of [false, true]) expect(layout(x.make(worked)).issues, x.id).toEqual([]);
     // The construct task leaves every value for pupils; its answers copy plots them in pink.
     const task = examples.find((x) => x.id === "timeseries-quarters")!;
@@ -148,5 +148,62 @@ describe("time series graphs", () => {
     expect(s.slotMm).toBe(10);
     expect(layout(next).issues).toEqual([]);
     expect(hasHidden(next)).toBe(true);
+  });
+
+  it("a second series is dashed with a key, and its values hide separately", () => {
+    const e = times(undefined, (s) => {
+      s.second = true;
+      s.names = ["Shop A", "Shop B"];
+      ["10", "15", "25", "20"].forEach((v, i) => (s.points[i].value2 = v));
+      s.points[3].show2 = "hidden";
+    });
+    const g = timeseriesLayout(e);
+    expect(g.issues).toEqual([]);
+    expect(g.points2.filter(Boolean)).toHaveLength(4);
+    expect(g.lines2.filter((l) => l.drawn)).toHaveLength(2);
+    expect(hasHidden(e)).toBe(true);
+    const pupil = renderSvg(e);
+    expect(pupil).toContain('stroke-dasharray="2.2 1.2"');
+    expect(pupil).toContain(">Shop B</text>");
+    expect(pupil).not.toContain(PINK);
+    const answer = forView(e, "answer", true);
+    expect(timeseriesLayout(answer).lines2.filter((l) => l.revealed)).toHaveLength(1);
+    expect(layout(answer).width).toBe(g.width);
+    expect(timeseriesLayout(times(undefined, (s) => ((s.second = true), (s.names = ["A", ""])))).issues).toEqual(["Name both time series for the key."]);
+    expect(timeseriesLayout(times(undefined, (s) => ((s.second = true), (s.names = ["A", "B"]), (s.points[0].value2 = "x")))).issues).toEqual([
+      "Time 1 (Jan): enter a number for the second value, or leave it blank.",
+    ]);
+    // A second value is ignored with only one series.
+    expect(timeseriesLayout(times(undefined, (s) => void (s.points[0].value2 = "x"))).issues).toEqual([]);
+  });
+
+  it("a hidden label is left for pupils to write and printed pink on answers", () => {
+    const e = times(undefined, (s) => void (s.points[2].labelShow = "hidden"));
+    expect(hasHidden(e)).toBe(true);
+    expect(renderSvg(e)).not.toContain(">Mar</text>");
+    const answer = renderSvg(forView(e, "answer", true));
+    expect(answer).toMatch(new RegExp(`fill="${PINK}"[^>]*>Mar</text>`));
+    expect(layout(forView(e, "answer", true)).height).toBe(layout(e).height);
+    // Hiding every value leaves the labels; show all shows them.
+    expect(setAllShown(e, "hidden").document.timeseries!.points[2].labelShow).toBe("hidden");
+    expect(setAllShown(e, "show").document.timeseries!.points[2].labelShow).toBe("show");
+  });
+
+  it("misleading graphs: an axis above 0 without a zig-zag, a curve, and a line across a missing time", () => {
+    const plainE = times(["32", "35", "", "40"], (s) => (s.yAxis = { min: "30", max: "45", step: "5", stepMm: 10, title: "" }));
+    const g = timeseriesLayout(plainE);
+    expect(g.notes).toContain("The vertical axis starts at 30, not 0, with no zig-zag: misleading, for pupils to spot.");
+    expect(g.lines).toHaveLength(1);
+    const broken = timeseriesLayout(times(["32"], (s) => ((s.yAxis = { min: "30", max: "45", step: "5", stepMm: 10, title: "" }), (s.yBreak = true))));
+    expect(broken.notes).toEqual([]);
+    expect(broken.corner - (broken.plot.y + broken.plot.height)).toBe(6);
+    expect(renderSvg(times(["32"], (s) => ((s.yAxis = { min: "30", max: "45", step: "5", stepMm: 10, title: "" }), (s.yBreak = true))))).toContain(">0</text>");
+    expect(timeseriesLayout(times(undefined, (s) => void (s.yBreak = true))).notes).toContain("The vertical axis starts at 0, so its zig-zag is not needed.");
+    const curved = timeseriesLayout(times(undefined, (s) => void (s.join = "curve")));
+    expect(curved.lines.every((l) => l.path.includes("C"))).toBe(true);
+    expect(curved.notes).toContain("The points are joined with a curve, not straight lines: misleading, for pupils to spot.");
+    const bridged = timeseriesLayout(times(["20", "", "30", "45"], (s) => void (s.bridge = true)));
+    expect(bridged.lines.map((l) => l.from)).toEqual([0, 2]);
+    expect(bridged.notes).toEqual(["The line is joined across a time with no value: misleading, for pupils to spot."]);
   });
 });

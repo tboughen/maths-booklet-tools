@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { create, forView, hasHidden, layout, parseFile, canonical, renderSvg, setAllShown, type Envelope, type Kind } from "./index";
 import { groupedLayout, paperGrid } from "./grouped";
-import { GROUPED_DEFAULTS, n, type GroupedSettings } from "./shared";
+import { GROUPED_DEFAULTS, blankGroupedClass, n, type GroupedSettings } from "./shared";
 import { examples } from "./examples";
 import * as io from "./interchange";
 
@@ -17,7 +17,7 @@ function grouped(kind: Kind, change: (g: GroupedSettings) => void = () => {}): E
     ["20", "40", "46"],
     ["40", "60", "28"],
     ["60", "90", "21"],
-  ].map(([lower, upper, frequency]) => ({ lower, upper, frequency, table: "show" as const, graph: "show" as const }));
+  ].map(([lower, upper, frequency]) => ({ ...blankGroupedClass(), lower, upper, frequency }));
   g.histogram.yAxis = { min: "0", max: "3", step: "0.5", stepMm: 20, title: "Frequency density" };
   g.polygon.yAxis = { min: "0", max: "50", step: "10", stepMm: 10, title: "Frequency" };
   g.cumulative.yAxis = { min: "0", max: "140", step: "20", stepMm: 10, title: "Cumulative frequency" };
@@ -203,7 +203,7 @@ describe("grouped kinds share one document", () => {
   it("the examples draw cleanly in both copies", () => {
     for (const x of examples.filter((x) => /^(histogram|polygon|cumulative)-/.test(x.id))) {
       for (const worked of [false, true]) expect(layout(x.make(worked)).issues, x.id).toEqual([]);
-      expect(hasHidden(x.make(false)), x.id).toBe(true);
+      if (x.worked) expect(hasHidden(x.make(false)), x.id).toBe(true);
     }
   });
 
@@ -261,4 +261,73 @@ it("a curve hidden for pupils to draw is one smooth curve on the answers copy", 
   const e = grouped("cumulative", (s) => s.classes.forEach((c) => (c.graph = "hidden")));
   const shown = groupedLayout(grouped("cumulative")).curve.map((c) => c.path);
   expect(groupedLayout(forView(e, "answer", true)).curve.map((c) => c.path)).toEqual(shown);
+});
+
+describe("frequency polygon mistakes and a second polygon", () => {
+  const xs = (e: Envelope) => groupedLayout(e).points.map((p) => p.x);
+  it("plots at a class bound only as a named mistake, and can close the polygon", () => {
+    const mid = groupedLayout(grouped("polygon"));
+    const upper = grouped("polygon", (g) => void (g.polygon.plotAt = "upper"));
+    const lower = grouped("polygon", (g) => void (g.polygon.plotAt = "lower"));
+    expect(xs(upper)).toEqual([10, 20, 40, 60, 90].map(mid.X));
+    expect(xs(lower)).toEqual([0, 10, 20, 40, 60].map(mid.X));
+    expect(groupedLayout(upper).notes).toContain("The points are plotted at the upper class bounds, not the midpoints: a mistake for pupils to find.");
+    expect(mid.notes).toEqual([]);
+    const closed = groupedLayout(grouped("polygon", (g) => void (g.polygon.close = true)));
+    expect(closed.curve).toHaveLength(mid.curve.length + 1);
+    const [first, last] = [closed.points[0], closed.points[4]];
+    expect(closed.curve[closed.curve.length - 1].path).toBe(`M${n(last.x)},${n(last.y)}L${n(first.x)},${n(first.y)}`);
+    expect(closed.notes).toContain("The last point is joined to the first: a mistake for pupils to find.");
+  });
+
+  it("a hidden point also hides the closing line on the pupil copy", () => {
+    const e = grouped("polygon", (g) => ((g.polygon.close = true), (g.classes[0].graph = "hidden")));
+    const g = groupedLayout(e);
+    expect(g.curve.filter((c) => c.drawn)).toHaveLength(3);
+    expect(groupedLayout(forView(e, "answer", true)).curve.filter((c) => c.drawn && c.revealed)).toHaveLength(2);
+  });
+
+  it("draws a second polygon dashed with a key, and hides its points separately", () => {
+    const e = grouped("polygon", (g) => {
+      g.polygon.second = true;
+      g.polygon.names = ["Boys", "Girls"];
+      ["5", "20", "40", "30", "10"].forEach((f, i) => (g.classes[i].frequency2 = f));
+      g.classes[2].graph2 = "hidden";
+    });
+    const g = groupedLayout(e);
+    expect(g.issues).toEqual([]);
+    expect(g.points2).toHaveLength(5);
+    expect(g.curve2.filter((c) => c.drawn)).toHaveLength(2);
+    expect(g.key).not.toBeNull();
+    expect(g.width).toBeGreaterThan(groupedLayout(grouped("polygon")).width);
+    expect(hasHidden(e)).toBe(true);
+    const pupil = renderSvg(e);
+    expect(pupil).toContain('stroke-dasharray="2.2 1.2"');
+    expect(pupil).toContain(">Girls</text>");
+    expect(pupil).not.toContain(PINK);
+    const answer = forView(e, "answer", true);
+    expect(renderSvg(answer)).toContain(PINK);
+    expect(layout(answer).width).toBe(g.width);
+    expect(setAllShown(e, "show").document.grouped!.classes.every((c) => c.graph2 === "show")).toBe(true);
+  });
+
+  it("names a missing key name, a bad second frequency and a table that cannot show both", () => {
+    const issues = (change: (g: GroupedSettings) => void) => groupedLayout(grouped("polygon", (g) => ((g.polygon.second = true), (g.polygon.names = ["A", "B"]), change(g)))).issues;
+    expect(issues((g) => void (g.polygon.names[1] = ""))).toEqual(["Name both frequency polygons for the key."]);
+    expect(issues((g) => void (g.classes[0].frequency2 = "x"))).toEqual(["Class 1: enter a number of 0 or more for the second frequency, or leave it blank."]);
+    expect(issues((g) => void (g.table = "frequency"))).toEqual(["A table shows one set of frequencies. Choose no table for two frequency polygons."]);
+    // Second frequencies are ignored with only one polygon.
+    expect(groupedLayout(grouped("polygon", (g) => void (g.classes[0].frequency2 = "x"))).issues).toEqual([]);
+  });
+
+  it("the connector takes classes without second frequencies", async () => {
+    const e = io.create({ spec: { example: "polygon-plants" } });
+    const next = await io.revise({
+      envelope: e,
+      baseHash: await io.hash(e),
+      operations: [{ op: "set_presentation", presentation: { grouped: { polygon: { close: true }, classes: [{ lower: "0", upper: "10", frequency: "3", table: "show", graph: "show" }] } } }],
+    });
+    expect(next.document.grouped!.classes[0]).toMatchObject({ frequency2: "", graph2: "show" });
+    expect(next.document.grouped!.polygon).toMatchObject({ close: true, plotAt: "midpoint" });
+  });
 });

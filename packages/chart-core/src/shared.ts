@@ -194,6 +194,9 @@ export const groupedClassSchema = z
     table: shown,
     /** Hidden leaves the class's bar, point or part of the curve for pupils to draw. */
     graph: shown,
+    /** The second frequency polygon's frequency, used only when the polygon has a second set. */
+    frequency2: z.string().max(12),
+    graph2: shown,
   })
   .strict();
 export type GroupedClass = z.infer<typeof groupedClassSchema>;
@@ -204,6 +207,13 @@ export const groupedTableNames: Record<(typeof groupedTableChoices)[number], str
   frequency: "Frequency table",
   cumulative: "Cumulative frequency table",
 };
+export const polygonPlotChoices = ["midpoint", "lower", "upper"] as const;
+export const polygonPlotNames: Record<(typeof polygonPlotChoices)[number], string> = {
+  midpoint: "Class midpoints",
+  lower: "Lower class bounds (mistake)",
+  upper: "Upper class bounds (mistake)",
+};
+export const blankGroupedClass = (): GroupedClass => ({ lower: "", upper: "", frequency: "", table: "show", graph: "show", frequency2: "", graph2: "show" });
 export const histogramFillChoices = ["white", "grey"] as const;
 export const groupedSchema = z
   .object({
@@ -216,7 +226,18 @@ export const groupedSchema = z
     /** A table above the graph, ruled as in the papers; the first column heading is the horizontal axis title. */
     table: z.enum(groupedTableChoices),
     histogram: z.object({ yAxis: paperAxisSchema, fill: z.enum(histogramFillChoices) }).strict(),
-    polygon: z.object({ yAxis: paperAxisSchema }).strict(),
+    polygon: z
+      .object({
+        yAxis: paperAxisSchema,
+        /** Where each class is plotted: the midpoint, as it should be, or a bound, as a mistake for pupils to spot. */
+        plotAt: z.enum(polygonPlotChoices),
+        /** Join the last point back to the first, a common mistake. */
+        close: z.boolean(),
+        /** A second frequency polygon on the same grid, drawn dashed, with a key naming both. */
+        second: z.boolean(),
+        names: z.array(plain(24)).length(2),
+      })
+      .strict(),
     cumulative: z
       .object({
         yAxis: paperAxisSchema,
@@ -240,11 +261,11 @@ export type GroupedKind = (typeof groupedKinds)[number];
 export const GROUPED_DEFAULTS: GroupedSettings = {
   variable: "",
   inequality: "lower-open",
-  classes: [{ lower: "", upper: "", frequency: "", table: "show", graph: "show" }],
+  classes: [blankGroupedClass()],
   xAxis: { min: "0", max: "100", step: "20", stepMm: 20, title: "" },
   table: "none",
   histogram: { yAxis: { min: "0", max: "5", step: "1", stepMm: 20, title: "Frequency density" }, fill: "grey" },
-  polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" } },
+  polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" }, plotAt: "midpoint", close: false, second: false, names: ["", ""] },
   cumulative: { yAxis: { min: "0", max: "100", step: "10", stepMm: 10, title: "Cumulative frequency" }, curve: "smooth", fromZero: true, crosses: false, readings: [] },
 };
 export const groupedOf = (d: { grouped?: GroupedSettings }): GroupedSettings => d.grouped ?? GROUPED_DEFAULTS;
@@ -253,6 +274,17 @@ const GRAPH_REVEALED = new WeakSet<object>();
 export const markGraphRevealed = (c: object) => void GRAPH_REVEALED.add(c);
 export const graphRevealed = (c: object) => GRAPH_REVEALED.has(c);
 /** Classes an answer view shows only because their table cell was saved hidden. */
+const GRAPH2_REVEALED = new WeakSet<object>();
+/** Classes an answer view shows only because their second polygon point was saved hidden. */
+export const markGraph2Revealed = (c: object) => void GRAPH2_REVEALED.add(c);
+export const graph2Revealed = (c: object) => GRAPH2_REVEALED.has(c);
+/** Time labels, and second time series values, an answer view shows only because they were saved hidden. */
+const LABEL_REVEALED = new WeakSet<object>(),
+  VALUE2_REVEALED = new WeakSet<object>();
+export const markLabelRevealed = (p: object) => void LABEL_REVEALED.add(p);
+export const labelRevealed = (p: object) => LABEL_REVEALED.has(p);
+export const markValue2Revealed = (p: object) => void VALUE2_REVEALED.add(p);
+export const value2Revealed = (p: object) => VALUE2_REVEALED.has(p);
 const TABLE_REVEALED = new WeakSet<object>();
 export const markTableRevealed = (c: object) => void TABLE_REVEALED.add(c);
 export const tableRevealed = (c: object) => TABLE_REVEALED.has(c);
@@ -365,8 +397,22 @@ export function stemLeaves(text: string): string[] | null {
  * to plot; with every value hidden the grid is a blank "construct" graph.
  */
 export const MAX_TIMES = 24;
-export const timePointSchema = z.object({ label: plain(12), group: plain(12), value: z.string().max(12), show: shown }).strict();
+export const timePointSchema = z
+  .object({
+    label: plain(12),
+    /** Hidden leaves the label's space for pupils to write; answers copies print it. */
+    labelShow: shown,
+    group: plain(12),
+    value: z.string().max(12),
+    show: shown,
+    /** The second time series' value, used only when the graph has two. */
+    value2: z.string().max(12),
+    show2: shown,
+  })
+  .strict();
 export type TimePoint = z.infer<typeof timePointSchema>;
+export const timeJoinChoices = ["straight", "curve"] as const;
+export const timeJoinNames: Record<(typeof timeJoinChoices)[number], string> = { straight: "Straight lines", curve: "A curve (misleading)" };
 export const timeseriesSchema = z
   .object({
     points: z.array(timePointSchema).min(1).max(MAX_TIMES),
@@ -374,15 +420,29 @@ export const timeseriesSchema = z
     slotMm: z.number().int().min(STEP_MM.minimum).max(STEP_MM.maximum).multipleOf(2),
     xTitle: plain(40),
     yAxis: paperAxisSchema,
+    /** A zig-zag on the vertical axis next to the corner, which is labelled 0, for an axis that starts above 0. */
+    yBreak: z.boolean(),
+    /** Straight lines, as the papers draw them, or a curve through the points for "what is misleading" questions. */
+    join: z.enum(timeJoinChoices),
+    /** Join across a time with no value instead of breaking the line, as in "what is misleading" questions where a quarter is missing. */
+    bridge: z.boolean(),
+    /** A second time series on the same axes, drawn dashed, with a key naming both. */
+    second: z.boolean(),
+    names: z.array(plain(24)).length(2),
   })
   .strict();
 export type TimeseriesSettings = z.infer<typeof timeseriesSchema>;
-export const blankTimePoint = (): TimePoint => ({ label: "", group: "", value: "", show: "show" });
+export const blankTimePoint = (): TimePoint => ({ label: "", labelShow: "show", group: "", value: "", show: "show", value2: "", show2: "show" });
 /** A new time series graph: the twelve months with no values, never made-up data. */
 export const TIMESERIES_DEFAULTS: TimeseriesSettings = {
-  points: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((label) => ({ label, group: "", value: "", show: "show" as const })),
+  points: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((label) => ({ ...blankTimePoint(), label })),
   slotMm: 10,
   xTitle: "Month",
   yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "" },
+  yBreak: false,
+  join: "straight",
+  bridge: false,
+  second: false,
+  names: ["", ""],
 };
 export const timeseriesOf = (d: { timeseries?: TimeseriesSettings }): TimeseriesSettings => d.timeseries ?? TIMESERIES_DEFAULTS;

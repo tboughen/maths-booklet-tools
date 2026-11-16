@@ -2986,6 +2986,17 @@
                         "show",
                         "hidden"
                       ]
+                    },
+                    "frequency2": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "graph2": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
                     }
                   },
                   "required": [
@@ -2993,7 +3004,9 @@
                     "upper",
                     "frequency",
                     "table",
-                    "graph"
+                    "graph",
+                    "frequency2",
+                    "graph2"
                   ],
                   "additionalProperties": false
                 }
@@ -3130,10 +3143,37 @@
                       "title"
                     ],
                     "additionalProperties": false
+                  },
+                  "plotAt": {
+                    "type": "string",
+                    "enum": [
+                      "midpoint",
+                      "lower",
+                      "upper"
+                    ]
+                  },
+                  "close": {
+                    "type": "boolean"
+                  },
+                  "second": {
+                    "type": "boolean"
+                  },
+                  "names": {
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 24
+                    }
                   }
                 },
                 "required": [
-                  "yAxis"
+                  "yAxis",
+                  "plotAt",
+                  "close",
+                  "second",
+                  "names"
                 ],
                 "additionalProperties": false
               },
@@ -3534,6 +3574,13 @@
                       "type": "string",
                       "maxLength": 12
                     },
+                    "labelShow": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    },
                     "group": {
                       "type": "string",
                       "maxLength": 12
@@ -3548,13 +3595,27 @@
                         "show",
                         "hidden"
                       ]
+                    },
+                    "value2": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "show2": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
                     }
                   },
                   "required": [
                     "label",
+                    "labelShow",
                     "group",
                     "value",
-                    "show"
+                    "show",
+                    "value2",
+                    "show2"
                   ],
                   "additionalProperties": false
                 }
@@ -3603,13 +3664,43 @@
                   "title"
                 ],
                 "additionalProperties": false
+              },
+              "yBreak": {
+                "type": "boolean"
+              },
+              "join": {
+                "type": "string",
+                "enum": [
+                  "straight",
+                  "curve"
+                ]
+              },
+              "bridge": {
+                "type": "boolean"
+              },
+              "second": {
+                "type": "boolean"
+              },
+              "names": {
+                "minItems": 2,
+                "maxItems": 2,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 24
+                }
               }
             },
             "required": [
               "points",
               "slotMm",
               "xTitle",
-              "yAxis"
+              "yAxis",
+              "yBreak",
+              "join",
+              "bridge",
+              "second",
+              "names"
             ],
             "additionalProperties": false
           }
