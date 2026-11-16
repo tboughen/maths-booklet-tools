@@ -101,3 +101,31 @@ describe("shared curve and arrow helpers", () => {
     expect([b, c]).toEqual([{ x: 4, y: 1 }, { x: 4, y: -1 }]);
   });
 });
+
+describe("tangents and strips on graphs through points", async () => {
+  const { curveValueAt, tangentSegment, trapeziumStrips } = await import("./curve");
+  const line = [{ x: 0, y: 0 }, { x: 2, y: 4 }, { x: 4, y: 4 }];
+  it("reads straight pieces exactly, taking the piece to the right at a corner", () => {
+    expect(curveValueAt(line, false, 1)).toEqual({ y: 2, slope: 2 });
+    expect(curveValueAt(line, false, 2)).toEqual({ y: 4, slope: 0 });
+    expect(curveValueAt(line, false, 5)).toBeNull();
+  });
+  it("follows a smooth curve through its points, with a sensible gradient", () => {
+    // Points on y = x²: the smooth curve passes through them and is close between them.
+    const pts = [-3, -2, -1, 0, 1, 2, 3].map((x) => ({ x, y: x * x }));
+    expect(curveValueAt(pts, true, 1)!.y).toBeCloseTo(1, 6);
+    expect(curveValueAt(pts, true, 1.5)!.y).toBeCloseTo(2.25, 1);
+    expect(curveValueAt(pts, true, 1)!.slope).toBeCloseTo(2, 1);
+    const t = tangentSegment(pts, true, 1, 1)!;
+    expect(t.touch.y).toBeCloseTo(1, 6);
+    expect(t.end.x).toBe(2);
+  });
+  it("splits the area under a graph into equal trapezium strips", () => {
+    const strips = trapeziumStrips(line, false, 0, 4, 2)!;
+    expect(strips).toEqual([
+      [{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 2, y: 4 }],
+      [{ x: 2, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 4 }, { x: 2, y: 4 }],
+    ]);
+    expect(trapeziumStrips(line, false, 0, 6, 3)).toBeNull();
+  });
+});
