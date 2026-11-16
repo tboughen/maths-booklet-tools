@@ -6390,6 +6390,11 @@
                     "description": "Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y.",
                     "type": "string",
                     "maxLength": 60
+                  },
+                  "titleAbove": {
+                    "description": "y only: print the title above the axis (Edexcel style), so the graph stays narrow beside a table.",
+                    "type": "boolean",
+                    "const": true
                   }
                 },
                 "required": [
@@ -6445,6 +6450,11 @@
                     "description": "Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y.",
                     "type": "string",
                     "maxLength": 60
+                  },
+                  "titleAbove": {
+                    "description": "y only: print the title above the axis (Edexcel style), so the graph stays narrow beside a table.",
+                    "type": "boolean",
+                    "const": true
                   }
                 },
                 "required": [
@@ -8663,8 +8673,8 @@
                 "text": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 12,
-                  "pattern": "^[A-Za-z0-9 _/%£-]+$|^(?:\\d+\\/)?[A-Za-z]+\\^\\d$"
+                  "maxLength": 16,
+                  "pattern": "^[A-Za-z0-9 _/%£°()-]+$|^(?:\\d+\\/)?[A-Za-z]+\\^\\d$"
                 },
                 "italic": {
                   "type": "boolean"
@@ -11325,6 +11335,363 @@
         "required": [
           "machines",
           "boxShape",
+          "intentionalError"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      },
+      "worked": {
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
+        "minItems": 1,
+        "maxItems": 12,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "Dark-pink guidance for the worked copy, such as \"Multiply both by 3\". Wraps to widthMm."
+            },
+            "x": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
+            },
+            "y": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
+            },
+            "widthMm": {
+              "description": "Wrapping width in mm (default 60).",
+              "type": "number",
+              "minimum": 10,
+              "maximum": 200
+            },
+            "leader": {
+              "description": "Only when the note cannot sit right beside its maths: one straight line from the note to this point.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the top edge."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
+  "bubble-method": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "bubble-method"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "bubble-method-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "object",
+            "properties": {
+              "lhs": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              "rel": {
+                "type": "string",
+                "enum": [
+                  "=",
+                  "<",
+                  ">",
+                  "≤",
+                  "≥"
+                ]
+              },
+              "rhs": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "show"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "lhs",
+              "rel",
+              "rhs"
+            ],
+            "additionalProperties": false
+          },
+          "steps": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "left": {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "under": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "auto",
+                            "whole"
+                          ]
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "under"
+                  ],
+                  "additionalProperties": false
+                },
+                "right": {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "under": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "auto",
+                            "whole"
+                          ]
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "under"
+                  ],
+                  "additionalProperties": false
+                },
+                "line": {
+                  "type": "object",
+                  "properties": {
+                    "lhs": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "rel": {
+                      "type": "string",
+                      "enum": [
+                        "=",
+                        "<",
+                        ">",
+                        "≤",
+                        "≥"
+                      ]
+                    },
+                    "rhs": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "lhs",
+                    "rel",
+                    "rhs"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "left",
+                "right",
+                "line"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "intentionalError": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          }
+        },
+        "required": [
+          "first",
+          "steps",
           "intentionalError"
         ],
         "additionalProperties": false

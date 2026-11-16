@@ -10,6 +10,8 @@ const SMALL = 10 / 12;
 /** Stacked fraction parts: 10 pt, even inside a 10 pt operation label. */
 const part = (size: number) => Math.max(size * SMALL, FONT * SMALL);
 const ROW_HEIGHT = 100;
+/** A column's printed width (1.5 cm) before any long heading widens it. */
+const CELL_WIDTH = 150;
 const ANSWER_LINE_WIDTH = 60;
 /**
  * The answer line for a hidden scaling operation ("÷ 3"): 13 mm at standard size, room to write
@@ -35,9 +37,16 @@ export function ratioPrintFacts(document: RatioDocument) {
     tableRowHeightsMm: [ROW_HEIGHT * mmPerUnit],
   });
 }
+/**
+ * STIX Two Text advances for heading characters the shared metrics table leaves out (other
+ * tools rely on its wide fallback): brackets and the degree sign, for units such as "Time (min)"
+ * and "°C". Measured from assets/graph-fonts, regular then italic.
+ */
+const HEADING_GLYPHS: Record<string, [number, number]> = { "(": [0.343, 0.34], ")": [0.343, 0.339], "°": [0.405, 0.398] };
+const advance = (c: string, italic: boolean) => HEADING_GLYPHS[c]?.[italic ? 1 : 0] ?? glyphAdvance(c, italic);
 export function textWidth(text: string, size = FONT, italic = false): number {
   return Array.from(text).reduce(
-    (sum, c) => sum + glyphAdvance(c, italic) * size,
+    (sum, c) => sum + advance(c, italic) * size,
     0,
   );
 }
@@ -72,13 +81,13 @@ export const printsOn = (step: RatioDocument["transitions"][number], side: -1 | 
  */
 export function stepLanes(
   document: RatioDocument,
-  m: Pick<ReturnType<typeof ratioMetrics>, "tableLeft" | "tableWidth" | "columnWidth">,
+  m: Pick<ReturnType<typeof ratioMetrics>, "tableLeft" | "tableWidth" | "columnWidth" | "cellWidth">,
   step: RatioDocument["transitions"][number],
 ) {
   if (document.headings.length !== 2)
     return document.headings.map((_, column) => ({
       side: 1 as const,
-      edge: m.tableLeft + column * m.columnWidth + 150,
+      edge: m.tableLeft + column * m.columnWidth + m.cellWidth,
       name: `column ${column + 1}`,
     }));
   return [
@@ -113,22 +122,16 @@ export function ratioMetrics(document: RatioDocument) {
   const two = document.headings.length === 2;
   const gutterLeft = two ? gutterFor(document.transitions.filter((t) => printsOn(t, -1))) : 0,
     gutterRight = two ? gutterFor(document.transitions.filter((t) => printsOn(t, 1))) : 0;
-  for (const heading of document.headings) {
-    if (
-      headingWidth(heading) +
-        (heading.direction !== "none" ? 38 : 0) >
-      126
-    )
-      throw new RatioError(
-        "layout_overflow",
-        "A heading is too wide for this table. Use a shorter heading.",
-      );
-  }
+  // A heading that fits 1.5 cm (1.2 mm clear of the rules each side) keeps the exact layout. A
+  // longer one, such as "Distance (km) ↑", widens every column to fit it with 2 mm clear each
+  // side; the table never shrinks type to fit (Tim, 16 Nov 2026).
+  const need = Math.max(...document.headings.map((h) => headingWidth(h) + (h.direction !== "none" ? 38 : 0)));
+  const cellWidth = need + 24 <= CELL_WIDTH ? CELL_WIDTH : Math.ceil(need + 40);
   for (const row of document.rows)
     for (const cell of row.cells)
       if (
         (cell.kind === "number" || cell.kind === "hidden") &&
-        numberWidth(cell.value) > 126
+        numberWidth(cell.value) > cellWidth - 24
       )
         throw new RatioError(
           "layout_overflow",
@@ -136,7 +139,7 @@ export function ratioMetrics(document: RatioDocument) {
         );
   // Two-column documents retain their exact lesson layout. Three columns each
   // reserve a scaling lane, so the middle column's operation is explicit too.
-  const columnWidth = 150 + (two ? 0 : gutter),
+  const columnWidth = cellWidth + (two ? 0 : gutter),
     tableWidth = document.headings.length * columnWidth,
     width = 30 + tableWidth + gutterLeft + gutterRight,
     height = (document.rows.length + 1) * ROW_HEIGHT + 30;
@@ -146,6 +149,7 @@ export function ratioMetrics(document: RatioDocument) {
     tableLeft: 15 + gutterLeft,
     tableTop: 15,
     columnWidth,
+    cellWidth,
     tableWidth,
     gutter,
     widthCm: (width / 100) * scale,
@@ -208,7 +212,7 @@ function headingRuns(value: string): HeadingRun[] {
 }
 /** Each character's advance, italic only for letters in an italic heading. */
 const styledWidth = (value: string, size: number, italic: boolean) =>
-  Array.from(value).reduce((sum, c) => sum + glyphAdvance(c, italic && /[A-Za-z]/.test(c)) * size, 0);
+  Array.from(value).reduce((sum, c) => sum + advance(c, italic && /[A-Za-z]/.test(c)) * size, 0);
 function runsWidth(runs: HeadingRun[], size: number, italic: boolean) {
   return runs.reduce((sum, r) => sum + styledWidth(r.text, r.sup ? Math.max(size * SMALL, FONT * SMALL) : size, italic), 0);
 }
@@ -294,7 +298,7 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
   let body = `<path class="ratio-rules" d="${rules}M${left} ${top + 100}H${left + m.tableWidth}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
   document.headings.forEach((heading, i) => {
     const width = headingWidth(heading),
-      centre = left + 75 + i * m.columnWidth;
+      centre = left + m.cellWidth / 2 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
     body += headingMarkup(heading, textX, top + 50);
@@ -303,7 +307,7 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
   });
   document.rows.forEach((row, i) =>
     row.cells.forEach((cell, column) => {
-      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + 75 + column * m.columnWidth, top + 150 + i * 100, view)}</g>`;
+      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + m.cellWidth / 2 + column * m.columnWidth, top + 150 + i * 100, view)}</g>`;
     }),
   );
   if (document.mode === "annotated")

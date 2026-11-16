@@ -37,6 +37,8 @@ import * as wm from "../../packages/written-method-core/src/index";
 import { examples as wmExamples } from "../../packages/written-method-core/src/examples";
 import * as fm from "../../packages/function-machine-core/src/index";
 import { examples as fmExamples } from "../../packages/function-machine-core/src/examples";
+import * as bm from "../../packages/bubble-method-core/src/index";
+import { examples as bmExamples } from "../../packages/bubble-method-core/src/examples";
 import * as po from "../../packages/probability-objects-core/src/index";
 import { examples as poExamples } from "../../packages/probability-objects-core/src/examples";
 import * as nets from "../../packages/net-core/src/index";
@@ -97,6 +99,7 @@ const tools: Tool[] = [
   { name: "factor trees", envelopes: () => ftExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ft.validate, pupilSvg: ft.renderSvg },
   { name: "written methods", envelopes: () => wmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: wm.validate, pupilSvg: wm.renderSvg },
   { name: "function machines", envelopes: () => fmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: fm.validate, pupilSvg: fm.renderSvg },
+  { name: "bubble method", envelopes: () => bmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: bm.validate, pupilSvg: bm.renderSvg },
   { name: "spinners, dice and bags", envelopes: () => poExamples.flatMap(x => [x.make(false), x.make(true)]), validate: po.validate, pupilSvg: po.renderSvg },
   { name: "nets", envelopes: () => netExamples.flatMap(x => [x.make(false), x.make(true)]), validate: nets.validate, pupilSvg: nets.renderSvg },
   { name: "algebra tiles", envelopes: () => atExamples.flatMap(x => [x.make(false), x.make(true)]), validate: at.validate, pupilSvg: at.renderSvg },

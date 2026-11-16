@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { clickResourceAction } from "./resource-actions";
 
 // U28: every tool with a teacher copy downloads both copies in one ZIP from the File menu.
-for (const tool of ["venn", "probability-tree", "frequency-tree", "two-way-table", "factor-tree", "written-method", "function-machine", "probability-objects", "algebra-tiles", "nets", "sample-space", "construction", "elevations", "angles", "area", "figures", "solids"]) {
+for (const tool of ["venn", "probability-tree", "frequency-tree", "two-way-table", "factor-tree", "written-method", "function-machine", "bubble-method", "probability-objects", "algebra-tiles", "nets", "sample-space", "construction", "elevations", "angles", "area", "figures", "solids"]) {
   test(`${tool}: Download pupil and answers (ZIP) holds both copies' SVG and PNG`, async ({ page }, info) => {
     await page.goto(`/tools/${tool}`);
     const pending = page.waitForEvent("download");

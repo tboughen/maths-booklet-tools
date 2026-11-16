@@ -44,6 +44,8 @@ export const AlgebraTilesIcon = icon(<><rect x="2" y="5" width="10" height="10" 
 export const FunctionMachineIcon = icon(<><path d="M2 12h4M17 12h5M20 10l2 2-2 2" /><path className="md-icon-part" d="M6 7h7l3 5-3 5H6z" /></>);
 /** Nets of 3D shapes: the cross-shaped net of a cube. */
 export const NetsIcon = icon(<><path d="M9 3h6v18H9zM3 9h18v6H3z" /><path className="md-icon-part" d="M9 9h6v6H9z" /></>);
+/** The bubble method: a line of working with two bubbles under it. */
+export const BubbleMethodIcon = icon(<><path d="M3 6h7M14 6h7M11 4.5h2M11 7.5h2" /><ellipse className="md-icon-part" cx="6.5" cy="13" rx="3.5" ry="2.5" /><ellipse className="md-icon-part" cx="17.5" cy="13" rx="3.5" ry="2.5" /><path d="M3 20h7M14 20h7" /></>);
 /** Written methods: a column calculation with its answer line. */
 export const WrittenMethodIcon = icon(<><path d="M9 4h.01M13 4h.01M17 4h.01M9 9h.01M13 9h.01M17 9h.01M4 9l2 0M5 8v2" /><path className="md-icon-part" d="M3 13h18" /><path d="M9 18h.01M13 18h.01M17 18h.01" /></>);
 /** Spinners, dice and bags: a spinner with an arrow, beside a dice face. */

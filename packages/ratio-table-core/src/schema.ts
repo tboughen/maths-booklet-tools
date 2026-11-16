@@ -34,15 +34,19 @@ export const cellSchema = z.discriminatedUnion("kind", [
 export type RatioCell = z.infer<typeof cellSchema>;
 // Homogeneous array items keep nested schemas importable by ChatGPT.
 export const cellsSchema = z.array(cellSchema).min(1).max(3);
+/**
+ * Heading text: words and units such as "Time (min)", "Speed (m/s)", "Temperature (°C)", "%" or
+ * "£" (Tim, 11 and 16 Nov 2026), or a power such as x^2 or 1/x^2. The column widens to fit.
+ */
+export const HEADING_MAX = 16;
+export const HEADING_PATTERN = /^[A-Za-z0-9 _/%£°()-]+$|^(?:\d+\/)?[A-Za-z]+\^\d$/;
 export const headingSchema = z
   .object({
     text: z
       .string()
       .min(1)
-      .max(12)
-      // "/" for units such as m/s (Tim's queue, 11 Nov 2026); "%" and "£" for percentages and
-      // money (Tim, 16 Nov 2026).
-      .regex(/^[A-Za-z0-9 _/%£-]+$|^(?:\d+\/)?[A-Za-z]+\^\d$/, "Use letters, digits, spaces, _ / % £ -, or a power such as x^2 or 1/x^2."),
+      .max(HEADING_MAX)
+      .regex(HEADING_PATTERN, "Use letters, digits, spaces, brackets, _ / % £ ° -, or a power such as x^2 or 1/x^2."),
     italic: z.boolean(),
     direction: z.enum(["right", "up", "down", "none"]),
   })
@@ -126,14 +130,14 @@ export const ratioSpecSchema = z
     /**
      * Compact form, for booklets and worksheets with many tables. Use instead of headings, rows
      * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↑"; a gradient is always y ↑, with -4 for a line going down);
-     * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
+     * units such as "Time (min) ↑" widen the column; a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
      * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
      * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"
      * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy; "left: × 2" or
      * "right: [÷ 2]" prints it on one side only (two columns). Any step turns on
      * the curved arrows unless mode says otherwise.
      */
-    columns: z.array(z.string().min(1).max(16)).min(1).max(3).optional(),
+    columns: z.array(z.string().min(1).max(HEADING_MAX + 2)).min(1).max(3).optional(),
     table: z.array(z.array(z.string().max(40)).min(1).max(3)).min(1).max(6).optional(),
     steps: z.array(z.string().max(40)).max(5).optional(),
   })

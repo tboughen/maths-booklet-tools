@@ -786,6 +786,76 @@
    "png600": "3293x1037",
    "pixels": "b765ced7d4ba0427"
   },
+  "bubble method: bm-inequality": {
+   "json": "8b3435065a4c950f",
+   "svg": "88f732561077ef6a",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "ca6f366fcff9090c"
+  },
+  "bubble method: bm-inequality (worked)": {
+   "json": "2b75efc5ea68ea39",
+   "svg": "282a5b8e22412282",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "6e9fb2c5eb350550"
+  },
+  "bubble method: bm-solve-equation": {
+   "json": "e14d8201de81fdfd",
+   "svg": "eb8b047b6cec93f6",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "8ddb823157ff58cb"
+  },
+  "bubble method: bm-solve-equation (worked)": {
+   "json": "9abf0dbc478452a0",
+   "svg": "26b8b47adeb77b96",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "6aa9cba2385a5a7b"
+  },
+  "bubble method: bm-subject-formula": {
+   "json": "ded038f10caa2a4c",
+   "svg": "c96f8e51b42cf8af",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "c630bd420021782d"
+  },
+  "bubble method: bm-subject-formula (worked)": {
+   "json": "e7187602779586c6",
+   "svg": "fcc759710dd3f81f",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "8d9852d3a07e8562"
+  },
+  "bubble method: bm-subject-one-step": {
+   "json": "b8629e7b8f66ab4e",
+   "svg": "66b1be5cae000b4e",
+   "mm": "59.6x32.1",
+   "png600": "1408x758",
+   "pixels": "d92846bab511f9c0"
+  },
+  "bubble method: bm-subject-one-step (worked)": {
+   "json": "0f0362755e7b43b9",
+   "svg": "fd3b9df0d78b660f",
+   "mm": "59.6x32.1",
+   "png600": "1408x758",
+   "pixels": "0436c7fbe1f3212a"
+  },
+  "bubble method: bm-subject-two-steps": {
+   "json": "493b93bb8686870a",
+   "svg": "99cc1b517dccf856",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "4f6c7abf7ad2181f"
+  },
+  "bubble method: bm-subject-two-steps (worked)": {
+   "json": "4aba7bd774f9d661",
+   "svg": "20f80679413ee51d",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "a17e3e3e0c1fe7ae"
+  },
   "charts: chart-bar-draw": {
    "json": "2cc403a9527ddd22",
    "svg": "d62afcb5180c4be7",

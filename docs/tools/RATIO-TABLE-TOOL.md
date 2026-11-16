@@ -18,8 +18,11 @@ There is a divider between each pair of columns and one rule under the headings;
 there is no outer box or printed row grid. Two-column diagrams keep the original
 layout exactly. A three-column diagram reserves a scaling lane beside each
 column so its arrows and factors explicitly include the middle column. Default headings are italic x/right-arrow and y/up-arrow.
-Custom headings accept up to 12 letters, digits, spaces, underscores, hyphens,
-slashes (m/s), % or £, subject to the available width; % and £ always print upright. Curved scaling arrows are vector paths
+Custom headings accept up to 16 letters, digits, spaces, underscores, hyphens,
+slashes, brackets, %, £ or °, so real-context units such as "Time (min)", "Distance (km)",
+"Speed (m/s)" and "Temperature (°C)" fit, with or without an arrow. A long heading widens
+every column equally (2 mm clear of the rules each side); type never shrinks. Tables whose
+headings fit 1.5 cm keep their exact layout. % and £ always print upright. Curved scaling arrows are vector paths
 with explicit oriented arrowheads. Fractions are stacked with a fraction bar.
 
 ## Cells and scaffolds
