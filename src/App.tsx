@@ -1,6 +1,6 @@
 import { ExampleGallery } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
-import { PreviewControls } from "./site/PreviewControls";
+import { EditorFoot } from "./site/EditorFoot";
 import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
 import { graphEnvelope, withGraphAbout, withGraphWorked, type GraphDocument } from "./domain/graphAbout";
@@ -124,6 +124,7 @@ export default function App({ active = true }: { active?: boolean }) {
   const drafts = useGraphDrafts();
   const hasPendingDraft = drafts.hasPending;
   const [previewZoom, setPreviewZoom] = useState(0);
+  const [viewScale, setViewScale] = useState(1);
   const blocked = recoveryConflict || copying || drafts.pending;
   const locked = () => recoveryConflict || copying || hasPendingDraft();
   const act = (action: () => void) => {
@@ -590,20 +591,9 @@ export default function App({ active = true }: { active?: boolean }) {
                 exporting or changing this graph.
               </p>
             )}
-            <div className="resource-preview-bar">
-              <PreviewControls zoom={previewZoom} onZoom={setPreviewZoom} />
-              <ResourceSize
-                width={exportMetrics.widthCm}
-                height={exportMetrics.heightCm}
-              />
-            </div>
-            <EditorHint tool="graph">
-              Choose a tool, then click or drag on the grid. Click a line,
-              segment or cross to change it. Blue handles are editing guides
-              and are never copied.
-            </EditorHint>
             <GraphCanvas
               zoom={previewZoom}
+              onScale={setViewScale}
               disabled={blocked}
               document={document}
               tool={tool}
@@ -611,6 +601,24 @@ export default function App({ active = true }: { active?: boolean }) {
               onSelect={selectObject}
               onAxisAdjust={(axis, end, delta) =>
                 act(() => commit(adjustAxis(document, axis, end, delta)))
+              }
+            />
+            <EditorFoot
+              zoom={previewZoom}
+              onZoom={setPreviewZoom}
+              scale={viewScale}
+              size={
+                <ResourceSize
+                  width={exportMetrics.widthCm}
+                  height={exportMetrics.heightCm}
+                />
+              }
+              hint={
+                <EditorHint tool="graph">
+                  Choose a tool, then click or drag on the grid. Click a line,
+                  segment or cross to change it. Blue handles are editing guides
+                  and are never copied.
+                </EditorHint>
               }
             />
           </Panel>

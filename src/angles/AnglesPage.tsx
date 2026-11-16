@@ -10,7 +10,7 @@ import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { anglesGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
@@ -600,12 +600,6 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 if (upload) void importFile(upload);
               }}
             />
-            <div className="pt-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
-            </div>
-            <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Drag the round handles to move rays, transversals and corners.</EditorHint>
             <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
@@ -664,13 +658,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </div>
-            {(message || issue || g.notes.length > 0) && (
+            {(issue || g.notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
-                {message && (
-                  <p className="resource-feedback" role="status">
-                    {message}
-                  </p>
-                )}
                 {g.issues.map((x) => (
                   <p key={x} className="pt-error" role="alert">
                     {x}
@@ -681,6 +670,18 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 ))}
               </div>
             )}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Drag the round handles to move rays, transversals and corners.</EditorHint>
+              }
+            >
+              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
+            </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Angle diagram settings">
             <ExampleGallery

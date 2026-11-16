@@ -1,17 +1,22 @@
 import { test, expect } from "./release-fixtures";
 import { toolIds } from "../src/site/routes";
 
-/** U22: one hint line in the same place in every tool, hidden for good, outside the resource. */
+/** U22: one hint in the same place in every tool, hidden for good, outside the resource. */
 for (const tool of toolIds) {
-  test(`${tool}: the hint line sits under the preview bar and can be hidden for good`, async ({ page }) => {
+  test(`${tool}: the hint ends the foot strip and can be hidden for good`, async ({ page }) => {
     await page.goto(`/tools/${tool}`);
     const hint = page.getByTestId("editor-hint").filter({ visible: true });
     await expect(hint).toHaveCount(1);
     await expect(hint.locator(".editor-hint")).toBeVisible();
-    // Directly after the preview bar (zoom controls), above the resource.
+    // In the foot strip with the zoom controls, under the resource.
     const placed = await hint.evaluate((el) => {
-      const bar = el.previousElementSibling;
-      return !!bar?.querySelector('[aria-label="Preview zoom"]') && !el.closest("svg");
+      const foot = el.closest(".editor-foot");
+      const stage = foot?.parentElement?.querySelector(".editor-stage");
+      return (
+        !!foot?.querySelector('[aria-label="Preview zoom"]') &&
+        !el.closest("svg") &&
+        (!stage || foot.getBoundingClientRect().top >= stage.getBoundingClientRect().bottom - 1)
+      );
     });
     expect(placed).toBe(true);
     await hint.getByRole("button", { name: "Hide this tip" }).click();
@@ -22,7 +27,7 @@ for (const tool of toolIds) {
   });
 }
 
-test("number-line: a drawing prompt takes the hint line and cannot be hidden, even after the tip was hidden", async ({ page }) => {
+test("number-line: a drawing prompt takes the hint's place and cannot be hidden, even after the tip was hidden", async ({ page }) => {
   await page.goto("/tools/number-line");
   const hint = page.getByTestId("editor-hint").filter({ visible: true });
   await hint.getByRole("button", { name: "Hide this tip" }).click();

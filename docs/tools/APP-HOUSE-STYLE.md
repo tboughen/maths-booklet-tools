@@ -89,13 +89,9 @@ app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 - The card with the diagram and the settings column share the height the heading leaves.
 - Inside the card, the bars keep their own height and the diagram's stage takes all the rest.
 - The settings column scrolls on its own.
-- The foot of the card (`--md-status-line`, 36 px) is kept for the status line: "Image copied", a
-  failed copy, a protected draft. It always sits there, as the last thing in its own card, so a
-  one-line message never resizes or moves the diagram and never covers anything beside or under
-  the card. A second line takes its room from the stage. Warnings about the diagram itself stay
-  where the tool draws them.
+- The foot strip is the last row of the card (see below).
 - If a tool's own rows under the diagram leave the stage less than 280 px, the card scrolls
-  instead of squeezing the diagram. The status line then stays at the visible foot of the card.
+  instead of squeezing the diagram. The foot strip then stays at the visible foot of the card.
 - From 1,500 px wide the tool's name and its one-line description share a row.
 
 Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights
@@ -103,10 +99,36 @@ each tool had before.
 
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
-`editor-stage` as a direct child of the card, and showing its message in a `.resource-feedback`
-paragraph inside the card. A tool that fits its diagram in script must measure the stage element, not the window.
+`editor-stage` as a direct child of the card, and ending the card with an `EditorFoot`. A tool
+that fits its diagram in script must measure the stage element, not the window.
 
 The frame changes screen furniture only. Preview zoom still never changes print size.
+
+## The foot strip
+
+Every diagram tool ends its card with one strip (`EditorFoot` in `src/site/EditorFoot.tsx`,
+styled by `src/site/editor-foot.css`, 36 px high as `--md-foot-strip`). It replaces the preview
+bar above the diagram, the hint banner under it and the separate status line. From the left:
+
+- **Zoom.** Minus, the "Preview zoom" list and plus. Fit says the size the diagram is drawn at
+  ("Fit · 245%"), and the steps start from that size. The list keeps one width, so nothing beside
+  it moves when the zoom changes.
+- **Actual size.** Shows the diagram at 100%, its print size; pressing it again returns to Fit.
+- **The print size.** "Prints at 12.00 × 8.50 cm, whatever the zoom" (`ResourceSize`).
+- **View-only switches.** Showing hidden answers, editing guides, the number line's "Finish
+  drawing". Anything that changes the resource belongs in the settings.
+- **One note, at the right.** The latest message ("Image copied", a failed copy, a protected
+  draft) while there is one, otherwise the tool's hint (`EditorHint`). The message takes the
+  hint's place and the hint keeps its room, so a message never resizes or moves the diagram. A
+  drawing prompt ("Choose the other endpoint") always stays, beside the message.
+
+A card narrower than 1,200 px gives the note a row of its own, which is kept even when it is
+empty. Touch screens and windows under 768 px get 44 px controls. The Graph tool still shows its
+messages in its own toast.
+
+A tool passes its message as `status` and never draws a status line of its own. Warnings about
+the diagram itself stay where the tool draws them, above the strip. The "Edit settings" jump for
+keyboards now follows the action bar, so one press still skips the diagram.
 
 ## Decided, and built in later steps
 

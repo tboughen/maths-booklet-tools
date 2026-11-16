@@ -9,7 +9,7 @@ import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { algebraGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -596,21 +596,6 @@ export default function AlgebraGridPage({
                 }
               }}
             />
-            <div className="ag-preview-bar">
-              <PreviewControls
-                zoom={zoom === "fit" ? 0 : Number(zoom)}
-                onZoom={(value) => setZoom(value ? String(value) : "fit")}
-              />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                onChange={setShowAnswers}
-              />
-            </div>
-            <EditorHint tool="expanding-factorising">
-              Click a cell or the printed question to edit. Blank cells stay
-              blank until you choose to fill them.
-            </EditorHint>
             <div
               className="ag-scroll editor-stage"
               ref={scroll}
@@ -756,11 +741,6 @@ export default function AlgebraGridPage({
                 {d.rows.length} rows × {d.columns.length} columns
               </span>
             </div>
-            {message && (
-              <p className="ag-message" role="status">
-                {message}
-              </p>
-            )}
             {pendingInput && (
               <p className="ag-message">
                 Apply or cancel the pending edit before changing or exporting
@@ -846,6 +826,24 @@ export default function AlgebraGridPage({
                 )}
               </section>
             )}
+            <EditorFoot
+              zoom={zoom === "fit" ? 0 : Number(zoom)}
+              onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              scale={scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint tool="expanding-factorising">
+                  Click a cell or the printed question to edit. Blank cells stay
+                  blank until you choose to fill them.
+                </EditorHint>
+              }
+            >
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                onChange={setShowAnswers}
+              />
+            </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Algebra grid settings">
             <ExampleGallery

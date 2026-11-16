@@ -10,17 +10,15 @@ afterEach(() => {
 describe("EditorHint (U22)", () => {
   it("shows the tip until it is hidden, and remembers that per tool", () => {
     const { unmount } = render(
-      <>
-        <div className="preview-bar">
-          <select aria-label="Preview zoom" />
-        </div>
+      <div className="editor-foot">
+        <select aria-label="Preview zoom" />
         <EditorHint tool="venn">Click a region.</EditorHint>
-      </>,
+      </div>,
     );
     expect(screen.getByText("Click a region.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Hide this tip" }));
     expect(screen.queryByText("Click a region.")).toBeNull();
-    // Focus moves to the nearest real control above, the preview zoom.
+    // Focus moves to a real control in the same strip, the preview zoom.
     expect(document.activeElement).toBe(screen.getByRole("combobox", { name: "Preview zoom" }));
     expect(localStorage.getItem(HINT_STORAGE_PREFIX + "venn")).toBe("1");
     unmount();

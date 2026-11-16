@@ -44,6 +44,29 @@ interface EditorToolbarProps {
 
 /** Common document actions; specialist editing controls belong to the inspector. */
 export function EditorToolbar(props: EditorToolbarProps) {
+  return (
+    <>
+      <Toolbar {...props} />
+      {/* Out of sight beside the settings until a keyboard reaches it: one press skips the diagram's many targets. */}
+      <button
+        type="button"
+        className="editor-inspector-link"
+        onClick={(event) => {
+          const inspector = event.currentTarget.closest(".workspace")?.querySelector<HTMLElement>(".inspector-stack");
+          if (inspector) {
+            inspector.tabIndex = -1;
+            inspector.focus();
+            inspector.scrollIntoView({ block: "start", behavior: "auto" });
+          }
+        }}
+      >
+        Edit settings ↓
+      </button>
+    </>
+  );
+}
+
+function Toolbar(props: EditorToolbarProps) {
   const bar = useRef<HTMLDivElement>(null);
   // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
   // The history marks a newly recorded reset step with its own number and clears it on the next undo, redo or

@@ -13,7 +13,7 @@ import {
   ratioGallery,
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -107,6 +107,7 @@ export default function RatioTablePage({
   const [exportsOpen, setExportsOpen] = useState(false);
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
+    [viewScale, setViewScale] = useState(1),
     [guides, setGuides] = useState(readGuidesPreference);
   // The preview is the pupil copy unless the teacher asks to see hidden answers. Never saved.
   const [showAnswers, setShowAnswers] = useState(false);
@@ -679,47 +680,10 @@ export default function RatioTablePage({
               aria-label="Open editable ratio-table file"
               onChange={(e) => void openFile(e.target.files?.[0])}
             />
-            <div className="ratio-preview-controls">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={metrics.widthCm} height={metrics.heightCm} />
-              <label>
-                <input
-                  type="checkbox"
-                  checked={guides}
-                  onChange={(e) => {
-                    setGuides(e.target.checked);
-                    saveGuidesPreference(e.target.checked);
-                  }}
-                />
-                Editing guides
-              </label>
-              {hasRatioAnswers(envelope) && (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={showAnswers}
-                    onChange={(e) => setShowAnswers(e.target.checked)}
-                  />
-                  Teacher preview: show hidden answers
-                </label>
-              )}
-            </div>
-            <EditorHint
-              tool="ratio-table"
-              prompt={
-                tool === "arrow"
-                  ? arrowFrom
-                    ? "Select the row immediately below."
-                    : "Select a source row, then the row below, or use the arrow settings."
-                  : undefined
-              }
-            >
-              Click a heading, cell or arrow number and type. Click a curved
-              arrow for its settings.
-            </EditorHint>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}
+              onScale={setViewScale}
               guides={guides}
               view={showAnswers && hasRatioAnswers(envelope) ? "answer" : "pupil"}
               inputVersion={inputVersion}
@@ -751,11 +715,50 @@ export default function RatioTablePage({
                 to apply it or Escape to cancel.
               </p>
             )}
-            {message && (
-              <p role="status" className="resource-feedback">
-                {message}
-              </p>
-            )}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={viewScale}
+              size={<ResourceSize width={metrics.widthCm} height={metrics.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="ratio-table"
+                  prompt={
+                    tool === "arrow"
+                      ? arrowFrom
+                        ? "Select the row immediately below."
+                        : "Select a source row, then the row below, or use the arrow settings."
+                      : undefined
+                  }
+                >
+                  Click a heading, cell or arrow number and type. Click a curved
+                  arrow for its settings.
+                </EditorHint>
+              }
+            >
+              <label>
+                <input
+                  type="checkbox"
+                  checked={guides}
+                  onChange={(e) => {
+                    setGuides(e.target.checked);
+                    saveGuidesPreference(e.target.checked);
+                  }}
+                />
+                Editing guides
+              </label>
+              {hasRatioAnswers(envelope) && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showAnswers}
+                    onChange={(e) => setShowAnswers(e.target.checked)}
+                  />
+                  Teacher preview: show hidden answers
+                </label>
+              )}
+            </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
             <ExampleGallery

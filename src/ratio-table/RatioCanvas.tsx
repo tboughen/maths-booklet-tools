@@ -1,6 +1,6 @@
 import { speakRatio } from "./speakRatio";
 import { previewArt } from "../export/worked";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import type { CSSProperties } from "react";
 import { StructureStepper } from "../site/StructureStepper";
@@ -49,6 +49,7 @@ export function RatioCanvas({
   onRemoveColumn,
   removalRowIndex,
   removalColumnIndex,
+  onScale,
 }: {
   envelope: RatioEnvelope;
   zoom: number;
@@ -72,6 +73,8 @@ export function RatioCanvas({
   onRemoveColumn: () => void;
   removalRowIndex: number;
   removalColumnIndex: number;
+  /** Told the scale the table is drawn at, so the page can show it beside the zoom. */
+  onScale?: (scale: number) => void;
 }) {
   const document = envelope.document,
     m = ratioMetrics(document);
@@ -90,6 +93,7 @@ export function RatioCanvas({
       edgeControlsWidth + 16,
       availableWidth < 560 ? 150 : 80,
     );
+  useEffect(() => onScale?.(displayZoom), [onScale, displayZoom]);
   const position = (
     x: number,
     y: number,

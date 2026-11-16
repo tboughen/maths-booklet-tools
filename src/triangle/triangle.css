@@ -27,28 +27,6 @@
   margin: 0 0 7px;
   font-size: 13px;
 }
-.tr-preview-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  justify-content: space-between;
-  padding: 10px 14px;
-  font-size: 13px;
-}
-.tr-editor .tr-preview-bar label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-.tr-editor .tr-preview-bar select {
-  width: auto;
-  flex: 0 0 auto;
-}
-.tr-preview-bar .resource-size {
-  margin-left: auto;
-}
 .tr-scroll {
   background: var(--blue-soft);
   overflow: auto;
@@ -156,7 +134,6 @@
   font-size: 13px;
 }
 .tr-editor .inspector-stack button,
-.tr-editor .tr-preview-bar button,
 .tr-editor .tr-structure button,
 .tr-floating button {
   min-height: 36px;
@@ -528,9 +505,6 @@
     padding: 20px;
     min-height: 260px;
   }
-  .tr-preview-bar {
-    padding: 8px 10px;
-  }
   .tr-editor .page-heading {
     align-items: flex-start;
   }
@@ -744,10 +718,4 @@
 }
 .tr-floating .tr-inner-body {
   padding-top: 7px;
-}
-.tr-editor .tr-preview-bar label {
-  flex: 0 0 auto;
-}
-.tr-editor .tr-preview-bar label select {
-  width: auto;
 }

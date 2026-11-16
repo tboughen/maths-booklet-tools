@@ -6,7 +6,7 @@ import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -1407,19 +1407,6 @@ export default function ValueGraphPage({
                 }
               }}
             />
-            <div className="ratio-preview-controls">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={m.widthCm} height={m.heightCm} />
-            </div>
-            <EditorHint tool="value-table-graph">
-              Click the equation, table or graph to edit it. Blank cells stay
-              blank until you choose to calculate.
-            </EditorHint>
-            {!!message && (
-              <p role="status" className="resource-feedback">
-                {message}
-              </p>
-            )}
             {recoverRaw !== null && (
               <div className="vg-recovery" role="alert">
                 <p>
@@ -1868,6 +1855,19 @@ export default function ValueGraphPage({
                 </div>
               </LocalEditor>
             )}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint tool="value-table-graph">
+                  Click the equation, table or graph to edit it. Blank cells stay
+                  blank until you choose to calculate.
+                </EditorHint>
+              }
+            />
           </Panel>
           <aside
             className="inspector-stack"

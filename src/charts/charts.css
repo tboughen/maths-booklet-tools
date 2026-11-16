@@ -57,7 +57,6 @@
   outline: 1px dashed #b5487a;
   background: #b5487a10;
 }
-.ch-preview-bar,
 .ch-row {
   display: flex;
   flex-wrap: wrap;
@@ -65,14 +64,6 @@
   align-items: center;
   padding: 10px 12px;
   font-size: 12px;
-}
-.ch-preview-bar {
-  justify-content: space-between;
-}
-.ch-preview-bar label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 .ch-row {
   padding: 8px 0 0;

@@ -130,7 +130,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       await expect.poll(() => saved(page, key)).toBe(before);
       if (tool === "expanding-factorising" && width === 320) {
         expect(
-          (await page.locator(".ag-preview-bar").boundingBox())!.height,
+          (await page.locator(".editor-foot").boundingBox())!.height,
         ).toBeLessThan(240);
       }
       if (width === 320) {

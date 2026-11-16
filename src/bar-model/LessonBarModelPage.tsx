@@ -22,7 +22,7 @@ import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { useResourceFit } from "../site/useResourceFit";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -621,13 +621,6 @@ export default function LessonBarModelPage({
                 }
               }}
             />
-            <div className="preview-controls">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-            </div>
-            <EditorHint tool="bar-model">
-              Click a bar name, section label or note on the model to edit it.
-            </EditorHint>
             <div ref={fit.ref} className="bm-scroll editor-stage">
               <div
                 className="bm-stage"
@@ -782,13 +775,22 @@ export default function LessonBarModelPage({
                 )}
               </div>
             </div>
-            <p role="status" className="editor-feedback">
-              {message}
-            </p>
             {issue && <p role="alert">{issue}</p>}
             {c.warnings(e).map((w) => (
               <p key={w}>{w}</p>
             ))}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fit.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint tool="bar-model">
+                  Click a bar name, section label or note on the model to edit it.
+                </EditorHint>
+              }
+            />
           </Panel>
           <div className="inspector-stack">
             <ExampleGallery
