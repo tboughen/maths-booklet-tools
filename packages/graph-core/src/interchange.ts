@@ -848,6 +848,9 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
       if (made.length !== 1)
         throw new GraphError("invalid_graph", "Replace an image without rays, or remove it and add it again with rays.");
       document.objects[index] = made[0];
+      // An image's enlargement rays belong to the image they were drawn for, so they go with it.
+      const rayId = new RegExp(`^${op.id}-ray-\\d+$`); // ids are letters, digits, _ and -, all literal here
+      document.objects = document.objects.filter((o) => !rayId.test(o.id));
       continue;
     }
     const object = document.objects[index];
@@ -880,11 +883,16 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
   const crowded = xNumbersCrowded(envelope.document)
     ? ["The x-axis numbers touch at print size. Number every 2nd, 3rd or 5th line (labelEvery) or use a larger scale."]
     : [];
+  const arrows = envelope.document.objects.flatMap((o) =>
+    o.kind === "straight" && o.arrow === "end" && o.display === "segment" && visibleStraightPoints(o, bounds) && !pointInBounds(o.end, bounds)
+      ? [`${o.id}: the end of this vector is off the grid, so its arrowhead does not print. Move the end onto the grid or widen the axes.`]
+      : [],
+  );
   const triangles = envelope.document.objects.flatMap((o) => {
     const problem = o.kind === "straight" ? gradientTriangleProblem(o, bounds) : null;
     return problem ? [`${o.id}: ${problem}`] : [];
   });
-  return crowded.concat(triangles, gradientLabelClashes(envelope.document), envelope.document.objects
+  return crowded.concat(arrows, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
     .filter((o) =>
       o.kind === "region"
         ? !regionPolygon(regionHalfPlanes(o), bounds).length

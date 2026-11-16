@@ -33,9 +33,12 @@ or a caller asks for it, so a pupil's answer is never drawn for them.
   step. It does not follow later edits to the original.
 - **Connector.** `{kind: "image", of, transformation, name?, shaded?, answerOnly?, rays?}` in a
   spec or an `add_object` revision makes the same polygon (and rays). The saved file holds only
-  the result: there is no "image" kind in a saved graph.
+  the result: there is no "image" kind in a saved graph. Rays are saved as `<image id>-ray-n`
+  segments; replacing the image with `replace_object` removes them.
 - **Vectors.** A segment takes `arrow: "end" | "middle"`, pointing from its start to its end.
-  The middle head is centred on the segment, as exam vector diagrams print it. Arrowheads scale
+  The middle head is centred on the part of the segment that prints, as exam vector diagrams
+  print it. An end head needs the end point on the grid; otherwise it is left off and the
+  connector warns. Arrowheads scale
   with bold lines and print in the answer colour on hidden answers. Full lines cannot carry one.
 - **Centres and mirror lines** use what was already there: a named point prints as a cross, and
   a mirror line is a line, with its equation printed only when the question prints it.

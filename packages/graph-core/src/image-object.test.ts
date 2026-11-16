@@ -52,3 +52,22 @@ describe("graph images and vectors", () => {
     expect(() => validateEnvelope(bad)).toThrow(/only a segment/);
   });
 });
+
+describe("review fixes", () => {
+  it("places a vector's head on the part of the segment that prints, and warns when an end head is lost", async () => {
+    const { graphWarnings } = await import("./interchange");
+    const e = createGraph({ objects: [
+      { kind: "segment", start: { x: -10, y: 1 }, end: { x: 2, y: 1 }, arrow: "middle" },
+      { kind: "segment", start: { x: 0, y: 0 }, end: { x: 10, y: 0 }, arrow: "end" },
+    ] });
+    const svg = renderDiagramSvg(documentFromEnvelope(e), "pupil");
+    expect((svg.match(/class="vector-arrow"/g) ?? []).length).toBe(1);
+    expect(graphWarnings(e).some((w) => w.includes("object-2: the end of this vector is off the grid"))).toBe(true);
+  });
+  it("replacing an enlargement image drops its old rays", async () => {
+    const e = createGraph({ objects: [shapeA, { id: "b", kind: "image", of: "a", transformation: { kind: "enlarge", centre: { x: 0, y: 0 }, scaleFactor: 2 }, rays: true }] });
+    expect(e.document.objects).toHaveLength(5);
+    const r = await reviseGraph({ envelope: e, baseHash: await graphHash(e), operations: [{ op: "replace_object", id: "b", object: { kind: "image", of: "a", transformation: { kind: "translate", vector: { x: 1, y: 0 } } } }] });
+    expect(r.document.objects.map((o) => o.id)).toEqual(["a", "b"]);
+  });
+});

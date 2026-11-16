@@ -16,6 +16,7 @@ import {
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { plotClipBleed } from "../../packages/graph-core/src/svg";
 import { arrowheadPath } from "../../packages/graph-core/src/arrow";
+import { vectorArrowEnds } from "../../packages/graph-core/src/diagram";
 import { VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -825,7 +826,8 @@ export function GraphCanvas({
                     }
                   />
                 );
-                if (!object.arrow || object.display !== "segment") return line;
+                const arrowEnds = vectorArrowEnds(object, layout.bounds);
+                if (!arrowEnds) return line;
                 const scale = document.lines === "bold" ? 1.5 : 1;
                 return (
                   <g key={object.id}>
@@ -833,9 +835,9 @@ export function GraphCanvas({
                     <path
                       className={`graph-vector-arrow${object.answerOnly ? " graph-vector-arrow--answer" : ""}${selected ? " graph-vector-arrow--selected" : ""}`}
                       d={arrowheadPath(
-                        coordinateToSvg(object.start, layout),
-                        coordinateToSvg(object.end, layout),
-                        object.arrow,
+                        coordinateToSvg(arrowEnds[0], layout),
+                        coordinateToSvg(arrowEnds[1], layout),
+                        object.arrow ?? "end",
                         pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.length, EDITOR_UNITS_PER_CENTIMETRE) * scale,
                         pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.halfWidth, EDITOR_UNITS_PER_CENTIMETRE) * scale,
                       )}
