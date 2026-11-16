@@ -17,7 +17,7 @@ export function registerPaper(component:string){
    await page.getByRole("checkbox",{name:"Show average marks achieved",exact:true}).check();
    await expect(page.locator(".qb-source-copy .qb-performance").first()).toBeVisible();
    await expect(page.locator(".qb-source-copy .qb-performance-estimated")).toHaveCount(0);
-   await page.getByRole("button",{name:"Show mark scheme",exact:true}).click();
+   await page.getByRole("button",{name:"Mark scheme",exact:true}).click();
    await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();
    await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);
    for(let view=1;view<q.schemeViews.length;view++){await page.keyboard.press("ArrowRight");await expect(page.locator(".qb-navigation")).toContainText(`View ${view+1} of ${q.schemeViews.length}`);await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);}
@@ -52,7 +52,7 @@ export function registerMobile(){test("Mock Set 1: mobile display and keyboard p
  await expect(page.locator(".qb-stage canvas").first()).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole("button",{name:"Display",exact:true}).click();await expect(page.getByRole("button",{name:"Exit Display Esc",exact:true})).toBeVisible();await page.keyboard.press("m");
  await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();
- await page.keyboard.press("Escape");await expect(page.getByRole("button",{name:"Hide mark scheme",exact:true})).toHaveAttribute("aria-pressed","true");await expect(page.getByRole("button",{name:"Display",exact:true})).toBeVisible();
+ await page.keyboard.press("Escape");await expect(page.getByRole("button",{name:"Mark scheme",exact:true})).toHaveAttribute("aria-pressed","true");await expect(page.getByRole("button",{name:"Display",exact:true})).toBeVisible();
  await mkdir(report,{recursive:true});await page.screenshot({path:`${report}/mobile.png`});
 });
 }

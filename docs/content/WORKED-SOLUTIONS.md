@@ -92,13 +92,16 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
 
 ## In the Question bank
 
+The worked solution is one of the viewer's three panes (`docs/tools/APP-HOUSE-STYLE.md`, "Question
+bank: three switches"). Mark notes and Step by step sit in that pane's header.
+
 - **Mark notes** (on by default, remembered on this computer) shows the mark codes and "Also scores"
   lines. Off gives a pupil copy: the guidance words stay and nothing moves.
 - **Step by step** hides every step, then **Next step** and **Previous step** reveal them one at a
   time in paper order, across the parts shown. Nothing moves as steps appear.
-- **Copy image** and **PNG** export what is shown at 300 dpi, with the working drawn in (fonts are
-  embedded), the current Mark notes and step choices, and the source caption. **Whole question**
-  exports every cut with its total.
+- **Copy image** and **PNG**, while the worked solution is the pane in use, export what is shown
+  at 300 dpi, with the working drawn in (fonts are embedded), the current Mark notes and step
+  choices, and the source caption. **Whole question** exports every cut with its total.
 
 ## Pilot
 

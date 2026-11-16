@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "./release-fixtures";
+import { pane, paneSwitch, showOnly } from "./question-bank-panes";
 import { readFile } from "node:fs/promises";
 
 const address = "/question-bank?code=U151&question=1MA1_JUN_2018_1H_Q4";
@@ -65,15 +66,26 @@ test.describe("question viewer annotations", () => {
     expect(await cursor()).not.toContain("data:image");
   });
 
-  test("ink stays with its view: hidden on the mark scheme, back on the question, kept after Next and Previous", async ({ page }) => {
+  test("ink stays with its view: on the question and not the mark scheme, kept after Next and Previous", async ({ page }) => {
     await open(page);
     await page.keyboard.press("p");
     await draw(page, [100, 100], [300, 140]);
     expect(await strokes(page)).toBe(1);
-    await page.getByRole("button", { name: "Show mark scheme" }).click();
-    await expect(page.locator(".qb-stage canvas").first()).toBeVisible();
+    // Beside the mark scheme the question keeps its ink, and the mark scheme has none.
+    await paneSwitch(page, "Mark scheme").click();
+    await expect(pane(page, "Mark scheme").locator("canvas").first()).toBeVisible();
+    await expect(pane(page, "Question").locator(".qb-annotations[data-strokes='1']")).toHaveCount(1);
+    await expect(pane(page, "Mark scheme").locator(".qb-annotations[data-strokes='1']")).toHaveCount(0);
+    // Each pane takes its own ink, and Undo follows the order across the panes on screen.
+    const scheme = (await pane(page, "Mark scheme").locator("canvas").first().boundingBox())!;
+    await page.mouse.move(scheme.x + 20, scheme.y + 10); await page.mouse.down(); await page.mouse.move(scheme.x + 120, scheme.y + 30, { steps: 5 }); await page.mouse.up();
+    await expect(pane(page, "Mark scheme").locator(".qb-annotations[data-strokes='1']")).toHaveCount(1);
+    await page.keyboard.press("Control+z");
+    await expect(pane(page, "Mark scheme").locator(".qb-annotations[data-strokes='1']")).toHaveCount(0);
+    await expect(pane(page, "Question").locator(".qb-annotations[data-strokes='1']")).toHaveCount(1);
+    await showOnly(page, "Mark scheme");
     await expect(page.locator(".qb-stage .qb-annotations[data-strokes='1']")).toHaveCount(0);
-    await page.getByRole("button", { name: "Hide mark scheme" }).click();
+    await showOnly(page, "Question");
     await expect.poll(() => strokes(page)).toBe(1);
     await page.getByRole("button", { name: "Next" }).click();
     await expect(page.locator(".qb-stage .qb-annotations[data-strokes='1']")).toHaveCount(0);

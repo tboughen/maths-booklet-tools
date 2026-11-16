@@ -198,7 +198,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
     .getByRole("button", { name: "Next", exact: true })
     .click();
   await current(page)
-    .getByRole("button", { name: "Show mark scheme", exact: true })
+    .getByRole("button", { name: "Mark scheme", exact: true })
     .click();
   const bankUrl = page.url();
   const source = await current(page)
@@ -216,7 +216,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
   );
   await expect(
     current(page).getByRole("button", {
-      name: "Hide mark scheme",
+      name: "Mark scheme",
       exact: true,
     }),
   ).toHaveAttribute("aria-pressed", "true");

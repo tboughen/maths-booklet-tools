@@ -40,7 +40,8 @@ interface Options {
 
 /**
  * One pane of the question viewer: the views of one role (question, mark scheme or worked solution)
- * for the current question, how they fit their stage, and that stage's zoom and pan.
+ * for the current question, how they fit their stage, and that stage's zoom and pan. Each pane keeps
+ * its own zoom and place, so the panes that are on can sit side by side.
  */
 export function usePane({ role, shown, question, served, partsView, worked, wanted, zoom, setZoom, fit, room, onSwipe, enabled, drawing, layout }: Options) {
   const stage = useRef<HTMLDivElement>(null);
@@ -77,14 +78,13 @@ export function usePane({ role, shown, question, served, partsView, worked, want
   const fitScale = visibleViews.length ? Math.min(widthScale, (stageSize.height - 32) / Math.max(...visibleViews.map(v => v.height))) : 1;
   const scale = Math.max(.01, (fit === "width" ? widthScale : fitScale) * zoom);
   const pannable = visibleViews.reduce((n, v) => n + v.width * scale, 0) + (two ? 16 : 0) + 32 > stageSize.width + 1 || Math.max(0, ...visibleViews.map(v => v.height * scale)) + 32 > stageSize.height + 1;
-  // `shown` is part of the key so that a scroll asked for while the pane was away lands when it is back.
-  const { requestZoom, restoreScroll, panBy } = useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey: `${shown}|${question?.id}|${role}|${viewIndex}|${two}|${partMode}`, enabled: enabled && shown, drawing });
+  const { requestZoom, panBy } = useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey: `${question?.id}|${role}|${viewIndex}|${two}|${partMode}`, enabled: enabled && shown, drawing });
   const zoomStep = useCallback((direction: 1 | -1) => requestZoom(stepZoom(zoom, direction)), [requestZoom, zoom]);
   const zoomFit = useCallback(() => requestZoom(1), [requestZoom]);
   /** The screen-only ink layer of one view in this pane. */
   const inkKey = useCallback((item: { pdf: string; view: { page: number } }) => question ? `${question.id}|${question.revision}|${role}|${item.pdf}|${item.view.page}` : "", [question, role]);
   const visibleKeys = visibleViews.flatMap(v => v.items).map(inkKey).filter(Boolean);
-  return { role, stage, resource, partMode, views, viewIndex, view, two, visibleViews, scale, zoom, pannable, restoreScroll, panBy, zoomStep, zoomFit, inkKey, visibleKeys };
+  return { role, stage, resource, partMode, views, viewIndex, view, two, visibleViews, scale, zoom, pannable, panBy, zoomStep, zoomFit, inkKey, visibleKeys };
 }
 
 export type Pane = ReturnType<typeof usePane>;

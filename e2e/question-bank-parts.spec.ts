@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "./release-fixtures";
+import { pane, paneSwitch } from "./question-bank-panes";
 
 // June 2018 2H Q5: (c) is mapped to U601 and needs the answer to (b); (a) is mapped elsewhere.
 const address = "/question-bank?code=U601&question=1MA1_JUN_2018_2H_Q5";
@@ -19,8 +20,12 @@ test("a matching part shows on its own with the earlier part it needs, and the w
   await expect(info).toContainText("Question 5, page 1 of 2");
   await expect(page.getByRole("button", { name: "Show only parts (b) and (c)" })).toBeVisible();
   await expect(page.locator(".qb-navigation")).toContainText("of 2");
-  // The mark scheme is the whole question's.
+  // The mark scheme is the whole question's: beside the parts it is one whole view, and by itself it has no parts choice.
   await page.getByRole("button", { name: "Show only parts (b) and (c)" }).click();
-  await page.getByRole("button", { name: "Show mark scheme" }).click();
+  await paneSwitch(page, "Mark scheme").click();
+  await expect(pane(page, "Question").locator(".qb-pdf")).toHaveCount(2);
+  await expect(pane(page, "Mark scheme").locator(".qb-pdf")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Show whole question" })).toBeVisible();
+  await paneSwitch(page, "Question").click();
   await expect(page.getByRole("button", { name: "Show whole question" })).toHaveCount(0);
 });

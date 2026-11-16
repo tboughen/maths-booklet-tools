@@ -65,7 +65,8 @@
 .qb-source > div:first-child { align-items: flex-start; flex-direction: column; gap: 3px; }
 .qb-source strong { color: #213c59; }
 .qb-source span { font-size: 13px; }
-.qb-answer-active { background: #e6f6ef; border-color: #248353; color: #135c39; }
+/* A switch or tool that is on. */
+.qb-button[aria-pressed=true] { border-color: var(--md-blue); background: var(--md-blue-soft); color: var(--md-navy); }
 .qb-view-info { padding: 7px 18px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; color: #617186; background: #f9fbfd; border-bottom: 1px solid #edf0f4; }
 .qb-scheme-stage { background: #f5faf7; }
 .qb-view-group { display: flex; align-items: flex-start; gap: 24px; margin: 0 auto; flex: 0 0 auto; }
@@ -374,7 +375,26 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 
 /* Zoom and pan (screen only). The frame holds the stage plus the overview map and the Display zoom bar. */
 .qb-stage-frame { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
-.qb-stage-frame > .qb-stage { flex: 1; min-height: 0; }
+/* The panes that are on (question, mark scheme, worked solution) share the frame side by side; each has a stage of its own. */
+.qb-panes { flex: 1; display: flex; min-width: 0; min-height: 0; }
+.qb-pane { position: relative; flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.qb-pane > .qb-stage { flex: 1; min-height: 0; }
+.qb-pane + .qb-pane { border-left: 1px solid var(--md-line-strong); }
+.qb-pane-header { flex: 0 0 auto; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 7px; padding: 4px 12px; min-height: 30px; border-bottom: 1px solid var(--md-line); box-shadow: inset 0 2px transparent; background: #f7f9fc; color: var(--md-ink-2); font-size: var(--md-text-sm); font-weight: 600; }
+.qb-pane-header small { margin-left: auto; font-size: var(--md-text-xs); font-weight: 400; }
+/* The worked solution's options sit in its header; its neighbours' headers match its height. */
+.qb-pane-header .qb-worked-options { margin-left: auto; font-weight: 400; }
+.qb-panes:has(.qb-worked-options) .qb-pane-header { min-height: 45px; }
+/* The pane last used, which the footer and the keys act on. */
+.qb-pane-active > .qb-pane-header { box-shadow: inset 0 2px var(--md-blue); color: var(--md-ink); }
+.qb-switches { display: flex; align-items: flex-start; flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-width: 0; }
+@media (max-width: 520px) { .qb-switch { gap: 5px; padding-inline: 8px; font-size: 13px !important; } .qb-switch > svg { display: none; } }
+/* A narrow or upright window stacks the panes, so each keeps the full width. */
+@media (max-width: 1000px), (max-aspect-ratio: 1 / 1) {
+  .qb-panes { flex-direction: column; }
+  .qb-pane + .qb-pane { border-left: 0; border-top: 1px solid var(--md-line-strong); }
+}
+@media (forced-colors: active) { .qb-button[aria-pressed=true], .qb-pane-active > .qb-pane-header { outline: 2px solid Highlight; outline-offset: -2px; } }
 .qb-stage { touch-action: none; }
 .qb-stage.qb-pannable { cursor: grab; }
 .qb-stage.qb-grabbing { cursor: grabbing; user-select: none; }
