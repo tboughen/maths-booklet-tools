@@ -112,7 +112,8 @@ export function buildObject(objectId: string, input: z.infer<typeof objectInput>
     return s;
   }
   if (input.type === "dice") {
-    const d = core.newDice(objectId, input.view ?? "cube");
+    // More than three faces can only be a row of faces.
+    const d = core.newDice(objectId, input.view ?? (input.faces && input.faces.length !== 3 ? "faces" : "cube"));
     if (input.faces) d.faces = input.faces.map(toValue);
     for (const k of ["marks", "sizeMm", "emptyLabels", "caption"] as const) if (input[k] !== undefined) (d as Record<string, unknown>)[k] = input[k];
     return d;

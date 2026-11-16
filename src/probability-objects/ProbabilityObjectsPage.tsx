@@ -129,6 +129,8 @@ function DraftField({
   useEffect(() => {
     if (!editing && !invalid) setDraft(value);
   }, [value, editing, invalid]);
+  // A field that goes away takes its refused draft's reason with it.
+  useEffect(() => () => errors.report(label, null), [errors, label]);
   const commit = () => {
     setEditing(false);
     if (draft === value) {
@@ -370,11 +372,11 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
   }
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
   /** A number field that applies on Enter or leaving, refusing values outside its limits. */
-  const numberField = (o: ProbabilityObject, label: string, current: number, min: number, max: number, set: (o: ProbabilityObject, v: number) => void) => (
+  const numberField = (o: ProbabilityObject, label: string, current: number, min: number, max: number, set: (o: ProbabilityObject, v: number) => void, where = "") => (
     <label>
       {label}
       <DraftField
-        key={`${o.id}-${label}-${current}`}
+        key={`${o.id}-${label}-${where}`}
         label={`${objectName(o.id)}: ${label}`}
         value={String(Math.round(current * 100) / 100)}
         maxLength={6}
@@ -651,7 +653,7 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                         {fillSelect("Counter fill", selectedGroup.fill, (f) =>
                           change(selectedObject.id, "change counter fill", (x) => void ((x as typeof selectedObject).groups[slotIndex(selected.slot)].fill = f)),
                         )}
-                        {numberField(selectedObject, "Counters", selectedGroup.count, 1, MAX_COUNTERS, (x, v) => void ((x as typeof selectedObject).groups[slotIndex(selected.slot)].count = Math.round(v)))}
+                        {numberField(selectedObject, "Counters", selectedGroup.count, 1, MAX_COUNTERS, (x, v) => void ((x as typeof selectedObject).groups[slotIndex(selected.slot)].count = Math.round(v)), selected.slot)}
                       </div>
                       <div className="pt-row">
                         <button
@@ -748,7 +750,9 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                         <button type="button" disabled={blocked || o.sectors.length >= MAX_SECTORS} onClick={() => commit(() => addSector(e, o.id), "add sector")}>
                           Add a sector
                         </button>
-                        <button type="button" disabled={blocked || o.sectors.length <= MIN_SECTORS} onClick={() => commit(() => removeSector(e, o.id, o.sectors.length - 1), "remove sector")}>
+                        <button type="button" disabled={blocked || o.sectors.length <= MIN_SECTORS} onClick={() => {
+                            if (commit(() => removeSector(e, o.id, o.sectors.length - 1), "remove sector") && selected?.object === o.id && selected.slot === `sector:${o.sectors.length - 1}`) setSelected(null);
+                          }}>
                           Remove the last sector
                         </button>
                       </div>
@@ -763,13 +767,16 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                             aria-label={`${objectName(o.id)}: view`}
                             value={o.view}
                             disabled={blocked}
-                            onChange={(ev) =>
-                              change(o.id, "change dice view", (x) => {
+                            onChange={(ev) => {
+                              const toCube = ev.target.value === "cube",
+                                had = o.faces.length;
+                              const ok = change(o.id, "change dice view", (x) => {
                                 const dice = x as typeof o;
                                 dice.view = ev.target.value as typeof o.view;
                                 if (dice.view === "cube") dice.faces = [...dice.faces, value(), value()].slice(0, 3);
-                              })
-                            }
+                              });
+                              if (ok && toCube && had > 3) setMessage(`A cube shows three faces, so faces 4 to ${had} were removed. Undo brings them back.`);
+                            }}
                           >
                             <option value="cube">Cube (three faces)</option>
                             <option value="faces">Faces in a row</option>
@@ -791,7 +798,9 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                           <button type="button" disabled={blocked || o.faces.length >= MAX_FACES} onClick={() => change(o.id, "add face", (x) => void (x as typeof o).faces.push(value()))}>
                             Add a face
                           </button>
-                          <button type="button" disabled={blocked || o.faces.length <= 1} onClick={() => change(o.id, "remove face", (x) => void (x as typeof o).faces.pop())}>
+                          <button type="button" disabled={blocked || o.faces.length <= 1} onClick={() => {
+                              if (change(o.id, "remove face", (x) => void (x as typeof o).faces.pop()) && selected?.object === o.id && selected.slot === `face:${o.faces.length - 1}`) setSelected(null);
+                            }}>
                             Remove the last face
                           </button>
                         </div>

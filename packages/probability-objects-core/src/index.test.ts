@@ -45,7 +45,7 @@ describe("spinners, dice and bags", () => {
     const e = io.create({ spec: { objects: [{ type: "dice", faces: ["6", "1", "2"] }] } });
     expect(po.warnings(e)[0]).toMatch(/6 and 1 are on opposite faces/);
     expect(po.renderSvg(e).match(/<circle/g)?.length).toBe(6 + 1 + 2 + 1); // + the dotted pattern dot
-    expect(() => io.create({ spec: { objects: [{ type: "dice", faces: ["1", "2"] }] } })).toThrow(/three faces/);
+    expect(() => io.create({ spec: { objects: [{ type: "dice", view: "cube", faces: ["1", "2"] }] } })).toThrow(/three faces/);
     const faces = io.create({ spec: { objects: [{ type: "dice", view: "faces", marks: "numbers", faces: ["A", "B", { text: "C", hidden: true }] }] } });
     expect(po.renderSvg(faces)).toContain(">A<");
     expect(po.renderSvg(faces)).not.toContain(">C<");
@@ -92,5 +92,25 @@ describe("spinners, dice and bags", () => {
   it("warns when a label is too wide for a narrow sector", () => {
     const e = spinner(Array.from({ length: 12 }, () => "Yellow"), { sizeMm: 25 });
     expect(po.warnings(e).some((w) => /too narrow/.test(w))).toBe(true);
+  });
+
+  it("adds a sector to a spinner whose angles make 360° by going back to equal sectors", () => {
+    const e = spinner(["1", "2", "3", "4"], { angles: [90, 90, 90, 90] });
+    const n = po.addSector(e, "o1");
+    expect(po.sectorAngles(n.document.objects[0] as po.Spinner)).toEqual([72, 72, 72, 72, 72]);
+  });
+
+  it("names the field that is wrong in an opened file", () => {
+    const bad = structuredClone(po.create()) as unknown as { document: { objects: { sectors: { angle: number }[] }[] } };
+    bad.document.objects[0].sectors[0].angle = -5;
+    expect(() => po.validate(bad)).toThrow(/sector angle is more than 0°/);
+    const many = structuredClone(po.create()) as unknown as { document: { objects: { sectors: unknown[] }[] } };
+    many.document.objects[0].sectors = many.document.objects[0].sectors.slice(0, 1);
+    expect(() => po.validate(many)).toThrow(/2 to 12 sectors/);
+  });
+
+  it("reads six faces given to the connector as a row of faces", () => {
+    const e = io.create({ spec: { objects: [{ type: "dice", faces: ["1", "2", "3", "4", "5", "6"] }] } });
+    expect((e.document.objects[0] as po.Dice).view).toBe("faces");
   });
 });

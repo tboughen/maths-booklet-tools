@@ -165,14 +165,20 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const issue = parsed.error.issues[0],
       path = issue?.path ?? [];
-    if (path.includes("text")) throw Error(`Use at most ${MAX_TEXT} characters in each label.`);
-    if (path.includes("caption")) throw Error(`Use at most ${MAX_CAPTION} characters in a caption.`);
-    if (path.includes("sectors")) throw Error(`A spinner has ${MIN_SECTORS} to ${MAX_SECTORS} sectors.`);
-    if (path.includes("faces")) throw Error(`A dice shows 1 to ${MAX_FACES} faces.`);
-    if (path.includes("count")) throw Error(`A group has 1 to ${MAX_COUNTERS} counters.`);
-    if (path.includes("groups")) throw Error(`A bag has 1 to ${MAX_GROUPS} groups of counters.`);
-    if (path.includes("sizeMm")) throw Error(`Spinners are ${SPINNER_MM.min} to ${SPINNER_MM.max} mm across; dice are ${DICE_MM.min} to ${DICE_MM.max} mm.`);
-    if (path.includes("objects") && path.length <= 3) throw Error(`Use 1 to ${MAX_OBJECTS} objects.`);
+    const leaf = path.at(-1),
+      size = issue?.code === "too_small" || issue?.code === "too_big";
+    if (leaf === "text") throw Error(`Use at most ${MAX_TEXT} characters in each label.`);
+    if (leaf === "caption") throw Error(`Use at most ${MAX_CAPTION} characters in a caption.`);
+    if (leaf === "angle") throw Error("A sector angle is more than 0° and at most 360°, or empty to share what is left.");
+    if (leaf === "fill") throw Error(`A fill is one of ${FILLS.join(", ")}.`);
+    if (leaf === "rotation" || leaf === "pointerAngle") throw Error("Turns and pointer directions are 0° up to (not including) 360°.");
+    if (leaf === "id") throw Error("Object IDs are short lower-case names such as o1.");
+    if (leaf === "count") throw Error(`A group has 1 to ${MAX_COUNTERS} counters.`);
+    if (leaf === "sectors" && size) throw Error(`A spinner has ${MIN_SECTORS} to ${MAX_SECTORS} sectors.`);
+    if (leaf === "faces" && size) throw Error(`A dice shows 1 to ${MAX_FACES} faces.`);
+    if (leaf === "groups" && size) throw Error(`A bag has 1 to ${MAX_GROUPS} groups of counters.`);
+    if (leaf === "objects" && size) throw Error(`Use 1 to ${MAX_OBJECTS} objects.`);
+    if (leaf === "sizeMm") throw Error(`Spinners are ${SPINNER_MM.min} to ${SPINNER_MM.max} mm across; dice are ${DICE_MM.min} to ${DICE_MM.max} mm.`);
     throw Error("This is not a supported spinners, dice and bags file (version 1 is supported).");
   }
   const e = parsed.data;
@@ -327,14 +333,18 @@ export function moveObject(e: Envelope, objectId: string, by: -1 | 1): Envelope 
   [d.objects[at], d.objects[to]] = [d.objects[to], d.objects[at]];
   return validate(n);
 }
-/** Adds a sector after sector `after` (default the last). Given angles stay; the new sector shares what is left. */
+/**
+ * Adds a sector after sector `after` (default the last). Given angles stay and the new sector shares
+ * what is left; when the given angles already make 360°, every sector goes back to an equal share.
+ */
 export function addSector(e: Envelope, objectId: string, after = Number.POSITIVE_INFINITY, text = ""): Envelope {
   return updateObject(e, objectId, (o) => {
     if (o.type !== "spinner") throw Error("Only a spinner has sectors.");
     if (o.sectors.length >= MAX_SECTORS) throw Error(`A spinner has at most ${MAX_SECTORS} sectors.`);
     const at = Math.max(0, Math.min(o.sectors.length, after + 1));
+    const full = o.sectors.every((s) => s.angle !== null);
     o.sectors.splice(at, 0, { label: value(text), fill: "none", angle: null });
-    if (o.sectors.every((s) => s.angle !== null)) o.sectors[at].angle = null;
+    if (full) for (const s of o.sectors) s.angle = null;
   });
 }
 export function removeSector(e: Envelope, objectId: string, index: number): Envelope {
@@ -377,15 +387,12 @@ const ordinal = (k: number) => ["First", "Second", "Third", "Fourth"][k] ?? `Obj
 /* ---------- Views ---------- */
 
 const REVEALED = new WeakSet<Value>();
-/** Every answer the answers copy prints, so both copies keep the same size. */
-const ANSWERED = new WeakSet<Value>();
 /** The answers copy prints hidden answers; with `mark` they print in the answer colour. */
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = clone(e);
   for (const o of n.document.objects)
     for (const v of labels(o)) {
-      if (v.show === "hidden" && v.text) ANSWERED.add(v);
       if (mark && v.show === "hidden" && v.text) REVEALED.add(v);
       v.show = "show";
     }
@@ -580,7 +587,7 @@ function layoutDice(d: Dice): Drawn {
         y0 = Math.min(...xs.map((p) => p.y));
       hits.push({ slot: `face:${i}`, x: x0, y: y0, width: Math.max(...xs.map((p) => p.x)) - x0, height: Math.max(...xs.map((p) => p.y)) - y0 });
     });
-    // The right face's hit sits on top of the top face's corner; the front face last, on top.
+    // Later buttons sit on top: the top face's over the right face's corner, the front face over both.
     hits.reverse();
     return { width: s + k + MARGIN, height: s + k + MARGIN, svg: parts.join(""), hits, notes: [] };
   }
@@ -624,7 +631,6 @@ function layoutBag(b: Bag): Drawn {
     `<path d="M${num(cx - nw / 2)} ${num(neckY)}L${num(cx - nw / 2 - 2.5)} ${num(neckY - 4.5)}Q${num(cx)} ${num(neckY - 2.5)} ${num(cx + nw / 2 + 2.5)} ${num(neckY - 4.5)}L${num(cx + nw / 2)} ${num(neckY)}" fill="white" stroke="black" stroke-width="${LINE}" stroke-linejoin="round"/>`,
   );
   parts.push(`<rect x="${num(cx - nw / 2 - 0.6)}" y="${num(neckY - 0.7)}" width="${num(nw + 1.2)}" height="1.4" rx="0.5" fill="black"/>`);
-  const seen = new Set<number>();
   counters.forEach(({ g, i }, k) => {
     const row = Math.floor(k / cols),
       inRow = row === rows - 1 ? counters.length - row * cols : cols,
@@ -636,7 +642,6 @@ function layoutBag(b: Bag): Drawn {
     const p = printed(g.label);
     if (p) parts.push((g.fill === "hatched" || g.fill === "dotted" ? backingRect(ccx, ccy, mathsWidth(p) + 0.8, FONT * 1.15) : "") + mathsMarkup(p, ccx, ccy, ink(g.label)));
     hits.push({ slot: `group:${i}`, x: ccx - D / 2, y: ccy - D / 2, width: D, height: D });
-    seen.add(i);
   });
   return { width: W + MARGIN, height: bottom + MARGIN / 2, svg: parts.join(""), hits, notes: [] };
 }
