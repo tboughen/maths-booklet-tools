@@ -41,6 +41,8 @@ import * as fm from "../../packages/function-machine-core/src/index";
 import { printFacts as fmPrintFacts } from "../../packages/function-machine-core/src/interchange";
 import * as nets from "../../packages/net-core/src/index";
 import { printFacts as netsPrintFacts } from "../../packages/net-core/src/interchange";
+import * as at from "../../packages/algebra-tile-core/src/index";
+import { printFacts as atPrintFacts } from "../../packages/algebra-tile-core/src/interchange";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { printFacts as ssPrintFacts } from "../../packages/sample-space-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
@@ -84,6 +86,7 @@ export type DiagramSource =
   | { kind: "written-method"; envelope: wm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "function-machine"; envelope: fm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "nets"; envelope: nets.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "algebra-tiles"; envelope: at.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "sample-space"; envelope: ss.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
@@ -162,6 +165,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "nets") {
     const view = source.outputView ?? "pupil", g = nets.layout(nets.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: netsPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "algebra-tiles") {
+    const view = source.outputView ?? "pupil", g = at.layout(at.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: atPrintFacts(source.envelope, view) };
   }
   if (source.kind === "two-way-table") {
     const view = source.outputView ?? "pupil", g = twt.layout(twt.forView(source.envelope, view));

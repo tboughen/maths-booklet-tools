@@ -37,6 +37,8 @@ import * as fm from "../../packages/function-machine-core/src/index";
 import { examples as fmExamples } from "../../packages/function-machine-core/src/examples";
 import * as nets from "../../packages/net-core/src/index";
 import { examples as netExamples } from "../../packages/net-core/src/examples";
+import * as at from "../../packages/algebra-tile-core/src/index";
+import { examples as atExamples } from "../../packages/algebra-tile-core/src/examples";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 import * as venn from "../../packages/venn-core/src/index";
@@ -92,6 +94,7 @@ const tools: Tool[] = [
   { name: "written methods", envelopes: () => wmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: wm.validate, pupilSvg: wm.renderSvg },
   { name: "function machines", envelopes: () => fmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: fm.validate, pupilSvg: fm.renderSvg },
   { name: "nets", envelopes: () => netExamples.flatMap(x => [x.make(false), x.make(true)]), validate: nets.validate, pupilSvg: nets.renderSvg },
+  { name: "algebra tiles", envelopes: () => atExamples.flatMap(x => [x.make(false), x.make(true)]), validate: at.validate, pupilSvg: at.renderSvg },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, pupilSvg: twoWayTable.renderSvg },
   { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, pupilSvg: (e: angles.Envelope) => angles.renderSvg(e) },
   { name: "area and perimeter", envelopes: () => areaExamples.flatMap(x => [x.make(false), x.make(true)]), validate: area.validate, pupilSvg: (e: area.Envelope) => area.renderSvg(e) },

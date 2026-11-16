@@ -44,6 +44,8 @@ import * as fm from "../../packages/function-machine-core/src/index";
 import { examples as fmExamples } from "../../packages/function-machine-core/src/examples";
 import * as nets from "../../packages/net-core/src/index";
 import { examples as netExamples } from "../../packages/net-core/src/examples";
+import * as at from "../../packages/algebra-tile-core/src/index";
+import { examples as atExamples } from "../../packages/algebra-tile-core/src/examples";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 
@@ -74,6 +76,7 @@ export const tools: Tool[] = [
   { name: "written methods", envelopes: () => wmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: wm.validate, parseFile: wm.parseFile, link: { encode: wm.linkHash, decode: wm.decodeLinkHash } },
   { name: "function machines", envelopes: () => fmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: fm.validate, parseFile: fm.parseFile, link: { encode: fm.linkHash, decode: fm.decodeLinkHash } },
   { name: "nets", envelopes: () => netExamples.flatMap(x => [x.make(false), x.make(true)]), validate: nets.validate, parseFile: nets.parseFile, link: { encode: nets.linkHash, decode: nets.decodeLinkHash } },
+  { name: "algebra tiles", envelopes: () => atExamples.flatMap(x => [x.make(false), x.make(true)]), validate: at.validate, parseFile: at.parseFile, link: { encode: at.linkHash, decode: at.decodeLinkHash } },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, parseFile: twoWayTable.parseFile, link: { encode: twoWayTable.linkHash, decode: twoWayTable.decodeLinkHash } },
   { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, parseFile: angles.parseFile, link: { encode: angles.linkHash, decode: angles.decodeLinkHash } },
   { name: "area and perimeter", envelopes: () => areaExamples.flatMap(x => [x.make(false), x.make(true)]), validate: area.validate, parseFile: area.parseFile, link: { encode: area.linkHash, decode: area.decodeLinkHash } },
