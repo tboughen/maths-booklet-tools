@@ -1,0 +1,37 @@
+{
+ "kind": "written-method",
+ "schemaVersion": 1,
+ "rendererVersion": "written-method-1",
+ "document": {
+  "method": "subtract",
+  "numbers": [
+   {
+    "id": "n1",
+    "value": {
+     "text": "6003",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n2",
+    "value": {
+     "text": "2478",
+     "show": "show"
+    }
+   }
+  ],
+  "working": [],
+  "answer": {
+   "text": "",
+   "show": "show"
+  },
+  "remainder": null,
+  "extend": {
+   "text": "",
+   "show": "show"
+  },
+  "marks": [],
+  "cellMm": 7,
+  "intentionalError": false
+ }
+}
