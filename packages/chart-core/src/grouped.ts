@@ -142,29 +142,45 @@ function interval(lower: string, upper: string, g: GroupedSettings): Run[] {
 }
 
 type Point = { x: number; y: number };
-/** Monotone cubic (Fritsch–Carlson) tangents: the curve never overshoots or turns back. */
-function tangents(p: Point[]): number[] {
+/**
+ * Monotone cubic (Fritsch–Carlson) tangents, one pair per part: the curve never overshoots or
+ * turns back. `cut[i]` marks a part pupils do not see (hidden). A point next to a cut part takes
+ * its tangent from the visible side only, and a cut part's own tangents are adjusted locally, so
+ * the visible curve never depends on (and never hints at) a hidden value. Where a visible part
+ * meets a hidden one the answers copy may show a slight corner.
+ */
+type Tangents = [number, number][];
+function tangents(p: Point[], cut: boolean[]): Tangents {
   const k = p.length,
-    d = p.slice(1).map((q, i) => (q.y - p[i].y) / (q.x - p[i].x)),
-    m = p.map((_, i) => (i === 0 ? d[0] : i === k - 1 ? d[k - 2] : d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2));
-  for (let i = 0; i < k - 1; i++) {
-    if (d[i] === 0) {
-      m[i] = m[i + 1] = 0;
-      continue;
-    }
-    const a = m[i] / d[i],
-      b = m[i + 1] / d[i],
+    d = p.slice(1).map((q, i) => (q.y - p[i].y) / (q.x - p[i].x));
+  const m = p.map((_, i) => {
+    if (i === 0) return d[0];
+    if (i === k - 1) return d[k - 2];
+    if (cut[i - 1] && !cut[i]) return d[i];
+    if (cut[i] && !cut[i - 1]) return d[i - 1];
+    return d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+  });
+  const clamp = (i: number, m0: number, m1: number): [number, number] => {
+    if (d[i] === 0) return [0, 0];
+    const a = m0 / d[i],
+      b = m1 / d[i],
       s = a * a + b * b;
-    if (s > 9) {
-      const t = 3 / Math.sqrt(s);
-      m[i] = t * a * d[i];
-      m[i + 1] = t * b * d[i];
-    }
-  }
-  return m;
+    if (s <= 9) return [m0, m1];
+    const t = 3 / Math.sqrt(s);
+    return [t * a * d[i], t * b * d[i]];
+  };
+  // Visible parts share their tangents, so the visible curve stays smooth.
+  for (let i = 0; i < k - 1; i++) if (!cut[i]) [m[i], m[i + 1]] = clamp(i, m[i], m[i + 1]);
+  // Hidden parts stay smooth among themselves; only an end at a visible part keeps its own value.
+  return d.map((_, i): [number, number] => {
+    if (!cut[i]) return [m[i], m[i + 1]];
+    const t = clamp(i, m[i], m[i + 1]);
+    if (i + 1 < k - 1 && cut[i + 1]) m[i + 1] = t[1];
+    return t;
+  });
 }
 /** The value on the curve at x (graph units), or null outside it. */
-function curveAt(p: Point[], m: number[] | null, x: number): number | null {
+function curveAt(p: Point[], m: Tangents | null, x: number): number | null {
   if (x < p[0].x - 1e-9 || x > p[p.length - 1].x + 1e-9) return null;
   let i = 0;
   while (i < p.length - 2 && x > p[i + 1].x) i++;
@@ -175,7 +191,7 @@ function curveAt(p: Point[], m: number[] | null, x: number): number | null {
   if (!m) return a.y + t * (b.y - a.y);
   const t2 = t * t,
     t3 = t2 * t;
-  return (2 * t3 - 3 * t2 + 1) * a.y + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * b.y + (t3 - t2) * h * m[i + 1];
+  return (2 * t3 - 3 * t2 + 1) * a.y + (t3 - 2 * t2 + t) * h * m[i][0] + (-2 * t3 + 3 * t2) * b.y + (t3 - t2) * h * m[i][1];
 }
 
 export type GroupedReading = { index: number; axis: "x" | "y"; x: number; y: number; drawn: boolean; revealed: boolean };
@@ -328,21 +344,36 @@ export function groupedLayout(e: Envelope) {
       // Each part of the line runs from the previous point to a class's point. It prints only when
       // both of its points print, so a part never gives away a hidden point (a hidden first class
       // also hides the part from the start at 0).
+      // Classes out of order or overlapping are already an error; no line is drawn through them.
+      const ordered = !issues.some((x) => x.includes("must not overlap"));
+      if (!ordered) plotted.splice(1);
       const pts = plotted.map((q) => q.p);
-      const m = cumulative && g.cumulative.curve === "smooth" && pts.length > 2 ? tangents(pts) : null;
+      // What pupils see: a part whose two points both print on the pupil copy.
+      const cut = plotted.slice(1).map((q, j) => !(q.drawn && !q.revealed && plotted[j].drawn && !plotted[j].revealed));
+      const m = cumulative && g.cumulative.curve === "smooth" && pts.length > 2 ? tangents(pts, cut) : null;
       curve = plotted.slice(1).map((q, j) => {
         const a = pts[j],
           b = q.p;
         let path = `M${n(X(a.x))},${n(Y(a.y))}`;
         if (m) {
           const h = b.x - a.x;
-          path += `C${n(X(a.x + h / 3))},${n(Y(a.y + (m[j] * h) / 3))} ${n(X(b.x - h / 3))},${n(Y(b.y - (m[j + 1] * h) / 3))} ${n(X(b.x))},${n(Y(b.y))}`;
+          path += `C${n(X(a.x + h / 3))},${n(Y(a.y + (m[j][0] * h) / 3))} ${n(X(b.x - h / 3))},${n(Y(b.y - (m[j][1] * h) / 3))} ${n(X(b.x))},${n(Y(b.y))}`;
         } else path += `L${n(X(b.x))},${n(Y(b.y))}`;
         const from = plotted[j];
         return { path, index: q.index, drawn: q.drawn && from.drawn, revealed: q.revealed || from.revealed };
       });
+      // A frequency polygon breaks at a class with no frequency rather than joining across it,
+      // which would show a value nobody entered.
+      if (!cumulative) {
+        curve = curve.filter((c, j) => {
+          const joined = plotted[j + 1].index === plotted[j].index + 1;
+          if (!joined && classes.slice(plotted[j].index + 1, plotted[j + 1].index).some((x) => x.valid && x.f === null))
+            notes.push(`The frequency polygon is broken between class ${plotted[j].index + 1} and class ${plotted[j + 1].index + 1}, where a frequency is blank.`);
+          return joined;
+        });
+      }
       if (!cumulative && points.length === 1) notes.push("A frequency polygon needs at least two classes with frequencies to draw a line.");
-      if (cumulative)
+      if (cumulative && ordered)
         g.cumulative.readings.forEach((r, i) => {
           const where = `Reading ${i + 1}`,
             v = readNumber(r.value);

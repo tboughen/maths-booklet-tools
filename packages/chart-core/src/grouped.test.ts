@@ -224,3 +224,41 @@ describe("grouped kinds share one document", () => {
     expect(layout(next).issues).toEqual([]);
   });
 });
+
+describe("review fixes", () => {
+  it("a frequency polygon breaks at a blank class instead of joining across it", () => {
+    const g = groupedLayout(grouped("polygon", (s) => void (s.classes[1].frequency = "")));
+    expect(g.curve.map((c) => c.index)).toEqual([3, 4]);
+    expect(g.notes).toContain("The frequency polygon is broken between class 1 and class 3, where a frequency is blank.");
+  });
+
+  it("the visible smooth curve does not depend on a hidden value", () => {
+    const visible = (hidden: string) => {
+      const e = grouped("cumulative", (s) => {
+        s.cumulative.curve = "smooth";
+        s.classes[2].graph = "hidden";
+        s.classes[2].frequency = hidden;
+        s.cumulative.yAxis.max = "200";
+      });
+      return groupedLayout(e).curve.filter((c) => c.drawn).map((c) => c.path).slice(0, 2);
+    };
+    expect(visible("46")).toEqual(visible("10"));
+    // Pupil and answers copies draw the visible parts identically.
+    const e = grouped("cumulative", (s) => void (s.classes[2].graph = "hidden"));
+    const pupil = groupedLayout(e).curve.filter((c) => c.drawn).map((c) => c.path);
+    const answer = groupedLayout(forView(e, "answer", true)).curve.filter((c) => !c.revealed).map((c) => c.path);
+    expect(answer).toEqual(pupil);
+  });
+
+  it("overlapping classes draw no line (and no NaN)", () => {
+    const e = grouped("cumulative", (s) => void (s.classes[1].lower = "5"));
+    expect(layout(e).issues).toContain("Class 2: classes must be in order and must not overlap.");
+    expect(renderSvg(e)).not.toContain("NaN");
+  });
+});
+
+it("a curve hidden for pupils to draw is one smooth curve on the answers copy", () => {
+  const e = grouped("cumulative", (s) => s.classes.forEach((c) => (c.graph = "hidden")));
+  const shown = groupedLayout(grouped("cumulative")).curve.map((c) => c.path);
+  expect(groupedLayout(forView(e, "answer", true)).curve.map((c) => c.path)).toEqual(shown);
+});

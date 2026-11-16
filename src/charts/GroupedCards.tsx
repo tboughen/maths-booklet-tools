@@ -177,8 +177,13 @@ export function GroupedCards({
           </button>
           <button
             type="button"
-            disabled={blocked || !g.classes.some((c) => c.graph === "hidden" || c.table === "hidden")}
-            onClick={() => onChange((s) => s.classes.forEach((c) => (c.graph = c.table = "show")))}
+            disabled={blocked || !(g.classes.some((c) => c.graph === "hidden" || c.table === "hidden") || g.cumulative.readings.some((r) => r.show === "hidden"))}
+            onClick={() =>
+              onChange((s) => {
+                s.classes.forEach((c) => (c.graph = c.table = "show"));
+                s.cumulative.readings.forEach((r) => (r.show = "show"));
+              })
+            }
           >
             Show all
           </button>
