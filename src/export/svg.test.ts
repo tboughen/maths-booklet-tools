@@ -106,7 +106,9 @@ describe("print SVG export", () => {
     expect(svg.match(/class="axis-number[^]*?<rect[^>]*fill="#ffffff"/g)).toHaveLength(21);
     expect(svg).toContain(">−5</text>");
     expect(Number(axisLines[0]?.[3]) - metrics.layout.plotRight).toBeCloseTo(23.333, 3);
-    expect(metrics.layout.plotTop - Number(axisLines[1]?.[4])).toBeCloseTo(23.333, 3);
+    // The y-axis reaches further so its arrowhead clears the number on the top line: 0.48 of the
+    // 12 pt number above the line, a 4-unit gap and the head (0.85 of 25 units).
+    expect(metrics.layout.plotTop - Number(axisLines[1]?.[4])).toBeCloseTo(42.333 * 0.48 + 4 + 25 * 0.85, 3);
   });
 
   it("aligns the y axis name with the y-axis numbers", () => {

@@ -1376,45 +1376,45 @@
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
    "json": "75f5e8de89a74165",
-   "svg": "12a0af07a17e5f4b",
+   "svg": "98f4ff02cf86fcec",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
-   "pixels": "2b18446b7ec3ebef"
+   "pixels": "7254c79ead91ac5d"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2 (worked)": {
    "json": "50c48539422503db",
-   "svg": "c42d256a343643d5",
+   "svg": "5aa38713aff81911",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
-   "pixels": "86dc7884d2f4fe9c"
+   "pixels": "fcc61511fbf81a23"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13": {
    "json": "05534685d2e9a26e",
-   "svg": "8e52bc398906fc46",
+   "svg": "351f5a82a0d6ecc8",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
    "pixels": "9fb33ec5ac4fe5fb"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13 (worked)": {
    "json": "d106633b195329f2",
-   "svg": "98467927ce31fcd8",
+   "svg": "6e09262450f078fe",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
-   "pixels": "1afa69c158c6d99d"
+   "pixels": "856db7c1ff4ec1c5"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18": {
    "json": "6b1d6f131727bc66",
-   "svg": "24831fc4b21e9286",
+   "svg": "a4144398a054e0ea",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
-   "pixels": "3b83e69e52882db4"
+   "pixels": "73f4b254153f6d45"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18 (worked)": {
    "json": "f3131ffaec134c16",
-   "svg": "1e4d146e65ced02b",
+   "svg": "17c1b8b9cb919579",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
-   "pixels": "648a83f51c414026"
+   "pixels": "9fa8c511c7cdd661"
   },
   "number line: number-line-0": {
    "json": "b99c456fc3a9b92d",

@@ -74,13 +74,11 @@ describe("native axis presentation", () => {
     }).render();
     const alphaAt = (x: number, y: number) =>
       raster.pixels[(Math.round(y) * raster.width + Math.round(x)) * 4 + 3];
-    // Off-shaft pixels distinguish the triangle direction from its vertical stem.
-    expect(alphaAt(origin.x - 8, metrics.layout.plotTop - 7)).toBeGreaterThan(
-      240,
-    );
-    expect(alphaAt(origin.x + 8, metrics.layout.plotTop - 7)).toBeGreaterThan(
-      240,
-    );
+    // Off-shaft pixels distinguish the triangle direction from its vertical stem. The y-axis may
+    // reach higher to clear a number on the top line, so sample just below its own end.
+    const yEnd = Number(axes.match(/<line [^>]*y2="([-\d.]+)" marker-end/g)![1].match(/y2="([-\d.]+)"/)![1]);
+    expect(alphaAt(origin.x - 8, yEnd + 16)).toBeGreaterThan(240);
+    expect(alphaAt(origin.x + 8, yEnd + 16)).toBeGreaterThan(240);
     expect(alphaAt(metrics.layout.plotRight + 7, origin.y - 8)).toBeGreaterThan(
       240,
     );
