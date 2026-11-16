@@ -66,6 +66,8 @@ export const ElevationsIcon = icon(<><path d="M3 20V8h6v6h6v6zM3 14h6M9 14v6" />
 export const AnglesIcon = icon(<><path d="M3 19h18M3 19 15 5" /><path className="md-icon-part" d="M10.5 19a7.5 7.5 0 0 0-2.6-5.7" /></>);
 /** Area and perimeter */
 export const AreaIcon = icon(<><path className="md-icon-wash" d="M4 4h9v7h7v9H4z" /></>);
+/** 3D solids */
+export const SolidsIcon = icon(<><ellipse cx="12" cy="6" rx="6" ry="2.5" /><path d="M6 6v12M18 6v12" /><path d="M6 18a6 2.5 0 0 0 12 0" /><path className="md-icon-part" d="M6 18a6 2.5 0 0 1 12 0" strokeDasharray="1.5 1.5" /></>);
 /** Geometry figures */
 export const FiguresIcon = icon(<><circle cx="12" cy="11" r="7" /><path d="M3 18h18" /><path className="md-icon-part" d="M6.5 15.5 12 18l5.5-2.5" /></>);
 /** Venn diagrams */

@@ -2278,5 +2278,59 @@
   "contentHash": "168fd9ef4b4df0c82521daa549c596bdc8d1f370690579c8c6232979401e8720",
   "pupilSvg": "7bcb0641117266e8210cf142d3c165527b2125d8c5998ecaf34a08e3c6c53b54",
   "answerSvg": "7bcb0641117266e8210cf142d3c165527b2125d8c5998ecaf34a08e3c6c53b54"
+ },
+ "solids/default": {
+  "schemaVersion": 1,
+  "contentHash": "422a39b5f93dfd4f04560acbbdfdb96916ef104ca50b30cf699c2f8b6846b12b",
+  "pupilSvg": "b1d48a9f305438cb2bf534353d91e8a9a26f184cd1a48ae472f1381584071210",
+  "answerSvg": "b1d48a9f305438cb2bf534353d91e8a9a26f184cd1a48ae472f1381584071210"
+ },
+ "solids/example-cone-hemisphere": {
+  "schemaVersion": 1,
+  "contentHash": "a32b7889148eb712f4cf84b780c36c8dc1fbcadfadb286fe10efd11a9c27cb4e",
+  "pupilSvg": "f25350381bb3232ed5d0ffd44dc8cbb73d8da3d7242f46d63e76da721db676cf",
+  "answerSvg": "f25350381bb3232ed5d0ffd44dc8cbb73d8da3d7242f46d63e76da721db676cf"
+ },
+ "solids/example-cone-sculpture": {
+  "schemaVersion": 1,
+  "contentHash": "0e759b06e9007a7282859bae9b88e3bac235de3bf5d23b83ebeb6c7341f0fa14",
+  "pupilSvg": "36649a263e436fdc5ebd3a9db5071f1a36f97e8ca1f215cc62664504b845a73f",
+  "answerSvg": "36649a263e436fdc5ebd3a9db5071f1a36f97e8ca1f215cc62664504b845a73f"
+ },
+ "solids/example-cuboid-diagonal": {
+  "schemaVersion": 1,
+  "contentHash": "c7f1943d5036f62f682080f16e8264d456acfd48bc7bc81a8b69a0fe36250d8f",
+  "pupilSvg": "325c0434814eaf06e49e11836f1ee3e38c963644ccf13202e41a18e21fa23076",
+  "answerSvg": "325c0434814eaf06e49e11836f1ee3e38c963644ccf13202e41a18e21fa23076"
+ },
+ "solids/example-cylinder-tank": {
+  "schemaVersion": 1,
+  "contentHash": "5e9bf4b35c2e306b9c86841def9993cf6f14f9001fddd2ffc671a6914ce69840",
+  "pupilSvg": "ceb63461be35277702347d26783c5caf1f65134513192a60596edca1769c770d",
+  "answerSvg": "ceb63461be35277702347d26783c5caf1f65134513192a60596edca1769c770d"
+ },
+ "solids/example-square-pyramid": {
+  "schemaVersion": 1,
+  "contentHash": "7f019e0aacaea48010abb7b3d6e74161f06d8bdc5a6584f8acf502c98d218743",
+  "pupilSvg": "c4b958bfb4383ca5f4e52b34298739dfc05b2b46860624507ba6d8d3d6c08101",
+  "answerSvg": "c4b958bfb4383ca5f4e52b34298739dfc05b2b46860624507ba6d8d3d6c08101"
+ },
+ "solids/example-triangular-prism-worked": {
+  "schemaVersion": 1,
+  "contentHash": "0ea65f24b4e1261059e916da48d2010111e70e8e5622f1a2c9069a1da6dea9ee",
+  "pupilSvg": "297d59fc5545e90602814619b275e3986c56ba612ee91a0afdedf84267321bb0",
+  "answerSvg": "c0f56af9423edc5118b4b453452b7c2812c0c9578284ee4b4a86edd8a7b374bf"
+ },
+ "solids/example-triangular-prism": {
+  "schemaVersion": 1,
+  "contentHash": "7d9aaba3dbdbeed908aad9298dc0c829f347f09b73a9e89c8fa04339a166175f",
+  "pupilSvg": "d0c699579874aef5a5fff1a5564d27627821e252cc48a0cfd3a5338914ec3841",
+  "answerSvg": "d0c699579874aef5a5fff1a5564d27627821e252cc48a0cfd3a5338914ec3841"
+ },
+ "solids/hidden-answers": {
+  "schemaVersion": 1,
+  "contentHash": "01aaf16262fd9a87a525da9130ac6876cef5ccd649ce80ce21380fe731e6f4c4",
+  "pupilSvg": "a6d7e9211b13f97f6376b5be5add6c0e8ecbd29e530f40f4451847c70e28bd8a",
+  "answerSvg": "f19ba4477813b09f95d2030cb7905541fbed08b3e56ec3b89034e6b8cf36f645"
  }
 }

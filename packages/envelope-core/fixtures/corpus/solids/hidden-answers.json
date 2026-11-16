@@ -1,0 +1,93 @@
+{
+ "document": {
+  "angles": [],
+  "dims": [
+   {
+    "a": "p1",
+    "b": "p2",
+    "gap": false,
+    "id": "w",
+    "kind": "beside",
+    "label": {
+     "answer": "8 cm",
+     "state": "hidden",
+     "text": ""
+    },
+    "offset": 0,
+    "side": "auto"
+   },
+   {
+    "a": "p1",
+    "b": "p4",
+    "gap": false,
+    "id": "h",
+    "kind": "beside",
+    "label": {
+     "answer": "5 cm",
+     "state": "answer-line",
+     "text": ""
+    },
+    "offset": 0,
+    "side": "auto"
+   },
+   {
+    "a": "p2",
+    "b": "pb2",
+    "gap": false,
+    "id": "dp",
+    "kind": "beside",
+    "label": {
+     "answer": "6 cm",
+     "state": "symbol",
+     "text": "x"
+    },
+    "offset": 0,
+    "side": "auto"
+   }
+  ],
+  "hidden": "dashed",
+  "lines": [],
+  "names": [],
+  "notToScale": true,
+  "points": [],
+  "solids": [
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "axis": "z",
+    "id": "p",
+    "length": 30,
+    "section": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": 40,
+      "y": 0
+     },
+     {
+      "x": 40,
+      "y": 25
+     },
+     {
+      "x": 0,
+      "y": 25
+     }
+    ],
+    "type": "prism"
+   }
+  ],
+  "view": {
+   "angle": 35,
+   "scale": 0.5,
+   "type": "oblique"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}

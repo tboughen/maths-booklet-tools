@@ -23,6 +23,7 @@ export const galleries: Record<string, Entry[]> = {
   "angle diagrams": gallery.anglesGallery as Entry[],
   "area and perimeter": gallery.areaGallery as Entry[],
   "geometry figures": gallery.figuresGallery as Entry[],
+  "3D solids": gallery.solidsGallery as Entry[],
   "factor trees": gallery.factorTreeGallery as Entry[],
   "written methods": gallery.writtenMethodGallery as Entry[],
   "function machines": gallery.functionMachineGallery as Entry[],

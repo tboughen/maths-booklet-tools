@@ -34,7 +34,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -795,7 +796,8 @@
                                                     "elevations",
                                                     "angles",
                                                     "area",
-                                                    "figures"
+                                                    "figures",
+                                                    "solids"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
                                                 },
@@ -1322,7 +1324,8 @@
                                                               "elevations",
                                                               "angles",
                                                               "area",
-                                                              "figures"
+                                                              "figures",
+                                                              "solids"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
                                                           },
@@ -1934,7 +1937,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "Diagram family. Call diagram_capabilities with this kind first to read its spec and operations."
         },
@@ -2004,7 +2008,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -2616,7 +2621,8 @@
                                                     "elevations",
                                                     "angles",
                                                     "area",
-                                                    "figures"
+                                                    "figures",
+                                                    "solids"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
                                                 },
@@ -3143,7 +3149,8 @@
                                                               "elevations",
                                                               "angles",
                                                               "area",
-                                                              "figures"
+                                                              "figures",
+                                                              "solids"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
                                                           },
@@ -3861,7 +3868,8 @@
                                                     "elevations",
                                                     "angles",
                                                     "area",
-                                                    "figures"
+                                                    "figures",
+                                                    "solids"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
                                                 },
@@ -4400,7 +4408,8 @@
                                                               "elevations",
                                                               "angles",
                                                               "area",
-                                                              "figures"
+                                                              "figures",
+                                                              "solids"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
                                                           },
@@ -4897,7 +4906,7 @@
   {
     "name": "diagram_capabilities",
     "title": "Diagram options",
-    "description": "List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, factor-tree, function-machine, bubble-method, probability-objects, nets, written-method, algebra-tiles, sample-space, triangle, construction, elevations, angles, area, figures.",
+    "description": "List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, factor-tree, function-machine, bubble-method, probability-objects, nets, written-method, algebra-tiles, sample-space, triangle, construction, elevations, angles, area, figures, solids.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4930,7 +4939,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ]
         }
       },
@@ -4973,7 +4983,8 @@
                   "elevations",
                   "angles",
                   "area",
-                  "figures"
+                  "figures",
+                  "solids"
                 ],
                 "description": "The diagram family the envelope belongs to."
               },
@@ -5036,7 +5047,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -5098,7 +5110,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -5201,7 +5214,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -5365,7 +5379,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -5482,7 +5497,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -5636,7 +5652,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "Diagram family. Call diagram_capabilities with this kind first to read its spec and operations."
         },
@@ -5718,7 +5735,8 @@
             "elevations",
             "angles",
             "area",
-            "figures"
+            "figures",
+            "solids"
           ],
           "description": "The diagram family the envelope belongs to."
         },
