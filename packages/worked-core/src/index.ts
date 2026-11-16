@@ -161,7 +161,8 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
   let cursor = x, out = "";
   for (const p of pieces(s)) {
     const w = pieceWidth(p, size);
-    if (p.kind === "run") out += `<text x="${n(cursor)}" y="${n(p.sup ? y - size * 0.4 : y)}" font-size="${n(p.sup ? size * 0.7 : size)}" fill="${fill}" xml:space="preserve">${esc(p.text)}</text>`;
+    // Each run is held to its measured width, so a power or fraction after it lands where it was laid out.
+    if (p.kind === "run") out += `<text x="${n(cursor)}" y="${n(p.sup ? y - size * 0.4 : y)}" font-size="${n(p.sup ? size * 0.7 : size)}" fill="${fill}" xml:space="preserve"${p.text.trim().length > 1 ? ` textLength="${n(w)}" lengthAdjust="spacing"` : ""}>${esc(p.text)}</text>`;
     else {
       const mid = cursor + w / 2, bar = y - size * 0.32;
       out += `<text x="${n(mid)}" y="${n(bar - size * 0.22)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.num)}</text>`
@@ -305,7 +306,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
     const eq = a.x + Math.max(0, ...lines.map(l => mathsWidth(mathsText(l.lhs)))) + 10;
     const notesWidth = d.surface.width - part.notesX - 4;
     if (notesWidth < 60) issues.push({ surface: part.on, message: "The guidance column starts too near the right edge of the cut." });
-    let cursor = a.y, noteBottom = 0;
+    let cursor = a.y, noteBottom = 0, answerClear = 0;
     let last: { lhsCentre: number; rhsCentre: number } | undefined;
     const later: (() => void)[] = [];
 
@@ -432,19 +433,26 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           let svg = `<g ${HAND}>${maths(value, left, base)}</g>`;
           const boxes: Box[] = [{ x: left, y: base - HAND_SIZE, width: w, height: HAND_SIZE * 1.2 + lift, what: "answer" }];
           if (mark) {
-            const chipWidth = noteWidth(mark.code, 9, true) + 8, words = noteWidth(mark.note, NOTE_SIZE) + chipWidth + 5;
-            const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7;
-            svg += `<g ${UI}>${chip(mark.code, x, y)}<text x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(mark.note)}</text></g>`;
-            boxes.push({ x, y: y - 10, width: words, height: 13, what: "answer guidance" });
+            const chipWidth = noteWidth(mark.code, 9, true) + 8, also = mark.also ? `Also scores: ${mark.also}` : "";
+            const words = Math.max(noteWidth(mark.note, NOTE_SIZE), also ? noteWidth(also, 9) : 0) + chipWidth + 5;
+            // An "Also scores" line sits under the mark's words, just above the answer; its room is kept without the mark notes.
+            const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7 - (also ? 12 : 0);
+            svg += `<g ${UI}>${chip(mark.code, x, y)}<text x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(mark.note)}</text>`
+              + (also && marks ? `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y + 11)}" font-size="9" font-style="italic" fill="${PINK}">${esc(also)}</text>` : "") + `</g>`;
+            boxes.push({ x, y: y - 10, width: words, height: also ? 24 : 13, what: "answer guidance" });
           }
-          // The answer line sits below the working space, so it moves down with any room added there.
+          // The answer line sits below the working space, so it moves down with any room added there,
+          // and room is added when guidance beside the last lines would reach its words.
+          const top = Math.min(...boxes.map(b => b.y)), right = Math.max(...boxes.map(b => b.x + b.width));
+          if (noteBottom && right > part.notesX && anchor.y > a.bottom) answerClear = Math.max(answerClear, noteBottom + 3 - top);
           emit(d, k, svg, anchor.y, boxes);
           break;
         }
       }
     }
     const bottom = Math.max(cursor, noteBottom);
-    if (bottom > a.bottom + 0.5) d.bands.push({ at: a.bottom, size: Math.ceil(bottom - a.bottom + 4) });
+    const room = Math.max(bottom > a.bottom + 0.5 ? bottom - a.bottom + 4 : 0, answerClear);
+    if (room > 0) d.bands.push({ at: a.bottom, size: Math.ceil(room) });
     d.bands.sort((p, q) => p.at - q.at);
     for (const place of later) place();
   }
@@ -528,7 +536,9 @@ export function checkWorked(data: WorkedData, question: { id: string; revision: 
   // WS9: a value carried from an earlier part is that part's own answer, never a different one.
   for (const part of data.parts) for (const s of part.steps) {
     if (s.kind !== "carry") continue;
-    const source = data.parts.find(p => p.parts.includes(s.from));
+    // "from (a)" names part 13a of this question: the tag is written as the paper prints it.
+    const printed = /^\((.+)\)$/.exec(s.from)?.[1];
+    const source = data.parts.find(p => p !== part && p.parts.some(l => l === s.from || (printed !== undefined && l.replace(/^\d+/, "") === printed)));
     const values = source?.steps.filter(t => t.kind === "answer").map(t => mathsText((t as Extract<WorkedStep, { kind: "answer" }>).value)) ?? [];
     if (!source) problems.push(`"${s.text}" is carried from ${s.from}, which has no working.`);
     else if (values.length && !values.some(v => mathsText(s.text).includes(v))) problems.push(`"${s.text}" does not match the answer to ${s.from}.`);

@@ -177,6 +177,33 @@ describe("worked-solution written answers", () => {
     expect(at("left")).toBeCloseTo(336, 0);
     expect(at("centre")).toBeGreaterThan(380);
   });
+  it("adds room so guidance beside the last line never reaches the answer", () => {
+    const raw = sample();
+    const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], area: { x: 40, y: 150, width: 260, bottom: 175 }, steps: [
+      { kind: "text", text: "3 × 4 = 12", note: "A long piece of guidance that wraps onto a second and then a third line of the column." },
+      { kind: "answer", value: "12", mark: { code: "A1", note: "cao" } },
+    ] }, raw.parts[1]] });
+    const layout = layoutWorked(data, surfaces);
+    expect(layout.issues).toEqual([]);
+    expect(layout.overlays.get("a-1")!.bands[0].size).toBeGreaterThan(20);
+  });
+  it("shows an answer's Also scores line under its chip, keeping its room without the mark notes", () => {
+    const raw = sample();
+    const steps = [{ kind: "answer", value: "4", mark: { code: "B2", note: "cao", also: "(B1) for three correct" } }];
+    const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], steps }, raw.parts[1]] });
+    const svg = layoutWorked(data, surfaces).overlays.get("a-1")!.svg;
+    expect(svg).toContain("Also scores: (B1) for three correct");
+    const chipAt = (s: string) => /<text x="[\d.]+" y="([\d.]+)"[^>]*>cao</.exec(s)?.[1];
+    expect(chipAt(layoutWorked(data, surfaces, { marks: false }).overlays.get("a-1")!.svg)).toBe(chipAt(svg));
+    expect(layoutWorked(data, surfaces, { marks: false }).overlays.get("a-1")!.svg).not.toContain("Also scores");
+  });
+  it("holds each run of maths to its measured width so a power lands where it was laid out", () => {
+    const raw = sample();
+    const data = parseWorked({ ...raw, parts: [{ ...raw.parts[0], steps: [{ kind: "text", text: "Rectangle: 6 × 36 = 216 cm^2" }, { kind: "answer", value: "216" }] }, raw.parts[1]] });
+    const svg = layoutWorked(data, surfaces).overlays.get("a-1")!.svg;
+    const run = /<text x="40" [^>]*textLength="([\d.]+)"[^>]*>Rectangle/.exec(svg);
+    expect(Number(run?.[1])).toBeCloseTo(mathsWidth("Rectangle: 6 × 36 = 216 cm"), 1);
+  });
 });
 
 describe("worked-solution checks", () => {
@@ -204,6 +231,19 @@ describe("worked-solution checks", () => {
     const data = sample();
     (data.parts[1].steps[0] as { text: string }).text = "x = 5";
     expect(checkWorked(data, question, surfaces)).toContain('"x = 5" does not match the answer to (a).');
+  });
+  it("finds the part a carried value names as printed, such as (a) for part 19a", () => {
+    const data = sample();
+    data.parts[0].parts = ["19a"]; data.parts[1].parts = ["19b"];
+    const labelled = { ...question, parts: [{ label: "19a", marks: 2 }, { label: "19b", marks: 1 }] };
+    expect(checkWorked(data, labelled, surfaces)).toEqual([]);
+    (data.parts[1].steps[0] as { text: string }).text = "x = 5";
+    expect(checkWorked(data, labelled, surfaces)).toContain('"x = 5" does not match the answer to (a).');
+    // Another question's number, a bare letter and the part's own label never match.
+    for (const from of ["18a", "a", "(b)"]) {
+      Object.assign(data.parts[1].steps[0], { from, text: "x = 4" });
+      expect(checkWorked(data, labelled, surfaces)).toContain(`"x = 4" is carried from ${from}, which has no working.`);
+    }
   });
   it("catches parts with no working or answered twice", () => {
     const data = sample();

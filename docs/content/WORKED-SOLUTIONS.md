@@ -82,7 +82,14 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   embedded), the current Mark notes and step choices, and the source caption. **Whole question**
   exports every cut with its total.
 
+## Pilot
+
+June 2017 1F (27 questions) is registered as revision `ws-2026-11-16-a`, waiting for Tim's review
+before 2H. Its WS13 review record (drawn answer, independent solve and mark scheme for every part)
+is kept outside the repository; the batch records its hash.
+
 ## Still to come
 
 - A worked-solutions PDF in Paper Builder.
-- The June 2017 1F pilot data.
+- Vectors in handwriting are underlined; the working font cannot underline yet, so 27(a) to (c)
+  print plain letters.
