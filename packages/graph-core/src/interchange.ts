@@ -29,7 +29,7 @@ import {
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
-import { curveProblem, curveVisible, readingVisible } from "./curve";
+import { axesCrossing, curveProblem, curveVisible, readingLegs, readingVisible } from "./curve";
 import { imageObjects, transformationProblem, type Transformation } from "./transform";
 import { gradientLabelClashes } from "./svg";
 import {
@@ -488,6 +488,10 @@ const documentSchema = z
           code: "custom",
           message: `${o.id} needs two distinct points.`,
         });
+      if (o.kind === "curve") {
+        const problem = curveProblem(o.points);
+        if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
+      }
       if (o.kind === "polygon") {
         const problem = polygonProblem(o.vertices);
         if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
@@ -966,11 +970,16 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
       ? [`${o.id}: the end of this vector is off the grid, so its arrowhead does not print. Move the end onto the grid or widen the axes.`]
       : [],
   );
+  const readings = envelope.document.objects.flatMap((o) =>
+    o.kind === "reading" && readingVisible(o, bounds) && !readingLegs(o, axesCrossing(envelope.document.axes)).some((l) => l.head)
+      ? [`${o.id}: this reading sits on the axis it reads, so it has no arrowhead. Move it onto the graph or choose the other value.`]
+      : [],
+  );
   const triangles = envelope.document.objects.flatMap((o) => {
     const problem = o.kind === "straight" ? gradientTriangleProblem(o, bounds) : null;
     return problem ? [`${o.id}: ${problem}`] : [];
   });
-  return crowded.concat(arrows, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
+  return crowded.concat(arrows, readings, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
     .filter((o) =>
       o.kind === "curve"
         ? !curveVisible(o, bounds)

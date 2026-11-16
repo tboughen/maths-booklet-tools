@@ -117,3 +117,23 @@ describe("real-life and travel graphs", () => {
     expect(() => createGraph({ objects: [{ kind: "reading", at: { x: 1, y: 1 }, read: "y", name: "A" }] })).toThrow();
   });
 });
+
+describe("real-life graph review fixes", () => {
+  it("refuses a saved curve with a repeated point, in both validators", async () => {
+    const { isDiagramDocument } = await import("./legacy-validation");
+    const e = createGraph({ objects: [{ kind: "curve", points: [{ x: 0, y: 0 }, { x: 2, y: 2 }] }] });
+    const bad = structuredClone(e);
+    (bad.document.objects[0] as { points: unknown[] }).points = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 2, y: 2 }];
+    expect(() => validateEnvelope(bad)).toThrow(/repeats/);
+    expect(isDiagramDocument(bad.document)).toBe(false);
+  });
+  it("warns about a reading on the axis it reads and rejects extra keys on a saved reading", async () => {
+    const { graphWarnings } = await import("./interchange");
+    const { isDiagramDocument } = await import("./legacy-validation");
+    const e = createGraph({ objects: [{ kind: "reading", at: { x: 0, y: 4 }, read: "y" }] });
+    expect(graphWarnings(e).some((w) => w.includes("sits on the axis it reads"))).toBe(true);
+    const bad = structuredClone(e.document) as unknown as { objects: Record<string, unknown>[] };
+    bad.objects[0].namePosition = { x: 1, y: 1 };
+    expect(isDiagramDocument(bad)).toBe(false);
+  });
+});

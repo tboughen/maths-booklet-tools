@@ -37,6 +37,7 @@ import {
   AXIS_LIMITS,
   axisOrigin,
   clampToBounds,
+  clipSegment,
   coordinateToSvg,
   createEditorLayout,
   getObjectById,
@@ -239,12 +240,17 @@ function objectHitIds(
     }
     if (object.kind === "curve") {
       // Near any piece of the curve picks it (smooth curves are close enough to their chords here).
-      const pts = object.points.map((p) => coordinateToSvg(p, layout));
-      const distance = Math.min(...pts.slice(1).map((p, i) => pointToSegmentDistance(pointer, pts[i], p)));
+      // Only the parts on the grid can be picked, as only they are drawn.
+      const pieces = object.points.slice(1).flatMap((p, i) => {
+        const visible = clipSegment(object.points[i], p, layout.bounds);
+        return visible ? [visible.map((q) => coordinateToSvg(q, layout))] : [];
+      });
+      const distance = Math.min(Infinity, ...pieces.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
       if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
       continue;
     }
     if (object.kind === "reading") {
+      if (!pointInBounds(object.at, layout.bounds)) continue;
       const legs = readingLegs(object, axesCrossing(document.axes)).map((l) => [coordinateToSvg(l.start, layout), coordinateToSvg(l.end, layout)] as const);
       const distance = Math.min(Infinity, ...legs.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
       if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
