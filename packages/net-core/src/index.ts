@@ -163,6 +163,7 @@ export function validate(input: unknown): Envelope {
       tidy(f.label, "label");
       if (f.mark.kind === "none") f.mark.show = "show";
     }
+    tidy(net.caption, "caption");
     net.vertices.forEach((v) => tidy(v.label, "letter"));
     net.edges.forEach((v) => tidy(v.label, "length"));
     net.vertices = net.vertices.filter((v) => v.label.text);
@@ -229,6 +230,9 @@ const clone = (e: Envelope) => structuredClone(e);
 /** Copies only the fields a change gives, so an omitted field keeps its value. */
 function merge<T extends object>(target: T, change: Partial<T>) {
   for (const [k, v] of Object.entries(change)) if (v !== undefined) (target as Record<string, unknown>)[k] = v;
+  // Emptying a label removes it, so it can no longer be a hidden answer.
+  const t = target as { text?: unknown; show?: unknown };
+  if (typeof t.text === "string" && !t.text.trim() && "show" in t) t.show = "show";
   return target;
 }
 export const newFace = (faceId: string, points: Pt[]): Face => ({ id: faceId, points, show: "show", label: text(), mark: { kind: "none", show: "show" } });
@@ -301,8 +305,10 @@ export function addSquare(e: Envelope, netId: string, x: number, y: number, side
     net = netOf(n.document, netId);
   if (net.faces.length >= MAX_FACES) throw Error(`A net can have at most ${MAX_FACES} faces.`);
   const pts = squaresNet([[0, 0]], side)[0].map(([px, py]): Pt => [px + x, py + y]);
-  const c = centre(pts);
-  if (net.faces.some((f) => inside(c, f.points))) throw Error("There is already a face there.");
+  // Any overlap with a face, sampled across the new square, is refused.
+  const samples: Pt[] = [];
+  for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) samples.push([x + (side * i) / 8, y + (side * j) / 8]);
+  if (net.faces.some((f) => samples.some((q) => inside(q, f.points)) || inside(centre(f.points), pts))) throw Error("There is already a face there.");
   net.faces.push(newFace(freshId(net.faces.map((f) => f.id), "f"), pts));
   return validate(n);
 }
@@ -558,10 +564,47 @@ const unitVec = (x: number, y: number): Pt => {
   return l < 1e-9 ? [0, -1] : [x / l, y / l];
 };
 /** Where a label beside a point sits: `gap` mm out along `dir`, allowing for the text's own size. */
+/** Half the width and height of a label's white patch. */
+const halfBox = (t: string): Pt => [(textWidth(t) + 0.8) / 2, (FONT * 0.95) / 2];
+/** The centre of a label `gap` mm beyond `p` along `dir`, its whole patch clear of the point. */
 function outside(p: Pt, dir: Pt, t: string, gap: number): Pt {
-  const w = textWidth(t) / 2,
-    h = FONT * 0.42;
-  return [p[0] + dir[0] * (gap + w * Math.abs(dir[0])), p[1] + dir[1] * (gap + h * Math.abs(dir[1]))];
+  const [hw, hh] = halfBox(t);
+  const reach = gap + hw * Math.abs(dir[0]) + hh * Math.abs(dir[1]);
+  return [p[0] + dir[0] * reach, p[1] + dir[1] * reach];
+}
+function segmentsCross(a: Pt, b: Pt, c: Pt, d: Pt) {
+  const o = (p: Pt, q: Pt, r: Pt) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+}
+/** True when a label's patch centred at `c` would cover part of a face or its outline (faces in mm). */
+function clashes(c: Pt, t: string, faces: Pt[][]) {
+  const [hw, hh] = halfBox(t);
+  const box: Pt[] = [
+    [c[0] - hw, c[1] - hh],
+    [c[0] + hw, c[1] - hh],
+    [c[0] + hw, c[1] + hh],
+    [c[0] - hw, c[1] + hh],
+  ];
+  return faces.some(
+    (f) =>
+      [...box, c].some((q) => inside(q, f)) ||
+      f.some((q) => q[0] > box[0][0] && q[0] < box[1][0] && q[1] > box[0][1] && q[1] < box[2][1]) ||
+      f.some((q, i) => box.some((b, k) => segmentsCross(q, f[(i + 1) % f.length], b, box[(k + 1) % 4]))),
+  );
+}
+/**
+ * Where a label beside a point goes: along `dir` if its patch is clear of every face there, else the
+ * nearest clear direction (turning either way) or, failing that, further out along `dir`.
+ */
+function clearSpot(p: Pt, dir: Pt, t: string, gap: number, faces: Pt[][], turn = true): Pt {
+  const base = Math.atan2(dir[1], dir[0]);
+  const turns = turn ? [0, ...Array.from({ length: 12 }, (_, i) => (Math.ceil((i + 1) / 2) * (i % 2 ? -1 : 1) * Math.PI) / 12)] : [0];
+  for (const extra of [0, 0.6, 1.2, 2])
+    for (const a of turns) {
+      const c = outside(p, [Math.cos(base + a), Math.sin(base + a)], t, gap + extra);
+      if (!clashes(c, t, faces)) return c;
+    }
+  return outside(p, dir, t, gap);
 }
 
 export function renderSvg(e: Envelope): string {
@@ -599,18 +642,27 @@ export function renderSvg(e: Envelope): string {
         cy = Y(c[1]);
       const hasLabel = f.label.show === "show" && !!f.label.text,
         mark = f.mark.show === "show" ? f.mark.kind : "none";
-      const markY = hasLabel ? cy + FONT * 0.95 : cy;
-      const backed = d.grid !== "none" && mark !== "shade";
-      if (hasLabel) out.push(label(f.label.text, cx, mark === "dot" || mark === "cross" ? cy - FONT * 0.2 : cy, ink(f.label), backed));
-      if (mark === "dot") out.push(`<circle cx="${num(cx)}" cy="${num(markY)}" r="1.2" fill="${ink(f.mark)}"/>`);
-      if (mark === "cross")
+      // Placed from what the face holds on either copy, so the answers copy lies exactly over the pupil copy.
+      const both = !!f.label.text && (f.mark.kind === "dot" || f.mark.kind === "cross");
+      const ys = f.points.map((q) => Y(q[1])),
+        short = Math.max(...ys) - Math.min(...ys) < FONT * 2.6;
+      const labelAt: Pt = both ? (short ? [cx - textWidth(f.label.text) / 2 - 1.2, cy] : [cx, cy - FONT * 0.2]) : [cx, cy];
+      const markAt: Pt = both ? (short ? [cx + 1.6, cy] : [cx, cy + FONT * 0.95]) : [cx, cy];
+      const backed = d.grid !== "none" && f.mark.kind !== "shade";
+      if (hasLabel) out.push(label(f.label.text, labelAt[0], labelAt[1], ink(f.label), backed));
+      if (mark === "dot") out.push(`<circle cx="${num(markAt[0])}" cy="${num(markAt[1])}" r="1.2" fill="${ink(f.mark)}"/>`);
+      if (mark === "cross") {
+        const [mx, my] = markAt;
         out.push(
-          `<path d="M${num(cx - 1.3)} ${num(markY - 1.3)}L${num(cx + 1.3)} ${num(markY + 1.3)}M${num(cx - 1.3)} ${num(markY + 1.3)}L${num(cx + 1.3)} ${num(markY - 1.3)}" stroke="${ink(f.mark)}" stroke-width="0.4" stroke-linecap="round"/>`,
+          `<path d="M${num(mx - 1.3)} ${num(my - 1.3)}L${num(mx + 1.3)} ${num(my + 1.3)}M${num(mx - 1.3)} ${num(my + 1.3)}L${num(mx + 1.3)} ${num(my - 1.3)}" stroke="${ink(f.mark)}" stroke-width="0.4" stroke-linecap="round"/>`,
         );
+      }
       said.push([f.label.show === "show" ? f.label.text : "", mark === "none" ? "" : mark].filter(Boolean).join(" ") || "face");
     }
     // Corner letters sit outside the net, away from every face at that corner.
     const all = p.net.faces;
+    // Every face, shown or hidden, so both copies place labels alike.
+    const mm = all.map((f) => f.points.map((q): Pt => [X(q[0]), Y(q[1])]));
     for (const v of p.net.vertices) {
       if (v.label.show !== "show") continue;
       let dx = 0,
@@ -620,7 +672,7 @@ export function renderSvg(e: Envelope): string {
           const c = centre(f.points);
           [dx, dy] = [dx + v.at[0] - c[0], dy + v.at[1] - c[1]];
         }
-      const at = outside([X(v.at[0]), Y(v.at[1])], unitVec(dx, dy), v.label.text, 1.2);
+      const at = clearSpot([X(v.at[0]), Y(v.at[1])], unitVec(dx, dy), v.label.text, 0.6, mm);
       out.push(label(v.label.text, at[0], at[1], ink(v.label), d.grid !== "none"));
     }
     // Edge labels sit beside the edge, on the side away from the face it belongs to.
@@ -633,12 +685,13 @@ export function renderSvg(e: Envelope): string {
         const c = centre(owner.points);
         if (n[0] * (m[0] - c[0]) + n[1] * (m[1] - c[1]) < 0) n = [-n[0], -n[1]];
       }
-      const at = outside([X(m[0]), Y(m[1])], n, v.label.text, 1.5);
+      const at = clearSpot([X(m[0]), Y(m[1])], n, v.label.text, 1, mm, false);
       out.push(label(v.label.text, at[0], at[1], ink(v.label), d.grid !== "none"));
     }
     if (p.captionY !== null && p.net.caption.show === "show") out.push(label(p.net.caption.text, p.x + p.width / 2, p.captionY - FONT * 0.33, ink(p.net.caption)));
   }
-  const name = `Net${d.nets.length > 1 ? "s" : ""} of ${[...new Set(d.nets.map((n) => SOLID_NAMES[n.solid]))].join(", ")}${said.length ? `: ${said.length} faces drawn` : ""}`;
+  // Never names the solids: a hidden caption may be the answer.
+  const name = `${d.nets.length > 1 ? `${d.nets.length} nets` : "Net"} of 3D shapes${said.length ? `: ${said.length} faces drawn` : ""}`;
   return boldLines(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${num(g.width)}mm" height="${num(g.height)}mm" viewBox="0 0 ${num(g.width)} ${num(g.height)}" role="img" aria-label="${esc(name)}">${out.join("")}</svg>`,
     d.lines,
@@ -650,10 +703,7 @@ export function renderSvg(e: Envelope): string {
 export const MAX_LINK_LENGTH = 16_000;
 export const LINK_PREFIX = "#nets=";
 export const linkHash = (e: Envelope) => LINK_PREFIX + toBase64Url(canonical(e));
-/** The website editor at /tools/nets lands in a follow-up pull request; until then the connector returns no editor link. */
-export const EDITOR_RELEASED = false;
 export function editorLink(e: Envelope, base: string): string | null {
-  if (!EDITOR_RELEASED) return null;
   const url = new URL(base);
   url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/nets";
   url.search = "";

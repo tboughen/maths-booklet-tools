@@ -108,6 +108,8 @@ export function triangularPrismNet(a: number, b: number, length: number): Pt[][]
 /** A square base `base` across with a triangle `slant` tall on each side. */
 export function squarePyramidNet(base: number, slant: number): Pt[][] {
   const m = base / 2;
+  // The triangles only meet at an apex if each is taller than half the base.
+  if (slant <= m) throw Error("Make the triangles taller than half the base, or they cannot fold up to meet.");
   return placed([
     rect(0, 0, base, base),
     [

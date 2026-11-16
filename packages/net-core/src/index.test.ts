@@ -84,7 +84,9 @@ describe("documents", () => {
   });
   it("refuses a hidden label with no answer", () => {
     const e = core.create();
-    expect(() => core.setFace(e, "n1", "f1", { label: { text: "", show: "hidden" } })).toThrow(/needs its answer/);
+    const bad = structuredClone(e);
+    bad.document.nets[0].faces[0].label = { text: "", show: "hidden" };
+    expect(() => core.validate(bad)).toThrow(/needs its answer/);
   });
   it("prints a 1 cm grid at actual size", () => {
     const e = core.create({ type: "cuboid", length: 4, width: 2, height: 3 });
@@ -130,4 +132,22 @@ describe("teacher notes and explicit marking", () => {
     const e = examples[0].make(false);
     expect(core.decodeLinkHash(core.linkHash(e))).toEqual(e);
   });
+  it("never names a hidden answer in the pupil artwork's label", () => {
+    const e = examples.find((x) => x.id === "name-the-shape")!.make(false);
+    const svg = core.renderSvg(e);
+    expect(svg).not.toMatch(/prism|pyramid/);
+  });
+  it("places a face's letter in the same spot on both copies when its mark is hidden", () => {
+    let e = core.create({ type: "cube", net: 5, side: 2 });
+    e = core.setFace(e, "n1", "f1", { label: { text: "A" }, mark: { kind: "dot", show: "hidden" } });
+    const y = (svg: string) => svg.match(/<text x="[\d.]+" y="([\d.]+)"/)![1];
+    expect(y(core.renderSvg(core.forView(e, "answer", true)))).toBe(y(core.renderSvg(e)));
+  });
+  it("removes a hidden letter when its text is emptied, and refuses overlapping squares", () => {
+    let e = core.setVertex(core.create(), "n1", [1, 1], { text: "P", show: "hidden" });
+    e = core.setVertex(e, "n1", [1, 1], { text: "" });
+    expect(e.document.nets[0].vertices).toEqual([]);
+    expect(() => core.addSquare(core.create(), "n1", 2, 0, 2)).toThrow(/already a face/);
+  });
 });
+

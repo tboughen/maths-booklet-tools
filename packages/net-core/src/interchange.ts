@@ -74,7 +74,7 @@ export const operationSchema = z.discriminatedUnion("op", [
   z
     .object({ op: z.literal("set_net"), netId: netRef, solid: z.enum(core.SOLIDS).optional(), caption: textChange.optional(), size: core.netSchema.shape.size.optional() })
     .strict(),
-  z.object({ op: z.literal("add_square"), netId: netRef, at: cell(39), side: z.number().int().min(1).max(4).optional() }).strict(),
+  z.object({ op: z.literal("add_square"), netId: netRef, at: cell(39).describe("The square's top-left corner in grid squares from the panel's corner."), side: z.number().int().min(1).max(4).optional() }).strict(),
   z.object({ op: z.literal("remove_face"), netId: netRef, faceId: faceRef }).strict(),
   z
     .object({

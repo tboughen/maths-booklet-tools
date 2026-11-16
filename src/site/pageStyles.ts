@@ -17,4 +17,5 @@ import "../probability-tree/probability-tree.css";
 import "../two-way-table/two-way-table.css";
 import "../factor-tree/factor-tree.css";
 import "../function-machine/function-machine.css";
+import "../nets/nets.css";
 import "../sample-space/sample-space.css";

@@ -6,8 +6,9 @@ up". Added 16 November 2026 for the worksheets due before Christmas.
 
 Code: `packages/net-core` (schema, presets, folding, layout, SVG, examples) and its `interchange.ts` connector
 adapter. MCP access is the `nets` kind of the generic tools, so create_worksheet and create_booklet place nets like
-any other diagram. The website editor at `/tools/nets` follows in its own pull request; until then
-`EDITOR_RELEASED` is false and the connector returns no editor link.
+any other diagram. The website editor is `src/nets/NetsPage.tsx` at `/tools/nets`: click a face to label, mark or hide
+it (and to give its corners letters and its edges lengths), choose a shape and its sizes to replace a net or add
+another, click empty squares to add square faces, and set the paper. The connector returns an editor link to it.
 
 ## Document
 
