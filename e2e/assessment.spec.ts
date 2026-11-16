@@ -292,7 +292,7 @@ test("custom mappings, import warnings and marks-only limits remain accessible",
 });
 test("home entry, keyboard navigation and tablet widths remain usable", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /Create class practice/ }).click();
+  await page.getByRole("main").getByRole("link", { name: /^Assessment follow-up/ }).click();
   await expect(page.getByRole("heading", { name: "Assessment follow-up", exact: true })).toBeVisible();
   for (const width of [320, 375, 621, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 950 });

@@ -32,7 +32,7 @@ test("home has one visible page heading and navigation focuses it", async ({
   await page.goto("/");
   const heading = page.getByRole("heading", { level: 1 });
   await expect(heading).toHaveCount(1);
-  await expect(heading).toHaveText("MathsDock");
+  await expect(heading).toHaveText("What do you need today?");
   await expect(heading).toBeVisible();
   await page.goto("/tools/venn");
   await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
@@ -67,7 +67,7 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
     page.getByRole("main", { name: "Home", exact: true }),
   ).toBeVisible();
   await current(page)
-    .getByRole("link", { name: /Make a diagram/ })
+    .getByRole("link", { name: /^Diagram builder Create/ })
     .click();
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
@@ -81,7 +81,7 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
     page.getByRole("main", { name: "Home", exact: true }),
   ).toBeVisible();
   await current(page)
-    .getByRole("link", { name: /Make a diagram/ })
+    .getByRole("link", { name: /^Diagram builder Create/ })
     .click();
   await expect(
     page.getByRole("heading", { name: "Diagram builder", exact: true }),

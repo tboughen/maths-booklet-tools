@@ -1,0 +1,69 @@
+/* Home, the start page: search, Carry on, Tools and Favourites (docs/tools/APP-HOUSE-STYLE.md).
+   Card size carries meaning: a Tools card is much larger than a favourite. */
+.site-home { display: grid; gap: 26px; width: 100%; max-width: 1632px; margin: 0 auto; padding: 24px 16px 16px; color: var(--md-ink); font-family: var(--md-font); }
+.home-start { display: grid; gap: 10px; }
+.site-app .site-home h1 { margin: 0; font: 600 var(--md-text-xl)/1.2 var(--md-font); letter-spacing: -0.01em; color: var(--md-ink); }
+.home-section { display: grid; gap: 8px; }
+.home-section > h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 0; font-size: var(--md-text-md); font-weight: 600; }
+/* Small words on the page colour use the second ink: the third is too pale there. */
+.home-section > h2 small { font-size: var(--md-text-xs); font-weight: 400; color: var(--md-ink-2); }
+
+/* One search box, with what it finds straight underneath. */
+.home-search { display: grid; gap: 8px; }
+.home-search label { position: relative; display: flex; align-items: center; max-width: 720px; }
+.home-search label > svg { position: absolute; left: 14px; color: var(--md-ink-3); pointer-events: none; }
+.site-app .home-search input { width: 100%; height: 44px; padding: 0 44px 0 42px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); font: 400 15px/1.2 var(--md-font); }
+.site-app .home-search input::placeholder { color: var(--md-ink-3); opacity: 1; }
+.site-app .home-search input:focus-visible { outline: 2px solid var(--md-blue); outline-offset: 1px; border-color: var(--md-blue); }
+.home-search kbd { position: absolute; right: 12px; padding: 1px 6px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius-key); background: var(--md-page); color: var(--md-ink-2); font: 600 var(--md-text-2xs)/1.5 var(--md-font); pointer-events: none; }
+.home-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.home-results a { display: flex; align-items: flex-start; gap: 10px; height: 100%; padding: 9px 12px; border: 1px solid var(--md-line); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); text-decoration: none; }
+.home-results a > svg { margin-top: 1px; color: var(--md-navy); }
+.home-results span { display: grid; gap: 1px; min-width: 0; }
+.home-results b { font-size: var(--md-text-md); font-weight: 600; }
+.home-results small { font-size: var(--md-text-xs); line-height: 1.4; color: var(--md-ink-3); }
+.home-none, .home-empty { margin: 0; max-width: 720px; font-size: var(--md-text-sm); line-height: 1.5; color: var(--md-ink-2); }
+.home-empty a { color: var(--md-blue); font-weight: 600; }
+
+/* Every card is one link. */
+.home-card { border: 1px solid var(--md-line); border-radius: var(--md-radius-card); background: var(--md-paper); color: var(--md-ink); text-decoration: none; transition: border-color .12s, box-shadow .12s; }
+:is(.home-card, .home-results a):hover { border-color: var(--md-line-strong); box-shadow: 0 4px 14px #14263d14; }
+:is(.home-card, .home-results a):focus-visible { outline: 2px solid var(--md-blue); outline-offset: 2px; }
+
+.home-carry { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.home-carry-card { display: grid; gap: 2px; align-content: start; padding: 12px; }
+.home-kind { display: flex; align-items: center; gap: 6px; font-size: var(--md-text-xs); font-weight: 500; color: var(--md-ink-3); }
+.home-carry-card b { font-size: var(--md-text-md); font-weight: 600; }
+.home-meta { font-size: var(--md-text-xs); color: var(--md-ink-3); }
+.home-action { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 28px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); font-size: var(--md-text-sm); font-weight: 500; }
+
+.home-tools { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.home-tool { display: grid; gap: 6px; align-content: start; min-height: 236px; padding: 22px 20px 24px; }
+.home-tool-icon { display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: 12px; border-radius: 14px; background: var(--md-blue-soft); color: var(--md-navy); }
+.home-tool h3 { margin: 0; font-size: var(--md-text-lg); font-weight: 600; letter-spacing: -0.01em; }
+.home-tool p { margin: 0; font-size: var(--md-text-md); line-height: 1.45; color: var(--md-ink-2); }
+
+.home-favourites { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px; }
+.home-favourite { display: grid; overflow: hidden; }
+.home-picture { display: block; aspect-ratio: 16 / 10; padding: 6px; border-bottom: 1px solid var(--md-line); }
+.home-picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.home-favourite b { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 6px 8px 7px; font-size: var(--md-text-xs); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-favourite b svg { flex: none; color: var(--md-ink-2); }
+
+/* A portrait monitor and smaller windows: three Tools cards to a row, then two, then one. */
+@media (max-width: 1399px) {
+  .home-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .home-tool { min-height: 0; }
+}
+@media (max-width: 767px) {
+  .site-home { gap: 22px; padding: 20px 12px 28px; }
+  .home-tools, .home-carry { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-tool { padding: 16px; }
+  .home-tool-icon { width: 56px; height: 56px; margin-bottom: 6px; }
+  .home-action { min-height: 44px; }
+}
+@media (max-width: 479px) {
+  .home-tools, .home-carry { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .home-card { transition: none; } }
+@media (forced-colors: active) { .home-tool-icon { border: 1px solid; } }
