@@ -156,6 +156,76 @@
    "png600": "931x1181",
    "pixels": "798c35c5a11d4fde"
   },
+  "algebra tiles: at-a2b-ab2": {
+   "json": "afc98b8b706f3e2d",
+   "svg": "0687843b7f4f5937",
+   "mm": "148.34x38.89",
+   "png600": "3504x919",
+   "pixels": "98931980afe8a5b0"
+  },
+  "algebra tiles: at-a2b-ab2 (worked)": {
+   "json": "5722b21930a5dcdc",
+   "svg": "a870bad5eed44b4e",
+   "mm": "148.34x38.89",
+   "png600": "3504x919",
+   "pixels": "180d1d8cc0b46e63"
+  },
+  "algebra tiles: at-collect-two-letters": {
+   "json": "85eb7cc5272a053b",
+   "svg": "1007b1c7bf6b6b39",
+   "mm": "80.48x35",
+   "png600": "1901x827",
+   "pixels": "14de733ca5c28a91"
+  },
+  "algebra tiles: at-collect-two-letters (worked)": {
+   "json": "d9380f73abce96c7",
+   "svg": "156e488bbf47aae4",
+   "mm": "80.48x35",
+   "png600": "1901x827",
+   "pixels": "f891295dac97013a"
+  },
+  "algebra tiles: at-draw-the-tiles": {
+   "json": "426366d89dce36ea",
+   "svg": "23750e8fec649bfb",
+   "mm": "53.5x41",
+   "png600": "1264x969",
+   "pixels": "cd0992437444fddc"
+  },
+  "algebra tiles: at-draw-the-tiles (worked)": {
+   "json": "a3ef98545a164edf",
+   "svg": "d08492e149f9589f",
+   "mm": "53.5x41",
+   "png600": "1264x969",
+   "pixels": "971a17e8bcb486ea"
+  },
+  "algebra tiles: at-squares-and-products": {
+   "json": "d754bbb3738517ab",
+   "svg": "4d50c773840e0245",
+   "mm": "143.5x35",
+   "png600": "3390x827",
+   "pixels": "f2069eaeeaa81f95"
+  },
+  "algebra tiles: at-squares-and-products (worked)": {
+   "json": "96e8bb8d426bb600",
+   "svg": "2977373c1b62ece1",
+   "mm": "143.5x35",
+   "png600": "3390x827",
+   "pixels": "5d8ed0e6258a33ea"
+  },
+  "algebra tiles: at-zero-pairs": {
+   "json": "0749917e3eddfe95",
+   "svg": "72bffb323dae1cfc",
+   "mm": "77.93x54.5",
+   "png600": "1841x1287",
+   "pixels": "6fa754a295a8cbbc"
+  },
+  "algebra tiles: at-zero-pairs (worked)": {
+   "json": "e361d15a51c61a9e",
+   "svg": "f00ca72cd0c25e43",
+   "mm": "77.93x54.5",
+   "png600": "1841x1287",
+   "pixels": "e937e8a5b4b5fe60"
+  },
   "angle diagrams: angles-algebra-line": {
    "json": "591a54c3fc52c161",
    "svg": "d53627a4ebf83720",

@@ -1,0 +1,38 @@
+{
+ "kind": "algebra-tiles",
+ "schemaVersion": 1,
+ "rendererVersion": "algebra-tiles-1",
+ "document": {
+  "letters": {
+   "long": "x",
+   "short": "y"
+  },
+  "terms": [
+   {
+    "id": "t1",
+    "count": 2,
+    "long": 1,
+    "short": 0,
+    "show": "hidden"
+   },
+   {
+    "id": "t2",
+    "count": 3,
+    "long": 0,
+    "short": 0,
+    "show": "hidden"
+   }
+  ],
+  "arrangement": "as-written",
+  "zeroPairs": "none",
+  "labels": true,
+  "fill": "colour",
+  "frame": true,
+  "expression": {
+   "text": "2x + 3",
+   "show": "show"
+  },
+  "answer": null,
+  "intentionalError": false
+ }
+}

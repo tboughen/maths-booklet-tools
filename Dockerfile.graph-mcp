@@ -21,6 +21,7 @@ COPY packages/angle-core packages/angle-core
 COPY packages/area-core packages/area-core
 COPY packages/factor-tree-core packages/factor-tree-core
 COPY packages/function-machine-core packages/function-machine-core
+COPY packages/algebra-tile-core packages/algebra-tile-core
 COPY packages/sample-space-core packages/sample-space-core
 COPY packages/triangle-core packages/triangle-core
 COPY packages/resource-core packages/resource-core

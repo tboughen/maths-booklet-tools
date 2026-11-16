@@ -200,6 +200,17 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
   "function-machine"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
+  "algebra-tiles"(doc, out) {
+    const d = isNode(doc.document) ? doc.document : {};
+    // A term's tiles are supplied, or hidden (pupils draw them); the lines under the tiles are {text, show}.
+    (Array.isArray(d.terms) ? d.terms : []).forEach((t, i) => {
+      if (!isNode(t)) return;
+      const text = `${String(t.count)}:${String(t.long)},${String(t.short)}`;
+      out.push(t.show === "hidden" ? slot(`document.terms.${i}`, "hidden", text) : slot(`document.terms.${i}`, "supplied", text));
+    });
+    for (const k of ["expression", "answer"] as const) if (isNode(d[k])) shown(d[k] as Node, `document.${k}`, out);
+    if (d.zeroPairs === "hidden") out.push(slot("document.zeroPairs", "hidden", "zero pairs"));
+  },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

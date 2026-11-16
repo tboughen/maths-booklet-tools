@@ -17,6 +17,7 @@ const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "area", select: (page) => page.getByRole("button", { name: /^Select the label on side 1 / }).click() },
   { tool: "factor-tree" },
   { tool: "function-machine", select: (page) => page.getByRole("button", { name: "Edit the box 1", exact: true }).click() },
+  { tool: "algebra-tiles", select: (page) => page.getByRole("button", { name: /^Edit the term 1/ }).first().click() },
   { tool: "sample-space" },
   { tool: "construction", select: (page) => page.getByRole("button", { name: /^Select point / }).first().click() },
 ];

@@ -1199,6 +1199,72 @@
   "pupilSvg": "544b383671f2d4108d750e3535cd5d3c41703fa430c2a9bfbe96a10e1d8a4334",
   "answerSvg": "4663fee6b4f7fa6af0116e23dcbea399c9c8a7a9eb9e881cfa18cb2fa21469a8"
  },
+ "algebra-tiles/default": {
+  "schemaVersion": 1,
+  "contentHash": "e2231b9620ba486d845850d9f08c70daa89b6c2d0d8fc29e6b3e2cd2d5bd6e68",
+  "pupilSvg": "f107d79a774429d867ee2f9d12492aef01247b2afef51b1a18dc9e1d9f8879bf",
+  "answerSvg": "f107d79a774429d867ee2f9d12492aef01247b2afef51b1a18dc9e1d9f8879bf"
+ },
+ "algebra-tiles/example-a2b-ab2-worked": {
+  "schemaVersion": 1,
+  "contentHash": "5722b21930a5dcdcf649805a6e20735180985e0dc513d87eb2496419a2e0506d",
+  "pupilSvg": "a870bad5eed44b4e8a5af77daede0da1507f39d2ea114452c128b0b871e371be",
+  "answerSvg": "a870bad5eed44b4e8a5af77daede0da1507f39d2ea114452c128b0b871e371be"
+ },
+ "algebra-tiles/example-a2b-ab2": {
+  "schemaVersion": 1,
+  "contentHash": "afc98b8b706f3e2d401241b91cb7e1c856733fb2442839718737a2f829ed7649",
+  "pupilSvg": "0687843b7f4f593728e448ea289badbfe8230d71d06e9738f96c60584a5dd8bd",
+  "answerSvg": "419943b8abc3a5f8b2d24cef697495c6e3e9551724f6da7752e4d5b4f3bccdd4"
+ },
+ "algebra-tiles/example-collect-two-letters-worked": {
+  "schemaVersion": 1,
+  "contentHash": "d9380f73abce96c757b49943a2d4e12200cae3c215ac22f907f8bc0c5f327eb8",
+  "pupilSvg": "73051f05065cefae5d0b4cfcf130fc7592d4f6110b3129aacbfdf0c4a75f3888",
+  "answerSvg": "73051f05065cefae5d0b4cfcf130fc7592d4f6110b3129aacbfdf0c4a75f3888"
+ },
+ "algebra-tiles/example-collect-two-letters": {
+  "schemaVersion": 1,
+  "contentHash": "85eb7cc5272a053b9a3434ab71c1e2e752a2975042c4ab6692a1d785ba29372a",
+  "pupilSvg": "1007b1c7bf6b6b39cd72e1f4a21e1d381d57d03f50847c3d6ae44be988ba6992",
+  "answerSvg": "e916a7a3d5f55b36c1dccfc0e752697d606b06448a4806ed08806e2eb0db638f"
+ },
+ "algebra-tiles/example-draw-the-tiles-worked": {
+  "schemaVersion": 1,
+  "contentHash": "a3ef98545a164edfeb581a98a49a9e515ff094835d26bc55c8ba8240b2c97a05",
+  "pupilSvg": "d08492e149f9589f30b5db5f4784bc2c5bfd46569eacf6c7b3fc97f3187313df",
+  "answerSvg": "d08492e149f9589f30b5db5f4784bc2c5bfd46569eacf6c7b3fc97f3187313df"
+ },
+ "algebra-tiles/example-draw-the-tiles": {
+  "schemaVersion": 1,
+  "contentHash": "426366d89dce36eac1ea3b72938c514f6b22f1102b9f30d556f292beb6695e87",
+  "pupilSvg": "23750e8fec649bfb6c600c4f208993709ac260b17897dc516017042a3d62accb",
+  "answerSvg": "a8ff243bd0e1721fb16fafd253af017508cb4ca990e2a8c6fedcca5e67dae786"
+ },
+ "algebra-tiles/example-squares-and-products-worked": {
+  "schemaVersion": 1,
+  "contentHash": "96e8bb8d426bb6009c282ad996dc124a0fd45a421d40ae3d9b165830327a0706",
+  "pupilSvg": "2977373c1b62ece1a28b25c7be39d30673d6a10a2231226c041b1d9a16e54301",
+  "answerSvg": "2977373c1b62ece1a28b25c7be39d30673d6a10a2231226c041b1d9a16e54301"
+ },
+ "algebra-tiles/example-squares-and-products": {
+  "schemaVersion": 1,
+  "contentHash": "d754bbb3738517abd8d50381d35e072b1c568541685675095c22fc557fd8fe54",
+  "pupilSvg": "4d50c773840e024597dfcc6572750d687d45b112bb367b49260719bf300017e8",
+  "answerSvg": "c34b7933e44d50db62765b446371f1f7bc70ea4fbe1fb8c656d7bd67fa0cf058"
+ },
+ "algebra-tiles/example-zero-pairs-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e361d15a51c61a9e48d4ca786014d6a06d373afe7ddc1934da77774cc8dc9cf0",
+  "pupilSvg": "4ee56b38d56eed4e04c13bfbfd800e077c74fea537b8dae5ecb2b9c39229be1e",
+  "answerSvg": "4ee56b38d56eed4e04c13bfbfd800e077c74fea537b8dae5ecb2b9c39229be1e"
+ },
+ "algebra-tiles/example-zero-pairs": {
+  "schemaVersion": 1,
+  "contentHash": "0749917e3eddfe95cf9591c739370d1f5a6288cc24fd458a9efedeea93c41f53",
+  "pupilSvg": "72bffb323dae1cfc50fae6f11f0cd9a3507ec4d439185fe3e20a7dfc524869ab",
+  "answerSvg": "64d98807ba0e5b18feef81c4ac1ded5d81eeb2ebb536c8b75e124c0d347e358e"
+ },
  "sample-space/default": {
   "schemaVersion": 1,
   "contentHash": "63ed6ebea15b8030c427989f7595feb183642e946ebfbc64fcf92211e4a4e680",

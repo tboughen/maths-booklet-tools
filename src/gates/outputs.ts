@@ -24,6 +24,7 @@ export const galleries: Record<string, Entry[]> = {
   "area and perimeter": gallery.areaGallery as Entry[],
   "factor trees": gallery.factorTreeGallery as Entry[],
   "function machines": gallery.functionMachineGallery as Entry[],
+  "algebra tiles": gallery.algebraTilesGallery as Entry[],
   "sample space diagrams": gallery.sampleSpaceGallery as Entry[],
 };
 

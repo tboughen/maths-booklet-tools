@@ -29,6 +29,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   "sample-space": { rows: ["H", "T"], columns: ["1", "2", "3"], cells: [["H1", { text: "H2", hidden: true }, ""]] },
   "factor-tree": { root: "36", complete: true },
   "function-machine": { ops: ["× 3", "− 8"], start: "6", complete: true },
+  "algebra-tiles": { tiles: "2a²b + ab² − a²b", answer: "", collect: true },
   triangle: { widthCm: 8 },
 };
 const clean = (spec: Record<string, unknown> | undefined) => spec && Object.fromEntries(Object.entries(spec).filter(([, v]) => v !== undefined));

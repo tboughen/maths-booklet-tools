@@ -677,3 +677,16 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-polygon-plants (worked): added
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
+
+## 2026-11-16: Add algebra tiles (new tool) to the output gates
+
+- algebra tiles: at-collect-two-letters: added
+- algebra tiles: at-collect-two-letters (worked): added
+- algebra tiles: at-zero-pairs: added
+- algebra tiles: at-zero-pairs (worked): added
+- algebra tiles: at-squares-and-products: added
+- algebra tiles: at-squares-and-products (worked): added
+- algebra tiles: at-a2b-ab2: added
+- algebra tiles: at-a2b-ab2 (worked): added
+- algebra tiles: at-draw-the-tiles: added
+- algebra tiles: at-draw-the-tiles (worked): added

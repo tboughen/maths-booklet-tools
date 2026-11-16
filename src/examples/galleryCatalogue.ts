@@ -65,6 +65,8 @@ import { examples as factorTrees } from "../../packages/factor-tree-core/src/exa
 import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
 import { examples as functionMachines } from "../../packages/function-machine-core/src/examples";
 import { renderSvg as functionMachineSvg } from "../../packages/function-machine-core/src";
+import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/examples";
+import { renderSvg as algebraTilesSvg } from "../../packages/algebra-tile-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
 import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
 
@@ -369,5 +371,13 @@ export const functionMachineGallery = functionMachines.map((example) => ({
   description: example.note,
   make: example.make,
   render: functionMachineSvg,
+  worked: true,
+}));
+export const algebraTilesGallery = algebraTiles.map((example) => ({
+  id: `at-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: algebraTilesSvg,
   worked: true,
 }));

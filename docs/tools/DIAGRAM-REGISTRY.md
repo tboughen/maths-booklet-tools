@@ -164,7 +164,7 @@ an L-shaped leader.
   files, bundles and get_diagram_svg all show the same notes. Families without an answers copy
   (tables of values and graphs, cuboids) refuse a `worked` list until they have one.
 - In the website, "Worked notes…" in the File menu edits them in the tools with an answers copy
-  (ratio tables, Venn, charts, probability and frequency trees, factor trees, function machines, two-way tables, sample space diagrams, constructions and
+  (ratio tables, Venn, charts, probability and frequency trees, factor trees, function machines, algebra tiles, two-way tables, sample space diagrams, constructions and
   elevations) and in the graph, number line, expanding and factorising, triangle and bar-model
   editors, whose answers print in worksheets, booklets and the connector (algebra grids and
   triangles also show the notes in their teacher preview); see `docs/tools/BOOKLET-CONSISTENCY.md`.

@@ -1,0 +1,42 @@
+{
+ "kind": "algebra-tiles",
+ "schemaVersion": 1,
+ "rendererVersion": "algebra-tiles-1",
+ "document": {
+  "letters": {
+   "long": "x",
+   "short": "y"
+  },
+  "terms": [
+   {
+    "id": "t1",
+    "count": 3,
+    "long": 1,
+    "short": 0,
+    "show": "show"
+   },
+   {
+    "id": "t2",
+    "count": 2,
+    "long": 0,
+    "short": 0,
+    "show": "show"
+   },
+   {
+    "id": "t3",
+    "count": -1,
+    "long": 1,
+    "short": 0,
+    "show": "show"
+   }
+  ],
+  "arrangement": "as-written",
+  "zeroPairs": "none",
+  "labels": true,
+  "fill": "colour",
+  "frame": false,
+  "expression": null,
+  "answer": null,
+  "intentionalError": false
+ }
+}
