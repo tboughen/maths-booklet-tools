@@ -2,26 +2,26 @@
  "graph/blank": {
   "schemaVersion": 1,
   "contentHash": "4a7f52ed497e65a889e0721aad95982a199a5db0deef620adc16be1d9645cec8",
-  "pupilSvg": "d72b0d669ffcdf3f49d789138da90179c406de686dcd617162fd30f096b2415b",
-  "answerSvg": "d72b0d669ffcdf3f49d789138da90179c406de686dcd617162fd30f096b2415b"
+  "pupilSvg": "60b0716eae44bb951c023fc17cc3606e4a378e6e54cfcd2797ef41e1202bc285",
+  "answerSvg": "60b0716eae44bb951c023fc17cc3606e4a378e6e54cfcd2797ef41e1202bc285"
  },
  "graph/file-tool-card-preview-examples-graph-tool": {
   "schemaVersion": 1,
   "contentHash": "69ed84740cc49f128ed25d44aadffc634b6c5048be9edf09c56861d913b9d04c",
-  "pupilSvg": "da3b52e3a844338f7e54ab224846b97ab6774d5e45b214212245f1e22a014b08",
-  "answerSvg": "da3b52e3a844338f7e54ab224846b97ab6774d5e45b214212245f1e22a014b08"
+  "pupilSvg": "cbe278720cf52ec1acf94b4c5b828252bd164751d0834c26e93100f1b6294ad5",
+  "answerSvg": "cbe278720cf52ec1acf94b4c5b828252bd164751d0834c26e93100f1b6294ad5"
  },
  "graph/named-line-and-points": {
   "schemaVersion": 1,
   "contentHash": "2dc5fa33479c41b3feedda3152d759e68e1af19029fe4752ab0f37d9a801899b",
-  "pupilSvg": "7c3dec06c61fb5d9560fb341b5d112d6328accb0e5963614a9b68b58e9494e94",
-  "answerSvg": "7c3dec06c61fb5d9560fb341b5d112d6328accb0e5963614a9b68b58e9494e94"
+  "pupilSvg": "9c569ff053773070250f5e269782207f2a707ef9bc2e6dab88f94419a88dfc4a",
+  "answerSvg": "9c569ff053773070250f5e269782207f2a707ef9bc2e6dab88f94419a88dfc4a"
  },
  "graph/print-consumption": {
   "schemaVersion": 1,
   "contentHash": "f0fcae4a6ab7615f3a9f7b5ff664a1c5259cf4e8ce3eab8fff817670acc937b2",
-  "pupilSvg": "81b8cac3399dd7407cfb4b9b6d233fabd34b3dc69192269d974be629f1cc2e4b",
-  "answerSvg": "81b8cac3399dd7407cfb4b9b6d233fabd34b3dc69192269d974be629f1cc2e4b"
+  "pupilSvg": "4bde6146b87c2fe855ec192fba1defb76b5a88627e4a6596aa5cadee9cd58510",
+  "answerSvg": "4bde6146b87c2fe855ec192fba1defb76b5a88627e4a6596aa5cadee9cd58510"
  },
  "ratio-table/default": {
   "schemaVersion": 2,
@@ -1198,6 +1198,198 @@
   "contentHash": "487ab924f9aaed24f2c71179c0a2b02c2a767b874f18ed6899da719adb105705",
   "pupilSvg": "544b383671f2d4108d750e3535cd5d3c41703fa430c2a9bfbe96a10e1d8a4334",
   "answerSvg": "4663fee6b4f7fa6af0116e23dcbea399c9c8a7a9eb9e881cfa18cb2fa21469a8"
+ },
+ "nets/default": {
+  "schemaVersion": 1,
+  "contentHash": "b8d5b725a30210f0722955a1a337968ce189fcc5862d4814dd3044593b5406f2",
+  "pupilSvg": "46c6a85880da2a01572e604751c2dc4da6c0a7fe87c0d948db0c45483fc6dfcb",
+  "answerSvg": "46c6a85880da2a01572e604751c2dc4da6c0a7fe87c0d948db0c45483fc6dfcb"
+ },
+ "nets/example-complete-cube-net-worked": {
+  "schemaVersion": 1,
+  "contentHash": "af739a717e41542a6b95c0d1c7d250d44855c66003dcf86424030a3585ddda0d",
+  "pupilSvg": "ce52889c6a0e5cf12f67f9261c86884c0f2e49a263ce75174d1fe7dacd8b52b5",
+  "answerSvg": "ce52889c6a0e5cf12f67f9261c86884c0f2e49a263ce75174d1fe7dacd8b52b5"
+ },
+ "nets/example-complete-cube-net": {
+  "schemaVersion": 1,
+  "contentHash": "9bdb79bfb126a32e6411ed0a2322419f6aac8eafac715988658cf6d451e7cbd9",
+  "pupilSvg": "57c227e61f06134d8e97cd40e2cc30373d429fb027d90d6a0612e04ac0e6039c",
+  "answerSvg": "3c49a6bcecea1cf442721c192a2d062747c50854a1ce646e532863c93239f880"
+ },
+ "nets/example-corners-meet-worked": {
+  "schemaVersion": 1,
+  "contentHash": "8adabbe9b67679e6ca525396146ffbb0a58fb6802d71422bac58f3b64969ca4d",
+  "pupilSvg": "356265945f58d1299789ba3c62cea29407f0e75165e5844878c9e617fbc449e5",
+  "answerSvg": "356265945f58d1299789ba3c62cea29407f0e75165e5844878c9e617fbc449e5"
+ },
+ "nets/example-corners-meet": {
+  "schemaVersion": 1,
+  "contentHash": "8adabbe9b67679e6ca525396146ffbb0a58fb6802d71422bac58f3b64969ca4d",
+  "pupilSvg": "356265945f58d1299789ba3c62cea29407f0e75165e5844878c9e617fbc449e5",
+  "answerSvg": "356265945f58d1299789ba3c62cea29407f0e75165e5844878c9e617fbc449e5"
+ },
+ "nets/example-cuboid-lengths-worked": {
+  "schemaVersion": 1,
+  "contentHash": "556f0233bfb083eecee522212036cb285e29c19805cb5e3b83a87b46d3a3c76a",
+  "pupilSvg": "b2a043fc87b9828162a011cdeeb3d23b116d4df9594621eaaf0d4588971b4b05",
+  "answerSvg": "b2a043fc87b9828162a011cdeeb3d23b116d4df9594621eaaf0d4588971b4b05"
+ },
+ "nets/example-cuboid-lengths": {
+  "schemaVersion": 1,
+  "contentHash": "556f0233bfb083eecee522212036cb285e29c19805cb5e3b83a87b46d3a3c76a",
+  "pupilSvg": "b2a043fc87b9828162a011cdeeb3d23b116d4df9594621eaaf0d4588971b4b05",
+  "answerSvg": "b2a043fc87b9828162a011cdeeb3d23b116d4df9594621eaaf0d4588971b4b05"
+ },
+ "nets/example-dot-opposite-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e428f4024a14510c6a40dd6d773cc6d37d4ca81b646b620b7a291a9c4ca718d0",
+  "pupilSvg": "eb108c523ffed2c5e6b049780ac15aaf4cfce8c9bf6b36410234c32232a40c03",
+  "answerSvg": "eb108c523ffed2c5e6b049780ac15aaf4cfce8c9bf6b36410234c32232a40c03"
+ },
+ "nets/example-dot-opposite": {
+  "schemaVersion": 1,
+  "contentHash": "bf199064e71b910c3117876cf0fcc638166859d1d69114289d5a350cb6b6f8bf",
+  "pupilSvg": "81c5ad9b2fb2b9c987c7a72e36a312612234a49e1fb2a10c366ffeccdac38f7d",
+  "answerSvg": "cded7abd1141dc2b4a58145b3ce19d25125c6b32c35272e8c70797118d1dd964"
+ },
+ "nets/example-draw-cuboid-net-worked": {
+  "schemaVersion": 1,
+  "contentHash": "be6d0dbc6753b5170a7bda6e833b2e4140d38c6868ebff46a42b0040ce49901f",
+  "pupilSvg": "132b1ee19a68242bf96f24067d90c18278cc89359a2e2cc5c3ee67d6ab87eb4f",
+  "answerSvg": "132b1ee19a68242bf96f24067d90c18278cc89359a2e2cc5c3ee67d6ab87eb4f"
+ },
+ "nets/example-draw-cuboid-net": {
+  "schemaVersion": 1,
+  "contentHash": "bce9a64f1ceef0d0e19d8981fff96c5b084ddcd2aa54b21c357d33fd5eb61a9a",
+  "pupilSvg": "1a649ea85aa6633b66039bf8c05eec52083bfbdffabf62bf687ef051e5c0fe2f",
+  "answerSvg": "3497502d1cd91fe15586bf4ca6497b4fc2a959382a3861b61ace06f503e11eee"
+ },
+ "nets/example-name-the-shape-worked": {
+  "schemaVersion": 1,
+  "contentHash": "a5d0f9a138805b8a8d4f4adf21a2329e0a678daad3ac3f92514d77d10afca9ae",
+  "pupilSvg": "b372b1968e21e552a91cee958e086994b52dc0122533bcd23570028673c82a50",
+  "answerSvg": "b372b1968e21e552a91cee958e086994b52dc0122533bcd23570028673c82a50"
+ },
+ "nets/example-name-the-shape": {
+  "schemaVersion": 1,
+  "contentHash": "e8adaf221053c4206e428d7e4cc9d237a1a93b4b76bb2cee339c32949c53e24d",
+  "pupilSvg": "a1348ca57d97fe52b92f5128bf2b451b777262f8f5824c75842448b5452f1fee",
+  "answerSvg": "80a832cffc9c4dca333dc52d09af039e17068e1ed78f642fa027d008464d46f5"
+ },
+ "nets/example-opposite-letters-worked": {
+  "schemaVersion": 1,
+  "contentHash": "284e3e55a22454d92146e3146140b35d24ff83d1131abe7dc4051f078ed9f15c",
+  "pupilSvg": "0dda07bef3d29a40377aa8af4cffe7be708fce10d8acfdf694018d4f3c8a67c6",
+  "answerSvg": "0dda07bef3d29a40377aa8af4cffe7be708fce10d8acfdf694018d4f3c8a67c6"
+ },
+ "nets/example-opposite-letters": {
+  "schemaVersion": 1,
+  "contentHash": "284e3e55a22454d92146e3146140b35d24ff83d1131abe7dc4051f078ed9f15c",
+  "pupilSvg": "0dda07bef3d29a40377aa8af4cffe7be708fce10d8acfdf694018d4f3c8a67c6",
+  "answerSvg": "0dda07bef3d29a40377aa8af4cffe7be708fce10d8acfdf694018d4f3c8a67c6"
+ },
+ "nets/example-which-are-nets-worked": {
+  "schemaVersion": 1,
+  "contentHash": "dd53f7074dd16a7add0e943997e21db7a377493393b745603493fe8a248e5ed4",
+  "pupilSvg": "529c5c44dc42f5c6f23a684acf631ca6524b4656a685c4c039457c1ea6574036",
+  "answerSvg": "529c5c44dc42f5c6f23a684acf631ca6524b4656a685c4c039457c1ea6574036"
+ },
+ "nets/example-which-are-nets": {
+  "schemaVersion": 1,
+  "contentHash": "dd53f7074dd16a7add0e943997e21db7a377493393b745603493fe8a248e5ed4",
+  "pupilSvg": "529c5c44dc42f5c6f23a684acf631ca6524b4656a685c4c039457c1ea6574036",
+  "answerSvg": "529c5c44dc42f5c6f23a684acf631ca6524b4656a685c4c039457c1ea6574036"
+ },
+ "written-method/default": {
+  "schemaVersion": 1,
+  "contentHash": "85fb50377f1c72c06943a0758fdf6001f28fab18e5df3e525481508d26f32e0f",
+  "pupilSvg": "2f5e35be6d68dcbf432ffb3fa0f70b6c01cd3997c37fd6fdffd69ba3f78d0045",
+  "answerSvg": "2f5e35be6d68dcbf432ffb3fa0f70b6c01cd3997c37fd6fdffd69ba3f78d0045"
+ },
+ "written-method/example-add-decimals-worked": {
+  "schemaVersion": 1,
+  "contentHash": "41555a99e20e8852a1ce9e2921e22b94777b1e6b96de9c1c11964e94360b6e8f",
+  "pupilSvg": "f9e6c1ac4f1e3a04c5305926c05632a4cdd82f6454e8725e79612db8f8416a5a",
+  "answerSvg": "f9e6c1ac4f1e3a04c5305926c05632a4cdd82f6454e8725e79612db8f8416a5a"
+ },
+ "written-method/example-add-decimals": {
+  "schemaVersion": 1,
+  "contentHash": "c4dc6ef961e97f36855fc623c3233016bb8febdadb0bbe3cad326ba151763727",
+  "pupilSvg": "cc60a0ea48bcd5c6d0a95a41de9aa12aba46bbc0d30b68181a094a1e821050de",
+  "answerSvg": "cc60a0ea48bcd5c6d0a95a41de9aa12aba46bbc0d30b68181a094a1e821050de"
+ },
+ "written-method/example-column-add-worked": {
+  "schemaVersion": 1,
+  "contentHash": "34f2f1b965568359d7d2b1cd22fab5e87aeb51bb6d5ea22977648f820f8d8635",
+  "pupilSvg": "db5a44fa6a4b316525acd81b33d1674fd8890ad9c19a9926f3a4ce2caec0a0f1",
+  "answerSvg": "db5a44fa6a4b316525acd81b33d1674fd8890ad9c19a9926f3a4ce2caec0a0f1"
+ },
+ "written-method/example-column-add": {
+  "schemaVersion": 1,
+  "contentHash": "50e0555d1fc4324b7b90c04c4ab27603ba2d4f7cb9ffbb603efe30433338fb29",
+  "pupilSvg": "ce19a2357b45d9df8a49e1050330ac82df11b497cbfd9abd24e622b415d05df0",
+  "answerSvg": "ce19a2357b45d9df8a49e1050330ac82df11b497cbfd9abd24e622b415d05df0"
+ },
+ "written-method/example-column-subtract-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e7f04f93308bd188c6dcea908e06512469c68554355fd48fad40c707ef437f82",
+  "pupilSvg": "4007748c8742e2f1832094b46b6e57403b5bbb894911beeb3258a0d6e4a04459",
+  "answerSvg": "4007748c8742e2f1832094b46b6e57403b5bbb894911beeb3258a0d6e4a04459"
+ },
+ "written-method/example-column-subtract": {
+  "schemaVersion": 1,
+  "contentHash": "e9dbc4141e33c44cd18279e377bd14032998b2f1b1c23215b0ceba14e1520d89",
+  "pupilSvg": "0d82264274c823854bdc6eb9b0ac844944fae21b26ac20891e912e7eca42db22",
+  "answerSvg": "0d82264274c823854bdc6eb9b0ac844944fae21b26ac20891e912e7eca42db22"
+ },
+ "written-method/example-division-remainder-worked": {
+  "schemaVersion": 1,
+  "contentHash": "86b8cb00a46b1b801d720d50fcffc2b020a73059dc6ee25a3ec149c9e9436466",
+  "pupilSvg": "274530fd6e836c31848042e14d3ec4c3dc6934e325514363bc16b06423771dee",
+  "answerSvg": "274530fd6e836c31848042e14d3ec4c3dc6934e325514363bc16b06423771dee"
+ },
+ "written-method/example-division-remainder": {
+  "schemaVersion": 1,
+  "contentHash": "eaa64c232649665f2a0b92dade8c266f741af2aaf46f8e9cb52ebc56bc209f27",
+  "pupilSvg": "d0342dedecdd4004338704d1c730fb0f7da29826d8d30137fd5f4bcf02306757",
+  "answerSvg": "d0342dedecdd4004338704d1c730fb0f7da29826d8d30137fd5f4bcf02306757"
+ },
+ "written-method/example-long-division-decimal-worked": {
+  "schemaVersion": 1,
+  "contentHash": "4060fe714af14a1db1ac2b799a5b4add31c1fe04a224a674b12b6bf15cde365c",
+  "pupilSvg": "78a6cfe1009344a40f265c6dddc2cf9af8988a39ccf2f8cb93432cc6c466b3dc",
+  "answerSvg": "78a6cfe1009344a40f265c6dddc2cf9af8988a39ccf2f8cb93432cc6c466b3dc"
+ },
+ "written-method/example-long-division-decimal": {
+  "schemaVersion": 1,
+  "contentHash": "f4c77bc9d5525227e4568bcd705102725fefb31671e9f3144bc04d824b927574",
+  "pupilSvg": "3cfd8462e66f1988b4ea294c9195dda03a340e98c70f9f753d14db93135b086b",
+  "answerSvg": "3cfd8462e66f1988b4ea294c9195dda03a340e98c70f9f753d14db93135b086b"
+ },
+ "written-method/example-long-multiplication-worked": {
+  "schemaVersion": 1,
+  "contentHash": "3b6355381ad7a7c4efbb61a28570396da28405b51dc7811d0494a144efb94de6",
+  "pupilSvg": "04d873a4a08de3acbe64dd1eaf7733c733cba377e092f5f9a0bb5390037609be",
+  "answerSvg": "04d873a4a08de3acbe64dd1eaf7733c733cba377e092f5f9a0bb5390037609be"
+ },
+ "written-method/example-long-multiplication": {
+  "schemaVersion": 1,
+  "contentHash": "07db6031c6c395803158e4213146400d682affae23ddf8f33389c48f66f3cf97",
+  "pupilSvg": "a0f041a197202e502472a7a4adf39bb14698c5e5e0d5a23cdc2d4b51eacfc371",
+  "answerSvg": "a0f041a197202e502472a7a4adf39bb14698c5e5e0d5a23cdc2d4b51eacfc371"
+ },
+ "written-method/example-short-division-worked": {
+  "schemaVersion": 1,
+  "contentHash": "0ecad964ecb9ed4b32a249027b94b396319f67763dda8c003d5adad5753adbe9",
+  "pupilSvg": "e8dc76c009253b3eaa0460fdbeda54e4a55ede60d2acf69e3b22e9d605068e43",
+  "answerSvg": "e8dc76c009253b3eaa0460fdbeda54e4a55ede60d2acf69e3b22e9d605068e43"
+ },
+ "written-method/example-short-division": {
+  "schemaVersion": 1,
+  "contentHash": "3493b81cebe35dfa4cdd5f6d977ab8bbc763f041aad1f3f7c568ec0a0560c5ec",
+  "pupilSvg": "8062e61c1c02bce3d204fc05ad23cb8995951e29ded5c893c9feb801aa2bdd02",
+  "answerSvg": "8062e61c1c02bce3d204fc05ad23cb8995951e29ded5c893c9feb801aa2bdd02"
  },
  "sample-space/default": {
   "schemaVersion": 1,

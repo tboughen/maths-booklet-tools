@@ -13,7 +13,9 @@ const str = (v: unknown) => (typeof v === "string" ? v : "");
 
 function item(node: Node, path: string, out: AnswerSlot[]) {
   if (node.type === "answerLine") {
-    out.push(slot(path, "answerLine", str(node.answer)));
+    // An answer frame has two or more blanks, each with its own saved answer.
+    if (Array.isArray(node.blanks)) node.blanks.forEach((b, i) => out.push(slot(`${path}.blanks.${i}.answer`, "answerLine", isNode(b) ? str(b.answer) : "")));
+    else out.push(slot(path, "answerLine", str(node.answer)));
     return true;
   }
   if (node.type === "table" && Array.isArray(node.rows)) {

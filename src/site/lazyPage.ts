@@ -5,16 +5,23 @@ type PageModule = { default: ComponentType<PageProps> };
 
 /**
  * A page whose code downloads on first use. `preload` fetches it early; a page
- * whose code is already loaded renders straight away instead of suspending.
+ * whose code is already loaded renders straight away instead of suspending. A fetch that fails
+ * is forgotten, so the next `preload` or first visit asks again.
  */
 export function lazyPage(load: () => Promise<PageModule>) {
   let loaded: ComponentType<PageProps> | undefined;
   let pending: Promise<PageModule> | undefined;
   const preload = () =>
-    (pending ??= load().then((module) => {
-      loaded = module.default;
-      return module;
-    }));
+    (pending ??= load().then(
+      (module) => {
+        loaded = module.default;
+        return module;
+      },
+      (error: unknown) => {
+        pending = undefined;
+        throw error;
+      },
+    ));
   const Suspended = lazy(preload);
   function Page(props: PageProps) {
     // Fixed on mount: switching component type later would reset the editor.

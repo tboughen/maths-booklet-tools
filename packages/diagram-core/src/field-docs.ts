@@ -149,7 +149,16 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     intentionalError: "true marks an error-spotting task, so wrong splits, circles and answers raise no warning.",
     lines,
     complete: "true explicitly completes every tree as hidden answers with answers-only circles; {hidden:false} prints them.",
-  },  "function-machine": {
+  },
+  nets: {
+    example,
+    worked,
+    nets: "1 to 6 nets side by side.",
+    grid: "squares (default), dots or none.",
+    unitCm: "Grid square size: 1 (default) or 0.5 cm.",
+    lines,
+  },
+  "function-machine": {
     example,
     worked,
     ops: "One machine: its boxes, first to last, such as [\"× 3\", \"− 8\"]; \"\" is an empty box for pupils.",
@@ -161,6 +170,20 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     lines,
     inverse: "true explicitly adds machine 1's inverse beneath it, arrows right to left.",
     complete: "true explicitly works every machine out as hidden answers; {hidden:false} prints them, {between:false} leaves the arrows bare.",
+  },
+  "written-method": {
+    example,
+    worked,
+    method: "add, subtract, multiply (long multiplication), short-division (bus stop) or long-division.",
+    numbers: "add: 2 to 4 numbers; subtract and multiply: 2; division: [number to divide, number to divide by]. \"\" is a pupil blank.",
+    working: "A number of blank working rows, or rows [{text, place, kind}] for long multiplication and long division.",
+    answer: "The answer row; \"\" (default) is a pupil blank, {text, hidden:true} a saved answer.",
+    remainder: "Division: true leaves an \"r ...\" space after the answer, or give the remainder.",
+    extend: "Division: zeros written after the point to keep dividing, such as \"0\".",
+    cellMm: "Each digit's square at print size, 5 to 10 mm (default 7).",
+    intentionalError: "true marks an error-spotting task, so rows that do not follow raise no warning.",
+    lines,
+    complete: "true explicitly works the method out as hidden answers; {hidden:false} prints them, {decimals:true} keeps dividing past the point.",
   },
 
   triangle: {

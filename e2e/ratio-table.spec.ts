@@ -1,4 +1,5 @@
 import { clickAway, switchTool } from "./tool-switcher";
+import { menuFor } from "./resource-actions";
 import { editorBase, test, expect } from "./release-fixtures";
 import type { Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
@@ -219,7 +220,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: "File", exact: true })
+      .getByRole("button", { name: menuFor(new RegExp(name)), exact: true })
       .click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -602,7 +603,7 @@ test("three-column image and editable exports survive reopening without editor d
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: "File", exact: true })
+      .getByRole("button", { name: menuFor(new RegExp(name)), exact: true })
       .click();
     const downloading = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -655,7 +656,7 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
     .getByRole("button", { name: "Choose row 2 for arrow", exact: true })
     .click();
   const left = page.getByLabel("Row 1 left arrow factor", { exact: true });
-  const right = page.getByLabel("Row 1 column 2 arrow factor", { exact: true });
+  const right = page.getByLabel("Row 1 right arrow factor", { exact: true });
   // Click the actual printed number, so overlay placement is tested too.
   const clickPrintedFactor = async (column: number) => {
     await page
@@ -884,7 +885,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
   const single = await stored(page),
     singleMetrics = ratioMetrics(single.document);
   await page
-    .getByRole("button", { name: "File", exact: true })
+    .getByRole("button", { name: "Download", exact: true })
     .click();
   const singleDownloading = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /Download PNG/ }).click();
@@ -1098,7 +1099,7 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     ["Download SVG", /^mathsdock-ratio-table-(?!.*answers)(.+-)?\d{4}-\d{2}-\d{2}\.svg$/, false],
     ["Download answers SVG", /^mathsdock-ratio-table-(.+-)?answers-\d{4}-\d{2}-\d{2}\.svg$/, true],
   ] as const) {
-    await page.getByRole("button", { name: "File", exact: true }).click();
+    await page.getByRole("button", { name: menuFor(new RegExp(`^${name}`)), exact: true }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click();
     const result = await download;
@@ -1107,7 +1108,7 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     expect(svg.includes("ratio-hidden-answer")).toBe(shown);
   }
   // U28: both copies in one ZIP; only the answers SVG shows the hidden answer.
-  await page.getByRole("button", { name: "File", exact: true }).click();
+  await page.getByRole("button", { name: "Download", exact: true }).click();
   const zipDownload = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /^Download pupil and answers \(ZIP\)/ }).click();
   const zip = unzipSync(new Uint8Array(await readFile((await (await zipDownload).path())!)));

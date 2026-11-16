@@ -504,10 +504,32 @@ function axisTitlesMarkup(document: DiagramDocumentV1, layout: SvgLayout): strin
 }
 
 /**
- * The axes in two layers: the axis lines, drawn under every plotted line, and the numbers, names
- * and titles, drawn over plotted lines so a line never runs through a number (its white box
- * breaks the line, as exam papers print them). Points and names are drawn over both.
+ * The axes in two layers: the axis lines, and the numbers, names and titles on small white boxes
+ * that hide the grid. Both are drawn under every plotted line, so a line runs straight through
+ * an axis number as Edexcel papers print it, never broken where pupils read a y-intercept.
  */
+/**
+ * Half the width of the y-axis arrowhead at `above` units above the top grid line: the head's tip
+ * is 0.15 of its size past the line's end, and it widens to half its size at the base.
+ */
+export function headHalfWidthAt(above: number, extension: number, size: number): number {
+  const fromTip = extension + size * 0.15 - above;
+  return Math.max(0, Math.min(size, fromTip)) * 0.5;
+}
+
+/** Space between a marked cross and an axis number moved clear of it. */
+const CROSS_CLEARANCE = 4;
+
+/** The boxes of the crosses marked on the grid (the document is already the copy's view). */
+function crossBoxes(document: DiagramDocumentV1, layout: SvgLayout): { l: number; r: number; t: number; b: number }[] {
+  const reach = POINT_MARK_HALF_SIZE + GRID_STROKE_WIDTH;
+  return document.objects.flatMap((o) => {
+    if (o.kind !== "point" || !pointInBounds(o.position, layout.bounds)) return [];
+    const p = coordinateToSvg(o.position, layout);
+    return [{ l: p.x - reach, r: p.x + reach, t: p.y - reach, b: p.y + reach }];
+  });
+}
+
 function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; labels: string } {
   const origin = coordinateToSvg(axisOrigin(document), layout);
   const xLabels: string[] = [];
@@ -515,18 +537,37 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: st
   const xNumberBaseline = origin.y + xNumberDrop(document);
   const yNumberX = origin.x - UNITS_PER_CM * Y_AXIS_LABEL_GAP_CENTIMETRES;
   const tight = gridDivisions(document) > 1;
+  // A cross marked on or beside an axis would print over a number: the number moves clear of
+  // it, away from the axis, as Edexcel papers do (x numbers down, y numbers left).
+  const crosses = crossBoxes(document, layout);
+  const boxWidth = (label: string) => axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE) - (tight ? AXIS_LABEL_FONT_SIZE * 0.22 : 0);
+  const boxTop = (baseline: number) => baseline - AXIS_LABEL_FONT_SIZE * (tight ? 0.74 : 0.82);
+  const boxHeight = tight ? AXIS_LABEL_FONT_SIZE * 0.82 : axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
+  const overlapping = (l: number, r: number, t: number, b: number) => crosses.filter((c) => c.l < r && c.r > l && c.t < b && c.b > t);
 
   for (const tick of axisTicks(document, "x")) {
     const x = layout.plotLeft + tick.index * layout.square;
-    xLabels.push(axisTickLabelMarkup(tick.label, x, xNumberBaseline, "middle", false, tight));
+    const w = boxWidth(tick.label), top = boxTop(xNumberBaseline);
+    const hit = overlapping(x - w / 2, x + w / 2, top, top + boxHeight);
+    const drop = hit.length ? Math.max(...hit.map((c) => c.b + CROSS_CLEARANCE - top)) : 0;
+    xLabels.push(axisTickLabelMarkup(tick.label, x, xNumberBaseline + drop, "middle", false, tight));
   }
   // Top to bottom, as the y numbers have always been written.
   for (const tick of axisTicks(document, "y").reverse()) {
     const y =
       layout.plotBottom - tick.index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34;
-    yLabels.push(axisTickLabelMarkup(tick.label, yNumberX, y, "end", false, tight));
+    const w = boxWidth(tick.label), top = boxTop(y);
+    const hit = overlapping(yNumberX - w, yNumberX, top, top + boxHeight);
+    const shift = hit.length ? Math.max(...hit.map((c) => yNumberX - (c.l - CROSS_CLEARANCE))) : 0;
+    yLabels.push(axisTickLabelMarkup(tick.label, yNumberX - shift, y, "end", false, tight));
   }
 
+  // Bold axes (U111) get arrowheads 1.5 times as large, so the heavier line stays inside the head.
+  const arrowSize = document.lines === "bold" ? 37.5 : 25;
+  // The y-axis reaches far enough above a number on the top line for the arrowhead (drawn
+  // 0.85 of its size back from the line's end) to clear that number's box.
+  const topLabelled = axisTicks(document, "y").some((t) => t.index === document.axes.y.negativeSquares + document.axes.y.positiveSquares);
+  const yArrowExtension = Math.max(AXIS_ARROW_EXTENSION, topLabelled ? AXIS_LABEL_FONT_SIZE * 0.48 + CROSS_CLEARANCE + arrowSize * 0.85 : 0);
   const originX = origin.x - AXIS_LABEL_FONT_SIZE * 0.38;
   const xLetter = axisLetter("x", document.axes.x), yLetter = axisLetter("y", document.axes.y);
   const xName = !xLetter
@@ -536,10 +577,8 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: st
   const yName = !yLetter
     ? ""
     : `
-      <text class="axis-name axis-name-y" x="${n(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${yLetter}</text>`;
+      <text class="axis-name axis-name-y" x="${n(Math.min(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document), origin.x - headHalfWidthAt(30, yArrowExtension, arrowSize)))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${yLetter}</text>`;
   const originLabel = originMarkup(document, originX, xNumberBaseline);
-  // Bold axes (U111) get arrowheads 1.5 times as large, so the heavier line stays inside the head.
-  const arrowSize = document.lines === "bold" ? 37.5 : 25;
   const lines = `
     <defs>
       <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="${arrowSize}" markerHeight="${arrowSize}" orient="auto">
@@ -548,7 +587,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: st
     </defs>
     <g class="graph-axes" stroke="#1f2224" stroke-width="${n(AXIS_STROKE_WIDTH)}" fill="none">
       <line x1="${n(layout.plotLeft)}" y1="${n(origin.y)}" x2="${n(layout.plotRight + AXIS_ARROW_EXTENSION)}" y2="${n(origin.y)}" marker-end="url(#axis-arrow)"/>
-      <line x1="${n(origin.x)}" y1="${n(layout.plotBottom)}" x2="${n(origin.x)}" y2="${n(layout.plotTop - AXIS_ARROW_EXTENSION)}" marker-end="url(#axis-arrow)"/>
+      <line x1="${n(origin.x)}" y1="${n(layout.plotBottom)}" x2="${n(origin.x)}" y2="${n(layout.plotTop - yArrowExtension)}" marker-end="url(#axis-arrow)"/>
     </g>`;
   const labels = `
     <g class="axis-labels" fill="#242628" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">
@@ -1190,8 +1229,8 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft - bleed)}" y="${n(layout.plotTop - bleed)}" width="${n(layout.plotRight - layout.plotLeft + 2 * bleed)}" height="${n(layout.plotBottom - layout.plotTop + 2 * bleed)}"/></clipPath><clipPath id="plot-fill-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
   ${regionsMarkup(document, layout)}${objects.fills}${gridMarkup(document, layout)}
   ${boldInk(axes.lines, document.lines)}
-  ${boldInk(objects.lines, document.lines)}
   ${shadeLabelKnockouts(axes.labels, document, layout)}
+  ${boldInk(objects.lines, document.lines)}
   ${boldInk(objects.marks, document.lines)}${coordinatesMarkup(document, layout, view)}
 </svg>`;
 }

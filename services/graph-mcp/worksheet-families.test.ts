@@ -29,6 +29,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   figures: { example: "two-tangents" },
   "sample-space": { rows: ["H", "T"], columns: ["1", "2", "3"], cells: [["H1", { text: "H2", hidden: true }, ""]] },
   "factor-tree": { root: "36", complete: true },
+  nets: { nets: [{ preset: { type: "cube", net: 5 }, faces: [{ mark: "dot" }, null, null, null, null, { mark: { kind: "dot", hidden: true } }] }] },  "written-method": { method: "multiply", numbers: ["546", "43"], complete: true },
   "function-machine": { ops: ["× 3", "− 8"], start: "6", complete: true },
   triangle: { widthCm: 8 },
 };
@@ -83,6 +84,17 @@ describe("worksheet diagrams from every family", () => {
     expect(rendered.pages[0]).toContain("𝐋");
     const pdf = await worksheetPdf(rendered.pages, "edexcel graph test", roots);
     expect((await PDFDocument.load(pdf)).getPageCount()).toBe(2);
+  }, 60000);
+  it.each(["boxplot-heights", "stemleaf-heights", "timeseries-quarters"])("places the %s chart example in a worksheet, hidden answers pink only on the answers copy", async (example) => {
+    const resource = validate(withDiagram({ tool: "charts", spec: { example } }));
+    for (const view of ["pupil", "answers"] as const) {
+      const rendered = renderResource(resource, { view });
+      const problems = rendered.issues.map((i) => i.message).filter((m) => !/mm wide; the card has|too full|needs .* mm/.test(m));
+      expect(problems, `${example} ${view}`).toEqual([]);
+      expect(rendered.pages[0].includes("#b0125b"), `${example} ${view}`).toBe(view === "answers");
+      const pdf = await worksheetPdf(rendered.pages, `${example} test`, roots);
+      expect((await PDFDocument.load(pdf)).getPageCount()).toBe(2);
+    }
   }, 60000);
   it("refuses a diagram with both or neither of spec and envelope, and names a bad spec field", () => {
     expect(() => validate(withDiagram({ tool: "venn" }))).toThrow(/envelope or its spec/);

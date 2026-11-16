@@ -26,7 +26,7 @@ export default function NewTool({ active = true }: { active?: boolean }) {
       <PageHeading title="New tool" description="Explain what the teacher can create." />
       <section className="workspace">
         <Panel className="editor-card">
-          {/* EditorToolbar: Undo, Redo, Examples, Start again, the answers switch, the copy buttons and File. */}
+          {/* EditorToolbar: Undo, Redo, Examples, Start again, the answers switch, the copy buttons, Download and File. */}
           <div className="pt-scroll editor-stage">{/* Working preview: the element that scrolls the diagram */}</div>
         </Panel>
         <aside className="inspector-stack" aria-label="New tool settings">

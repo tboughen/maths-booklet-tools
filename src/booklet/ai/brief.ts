@@ -97,7 +97,7 @@ Cards hold items: "text"; "info" (a pale key-fact or generalisation card); "clai
 - UK spelling and exam wording. Short sentences. No decorative text, no generic instructions repeated on every card.
 
 # Answers and blanks
-- Supplied, blank and hidden are different states. Put the correct answer in hidden cells, answerLine.answer and choice.answer whenever it is one definite value, so the teacher's answers copy is complete. Solve every question and check every answer, distractor and claim.
+- Supplied, blank and hidden are different states. Put the correct answer in hidden cells, answerLine.answer (or each answer in answerLine.blanks: 2-4 short blanks on one line, e.g. prefix "(", blanks [{answer:"3"},{before:",",answer:"-2"}], suffix ")" for coordinates, or prefix "y =", blanks [{answer:"2"},{before:"x +",answer:"-9"}]) and choice.answer whenever it is one definite value, so the teacher's answers copy is complete. Solve every question and check every answer, distractor and claim.
 - Only worked examples and deliberate scaffolds show answers to pupils. Pupil diagrams never use worked, calculate or answerVisible settings.
 - Diagrams are written {"type":"diagram","diagram":{"tool":"<kind>","spec":{...}}} using only the families listed in the request; the page builds and checks them. A blank grid for pupils to draw on is a diagram with no objects.
 `.trim();
