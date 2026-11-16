@@ -86,7 +86,7 @@ describe("box plots", () => {
   it("show all reveals every hidden value for the pupil copy", () => {
     const e = box((b) => boxValueNames.forEach((k) => (b.rows[0][k].show = "hidden")));
     expect(hasHidden(e)).toBe(true);
-    expect(hasHidden(setAllShown(e))).toBe(false);
+    expect(hasHidden(setAllShown(e, "show"))).toBe(false);
   });
 
   it("the examples draw cleanly in both copies", () => {
