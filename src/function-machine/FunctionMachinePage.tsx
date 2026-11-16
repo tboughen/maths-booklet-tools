@@ -9,7 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { functionMachineGallery } from "../examples/galleryCatalogue";
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
@@ -355,6 +355,16 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={functionMachineGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -449,9 +459,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
               hint={
                 <EditorHint tool="function-machine">Click a box, the start, the end or a value on an arrow to edit it. Enter applies; Escape restores.</EditorHint>
               }
-            >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
-            </EditorFoot>
+            ></EditorFoot>
             {(issue || notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
                 {g.issues.map((x) => (
@@ -466,13 +474,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Function machine settings">
-            <ExampleGallery
-              examples={functionMachineGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected item">
               <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected item"}</h2>
               {selected && selectedMachine && selectedValue ? (

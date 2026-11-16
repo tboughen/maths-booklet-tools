@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { HistoryButtons } from "./HistoryButtons";
 
 /** Starts the print-font fetch once, on the first sign of an export (U57). */
@@ -30,7 +30,6 @@ interface EditorToolbarProps {
   /** False while the page is switched away from; the reset notice closes then. */
   active?: boolean;
   onReset: () => void;
-  resetLabel?: string;
   resetDisabled?: boolean;
   exportDisabled?: boolean;
   busy?: boolean;
@@ -40,6 +39,10 @@ interface EditorToolbarProps {
   onToggleMenu: () => void;
   menuId?: string;
   menuDisabled?: boolean;
+  /** The tool's `ExampleGallery`: its "Examples" button sits before Start again. */
+  examples?: ReactNode;
+  /** The tool's answers switch (`AnswerPreviewToggle` or `AnswerCopyToggle`), if it has hidden answers. */
+  answers?: ReactNode;
 }
 
 /** Common document actions; specialist editing controls belong to the inspector. */
@@ -101,6 +104,8 @@ function Toolbar(props: EditorToolbarProps) {
       );
       const stage = parent.querySelector<HTMLElement>(":scope > .editor-stage");
       if (!stage?.clientWidth) return;
+      // Where the stage starts in the card: the answers label sits over its top corner.
+      parent.style.setProperty("--editor-stage-top", `${stage.offsetTop}px`);
       const top = stage.getBoundingClientRect().top + window.scrollY;
       // On a window too short for the editor frame, the stage and the foot strip under it end
       // together just above the foot of the window. Rows a tool keeps under the strip follow on,
@@ -116,11 +121,14 @@ function Toolbar(props: EditorToolbarProps) {
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     observer.observe(parent);
-    const foot = parent.querySelector(":scope > .editor-foot");
-    if (foot) observer.observe(foot);
+    for (const row of parent.querySelectorAll(":scope > .editor-foot, :scope > .editor-stage")) observer.observe(row);
+    // A row arriving above the stage (a warning, a pending note) moves it without resizing anything.
+    const rows = new MutationObserver(measure);
+    rows.observe(parent, { childList: true });
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();
+      rows.disconnect();
       window.removeEventListener("resize", measure);
     };
   }, []);
@@ -131,7 +139,7 @@ function Toolbar(props: EditorToolbarProps) {
       role="group"
       aria-label="Resource utilities"
     >
-      <div className="tool-group" role="group" aria-label="History and reset">
+      <div className="tool-group" role="group" aria-label="History, examples and start again">
         <HistoryButtons
           canUndo={props.canUndo}
           canRedo={props.canRedo}
@@ -140,16 +148,19 @@ function Toolbar(props: EditorToolbarProps) {
           undoLabel={props.undoLabel}
           redoLabel={props.redoLabel}
         />
+        {props.examples}
         <button
           className="tool-button reset-button"
           disabled={props.resetDisabled}
-          aria-label={props.resetLabel ?? "Reset"}
+          aria-label="Start again"
+          title="Start again from this tool's starting resource"
           onClick={props.onReset}
         >
           <RotateCcw size={17} aria-hidden="true" />
-          <span>Reset</span>
+          <span>Start again</span>
         </button>
       </div>
+      {props.answers ? <div className="editor-view-actions">{props.answers}</div> : null}
       <div
         className="editor-copy-actions"
         // Export intent: fetch the print fonts before the click (U57).

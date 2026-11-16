@@ -106,7 +106,7 @@ test("legacy separate worked documents retain their storage and navigation conte
     page.getByText("Separate worked copy", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Start from an example", exact: true })
+    .getByRole("button", { name: "Examples", exact: true })
     .click();
   await page
     .locator(".example-card")

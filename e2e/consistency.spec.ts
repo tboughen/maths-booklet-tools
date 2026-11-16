@@ -366,7 +366,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     "File",
     "Undo",
     "Redo",
-    "Reset diagram",
+    "Start again",
   ])
     await expect(
       page.getByRole("button", { name, exact: true }),

@@ -9,7 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { factorTreeGallery } from "../examples/galleryCatalogue";
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
@@ -353,6 +353,16 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={factorTreeGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -446,7 +456,6 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                 <EditorHint tool="factor-tree">Click a number on the tree to edit, split or circle it. Enter applies; Escape restores.</EditorHint>
               }
             >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
             {(issue || notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
@@ -462,13 +471,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Factor tree settings">
-            <ExampleGallery
-              examples={factorTreeGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected number">
               <h2>{selected && selectedNode ? `Number: ${nodeName(selected)}` : "Selected number"}</h2>
               {selected && selectedTree && selectedNode ? (

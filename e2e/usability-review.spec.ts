@@ -31,7 +31,7 @@ for (const width of [1280, 375])
         path: resolve(directory, `${tool}-${width}.png`),
       });
       const trigger = page.getByRole("button", {
-        name: "Start from an example",
+        name: "Examples",
         exact: true,
       });
       await trigger.press("Enter");
