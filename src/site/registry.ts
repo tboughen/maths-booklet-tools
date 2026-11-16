@@ -6,7 +6,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, WrittenMethodIcon, FunctionMachineIcon, FrequencyTreeIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
+import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, WrittenMethodIcon, FunctionMachineIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -17,11 +17,12 @@ import anglesPreview from "../assets/tool-previews/angle-diagrams.svg";
 import areaPreview from "../assets/tool-previews/area-and-perimeter.svg";
 import factorTreePreview from "../assets/tool-previews/factor-trees.svg";
 import writtenMethodPreview from "../assets/tool-previews/written-methods.svg";
-import functionMachinePreview from "../assets/tool-previews/function-machines.svg";
+import functionMachinePreview from "../assets/tool-previews/function-machines.svg?no-inline";
+import netsPreview from "../assets/tool-previews/nets.svg?no-inline";
 import sampleSpacePreview from "../assets/tool-previews/sample-space-diagrams.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
-import constructionPreview from "../assets/tool-previews/constructions.svg";
+import constructionPreview from "../assets/tool-previews/constructions.svg?no-inline";
 import elevationsPreview from "../assets/tool-previews/plans-and-elevations.svg";
 
 /** Add booklet editors here; the overview, navigation and page host share this list.
@@ -47,6 +48,7 @@ export const bookletTools = [
   { id: "factor-tree", name: "Factor trees", description: "Draw factor trees down to circled primes, with an index-form answer line and numbers left blank or hidden.", icon: FactorTreeIcon, component: toolPage(() => import("../factor-tree/FactorTreePage")), preview: { src: factorTreePreview, alt: "Factor tree for 360 with the first split given and the rest left for pupils, above an answer line." } },
   { id: "written-method", name: "Written methods", description: "Set out column addition and subtraction, long multiplication and short or long division, with digits left blank or hidden.", icon: WrittenMethodIcon, component: toolPage(() => import("../written-method/WrittenMethodPage")), preview: { src: writtenMethodPreview, alt: "Long multiplication of 546 by 43 with the working left for pupils." } },
   { id: "function-machine", name: "Function machines", description: "Draw function machines with operations and values left blank or hidden for pupils, and their inverse machines.", icon: FunctionMachineIcon, component: toolPage(() => import("../function-machine/FunctionMachinePage")), preview: { src: functionMachinePreview, alt: "A number machine: 7 goes in, then multiply by 4 and add 3, with the value between the boxes and the output left for pupils." } },
+  { id: "nets", name: "Nets of 3D shapes", description: "Draw nets of cubes, cuboids, prisms and pyramids on centimetre squares, with letters, dots and faces hidden for pupils.", icon: NetsIcon, component: toolPage(() => import("../nets/NetsPage")), preview: { src: netsPreview, alt: "The cross-shaped net of a cube on centimetre squares, with a dot on the top face." } },
   { id: "sample-space", name: "Sample space diagrams", description: "Make sample space diagrams for two dice, spinners and coins, with outcomes left blank, hidden or circled.", icon: SampleSpaceIcon, component: toolPage(() => import("../sample-space/SampleSpacePage")), preview: { src: sampleSpacePreview, alt: "Sample space diagram for the totals of two dice, with four totals given and the rest left for pupils." } },
 ] as const;
 

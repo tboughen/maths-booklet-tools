@@ -1,0 +1,207 @@
+{
+ "kind": "nets",
+ "schemaVersion": 1,
+ "rendererVersion": "nets-1",
+ "document": {
+  "nets": [
+   {
+    "id": "n1",
+    "solid": "cube",
+    "caption": {
+     "text": "",
+     "show": "show"
+    },
+    "size": {
+     "across": 0,
+     "down": 0
+    },
+    "faces": [
+     {
+      "id": "f1",
+      "points": [
+       [
+        1,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "A",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f2",
+      "points": [
+       [
+        1,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        5
+       ],
+       [
+        1,
+        5
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "B",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f3",
+      "points": [
+       [
+        3,
+        3
+       ],
+       [
+        5,
+        3
+       ],
+       [
+        5,
+        5
+       ],
+       [
+        3,
+        5
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "C",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f4",
+      "points": [
+       [
+        5,
+        3
+       ],
+       [
+        7,
+        3
+       ],
+       [
+        7,
+        5
+       ],
+       [
+        5,
+        5
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "D",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f5",
+      "points": [
+       [
+        7,
+        3
+       ],
+       [
+        9,
+        3
+       ],
+       [
+        9,
+        5
+       ],
+       [
+        7,
+        5
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "E",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f6",
+      "points": [
+       [
+        3,
+        5
+       ],
+       [
+        5,
+        5
+       ],
+       [
+        5,
+        7
+       ],
+       [
+        3,
+        7
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "F",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     }
+    ],
+    "vertices": [],
+    "edges": []
+   }
+  ],
+  "grid": "squares",
+  "unitCm": 1
+ }
+}

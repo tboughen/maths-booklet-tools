@@ -1,0 +1,12 @@
+<svg width="377.95276" height="302.3622" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <defs/>
+    <path fill="#ffffff" stroke="none" d="M 0 0 L 100 0 L 100 80 L 0 80 Z"/>
+    <path fill="none" stroke="#a9abaa" stroke-width="0.353" d="M 0 0 L 0 80 M 10 0 L 10 80 M 20 0 L 20 80 M 30 0 L 30 80 M 40 0 L 40 80 M 50 0 L 50 80 M 60 0 L 60 80 M 70 0 L 70 80 M 80 0 L 80 80 M 90 0 L 90 80 M 100 0 L 100 80 M 0 0 L 100 0 M 0 10 L 100 10 M 0 20 L 100 20 M 0 30 L 100 30 M 0 40 L 100 40 M 0 50 L 100 50 M 0 60 L 100 60 M 0 70 L 100 70 M 0 80 L 100 80"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 30 10 L 50 10 L 50 30 L 30 30 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 10 30 L 30 30 L 30 50 L 10 50 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 30 30 L 50 30 L 50 50 L 30 50 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 50 30 L 70 30 L 70 50 L 50 50 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 70 30 L 90 30 L 90 50 L 70 50 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 30 50 L 50 50 L 50 70 L 30 70 Z"/>
+    <path fill="#000000" stroke="none" d="M 41.2 20 C 41.2 20.31826 41.073574 20.623486 40.84853 20.84853 C 40.623486 21.073572 40.31826 21.2 40 21.2 C 39.68174 21.2 39.376514 21.073572 39.15147 20.84853 C 38.926426 20.623486 38.8 20.31826 38.8 20 C 38.8 19.68174 38.926426 19.376514 39.15147 19.15147 C 39.376514 18.926428 39.68174 18.8 40 18.8 C 40.31826 18.8 40.623486 18.926428 40.84853 19.15147 C 41.073574 19.376514 41.2 19.68174 41.2 20 Z"/>
+</svg>
