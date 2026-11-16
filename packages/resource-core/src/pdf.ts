@@ -20,9 +20,15 @@ const MM = 72 / 25.4;
 /** Mathematical alphanumerics (italic 𝑥, 𝑦 and so on) exist only in STIX Two Math, and the PDF
  * writer picks one font per text run, so runs containing them are pointed at the maths font. */
 const MATH_ALPHANUMERIC = /[\u{1D400}-\u{1D7FF}]/u;
+/** Arrows, maths operators and symbols (U+2190 to U+2BFF) that STIX Two Text lacks but STIX Two
+ * Math has, such as ⩽ and ⩾ in class inequalities; STIX Two Text has only −, ␣ and ◌ there. A
+ * browser or resvg falls back to the next font in the list, but the PDF writer does not, so a STIX
+ * run holding one of them is set in the maths font (its digits and spaces are the same widths). */
+const STIX_TEXT_MISSING = /[\u2190-\u2211\u2213-\u2422\u2424-\u25CB\u25CD-\u2BFF]/u;
 export function mathFontForMathLetters(svg: string): string {
   return svg.replace(/<(text|tspan)\b([^>]*)>([^<]*)<\/\1>/g, (whole, tag: string, attrs: string, body: string) => {
-    if (!MATH_ALPHANUMERIC.test(body)) return whole;
+    const stixRun = /\bfont-family=("[^"]*stix[^"]*"|'[^']*stix[^']*')/i.test(attrs);
+    if (!MATH_ALPHANUMERIC.test(body) && !(stixRun && STIX_TEXT_MISSING.test(body))) return whole;
     const font = `font-family="'STIX Two Math'"`;
     const next = /\bfont-family=("[^"]*"|'[^']*')/.test(attrs) ? attrs.replace(/\bfont-family=("[^"]*"|'[^']*')/, font) : `${attrs} ${font}`;
     return `<${tag}${next}>${body}</${tag}>`;

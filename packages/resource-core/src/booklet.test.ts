@@ -176,6 +176,16 @@ describe("PDF fonts", () => {
     expect(out).toContain(`<text x="1" font-family="'STIX Two Math'">𝑦</text>`);
     expect(out).toContain(`<text font-family="Inter">y = 2</text>`);
   });
+
+  it("sends STIX runs with symbols STIX Two Text lacks, such as ⩽, to the maths font", async () => {
+    const { mathFontForMathLetters } = await import("./pdf");
+    const svg = `<text x="1" font-family="STIX Two Text,STIX Two Math,serif"> ⩽ 20</text><text font-family="STIX Two Text,STIX Two Math,serif">−3 &lt; 5</text><text font-family="Inter">a ⩽ b</text>`;
+    const out = mathFontForMathLetters(svg);
+    expect(out).toContain(`<text x="1" font-family="'STIX Two Math'"> ⩽ 20</text>`);
+    // STIX Two Text has the minus sign; Inter runs are left to the text fonts.
+    expect(out).toContain(`<text font-family="STIX Two Text,STIX Two Math,serif">−3 &lt; 5</text>`);
+    expect(out).toContain(`<text font-family="Inter">a ⩽ b</text>`);
+  });
 });
 
 describe("one lesson on its own", () => {
