@@ -28,6 +28,8 @@ import { renderSvg as renderValueGraph, validate as validateValueGraph } from ".
 import { validateEnvelope as validateGraph } from "../../graph-core/src/interchange";
 import { renderDiagramSvg as renderGraph } from "../../graph-core/src/svg";
 import { renderSvg as renderBarModel, validate as validateBarModel } from "../../bar-model-core/src/v3";
+import { renderSvg as renderFunctionMachine, validate as validateFunctionMachine } from "../../function-machine-core/src/index";
+import { renderSvg as renderWrittenMethod, validate as validateWrittenMethod } from "../../written-method-core/src/index";
 import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS, WORKING_DASH_POINTS } from "../../graph-core/src/graphStyle";
 import { smoothCurvePath } from "../../graph-core/src/curve";
 import { arrowheadPath } from "../../graph-core/src/arrow";
@@ -76,6 +78,8 @@ const RENDERERS = {
   "value-graph": (e: unknown) => renderValueGraph(validateValueGraph(e)),
   "graph": (e: unknown) => renderGraph(validateGraph(e).document),
   "bar-model": (e: unknown) => renderBarModel(validateBarModel(e)),
+  "function-machine": (e: unknown) => renderFunctionMachine(validateFunctionMachine(e)),
+  "written-method": (e: unknown) => renderWrittenMethod(validateWrittenMethod(e)),
 } as const;
 export const DIAGRAM_FAMILIES = Object.keys(RENDERERS) as [keyof typeof RENDERERS, ...(keyof typeof RENDERERS)[]];
 export type DiagramFamily = typeof DIAGRAM_FAMILIES[number];

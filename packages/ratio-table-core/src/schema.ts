@@ -40,8 +40,9 @@ export const headingSchema = z
       .string()
       .min(1)
       .max(12)
-      // "/" for units such as m/s (Tim's queue, 11 Nov 2026).
-      .regex(/^[A-Za-z0-9 _/-]+$/),
+      // "/" for units such as m/s (Tim's queue, 11 Nov 2026); "%" and "£" for percentages and
+      // money (Tim, 16 Nov 2026).
+      .regex(/^[A-Za-z0-9 _/%£-]+$/),
     italic: z.boolean(),
     direction: z.enum(["right", "up", "down", "none"]),
   })

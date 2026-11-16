@@ -25,9 +25,7 @@ export function headingFromText(heading: Heading, value: string): Heading {
       : value.endsWith("↓")
         ? "down"
         : "none";
-  return {
-    ...heading,
-    text: (direction === "none" ? value : value.slice(0, -1)).trim(),
-    direction,
-  };
+  const text = (direction === "none" ? value : value.slice(0, -1)).trim();
+  // % and £ are symbols, never italic letters, whatever the heading was before (Tim, 16 Nov 2026).
+  return { ...heading, text, direction, ...(/[%£]/.test(text) ? { italic: false } : {}) };
 }

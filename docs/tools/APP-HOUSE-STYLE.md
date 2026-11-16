@@ -149,13 +149,20 @@ nothing moves when it appears.
 
 The bar above the diagram is the same in every tool (`EditorToolbar`). From the left: Undo, Redo,
 **Examples**, **Start again**. At the right: the answers switch where a tool has hidden answers,
-then Copy image, Copy for Word and File.
+then Copy image, Copy for Word, **Download** and **File**.
 
 - **Examples** opens the "Start from an example" gallery. It used to be a wide button at the top
   of the settings column, which now starts with the tool's own settings.
 - **Start again** is the reset: it asks first, and Undo brings the work back.
-- Where the bar would not fit on one row, Examples and Start again show their icons only: up to
-  1,180 px wide in every tool, and up to 1,365 px in a tool with an answers switch.
+- **Download** holds what leaves as a picture: SVG, PNG, PDF and, where a tool has them, the
+  answers copies and the ZIP of both. **File** holds the editable file: Title and note, Worked
+  notes, Save, Open, Copy editable link, and the first-time Word setup. `diagramFileMenu`
+  (`src/site/fileMenu.ts`) decides which menu lists an item; a tool passes one list.
+- Where the bar would not fit on one row it gives up room in two steps. First Examples and Start
+  again show their icons only: up to 1,279 px wide in every tool, and up to 1,500 px in a tool
+  with an answers switch. Then the copy, Download and File buttons show their words only: up to
+  1,180 px, and up to 1,365 px in a tool with an answers switch.
+- On a phone the four buttons at the right sit two by two.
 
 ## The answers switch
 

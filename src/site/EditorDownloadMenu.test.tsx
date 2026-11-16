@@ -4,7 +4,9 @@ import {
   EditorDownloadMenu,
   SAVED_NOTE_MS,
   type DownloadAction,
+  type MenuKind,
 } from "./EditorDownloadMenu";
+import { diagramFileMenu } from "./fileMenu";
 
 function setup(actions: DownloadAction[]) {
   const onMessage = vi.fn();
@@ -119,5 +121,47 @@ describe("Saved to file check (U42)", () => {
     });
     expect(onMessage).toHaveBeenCalledWith("PNG download started.");
     expect(screen.queryByTestId("saved-note")).toBeNull();
+  });
+});
+
+describe("Download and File menus of a diagram tool", () => {
+  const actions = diagramFileMenu({
+    svg: { action: vi.fn() },
+    png: { action: vi.fn() },
+    pdf: { action: vi.fn() },
+    both: { action: vi.fn() },
+    about: { action: vi.fn() },
+    worked: { action: vi.fn() },
+    save: { action: vi.fn() },
+    open: { action: vi.fn() },
+    link: { action: vi.fn() },
+  });
+  const names = () => screen.getAllByRole("menuitem").map((item) => item.getAttribute("aria-label"));
+  const show = (open: MenuKind) =>
+    render(
+      <>
+        <button data-menu-id="tool-menu" data-menu="download">Download</button>
+        <button data-menu-id="tool-menu" data-menu="file">File</button>
+        <EditorDownloadMenu id="tool-menu" wordHelp open={open} onClose={vi.fn()} onMessage={vi.fn()} actions={actions} />
+      </>,
+    );
+
+  it("Download lists the pictures and nothing else", () => {
+    show("download");
+    expect(screen.getByRole("menu", { name: "Download" })).toBeInTheDocument();
+    expect(names()).toEqual(["Download SVG", "Download PNG (600 ppi)", "Download PDF (actual size)", "Download pupil and answers (ZIP)"]);
+  });
+
+  it("File lists the editable file, its notes and the Word setup, and starts without a rule", () => {
+    show("file");
+    const menu = screen.getByRole("menu", { name: "File" });
+    expect(names()).toEqual(["Title and note…", "Worked notes…", "Save editable file", "Open editable file", "Copy editable link", "First-time Word setup"]);
+    expect(menu.querySelectorAll('[role="separator"]')).toHaveLength(1);
+    expect(menu.firstElementChild?.querySelector('[role="separator"]')).toBeNull();
+  });
+
+  it("a page with one File button still gets every item", () => {
+    setup(actions);
+    expect(names()).toHaveLength(9);
   });
 });

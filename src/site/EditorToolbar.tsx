@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { HistoryButtons } from "./HistoryButtons";
+import type { MenuKind } from "./EditorDownloadMenu";
 
 /** Starts the print-font fetch once, on the first sign of an export (U57). */
 let preloaded = false;
@@ -11,6 +12,7 @@ function preloadExportFonts() {
 import {
   ChevronDown,
   Copy,
+  Download,
   LoaderCircle,
   RotateCcw,
   X,
@@ -35,8 +37,10 @@ interface EditorToolbarProps {
   busy?: boolean;
   onCopy: () => void;
   onCopyClipboard: () => void;
-  menuOpen: boolean;
-  onToggleMenu: () => void;
+  /** Which of the two menus is open, if either. */
+  menuOpen: MenuKind | false;
+  /** Pressing Download or File opens that menu, or closes it if it is the one open. */
+  onMenuChange: (open: MenuKind | false) => void;
   menuId?: string;
   menuDisabled?: boolean;
   /** The tool's `ExampleGallery`: its "Examples" button sits before Start again. */
@@ -190,29 +194,10 @@ function Toolbar(props: EditorToolbarProps) {
             )}
             {props.busy ? "Preparing…" : "Copy for Word"}
           </button>
-          <button
-            className="file-menu-button"
-            disabled={
-              (props.menuDisabled ?? props.exportDisabled) || props.busy
-            }
-            aria-label="File"
-            aria-haspopup="menu"
-            aria-expanded={props.menuOpen}
-            aria-controls={props.menuId}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-                event.preventDefault();
-                event.currentTarget.dataset.menuFocus =
-                  event.key === "ArrowUp" ? "last" : "first";
-                if (!props.menuOpen) props.onToggleMenu();
-              }
-              if (event.key === "Enter" || event.key === " ")
-                event.currentTarget.dataset.menuFocus = "first";
-            }}
-            onClick={props.onToggleMenu}
-          >
-            File <ChevronDown size={16} aria-hidden="true" />
-          </button>
+          <MenuButton kind="download" label="Download" disabled={props.exportDisabled || props.busy} menuOpen={props.menuOpen} menuId={props.menuId} onMenuChange={props.onMenuChange}>
+            <Download className="menu-icon" size={17} aria-hidden="true" />
+          </MenuButton>
+          <MenuButton kind="file" label="File" disabled={(props.menuDisabled ?? props.exportDisabled) || props.busy} menuOpen={props.menuOpen} menuId={props.menuId} onMenuChange={props.onMenuChange} />
         </div>
       </div>
       {/* The live region is always mounted, so screen readers announce the notice when it appears. */}
@@ -230,6 +215,46 @@ function Toolbar(props: EditorToolbarProps) {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Download or File: a button that opens its menu (`EditorDownloadMenu`), which finds it by
+ * `data-menu-id` and `data-menu`. Only the button whose menu is open says that it controls it.
+ */
+function MenuButton({
+  kind,
+  label,
+  disabled,
+  menuOpen,
+  menuId,
+  onMenuChange,
+  children,
+}: Pick<EditorToolbarProps, "menuOpen" | "menuId" | "onMenuChange"> & { kind: MenuKind; label: string; disabled?: boolean; children?: ReactNode }) {
+  const open = menuOpen === kind;
+  return (
+    <button
+      className="file-menu-button"
+      data-menu={kind}
+      data-menu-id={menuId}
+      disabled={disabled}
+      aria-label={label}
+      aria-haspopup="menu"
+      aria-expanded={open}
+      aria-controls={open ? menuId : undefined}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          event.currentTarget.dataset.menuFocus = event.key === "ArrowUp" ? "last" : "first";
+          if (!open) onMenuChange(kind);
+        }
+        if (event.key === "Enter" || event.key === " ") event.currentTarget.dataset.menuFocus = "first";
+      }}
+      onClick={() => onMenuChange(open ? false : kind)}
+    >
+      {children}
+      <span>{label}</span> <ChevronDown size={16} aria-hidden="true" />
+    </button>
   );
 }
 
