@@ -113,7 +113,7 @@ issue, and `create_diagram` / `revise_diagram` add it to their warnings.
 
 ## Single-diagram PDF (U32, 14 November 2026)
 
-Every editor's menu has **Download PDF (actual size)**: the same artwork as Download SVG on an A4
+Every editor's Download menu has **Download PDF (actual size)**: the same artwork as Download SVG on an A4
 portrait page (A4 landscape or A3 when it does not fit inside 15 mm margins), centred 15 mm from
 the top and never scaled. `diagramPage` (`packages/resource-core/src/diagram-page.ts`) builds the
 page; the worksheet PDF writer draws it and the W30 audit checks it before it is offered. Print at
@@ -164,7 +164,7 @@ an L-shaped leader.
   files, bundles and get_diagram_svg all show the same notes. Families without an answers copy
   (tables of values and graphs, cuboids) refuse a `worked` list until they have one.
 - In the website, "Worked notes…" in the File menu edits them in the tools with an answers copy
-  (ratio tables, Venn, charts, probability and frequency trees, factor trees, function machines, algebra tiles, two-way tables, sample space diagrams, constructions and
+  (ratio tables, Venn, charts, probability and frequency trees, factor trees, function machines, algebra tiles, written methods, two-way tables, sample space diagrams, constructions and
   elevations) and in the graph, number line, expanding and factorising, triangle and bar-model
   editors, whose answers print in worksheets, booklets and the connector (algebra grids and
   triangles also show the notes in their teacher preview); see `docs/tools/BOOKLET-CONSISTENCY.md`.

@@ -1,0 +1,56 @@
+{
+ "kind": "written-method",
+ "schemaVersion": 1,
+ "rendererVersion": "written-method-1",
+ "document": {
+  "method": "multiply",
+  "numbers": [
+   {
+    "id": "n1",
+    "value": {
+     "text": "546",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n2",
+    "value": {
+     "text": "43",
+     "show": "show"
+    }
+   }
+  ],
+  "working": [
+   {
+    "id": "w1",
+    "value": {
+     "text": "",
+     "show": "show"
+    },
+    "place": 0,
+    "kind": "product"
+   },
+   {
+    "id": "w2",
+    "value": {
+     "text": "",
+     "show": "show"
+    },
+    "place": 0,
+    "kind": "product"
+   }
+  ],
+  "answer": {
+   "text": "",
+   "show": "show"
+  },
+  "remainder": null,
+  "extend": {
+   "text": "",
+   "show": "show"
+  },
+  "marks": [],
+  "cellMm": 7,
+  "intentionalError": false
+ }
+}

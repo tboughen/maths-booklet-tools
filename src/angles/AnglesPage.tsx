@@ -12,7 +12,7 @@ import { anglesGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
+import { EditorDownloadMenu, type MenuKind } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
@@ -204,7 +204,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<View>("pupil"),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
     [drag, setDrag] = useState<{ e: Envelope; label: string } | null>(null),
@@ -575,7 +575,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(e, view)))}
               menuId="angles-downloads"
               menuOpen={menu}
-              onToggleMenu={() => setMenu(!menu)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

@@ -1,0 +1,92 @@
+{
+ "kind": "written-method",
+ "schemaVersion": 1,
+ "rendererVersion": "written-method-1",
+ "document": {
+  "method": "long-division",
+  "numbers": [
+   {
+    "id": "n1",
+    "value": {
+     "text": "846",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n2",
+    "value": {
+     "text": "15",
+     "show": "show"
+    }
+   }
+  ],
+  "working": [
+   {
+    "id": "w1",
+    "value": {
+     "text": "75",
+     "show": "show"
+    },
+    "place": 1,
+    "kind": "subtract"
+   },
+   {
+    "id": "w2",
+    "value": {
+     "text": "96",
+     "show": "show"
+    },
+    "place": 0,
+    "kind": "remainder"
+   },
+   {
+    "id": "w3",
+    "value": {
+     "text": "90",
+     "show": "show"
+    },
+    "place": 0,
+    "kind": "subtract"
+   },
+   {
+    "id": "w4",
+    "value": {
+     "text": "60",
+     "show": "show"
+    },
+    "place": -1,
+    "kind": "remainder"
+   },
+   {
+    "id": "w5",
+    "value": {
+     "text": "60",
+     "show": "show"
+    },
+    "place": -1,
+    "kind": "subtract"
+   },
+   {
+    "id": "w6",
+    "value": {
+     "text": "0",
+     "show": "show"
+    },
+    "place": -1,
+    "kind": "remainder"
+   }
+  ],
+  "answer": {
+   "text": "56.4",
+   "show": "show"
+  },
+  "remainder": null,
+  "extend": {
+   "text": "0",
+   "show": "show"
+  },
+  "marks": [],
+  "cellMm": 7,
+  "intentionalError": false
+ }
+}

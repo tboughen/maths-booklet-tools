@@ -135,6 +135,18 @@
   width: 100%;
   min-width: 0;
 }
+.ch-box-value {
+  display: grid;
+  gap: 3px;
+}
+.ch-fields .ch-hide {
+  display: flex;
+  justify-self: start;
+}
+.ch-fields .ch-hide input {
+  width: auto;
+  margin: 0;
+}
 .ch-fields .ch-check {
   display: flex;
   align-items: center;
@@ -231,6 +243,20 @@
 }
 .ch-classes th,
 .ch-classes td {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+.ch-stems input:not([type="checkbox"]) {
+  width: 3.3em;
+}
+.ch-stems td.ch-leaves input {
+  width: 9em;
+}
+.ch-stems td.ch-class-hide {
+  text-align: left;
+}
+.ch-stems th,
+.ch-stems td {
   padding-left: 2px;
   padding-right: 2px;
 }

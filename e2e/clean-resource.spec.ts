@@ -176,7 +176,7 @@ for (const tool of ["graph", "ratio-table", "value-table-graph"]) {
       current.getByRole("button", { name: "Copy for Word", exact: true }),
     ).toBeEnabled();
     await current
-      .getByRole("button", { name: "File", exact: true })
+      .getByRole("button", { name: "Download", exact: true })
       .click();
     const downloading = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: /Download PNG/ }).click();

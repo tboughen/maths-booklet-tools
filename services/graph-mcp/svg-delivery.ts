@@ -17,6 +17,7 @@ import { hash as twoWayTableHash } from "../../packages/two-way-table-core/src/i
 import { hash as anglesHash } from "../../packages/angle-core/src/index";
 import { hash as areaHash } from "../../packages/area-core/src/index";
 import { hash as ftHash } from "../../packages/factor-tree-core/src/index";
+import { hash as wmHash } from "../../packages/written-method-core/src/index";
 import { hash as fmHash } from "../../packages/function-machine-core/src/index";
 import { hash as atHash } from "../../packages/algebra-tile-core/src/index";
 import { hash as ssHash } from "../../packages/sample-space-core/src/index";
@@ -96,6 +97,7 @@ async function sourceHash(source: DiagramSource) {
     case "angles": return anglesHash(source.envelope);
     case "area": return areaHash(source.envelope);
     case "factor-tree": return ftHash(source.envelope);
+    case "written-method": return wmHash(source.envelope);
     case "function-machine": return fmHash(source.envelope);
     case "algebra-tiles": return atHash(source.envelope);
     case "sample-space": return ssHash(source.envelope);
@@ -129,7 +131,7 @@ export function registerSvgDelivery(server: McpServer, connection: AbortSignal, 
       const info = await prepareDiagram(source, raster, signal);
       const data: SvgDelivery = { kind: source.kind, filename: "diagram.svg", mimeType: "image/svg+xml", encoding: "utf-8",
         rendererVersion: source.envelope.rendererVersion, sourceContentHash: await sourceHash(source),
-        physicalSizeCm: info.physicalSizeCm, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "sample-space" || source.kind === "factor-tree" || source.kind === "function-machine" || source.kind === "algebra-tiles" || source.kind === "angles" || source.kind === "area" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), ...chunk };
+        physicalSizeCm: info.physicalSizeCm, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "sample-space" || source.kind === "factor-tree" || source.kind === "function-machine" || source.kind === "algebra-tiles" || source.kind === "written-method" || source.kind === "angles" || source.kind === "area" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), ...chunk };
       // Mirror the exact JSON for clients that do not expose structuredContent.
       const { result, responseBytes } = svgDeliveryResult(data);
       limits.output(responseBytes);

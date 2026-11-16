@@ -23,6 +23,7 @@ const CUES: Record<DiagramKind, RegExp> = {
   angles: /angles? on a (straight )?line|round a point|around a point|angles? at a point|vertically opposite|parallel lines|transversal|alternate|corresponding|co-interior|allied|interior angle|exterior angle|polygon|angle fact/,
   area: /\barea\b|perimeter|compound shape|rectilinear|circumference|circle|semicircle|sector|arc length|trapezium|parallelogram|shaded region/,
   "factor-tree": /factor tree|prime factor|product of (its )?primes|prime decomposition/,
+  "written-method": /written method|column (addition|subtraction|method)|long multiplication|long division|short division|bus stop/,
   "function-machine": /function machine|number machine|input.*output/,
   "algebra-tiles": /algebra tiles?|\btiles?\b|like terms|collect(ing)? (like )?terms|simplif(y|ying) (the )?expression|zero pairs?/,
   "sample-space": /sample space|two dice|both dice|listing outcomes|list(ing)? (all )?(the |the possible )?outcomes|spinners?\b/,

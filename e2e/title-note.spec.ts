@@ -1,13 +1,14 @@
 import { readFile } from "node:fs/promises";
 import { test, expect, type Page } from "./release-fixtures";
 import { toolIds } from "../src/site/routes";
+import { menuFor } from "./resource-actions";
 
 /** U34: every editor saves a title and note in its editable file and link, never prints them, and keeps them on reopen. */
 const TITLE = "Year 9 starter ratio";
 const NOTE = "Set 3, lesson 2: pupils fill the blanks.";
 
 async function menuItem(page: Page, name: string | RegExp) {
-  const trigger = page.getByRole("button", { name: "File", exact: true }).filter({ visible: true });
+  const trigger = page.getByRole("button", { name: menuFor(name), exact: true }).filter({ visible: true });
   if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
   return page.getByRole("menuitem", { name });
 }

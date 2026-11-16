@@ -678,6 +678,37 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
 
+## 2026-11-16: New written methods tool: column addition and subtraction, long multiplication, short and long division
+
+- written methods: wm-column-add: added
+- written methods: wm-column-add (worked): added
+- written methods: wm-add-decimals: added
+- written methods: wm-add-decimals (worked): added
+- written methods: wm-column-subtract: added
+- written methods: wm-column-subtract (worked): added
+- written methods: wm-long-multiplication: added
+- written methods: wm-long-multiplication (worked): added
+- written methods: wm-short-division: added
+- written methods: wm-short-division (worked): added
+- written methods: wm-division-remainder: added
+- written methods: wm-division-remainder (worked): added
+- written methods: wm-long-division-decimal: added
+- written methods: wm-long-division-decimal (worked): added
+
+## 2026-11-16: Box plots become a chart kind: two source-linked examples (Jun 2017 3H Q9, Nov 2017 1H Q12), pupil and answers copies
+
+- charts: chart-boxplot-holiday: added
+- charts: chart-boxplot-holiday (worked): added
+- charts: chart-boxplot-heights: added
+- charts: chart-boxplot-heights (worked): added
+
+## 2026-11-16: Stem-and-leaf diagrams become a chart kind: two source-linked examples (Nov 2017 1F Q10, Jun 2025 1F Q18), pupil and answers copies
+
+- charts: chart-stemleaf-scores: added
+- charts: chart-stemleaf-scores (worked): added
+- charts: chart-stemleaf-heights: added
+- charts: chart-stemleaf-heights (worked): added
+
 ## 2026-11-16: Add algebra tiles (new tool) to the output gates
 
 - algebra tiles: at-collect-two-letters: added

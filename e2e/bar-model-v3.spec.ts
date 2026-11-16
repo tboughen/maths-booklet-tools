@@ -105,7 +105,7 @@ test("v3 SVG PNG and both real clipboard routes retain native writing geometry a
     ["Download SVG", "svg"],
     ["Download PNG (600 ppi)", "png"],
   ] as const) {
-    await page.getByRole("button", { name: "File", exact: true }).click();
+    await page.getByRole("button", { name: "Download", exact: true }).click();
     const event = page.waitForEvent("download");
     await page.getByRole("menuitem", { name, exact: true }).click();
     const file = await event;
