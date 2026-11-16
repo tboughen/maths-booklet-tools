@@ -35,7 +35,9 @@ inverse operations from a number at the end when the start is blank, with exact 
 fills blanks and, by choice, writes the value on every arrow between boxes; items already entered never change,
 and what it fills is hidden by default. **Add the inverse machine** puts the machine's inverse beneath it: the
 boxes in reverse order with inverse operations (× ↔ ÷, + ↔ −, square ↔ √), arrows right to left, its end as the
-new start.
+new start. × 0 and ÷ 0 cannot be undone, so they have no inverse: the inverse machine is refused and Work out
+never goes back through them. Nothing goes back through √ to a negative number either, since a square root is
+never negative. A cube box has no inverse box to print (cube root), so Work out leaves it alone.
 
 ## Teacher notes
 
