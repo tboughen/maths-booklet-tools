@@ -263,7 +263,8 @@ export default function App({ active = true }: { active?: boolean }) {
             ? document.axes.y.unitsPerSquare / 2
             : 0;
       // A region follows its inequalities, so arrow keys leave it where it is.
-      if (selectedObject.kind === "region") return;
+      // A region follows its inequalities and an equation curve its equation, so arrow keys leave them.
+      if (selectedObject.kind === "region" || selectedObject.kind === "function") return;
       const moved: GraphObject =
         selectedObject.kind === "polygon"
           ? {
@@ -387,6 +388,16 @@ export default function App({ active = true }: { active?: boolean }) {
     const b = getBounds(document);
     const at = (fx: number, fy: number) => ({ x: cleanNumber(b.xMin + (b.xMax - b.xMin) * fx), y: cleanNumber(b.yMin + (b.yMax - b.yMin) * fy) });
     const curve: GraphObject = { id: makeId("curve"), kind: "curve", points: [at(0.1, 0.2), at(0.35, 0.6), at(0.6, 0.6), at(0.9, 0.85)] };
+    commit({ ...document, objects: [...document.objects, curve], selectedObjectId: curve.id });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds y = x² across the grid for the teacher to retype. */
+  function addFunction() {
+    if (locked()) return;
+    const curve: GraphObject = { id: makeId("function"), kind: "function", equation: { family: "polynomial", a: 1, b: 0, c: 0 } };
     commit({ ...document, objects: [...document.objects, curve], selectedObjectId: curve.id });
     setTool("select");
     setEquationOpen(false);
@@ -762,6 +773,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 onCurve={addCurve}
                 onReading={addReading}
                 onCircle={addCircle}
+                onFunction={addFunction}
               />
             </fieldset>
             <AxisSettings
