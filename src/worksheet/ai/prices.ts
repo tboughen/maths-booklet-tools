@@ -10,7 +10,7 @@ import type { Provider, Usage } from "./types";
  * A worksheet prompt is far below every long-context threshold (200K to 272K tokens), so only the
  * short-context rates are listed. Thinking tokens are billed as output by all three providers.
  */
-export const PRICES_CHECKED = "2026-11-10";
+export const PRICES_CHECKED = "2026-11-16";
 
 export interface Rate {
   /** First day (UTC, YYYY-MM-DD) this rate applies; absent means "until the next dated rate". */
@@ -65,6 +65,7 @@ export const prices: Price[] = [
 
   gemini("gemini-4-argon", { input: 2, output: 10, cacheRead: 0.1 }, { from: "2026-12-01", input: 4, output: 20, cacheRead: 0.2 }),
   gemini("gemini-4-carbon", { input: 2, output: 10, cacheRead: 0.1 }, { from: "2026-12-01", input: 4, output: 20, cacheRead: 0.2 }),
+  gemini("gemini-4-hydrogen", { input: 1.5, output: 7.5, cacheRead: 0.075 }),
   gemini("gemini-3.8-flash", { input: 0.75, output: 3.75, cacheRead: 0.075 }, { from: "2027-01-01", input: 1.5, output: 7.5, cacheRead: 0.15 }),
   gemini("gemini-3.6-flash", { input: 0.75, output: 3.75, cacheRead: 0.075 }, { from: "2027-01-01", input: 1.5, output: 7.5, cacheRead: 0.15 }),
   gemini("gemini-3.5-flash-lite", { input: 0.3, output: 2.5, cacheRead: 0.03 }),
