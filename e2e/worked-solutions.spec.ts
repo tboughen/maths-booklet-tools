@@ -142,3 +142,45 @@ test("narrow screens and a crossover occurrence", async ({ page }) => {
   await expect(page.locator(".qb-source-heading strong")).toHaveText("Synthetic higher Q1");
   await expect(page.getByRole("button", { name: "Show worked solution", exact: true })).toBeDisabled();
 });
+
+test("a part found by its topic code shows its working over its own cut, and the whole question on request", async ({ page }) => {
+  const { matchingParts } = await import("../src/bank/model");
+  const { servedParts } = await import("../src/bank/cuts");
+  const catalogue = JSON.parse(await readFile("public/bank/catalogue.json", "utf8")) as BankCatalogue;
+  let found: { question: BankQuestion; code: string; cut: NonNullable<BankQuestion["cuts"]>[number] } | undefined;
+  for (const question of catalogue.questions) {
+    if (!question.cuts?.length || question.tier !== "F") continue;
+    for (const code of question.codes) {
+      const served = servedParts(question, matchingParts(question, code).labels);
+      const cut = served?.cuts.find(c => c.role === "part" && !c.added)?.cut;
+      if (served && cut) { found = { question, code, cut }; break; }
+    }
+    if (found) break;
+  }
+  expect(found).toBeTruthy();
+  const { question, code, cut } = found!;
+  const view = cut.views[0];
+  const body = JSON.stringify({ schemaVersion: 2, questionId: question.id, questionRevision: question.revision, parts: [{
+    on: view.id, parts: cut.parts, area: { x: 40, y: 20, width: 200, bottom: Math.max(30, view.height - 10) }, notesX: Math.min(300, view.width - 120), answers: [],
+    steps: [{ kind: "text", text: "Synthetic working 3 + 4 = 7" }] }] });
+  const data = `bank/assets/worked/${question.id}/synthetic.json`;
+  question.workedSolution = { schemaVersion: 2, revision: "synthetic", basedOnQuestionRevision: question.revision, data, dataSha256: createHash("sha256").update(body).digest("hex") };
+  catalogue.questions = catalogue.questions.filter(q => q.id === question.id || !q.workedSolution);
+  const document = await PDFDocument.create();
+  for (let i = 0; i < 4; i++) document.addPage([600, 800]);
+  const pdf = Buffer.from(await document.save());
+  await routeCatalogue(page, catalogue);
+  await page.route(/\/bank\/assets\//, route => {
+    const path = new URL(route.request().url()).pathname.slice(1);
+    if (path === data) return route.fulfill({ contentType: "application/json", body });
+    if (path.endsWith(".pdf")) return route.fulfill({ contentType: "application/pdf", body: pdf });
+    return route.fulfill({ contentType: "image/png", body: new Resvg('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>').render().asPng() });
+  });
+  await page.goto(`/question-bank?code=${encodeURIComponent(code)}&tier=F&question=${question.id}`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await expect(ink(page)).toContainText("Synthetic working");
+  await expect(page.locator(".qb-view-info")).toContainText("Show whole question");
+  await page.getByRole("button", { name: "Show whole question", exact: true }).click();
+  await expect(ink(page).filter({ hasText: "Synthetic working" })).toHaveCount(1);
+  await expect(page.locator(".qb-worked-ink svg").last()).toContainText(`Total for Question ${question.number}`);
+});

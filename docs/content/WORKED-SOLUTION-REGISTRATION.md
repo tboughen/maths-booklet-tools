@@ -54,10 +54,12 @@ The shared contract is `workedSolution.ts`; the steps schema, renderer and check
 
    ```json
    { "schemaVersion": 2, "batchId": "pilot-jun-2017-1f",
-     "registrations": [{ "questionId": "…", "expectedQuestionRevision": "…", "solution": { …attachment… } }] }
+     "registrations": [{ "questionId": "…", "expectedQuestionRevision": "…", "solution": { …attachment… },
+         "evidence": { "reviewRecordSha256": "…", "independentSolve": true } }] }
    ```
 
-   To replace an attachment, add `expectedPreviousSolution` with the current one; the new one needs
+   `evidence` records WS13: every answer was solved again independently and agrees with the mark
+   scheme, with the hash of that review record (kept outside the repository). To replace an attachment, add `expectedPreviousSolution` with the current one; the new one needs
    a new revision and file.
 3. Stage it (plain Node 24, no build):
 

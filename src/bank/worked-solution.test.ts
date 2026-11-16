@@ -32,12 +32,15 @@ describe("worked solutions as data", () => {
   });
   it.each([
     { data: "bank/assets/../solution.json" }, { data: "https://example.com/a.json" }, { data: "bank/assets/worked/a.pdf" },
-    { data: "bank/assets/other/a.json" }, { dataSha256: "bad" }, { basedOnQuestionRevision: "changed" }, { schemaVersion: 1 },
+    { data: "bank/assets/other/a.json" }, { data: `bank/assets/sha256/${"b".repeat(64)}.json` }, { dataSha256: "bad" }, { basedOnQuestionRevision: "changed" }, { schemaVersion: 1 },
     { revision: "has space" }, { pdf: "bank/assets/a.pdf" }, { views: [] },
   ])("rejects incomplete, stale or old-style metadata: %j", change => {
     const invalid = { ...solution, ...change };
     expect(() => validateWorkedSolution(invalid, original.revision)).toThrow();
     expect(() => catalogueAssetPaths({ questions: [{ ...original, workedSolution: invalid as WorkedSolution }] })).toThrow();
+  });
+  it("accepts the released immutable object for the same bytes", () => {
+    expect(() => validateWorkedSolution({ ...solution, data: `bank/assets/sha256/${solution.dataSha256}.json` }, original.revision)).not.toThrow();
   });
   it("preserves per-ID attachments on rebuild and fails rather than dropping or transferring them", () => {
     const attached = { ...original, workedSolution: solution };

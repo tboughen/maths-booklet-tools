@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assetFile, digest, prepareRelease } from "./release";
 import { verifySchemeIndex } from "./package.mjs";
+import { validateWorkedSolution } from "../../workedSolution";
 const roots: string[] = [];
 afterEach(() => {for (const root of roots.splice(0)) rmSync(root, {recursive: true, force: true});});
 function fixture(path = "bank/assets/one.pdf") {
@@ -53,6 +54,8 @@ describe("Cloudflare release construction", () => {
     const release = prepareRelease(root, "commit");
     const key = `bank/assets/sha256/${digest('{"schemaVersion":2}')}.json`;
     expect(JSON.parse(release.catalogueJson).questions[0].workedSolution).toEqual({...workedSolution, data: key});
+    // The browser checks the released attachment again, so the immutable path must pass that check.
+    expect(() => validateWorkedSolution(JSON.parse(release.catalogueJson).questions[0].workedSolution, "r1")).not.toThrow();
     expect(release.manifest.assets.find(a => a.key === key)).toMatchObject({contentType: "application/json", sources: ["bank/assets/worked/one/w1.json"]});
     writeFileSync(join(root, "bank/assets/worked/one/w1.json"), "not json");
     expect(() => prepareRelease(root, "commit")).toThrow();

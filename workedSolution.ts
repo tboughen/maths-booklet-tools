@@ -10,7 +10,7 @@ export interface WorkedSolution {
   /** Changes whenever the steps change; each revision has its own file. */
   revision: string;
   basedOnQuestionRevision: string;
-  /** The steps file: bank/assets/worked/<question id>/<revision>.json */
+  /** The steps file: bank/assets/worked/<question id>/<revision>.json, or its immutable object once released. */
   data: string;
   dataSha256: string;
 }
@@ -35,7 +35,8 @@ export function validateWorkedSolution(value: unknown, questionRevision: string)
   const s = value as WorkedSolution;
   if (Object.keys(s).sort().join() !== KEYS || s.schemaVersion !== 2 || !revision(s.revision) || !revision(s.basedOnQuestionRevision)
       || s.basedOnQuestionRevision !== questionRevision || !bankAssetPath(s.data, "json")
-      || !s.data.startsWith("bank/assets/worked/") || !/^[a-f0-9]{64}$/.test(s.dataSha256)) return fail();
+      || !(s.data.startsWith("bank/assets/worked/") || s.data === `bank/assets/sha256/${s.dataSha256}.json`)
+      || !/^[a-f0-9]{64}$/.test(s.dataSha256)) return fail();
 }
 
 const canonical = (value: unknown): string | undefined => Array.isArray(value) ? `[${value.map(canonical).join(",")}]`

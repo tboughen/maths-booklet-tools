@@ -123,7 +123,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const match=question?matchingParts(question,route.code):undefined;
   const served=useMemo(()=>question&&route.code&&match?servedParts(question,match.labels):undefined,[question,route.code,match]);
   const partMode=role!=="scheme"&&!!served&&partsView;
-  const solutionPlan=useMemo(()=>question&&role==="worked-solution"&&question.workedSolution?workedPlan(question,partMode?served:undefined):undefined,[question,role,partMode,served]);
+  // Keyed on what it shows, not on `served`, which is rebuilt on every render.
+  const planKey=question&&role==="worked-solution"&&question.workedSolution?`${question.id}|${question.revision}|${question.workedSolution.revision}|${partMode&&served?served.cuts.map(c=>c.cut.id).join(","):"whole"}`:"";
+  const planInputs=useRef({question,partMode,served});planInputs.current={question,partMode,served};
+  const solutionPlan=useMemo(()=>{const {question:q,partMode:parts,served:s}=planInputs.current;return planKey&&q?workedPlan(q,parts?s:undefined):undefined;},[planKey]);
   const [worked,setWorked]=useState<{plan:unknown;shown?:WorkedShown;error?:string}>();
   const [workedRetry,setWorkedRetry]=useState(0);
   useEffect(()=>{

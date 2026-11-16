@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { create as createGrid } from "../../algebra-grid-core/src/index";
 import { example as numberLine } from "../../number-line-core/src/examples";
-import { checkWorked, claimedMarks, diagramSvg, lastTerm, layoutWorked, mathsText, mathsWidth, parseWorked, pieces, slices, stepCount, type WorkedData } from "./index";
+import { checkWorked, claimedMarks, diagramSvg, lastTerm, layoutWorked, mathsText, mathsWidth, parseWorked, pieces, slices, type WorkedData } from "./index";
 
 const surfaces = [{ id: "a-1", width: 480, height: 200 }, { id: "b-1", width: 480, height: 160 }, { id: "stem-1", width: 480, height: 300 }];
 
@@ -94,13 +94,13 @@ describe("worked-solution layout", () => {
   });
   it("shows steps one at a time, counting through every part", () => {
     const data = sample();
-    expect(stepCount(data)).toBe(10);
     const two = layoutWorked(data, surfaces, { upTo: 2 });
     expect(two.overlays.get("a-1")!.svg).toContain('data-step="2"');
     expect(two.overlays.get("a-1")!.svg).not.toContain('data-step="3"');
     const bOnly = layoutWorked(data, surfaces, { parts: ["b-1"], upTo: 7 });
     expect(bOnly.overlays.has("a-1")).toBe(false);
     expect(bOnly.overlays.get("b-1")!.svg).toContain('data-step="7"');
+    expect(bOnly.shownSteps).toEqual([7, 8, 9, 10]);
   });
   it("adds room instead of shrinking when the working is longer than the space", () => {
     const data = sample();
@@ -126,9 +126,28 @@ describe("worked-solution layout", () => {
     expect(a.svg.split(`translate(0 ${a.bands[0].size})`).length - 1).toBeGreaterThanOrEqual(3);
   });
   it("adds the Total for Question line for a whole question", () => {
-    const b = layoutWorked(sample(), surfaces, { total: { question: 19, marks: 3 } }).overlays.get("b-1")!;
+    const b = layoutWorked(sample(), [surfaces[2], surfaces[0], surfaces[1]], { total: { question: 19, marks: 3 } }).overlays.get("b-1")!;
     expect(b.footer).toBe(28);
     expect(b.svg).toContain("(Total for Question 19 is 3 marks)");
+  });
+  it("puts the total under the last cut shown, even with no working on it", () => {
+    const layout = layoutWorked(sample(), [...surfaces, { id: "c-1", width: 480, height: 100 }], { total: { question: 19, marks: 3 } });
+    expect(layout.overlays.get("c-1")!.svg).toContain("Total for Question 19");
+    expect(layout.overlays.get("b-1")!.footer).toBe(0);
+  });
+  it("keeps style rules inside the overlay", () => {
+    const pupil = layoutWorked(sample(), surfaces, { marks: false }).overlays.get("a-1")!.svg;
+    expect(pupil).toContain('class="wk"');
+    expect(pupil).toContain(".wk .wk-mark{display:none}");
+  });
+  it("refuses added room that would split a drawing from its graph", () => {
+    const data = sample();
+    data.parts[1].on = "stem-1";
+    data.parts[1].area = { x: 40, y: 60, width: 260, bottom: 80 };
+    data.parts[1].answers = [];
+    data.parts[1].steps = data.parts[1].steps.filter(s => s.kind !== "answer");
+    const issues = layoutWorked(data, surfaces).issues.map(i => i.message);
+    expect(issues.some(m => /split this drawing/.test(m))).toBe(true);
   });
   it("reports overlaps, answers too long and missing cuts", () => {
     const data = sample();

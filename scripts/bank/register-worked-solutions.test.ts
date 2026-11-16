@@ -25,7 +25,7 @@ function fixture(revision = "sol-1", body = steps()) {
   const solution: WorkedSolution = { schemaVersion: 2, revision, basedOnQuestionRevision: "qrev", data, dataSha256: sha256(body) };
   const question = { id: "Q1", revision: "qrev", questionPdf: "bank/assets/q.pdf", printPdf: "bank/assets/q.pdf", schemePdf: "bank/assets/q.pdf", questionViews: [{ preview: "bank/assets/q.png" }], schemeViews: [] };
   const catalogue = { version: "baseline", questions: [question, { ...question, id: "Q2" }] };
-  const batch = { schemaVersion: 2, batchId: "batch-1", registrations: [{ questionId: "Q1", expectedQuestionRevision: "qrev", solution } as Record<string, unknown> & { solution: WorkedSolution }] };
+  const batch = { schemaVersion: 2, batchId: "batch-1", registrations: [{ questionId: "Q1", expectedQuestionRevision: "qrev", solution, evidence: { reviewRecordSha256: "c".repeat(64), independentSolve: true } } as Record<string, unknown> & { solution: WorkedSolution }] };
   const cataloguePath = join(root, "catalogue.json"), batchPath = join(root, "batch.json");
   writeFileSync(cataloguePath, JSON.stringify(catalogue)); writeFileSync(batchPath, JSON.stringify(batch));
   return { root, publicRoot, cataloguePath, batchPath, output: join(root, "staged"), batch, catalogue, solution };
@@ -56,7 +56,7 @@ describe("worked solution registration and release closure", () => {
     expect(q.workedSolution.data).toBe(`bank/assets/sha256/${f.solution.dataSha256}.json`);
     expect(release.manifest.assets.find(a => a.key === q.workedSolution.data)?.contentType).toBe("application/json");
   });
-  it.each(["revision", "hash", "missing-file", "not-json", "schema", "other-question", "other-revision", "wrong-path", "duplicate", "conflict"])("rejects %s before publishing any proposal", async kind => {
+  it.each(["revision", "hash", "missing-file", "not-json", "schema", "other-question", "other-revision", "wrong-path", "duplicate", "conflict", "no-evidence", "no-solve"])("rejects %s before publishing any proposal", async kind => {
     const f = fixture();
     const entry = f.batch.registrations[0];
     const rewrite = (body: string) => { writeFileSync(join(f.publicRoot, f.solution.data), body); entry.solution.dataSha256 = sha256(body); };
@@ -68,6 +68,8 @@ describe("worked solution registration and release closure", () => {
     if (kind === "other-question") rewrite(steps("Q2"));
     if (kind === "other-revision") rewrite(steps("Q1", "old"));
     if (kind === "wrong-path") { mkdirSync(join(f.publicRoot, "bank/assets/worked/Q2"), { recursive: true }); writeFileSync(join(f.publicRoot, "bank/assets/worked/Q2/sol-1.json"), steps()); entry.solution.data = "bank/assets/worked/Q2/sol-1.json"; }
+    if (kind === "no-evidence") delete entry.evidence;
+    if (kind === "no-solve") entry.evidence = { reviewRecordSha256: "c".repeat(64), independentSolve: false };
     if (kind === "duplicate") f.batch.registrations.push(structuredClone(entry));
     if (kind === "conflict") writeFileSync(f.cataloguePath, JSON.stringify({ ...f.catalogue, questions: [{ ...f.catalogue.questions[0], workedSolution: { ...f.solution, revision: "other", data: "bank/assets/worked/Q1/other.json" } }] }));
     writeFileSync(f.batchPath, JSON.stringify(f.batch));

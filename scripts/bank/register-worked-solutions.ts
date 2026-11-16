@@ -11,6 +11,8 @@ interface Registration {
   solution: WorkedSolution;
   /** Explicit compare-and-swap authority; omitted means add or exact repeat. */
   expectedPreviousSolution?: WorkedSolution;
+  /** WS13: the answers were solved again independently and agree with the scheme; the review record's hash. */
+  evidence: { reviewRecordSha256: string; independentSolve: true };
 }
 interface Batch { schemaVersion: 2; batchId: string; registrations: Registration[]; }
 interface Catalogue { version: string; questions: { id: string; revision: string; workedSolution?: WorkedSolution; [key: string]: unknown }[]; [key: string]: unknown; }
@@ -34,7 +36,7 @@ export async function stageWorkedSolutions(options: { cataloguePath: string; bat
   const byId = new Map(catalogue.questions.map(q => [q.id, q]));
   if (byId.size !== catalogue.questions.length) throw new Error("Duplicate catalogue question ID.");
   const seen = new Set<string>(), files = new Map<string, CheckedSolutionFile>();
-  const registrations: { questionId: string; action: "added" | "replaced" | "unchanged"; expectedQuestionRevision: string; solutionRevision: string; dataSha256: string; previousSolution: WorkedSolution | null; solution: WorkedSolution }[] = [];
+  const registrations: { questionId: string; action: "added" | "replaced" | "unchanged"; expectedQuestionRevision: string; solutionRevision: string; dataSha256: string; evidence: Registration["evidence"]; previousSolution: WorkedSolution | null; solution: WorkedSolution }[] = [];
   for (const entry of batch.registrations) {
     if (!entry || typeof entry.questionId !== "string" || seen.has(entry.questionId)) throw new Error("Duplicate or invalid registration ID.");
     seen.add(entry.questionId);
@@ -54,10 +56,14 @@ export async function stageWorkedSolutions(options: { cataloguePath: string; bat
     } else if (current && !identical) {
       throw new Error(`Existing worked solution conflicts: ${entry.questionId}`);
     }
+    const evidence = entry.evidence;
+    if (!evidence || evidence.independentSolve !== true || typeof evidence.reviewRecordSha256 !== "string" || !/^[a-f0-9]{64}$/.test(evidence.reviewRecordSha256)) {
+      throw new Error(`Missing independent-solve review evidence: ${entry.questionId}`);
+    }
     const file = verifySolutionFile(options.publicRoot, entry.solution, question);
     if (files.has(file.path) && files.get(file.path)!.sha256 !== file.sha256) throw new Error("Conflicting solution file bytes.");
     files.set(file.path, file);
-    registrations.push({ questionId: question.id, action: identical ? "unchanged" : current ? "replaced" : "added", expectedQuestionRevision: question.revision, solutionRevision: entry.solution.revision, dataSha256: entry.solution.dataSha256,
+    registrations.push({ questionId: question.id, action: identical ? "unchanged" : current ? "replaced" : "added", expectedQuestionRevision: question.revision, solutionRevision: entry.solution.revision, dataSha256: entry.solution.dataSha256, evidence,
       previousSolution: current ? structuredClone(current) : null, solution: structuredClone(entry.solution) });
     question.workedSolution = structuredClone(entry.solution);
   }

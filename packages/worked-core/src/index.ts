@@ -170,6 +170,9 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
 
 // ---------------------------------------------------------------- diagrams
 
+/** Prefixes each selector with the overlay's own class. */
+const scopeCss = (css: string) => css.replace(/(^|})\s*([^{}@]+)\{/g, (_, end: string, selectors: string) => `${end}${selectors.split(",").map(x => `.wk ${x.trim()}`).join(",")}{`);
+
 /** A MathsDock diagram as SVG with its printed size in points. */
 export function diagramSvg(family: "algebra-grid" | "ratio-table" | "number-line", envelope: unknown): { svg: string; width: number; height: number } {
   const svg = family === "algebra-grid" ? renderGrid(validateGrid(envelope))
@@ -183,7 +186,9 @@ export function diagramSvg(family: "algebra-grid" | "ratio-table" | "number-line
   };
   const viewBox = /viewBox="([^"]+)"/.exec(root)?.[1];
   if (!viewBox) throw new Error(`The ${family} drawing has no viewBox.`);
-  const inner = svg.slice(root.length).replace(/<\/svg>\s*$/, "").replace(/<title>[\s\S]*?<\/title>|<desc>[\s\S]*?<\/desc>/g, "");
+  const inner = svg.slice(root.length).replace(/<\/svg>\s*$/, "").replace(/<title>[\s\S]*?<\/title>|<desc>[\s\S]*?<\/desc>/g, "")
+    // A diagram's own style rules would reach the whole page once the overlay is in it: keep them inside.
+    .replace(/<style>([\s\S]*?)<\/style>/g, (_, css: string) => `<style>${scopeCss(css)}</style>`);
   return { svg: `<svg viewBox="${viewBox}" overflow="visible">${inner}</svg>`, width: size("width"), height: size("height") };
 }
 
@@ -205,7 +210,14 @@ export interface SurfaceOverlay {
   /** A complete SVG, width × (height + bands + footer) points, drawn over the cut as the viewer splits it. */
   svg: string;
 }
-export interface WorkedLayout { overlays: Map<string, SurfaceOverlay>; steps: number; issues: WorkedIssue[] }
+export interface WorkedLayout {
+  overlays: Map<string, SurfaceOverlay>;
+  /** Steps in the whole solution; step numbers run through every part in order. */
+  steps: number;
+  /** The step numbers of the shown parts, for step by step; empty when nothing is shown. */
+  shownSteps: number[];
+  issues: WorkedIssue[];
+}
 export interface LayoutOptions {
   /** Surfaces of the parts being shown, in order; all parts when absent. */
   parts?: string[];
@@ -272,6 +284,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
   const shown = data.parts.filter(p => !options.parts || options.parts.includes(p.on));
   // Step numbers count through every part, so step by step means the same steps whatever is shown.
   let stepNumber = 0;
+  const shownSteps: number[] = [];
   const visible = (k: number) => options.upTo === undefined || k <= options.upTo;
 
   for (const part of data.parts) {
@@ -285,6 +298,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
     const lines = part.steps.filter(s => s.kind === "line") as Extract<WorkedStep, { kind: "line" }>[];
     const eq = a.x + Math.max(0, ...lines.map(l => mathsWidth(mathsText(l.lhs)))) + 10;
     const notesWidth = d.surface.width - part.notesX - 4;
+    if (notesWidth < 60) issues.push({ surface: part.on, message: "The guidance column starts too near the right edge of the cut." });
     let cursor = a.y, noteBottom = 0;
     let last: { lhsCentre: number; rhsCentre: number } | undefined;
     const later: (() => void)[] = [];
@@ -320,6 +334,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
 
     for (const step of part.steps) {
       const k = ++stepNumber;
+      shownSteps.push(k);
       switch (step.kind) {
         case "line": {
           const lhs = mathsText(step.lhs), rhs = mathsText(step.rhs);
@@ -378,8 +393,9 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           const shapes = step.shapes;
           // Drawn after every part, so the target's own added room is known.
           later.push(() => {
-            let svg = "", top = Infinity;
-            const at = (p: readonly [number, number]) => { top = Math.min(top, p[1]); return `${n(p[0])} ${n(p[1])}`; };
+            let svg = "", top = Infinity, low = -Infinity;
+            const boxes: Box[] = [];
+            const at = (p: readonly [number, number]) => { top = Math.min(top, p[1]); low = Math.max(low, p[1]); return `${n(p[0])} ${n(p[1])}`; };
             for (const s of shapes) {
               if (s.type === "line") svg += `<path d="M${at(s.from)}L${at(s.to)}" stroke="${INK}" stroke-width="1.1" stroke-linecap="round" fill="none"/>`;
               else if (s.type === "path") svg += `<path d="M${s.points.map(at).join("L")}" stroke="${INK}" stroke-width="1" stroke-linejoin="round" fill="none"/>`;
@@ -388,10 +404,13 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
               else {
                 at(s.at);
                 const t = mathsText(s.text), w = mathsWidth(t, 11);
+                boxes.push({ x: s.at[0] - 2, y: s.at[1] - 11, width: w + 4, height: 14, what: "drawing label" });
                 svg += (s.background ? `<rect x="${n(s.at[0] - 2)}" y="${n(s.at[1] - 11)}" width="${n(w + 4)}" height="14" fill="#fff"/>` : "") + maths(t, s.at[0], s.at[1], 11);
               }
             }
-            emit(target, k, `<g ${HAND}>${svg}</g>`, top, []);
+            // A drawing moves as one piece, so added room must not split it from its graph.
+            if (target.bands.some(b => b.at > top + 0.5 && b.at < low - 0.5)) issues.push({ surface: step.on, message: `Step ${k}: room added inside the cut would split this drawing.` });
+            emit(target, k, `<g ${HAND}>${svg}</g>`, top, boxes);
           });
           placeNote(k, cursor + LINE * 0.68, step.mark, step.note);
           break;
@@ -422,8 +441,9 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
     for (const place of later) place();
   }
 
-  if (options.total && shown.length) {
-    const lastSurface = drafts.get(shown[shown.length - 1].on);
+  if (options.total && surfaces.length) {
+    // Under the last cut shown, whether or not it carries working.
+    const lastSurface = draft(surfaces[surfaces.length - 1].id);
     if (lastSurface) {
       const { surface } = lastSurface;
       lastSurface.footer = 28;
@@ -449,20 +469,18 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
       if (overlaps(p, q)) issues.push({ surface: surface.id, message: `The ${p.what} and the ${q.what} overlap.` });
     }
     const height = surface.height + added + d.footer;
-    const style = `<style>${marks ? "" : ".wk-mark{display:none}"}</style>`;
+    const style = marks ? "" : "<style>.wk .wk-mark{display:none}</style>";
     overlays.set(surface.id, {
       id: surface.id, width: surface.width, height: surface.height, bands: [...bands], footer: d.footer,
-      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n(surface.width)} ${n(height)}" width="${n(surface.width)}" height="${n(height)}" overflow="visible">${style}${body}</svg>`,
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" class="wk" viewBox="0 0 ${n(surface.width)} ${n(height)}" width="${n(surface.width)}" height="${n(height)}" overflow="visible">${style}${body}</svg>`,
     });
   }
-  return { overlays, steps: stepNumber, issues: dedupe(issues) };
+  return { overlays, steps: stepNumber, shownSteps, issues: dedupe(issues) };
 }
 
 const dedupe = (issues: WorkedIssue[]) => [...new Map(issues.map(i => [`${i.surface}\u0000${i.message}`, i])).values()];
 
 
-/** Steps in the shown parts, for step by step. */
-export const stepCount = (data: WorkedData, parts?: string[]) => data.parts.filter(p => !parts || parts.includes(p.on)).reduce((sum, p) => sum + p.steps.length, 0);
 
 /** Marks claimed by a part's notes: every unbracketed code counts its number (M1, B2). */
 export function claimedMarks(part: WorkedPart): number {
