@@ -223,3 +223,14 @@
 .ch-points td:has(input[type="checkbox"]) {
   text-align: center;
 }
+.ch-classes input:not([type="checkbox"]) {
+  width: 3.3em;
+}
+.ch-classes td.ch-class-hide {
+  text-align: left;
+}
+.ch-classes th,
+.ch-classes td {
+  padding-left: 2px;
+  padding-right: 2px;
+}

@@ -161,3 +161,98 @@ export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 export const text = (t: string, x: number, y: number, anchor = "middle", fill = "black") =>
   `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="${fill}">${esc(t)}</text>`;
+
+/**
+ * Grouped data for histograms, frequency polygons and cumulative frequency graphs: one table of
+ * classes shared by the three kinds, so a teacher can switch between them without retyping, and
+ * a vertical axis for each kind (frequency density, frequency and cumulative frequency need
+ * different scales). Values stay as typed. Graph paper is Edexcel's: 2 mm squares with heavier
+ * lines every 1 cm and 2 cm from the corner, so each axis gives the millimetres per numbered step.
+ */
+export const MAX_CLASSES = 12;
+export const MAX_GROUPED_READINGS = 4;
+export const STEP_MM = { minimum: 4, maximum: 40 } as const;
+export const paperAxisSchema = z
+  .object({
+    min: z.string().max(12),
+    max: z.string().max(12),
+    /** Numbered every step from the start; the grid runs on to the end even past the last number. */
+    step: z.string().max(12),
+    /** Length of one step on paper: an even number of millimetres, so numbers sit on grid lines. */
+    stepMm: z.number().int().min(STEP_MM.minimum).max(STEP_MM.maximum).multipleOf(2),
+    title: plain(40),
+  })
+  .strict();
+export type PaperAxis = z.infer<typeof paperAxisSchema>;
+export const groupedClassSchema = z
+  .object({
+    lower: z.string().max(12),
+    upper: z.string().max(12),
+    /** Blank is no data (an empty cell, nothing drawn); "0" is zero. */
+    frequency: z.string().max(12),
+    /** Hidden leaves the class's table cell for pupils to complete. */
+    table: shown,
+    /** Hidden leaves the class's bar, point or part of the curve for pupils to draw. */
+    graph: shown,
+  })
+  .strict();
+export type GroupedClass = z.infer<typeof groupedClassSchema>;
+export const inequalityChoices = ["lower-open", "lower-closed"] as const;
+export const groupedTableChoices = ["none", "frequency", "cumulative"] as const;
+export const groupedTableNames: Record<(typeof groupedTableChoices)[number], string> = {
+  none: "No table",
+  frequency: "Frequency table",
+  cumulative: "Cumulative frequency table",
+};
+export const histogramFillChoices = ["white", "grey"] as const;
+export const groupedSchema = z
+  .object({
+    /** The letter in the class inequalities, printed in italics: "0 < t ⩽ 20". Empty prints "0 – 20". */
+    variable: z.string().regex(/^[A-Za-z]?$/),
+    /** lower-open: 0 < t ⩽ 20 (Edexcel's usual); lower-closed: 0 ⩽ t < 20. */
+    inequality: z.enum(inequalityChoices),
+    classes: z.array(groupedClassSchema).min(1).max(MAX_CLASSES),
+    xAxis: paperAxisSchema,
+    /** A table above the graph, ruled as in the papers; the first column heading is the horizontal axis title. */
+    table: z.enum(groupedTableChoices),
+    histogram: z.object({ yAxis: paperAxisSchema, fill: z.enum(histogramFillChoices) }).strict(),
+    polygon: z.object({ yAxis: paperAxisSchema }).strict(),
+    cumulative: z
+      .object({
+        yAxis: paperAxisSchema,
+        /** A smooth curve or straight lines through the points. */
+        curve: z.enum(["smooth", "straight"]),
+        /** Start at the lowest class boundary with cumulative frequency 0. */
+        fromZero: z.boolean(),
+        /** Crosses at the plotted points (upper class boundaries), as pupils plot them. */
+        crosses: z.boolean(),
+        /** Dashed guides from a value on one axis to the curve and across (or down) to the other. */
+        readings: z.array(z.object({ axis: z.enum(["x", "y"]), value: z.string().max(12), show: shown }).strict()).max(MAX_GROUPED_READINGS),
+      })
+      .strict(),
+  })
+  .strict();
+export type GroupedSettings = z.infer<typeof groupedSchema>;
+/** Kinds drawn from the grouped table. */
+export const groupedKinds = ["histogram", "polygon", "cumulative"] as const;
+export type GroupedKind = (typeof groupedKinds)[number];
+/** The grouped data a document starts with when it has none saved: one empty class on 0–100. */
+export const GROUPED_DEFAULTS: GroupedSettings = {
+  variable: "",
+  inequality: "lower-open",
+  classes: [{ lower: "", upper: "", frequency: "", table: "show", graph: "show" }],
+  xAxis: { min: "0", max: "100", step: "20", stepMm: 20, title: "" },
+  table: "none",
+  histogram: { yAxis: { min: "0", max: "5", step: "1", stepMm: 20, title: "Frequency density" }, fill: "grey" },
+  polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" } },
+  cumulative: { yAxis: { min: "0", max: "100", step: "10", stepMm: 10, title: "Cumulative frequency" }, curve: "smooth", fromZero: true, crosses: false, readings: [] },
+};
+export const groupedOf = (d: { grouped?: GroupedSettings }): GroupedSettings => d.grouped ?? GROUPED_DEFAULTS;
+/** Classes an answer view shows only because their graph part was saved hidden. */
+const GRAPH_REVEALED = new WeakSet<object>();
+export const markGraphRevealed = (c: object) => void GRAPH_REVEALED.add(c);
+export const graphRevealed = (c: object) => GRAPH_REVEALED.has(c);
+/** Classes an answer view shows only because their table cell was saved hidden. */
+const TABLE_REVEALED = new WeakSet<object>();
+export const markTableRevealed = (c: object) => void TABLE_REVEALED.add(c);
+export const tableRevealed = (c: object) => TABLE_REVEALED.has(c);
