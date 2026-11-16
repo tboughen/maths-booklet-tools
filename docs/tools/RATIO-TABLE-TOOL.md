@@ -18,8 +18,8 @@ There is a divider between each pair of columns and one rule under the headings;
 there is no outer box or printed row grid. Two-column diagrams keep the original
 layout exactly. A three-column diagram reserves a scaling lane beside each
 column so its arrows and factors explicitly include the middle column. Default headings are italic x/right-arrow and y/up-arrow.
-Custom headings accept up to 12 ASCII letters, digits, spaces, underscores or
-hyphens, subject to the available width. Curved scaling arrows are vector paths
+Custom headings accept up to 12 letters, digits, spaces, underscores, hyphens,
+slashes (m/s), % or £, subject to the available width; % and £ always print upright. Curved scaling arrows are vector paths
 with explicit oriented arrowheads. Fractions are stacked with a fraction bar.
 
 ## Cells and scaffolds
