@@ -56,7 +56,7 @@ const tools = [
 ] as const;
 async function download(page: Page, name: string) {
   await page
-    .getByRole("button", { name: /^(File|Download options)$/, exact: true })
+    .getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true })
     .click();
   const waiting = page.waitForEvent("download");
   await page.getByRole("menuitem", { name, exact: true }).click();
@@ -249,6 +249,7 @@ for (const [tool, key, paper, stage] of tools) {
         "Start again",
         "Copy image",
         "Copy for Word",
+        "Download ",
         "File ",
       ]);
       await page.screenshot({

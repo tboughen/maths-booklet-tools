@@ -2,8 +2,10 @@ import { LINK_DESCRIPTION, SAVE_DESCRIPTION, SAVE_EDITABLE_LABEL, type DownloadA
 
 export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "description">;
 /**
- * The one File menu for diagram editors (improvement item U4): the same items, order, notes and separators in
- * every tool. Pages give only what each item does; the labels and hidden-answer notes are defined here.
+ * The Download and File menus for diagram editors (improvement item U4): the same items, order, notes and
+ * separators in every tool. Pages give only what each item does; the labels, the hidden-answer notes and
+ * which menu lists each item are defined here. Download holds what leaves as a picture; File holds the
+ * editable file, its link and its notes.
  */
 export function diagramFileMenu(items: {
   svg: FileMenuItem;
@@ -22,7 +24,7 @@ export function diagramFileMenu(items: {
   open: FileMenuItem;
   link: FileMenuItem;
 }): DownloadAction[] {
-  return [
+  const download: DownloadAction[] = [
     { ...items.svg, label: "Download SVG" },
     { ...items.png, label: "Download PNG (600 ppi)" },
     ...(items.pdf ? [{ ...items.pdf, label: "Download PDF (actual size)" }] : []),
@@ -35,6 +37,9 @@ export function diagramFileMenu(items: {
     ...(items.both
       ? [{ ...items.both, label: "Download pupil and answers (ZIP)", description: "SVG and PNG of both copies. The view on screen does not change." }]
       : []),
+  ];
+  return [
+    ...download.map((item) => ({ ...item, menu: "download" as const })),
     { ...items.about, label: "Title and note…", description: "Saved in the file, never printed.", separator: true },
     ...(items.worked ? [{ ...items.worked, label: "Worked notes…", description: "Dark-pink guidance on the answers copy only." }] : []),
     { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },

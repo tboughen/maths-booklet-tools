@@ -14,7 +14,7 @@ import { twoWayTableGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
+import { EditorDownloadMenu, type MenuKind } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
@@ -150,7 +150,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
     [message, setMessage] = useState(startup.message),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
     [hideFilled, setHideFilled] = useState(true),
@@ -333,7 +333,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))}
               menuId="twt-downloads"
               menuOpen={menu}
-              onToggleMenu={() => setMenu(!menu)}
+              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
             />
             <EditorDownloadMenu
               wordHelp

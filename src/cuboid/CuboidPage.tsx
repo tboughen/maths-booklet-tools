@@ -14,6 +14,7 @@ import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
@@ -98,7 +99,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [pending, setPending] = useState<{ title: string; e: Envelope } | null>(
       null,
     ),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
     [dirty, setDirty] = useState<Set<string>>(new Set());
@@ -460,7 +461,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               }
               menuId="cuboids-downloads"
               menuOpen={menu}
-              onToggleMenu={() => setMenu(!menu)}
+              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
             />
             <EditorDownloadMenu
               wordHelp

@@ -113,7 +113,7 @@ issue, and `create_diagram` / `revise_diagram` add it to their warnings.
 
 ## Single-diagram PDF (U32, 14 November 2026)
 
-Every editor's menu has **Download PDF (actual size)**: the same artwork as Download SVG on an A4
+Every editor's Download menu has **Download PDF (actual size)**: the same artwork as Download SVG on an A4
 portrait page (A4 landscape or A3 when it does not fit inside 15 mm margins), centred 15 mm from
 the top and never scaled. `diagramPage` (`packages/resource-core/src/diagram-page.ts`) builds the
 page; the worksheet PDF writer draws it and the W30 audit checks it before it is offered. Print at

@@ -219,7 +219,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: "File", exact: true })
+      .getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true })
       .click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -602,7 +602,7 @@ test("three-column image and editable exports survive reopening without editor d
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: "File", exact: true })
+      .getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true })
       .click();
     const downloading = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -884,7 +884,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
   const single = await stored(page),
     singleMetrics = ratioMetrics(single.document);
   await page
-    .getByRole("button", { name: "File", exact: true })
+    .getByRole("button", { name: "Download", exact: true })
     .click();
   const singleDownloading = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /Download PNG/ }).click();
@@ -1098,7 +1098,7 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     ["Download SVG", /^mathsdock-ratio-table-(?!.*answers)(.+-)?\d{4}-\d{2}-\d{2}\.svg$/, false],
     ["Download answers SVG", /^mathsdock-ratio-table-(.+-)?answers-\d{4}-\d{2}-\d{2}\.svg$/, true],
   ] as const) {
-    await page.getByRole("button", { name: "File", exact: true }).click();
+    await page.getByRole("button", { name: name.startsWith("Download") ? "Download" : "File", exact: true }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click();
     const result = await download;
@@ -1107,7 +1107,7 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     expect(svg.includes("ratio-hidden-answer")).toBe(shown);
   }
   // U28: both copies in one ZIP; only the answers SVG shows the hidden answer.
-  await page.getByRole("button", { name: "File", exact: true }).click();
+  await page.getByRole("button", { name: "Download", exact: true }).click();
   const zipDownload = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /^Download pupil and answers \(ZIP\)/ }).click();
   const zip = unzipSync(new Uint8Array(await readFile((await (await zipDownload).path())!)));

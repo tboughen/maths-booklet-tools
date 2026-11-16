@@ -409,7 +409,7 @@ test("downloads retain actual SVG fonts and verified 600ppi PNG with native dime
     g = c.layout(e);
   for (const format of ["SVG", "PNG (600 ppi)"]) {
     await visible(page)
-      .getByRole("button", { name: "File", exact: true })
+      .getByRole("button", { name: "Download", exact: true })
       .click();
     const event = page.waitForEvent("download");
     await page

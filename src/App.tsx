@@ -1,3 +1,4 @@
+import type { MenuKind } from "./site/EditorDownloadMenu";
 import { ExampleGallery, ReturnToDiagram } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
 import { EditorFoot } from "./site/EditorFoot";
@@ -115,7 +116,7 @@ export default function App({ active = true }: { active?: boolean }) {
     null,
   );
   const [objectsExpanded, setObjectsExpanded] = useState(false);
-  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState<MenuKind | false>(false);
   const [copying, setCopying] = useState(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -452,7 +453,7 @@ export default function App({ active = true }: { active?: boolean }) {
           ? error.message
           : "Clipboard copying is unavailable. Use Download PNG (600 ppi) instead.";
       setToast({ kind: "error", title: "Copy was not available", detail });
-      setExportMenuOpen(true);
+      setExportMenuOpen("download");
     } finally {
       setCopying(false);
     }
@@ -546,7 +547,7 @@ export default function App({ active = true }: { active?: boolean }) {
               onCopy={() => void handleCopy()}
               onCopyClipboard={() => void handleCopy(true)}
               menuOpen={exportMenuOpen}
-              onToggleMenu={() => setExportMenuOpen((open) => !open)}
+              onToggleMenu={(kind) => setExportMenuOpen((open) => (open === kind ? false : kind))}
             />
             <GraphExchange
               document={document}

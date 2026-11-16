@@ -19,6 +19,7 @@ import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
@@ -105,7 +106,7 @@ export default function RatioTablePage({
   });
   const [saveState, setSaveState] = useState(startup.error ? "error" : "saved");
   const [message, setMessage] = useState(startup.error ?? "");
-  const [exportsOpen, setExportsOpen] = useState(false);
+  const [exportsOpen, setExportsOpen] = useState<MenuKind | false>(false);
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
     [viewScale, setViewScale] = useState(0),
@@ -605,7 +606,7 @@ export default function RatioTablePage({
               }
               menuId="ratio-table-downloads"
               menuOpen={exportsOpen}
-              onToggleMenu={() => setExportsOpen((v) => !v)}
+              onToggleMenu={(kind) => setExportsOpen((open) => (open === kind ? false : kind))}
             />
             <EditorDownloadMenu
               id="ratio-table-downloads"

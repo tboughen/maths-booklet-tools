@@ -527,14 +527,27 @@
   background: white;
   box-shadow: 0 8px 24px rgba(23, 43, 77, 0.16);
 }
-/* Where a diagram tool's action bar would not fit on one row, Examples and Start again keep their
-   icons only: sooner in a tool with an answers switch, which needs the room. Their names stay as
-   tooltips and for screen readers. */
-@media (max-width: 1180px) {
+/* Where a diagram tool's action bar would not fit on one row it gives up room in two steps. First
+   Examples and Start again keep their icons only; their names stay as tooltips and for screen
+   readers. Then the copy, Download and File buttons keep their words only. A tool with an answers
+   switch needs the room sooner. */
+@media (max-width: 1279px) {
   .booklet-editor:not(.ws-editor) .editor-toolbar :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
   .booklet-editor:not(.ws-editor) .editor-toolbar :is(.example-launch-button, .reset-button) span { display: none; }
 }
-@media (max-width: 1365px) {
+@media (max-width: 1500px) {
   .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
   .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) :is(.example-launch-button, .reset-button) span { display: none; }
+}
+@media (max-width: 1180px) {
+  .booklet-editor:not(.ws-editor) .editor-copy-actions :is(.copy-main, .file-menu-button) { padding-inline: 8px; gap: 4px; }
+  .booklet-editor:not(.ws-editor) .editor-copy-actions :is(.copy-main > svg, .menu-icon) { display: none; }
+}
+@media (max-width: 1365px) {
+  .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) .editor-copy-actions :is(.copy-main, .file-menu-button) { padding-inline: 8px; gap: 4px; }
+  .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) .editor-copy-actions :is(.copy-main > svg, .menu-icon) { display: none; }
+}
+/* On a phone the four buttons sit two by two. */
+@media (max-width: 620px) {
+  .booklet-editor:not(.ws-editor) .editor-copy-actions { grid-template-columns: 1fr 1fr; }
 }

@@ -12,6 +12,7 @@ import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
@@ -124,7 +125,7 @@ export default function ValueGraphPage({
       "detach",
     );
   const [zoom, setZoom] = useState(0),
-    [exportOpen, setExportOpen] = useState(false);
+    [exportOpen, setExportOpen] = useState<MenuKind | false>(false);
   const [pointDraft, setPointDraft] = useState({ x: "0", y: "0" });
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [referenceDraft, setReferenceDraft] = useState("0");
@@ -1350,7 +1351,7 @@ export default function ValueGraphPage({
               }
               menuId="quadratics-downloads"
               menuOpen={exportOpen}
-              onToggleMenu={() => setExportOpen(!exportOpen)}
+              onToggleMenu={(kind) => setExportOpen(exportOpen === kind ? false : kind)}
             />
             <EditorDownloadMenu
               wordHelp

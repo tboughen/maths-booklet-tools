@@ -34,7 +34,7 @@ import {
   type Envelope,
 } from "../../packages/algebra-grid-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
+import { EditorDownloadMenu, type MenuKind } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
@@ -129,7 +129,7 @@ export default function AlgebraGridPage({
     [questionEditor, setQuestionEditor] = useState(false),
     [inputError, setInputError] = useState(""),
     [pending, setPending] = useState<Replacement | null>(null),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [showAnswers, setShowAnswers] = useState(false),
     [zoom, setZoom] = useState("fit");
@@ -543,7 +543,7 @@ export default function AlgebraGridPage({
                 )
               }
               menuOpen={menu}
-              onToggleMenu={() => setMenu((v) => !v)}
+              onToggleMenu={(kind) => setMenu((open) => (open === kind ? false : kind))}
               menuId="algebra-download-menu"
             />
             <EditorDownloadMenu

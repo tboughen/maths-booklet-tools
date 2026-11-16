@@ -56,6 +56,7 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
@@ -221,7 +222,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     [draftError, setDraftError] = useState(""),
     [pending, setPending] = useState<Replacement | null>(null),
     [busy, setBusy] = useState(false),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [showAnswers, setShowAnswers] = useState(false),
     [structure, setStructure] = useState<{
       kind: "joined" | "split";
@@ -867,7 +868,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               }
               menuId="triangle-downloads"
               menuOpen={menu}
-              onToggleMenu={() => setMenu(!menu)}
+              onToggleMenu={(kind) => setMenu(menu === kind ? false : kind)}
             />
             <EditorDownloadMenu
               wordHelp
