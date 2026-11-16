@@ -27,6 +27,7 @@ import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, startingTextPt, type Line
 import {
   canonical,
   create,
+  dependents,
   dragHandles,
   dragTo,
   hasHidden,
@@ -203,39 +204,16 @@ function nextId(d: FigureDocument, prefix: string) {
   const used = new Set([...d.points, ...d.circles, ...d.segments, ...d.angles, ...d.fills, ...d.captions].map((x) => x.id));
   for (let k = 1; ; k++) if (!used.has(`${prefix}${k}`)) return `${prefix}${k}`;
 }
-/** Which points and circles depend on a point or circle, so removing it can take them too. */
-function refsOf(place: Place): string[] {
-  const p = place as Record<string, unknown>;
-  return Object.entries(p)
-    .filter(([k, v]) => k !== "type" && typeof v === "string")
-    .map(([, v]) => v as string);
-}
 /** Removes an object and everything built on it. Returns how many other objects went with it. */
 function removeWithDependents(d: FigureDocument, kind: Kind, rid: string): number {
-  const points = new Set<string>(kind === "point" ? [rid] : []),
-    circles = new Set<string>(kind === "circle" ? [rid] : []);
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const c of d.circles)
-      if (!circles.has(c.id) && points.has(c.centre)) {
-        circles.add(c.id);
-        grew = true;
-      }
-    for (const p of d.points)
-      if (!points.has(p.id) && refsOf(p.place).some((r) => points.has(r) || (p.place.type === "on" && circles.has(r)))) {
-        points.add(p.id);
-        grew = true;
-      }
-  }
-  const before = d.points.length + d.circles.length + d.segments.length + d.angles.length + d.fills.length;
-  d.points = d.points.filter((p) => !points.has(p.id));
-  d.circles = d.circles.filter((c) => !circles.has(c.id));
-  d.segments = d.segments.filter((s) => (kind === "segment" ? s.id !== rid : true) && !points.has(s.a) && !points.has(s.b));
-  d.angles = d.angles.filter((a) => (kind === "angle" ? a.id !== rid : true) && ![a.at, a.from, a.to].some((x) => points.has(x)));
-  d.fills = d.fills.filter((f) => !f.points.some((x) => points.has(x)));
-  const after = d.points.length + d.circles.length + d.segments.length + d.angles.length + d.fills.length;
-  return before - after - 1;
+  const gone = kind === "point" || kind === "circle" ? dependents(d, kind, rid) : { points: [], circles: [], segments: [], angles: [], fills: [] };
+  const drop = (list: { id: string }[], ids: string[], self: boolean) => list.filter((x) => !ids.includes(x.id) && !(self && x.id === rid));
+  d.points = drop(d.points, gone.points, kind === "point") as typeof d.points;
+  d.circles = drop(d.circles, gone.circles, kind === "circle") as typeof d.circles;
+  d.segments = drop(d.segments, gone.segments, kind === "segment") as typeof d.segments;
+  d.angles = drop(d.angles, gone.angles, kind === "angle") as typeof d.angles;
+  d.fills = drop(d.fills, gone.fills, false) as typeof d.fills;
+  return gone.points.length + gone.circles.length + gone.segments.length + gone.angles.length + gone.fills.length;
 }
 
 /** The label editor shared by sides and angles. */
@@ -326,7 +304,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
     [adding, setAdding] = useState<{ place: PlaceType; a: string; b: string; c: string; circle: string }>({ place: "free", a: "", b: "", c: "", circle: "" });
   const file = useRef<HTMLInputElement>(null),
     resource = useRef<HTMLDivElement>(null),
-    dragStart = useRef<{ id: string; rect: DOMRect; g: ReturnType<typeof layout>; px: number; moved: boolean } | null>(null);
+    dragStart = useRef<{ id: string; rect: DOMRect; g: ReturnType<typeof layout>; px: number } | null>(null);
   // While a handle is dragged the preview follows it; the move is one undo step when it is let go.
   const e = drag?.e ?? history.present,
     d = e.document,
@@ -469,10 +447,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
     // The drag reads the layout from when it began, so the figure growing under the pointer does not feed back.
     const p = start.g.unmap({ x: (clientX - start.rect.left) / start.px, y: (clientY - start.rect.top) / start.px });
     const next = dragTo(history.present, id, p, fine);
-    if (next) {
-      start.moved = true;
-      setDrag({ e: next, label: "drag point" });
-    }
+    if (next) setDrag({ e: next, label: "drag point" });
   }
   function endDrag() {
     dragStart.current = null;
@@ -784,7 +759,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
-  const anchors = hitAnchors(e).filter((a) => !(a.kind === "point" && draggable.has(a.id)));
+  const anchors = useMemo(() => hitAnchors(e, g), [e, g]).filter((a) => !(a.kind === "point" && draggable.has(a.id)));
   const objects: { key: string; text: string }[] = (["point", "segment", "angle", "circle"] as Kind[]).flatMap((kind) => lists[kind].map((x) => ({ key: keyOf(kind, x.id), text: `${describe(kind, x.id)} (${x.id})` })));
   const fillNames = (ids: string[]) => ids.map(nameOf).join(" ");
   return (
@@ -902,7 +877,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
                           if (blocked || !resource.current) return;
                           ev.preventDefault();
                           ev.currentTarget.setPointerCapture?.(ev.pointerId);
-                          dragStart.current = { id: h.id, rect: resource.current.getBoundingClientRect(), g, px: pxPerMm, moved: false };
+                          dragStart.current = { id: h.id, rect: resource.current.getBoundingClientRect(), g, px: pxPerMm };
                           setSelected(k);
                         }}
                         onPointerMove={(ev) => dragAt(h.id, ev.clientX, ev.clientY, ev.shiftKey)}

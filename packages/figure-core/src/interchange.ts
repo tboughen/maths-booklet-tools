@@ -136,24 +136,21 @@ function applySettings(d: core.FigureDocument, s: z.infer<typeof settings>) {
   if (s.fontPt !== undefined) d.fontPt = s.fontPt === 11 ? undefined : s.fontPt;
   if (s.lines !== undefined) d.lines = s.lines === "bold" ? "bold" : undefined;
 }
-/** Removing a point also removes every object that uses it, after saying so through the error if they are labelled. */
+/** Removing a point or circle that anything still uses is refused, naming the users, so nothing goes unseen. */
 function remove(d: core.FigureDocument, what: string, rid: string) {
   const lists: Record<string, { id: string }[]> = { point: d.points, circle: d.circles, segment: d.segments, angle: d.angles, fill: d.fills, caption: d.captions };
   const list = lists[what];
   if (!list.some((x) => x.id === rid)) throw Error(`There is no ${what} ${rid} to remove.`);
-  if (what === "point") {
+  if (what === "point" || what === "circle") {
+    const u = core.dependents(d, what, rid, true);
     const users = [
-      ...d.points.filter((p) => JSON.stringify(p.place).includes(`"${rid}"`)).map((p) => `point ${p.id}`),
-      ...d.circles.filter((c) => c.centre === rid).map((c) => `circle ${c.id}`),
-      ...d.segments.filter((s) => s.a === rid || s.b === rid).map((s) => `segment ${s.id}`),
-      ...d.angles.filter((a) => [a.at, a.from, a.to].includes(rid)).map((a) => `angle ${a.id}`),
-      ...d.fills.filter((f) => f.points.includes(rid)).map((f) => `fill ${f.id}`),
+      ...u.points.map((x) => `point ${x}`),
+      ...u.circles.map((x) => `circle ${x}`),
+      ...u.segments.map((x) => `segment ${x}`),
+      ...u.angles.map((x) => `angle ${x}`),
+      ...u.fills.map((x) => `fill ${x}`),
     ];
-    if (users.length) throw Error(`Point ${rid} is used by ${users.join(", ")}. Remove or change those first.`);
-  }
-  if (what === "circle") {
-    const users = d.points.filter((p) => p.place.type === "on" && p.place.circle === rid).map((p) => p.id);
-    if (users.length) throw Error(`Points ${users.join(", ")} are on circle ${rid}. Move or remove them first.`);
+    if (users.length) throw Error(`${what === "point" ? "Point" : "Circle"} ${rid} is used by ${users.join(", ")}. Remove or change those first.`);
   }
   const i = list.findIndex((x) => x.id === rid);
   list.splice(i, 1);
@@ -170,7 +167,7 @@ export function create(input: unknown): core.Envelope {
   if (v.envelope) return core.validate(v.envelope);
   const s = v.spec;
   if (!s) return core.create();
-  if (s.example && (s.points || s.segments || s.circles || s.angles)) throw Error("Examples already contain their figure; revise the result instead.");
+  if (s.example && (s.points || s.segments || s.circles || s.angles || s.fills || s.captions)) throw Error("Examples already contain their figure; revise the result instead.");
   const base = s.example ? examples.find((x) => x.id === s.example)!.make(!!s.worked) : core.blank();
   return withDoc(base, (d) => {
     if (!s.example && s.points) d.points = [];
@@ -187,9 +184,11 @@ export function create(input: unknown): core.Envelope {
 export async function revise(input: unknown): Promise<core.Envelope> {
   const v = revisionSchema.parse(input);
   if ((await core.hash(v.envelope)) !== v.baseHash) throw Error("stale_hash: Use the exact returned envelope and contentHash.");
-  // All operations apply together and the result is checked once, so a point and the objects using it can arrive in any order.
+  // Every set operation applies first, in order, then every remove, and the result is checked once. So a point and the
+  // objects using it can arrive in any order, and a remove sees the figure after the changes that free the object.
+  const ordered = [...v.operations.filter((op) => op.op !== "remove"), ...v.operations.filter((op) => op.op === "remove")];
   return withDoc(core.validate(structuredClone(v.envelope)), (d) => {
-    for (const op of v.operations) {
+    for (const op of ordered) {
       if (op.op === "set_point") setPoint(d, op.point);
       if (op.op === "set_circle") setCircle(d, op.circle);
       if (op.op === "set_segment") setSegment(d, op.segment);

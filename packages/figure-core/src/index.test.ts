@@ -209,6 +209,67 @@ describe("geometry figure connector adapter", () => {
     expect(r.document.points.map((p) => p.id)).not.toContain("d");
   });
 
+  it("finds users by place fields, not by text, and applies removes after every change", async () => {
+    // An along point names a and b as fields; a point called a that nothing uses can still go.
+    const e = io.create({
+      spec: {
+        points: [
+          { id: "e", place: { type: "free", x: 0, y: 0 } },
+          { id: "c1", place: { type: "free", x: 40, y: 0 } },
+          { id: "p1", place: { type: "along", a: "c1", b: "e", t: 0.5 } },
+          { id: "a", place: { type: "free", x: 0, y: 30 } },
+          { id: "x", place: { type: "free", x: 10, y: 30 } },
+        ],
+      },
+    });
+    const r = await io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "remove", what: "point", id: "a" }, { op: "remove", what: "point", id: "x" }] });
+    expect(r.document.points.map((p) => p.id)).toEqual(["e", "c1", "p1"]);
+    // A remove listed before the change that frees the point still works.
+    const s = await io.revise({
+      envelope: r,
+      baseHash: await c.hash(r),
+      operations: [
+        { op: "remove", what: "point", id: "e" },
+        { op: "set_point", point: { id: "p1", place: { type: "free", x: 20, y: 0 } } },
+      ],
+    });
+    expect(s.document.points.map((p) => p.id)).toEqual(["c1", "p1"]);
+  });
+
+  it("keeps point and circle ids apart when finding what is built on them", () => {
+    const e = c.blank(),
+      d = e.document;
+    d.points.push(c.point("c", c.free(30, 0)), c.point("a", { type: "on", circle: "c", deg: 0 }));
+    d.circles = [{ id: "c", centre: "o", r: 10, style: "solid" }];
+    expect(c.dependents(c.validate(e).document, "point", "c").points).toEqual([]);
+    expect(c.dependents(d, "point", "o").points).toEqual(["a"]);
+    expect(c.dependents(d, "point", "o", true).points).toEqual([]);
+    expect(c.dependents(d, "circle", "c", true).points).toEqual(["a"]);
+  });
+
+  it("puts ticks and arrows at the middle of the side, not of its extension", () => {
+    const e = c.blank(),
+      d = e.document;
+    d.points.push(c.point("b", c.free(40, 0)));
+    d.segments = [c.segment("ob", "o", "b", c.label(), { ticks: 1, extend: [0, 40] })];
+    const g = c.geometry(c.validate(e).document);
+    near(g.pieces[0].mid, 20, 0);
+  });
+
+  it("refuses fills and captions alongside an example, as it does points", () => {
+    expect(() => io.create({ spec: { example: "congruent-four", captions: [{ id: "t9", x: 0, y: -40, text: "Q5" }] } })).toThrow(/revise the result/);
+  });
+
+  it("names a caption's own length limit and same-point tangents plainly", () => {
+    const e = c.blank();
+    e.document.captions = [{ id: "t", x: 0, y: 0, text: "x".repeat(40), bold: false }];
+    expect(() => c.validate(e)).toThrow(/captions of at most 32/);
+    const f = c.blank();
+    f.document.circles = [{ id: "c", centre: "o", r: 10, style: "solid" }];
+    f.document.points.push(c.point("a", c.on("c", 0)), c.point("d", { type: "tangents", a: "a", b: "a" }));
+    expect(() => c.validate(f)).toThrow(/same point/);
+  });
+
   it("makes worked examples only from the example's saved mark-scheme answers", () => {
     const pupil = io.create({ spec: { example: "similar-right" } }),
       worked = io.create({ spec: { example: "similar-right", worked: true } });

@@ -273,6 +273,7 @@ export function resolve(d: FigureDocument): Resolved {
         b = circleOf(s.b, by);
       const pa = byId.get(s.a)!.place as Extract<Place, { type: "on" }>,
         pb = byId.get(s.b)!.place as Extract<Place, { type: "on" }>;
+      if (s.a === s.b || len(sub(a.at, b.at)) < 1e-6) throw Error(`${by} is where the tangents at ${s.a} and ${s.b} meet, but those are the same point, so there is only one tangent.`);
       if (pa.circle !== pb.circle) throw Error(`${by} is where the tangents at ${s.a} and ${s.b} meet, but those points are on different circles.`);
       const m = lineMeet(a.at, add(a.at, perp(sub(a.at, a.c))), b.at, add(b.at, perp(sub(b.at, b.c))));
       if (!m) throw Error(`${by}: the tangents at ${s.a} and ${s.b} are parallel (the points are opposite ends of a diameter), so they never meet.`);
@@ -291,7 +292,8 @@ export function resolve(d: FigureDocument): Resolved {
 }
 
 /** A drawn straight piece in figure mm, with its marks. */
-export type Piece = { a: P; b: P; style: LineStyle; ticks: number; arrows: number; id?: string };
+/** A drawn line: a and b include any extension; mid is the middle of the side between its two points, where marks go. */
+export type Piece = { a: P; b: P; mid: P; style: LineStyle; ticks: number; arrows: number; id?: string };
 /** An angle the figure marks: at vertex, from direction start, sweeping anticlockwise. */
 export type Slot = { id: string; vertex: P; start: number; sweep: number; name: string };
 export type Geometry = Resolved & { pieces: Piece[]; slots: Slot[]; obstacles: [P, P][] };
@@ -311,7 +313,7 @@ export function geometry(d: FigureDocument): Geometry {
     const a = at(s.a),
       b = at(s.b),
       u = unit(sub(b, a));
-    return { a: add(a, mul(u, -s.extend[0])), b: add(b, mul(u, s.extend[1])), style: s.style, ticks: s.ticks, arrows: s.arrows, id: s.id };
+    return { a: add(a, mul(u, -s.extend[0])), b: add(b, mul(u, s.extend[1])), mid: mul(add(a, b), 0.5), style: s.style, ticks: s.ticks, arrows: s.arrows, id: s.id };
   });
   const slots: Slot[] = d.angles.map((g) => {
     const v = at(g.at),
@@ -324,15 +326,80 @@ export function geometry(d: FigureDocument): Geometry {
   return { ...r, pieces, slots, obstacles };
 }
 
+/** The points (and, for an on place, the circle) a place is built on, read field by field. */
+export function placeRefs(place: Place): { points: string[]; circle?: string } {
+  switch (place.type) {
+    case "free":
+      return { points: [] };
+    case "on":
+      return { points: [], circle: place.circle };
+    case "along":
+    case "tangents":
+      return { points: [place.a, place.b] };
+    case "meet":
+      return { points: [place.a, place.b, place.c, place.d] };
+    case "tangent":
+      return { points: [place.at] };
+    case "foot":
+      return { points: [place.from, place.a, place.b] };
+  }
+}
+export type Dependents = { points: string[]; circles: string[]; segments: string[]; angles: string[]; fills: string[] };
+/**
+ * Everything built on a point or circle. direct: only objects that use it themselves; otherwise
+ * also everything built on those, all the way down. The object itself is not listed.
+ */
+export function dependents(d: FigureDocument, kind: "point" | "circle", rid: string, direct = false): Dependents {
+  const points = new Set<string>(kind === "point" ? [rid] : []),
+    circles = new Set<string>(kind === "circle" ? [rid] : []);
+  const builtOn = (place: Place, pts: Set<string>, cs: Set<string>) => {
+    const r = placeRefs(place);
+    return r.points.some((x) => pts.has(x)) || (r.circle !== undefined && cs.has(r.circle));
+  };
+  if (direct) {
+    const pts = new Set(points),
+      cs = new Set(circles);
+    for (const c of d.circles) if (pts.has(c.centre)) circles.add(c.id);
+    for (const p of d.points) if (builtOn(p.place, pts, cs)) points.add(p.id);
+  } else
+    for (let grew = true; grew; ) {
+      grew = false;
+      for (const c of d.circles)
+        if (!circles.has(c.id) && points.has(c.centre)) {
+          circles.add(c.id);
+          grew = true;
+        }
+      for (const p of d.points)
+        if (!points.has(p.id) && builtOn(p.place, points, circles)) {
+          points.add(p.id);
+          grew = true;
+        }
+    }
+  // A direct check counts only what uses the object itself; a full one, everything removed with it.
+  const used = (x: string) => (direct ? kind === "point" && x === rid : points.has(x));
+  const out = {
+    points: [...points].filter((x) => !(kind === "point" && x === rid)),
+    circles: [...circles].filter((x) => !(kind === "circle" && x === rid)),
+    segments: d.segments.filter((s) => used(s.a) || used(s.b)).map((s) => s.id),
+    angles: d.angles.filter((a) => [a.at, a.from, a.to].some(used)).map((a) => a.id),
+    fills: d.fills.filter((f) => f.points.some(used)).map((f) => f.id),
+  };
+  return out;
+}
+
 /* ---------- Validation ---------- */
 
+const ID_KEYS = new Set(["id", "a", "b", "c", "d", "at", "from", "to", "centre", "circle", "points"]);
 function noteError(path: (string | number)[], message: string): string {
   const where = path.join(".");
-  if (path.includes("name")) return "Use point names of at most 3 characters, such as A or B1.";
-  if (path.includes("text") || path.includes("answer")) return `Use labels of at most ${MAX_LABEL} characters without markup (${where}).`;
-  if (path.includes("id") || path.includes("a") || path.includes("b")) return `${where}: IDs are short lower-case names such as a, b2 or o (letters and digits, starting with a letter).`;
-  if (path.includes("x") || path.includes("y")) return `${where}: keep points within ${REACH} mm of the middle of the figure.`;
-  if (path.includes("r")) return `${where}: give a circle a radius from 5 to 90 mm.`;
+  // The last named key says which field is wrong; a number after it is a list position.
+  const key = [...path].reverse().find((k): k is string => typeof k === "string") ?? "";
+  if (key === "name") return "Use point names of at most 3 characters, such as A or B1.";
+  if (key === "text" && path.includes("captions")) return `Use captions of at most 32 characters without markup (${where}).`;
+  if (key === "text" || key === "answer") return `Use labels of at most ${MAX_LABEL} characters without markup (${where}).`;
+  if (ID_KEYS.has(key) && (key !== "points" || typeof path[path.length - 1] === "number")) return `${where}: IDs are short lower-case names such as a, b2 or o (letters and digits, starting with a letter).`;
+  if (key === "x" || key === "y") return `${where}: keep points within ${REACH} mm of the middle of the figure.`;
+  if (key === "r") return `${where}: give a circle a radius from 5 to 90 mm.`;
   if (path[1] === "points" && path.length === 2) return `Use 1 to ${LIMITS.points} points.`;
   return `${where}: ${message}`;
 }
@@ -504,9 +571,7 @@ function directionsAt(d: FigureDocument, g: Geometry, pid: string): number[] {
   const at = g.points.get(pid)!;
   const out: number[] = [];
   for (const s of d.segments) {
-    const a = g.points.get(s.a)!,
-      b = g.points.get(s.b)!,
-      piece = g.pieces.find((p) => p.id === s.id)!;
+    const piece = g.pieces.find((p) => p.id === s.id)!;
     for (const end of [piece.a, piece.b]) {
       const v = sub(end, at);
       if (len(v) < 0.3) continue;
@@ -515,8 +580,6 @@ function directionsAt(d: FigureDocument, g: Geometry, pid: string): number[] {
         off = Math.abs(cross(unit(sub(piece.b, piece.a)), sub(at, piece.a)));
       if (off < 0.3 && along > -0.3 && along < len(sub(piece.b, piece.a)) + 0.3) out.push(heading(v));
     }
-    void a;
-    void b;
   }
   for (const c of g.circles.values()) {
     const v = sub(at, c.c);
@@ -790,10 +853,10 @@ function rightMark(s: Slot, map: Layout["map"]) {
   return `M${n(p1.x)} ${n(p1.y)}L${n(p2.x)} ${n(p2.y)}L${n(p3.x)} ${n(p3.y)}`;
 }
 function chevrons(s: Piece, count: number, map: Layout["map"]) {
-  // Open arrowheads pointing along the line at its middle, as on exam papers.
+  // Open arrowheads pointing along the line at the middle of the side, as on exam papers.
   const u = unit(sub(s.b, s.a)),
     nrm = perp(u),
-    mid = mul(add(s.a, s.b), 0.5),
+    mid = s.mid,
     out: string[] = [];
   for (let i = 0; i < count; i++) {
     const tip = add(mid, mul(u, (i - (count - 1) / 2) * 1.6 + 0.9));
@@ -808,7 +871,7 @@ function chevrons(s: Piece, count: number, map: Layout["map"]) {
 function tickMarks(s: Piece, count: number, map: Layout["map"]) {
   const u = unit(sub(s.b, s.a)),
     nrm = perp(u),
-    mid = mul(add(s.a, s.b), 0.5),
+    mid = s.mid,
     out: string[] = [];
   for (let i = 0; i < count; i++) {
     const c = add(mid, mul(u, (i - (count - 1) / 2) * 0.9));
@@ -970,9 +1033,8 @@ export function dragTo(e: Envelope, pid: string, p: P, fine = false): Envelope |
 }
 
 /** Where the editor puts each label's select button (artwork mm): on the text if there is one, else in the angle or at the side's middle. */
-export function hitAnchors(e: Envelope): { id: string; kind: "angle" | "segment" | "point"; name: string; at: P }[] {
-  const g = layout(e),
-    d = e.document,
+export function hitAnchors(e: Envelope, g: Layout = layout(e)): { id: string; kind: "angle" | "segment" | "point"; name: string; at: P }[] {
+  const d = e.document,
     out: { id: string; kind: "angle" | "segment" | "point"; name: string; at: P }[] = [];
   for (const l of g.angles) out.push({ id: l.id, kind: "angle", name: l.slot.name, at: g.map(l.box.w ? l.centre : add(l.slot.vertex, mul(dir(l.slot.start + l.slot.sweep / 2), l.radius + 2.5))) });
   for (const s of d.segments) {

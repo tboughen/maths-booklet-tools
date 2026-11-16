@@ -78,8 +78,9 @@ parallel lines in a triangle and "which triangles are congruent?".
 `spec`: `{example?, worked?, points?, circles?, segments?, angles?, fills?, captions?, settings?}`. Labels default
 from their text: a digit makes a given value, letters alone a letter, an answer alone a hidden label. Revisions:
 `set_point`, `set_circle`, `set_segment`, `set_angle`, `set_fill`, `set_caption`, `remove`, `set_settings`; set
-operations merge into an existing object with the same id. All operations apply together and the result is checked
-once. `remove` refuses a point that other objects use, or a circle with points on it, naming them.
+operations merge into an existing object with the same id. Every set operation applies first, in order, then every
+`remove`, and the result is checked once, so objects can arrive in any order. `remove` refuses a point or circle that
+other objects are built on, naming them (the editor instead removes them too, with a message and Undo).
 
 ## Not yet supported
 
