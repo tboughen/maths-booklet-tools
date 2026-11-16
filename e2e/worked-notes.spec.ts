@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { clickResourceAction } from "./resource-actions";
 
 // U116: a worked note added from the File menu prints on the answers copy only.
-for (const tool of ["ratio-table", "venn", "charts", "probability-tree", "frequency-tree", "two-way-table", "factor-tree", "sample-space", "construction", "elevations", "angles", "area"]) {
+for (const tool of ["ratio-table", "venn", "charts", "probability-tree", "frequency-tree", "two-way-table", "factor-tree", "function-machine", "sample-space", "construction", "elevations", "angles", "area"]) {
   test(`${tool}: a worked note prints in dark pink on the answers copy only`, async ({ page }, info) => {
     await page.goto(`/tools/${tool}`);
     await clickResourceAction(page, "Worked notes…");

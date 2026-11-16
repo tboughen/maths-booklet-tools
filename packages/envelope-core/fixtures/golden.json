@@ -1133,6 +1133,72 @@
   "pupilSvg": "df291ccdee269b3c71cc8323add3bd36e5bab66d3cb36c6689f0ce2003dfff0e",
   "answerSvg": "f0fdb63c4b8f494eea3def51fb31f7497473d6f1314a6c4c1680be2edc26cadd"
  },
+ "function-machine/default": {
+  "schemaVersion": 1,
+  "contentHash": "689fae0652e4ec47c819b54244e367b5a091b7811185e9145c5c4a43e07fc5a5",
+  "pupilSvg": "e51b55cb101d084457467f7660ff31e4f506baf7b53c08c84e45c7015b3f2c5a",
+  "answerSvg": "e51b55cb101d084457467f7660ff31e4f506baf7b53c08c84e45c7015b3f2c5a"
+ },
+ "function-machine/example-find-input-worked": {
+  "schemaVersion": 1,
+  "contentHash": "79166035b6af527443223c01549ce7f445eb262d0539e0e904cd5ec378c2fb10",
+  "pupilSvg": "a7eace46a95486842831744c1deaa7e2d6f0f973ec535fe3945fc0ca01830ba2",
+  "answerSvg": "a7eace46a95486842831744c1deaa7e2d6f0f973ec535fe3945fc0ca01830ba2"
+ },
+ "function-machine/example-find-input": {
+  "schemaVersion": 1,
+  "contentHash": "4024e54df08f0057536575275b6ecb062909968e01db4ecc7c4bdf44113432bb",
+  "pupilSvg": "8dd28dbe53376d9567c6ae3e456f52f52d19bad716857859f8bb8eeb683a12f0",
+  "answerSvg": "a388d213cc71a071a1ca15951d977b0a5c95fbd698eabc0fc0d54ecc52a0449d"
+ },
+ "function-machine/example-find-output-worked": {
+  "schemaVersion": 1,
+  "contentHash": "2ea8d0cb81f554731967585ebde33909d1e33778c1d0afd0533b79b3705f5e12",
+  "pupilSvg": "da0a949494edceefe6ed0ee719c6fe5d47a86fdf9c8f7b7f9ed3883318b10612",
+  "answerSvg": "da0a949494edceefe6ed0ee719c6fe5d47a86fdf9c8f7b7f9ed3883318b10612"
+ },
+ "function-machine/example-find-output": {
+  "schemaVersion": 1,
+  "contentHash": "cd25726413773c5b093d676426323b407400cd7d663e3f1d1df36719fc6e99bb",
+  "pupilSvg": "044d5e5f7bc370122472696e1954e82b20126624005938055dfa1e4c2c6345b0",
+  "answerSvg": "60f8f91b6a83b98c30d00b41b354226222e6504a84325d80c0c1dee5204e3f67"
+ },
+ "function-machine/example-letters-worked": {
+  "schemaVersion": 1,
+  "contentHash": "3f09029154a34a8c06dbee93196f802464e5ae22c41c9baa84fb9172a9f652bf",
+  "pupilSvg": "90531dcf134da84f3548cb63db4257a8f50c42edb742277393bbacc133cc5046",
+  "answerSvg": "90531dcf134da84f3548cb63db4257a8f50c42edb742277393bbacc133cc5046"
+ },
+ "function-machine/example-letters": {
+  "schemaVersion": 1,
+  "contentHash": "e09e350fde7aa3979bb77537fa674f49d1df0c0dc280889a85fec526aa5edb60",
+  "pupilSvg": "5465ec97ab37c464849513e3455271a77d6328e709e76952e815b64bf769a2c8",
+  "answerSvg": "294def92c0e1ee484b663bd1e577a41d81ee00c27d7449b7499154fed0754832"
+ },
+ "function-machine/example-missing-operation-worked": {
+  "schemaVersion": 1,
+  "contentHash": "2b2faafb69b5f07a3cabe2387a6d56fedc2722497534f9f755085a13234b6d20",
+  "pupilSvg": "c44c78697dc0d8e9a4cb29b4339ef5f5041fc196a2f81bfba00cb49cb709d22e",
+  "answerSvg": "c44c78697dc0d8e9a4cb29b4339ef5f5041fc196a2f81bfba00cb49cb709d22e"
+ },
+ "function-machine/example-missing-operation": {
+  "schemaVersion": 1,
+  "contentHash": "d51a1b2cfe8e0fabd3c874d3e97c38304ef3259531b831e4dc70795d01d9963d",
+  "pupilSvg": "3323e9cf4ac6398502c3a39e1342db430cd91e164147d519a23da5b2315e7752",
+  "answerSvg": "8a13fad140b52f5ef79059b6810ceddf1f35069ef33bf2ef7c0a8f21f5413043"
+ },
+ "function-machine/example-two-machines-worked": {
+  "schemaVersion": 1,
+  "contentHash": "4d472758243e94a15d6ce5eb6f0a40880f753061b5bfbec9f9f85e49c9afadd8",
+  "pupilSvg": "8724022dd9f382b0f304c2a76f3ed586064e141d573bc0eadc67da63b259b7b6",
+  "answerSvg": "8724022dd9f382b0f304c2a76f3ed586064e141d573bc0eadc67da63b259b7b6"
+ },
+ "function-machine/example-two-machines": {
+  "schemaVersion": 1,
+  "contentHash": "487ab924f9aaed24f2c71179c0a2b02c2a767b874f18ed6899da719adb105705",
+  "pupilSvg": "544b383671f2d4108d750e3535cd5d3c41703fa430c2a9bfbe96a10e1d8a4334",
+  "answerSvg": "4663fee6b4f7fa6af0116e23dcbea399c9c8a7a9eb9e881cfa18cb2fa21469a8"
+ },
  "sample-space/default": {
   "schemaVersion": 1,
   "contentHash": "63ed6ebea15b8030c427989f7595feb183642e946ebfbc64fcf92211e4a4e680",

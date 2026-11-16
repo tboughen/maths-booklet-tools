@@ -36,6 +36,8 @@ import * as twt from "../../two-way-table-core/src/index";
 import * as twtIo from "../../two-way-table-core/src/interchange";
 import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
+import * as fm from "../../function-machine-core/src/index";
+import * as fmIo from "../../function-machine-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -63,6 +65,7 @@ export const DIAGRAM_KINDS = [
   "frequency-tree",
   "two-way-table",
   "factor-tree",
+  "function-machine",
   "sample-space",
   "triangle",
   "construction",
@@ -390,6 +393,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => ftIo.revise(input),
     hash: ft.hash,
     svg: (e, view) => ft.renderSvg(ft.forView(e, view, true)),
+  }),
+  "function-machine": family<fm.Envelope>({
+    kind: "function-machine",
+    label: "function machine",
+    summary: "Function machines: up to three machines of input, operation boxes and output, forwards or backwards (inverse machines), with items blank or hidden for pupils; worked out only on request.",
+    route: "/tools/function-machine",
+    answerView: true,
+    envelopeSchema: fm.envelopeSchema,
+    createSchema: fmIo.createSchema,
+    revisionSchema: fmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = fm.validate(raw);
+      check(fm.exportIssue(fm.forView(e, view)));
+      return e;
+    },
+    create: (input) => fmIo.create(input),
+    revise: (input) => fmIo.revise(input),
+    hash: fm.hash,
+    svg: (e, view) => fm.renderSvg(fm.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",
