@@ -119,8 +119,12 @@ export function curveValueAt(points: Coordinate[], smooth: boolean, x: number): 
 }
 
 /** A tangent to the graph at x: a segment through the touching point, run units each side. */
-export function tangentSegment(points: Coordinate[], smooth: boolean, x: number, run: number): { start: Coordinate; end: Coordinate; touch: Coordinate; slope: number } | null {
-  const v = curveValueAt(points, smooth, x);
+/** A curve's value and gradient at x: points of a graph through points, or an exact function. */
+export type CurveSource = Coordinate[] | ((x: number) => { y: number; slope: number } | null);
+const valueOf = (source: CurveSource, smooth: boolean, x: number) => (typeof source === "function" ? source(x) : curveValueAt(source, smooth, x));
+
+export function tangentSegment(points: CurveSource, smooth: boolean, x: number, run: number): { start: Coordinate; end: Coordinate; touch: Coordinate; slope: number } | null {
+  const v = valueOf(points, smooth, x);
   if (!v || !Number.isFinite(v.slope)) return null;
   const at = (dx: number) => ({ x: x + dx, y: v.y + v.slope * dx });
   return { start: at(-run), end: at(run), touch: { x, y: v.y }, slope: v.slope };
@@ -131,10 +135,10 @@ export function tangentSegment(points: Coordinate[], smooth: boolean, x: number,
  * x-axis), the way an area estimate is drawn: corners (x0, base), (x1, base), (x1, y1), (x0, y0).
  * Returns null when the graph does not reach every strip edge.
  */
-export function trapeziumStrips(points: Coordinate[], smooth: boolean, from: number, to: number, count: number, base = 0): Coordinate[][] | null {
+export function trapeziumStrips(points: CurveSource, smooth: boolean, from: number, to: number, count: number, base = 0): Coordinate[][] | null {
   if (!(count >= 1) || !(to > from)) return null;
   const xs = Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
-  const ys = xs.map((x) => curveValueAt(points, smooth, x)?.y);
+  const ys = xs.map((x) => valueOf(points, smooth, x)?.y);
   if (ys.some((y) => y === undefined)) return null;
   // A strip whose ends sit either side of the x-axis would be a bow-tie, and one lying on the axis
   // has no area: neither is how an area estimate is drawn, so refuse them with the reason.

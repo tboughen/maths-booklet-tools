@@ -17,6 +17,7 @@ import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { plotClipBleed } from "../../packages/graph-core/src/svg";
 import { arrowheadPath } from "../../packages/graph-core/src/arrow";
 import { axesCrossing, circleVisible, readingLegs, smoothCurvePath } from "../../packages/graph-core/src/curve";
+import { functionNameAnchor, functionPathData, functionRuns } from "../../packages/graph-core/src/function";
 import { vectorArrowEnds } from "../../packages/graph-core/src/diagram";
 import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -255,6 +256,18 @@ function objectHitIds(
       const rx = (object.radius / document.axes.x.unitsPerSquare) * layout.square, ry = (object.radius / document.axes.y.unitsPerSquare) * layout.square;
       const dx = (pointer.x - c.x) / rx, dy = (pointer.y - c.y) / ry;
       const distance = Math.abs(Math.hypot(dx, dy) - 1) * Math.min(rx, ry);
+      if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
+      continue;
+    }
+    if (object.kind === "function") {
+      // Near any short piece of the curve on the grid picks it.
+      const pieces = functionRuns(object, layout.bounds).flatMap((run) =>
+        run.slice(1).flatMap((p, i) => {
+          const visible = clipSegment(run[i], p, layout.bounds);
+          return visible ? [visible.map((q) => coordinateToSvg(q, layout))] : [];
+        }),
+      );
+      const distance = Math.min(Infinity, ...pieces.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
       if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
       continue;
     }
@@ -890,6 +903,17 @@ export function GraphCanvas({
                   />
                 );
               }
+              if (object.kind === "function") {
+                return (
+                  <path
+                    key={object.id}
+                    className={`${cls} graph-function`}
+                    d={functionPathData(object, layout.bounds, (p) => coordinateToSvg(p, layout))}
+                    strokeLinejoin="round"
+                    strokeDasharray={object.strokeStyle === "dashed" ? STRAIGHT_DASH_ARRAY : undefined}
+                  />
+                );
+              }
               if (object.kind === "curve") {
                 const pts = object.points.map((p) => coordinateToSvg(p, layout));
                 return (
@@ -1133,6 +1157,8 @@ export function GraphCanvas({
                     ? true
                   : object.kind === "circle"
                     ? !circleVisible(object, layout.bounds)
+                  : object.kind === "function"
+                    ? !functionNameAnchor(object, layout.bounds)
                     : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;

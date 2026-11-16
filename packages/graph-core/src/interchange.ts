@@ -26,11 +26,12 @@ import {
   pointsForEquation,
   equationForObject,
 } from "./equations";
-import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import type { AxisConfig, DiagramDocumentV1, FunctionEquation, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
 import { axesCrossing, circleVisible, curveProblem, curveVisible, readingLegs, readingVisible } from "./curve";
 import { stripObjects, tangentObject } from "./working";
+import { formatFunction, functionProblem, functionVisible } from "./function";
 import { imageObjects, transformationProblem, type Transformation } from "./transform";
 import { gradientLabelClashes } from "./svg";
 import {
@@ -99,6 +100,23 @@ const answerOnlyInput = z
   .describe(
     "true makes this a hidden answer: drawn in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy stays blank for the pupil to draw. Use for the line or shape a pupil is asked to draw.",
   );
+const functionInput = z
+  .discriminatedUnion("family", [
+    z.object({ family: z.literal("polynomial"), cubic: numeric.optional(), a: numeric.optional(), b: numeric.optional(), c: numeric.optional() }).strict(),
+    z.object({ family: z.literal("reciprocal"), k: numeric, c: numeric.optional() }).strict(),
+    z.object({ family: z.literal("exponential"), coefficient: numeric.optional(), base: numeric, c: numeric.optional() }).strict(),
+    z
+      .object({ family: z.literal("trig"), fn: z.enum(["sin", "cos", "tan"]), amplitude: numeric.optional(), multiplier: numeric.optional(), shift: numeric.optional(), c: numeric.optional() })
+      .strict()
+      .describe("y = amplitude fn(multiplier x + shift) + c, x in degrees."),
+  ])
+  .describe("polynomial y = cubic x³ + a x² + b x + c; reciprocal y = k/x + c; exponential y = coefficient × baseˣ + c; omitted terms are 0 (amplitude, multiplier and coefficient 1).");
+const functionSaved = z.discriminatedUnion("family", [
+  z.object({ family: z.literal("polynomial"), a: finite, b: finite, c: finite, cubic: finite.optional() }).strict(),
+  z.object({ family: z.literal("reciprocal"), k: finite, c: finite }).strict(),
+  z.object({ family: z.literal("exponential"), coefficient: finite, base: finite, c: finite }).strict(),
+  z.object({ family: z.literal("trig"), fn: z.enum(["sin", "cos", "tan"]), amplitude: finite, multiplier: finite, shift: finite, c: finite }).strict(),
+]);
 const titleSchema = z
   .string()
   .max(MAX_AXIS_TITLE_LENGTH)
@@ -336,6 +354,20 @@ export const objectInputSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: identifier.optional(),
+      kind: z.literal("function"),
+      equation: functionInput,
+      from: numeric.optional().describe("Start x; omitted is the grid's left edge."),
+      to: numeric.optional(),
+      strokeStyle: z.enum(["solid", "dashed"]).optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("An equation curve drawn exactly."),
+  z
+    .object({
+      id: identifier.optional(),
       kind: z.literal("circle"),
       centre: inputCoordinate,
       radius: numeric,
@@ -492,6 +524,19 @@ const objectSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: identifier,
+      kind: z.literal("function"),
+      equation: functionSaved,
+      from: finite.optional(),
+      to: finite.optional(),
+      strokeStyle: z.literal("dashed").optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
       kind: z.literal("circle"),
       centre: coordinate,
       radius: finite.positive(),
@@ -539,6 +584,10 @@ const documentSchema = z
           code: "custom",
           message: `${o.id} needs two distinct points.`,
         });
+      if (o.kind === "function") {
+        const problem = functionProblem(o.equation) ?? (o.from !== undefined && o.to !== undefined && !(o.to > o.from) ? "to must be after from." : null);
+        if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
+      }
       if (o.kind === "curve") {
         const problem = curveProblem(o.points);
         if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
@@ -644,8 +693,8 @@ function makeObjects(
   const id = input.id ?? `object-${index + 1}`;
   if (input.kind === "tangent" || input.kind === "strips") {
     const curve = document.objects.find((o) => o.id === input.of);
-    if (!curve || curve.kind !== "curve")
-      throw new GraphError("invalid_graph", `${id}: ${curve ? `${input.of} is not a graph through points` : `no earlier graph has ID ${input.of}`}.`);
+    if (!curve || (curve.kind !== "curve" && curve.kind !== "function"))
+      throw new GraphError("invalid_graph", `${id}: ${curve ? `${input.of} is not a graph through points or an equation curve` : `no earlier graph has ID ${input.of}`}.`);
     try {
       if (input.kind === "tangent")
         return [tangentObject(curve, input.x, input.run ?? 2 * document.axes.x.unitsPerSquare, {
@@ -708,6 +757,20 @@ function makeObject(
       kind: "curve",
       points: input.points.map((p) => ({ x: p.x, y: p.y })),
       ...(input.smooth ? { smooth: true as const } : {}),
+      ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
+      ...named,
+    };
+  }
+  if (input.kind === "function") {
+    const equation = functionEquationFrom(input.equation);
+    const problem = functionProblem(equation) ?? (input.from !== undefined && input.to !== undefined && !(input.to > input.from) ? "to must be after from." : null);
+    if (problem) throw new GraphError("invalid_graph", `${id}: ${problem}`);
+    return {
+      id,
+      kind: "function",
+      equation,
+      ...(input.from !== undefined ? { from: input.from } : {}),
+      ...(input.to !== undefined ? { to: input.to } : {}),
       ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
       ...named,
     };
@@ -850,6 +913,20 @@ function canonicalName(o: GraphObject) {
     ...(o.answerOnly ? { answerOnly: true as const } : {}),
   };
 }
+/** A saved equation with every term present, in a fixed order. */
+function canonicalFunction(e: FunctionEquation): FunctionEquation {
+  if (e.family === "polynomial") return { family: e.family, a: e.a, b: e.b, c: e.c, ...(e.cubic ? { cubic: e.cubic } : {}) };
+  if (e.family === "reciprocal") return { family: e.family, k: e.k, c: e.c };
+  if (e.family === "exponential") return { family: e.family, coefficient: e.coefficient, base: e.base, c: e.c };
+  return { family: e.family, fn: e.fn, amplitude: e.amplitude, multiplier: e.multiplier, shift: e.shift, c: e.c };
+}
+/** Fills an input equation's omitted terms. */
+function functionEquationFrom(e: z.output<typeof functionInput>): FunctionEquation {
+  if (e.family === "polynomial") return canonicalFunction({ family: e.family, a: e.a ?? 0, b: e.b ?? 0, c: e.c ?? 0, cubic: e.cubic });
+  if (e.family === "reciprocal") return { family: e.family, k: e.k, c: e.c ?? 0 };
+  if (e.family === "exponential") return { family: e.family, coefficient: e.coefficient ?? 1, base: e.base, c: e.c ?? 0 };
+  return { family: e.family, fn: e.fn, amplitude: e.amplitude ?? 1, multiplier: e.multiplier ?? 1, shift: e.shift ?? 0, c: e.c ?? 0 };
+}
 export function canonicalEnvelope(envelope: GraphEnvelope): string {
   const document = documentFromEnvelope(envelope);
   // Explicit property construction fixes ordering and defaults across all clients.
@@ -860,6 +937,16 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
           kind: o.kind,
           points: o.points.map((p) => ({ x: p.x, y: p.y })),
           ...(o.smooth ? { smooth: true as const } : {}),
+          ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}),
+          ...canonicalName(o),
+        }
+      : o.kind === "function"
+      ? {
+          id: o.id,
+          kind: o.kind,
+          equation: canonicalFunction(o.equation),
+          ...(o.from !== undefined ? { from: o.from } : {}),
+          ...(o.to !== undefined ? { to: o.to } : {}),
           ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}),
           ...canonicalName(o),
         }
@@ -1071,6 +1158,8 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
     .filter((o) =>
       o.kind === "circle"
         ? !circleVisible(o, bounds)
+        : o.kind === "function"
+        ? !functionVisible(o, bounds)
         : o.kind === "curve"
         ? !curveVisible(o, bounds)
         : o.kind === "reading"
@@ -1096,7 +1185,9 @@ export function describeGraph(envelope: GraphEnvelope): string {
     `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
-      o.kind === "circle"
+      o.kind === "function"
+        ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}curve ${formatFunction(o.equation)}${o.equation.family === "trig" ? " (x in degrees)" : ""}${o.from !== undefined || o.to !== undefined ? ` from x = ${o.from ?? b.xMin} to ${o.to ?? b.xMax}` : ""}${named(o)}`
+        : o.kind === "circle"
         ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}circle centre (${o.centre.x}, ${o.centre.y}) radius ${o.radius}${named(o)}`
         : o.kind === "curve"
         ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}${o.smooth ? "smooth curve" : "graph of straight pieces"} through ${o.points.map((p) => `(${p.x}, ${p.y})`).join(" ")}${named(o)}`

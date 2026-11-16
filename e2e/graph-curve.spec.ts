@@ -83,3 +83,28 @@ test("a tangent and trapezium strips are added to a graph through points as hidd
   await radius.press("Enter");
   await expect.poll(async () => (await saved(page))?.objects.at(-1)).toMatchObject({ kind: "circle", radius: 2 });
 });
+
+test("an equation curve is added, retyped, given a tangent and undone", async ({ page }) => {
+  await page.goto("/tools/graph");
+  await page.evaluate((k) => localStorage.removeItem(k), key);
+  await page.reload();
+  const canvas = page.locator(".graph-canvas");
+
+  await page.getByRole("button", { name: "Equation curve", exact: true }).click();
+  await expect(canvas.locator(".graph-function")).toHaveCount(1);
+  const equation = page.getByLabel("Curve equation", { exact: true });
+  await equation.fill("y = sin");
+  await equation.press("Enter");
+  await expect(page.getByText(/Write a trig graph/)).toBeVisible();
+  await equation.fill("y = x² − 2x − 3");
+  await equation.press("Enter");
+  await expect.poll(async () => (await saved(page))?.objects[0]?.equation).toEqual({ family: "polynomial", a: 1, b: -2, c: -3 });
+
+  await page.getByLabel("Tangent at x", { exact: true }).fill("2");
+  await page.getByRole("button", { name: "Draw tangent" }).click();
+  await expect.poll(async () => (await saved(page))?.objects[1]).toMatchObject({ kind: "straight", answerOnly: true, start: { x: 0, y: -7 }, end: { x: 4, y: 1 } });
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.objects).toHaveLength(1);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.objects[0]?.equation).toEqual({ family: "polynomial", a: 1, b: 0, c: 0 });
+});
