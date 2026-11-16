@@ -658,18 +658,6 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </div>
-            {(issue || g.notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {g.notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -682,6 +670,18 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
             >
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
+            {(issue || g.notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {g.notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
           </Panel>
           <aside className="inspector-stack" aria-label="Angle diagram settings">
             <ExampleGallery

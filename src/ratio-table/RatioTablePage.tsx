@@ -707,15 +707,6 @@ export default function RatioTablePage({
               )}
               removalColumnIndex={removalColumn}
             />
-            <div className="ratio-preview-footer">
-              <span>Zoom and editing guides do not appear in exports.</span>
-            </div>
-            {pendingInputs.size > 0 && (
-              <p className="ratio-message" role="status">
-                Finish or cancel the current input before exporting. Press Enter
-                to apply it or Escape to cancel.
-              </p>
-            )}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -751,6 +742,15 @@ export default function RatioTablePage({
               </label>
               {hasRatioAnswers(envelope) && <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} />}
             </EditorFoot>
+            <div className="ratio-preview-footer">
+              <span>Zoom and editing guides do not appear in exports.</span>
+            </div>
+            {pendingInputs.size > 0 && (
+              <p className="ratio-message" role="status">
+                Finish or cancel the current input before exporting. Press Enter
+                to apply it or Escape to cancel.
+              </p>
+            )}
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
             <ExampleGallery

@@ -775,10 +775,6 @@ export default function LessonBarModelPage({
                 )}
               </div>
             </div>
-            {issue && <p role="alert">{issue}</p>}
-            {c.warnings(e).map((w) => (
-              <p key={w}>{w}</p>
-            ))}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -791,6 +787,10 @@ export default function LessonBarModelPage({
                 </EditorHint>
               }
             />
+            {issue && <p role="alert">{issue}</p>}
+            {c.warnings(e).map((w) => (
+              <p key={w}>{w}</p>
+            ))}
           </Panel>
           <div className="inspector-stack">
             <ExampleGallery

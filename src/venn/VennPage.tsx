@@ -640,24 +640,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     ))}
               </div>
             </div>
-            {(draft || issue || note.length > 0) && (
-              <div className="vn-status" aria-live="polite">
-                {draft && (
-                  <p>
-                    Apply or cancel the open editor before another edit or
-                    export.
-                  </p>
-                )}
-                {issue && (
-                  <p className="vn-error" role="alert">
-                    {issue}
-                  </p>
-                )}
-                {note.map((w) => (
-                  <p key={w}>Teacher note: {w}</p>
-                ))}
-              </div>
-            )}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -683,6 +665,24 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </EditorFoot>
+            {(draft || issue || note.length > 0) && (
+              <div className="vn-status" aria-live="polite">
+                {draft && (
+                  <p>
+                    Apply or cancel the open editor before another edit or
+                    export.
+                  </p>
+                )}
+                {issue && (
+                  <p className="vn-error" role="alert">
+                    {issue}
+                  </p>
+                )}
+                {note.map((w) => (
+                  <p key={w}>Teacher note: {w}</p>
+                ))}
+              </div>
+            )}
           </Panel>
           <aside className="inspector-stack" aria-label="Venn diagram settings">
             <ExampleGallery

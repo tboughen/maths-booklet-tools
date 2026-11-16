@@ -566,6 +566,27 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 </div>
               )}
             </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={
+                <ResourceSize
+                  width={cropSize.key === cropKey ? cropSize.width : undefined}
+                  height={cropSize.key === cropKey ? cropSize.height : undefined}
+                  pending={
+                    !issue &&
+                    (cropSize.key !== cropKey ||
+                      (!cropSize.error && cropSize.width === undefined))
+                  }
+                  error={!!issue || cropSize.error}
+                />
+              }
+              status={message}
+              hint={
+                <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
+              }
+            />
             <div className="cb-structure" aria-label="Cuboid structure">
               <StructureStepper
                 className="cb-structure-group"
@@ -670,27 +691,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     }
                   });
               }}
-            />
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={
-                <ResourceSize
-                  width={cropSize.key === cropKey ? cropSize.width : undefined}
-                  height={cropSize.key === cropKey ? cropSize.height : undefined}
-                  pending={
-                    !issue &&
-                    (cropSize.key !== cropKey ||
-                      (!cropSize.error && cropSize.width === undefined))
-                  }
-                  error={!!issue || cropSize.error}
-                />
-              }
-              status={message}
-              hint={
-                <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
-              }
             />
           </Panel>
           <aside

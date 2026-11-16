@@ -89,9 +89,9 @@ app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 - The card with the diagram and the settings column share the height the heading leaves.
 - Inside the card, the bars keep their own height and the diagram's stage takes all the rest.
 - The settings column scrolls on its own.
-- The foot strip is the last row of the card (see below).
+- The foot strip sits straight under the stage (see below).
 - If a tool's own rows under the diagram leave the stage less than 280 px, the card scrolls
-  instead of squeezing the diagram. The foot strip then stays at the visible foot of the card.
+  instead of squeezing the diagram.
 - From 1,500 px wide the tool's name and its one-line description share a row.
 
 Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights
@@ -99,16 +99,17 @@ each tool had before.
 
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
-`editor-stage` as a direct child of the card, and ending the card with an `EditorFoot`. A tool
+`editor-stage` as a direct child of the card, and putting an `EditorFoot` straight after it. A tool
 that fits its diagram in script must measure the stage element, not the window.
 
 The frame changes screen furniture only. Preview zoom still never changes print size.
 
 ## The foot strip
 
-Every diagram tool ends its card with one strip (`EditorFoot` in `src/site/EditorFoot.tsx`,
-styled by `src/site/editor-foot.css`, 36 px high as `--md-foot-strip` when it fits on one row). It replaces the preview
-bar above the diagram, the hint banner under it and the separate status line. From the left:
+Every diagram tool has one strip straight under its stage (`EditorFoot` in
+`src/site/EditorFoot.tsx`, styled by `src/site/editor-foot.css`, 36 px high as `--md-foot-strip`
+when it fits on one row). It replaces the preview bar above the diagram, the hint banner under it
+and the separate status line. From the left:
 
 - **Zoom.** Minus, the "Preview zoom" list and plus. Fit says the size the diagram is drawn at
   ("Fit · 245%"), and the steps start from that size. The list keeps one width, so nothing beside
@@ -120,19 +121,26 @@ bar above the diagram, the hint banner under it and the separate status line. Fr
 - **The note, at the right.** The tool's hint (`EditorHint`) or its drawing prompt ("Choose the
   other endpoint") at the far right, and the latest message ("Image copied", a failed copy, a
   protected draft) beside it. Room is kept for the message, so when one arrives the hint does not
-  move and the diagram is never resized. Neither hides the other.
+  move. Neither hides the other.
 
-A card at least 1,400 px wide (a 1920 px window) always keeps one row: a long hint takes a
-second line inside the strip. On a narrower card, if the hint and the message's room do not fit
-beside the controls, the note takes a second row. A card under 700 px wide puts the message on
-its own line above the hint, and under 1,200 px drops ", whatever the zoom". Touch screens and windows under 768 px get 44 px controls. On a
-window too short for the editor frame the stage is sized so that the strip still ends inside
-the window. The Graph tool still shows its messages in its own toast.
+The strip's height depends only on how wide the card is, never on what the hint or the message
+says, so nothing that arrives in it can resize the diagram:
 
-A tool passes its message as `status` and never draws a status line of its own. Warnings about
-the diagram itself stay where the tool draws them, above the strip. The "Edit settings" jump for
-keyboards now follows the action bar, so one press still skips the diagram; it shows over the
-corner of the stage, so nothing moves when it appears.
+- A card at least 1,500 px wide (a 1920 px window) keeps everything on one row.
+- From 700 to 1,499 px the note always has a row of its own under the controls.
+- Under 700 px the message has its own line above the hint, and the controls wrap.
+- Under 1,200 px the print size drops ", whatever the zoom".
+
+Touch screens and windows under 768 px get 44 px controls. On a window too short for the editor
+frame the stage is sized so that the strip still ends inside the window. The Graph tool still
+shows its messages in its own toast.
+
+The strip is in the page in the same place it is drawn, straight after the stage, so the
+keyboard and screen readers meet it in the order the eye does. Rows a tool keeps under its diagram
+(an entry grid, a cuboid's notes, a pending note) follow the strip. A tool passes its message as
+`status` and never draws a status line of its own. The "Edit settings" jump for keyboards follows
+the action bar, so one press still skips the diagram; it shows over the corner of the stage, so
+nothing moves when it appears.
 
 ## Decided, and built in later steps
 

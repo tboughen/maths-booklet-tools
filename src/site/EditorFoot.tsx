@@ -23,7 +23,7 @@ export function EditorFoot({
   scale: number;
   /** A `ResourceSize`. */
   size: ReactNode;
-  /** The latest message about a copy, download or file. */
+  /** The latest message about a copy, download or file. Leave it out only in a tool that shows its messages elsewhere. */
   status?: ReactNode;
   /** An `EditorHint`. */
   hint: ReactNode;
@@ -36,10 +36,12 @@ export function EditorFoot({
       {size}
       {children}
       <div className="editor-foot-note">
-        {/* Always mounted, so screen readers announce a message when it arrives. */}
-        <p className="resource-feedback" role="status">
-          {status || null}
-        </p>
+        {/* Mounted before any message, so screen readers announce one when it arrives. */}
+        {status !== undefined && (
+          <p className="resource-feedback" role="status">
+            {status || null}
+          </p>
+        )}
         {hint}
       </div>
     </div>

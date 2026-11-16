@@ -875,18 +875,6 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 )}
               </div>
             </div>
-            {(issue || g.notes.length > 0) && (
-              <div className="ch-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="ch-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {g.notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -906,6 +894,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </EditorFoot>
+            {(issue || g.notes.length > 0) && (
+              <div className="ch-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="ch-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {g.notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
           </Panel>
           <aside className="inspector-stack" aria-label="Chart settings">
             <ExampleGallery

@@ -1003,6 +1003,40 @@ export default function NumberLinePage({
                 ))}
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="number-line"
+                  prompt={
+                    mode === "select"
+                      ? undefined
+                      : mode === "interval"
+                        ? first
+                          ? "Choose the other endpoint."
+                          : "Choose the first endpoint."
+                        : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
+                  }
+                >
+                  Click a circle to change its type; drag to move it.
+                </EditorHint>
+              }
+            >
+              {mode !== "select" && (
+                <button
+                  onClick={() => {
+                    setMode("select");
+                    setFirst(null);
+                  }}
+                >
+                  Finish drawing
+                </button>
+              )}
+            </EditorFoot>
             {warnings(history.present).map((w) => (
               <p key={w} className="nl-message">
                 {w}
@@ -1043,40 +1077,6 @@ export default function NumberLinePage({
                 </button>
               </div>
             )}
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
-              status={message}
-              hint={
-                <EditorHint
-                  tool="number-line"
-                  prompt={
-                    mode === "select"
-                      ? undefined
-                      : mode === "interval"
-                        ? first
-                          ? "Choose the other endpoint."
-                          : "Choose the first endpoint."
-                        : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
-                  }
-                >
-                  Click a circle to change its type; drag to move it.
-                </EditorHint>
-              }
-            >
-              {mode !== "select" && (
-                <button
-                  onClick={() => {
-                    setMode("select");
-                    setFirst(null);
-                  }}
-                >
-                  Finish drawing
-                </button>
-              )}
-            </EditorFoot>
           </Panel>
           <aside
             className="inspector-stack nl-inspector"

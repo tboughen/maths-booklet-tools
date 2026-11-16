@@ -1831,6 +1831,19 @@ export default function ValueGraphPage({
                 )}
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint tool="value-table-graph">
+                  Click the equation, table or graph to edit it. Blank cells stay
+                  blank until you choose to calculate.
+                </EditorHint>
+              }
+            />
             <p className="vg-size">
               Axis numbers: 12 pt. Preview zoom does not change print size.
             </p>
@@ -1855,19 +1868,6 @@ export default function ValueGraphPage({
                 </div>
               </LocalEditor>
             )}
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
-              status={message}
-              hint={
-                <EditorHint tool="value-table-graph">
-                  Click the equation, table or graph to edit it. Blank cells stay
-                  blank until you choose to calculate.
-                </EditorHint>
-              }
-            />
           </Panel>
           <aside
             className="inspector-stack"

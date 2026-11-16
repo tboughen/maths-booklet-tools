@@ -1245,6 +1245,30 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom === "fit" ? 0 : Number(zoom)}
+              onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              scale={viewScale}
+              size={
+                <ResourceSize
+                  width={exportMetrics.width / 10}
+                  height={exportMetrics.height / 10}
+                />
+              }
+              status={message}
+              hint={
+                <EditorHint tool="triangle">
+                  Click a wedge to edit an angle, or a label to edit its text. Drag
+                  a vertex to reshape. Select a triangle to add its area.
+                </EditorHint>
+              }
+            >
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                disabled={blocked}
+                onChange={setShowAnswers}
+              />
+            </EditorFoot>
             <div
               className="tr-structure"
               role="group"
@@ -1523,30 +1547,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </button>
               </section>
             )}
-            <EditorFoot
-              zoom={zoom === "fit" ? 0 : Number(zoom)}
-              onZoom={(value) => setZoom(value ? String(value) : "fit")}
-              scale={viewScale}
-              size={
-                <ResourceSize
-                  width={exportMetrics.width / 10}
-                  height={exportMetrics.height / 10}
-                />
-              }
-              status={message}
-              hint={
-                <EditorHint tool="triangle">
-                  Click a wedge to edit an angle, or a label to edit its text. Drag
-                  a vertex to reshape. Select a triangle to add its area.
-                </EditorHint>
-              }
-            >
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                disabled={blocked}
-                onChange={setShowAnswers}
-              />
-            </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Triangle settings">
             <ExampleGallery

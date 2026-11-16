@@ -434,19 +434,6 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                 </div>
               </div>
             </div>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-            {/* Straight under the diagram, above the entry grid; the editor frame draws it at the card's foot. */}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -459,6 +446,18 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
             >
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
             <div className="pt-fields ss-titles">
               <label>
                 Event down the side

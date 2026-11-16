@@ -1,7 +1,8 @@
 // The editor frame (docs/tools/APP-HOUSE-STYLE.md): at 1920 x 1080 every diagram tool fills the
 // window under the app bar, the page itself does not scroll, and the diagram's stage takes the
-// room the bars leave. The foot strip holds zoom, print size, the hint and the latest message,
-// which has room kept for it, so it never resizes the diagram.
+// room the bars leave. The foot strip sits straight under the stage and holds zoom, print size,
+// the hint and the latest message. Its height depends only on the card's width, never on what
+// the message or hint says, so neither can resize the diagram.
 import { test, expect, type Page } from "@playwright/test";
 import { toolIds } from "../src/site/routes";
 
@@ -10,7 +11,8 @@ const frame = (page: Page) =>
   page.evaluate((selector) => {
     const box = (s: string) => document.querySelector(s)!.getBoundingClientRect();
     const card = box(".site-page:not([hidden]) .editor-card"), stage = box(selector), settings = box(".site-page:not([hidden]) .inspector-stack");
-    return { page: document.documentElement.scrollHeight, cardBottom: card.bottom, stage: stage.height, stageBottom: stage.bottom, settingsBottom: settings.bottom };
+    const foot = box(".site-page:not([hidden]) .editor-card > .editor-foot");
+    return { page: document.documentElement.scrollHeight, cardBottom: card.bottom, stage: stage.height, stageBottom: stage.bottom, settingsBottom: settings.bottom, footTop: foot.top, foot: foot.height };
   }, STAGE);
 
 for (const tool of toolIds)
@@ -25,6 +27,8 @@ for (const tool of toolIds)
     expect(at.stageBottom).toBeLessThanOrEqual(1080);
     // Two tools keep their own entry grid under the diagram; the rest give it nearly everything.
     expect(at.stage).toBeGreaterThanOrEqual(["two-way-table", "sample-space"].includes(tool) ? 480 : 800);
+    expect(Math.abs(at.footTop - at.stageBottom), "the foot strip is straight under the stage").toBeLessThanOrEqual(1);
+    expect(at.foot, "one row at this width").toBeLessThanOrEqual(40);
   });
 
 test.describe("a message in the foot strip", () => {
@@ -43,8 +47,27 @@ test.describe("a message in the foot strip", () => {
       const box = (await line.boundingBox())!;
       expect(box.y).toBeGreaterThanOrEqual(before.stageBottom - 1);
       expect(box.y + box.height).toBeLessThanOrEqual(before.cardBottom + 1);
-      expect((await frame(page)).stage).toBe(before.stage);
+      const after = await frame(page);
+      expect(after.stage).toBe(before.stage);
+      expect(after.foot, "the strip keeps its height").toBe(before.foot);
     });
+
+  test("a prompt and a message together leave the strip and the stage the same size", async ({ page }) => {
+    for (const width of [1100, 1440, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto("/tools/venn");
+      await expect(page.locator(STAGE)).toBeVisible();
+      const before = await frame(page);
+      await page.getByRole("button", { name: "Shade", exact: true }).click();
+      await page.getByRole("button", { name: "Copy image", exact: true }).click();
+      const foot = page.locator(".site-page:not([hidden]) .editor-foot");
+      await expect(foot.getByRole("status").filter({ hasText: /copied/i })).toBeVisible();
+      await expect(foot.locator(".editor-hint--prompt")).toBeVisible();
+      const after = await frame(page);
+      expect(after.foot, `strip at ${width}`).toBe(before.foot);
+      expect(after.stage, `stage at ${width}`).toBe(before.stage);
+    }
+  });
 
   test("a recovery panel under the card is never covered by the foot strip", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
@@ -61,37 +84,32 @@ test.describe("a message in the foot strip", () => {
     expect(panel.y + panel.height).toBeLessThanOrEqual(1000);
   });
 
-  test("a recovery block inside the card sits above the foot strip, with its button free to press", async ({ page }) => {
+  test("a recovery block inside the card sits under the foot strip, with its button free to press", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.addInitScript(() => localStorage.setItem("maths-booklet-tools:cuboids:v1", "not-json"));
     await page.goto("/tools/cuboids");
     const button = page.getByRole("button", { name: "Download recovery data", exact: true });
     await expect(button).toBeVisible();
-    const line = page.locator(".site-page:not([hidden]) .editor-foot .resource-feedback");
-    await expect(line).toBeVisible();
-    const at = await frame(page), box = (await line.boundingBox())!, press = (await button.boundingBox())!;
-    expect(press.y + press.height).toBeLessThanOrEqual(box.y);
-    expect(box.y + box.height).toBeLessThanOrEqual(at.cardBottom + 1);
+    const at = await frame(page), press = (await button.boundingBox())!;
+    expect(Math.abs(at.footTop - at.stageBottom)).toBeLessThanOrEqual(1);
+    expect(press.y).toBeGreaterThanOrEqual(at.footTop + at.foot - 1);
+    expect(press.y + press.height).toBeLessThanOrEqual(at.cardBottom + 1);
     const download = page.waitForEvent("download");
     await button.click();
     await download;
   });
 
-  test("in a card that scrolls, the foot strip stays at the visible foot", async ({ page }) => {
+  test("with an entry grid under the diagram, the strip stays under the stage and the card scrolls", async ({ page }) => {
     // Sample space keeps its entry grid under the diagram, so on a small window its card scrolls.
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/tools/sample-space");
     const card = page.locator(".site-page:not([hidden]) .editor-card");
     expect(await card.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(40);
+    const at = await frame(page);
+    expect(Math.abs(at.footTop - at.stageBottom)).toBeLessThanOrEqual(1);
+    expect(at.footTop + at.foot, "in view before any scrolling").toBeLessThanOrEqual(800);
     await page.getByRole("button", { name: "Copy image", exact: true }).click();
-    const line = page.locator(".site-page:not([hidden])").getByRole("status").filter({ hasText: /copied/i });
-    await expect(line).toBeVisible();
-    for (const top of [0, 40, 10_000]) {
-      await card.evaluate((el, y) => el.scrollTo(0, y), top);
-      const at = await frame(page), box = (await page.locator(".site-page:not([hidden]) .editor-foot").boundingBox())!;
-      expect(Math.abs(box.y + box.height - at.cardBottom), `scrolled to ${top}`).toBeLessThanOrEqual(2);
-      await expect(line).toBeInViewport();
-    }
+    await expect(page.locator(".site-page:not([hidden]) .editor-foot").getByRole("status").filter({ hasText: /copied/i })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(800);
   });
 });

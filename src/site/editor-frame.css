@@ -9,8 +9,7 @@
   .site-app .site-page--tool .booklet-editor .main-content { display: flex; flex-direction: column; height: 100%; padding-bottom: 12px; }
   .site-app .site-page--tool .booklet-editor .main-content > .page-heading { flex: none; }
   .site-app .site-page--tool .booklet-editor .workspace { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
-  /* If a tool's own rows leave the stage less than its smallest height, the card scrolls and
-     the foot strip (editor-foot.css) stays at its visible foot. */
+  /* If a tool's own rows leave the stage less than its smallest height, the card scrolls. */
   .site-app .site-page--tool .booklet-editor .editor-card { min-height: 0; overflow-y: auto; }
   .site-app .site-page--tool .booklet-editor .inspector-stack { align-content: start; min-height: 0; max-height: none; overflow-y: auto; scrollbar-gutter: stable; }
   /* !important because one tool still sets a largest height on the element itself. */

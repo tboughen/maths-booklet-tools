@@ -1,6 +1,10 @@
-/* The foot strip of an editor card (EditorFoot): zoom, the true print size, view-only switches,
-   then one note: the latest message, or else the tool's hint. It loads with the tool pages and
-   draws from the house style (docs/tools/APP-HOUSE-STYLE.md). Never part of an export. */
+/* The foot strip of an editor card (EditorFoot), straight under the diagram's stage: zoom, the
+   true print size, view-only switches, then the note: the tool's hint or drawing prompt with the
+   latest message beside it. It loads with the tool pages and draws from the house style
+   (docs/tools/APP-HOUSE-STYLE.md). Never part of an export.
+
+   Its height depends only on how wide its card is, never on what the hint or message says, so
+   neither a message arriving nor a drawing prompt replacing the tip resizes the diagram. */
 .site-app .booklet-editor .editor-foot {
   flex: none;
   display: flex;
@@ -12,12 +16,14 @@
   margin: 0;
   padding: 2px 8px 3px;
   border-top: 1px solid var(--md-line);
-  border-radius: 0 0 var(--md-radius-card) var(--md-radius-card);
   background: var(--md-paper);
   color: var(--md-ink-2);
   font: 400 var(--md-text-xs)/15px var(--md-font);
   container: editor-foot / inline-size;
 }
+.site-app .booklet-editor .editor-foot:last-child { border-radius: 0 0 var(--md-radius-card) var(--md-radius-card); }
+/* Rows a tool keeps under the strip (warnings, an entry grid) start with a line of their own. */
+.site-app .booklet-editor .editor-foot:not(:last-child) { border-bottom: 1px solid var(--md-line); }
 /* One size and look for every control in the strip, whatever the tool's own form styles say. */
 .site-app .booklet-editor .editor-foot :is(button, select) {
   box-sizing: border-box;
@@ -68,30 +74,31 @@
 .site-app .booklet-editor .editor-foot .resource-size svg { flex: none; color: var(--md-ink-3); }
 .site-app .booklet-editor .editor-foot .resource-size b { color: var(--md-ink); font-weight: 600; }
 .site-app .booklet-editor .editor-foot .answer-copy-note { color: var(--md-pink); font-weight: 600; }
-/* The note ends the strip: the hint or drawing prompt at the far right, and the latest message
-   beside it. The message has room kept for it and never counts towards the note's width, so a
-   message arriving never moves the hint, wraps the strip or resizes the diagram. On a card
-   under 1,400 px, if the hint and that room do not fit on the first row, the note takes a row
-   of its own. */
+/* The note: the hint or drawing prompt at the far right and the latest message beside it. It
+   has a row of its own, two lines high, so a two-line hint or message changes nothing. The
+   message never counts towards the note's width and always has at least 280 px. */
 .site-app .booklet-editor .editor-foot-note {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) auto;
+  grid-template-columns: minmax(280px, 1fr) auto;
   align-items: center;
   column-gap: 14px;
   min-width: 0;
+  min-height: 30px;
 }
 .site-app .booklet-editor .editor-foot-note > .resource-feedback { grid-area: 1 / 1; contain: inline-size; text-align: right; }
 .site-app .booklet-editor .editor-foot-note > .editor-hint-slot { grid-area: 1 / 2; }
-/* A wide card always has room on one row: a long hint takes a second line inside the strip. */
-@container editor-foot (min-width: 1400px) {
+/* A card 1,500 px wide (a 1920 px window) has room for everything on one row. */
+@container editor-foot (min-width: 1500px) {
   .site-app .booklet-editor .editor-foot-note { flex-basis: 0; }
 }
-/* A narrow card stacks them: the message on a line of its own above the hint. */
+/* A narrow card stacks them: the message on a line that is always kept, and under it two lines
+   for the hint, so a one-line prompt taking a two-line tip's place changes nothing. */
 @container editor-foot (max-width: 699px) {
-  .site-app .booklet-editor .editor-foot-note { flex-basis: 100%; grid-template-columns: minmax(0, 1fr); row-gap: 2px; }
-  .site-app .booklet-editor .editor-foot-note > .resource-feedback { grid-area: 1 / 1; }
-  .site-app .booklet-editor .editor-foot-note > .editor-hint-slot { grid-area: 2 / 1; justify-self: end; }
+  .site-app .booklet-editor .editor-foot-note { grid-template-columns: minmax(0, 1fr); row-gap: 2px; min-height: 0; }
+  .site-app .booklet-editor .editor-foot-note > .resource-feedback { min-height: 15px; text-align: left; }
+  .site-app .booklet-editor .editor-foot-note > .editor-hint-slot { grid-area: 2 / 1; min-height: 30px; }
+  .site-app .booklet-editor .editor-foot .resource-size { padding-left: 0; border-left: 0; }
 }
 .site-app .booklet-editor .editor-foot .resource-feedback {
   margin: 0;
@@ -119,17 +126,6 @@
   background: transparent;
   color: var(--md-ink-3);
 }
-/* In the editor frame the strip is the last row of its card, whatever follows it in the page
-   (two tools keep an entry grid after it), and stays at the visible foot if the card scrolls. */
-@media screen and (min-width: 768px) and (min-height: 800px) {
-  .site-app .site-page--tool .booklet-editor .editor-foot { order: 100; position: sticky; bottom: 0; z-index: 5; }
-}
-/* In the editor frame a narrow card keeps the message's line even when it is empty. */
-@media screen and (min-width: 768px) and (min-height: 800px) {
-  @container editor-foot (max-width: 699px) {
-    .site-app .site-page--tool .booklet-editor .editor-foot-note > .resource-feedback { min-height: 15px; }
-  }
-}
 /* A card without room to spare drops the reminder after the size. */
 @container editor-foot (max-width: 1199px) {
   .site-app .booklet-editor .editor-foot .resource-size-note { display: none; }
@@ -140,11 +136,9 @@
   .site-app .booklet-editor .editor-foot :is(button, select) { height: 44px; min-width: 44px; font-size: var(--md-text-sm); }
   .site-app .booklet-editor .editor-foot .preview-zoom-step { width: 44px; }
   .site-app .booklet-editor .editor-foot .preview-zoom select { width: 112px; }
-  .site-app .booklet-editor .editor-foot .resource-size { padding-left: 0; border-left: 0; }
   .site-app .booklet-editor .editor-foot label { min-height: 44px; white-space: normal; }
   .site-app .booklet-editor .editor-foot .editor-hint-dismiss { width: 44px; height: 44px; }
-  .site-app .booklet-editor .editor-foot-note > .resource-feedback { text-align: left; }
-  .site-app .booklet-editor .editor-foot-note > .editor-hint-slot { justify-self: start; }
+  .site-app .booklet-editor .editor-foot .editor-hint-slot { min-height: 44px; }
 }
 @media (forced-colors: active) {
   .site-app .booklet-editor .editor-foot button[aria-pressed="true"] { border-width: 2px; }

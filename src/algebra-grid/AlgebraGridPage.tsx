@@ -735,6 +735,24 @@ export default function AlgebraGridPage({
                 </button>
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom === "fit" ? 0 : Number(zoom)}
+              onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              scale={scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint tool="expanding-factorising">
+                  Click a cell or the printed question to edit. Blank cells stay
+                  blank until you choose to fill them.
+                </EditorHint>
+              }
+            >
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                onChange={setShowAnswers}
+              />
+            </EditorFoot>
             <div className="ag-resource-footer">
               <span>
                 Grid: {g.gridWidth.toFixed(1)} × {g.gridHeight.toFixed(1)} mm ·{" "}
@@ -826,24 +844,6 @@ export default function AlgebraGridPage({
                 )}
               </section>
             )}
-            <EditorFoot
-              zoom={zoom === "fit" ? 0 : Number(zoom)}
-              onZoom={(value) => setZoom(value ? String(value) : "fit")}
-              scale={scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={message}
-              hint={
-                <EditorHint tool="expanding-factorising">
-                  Click a cell or the printed question to edit. Blank cells stay
-                  blank until you choose to fill them.
-                </EditorHint>
-              }
-            >
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                onChange={setShowAnswers}
-              />
-            </EditorFoot>
           </Panel>
           <aside className="inspector-stack" aria-label="Algebra grid settings">
             <ExampleGallery

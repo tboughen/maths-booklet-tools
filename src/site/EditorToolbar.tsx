@@ -99,17 +99,15 @@ function Toolbar(props: EditorToolbarProps) {
         "--editor-toolbar-height",
         `${element.getBoundingClientRect().height}px`,
       );
-      const stage = parent.querySelector<HTMLElement>(
-        ".bm-scroll,.graph-stage,.ratio-stage,.tr-scroll,.ag-scroll,.vn-scroll,.nl-scroll,.cb-scroll,.vg-scroll",
-      );
+      const stage = parent.querySelector<HTMLElement>(":scope > .editor-stage");
       if (!stage?.clientWidth) return;
       const top = stage.getBoundingClientRect().top + window.scrollY;
-      // Leave room for the rows under the stage (the foot strip, any warnings), so on a window too
-      // short for the editor frame the card still ends just above the foot of the window.
-      const under = Math.max(0, parent.getBoundingClientRect().bottom - stage.getBoundingClientRect().bottom);
+      // The stage and the foot strip under it end together, just above the foot of the window. The
+      // strip's height depends only on its width, so a message or warning never moves the stage.
+      const foot = parent.querySelector<HTMLElement>(":scope > .editor-foot");
       parent.style.setProperty(
         "--resource-stage-height",
-        `${Math.max(320, window.innerHeight - top - under - 20)}px`,
+        `${Math.max(320, window.innerHeight - top - (foot?.offsetHeight ?? 0) - 20)}px`,
       );
     };
     measure();
@@ -117,6 +115,8 @@ function Toolbar(props: EditorToolbarProps) {
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     observer.observe(parent);
+    const foot = parent.querySelector(":scope > .editor-foot");
+    if (foot) observer.observe(foot);
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();
