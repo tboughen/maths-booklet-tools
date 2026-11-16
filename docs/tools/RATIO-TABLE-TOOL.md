@@ -69,7 +69,11 @@ the full spec), for booklets with many tables:
 A heading ending in →, ↑ or ↓ gets that arrow and a single letter prints italic. A cell is
 `"3"`, `"-1/2"`, `""` (empty), `"_"` (answer line), `"[3]"` (hidden) or `"[3]_"` (hidden on an
 answer line). A step is `""`, `"× 2"` or `"÷ 2"` (`x`, `*` and `/` also work), in brackets to
-hide it; any step turns the arrows on. Rows are numbered `row-1`, `row-2` for revisions.
+hide it; any step turns the arrows on. In a two-column table `"left: × 2"` or `"right: [÷ 2]"`
+prints the step on that side only (saved as `side` on the transition; omitted means both sides),
+and the unused side takes no room. A hidden step leaves pupils a 13 mm answer line at standard
+size, room to write the sign and factor (Tim, A7 marking, 16 November 2026). Rows are numbered
+`row-1`, `row-2` for revisions.
 
 ## Direct editing and controls
 

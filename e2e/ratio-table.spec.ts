@@ -655,7 +655,7 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
     .getByRole("button", { name: "Choose row 2 for arrow", exact: true })
     .click();
   const left = page.getByLabel("Row 1 left arrow factor", { exact: true });
-  const right = page.getByLabel("Row 1 column 2 arrow factor", { exact: true });
+  const right = page.getByLabel("Row 1 right arrow factor", { exact: true });
   // Click the actual printed number, so overlay placement is tested too.
   const clickPrintedFactor = async (column: number) => {
     await page

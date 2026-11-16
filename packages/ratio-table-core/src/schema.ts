@@ -56,6 +56,11 @@ export const transitionSchema = z
     factor: z.string().min(1).max(32),
     /** The operation label prints only in the answers copy; the pupil copy shows an answer line. */
     hidden: z.boolean().optional(),
+    /**
+     * Two-column tables only: the arrow and operation print on one side ("left" or "right").
+     * Omitted, they print on both sides.
+     */
+    side: z.enum(["left", "right"]).optional(),
   })
   .strict();
 export const documentSchema = z
@@ -112,7 +117,8 @@ export const ratioSpecSchema = z
      * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
      * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
      * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"
-     * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy. Any step turns on
+     * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy; "left: × 2" or
+     * "right: [÷ 2]" prints it on one side only (two columns). Any step turns on
      * the curved arrows unless mode says otherwise.
      */
     columns: z.array(z.string().min(1).max(16)).min(1).max(3).optional(),
@@ -158,6 +164,11 @@ export function normalizeDocument(input: unknown): RatioDocument {
     fromIds.add(step.from);
     step.factor = canonicalRatioNumber(step.factor);
     if (!step.hidden) delete step.hidden;
+    if (step.side && document.headings.length !== 2)
+      throw new RatioError(
+        "invalid_ratio_table",
+        "A scaling step can print on one side only in a two-column table.",
+      );
     if (step.operation === "divide" && step.factor === "0")
       throw new RatioError("invalid_operation", "Cannot divide by zero.");
   }

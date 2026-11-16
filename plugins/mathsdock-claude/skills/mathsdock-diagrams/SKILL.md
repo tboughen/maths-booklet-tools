@@ -200,7 +200,7 @@ compact form, which keeps a booklet with many tables small:
 A cell is `"4"` (printed), `"2 1/2"` or `"2½"` (a mixed number, printed as 2 beside a
 stacked half), `""` (blank), `"_"` (answer line), `"[2]"` (hidden answer, answers
 copy only) or `"[2]_"`; a step is `"× 3"` or `"÷ 2"`, and `"[÷ 2]"` leaves pupils an answer
-line beside the arrow. Keep plain tables for tables of values and other non-ratio tables.
+line beside the arrow; `"left: × 2"` or `"right: [÷ 2]"` prints a step on one side only. Keep plain tables for tables of values and other non-ratio tables.
 
 ## Files and links
 

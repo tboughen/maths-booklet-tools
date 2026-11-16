@@ -102,21 +102,27 @@ export function compactCell(value: string): SpecRow["cells"][number] {
     throw compactError(`Cell "${v}": write a number, "" for empty, "_" for an answer line or [n] for a hidden answer.`);
   return { kind: "number", value: v };
 }
-/** A compact step between two rows: "× 2", "÷ 2" (or x, *, /); "[÷ 2]" hides it in the pupil copy. */
+/**
+ * A compact step between two rows: "× 2", "÷ 2" (or x, *, /); "[÷ 2]" hides it in the pupil copy;
+ * a "left:" or "right:" prefix prints it on that side only.
+ */
 export function compactStep(value: string, from: string, to: string): RatioTransition | null {
   let v = value.trim();
   if (v === "") return null;
+  const sided = v.match(/^(left|right)\s*:\s*/i);
+  if (sided) v = v.slice(sided[0].length);
   const hidden = /^\[.*\]$/.test(v);
   if (hidden) v = v.slice(1, -1).trim();
   const m = v.match(/^([×x*÷/])\s*(.+)$/);
   if (!m)
-    throw compactError(`Step "${value}": write "× 2" or "÷ 2", or "" for no step.`);
+    throw compactError(`Step "${value}": write "× 2" or "÷ 2" (optionally "left: × 2" or "right: × 2"), or "" for no step.`);
   return {
     from,
     to,
     operation: "×x*".includes(m[1]) ? "multiply" : "divide",
     factor: m[2].trim(),
     ...(hidden ? { hidden: true } : {}),
+    ...(sided ? { side: sided[1].toLowerCase() as "left" | "right" } : {}),
   };
 }
 /** Expands the compact columns/table/steps form into the full spec fields. */
