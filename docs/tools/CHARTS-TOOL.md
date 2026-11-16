@@ -1,8 +1,9 @@
 # Statistical charts
 
 `/tools/charts` (called "Bar and line charts" until 15 Nov 2026) makes the statistical charts
-in GCSE Foundation papers: bar charts, dual (comparative) bar charts, composite (stacked) bar
-charts, vertical line charts, pie charts, pictograms and scatter graphs. Browser editing and export need no service; the optional MCP connector adds
+in GCSE papers: bar charts, dual (comparative) bar charts, composite (stacked) bar
+charts, vertical line charts, pie charts, pictograms, scatter graphs, histograms, frequency
+polygons and cumulative frequency graphs. Browser editing and export need no service; the optional MCP connector adds
 `diagram_capabilities` (kind `charts`), `create_diagram` (kind `charts`) and `revise_diagram` (kind `charts`) (see below).
 
 ## Why one tool
@@ -17,9 +18,11 @@ Scatter graphs are a kind too (15 Nov 2026), so they share the editor, files, li
 copies and connector family, but they keep their own data (`scatter`): points on two numerical
 axes do not fit the category table.
 
-Time series graphs and frequency polygons join plotted points on a time or continuous axis
-(class midpoints for frequency polygons). Tim decided on 6 Nov 2026 that each gets its own
-tool later rather than a mode here.
+Time series graphs join plotted points on a time axis. Tim decided on 6 Nov 2026 that they
+get their own tool later rather than a mode here. Frequency polygons were in the same
+decision, but on 16 Nov 2026 they joined histograms and cumulative frequency graphs as kinds
+here, because all three draw one grouped frequency table (the coordinator's brief for the
+worked-solutions tools; see Grouped data below).
 
 ## Brief
 
@@ -129,14 +132,70 @@ A pictogram is another kind of the same document: one row per category from the 
   a "plot a scatter graph from a table" teaching example with a table and a broken axis.
 - **Left to the worksheet:** correlation captions and other answers in words (Tim, 15 Nov 2026).
 
+## Grouped data: histograms, frequency polygons and cumulative frequency graphs
+
+Added 16 Nov 2026 so worked solutions can be drawn for the higher statistics questions (192
+exam parts). The three kinds draw one table of classes (`grouped`), so a teacher can switch
+between them without retyping, as exam questions do ("complete the table", "draw a frequency
+polygon", "draw the cumulative frequency graph").
+
+- **Drawing (measured from Edexcel papers):** true-size graph paper, 2 mm squares in grey with
+  heavier lines every 1 cm and 2 cm from the corner (0.51, 1.02 and 1.417 pt), under black
+  1.5 pt axes with arrowheads, numbered at every step with ticks. The grid runs on to the end of
+  each axis even past the last number, as in the papers. The vertical title sits to the left,
+  the horizontal title below.
+  - **Histogram:** bars at frequency ÷ class width (frequency density), 1.5 pt outlines, grey
+    (`#bfbfbf`, as in the papers since 2018, with the grid showing through) or white. The
+    vertical axis starts at 0. Gaps between classes are allowed.
+  - **Frequency polygon:** crosses at the class midpoints joined by 1 pt straight lines, not
+    closed to the axis.
+  - **Cumulative frequency graph:** running totals at the upper class boundaries, joined by a
+    smooth curve (monotone, so it never turns back or overshoots) or straight lines, 1.5 pt.
+    It starts at 0 at the lowest boundary unless **Start at 0** is off (some papers start at
+    the first point). Crosses at the plotted points are optional.
+- **Settings (`grouped`):** `variable` (one letter, printed in italics in the table and in axis
+  titles: 0 < *t* ⩽ 20; empty prints 0 – 20), `inequality` (`lower-open` 0 < *t* ⩽ 20, Edexcel's
+  usual, or `lower-closed`), up to 12 `classes` `{lower, upper, frequency, table, graph}`,
+  `xAxis`, `table` (`none`, `frequency` or `cumulative`), and per kind `histogram {yAxis, fill}`,
+  `polygon {yAxis}` and `cumulative {yAxis, curve, fromZero, crosses, readings}`. Each axis is
+  `{min, max, step, stepMm, title}`: `stepMm` is the length of one numbered step, an even number
+  of millimetres from 4 to 40, so numbers sit on grid lines. Each kind keeps its own vertical
+  axis, because frequency density, frequency and cumulative frequency need different scales.
+  Without `grouped` a grouped chart starts with one empty class, never made-up data.
+- **Table:** a ruled table above the graph in the papers' style (grey rules): the horizontal
+  axis title heads the class column; the second column is Frequency or Cumulative frequency
+  (0 < *t* ⩽ 40 rows from the lowest boundary).
+- **Pupil states:** a blank frequency is no data (empty cell, nothing drawn; a cumulative graph
+  needs every frequency); 0 is a value. Each class has two hide flags: **Table** leaves its cell
+  for pupils to complete; **Graph** leaves its bar, point or part of the curve for pupils to draw.
+  A line or curve part prints only when the points at both of its ends print, so it never gives
+  away a hidden point. Answers copies draw hidden parts in pink; a hidden bar is a pink outline.
+- **Readings (cumulative frequency):** up to 4 dashed guides from a value on either axis to the
+  curve and on to the other axis (medians, quartiles, "how many more than"). The value read off
+  is never printed. A guide prints only where that part of the curve prints.
+- **Validation:** boundaries and frequencies must be numbers, classes in order and not
+  overlapping, inside the horizontal axis; densities and (cumulative) frequencies inside the
+  vertical axis; each axis must end on a 2 mm grid line, with at most 40 steps; the graph fits
+  18 × 26 cm.
+- **Editor:** Classes, Axes and graph paper, and (cumulative) Readings cards replace the Data and
+  axes cards. Clicking a bar or point focuses its frequency; + and − beside the graph add or
+  remove the last class (a new class starts at the previous upper boundary).
+- **Examples:** June 2018 2H Q17 (complete the frequency table from a histogram), November 2019
+  2H Q18 (complete a histogram), June 2019 3H Q3 (draw a frequency polygon) and June 2019 2H Q11
+  (cumulative frequency table, graph and estimate).
+- **Differences from the papers:** where a paper's grid runs on past the last number (June 2019
+  2H Q11 stops numbering at 80 on a grid to 90), the tool numbers every step to the end. Older
+  papers print 1.0, 2.0 on a frequency density axis; the tool prints 1, 2.
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
 
 ## Not yet included
 
-Horizontal bars, a printed data table beside the chart, time series graphs,
-frequency polygons, comparative pie charts of different sizes and histograms. Each would be a separate, reviewed extension or tool.
+Horizontal bars, a printed data table beside the chart, time series graphs, comparative pie
+charts of different sizes, box plots and stem-and-leaf diagrams (box plots and stem-and-leaf
+diagrams are being added next, 16 Nov 2026). Each is a separate, reviewed extension or tool.
 
 ## MCP connector
 
@@ -151,9 +210,11 @@ frequency polygons, comparative pie charts of different sizes and histograms. Ea
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled. `presentation.pie`
-  (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`) and `presentation.scatter`
-  (`points`, `xAxis`, `yAxis`, `grid`, `minor`, `bestFit`, `readings`) merge field by field with the
-  current settings; a given `points` array replaces every point.
+  (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`), `presentation.scatter`
+  (`points`, `xAxis`, `yAxis`, `grid`, `minor`, `bestFit`, `readings`) and `presentation.grouped`
+  (`variable`, `inequality`, `classes`, `xAxis`, `table`, `histogram`, `polygon`, `cumulative`)
+  merge field by field with the current settings (axes and each kind's settings too); a given
+  `points` or `classes` array replaces them all.
 - `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
   answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain

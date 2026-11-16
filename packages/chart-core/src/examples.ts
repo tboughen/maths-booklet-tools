@@ -1,4 +1,4 @@
-import { create, validate, type Envelope, type Fill, type Kind } from "./index";
+import { create, validate, GROUPED_DEFAULTS, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
 
 type Data = { name: string; fill: Fill; values: string[]; hidden?: number[] };
 function chart(
@@ -23,6 +23,30 @@ function chart(
         value,
         show: !worked && s.hidden?.includes(i) ? "hidden" : "show",
       })),
+    })),
+  };
+  return validate(e);
+}
+
+/** A grouped-data example: classes [lower, upper, frequency], with the parts saved as hidden answers. */
+function grouped(
+  kind: "histogram" | "polygon" | "cumulative",
+  rows: [string, string, string][],
+  settings: Omit<Partial<GroupedSettings>, "classes">,
+  hide: { graph?: number[]; table?: number[] },
+  worked: boolean,
+): Envelope {
+  const e = create();
+  e.document.kind = kind;
+  e.document.grouped = {
+    ...structuredClone(GROUPED_DEFAULTS),
+    ...settings,
+    classes: rows.map(([lower, upper, frequency], i) => ({
+      lower,
+      upper,
+      frequency,
+      table: !worked && hide.table?.includes(i) ? "hidden" : "show",
+      graph: !worked && hide.graph?.includes(i) ? "hidden" : "show",
     })),
   };
   return validate(e);
@@ -219,5 +243,90 @@ export const examples: {
       };
       return validate(e);
     },
+  },
+  {
+    id: "histogram-puzzle",
+    title: "June 2018 2H Q17: complete a frequency table from a histogram",
+    note: "Times taken to finish a puzzle, on 2 mm graph paper. The first frequency (4) is given; the other four are saved as hidden answers in the table.",
+    sourceId: "1MA1_JUN_2018_2H_Q17",
+    worked: true,
+    make: (worked) =>
+      grouped(
+        "histogram",
+        [["0", "5", "4"], ["5", "15", "4"], ["15", "25", "6"], ["25", "30", "5"], ["30", "50", "4"]],
+        {
+          variable: "t",
+          xAxis: { min: "0", max: "60", step: "10", stepMm: 20, title: "Time taken (t minutes)" },
+          table: "frequency",
+          histogram: { yAxis: { min: "0", max: "1", step: "0.2", stepMm: 20, title: "Frequency density" }, fill: "grey" },
+        },
+        { table: [1, 2, 3, 4] },
+        worked,
+      ),
+  },
+  {
+    id: "histogram-complete",
+    title: "November 2019 2H Q18: complete a histogram",
+    note: "Heights of the trees in a park. 20% of the 40 trees are between 10 and 12.5 metres, so that bar (frequency 8) is saved as a hidden answer; the total of 40 is worked out from the other bars for this example.",
+    sourceId: "1MA1_NOV_2019_2H_Q18",
+    worked: true,
+    make: (worked) =>
+      grouped(
+        "histogram",
+        [["0", "2.5", "3"], ["2.5", "5", "5"], ["5", "10", "14"], ["10", "12.5", "8"], ["12.5", "25", "10"]],
+        {
+          variable: "",
+          xAxis: { min: "0", max: "25", step: "5", stepMm: 20, title: "Height (metres)" },
+          histogram: { yAxis: { min: "0", max: "4", step: "1", stepMm: 20, title: "Frequency density" }, fill: "grey" },
+        },
+        { graph: [3] },
+        worked,
+      ),
+  },
+  {
+    id: "polygon-plants",
+    title: "June 2019 3H Q3: draw a frequency polygon",
+    note: "Heights of 80 plants from the table. Every point of the frequency polygon is saved as a hidden answer for pupils to plot at the class midpoints.",
+    sourceId: "1MA1_JUN_2019_3H_Q3",
+    worked: true,
+    make: (worked) =>
+      grouped(
+        "polygon",
+        [["10", "20", "7"], ["20", "30", "13"], ["30", "40", "14"], ["40", "50", "12"], ["50", "60", "16"], ["60", "70", "18"]],
+        {
+          variable: "h",
+          xAxis: { min: "0", max: "70", step: "10", stepMm: 20, title: "Height (h cm)" },
+          table: "frequency",
+          polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" } },
+        },
+        { graph: [0, 1, 2, 3, 4, 5] },
+        worked,
+      ),
+  },
+  {
+    id: "cumulative-office",
+    title: "June 2019 2H Q11: complete a cumulative frequency table, draw the graph and estimate",
+    note: "Times 80 office workers take to get to work. The cumulative frequencies, the curve and the reading at 90 minutes for part (c) are saved as hidden answers. The paper's grid runs on past 80 without a number; here the vertical axis is numbered to 90.",
+    sourceId: "1MA1_JUN_2019_2H_Q11",
+    worked: true,
+    make: (worked) =>
+      grouped(
+        "cumulative",
+        [["0", "20", "5"], ["20", "40", "30"], ["40", "60", "20"], ["60", "80", "15"], ["80", "100", "8"], ["100", "120", "2"]],
+        {
+          variable: "t",
+          xAxis: { min: "0", max: "140", step: "20", stepMm: 20, title: "Time (t minutes)" },
+          table: "cumulative",
+          cumulative: {
+            yAxis: { min: "0", max: "90", step: "10", stepMm: 10, title: "Cumulative frequency" },
+            curve: "smooth",
+            fromZero: true,
+            crosses: true,
+            readings: [{ axis: "x", value: "90", show: worked ? "show" : "hidden" }],
+          },
+        },
+        { graph: [0, 1, 2, 3, 4, 5], table: [0, 1, 2, 3, 4, 5] },
+        worked,
+      ),
   },
 ];
