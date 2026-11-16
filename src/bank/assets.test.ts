@@ -28,3 +28,11 @@ it("includes each part and stem cut's print file and previews", () => {
   expect(paths).toContain("bank/assets/cuts/Q1/part-a-1.png");
   expect(() => catalogueAssetPaths({questions: [{...q, cuts: [{pdf: "bank/assets/../x.pdf", views: []}]}]})).toThrow("Invalid");
 });
+
+it("includes a worked solution's steps file and refuses one that is not JSON", () => {
+  const workedSolution = {schemaVersion: 2 as const, revision: "w1", basedOnQuestionRevision: "r1", data: "bank/assets/worked/Q1/w1.json", dataSha256: "a".repeat(64)};
+  const q = {...question("a", "Q1"), revision: "r1", workedSolution};
+  expect(catalogueAssetPaths({questions: [q]})).toContain("bank/assets/worked/Q1/w1.json");
+  expect(() => catalogueAssetPaths({questions: [{...q, workedSolution: {...workedSolution, data: "bank/assets/worked/Q1/w1.pdf"}}]})).toThrow();
+  expect(() => catalogueAssetPaths({questions: [{...q, questionPdf: "bank/assets/a/Q1/question.json"}]})).toThrow("Invalid");
+});

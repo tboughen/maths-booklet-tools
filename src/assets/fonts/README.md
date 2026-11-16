@@ -21,3 +21,14 @@ Licence: `assets/resource-fonts/OFL.txt`.
 
 - Inter-Variable-Latin.woff2: 3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62
 - Inter-Variable-Latin-Italic.woff2: 7291b5970da2237441273c03b424a504b70b18f09791473fab99687dcc314720
+
+# The worked-solution handwriting font
+
+Shantell Sans 1.011 Regular (Google Fonts), subset with fontTools to Basic Latin, Latin-1 and the
+maths signs worked solutions use (− × ÷ ± ≤ ≥ ≠ ≈ π √ → ↑ ↓ ° and similar), saved as WOFF2. The
+question bank loads it on demand as the family "MathsDock Hand" for the working in worked solutions
+only (Tim's choice, 16 November 2026); guidance stays in "MathsDock UI" and diagrams in STIX Two.
+`packages/worked-core/src/metrics.ts` holds its advance widths so layout needs no font loaded.
+Licence: `ShantellSans-OFL.txt`.
+
+- ShantellSans-Worked.woff2: 81029ed244ef12bee4da1808f44c9b03e539a3b1a2ead86e0723dbe3fae12bc0

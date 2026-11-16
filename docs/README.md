@@ -42,7 +42,7 @@ Per-tool records:
 - [Worksheet renderer](content/WORKSHEET-RENDERER.md): the A3 worksheet document, layout rules and the evidence behind the MathsDock style (wave 3).
 - [Word output for worksheets](content/WORD-OUTPUT.md): how the pupil and answers `.docx` files are built so they cannot reflow, the rendering test and the real-Word check.
 - [Booklet maker](tools/BOOKLET-MAKER.md): the A4 unit booklet document, its layout and the AI lesson standard.
-- [Per-question worked solutions](content/WORKED-SOLUTION-REGISTRATION.md).
+- [Worked solutions: the standard](content/WORKED-SOLUTIONS.md) and [their files and registration](content/WORKED-SOLUTION-REGISTRATION.md).
 - [Automatic question accessibility](content/ACCESSIBILITY-TESTING.md).
 - [Past-paper examples in Graph tool and Ratio tables](content/TOOL-SOURCE-EXAMPLES.md).
 - [Mock set 1](mock-set-01/README.md).
