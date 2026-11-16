@@ -1,6 +1,7 @@
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { Redo2, Undo2 } from "lucide-react";
 import { historyActionText } from "../editor-kit/labels";
+import { noteWorkHere } from "./recentWork";
 
 /**
  * The Undo and Redo buttons every editor shows (U8). The accessible names stay "Undo" and "Redo"; the step
@@ -16,6 +17,12 @@ export function HistoryButtons(props: {
   redoLabel?: string;
 }) {
   const ids = useId();
+  // A step to undo means the teacher has changed this resource, and each new step has its own
+  // name or count. Home's "Carry on" row lists the page (`recentWork.ts`).
+  const { canUndo, undoLabel } = props;
+  useEffect(() => {
+    if (canUndo) noteWorkHere();
+  }, [canUndo, undoLabel]);
   const button = (action: "Undo" | "Redo") => {
     const undo = action === "Undo";
     const enabled = undo ? props.canUndo : props.canRedo;

@@ -90,7 +90,7 @@ test("overview search matches teaching vocabulary, handles no results and retain
   await page.getByRole("button", { name: "Clear search" }).click();
   await expect(page.locator(".overview-tool-card")).toHaveCount(21);
   await page.getByRole("link", { name: "Maths Dock home" }).click();
-  await expect(page.locator(".overview-card")).toHaveCount(6);
+  await expect(page.locator(".home-tool")).toHaveCount(6);
 });
 
 for (const [tool, key, resource, stage, confirm] of tools) {

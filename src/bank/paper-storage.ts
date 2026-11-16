@@ -39,3 +39,9 @@ export function savePaperDraft(draft: PaperDraft, storage: Pick<Storage, "setIte
     // Storage can be full or blocked (private windows); the paper still works for this visit.
   }
 }
+
+/** A short line about a paper for Home's "Carry on" row: "3 Sparx codes · 2 chosen questions". */
+export function paperSummary(draft: PaperDraft): string {
+  const count = (n: number, one: string, many: string) => (n ? [`${n} ${n === 1 ? one : many}`] : []);
+  return [...count(draft.codes.length, "Sparx code", "Sparx codes"), ...count(Object.keys(draft.manual).length, "chosen question", "chosen questions")].join(" · ");
+}

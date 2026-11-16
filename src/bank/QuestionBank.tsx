@@ -18,7 +18,8 @@ import { catalogueCoverage } from "./coverage";
 import { questionResource } from "./resources";
 import { addedNote, servedParts } from "./cuts";
 import { draftEntries, draftReducer, hasDraftIntent } from "./paper-builder";
-import { loadPaperDraft, savePaperDraft } from "./paper-storage";
+import { loadPaperDraft, paperSummary, savePaperDraft } from "./paper-storage";
+import { forgetWork, noteWork } from "../site/recentWork";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
@@ -70,7 +71,14 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [showPerformance,setShowPerformance]=useState(false);
   const [listOpen,setListOpen]=useState(false);
   const [draft,dispatchDraft]=useReducer(draftReducer,undefined,()=>loadPaperDraft());
-  useEffect(()=>{savePaperDraft(draft);},[draft]);
+  // Home's "Carry on" row lists the paper once the teacher changes what is in it, and drops it when it is cleared.
+  const paperChoice=useRef<string|undefined>(undefined);
+  useEffect(()=>{
+    savePaperDraft(draft);
+    const choice=JSON.stringify([draft.codes,draft.manual,draft.excluded]);
+    if(paperChoice.current!==undefined&&paperChoice.current!==choice){if(hasDraftIntent(draft))noteWork("paper-builder",paperSummary(draft));else forgetWork("paper-builder");}
+    paperChoice.current=choice;
+  },[draft]);
   const draftRef=useRef(draft);draftRef.current=draft;
   const [reviewOpen,setReviewOpen]=useState(false);
   const [imageBusy,setImageBusy]=useState(false);

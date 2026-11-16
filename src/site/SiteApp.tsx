@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import "./pageStyles";
-import { Overview } from "./Overview";
 import { NotFound } from "./NotFound";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
@@ -22,6 +21,7 @@ import {
   WorksheetPage,
   BookletPage,
   DiagramBuilderPage,
+  HomePage,
   sectionName,
   readPage,
   readSection,
@@ -195,11 +195,9 @@ export default function SiteApp() {
       )}
       {(page === "home" || page === "booklet-tools") && (
         <div className="site-page">
-          {page === "home" ? <Overview /> : (
-            <LazyPage onReady={pageReady}>
-              <DiagramBuilderPage active />
-            </LazyPage>
-          )}
+          <LazyPage key={page} onReady={pageReady}>
+            {page === "home" ? <HomePage active /> : <DiagramBuilderPage active />}
+          </LazyPage>
           <SiteFooter />
         </div>
       )}

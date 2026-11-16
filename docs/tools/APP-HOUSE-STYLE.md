@@ -183,6 +183,32 @@ builders use the same switch, without the label.
 
 A tool passes its switch to `EditorToolbar` as `answers`.
 
+## Home
+
+Home is the start page (`src/site/Home.tsx`, styled by `home.css`). Its code loads when Home is
+the page opened, like every other page, so a tool's first load does not carry it. From the top:
+
+- **"What do you need today?"** and one search box. It finds the six pages by name or by what
+  they do, and diagram tools by name or teaching topic (`searchHome` in `homeSearch.ts`, using
+  the Diagram builder's search words). A Sparx code, a letter and three digits, opens its
+  questions in the Question bank. `/` moves to the box, Down moves into what it found, Enter
+  opens the first, Escape clears. It does not search exam questions: the bank's catalogue is too
+  large to load on Home.
+- **Carry on.** The last three places where the teacher changed something on this device, newest
+  first, each saying when. A place is recorded when a change is made, never for only opening a
+  page, and the row is left out until there is one. `recentWork.ts` keeps a place and a time,
+  never the work: the shared Undo and Redo buttons record a diagram tool or a builder once there
+  is a step to undo, and the Question bank records the paper being built and drops it when the
+  paper is cleared.
+- **Tools.** One card for each of the six pages: a large icon, the name and what it does. Six to
+  a row from 1,400 px wide, then three, two and one.
+- **Favourites.** The teacher's starred diagram tools as small picture cards. Stars are added in
+  the Diagram builder and the tool switcher.
+
+Card size carries meaning: a bigger card lets you do more, so a Tools card is much larger than a
+favourite. Small words that sit straight on the page colour use `--md-ink-2`, because
+`--md-ink-3` is too pale there.
+
 ## Decided, and built in later steps
 
 - **Tall windows.** Settings go underneath the work in three columns, so the work keeps the full
@@ -190,6 +216,3 @@ A tool passes its switch to `EditorToolbar` as `answers`.
 - **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
   is on sits side by side, and switching one off lets the rest grow.
 - **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.
-- **Home.** A start page: search, Carry on, a row called Tools with one clean card for each page,
-  and favourites below as small picture cards. Card size carries meaning: a bigger card lets you
-  do more, so a Tools card is much larger than a favourite.

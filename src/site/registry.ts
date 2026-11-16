@@ -55,6 +55,8 @@ export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
 export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
 export const BookletPage = lazyPage(() => import("../booklet/BookletPage"));
+/** Home is a page like the rest: its code loads when it is the page opened, not with every tool. */
+export const HomePage = lazyPage(() => import("./Home"));
 /** The Diagram builder page loads on first visit, so Home stays light. */
 export const DiagramBuilderPage = lazyPage(() => import("./DiagramBuilder").then((m) => ({ default: m.DiagramBuilder })));
 export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from "./routes";
@@ -67,12 +69,12 @@ const _toolsHaveSwitcher: readonly { component: { withToolSwitcher: true } }[] =
 void _toolsHaveSwitcher;
 /** Home and the main navigation describe the same teacher destinations. */
 export const siteSections = [
-  { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: QuestionBankIcon, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.", action: "Open Question bank" },
-  { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: PaperBuilderIcon, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
-  { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: AssessmentIcon, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
-  { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: DiagramBuilderIcon, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Make a diagram" },
-  { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: WorksheetBuilderIcon, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
-  { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookletBuilderIcon, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
+  { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: QuestionBankIcon, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes." },
+  { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: PaperBuilderIcon, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme." },
+  { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: AssessmentIcon, description: "Turn question-level assessment results into personalised practice for each pupil." },
+  { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: DiagramBuilderIcon, description: "Create graphs, ratio tables and diagrams for your teaching resources." },
+  { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: WorksheetBuilderIcon, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs." },
+  { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookletBuilderIcon, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson." },
 ] as const;
 export type SectionId = PageId | "paper-builder";
 export function readSection(where: { pathname: string; search: string } = location): SectionId {
@@ -94,6 +96,7 @@ export function pageName(id: PageId): string {
 }
 /** Starts downloading a page's code; the first page is loaded before the site renders. */
 export function preloadPage(id: PageId) {
+  if (id === "home") return HomePage.preload();
   if (id === "question-bank") return QuestionBank.preload();
   if (id === "assessment-follow-up") return AssessmentPage.preload();
   if (id === "worksheets") return WorksheetPage.preload();
