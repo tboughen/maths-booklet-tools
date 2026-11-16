@@ -115,7 +115,7 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
               <select
                 aria-label={`${label} shaded first row`}
                 value={item.columns ? "headings" : "cells"}
-                disabled={blocked || (!item.columns && item.rows.length < 2)}
+                disabled={blocked}
                 onChange={(e) => {
                   // Printed headings, or a first row whose cells can be blank or hidden (an x row
                   // along the page). Switching keeps every cell's text.
@@ -126,9 +126,17 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
                     set({ ...item, columns: item.rows[0].map((c) => c.text), rows: item.rows.slice(1) });
                 }}
               >
-                <option value="headings">Printed headings</option>
-                <option value="cells">Cells that can be blank or hidden</option>
+                {/* Back to printed headings only when every first-row cell is printed: a blank or
+                    hidden answer must never become a printed heading. */}
+                <option value="headings" disabled={!item.columns && (item.rows.length < 2 || item.rows[0].some((c) => c.state !== "supplied"))}>
+                  Printed headings
+                </option>
+                <option value="cells" disabled={!!item.columns && item.rows.length >= 12}>
+                  Cells that can be blank or hidden
+                </option>
               </select>
+              {!item.columns && item.rows[0].some((c) => c.state !== "supplied") && <small>Printed headings need every first-row cell printed.</small>}
+              {item.columns && item.rows.length >= 12 && <small>A table has at most 12 rows, so remove a row first.</small>}
             </label>
             {item.columns && (
               <div className="ws-table-row">

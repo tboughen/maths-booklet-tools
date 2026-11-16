@@ -116,10 +116,12 @@ const leafItems = [
     })
     .strict()
     .superRefine((t, ctx) => {
-      const want = t.columns?.length ?? t.rows[0].length;
+      // A short row prints its missing cells empty (as saved sheets always have); a long one has
+      // no column to print in.
+      const want = t.columns?.length ?? t.rows[0]?.length ?? 0;
       t.rows.forEach((r, i) => {
-        if (r.length !== want)
-          ctx.addIssue({ code: "custom", path: ["rows", i], message: `Each row needs ${want} cells, one per column; this row has ${r.length}.` });
+        if (r.length > want)
+          ctx.addIssue({ code: "custom", path: ["rows", i], message: `This row has ${r.length} cells but the table has ${want} columns.` });
       });
     }),
   z

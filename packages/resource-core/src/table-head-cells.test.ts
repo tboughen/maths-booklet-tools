@@ -66,9 +66,12 @@ describe("a table whose shaded first row holds blanks and hidden answers", () =>
     expect(first(p)).not.toContain(">3</w:t>");
     expect(first(a)).toContain(">3</w:t>");
   });
-  it("still prints printed headings, and refuses rows of the wrong length", () => {
+  it("still prints printed headings, and refuses rows longer than the table", () => {
     expect(() => sheet([{ type: "table", columns: ["x", "y"], rows: [[c("1"), c("2")]] }])).not.toThrow();
-    expect(() => sheet([{ type: "table", columns: ["x", "y", "z"], rows: [[c("1"), c("2")]] }])).toThrow(/needs 3 cells/);
-    expect(() => sheet([{ type: "table", rows: [[c("x"), c("1")], [c("y"), c("2"), c("3")]] }])).toThrow(/needs 2 cells/);
+    // A short row still opens and prints its missing cell empty; a long row is refused clearly.
+    expect(() => sheet([{ type: "table", columns: ["x", "y", "z"], rows: [[c("1"), c("2")]] }])).not.toThrow();
+    expect(() => sheet([{ type: "table", rows: [[c("x"), c("1")], [c("y"), c("2"), c("3")]] }])).toThrow(/has 3 cells but the table has 2 columns/);
+    expect(() => sheet([{ type: "table", rows: [] }])).toThrow(/rows/);
+    expect(() => sheet([{ type: "table", rows: [] }])).not.toThrow(TypeError);
   });
 });
