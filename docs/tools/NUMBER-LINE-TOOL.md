@@ -45,7 +45,9 @@ answerVisible and responseLines. Labels use canonical rational-value keys.
 
 Arrow markers (optional `markers`, up to 6) are down arrows for "What number is
 the arrow pointing to?" questions. Each has a stable id, an exact value (which may
-lie between ticks) and an optional letter of up to 3 characters. Markers cannot share
+lie between ticks) and an optional label of up to 8 characters: a letter such as A or
+P1, or a number such as 3.47, −2.5 or 12 500 (a typed hyphen prints as a minus sign).
+A label near either end moves inwards just enough to stay inside the drawing. Markers cannot share
 a line with a solution set, must sit inside the axis and must not crowd each other at
 the print width. The marker value is the answer, so it never prints; put it in the
 answer text. `axis.minorTicks: true` draws labelled ticks across the axis and the
@@ -63,7 +65,9 @@ Print size is independent.
 Lines are normal or bold (U111, under Print size): bold multiplies every stroke by 1.5 and is
 saved as `lines: "bold"`; normal is never saved. A new number line starts with the house
 style's lines. Text stays 11 pt in both house presets. The connector takes `spec.lines` and
-`set_print {widthCm?, lines?}`.
+`set_print {widthCm?, lines?}`. `widthCm` runs from 4 to 18 cm. A narrow line keeps 11 pt
+text; tick, second-scale and arrow labels that would sit closer than 1.3 mm are refused with
+an error, so widen the line, label fewer ticks or use a coarser step.
 
 This website release does not deploy or refresh the separate MCP service/client.
 Publication uses docs/release/RELEASE-PIPELINE.md and its exact qualified artifact.
