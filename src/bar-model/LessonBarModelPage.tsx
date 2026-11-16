@@ -29,7 +29,7 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
 import { saveStorage, type Startup } from "./storage";
 import { RatioDialog } from "../ratio-table/RatioDialog";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { houseModel } from "./house";
@@ -530,6 +530,15 @@ export default function LessonBarModelPage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={barLessonGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, title)}
+                  onWorked={(resource) => replace(resource, "", true)}
+                />
+              }
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -539,7 +548,6 @@ export default function LessonBarModelPage({
               onUndo={undo}
               onRedo={redo}
               onReset={() => replace(houseModel(v3.fresh()), "Start a new model?")}
-              resetLabel="New model"
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
@@ -793,13 +801,7 @@ export default function LessonBarModelPage({
             ))}
           </Panel>
           <div className="inspector-stack">
-            <ExampleGallery
-              examples={barLessonGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, title)}
-              onWorked={(resource) => replace(resource, "", true)}
-            />
+            <ReturnToDiagram />
             {(recovery !== undefined || conflict) && (
               <Panel>
                 <div

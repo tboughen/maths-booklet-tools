@@ -6,7 +6,7 @@ import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { fitResource } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -820,6 +820,17 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={triangleGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               answers={
                 <AnswerPreviewToggle
                   checked={showAnswers}
@@ -1551,15 +1562,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Triangle settings">
-            <ExampleGallery
-              examples={triangleGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <div className="tr-label-editor-slot" />
             <section className="panel-card tr-panel specialist-tools">
               <h2>Selected object</h2>

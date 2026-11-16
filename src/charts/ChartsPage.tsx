@@ -16,7 +16,7 @@ import {
 } from "react";
 import { downloadName } from "../export/filenames";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -675,6 +675,17 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={chartGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               answers={
                 <AnswerCopyToggle
                   checked={view === "answer"}
@@ -910,15 +921,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Chart settings">
-            <ExampleGallery
-              examples={chartGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card ch-panel">
               <h2>Chart type</h2>
               <div className="ch-kinds" role="group" aria-label="Chart type">

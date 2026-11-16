@@ -7,7 +7,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { anglesGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -548,6 +548,15 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={anglesGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
@@ -684,13 +693,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Angle diagram settings">
-            <ExampleGallery
-              examples={anglesGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected angle">
               <h2>{current ? `Angle: ${slotName(current)}` : "Selected angle"}</h2>
               <div className="pt-fields">

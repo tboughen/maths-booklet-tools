@@ -8,7 +8,7 @@ import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
 import { houseRatio } from "./house";
 import { pathLink } from "../site/routes";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import {
   ratioGallery,
   ratioTeachingGallery,
@@ -567,6 +567,15 @@ export default function RatioTablePage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={[...ratioTeachingGallery, ...ratioGallery]}
+                  active={active}
+                  disabled={exportDisabled || !!pending}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               answers={hasRatioAnswers(envelope) ? <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} /> : undefined}
               canUndo={!recovery && !!history.past.length}
               undoLabel={undoStepName(history)}
@@ -753,13 +762,7 @@ export default function RatioTablePage({
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
-            <ExampleGallery
-              examples={[...ratioTeachingGallery, ...ratioGallery]}
-              active={active}
-              disabled={exportDisabled || !!pending}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <RatioInspector
                 document={document}

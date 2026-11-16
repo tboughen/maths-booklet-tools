@@ -9,7 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -325,6 +325,15 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={treeGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, undefined, "use worked version")}
+                />
+              }
               answers={
                 <AnswerCopyToggle
                   checked={view === "answer"}
@@ -477,13 +486,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Probability tree settings">
-            <ExampleGallery
-              examples={treeGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, undefined, "use worked version")}
-            />
+            <ReturnToDiagram />
             {selectedBranch && (
               <section className="panel-card pt-panel" aria-label="Selected branch">
                 <h2>Branch: {branchName(selectedBranch)}</h2>

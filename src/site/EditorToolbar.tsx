@@ -30,7 +30,6 @@ interface EditorToolbarProps {
   /** False while the page is switched away from; the reset notice closes then. */
   active?: boolean;
   onReset: () => void;
-  resetLabel?: string;
   resetDisabled?: boolean;
   exportDisabled?: boolean;
   busy?: boolean;
@@ -40,6 +39,8 @@ interface EditorToolbarProps {
   onToggleMenu: () => void;
   menuId?: string;
   menuDisabled?: boolean;
+  /** The tool's `ExampleGallery`: its "Examples" button sits before Start again. */
+  examples?: ReactNode;
   /** The tool's answers switch (`AnswerPreviewToggle` or `AnswerCopyToggle`), if it has hidden answers. */
   answers?: ReactNode;
 }
@@ -143,14 +144,16 @@ function Toolbar(props: EditorToolbarProps) {
           undoLabel={props.undoLabel}
           redoLabel={props.redoLabel}
         />
+        {props.examples}
         <button
           className="tool-button reset-button"
           disabled={props.resetDisabled}
-          aria-label={props.resetLabel ?? "Reset"}
+          aria-label="Start again"
+          title="Start again with a new, blank resource"
           onClick={props.onReset}
         >
           <RotateCcw size={17} aria-hidden="true" />
-          <span>Reset</span>
+          <span>Start again</span>
         </button>
       </div>
       {props.answers ? <div className="editor-view-actions">{props.answers}</div> : null}

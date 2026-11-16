@@ -145,6 +145,18 @@ keyboard and screen readers meet it in the order the eye does. Rows a tool keeps
 the action bar, so one press still skips the diagram; it shows over the corner of the stage, so
 nothing moves when it appears.
 
+## The action bar
+
+The bar above the diagram is the same in every tool (`EditorToolbar`). From the left: Undo, Redo,
+**Examples**, **Start again**. At the right: the answers switch where a tool has hidden answers,
+then Copy image, Copy for Word and File.
+
+- **Examples** opens the "Start from an example" gallery. It used to be a wide button at the top
+  of the settings column, which now starts with the tool's own settings.
+- **Start again** is the reset: it asks first, and Undo brings the work back.
+- On a window up to 1,100 px wide Examples and Start again show their icons only, so the answers
+  switch shares their row.
+
 ## The answers switch
 
 A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads

@@ -36,31 +36,6 @@
       600 13px/1.4 var(--md-font);
   }
 }
-.booklet-editor .example-launch {
-  margin-bottom: 0;
-}
-.booklet-editor .example-launch-button {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  padding: 11px 14px;
-  border: 1px solid #83a8d5;
-  background: #fff;
-  color: #174d89;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  cursor: pointer;
-}
-.booklet-editor .example-launch-button:hover:not(:disabled) {
-  background: var(--blue-soft);
-}
-.booklet-editor .example-launch-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
 .booklet-editor .inspector-stack:focus {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
@@ -320,16 +295,10 @@
   }
 }
 @media (max-width: 900px) {
-  .booklet-editor .workspace {
+  /* The worksheet and booklet builders keep this room above their work. */
+  .booklet-editor.ws-editor .workspace {
     position: relative;
     padding-top: 56px;
-  }
-  .booklet-editor .example-launch-button {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    width: 100%;
   }
   .booklet-editor .editor-inspector-link,
   .booklet-editor .editor-diagram-link {
@@ -343,8 +312,9 @@
     font:
       600 13px/1.4 var(--md-font);
   }
-  .booklet-editor .example-launch {
+  .booklet-editor .inspector-stack > .editor-diagram-link {
     grid-column: 1 / -1;
+    justify-self: start;
   }
   .booklet-editor .inspector-stack {
     scroll-margin-top: 120px;
@@ -404,12 +374,6 @@
 .graph-board.is-compact .graph-axis-controls[data-axis="x"],
 .vg-editor-frame.is-compact .vg-axis-end[data-axis="x"] {
   flex-direction: column;
-}
-.booklet-editor .example-launch-button {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
 }
 .tr-floating .tr-options-list {
   gap: 5px;
@@ -562,4 +526,10 @@
   margin: 0;
   background: white;
   box-shadow: 0 8px 24px rgba(23, 43, 77, 0.16);
+}
+/* On a narrow card Examples and Start again keep their icons only, so the answers switch shares
+   their row. Their names stay as tooltips and for screen readers. */
+@media (max-width: 1100px) {
+  .booklet-editor .editor-toolbar :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
+  .booklet-editor .editor-toolbar :is(.example-launch-button, .reset-button) span { display: none; }
 }

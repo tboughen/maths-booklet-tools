@@ -73,7 +73,7 @@ test("triangle: arrows nudge the selected label 1 mm, Shift 5 mm; Escape deselec
 
 test("ratio table: Delete removes the selected arrow, never a row; one undo restores it", async ({ page }) => {
   await page.goto("/tools/ratio-table");
-  await page.getByRole("button", { name: "Start from an example", exact: true }).click();
+  await page.getByRole("button", { name: "Examples", exact: true }).click();
   const card = page.getByRole("dialog").locator("article").filter({ hasText: "Worked scaling step" });
   await card.getByRole("button", { name: /^(Open diagram|Use this example)$/ }).click();
   const confirm = page.getByRole("dialog").getByRole("button", { name: /^(Open|Replace|Use)/ });

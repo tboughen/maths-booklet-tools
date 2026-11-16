@@ -6,7 +6,7 @@ import { answerSize, previewArt, workedIssue } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -449,6 +449,17 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={vennGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               answers={
                 <AnswerCopyToggle
                   checked={view === "answer"}
@@ -687,15 +698,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Venn diagram settings">
-            <ExampleGallery
-              examples={vennGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card vn-layout-tools">
               <h2>Diagram tools</h2>
               <div className="vn-structure">

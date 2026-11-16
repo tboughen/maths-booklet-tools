@@ -3,7 +3,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -1296,6 +1296,22 @@ export default function ValueGraphPage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={quadraticGallery}
+                  active={active}
+                  disabled={blocked || !!pending}
+                  onUse={(resource, title) => {
+                    ask(
+                      `Open ${title}?`,
+                      "This replaces the current resource. You can undo this.",
+                      () => commit(resource),
+                    );
+                    setExamplePreview(resource);
+                  }}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -1873,20 +1889,7 @@ export default function ValueGraphPage({
             className="inspector-stack"
             aria-label="Table and graph settings"
           >
-            <ExampleGallery
-              examples={quadraticGallery}
-              active={active}
-              disabled={blocked || !!pending}
-              onUse={(resource, title) => {
-                ask(
-                  `Open ${title}?`,
-                  "This replaces the current resource. You can undo this.",
-                  () => commit(resource),
-                );
-                setExamplePreview(resource);
-              }}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. */}
             {selection && !localSelection ? (
               <InspectorEditor

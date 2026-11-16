@@ -24,10 +24,7 @@
   .booklet-editor:not(.ws-editor) .equation-panel {
     grid-row: auto;
   }
-  .booklet-editor:not(.ws-editor) .example-launch-button {
-    position: static;
-  }
-  .booklet-editor:not(.ws-editor) .example-launch {
+  .booklet-editor:not(.ws-editor) .inspector-stack > .editor-diagram-link {
     grid-column: auto;
   }
 }

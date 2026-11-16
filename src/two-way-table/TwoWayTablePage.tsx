@@ -9,7 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { twoWayTableGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -306,6 +306,15 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={twoWayTableGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
               answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               canRedo={!blocked && history.future.length > 0}
@@ -517,13 +526,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
             </div>
           </Panel>
           <aside className="inspector-stack" aria-label="Two-way table settings">
-            <ExampleGallery
-              examples={twoWayTableGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected cell">
               <h2>{selectedCell && selected ? `Cell: ${rowName(selected.row)}, ${columnName(selected.column)}` : "Selected cell"}</h2>
               {selectedCell && selected ? (

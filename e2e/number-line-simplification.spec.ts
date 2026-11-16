@@ -270,7 +270,7 @@ test("toggled endpoints agree in actual SVG, print PNG, clipboard, Word HTML and
     embeddedPng: true,
   });
   await writeFile(info.outputPath("word.html"), html);
-  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await page.getByRole("button", { name: "Start again", exact: true }).click();
   await page
     .getByRole("button", { name: "Open resource", exact: true })
     .click();
