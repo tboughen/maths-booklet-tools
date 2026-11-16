@@ -1,0 +1,195 @@
+{
+ "kind": "figures",
+ "schemaVersion": 1,
+ "rendererVersion": "figures-1",
+ "document": {
+  "points": [
+   {
+    "id": "o",
+    "place": {
+     "type": "free",
+     "x": 0,
+     "y": 0
+    },
+    "name": "O",
+    "show": "dot"
+   },
+   {
+    "id": "a",
+    "place": {
+     "type": "on",
+     "circle": "c",
+     "deg": 100
+    },
+    "name": "A",
+    "show": "none"
+   },
+   {
+    "id": "b",
+    "place": {
+     "type": "on",
+     "circle": "c",
+     "deg": 160
+    },
+    "name": "B",
+    "show": "none"
+   },
+   {
+    "id": "c1",
+    "place": {
+     "type": "on",
+     "circle": "c",
+     "deg": 235
+    },
+    "name": "C",
+    "show": "none"
+   },
+   {
+    "id": "d",
+    "place": {
+     "type": "on",
+     "circle": "c",
+     "deg": 345
+    },
+    "name": "D",
+    "show": "none"
+   }
+  ],
+  "circles": [
+   {
+    "id": "c",
+    "centre": "o",
+    "r": 30,
+    "style": "solid"
+   }
+  ],
+  "segments": [
+   {
+    "id": "ab",
+    "a": "a",
+    "b": "b",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "bc",
+    "a": "b",
+    "b": "c1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "cd",
+    "a": "c1",
+    "b": "d",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "da",
+    "a": "d",
+    "b": "a",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "oa",
+    "a": "o",
+    "b": "a",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "oc",
+    "a": "o",
+    "b": "c1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   }
+  ],
+  "angles": [
+   {
+    "id": "aoc",
+    "at": "o",
+    "from": "a",
+    "to": "c1",
+    "label": {
+     "state": "symbol",
+     "text": "x",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "fills": [],
+  "captions": [],
+  "notToScale": true
+ }
+}

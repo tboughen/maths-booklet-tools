@@ -191,6 +191,23 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       else out.push(slot(path, "blank"));
     });
   },
+  figures(doc, out) {
+    // As angles, for every side and angle label.
+    for (const key of ["segments", "angles"]) {
+      const list = Array.isArray(doc[key]) ? (doc[key] as Node[]) : [];
+      list.forEach((x, i) => {
+        const path = `document.${key}.${i}.label`,
+          l = isNode(x.label) ? x.label : {};
+        const text = str(l.text),
+          answer = str(l.answer);
+        if (l.state === "value") out.push(slot(path, "supplied", text));
+        else if (l.state === "answer-line") out.push(slot(path, "answerLine", answer));
+        else if (answer) out.push(slot(path, "hidden", answer));
+        else if (l.state === "symbol") out.push(slot(path, "supplied", text));
+        else out.push(slot(path, "blank"));
+      });
+    }
+  },
   "sample-space"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

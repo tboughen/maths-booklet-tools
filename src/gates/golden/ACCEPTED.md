@@ -653,3 +653,18 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 
 - factor trees: ft-two-ways-84: svg c601bef7d887ab91 -> df291ccdee269b3c
 - factor trees: ft-two-ways-84: pixels 722a3009c5de1ff8 -> 952e895b2024773c
+
+## 2026-11-16: Add the new geometry figures family (circle theorems, similar and congruent shapes): new outputs only
+
+- geometry figures: figures-tangent-cyclic: added
+- geometry figures: figures-tangent-cyclic (worked): added
+- geometry figures: figures-two-tangents: added
+- geometry figures: figures-two-tangents (worked): added
+- geometry figures: figures-centre-angle: added
+- geometry figures: figures-centre-angle (worked): added
+- geometry figures: figures-similar-right: added
+- geometry figures: figures-similar-right (worked): added
+- geometry figures: figures-parallel-in-triangle: added
+- geometry figures: figures-parallel-in-triangle (worked): added
+- geometry figures: figures-congruent-four: added
+- geometry figures: figures-congruent-four (worked): added

@@ -199,4 +199,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     names: "Up to 20 letters beside corners or circle points.",
     settings: "shaded (none, shape or hole), grid (1 cm squares), notToScale, fontPt and lines.",
   },
+  figures: {
+    example: "A starting figure redrawn from a Question Bank question, by key.",
+    points: "Up to 40 points by id, each placed freely (mm), on a circle, along a line, where lines meet, along a tangent, where two tangents meet or at a perpendicular's foot.",
+    circles: "Up to 4 circles: a centre point and a radius in mm.",
+    segments: "Straight lines between two points, extended past them if wanted, with ticks, parallel arrows and a length label.",
+    angles: "Marked angles at a vertex between two points, with arc, double, triple or right-angle marks and a label.",
+    fills: "Grey regions through points.",
+    captions: "Free text such as Triangle A.",
+    settings: "notToScale, fontPt and lines.",
+  },
 };
