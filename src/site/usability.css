@@ -530,20 +530,24 @@
 /* Where a diagram tool's action bar would not fit on one row it gives up room in two steps. First
    Examples and Start again keep their icons only; their names stay as tooltips and for screen
    readers. Then the copy, Download and File buttons keep their words only (the spinner of a copy
-   in progress stays). A tool with an answers switch needs the room sooner. */
-@media (max-width: 1279px) {
+   in progress stays). A tool with an answers switch needs the room sooner.
+
+   Each step has three conditions, because on a tall window the settings sit underneath the diagram
+   (editor-frame.css) and the bar has the whole width: the first is that tall layout, where only a
+   tool with an answers switch ever needs a step; the other two are every window that is not tall. */
+@media (max-width: 999px), (max-width: 1279px) and (max-height: 1199px), (max-width: 1279px) and (min-aspect-ratio: 4 / 5) {
   .booklet-editor:not(.ws-editor) .editor-toolbar :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
   .booklet-editor:not(.ws-editor) .editor-toolbar :is(.example-launch-button, .reset-button) span { display: none; }
 }
-@media (max-width: 1500px) {
+@media (max-width: 1187px), (max-width: 1500px) and (max-height: 1199px), (max-width: 1500px) and (min-aspect-ratio: 4 / 5) {
   .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) :is(.example-launch-button, .reset-button) { padding-inline: 9px; }
   .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) :is(.example-launch-button, .reset-button) span { display: none; }
 }
-@media (max-width: 1180px) {
+@media (max-width: 999px), (max-width: 1180px) and (max-height: 1199px), (max-width: 1180px) and (min-aspect-ratio: 4 / 5) {
   .booklet-editor:not(.ws-editor) .editor-copy-actions :is(.copy-main, .file-menu-button) { padding-inline: 8px; gap: 4px; }
   .booklet-editor:not(.ws-editor) .editor-copy-actions :is(.copy-main > svg:not(.spin), .menu-icon) { display: none; }
 }
-@media (max-width: 1365px) {
+@media (max-width: 1052px), (max-width: 1365px) and (max-height: 1199px), (max-width: 1365px) and (min-aspect-ratio: 4 / 5) {
   .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) .editor-copy-actions :is(.copy-main, .file-menu-button) { padding-inline: 8px; gap: 4px; }
   .booklet-editor:not(.ws-editor) .editor-toolbar:has(.editor-view-actions) .editor-copy-actions :is(.copy-main > svg:not(.spin), .menu-icon) { display: none; }
 }

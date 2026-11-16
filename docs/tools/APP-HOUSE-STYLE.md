@@ -97,6 +97,24 @@ app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights
 each tool had before.
 
+### A tall window
+
+On a tall window, such as a portrait monitor (at least 1,000 px wide and 1,200 px high, and no
+wider than four fifths of its height), the settings go underneath the work so that the diagram
+keeps the full width:
+
+- The card with the diagram takes at least five eighths of the height, and all of what the
+  settings leave.
+- The settings sit under it in three columns, each read from top to bottom. A settings card is
+  never split between two columns.
+- Settings longer than the room left scroll underneath the card. The card stays where it is, so
+  the diagram is in view while a setting changes.
+- The action bar has the whole width, so it keeps its words for longer (see The action bar).
+
+A tool needs nothing of its own for this. Its settings cards must be direct children of
+`.inspector-stack`. The Graph tool and Ratio tables keep theirs inside groups that have no box of
+their own, and `editor-frame.css` names those two groups.
+
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
 `editor-stage` as a direct child of the card, and putting an `EditorFoot` straight after it. A tool
@@ -161,7 +179,9 @@ then Copy image, Copy for Word, **Download** and **File**.
 - Where the bar would not fit on one row it gives up room in two steps. First Examples and Start
   again show their icons only: up to 1,279 px wide in every tool, and up to 1,500 px in a tool
   with an answers switch. Then the copy, Download and File buttons show their words only: up to
-  1,180 px, and up to 1,365 px in a tool with an answers switch.
+  1,180 px, and up to 1,365 px in a tool with an answers switch. On a tall window, where the bar
+  has the whole width, only a tool with an answers switch gives up room: icons only up to
+  1,187 px wide, words only up to 1,052 px.
 - On a phone the four buttons at the right sit two by two.
 
 ## The answers switch
@@ -214,8 +234,6 @@ favourite. Small words that sit straight on the page colour use `--md-ink-2`, be
 
 ## Decided, and built in later steps
 
-- **Tall windows.** Settings go underneath the work in three columns, so the work keeps the full
-  width.
 - **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
   is on sits side by side, and switching one off lets the rest grow.
 - **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.
