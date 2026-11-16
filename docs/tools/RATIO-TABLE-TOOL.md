@@ -73,7 +73,8 @@ A heading ending in →, ↑ or ↓ gets that arrow; with no arrow it prints pla
 give a proportion table x | y. A single letter prints italic. For direct and inverse proportion
 (NP17, Tim, 16 November 2026) `"x^2"` (or `"x²"`) and `"x^3"` print a true superscript and
 `"1/x"` or `"1/x^2"` a stacked fraction, with the letter italic and digits upright; superscripts
-stay at the 10 pt house minimum. Plain headings and units such as m/s print exactly as before. A cell is
+stay at the 10 pt house minimum. A stacked fraction heading (1/x, 1/x²) makes the heading row 3 mm taller so the
+fraction clears the heading rule; other tables keep their exact layout. Plain headings and units such as m/s print exactly as before. A cell is
 `"3"`, `"-1/2"`, `""` (empty), `"_"` (answer line), `"[3]"` (hidden) or `"[3]_"` (hidden on an
 answer line). A step is `""`, `"× 2"` or `"÷ 2"` (`x`, `*` and `/` also work), in brackets to
 hide it; any step turns the arrows on. In a two-column table `"left: × 2"` or `"right: [÷ 2]"`

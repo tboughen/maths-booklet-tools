@@ -152,7 +152,7 @@ export function RatioCanvas({
                 {Array.from({ length: document.rows.length + 2 }, (_, i) => (
                   <path
                     key={i}
-                    d={`M${m.tableLeft} ${m.tableTop + i * 100}h${m.tableWidth}`}
+                    d={`M${m.tableLeft} ${i === 0 ? m.tableTop : m.bodyTop + (i - 1) * 100}h${m.tableWidth}`}
                   />
                 ))}
               </g>
@@ -175,7 +175,7 @@ export function RatioCanvas({
                         className="ratio-step-highlight"
                         style={position(
                           m.tableLeft,
-                          m.tableTop + (index + 1) * 100 + 4,
+                          m.bodyTop + index * 100 + 4,
                           m.tableWidth,
                           92,
                         )}
@@ -191,7 +191,7 @@ export function RatioCanvas({
                   m.tableLeft + column * m.columnWidth + 8,
                   m.tableTop + 10,
                   m.cellWidth - 16,
-                  80,
+                  m.headHeight - 20,
                 )}
               >
                 <HeadingInput
@@ -216,7 +216,7 @@ export function RatioCanvas({
                     className={`ratio-row-target${arrowFrom === row.id ? " is-selected" : ""}`}
                     style={position(
                       m.tableLeft,
-                      m.tableTop + (index + 1) * 100 + 5,
+                      m.bodyTop + index * 100 + 5,
                       m.tableWidth,
                       90,
                     )}
@@ -238,7 +238,7 @@ export function RatioCanvas({
                       data-cell-kind={cell.kind}
                       style={position(
                         m.tableLeft + column * m.columnWidth + 8,
-                        m.tableTop + (index + 1) * 100 + 10,
+                        m.bodyTop + index * 100 + 10,
                         m.cellWidth - 16,
                         80,
                       )}
@@ -326,8 +326,8 @@ export function RatioCanvas({
                         document.showArrows
                           ? edge + (side < 0 ? -48 : 4)
                           : centre - total / 2 - 3,
-                        m.tableTop +
-                          150 +
+                        m.bodyTop +
+                          50 +
                           row * 100 +
                           (document.showArrows ? 5 : 24),
                         document.showArrows
@@ -358,7 +358,7 @@ export function RatioCanvas({
                             className={`ratio-inline-factor${side < 0 ? " is-left" : ""}`}
                             style={position(
                               factorCentre - factorWidth / 2 - 3,
-                              m.tableTop + 150 + row * 100 + 24,
+                              m.bodyTop + 50 + row * 100 + 24,
                               Math.max(factorWidth + 6, 28),
                               52,
                             )}
