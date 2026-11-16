@@ -58,13 +58,6 @@ body { background: #f2f5f8; }
 .site-footer-inner { max-width: 1120px; margin: 0 auto; padding: 24px 20px 32px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 32px; }
 .site-footer h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: #213c59; }
 .site-footer p { margin: 0 0 8px; max-width: 60ch; font-size: 14px; line-height: 1.55; color: var(--muted); }
-.overview-cards { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); grid-auto-rows: 1fr; gap: 20px; }
-.overview-card { display: flex; flex-direction: column; align-items: start; padding: 28px; border: 1px solid var(--line); border-radius: 6px; background: white; box-shadow: var(--shadow); text-decoration: none; }
-.overview-card:hover { border-color: #8aabd1; }
-.overview-icon { display: grid; place-items: center; width: 48px; height: 48px; color: #1d518c; background: var(--blue-soft); border-radius: 5px; }
-.overview-card h2 { margin: 20px 0 0; font-size: 20px; font-weight: 600; color: #213c59; }
-.overview-card p { margin: 10px 0 24px; max-width: 42ch; font-size: 15px; line-height: 1.6; color: var(--muted); }
-.overview-launch { margin-top: auto; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #1d518c; }
 .overview-note { color: var(--muted); font-size: 13px; margin-top: 24px; line-height: 1.6; }
 .booklet-editor .main-content { max-width: 1920px; width: 100%; padding: 16px 20px 24px; }
 .booklet-editor .workspace { grid-template-columns: minmax(0,1fr) 316px; gap: 12px; align-items: start; }
@@ -151,8 +144,6 @@ body { background: #f2f5f8; }
   .site-overview { padding: 24px 12px; }
   .site-overview-tools { padding-top: 12px; }
   .site-footer-inner { grid-template-columns: 1fr; gap: 16px; padding: 20px 12px 24px; }
-  .overview-cards { grid-template-columns: 1fr; gap: 12px; }
-  .overview-card { padding: 22px; }
   .booklet-editor .main-content { padding: 14px 10px 20px; }
   .page-heading { align-items: start; flex-direction: column; gap: 8px; }
   .page-heading h1 { font-size: 20px; }
