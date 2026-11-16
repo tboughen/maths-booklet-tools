@@ -136,3 +136,12 @@ test("the switcher has no serious accessibility violations closed, open, searchi
   await scan("open at 320 px");
   expect(found).toEqual([]);
 });
+
+test("the search box fills the switcher in Bar modelling, whose own labels stack", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/bar-model");
+  await button(page).click();
+  const box = panel(page).getByRole("searchbox", { name: "Find a tool or topic" });
+  await expect(box).toBeFocused();
+  expect((await box.boundingBox())!.width).toBeGreaterThan(800);
+});
