@@ -97,7 +97,6 @@ export interface BankQuestionDetail {
   printPages: {width: number; height: number}[];
   /** The question's part and stem cuts; absent when the question is only served whole. */
   cuts?: BankCut[];
-  exportRouting74?: { policy: "q8-classroom-compact74"; scopeSHA256: string; authoritySHA256: string };
 }
 // The split must move exactly these fields; this fails to compile if the two lists drift apart.
 const detailKeysMatch: [Exclude<keyof BankQuestionDetail, DetailKey>, Exclude<DetailKey, keyof BankQuestionDetail>] extends [never, never] ? true : false = true;

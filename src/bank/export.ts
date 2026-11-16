@@ -37,26 +37,6 @@ async function fetchPdf(path: string, signal?: AbortSignal): Promise<Uint8Array>
   return new Uint8Array(await response.arrayBuffer());
 }
 
-const Q8_SOURCE_POLICY75 = {
-  outputPolicyHash: "e59a307a98209ace43ff26b96a5790c5aedc8a778273a667f9a2fdfde96c3b26",
-  writingSpacePolicy: "source",
-  scopeSHA256: "3255586f0fbec022d9f59cb6f977ed79d7a79e8de216fe38e47ae2a1ea1ffd87",
-  authoritySHA256: "8cf1d47296d57d38a17776ea79f4b35875e9a467e4a65941459aa14c209ffad5",
-} as const;
-
-const Q8_SCOPE_POLICY75: Readonly<Record<string, string>> = {
-  "3255586f0fbec022d9f59cb6f977ed79d7a79e8de216fe38e47ae2a1ea1ffd87": "e59a307a98209ace43ff26b96a5790c5aedc8a778273a667f9a2fdfde96c3b26",
-};
-
-function q8SourceRoute(q: BankQuestion): boolean {
-  const tag = q.exportRouting74;
-  if (q.id !== "1MA1_JUN_2024_2H_Q8" && tag === undefined) return false;
-  if (!tag || typeof tag !== "object" || q.id !== "1MA1_JUN_2024_2H_Q8" || q.scaleSensitive !== true || q.writingSpacePolicy !== Q8_SOURCE_POLICY75.writingSpacePolicy || tag.policy !== "q8-classroom-compact74" || tag.scopeSHA256 !== Q8_SOURCE_POLICY75.scopeSHA256 || Q8_SCOPE_POLICY75[tag.scopeSHA256] !== Q8_SOURCE_POLICY75.outputPolicyHash || tag.authoritySHA256 !== Q8_SOURCE_POLICY75.authoritySHA256 || Object.keys(tag).sort().join(",") !== "authoritySHA256,policy,scopeSHA256") throw new Error("Unauthorized Q8 source policy or route");
-  const prefix = q.questionPdf.slice(0, -"question.pdf".length);
-  if (!q.questionPdf.endsWith("question.pdf") || q.printPdf !== prefix + "print.pdf" || q.schemePdf !== prefix + "scheme.pdf" || prefix.includes("..") || prefix.includes(":") || prefix.includes("\\")) throw new Error("Q8 route asset paths differ");
-  return true;
-}
-
 /**
  * `parts` maps a question id to the catalogue parts to print on their own. Each such question prints
  * only its part cuts (with the stems and earlier parts they need, so a part is never served without
@@ -86,8 +66,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
     const q = snapshots[index];
     onProgress({done: index * 2, total: snapshots.length * 2, message: `Preparing question ${index + 1} of ${snapshots.length}`});
     // Print regions retain original scale and working grids. Compact uses the reviewed classroom views.
-    const q8Source = q8SourceRoute(q);
-    const sourcePath = preset === "writing" || (q.scaleSensitive && !q8Source) ? q.printPdf : q.questionPdf;
+    const sourcePath = preset === "writing" || q.scaleSensitive ? q.printPdf : q.questionPdf;
     const servedHere = served.get(q.id);
     const pages = [];
     for (const path of servedHere ? servedHere.cuts.map(c => c.cut.pdf) : [sourcePath]) {
