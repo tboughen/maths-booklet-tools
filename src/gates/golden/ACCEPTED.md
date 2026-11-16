@@ -678,6 +678,24 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
 
+## 2026-11-16: Add the nets of 3D shapes tool's gallery examples
+
+- nets: nets-dot-opposite: added
+- nets: nets-dot-opposite (worked): added
+- nets: nets-opposite-letters: added
+- nets: nets-opposite-letters (worked): added
+- nets: nets-which-are-nets: added
+- nets: nets-which-are-nets (worked): added
+- nets: nets-corners-meet: added
+- nets: nets-corners-meet (worked): added
+- nets: nets-cuboid-lengths: added
+- nets: nets-cuboid-lengths (worked): added
+- nets: nets-draw-cuboid-net: added
+- nets: nets-draw-cuboid-net (worked): added
+- nets: nets-complete-cube-net: added
+- nets: nets-complete-cube-net (worked): added
+- nets: nets-name-the-shape: added
+- nets: nets-name-the-shape (worked): added
 ## 2026-11-16: New written methods tool: column addition and subtraction, long multiplication, short and long division
 
 - written methods: wm-column-add: added
@@ -708,6 +726,20 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-stemleaf-scores (worked): added
 - charts: chart-stemleaf-heights: added
 - charts: chart-stemleaf-heights (worked): added
+
+## 2026-11-16: Graph tool: plotted lines and points print over the axis-number boxes (Edexcel prints lines straight through numbers), a number moves clear of a cross on its axis, and the y-axis reaches far enough for its arrowhead to clear a number on the top line. Asked for by the A3 worksheets thread for A7.05/A7.06.
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg 12a0af07a17e5f4b -> 98f4ff02cf86fcec
+- graph: graph-1MA1_JUN_2019_2H_Q2: pixels 2b18446b7ec3ebef -> 7254c79ead91ac5d
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg c42d256a343643d5 -> 5aa38713aff81911
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): pixels 86dc7884d2f4fe9c -> fcc61511fbf81a23
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 8e52bc398906fc46 -> 351f5a82a0d6ecc8
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 98467927ce31fcd8 -> 6e09262450f078fe
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): pixels 1afa69c158c6d99d -> 856db7c1ff4ec1c5
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 24831fc4b21e9286 -> a4144398a054e0ea
+- graph: graph-1MA1_NOV_2021_1F_Q18: pixels 3b83e69e52882db4 -> 73f4b254153f6d45
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 1e4d146e65ced02b -> 17c1b8b9cb919579
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 648a83f51c414026 -> 9fa8c511c7cdd661
 
 ## 2026-11-16: Time series graphs added to the charts tool and connector text
 
