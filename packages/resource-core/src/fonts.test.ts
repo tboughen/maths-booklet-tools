@@ -80,7 +80,7 @@ describe("worksheet text fonts", () => {
 // The PDF writer lays text out with fontkit (through PDFKit), which applies the fonts' kerning.
 // Inter kerns for prose ("7." by 0.125 em, ".1" by 0.086 em), which squashed decimals such as 7.1,
 // so the subsets carry no kerning on digits or maths signs (assets/resource-fonts/unkern-maths.py).
-// Numbers then print at exactly the advance widths metrics.ts measures; prose keeps its kerning.
+// Numbers then print at their plain advance widths; prose keeps its kerning.
 describe("worksheet text kerning", () => {
   const require = createRequire(import.meta.url);
   const fontkit = require("fontkit") as {
@@ -93,7 +93,7 @@ describe("worksheet text kerning", () => {
   for (const file of ["Inter-Regular.ttf", "Inter-SemiBold.ttf", "Inter-Italic.ttf"]) {
     const font = fontkit.create(readFileSync(`assets/resource-fonts/${file}`));
     it(`${file} sets numbers and maths signs without kerning`, () => {
-      for (const s of ["7.5", "17.1", "0.75", "7,000", "74", "−7", "7 − 2", "30°.", "45°,", "4.7%", "7:3", "T7", "7A", "7n", "7p", "y=7", "Y=2", "T+A", "1/7", "2½", "x²", "7…"])
+      for (const s of ["7.5", "17.1", "0.75", "7,000", "74", "−7", "7 − 2", "30°.", "45°,", "4.7%", "7:3", "T7", "7A", "7n", "7p", "y=7", "Y=2", "T+A", "1/7", "2½", "x²", "7…", "x=>", "y->"])
         expect(kerned(font, s), `${file} "${s}"`).toBe(false);
     });
     it(`${file} keeps kerning in ordinary words`, () => {

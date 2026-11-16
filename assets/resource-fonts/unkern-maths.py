@@ -21,7 +21,9 @@ from fontTools.ttLib.tables import otTables
 from fontTools.ttLib.tables.otBase import ValueRecord
 
 FILES = ["Inter-Regular.ttf", "Inter-SemiBold.ttf", "Inter-Italic.ttf"]
-MATHS = "0123456789¹²³½¼¾°%+−×÷=<>≤≥≠≈±/√π∞"
+MATHS = "0123456789¹²³½¼¾°%+−×÷=<>≤≥≠≈±/√π∞→↑"
+# Ligatures Inter's calt builds from maths signs, checked as single units in the pair test.
+LIGATURES = ["=>", "->", "<-", "<=", ">="]
 HERE = Path(__file__).resolve().parent
 
 
@@ -40,7 +42,7 @@ def kerning(path: Path, chars: list[str]) -> dict[str, int]:
         for b in chars:
             d = width(a + b, True) - width(a + b, False)
             if d:
-                out[a + b] = d
+                out[(a, b)] = d
     return out
 
 
@@ -56,16 +58,25 @@ def pair_subtables(gpos):
 def unkern(font: TTFont) -> None:
     cmap = font.getBestCmap()
     maths = {cmap[ord(c)] for c in MATHS if ord(c) in cmap}
-    # Inter's contextual alternates swap in other glyphs (such as a raised plus next to capitals),
-    # so follow every single substitution from a maths glyph until no new glyph turns up.
-    singles = [
-        sub.mapping
+    # Inter's contextual alternates swap in other glyphs (such as a raised plus next to capitals, or
+    # an arrow for "=>"), so follow every single substitution from a maths glyph, and every ligature
+    # with a maths glyph among its parts, until no new glyph turns up.
+    subs = [
+        s.ExtSubTable if lookup.LookupType == 7 else s
         for lookup in font["GSUB"].table.LookupList.Lookup
-        for sub in (s.ExtSubTable if lookup.LookupType == 7 else s for s in lookup.SubTable)
-        if getattr(sub, "LookupType", lookup.LookupType) == 1
+        for s in lookup.SubTable
     ]
     while True:
-        more = {out for mapping in singles for src, out in mapping.items() if src in maths} - maths
+        more = set()
+        for sub in subs:
+            if sub.LookupType == 1:
+                more |= {out for src, out in sub.mapping.items() if src in maths}
+            elif sub.LookupType == 4:
+                for first, ligatures in sub.ligatures.items():
+                    for lig in ligatures:
+                        if maths & {first, *lig.Component}:
+                            more.add(lig.LigGlyph)
+        more -= maths
         if not more:
             break
         maths |= more
@@ -81,33 +92,43 @@ def unkern(font: TTFont) -> None:
             sub.PairSetCount = len(sub.PairSet)
         else:
             sub.Coverage.glyphs = [g for g in first if g not in maths]
-            # Give maths glyphs on the second side a class of their own whose values are all zero.
-            # (Class 0 is not guaranteed to be zero, and leaving them unclassed would let a later
-            # subtable kern them.)
-            zero = sub.Class2Count
+            # Give maths glyphs on the second side a class whose values are all zero. (Class 0 is not
+            # guaranteed to be zero, and leaving them unclassed would let a later subtable kern them.)
+            # A rerun finds the zero class it added before and reuses it.
+            classes = sub.ClassDef2.classDefs
+            used = {classes[g] for g in maths if g in classes}
+            if len(used) == 1 and (zero := used.pop()) and is_zero_class(sub, zero):
+                pass
+            else:
+                zero = sub.Class2Count
+                for rec in sub.Class1Record:
+                    blank = otTables.Class2Record()
+                    if sub.ValueFormat1:
+                        blank.Value1 = ValueRecord(sub.ValueFormat1)
+                    if sub.ValueFormat2:
+                        blank.Value2 = ValueRecord(sub.ValueFormat2)
+                    rec.Class2Record.append(blank)
+                sub.Class2Count = zero + 1
             for g in maths:
-                sub.ClassDef2.classDefs[g] = zero
-            for rec in sub.Class1Record:
-                blank = otTables.Class2Record()
-                if sub.ValueFormat1:
-                    blank.Value1 = ValueRecord(sub.ValueFormat1)
-                if sub.ValueFormat2:
-                    blank.Value2 = ValueRecord(sub.ValueFormat2)
-                rec.Class2Record.append(blank)
-            sub.Class2Count = zero + 1
+                classes[g] = zero
 
+
+def is_zero_class(sub, index: int) -> bool:
+    values = (getattr(rec.Class2Record[index], attr, None) for rec in sub.Class1Record for attr in ("Value1", "Value2"))
+    return all(v is None or not any(getattr(v, f, 0) for f in ("XPlacement", "YPlacement", "XAdvance", "YAdvance")) for v in values)
 
 def main() -> None:
     for name in FILES:
         path = HERE / name
-        font = TTFont(path)
+        font = TTFont(path, recalcTimestamp=False)
         chars = sorted(chr(c) for c in font.getBestCmap() if c > 32)
+        chars += LIGATURES
         before = kerning(path, chars)
         unkern(font)
         trial = path.with_suffix(".unkerned.tmp")
         font.save(trial)
         after = kerning(trial, chars)
-        touches = lambda pair: pair[0] in MATHS or pair[1] in MATHS
+        touches = lambda pair: any(c in MATHS for c in pair[0] + pair[1])
         leftover = {p: d for p, d in after.items() if touches(p)}
         changed = {p for p in set(before) | set(after) if not touches(p) and before.get(p) != after.get(p)}
         assert not leftover, f"{name}: maths pairs still kerned: {leftover}"
