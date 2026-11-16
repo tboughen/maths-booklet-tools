@@ -96,7 +96,7 @@ every step, so anything a pull-request plan skipped is still checked within a da
   ready for review starts the checks. Each new push cancels the run in progress for that ref.
 - **Affected tests** use `vitest --changed HEAD^1`, which follows the import graph. Files that
   tests read from disk instead of importing (docs examples, `public/`) always run every test.
-- **Lite bank.** `scripts/ci/lite-bank.txt` lists the 20 question folders (about 28 MB) that the
+- **Lite bank.** `scripts/ci/lite-bank.txt` lists the question folders (about 18 MB) that the
   unit tests read. The job checks out only those folders instead of the whole private bank. If a
   new test reads another bank folder, add it to the list (keep it sorted) in the same pull request.
 - **Solution-file check.** The build normally verifies every registered worked solution against
