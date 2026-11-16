@@ -29,7 +29,8 @@ import {
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
-import { axesCrossing, curveProblem, curveVisible, readingLegs, readingVisible } from "./curve";
+import { axesCrossing, circleVisible, curveProblem, curveVisible, readingLegs, readingVisible } from "./curve";
+import { stripObjects, tangentObject } from "./working";
 import { imageObjects, transformationProblem, type Transformation } from "./transform";
 import { gradientLabelClashes } from "./svg";
 import {
@@ -335,6 +336,44 @@ export const objectInputSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: identifier.optional(),
+      kind: z.literal("circle"),
+      centre: inputCoordinate,
+      radius: numeric,
+      strokeStyle: z.enum(["solid", "dashed"]).optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("A circle, such as x² + y² = 25: centre (0, 0), radius 5."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("tangent"),
+      of: identifier.describe("An earlier curve's id."),
+      x: numeric.describe("Where it touches."),
+      run: numeric.optional().describe("How far it reaches each side, in x units. Default 2 squares."),
+      gradientTriangle: gradientTriangleInput,
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("A tangent to an earlier curve, saved as a segment."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("strips"),
+      of: identifier.describe("An earlier curve's id."),
+      from: numeric,
+      to: numeric,
+      count: z.number().int().min(1).max(10),
+      shaded: z.boolean().optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("Equal trapezium strips under an earlier curve down to the x-axis, saved as shapes."),
+  z
+    .object({
+      id: identifier.optional(),
       kind: z.literal("image"),
       of: identifier.describe("An earlier polygon's id."),
       transformation: transformationSchema,
@@ -444,6 +483,18 @@ const objectSchema = z.discriminatedUnion("kind", [
       kind: z.literal("curve"),
       points: z.array(coordinate).min(2).max(MAX_CURVE_POINTS),
       smooth: z.literal(true).optional(),
+      strokeStyle: z.literal("dashed").optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("circle"),
+      centre: coordinate,
+      radius: finite.positive(),
       strokeStyle: z.literal("dashed").optional(),
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
@@ -590,8 +641,24 @@ function makeObjects(
   index: number,
   document: DiagramDocumentV1,
 ): GraphObject[] {
-  if (input.kind !== "image") return [makeObject(input, index, document)];
   const id = input.id ?? `object-${index + 1}`;
+  if (input.kind === "tangent" || input.kind === "strips") {
+    const curve = document.objects.find((o) => o.id === input.of);
+    if (!curve || curve.kind !== "curve")
+      throw new GraphError("invalid_graph", `${id}: ${curve ? `${input.of} is not a graph through points` : `no earlier graph has ID ${input.of}`}.`);
+    try {
+      if (input.kind === "tangent")
+        return [tangentObject(curve, input.x, input.run ?? 2 * document.axes.x.unitsPerSquare, {
+          id,
+          answerOnly: input.answerOnly,
+          ...(input.gradientTriangle ? { gradientTriangle: { x: input.gradientTriangle.x, run: input.gradientTriangle.run, ...(input.gradientTriangle.labels ? { labels: input.gradientTriangle.labels } : {}) } } : {}),
+        })];
+      return stripObjects(curve, input.from, input.to, input.count, document.axes.y.origin ?? 0, { id: (i) => `${id}-strip-${i + 1}`, shaded: input.shaded, answerOnly: input.answerOnly });
+    } catch (error) {
+      throw new GraphError("invalid_graph", `${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  if (input.kind !== "image") return [makeObject(input, index, document)];
   const source = document.objects.find((o) => o.id === input.of);
   if (!source || source.kind !== "polygon")
     throw new GraphError("invalid_graph", `${id}: ${source ? `${input.of} is not a shape` : `no earlier shape has ID ${input.of}`}, so it has no image.`);
@@ -613,7 +680,7 @@ function makeObjects(
   return objects;
 }
 function makeObject(
-  input: Exclude<z.output<typeof objectInputSchema>, { kind: "image" }>,
+  input: Exclude<z.output<typeof objectInputSchema>, { kind: "image" | "tangent" | "strips" }>,
   index: number,
   document: DiagramDocumentV1,
 ): GraphObject {
@@ -641,6 +708,17 @@ function makeObject(
       kind: "curve",
       points: input.points.map((p) => ({ x: p.x, y: p.y })),
       ...(input.smooth ? { smooth: true as const } : {}),
+      ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
+      ...named,
+    };
+  }
+  if (input.kind === "circle") {
+    if (!(input.radius > 0)) throw new GraphError("invalid_graph", `${id}: a circle needs a radius above 0.`);
+    return {
+      id,
+      kind: "circle",
+      centre: { x: input.centre.x, y: input.centre.y },
+      radius: input.radius,
       ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
       ...named,
     };
@@ -785,6 +863,8 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
           ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}),
           ...canonicalName(o),
         }
+      : o.kind === "circle"
+      ? { id: o.id, kind: o.kind, centre: { x: o.centre.x, y: o.centre.y }, radius: o.radius, ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}), ...canonicalName(o) }
       : o.kind === "reading"
       ? { id: o.id, kind: o.kind, at: { x: o.at.x, y: o.at.y }, read: o.read, ...(o.answerOnly ? { answerOnly: true as const } : {}) }
       : o.kind === "region"
@@ -907,7 +987,7 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
       let id = op.object.id;
       if (!id) {
         let n = 1;
-        while (document.objects.some((o) => o.id === `object-${n}` || o.id.startsWith(`object-${n}-ray-`))) n++;
+        while (document.objects.some((o) => o.id === `object-${n}` || o.id.startsWith(`object-${n}-ray-`) || o.id.startsWith(`object-${n}-strip-`))) n++;
         id = `object-${n}`;
       }
       document.objects.push(...makeObjects({ ...op.object, id }, document.objects.length, document));
@@ -926,6 +1006,8 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
           "invalid_graph",
           "Replacing an object must retain its ID.",
         );
+      if (op.object.kind === "strips")
+        throw new GraphError("invalid_graph", "Strips are several shapes: remove the object and add the strips with add_object.");
       const made = makeObjects({ ...op.object, id: op.id }, index, document);
       if (made.length !== 1)
         throw new GraphError("invalid_graph", "Replace an image without rays, or remove it and add it again with rays.");
@@ -975,13 +1057,21 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
       ? [`${o.id}: this reading sits on the axis it reads, so it has no arrowhead. Move it onto the graph or choose the other value.`]
       : [],
   );
+  const circles = envelope.document.objects.flatMap((o) =>
+    o.kind === "circle" && circleVisible(o, bounds) &&
+    (o.centre.x - o.radius < bounds.xMin || o.centre.x + o.radius > bounds.xMax || o.centre.y - o.radius < bounds.yMin || o.centre.y + o.radius > bounds.yMax)
+      ? [`${o.id}: part of this circle is off the grid, so it is cut off. Make the radius smaller or widen the axes.`]
+      : [],
+  );
   const triangles = envelope.document.objects.flatMap((o) => {
     const problem = o.kind === "straight" ? gradientTriangleProblem(o, bounds) : null;
     return problem ? [`${o.id}: ${problem}`] : [];
   });
-  return crowded.concat(arrows, readings, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
+  return crowded.concat(arrows, readings, circles, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
     .filter((o) =>
-      o.kind === "curve"
+      o.kind === "circle"
+        ? !circleVisible(o, bounds)
+        : o.kind === "curve"
         ? !curveVisible(o, bounds)
         : o.kind === "reading"
         ? !readingVisible(o, bounds)
@@ -1006,7 +1096,9 @@ export function describeGraph(envelope: GraphEnvelope): string {
     `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
-      o.kind === "curve"
+      o.kind === "circle"
+        ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}circle centre (${o.centre.x}, ${o.centre.y}) radius ${o.radius}${named(o)}`
+        : o.kind === "curve"
         ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}${o.smooth ? "smooth curve" : "graph of straight pieces"} through ${o.points.map((p) => `(${p.x}, ${p.y})`).join(" ")}${named(o)}`
         : o.kind === "reading"
         ? `${o.id}: dashed reading lines at (${o.at.x}, ${o.at.y}), ${o.read === "both" ? "to both axes" : `reading ${o.read}`}${named(o)}`

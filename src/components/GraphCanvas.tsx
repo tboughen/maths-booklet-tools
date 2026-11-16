@@ -16,7 +16,7 @@ import {
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { plotClipBleed } from "../../packages/graph-core/src/svg";
 import { arrowheadPath } from "../../packages/graph-core/src/arrow";
-import { axesCrossing, readingLegs, smoothCurvePath } from "../../packages/graph-core/src/curve";
+import { axesCrossing, circleVisible, readingLegs, smoothCurvePath } from "../../packages/graph-core/src/curve";
 import { vectorArrowEnds } from "../../packages/graph-core/src/diagram";
 import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -246,6 +246,15 @@ function objectHitIds(
         return visible ? [visible.map((q) => coordinateToSvg(q, layout))] : [];
       });
       const distance = Math.min(Infinity, ...pieces.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
+      if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
+      continue;
+    }
+    if (object.kind === "circle") {
+      // Near the circle's edge picks it (true to both scales).
+      const c = coordinateToSvg(object.centre, layout);
+      const rx = (object.radius / document.axes.x.unitsPerSquare) * layout.square, ry = (object.radius / document.axes.y.unitsPerSquare) * layout.square;
+      const dx = (pointer.x - c.x) / rx, dy = (pointer.y - c.y) / ry;
+      const distance = Math.abs(Math.hypot(dx, dy) - 1) * Math.min(rx, ry);
       if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
       continue;
     }
@@ -867,6 +876,20 @@ export function GraphCanvas({
             {visibleDocument.objects.map((object) => {
               const selected = object.id === visibleDocument.selectedObjectId;
               const cls = `graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${selected ? " graph-straight--selected" : ""}`;
+              if (object.kind === "circle") {
+                const c = coordinateToSvg(object.centre, layout);
+                return (
+                  <ellipse
+                    key={object.id}
+                    className={`${cls} graph-circle`}
+                    cx={c.x}
+                    cy={c.y}
+                    rx={(object.radius / document.axes.x.unitsPerSquare) * layout.square}
+                    ry={(object.radius / document.axes.y.unitsPerSquare) * layout.square}
+                    strokeDasharray={object.strokeStyle === "dashed" ? STRAIGHT_DASH_ARRAY : undefined}
+                  />
+                );
+              }
               if (object.kind === "curve") {
                 const pts = object.points.map((p) => coordinateToSvg(p, layout));
                 return (
@@ -1108,6 +1131,8 @@ export function GraphCanvas({
                     ? !object.points.some((p) => pointInBounds(p, layout.bounds))
                   : object.kind === "reading"
                     ? true
+                  : object.kind === "circle"
+                    ? !circleVisible(object, layout.bounds)
                     : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;

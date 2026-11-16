@@ -1,12 +1,13 @@
 import { GraphDraftField } from "./GraphDraftField";
 import { TransformFields } from "./TransformFields";
+import { CurveWorkFields } from "./CurveWorkFields";
 import { curveProblem } from "../../packages/graph-core/src/curve";
 import { MAX_CURVE_POINTS } from "../../packages/graph-core/src/interchange";
 import { makeId } from "../domain/diagram";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
-import type { Bounds, Coordinate, GraphObject, GradientTriangle, RegionObject, StraightObject } from "../domain/types";
+import type { Bounds, Coordinate, DiagramDocumentV1, GraphObject, GradientTriangle, RegionObject, StraightObject } from "../domain/types";
 import { gradientTriangleProblem, gradientTriangleValues } from "../../packages/graph-core/src/gradient-triangle";
 import { MAX_REGION_INEQUALITIES, parseInequality, regionProblem } from "../../packages/graph-core/src/region";
 
@@ -174,7 +175,7 @@ function NameAndAnswer({
   drafts: GraphDrafts;
   disabled?: boolean;
 }) {
-  const kind = object.kind === "point" ? "point" : object.kind === "polygon" ? "shape" : object.kind === "region" ? "region" : object.kind === "curve" ? "graph" : "line";
+  const kind = object.kind === "point" ? "point" : object.kind === "polygon" ? "shape" : object.kind === "region" ? "region" : object.kind === "curve" ? "graph" : object.kind === "circle" ? "circle" : "line";
   return (
     <div className="object-name-fields">
       <GraphDraftField
@@ -359,6 +360,8 @@ interface ObjectInspectorProps {
   objects?: GraphObject[];
   /** Adds new objects (a shape's image) as one undoable step. */
   onAdd?: (objects: GraphObject[]) => void;
+  /** The axes, for a tangent's default length and where strips stand. */
+  axes?: DiagramDocumentV1["axes"];
 }
 
 function CoordinateFields({
@@ -407,6 +410,7 @@ export function ObjectInspector({
   bounds,
   objects = [],
   onAdd,
+  axes,
 }: ObjectInspectorProps) {
   if (!object) {
     return (
@@ -563,9 +567,63 @@ export function ObjectInspector({
         </label>
         <NameAndAnswer object={object} onUpdate={onUpdate} drafts={drafts} disabled={disabled} />
         <p className="panel-note">Arrow keys move the whole graph.</p>
+        {onAdd && (
+          <CurveWorkFields
+            key={object.id}
+            object={object}
+            unitsPerSquare={axes?.x.unitsPerSquare ?? 1}
+            base={axes?.y.origin ?? 0}
+            onAdd={onAdd}
+            makeId={makeId}
+            disabled={disabled || drafts.pending}
+          />
+        )}
         <button disabled={disabled || drafts.pending} className="danger-button" onClick={onDelete}>
           <Trash2 size={16} />
           Delete graph
+        </button>
+      </section>
+    );
+  if (object.kind === "circle")
+    return (
+      <section className="panel-card selection-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">SELECTED OBJECT</p>
+            <h2>Circle</h2>
+          </div>
+        </div>
+        <CoordinateFields drafts={drafts} objectId={object.id} disabled={disabled} prefix="Centre" value={object.centre} onChange={(centre) => onUpdate({ ...object, centre })} />
+        <GraphDraftField
+          id={object.id + "-radius"}
+          label="Circle radius"
+          displayLabel="Radius"
+          value={formatNumber(object.radius)}
+          drafts={drafts}
+          disabled={disabled}
+          onApply={(radius) => {
+            if (!(radius > 0)) throw Error("Use a radius above 0.");
+            onUpdate({ ...object, radius });
+          }}
+        />
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            disabled={disabled || drafts.pending}
+            checked={object.strokeStyle === "dashed"}
+            onChange={(event) => {
+              const next = { ...object };
+              if (event.target.checked) next.strokeStyle = "dashed";
+              else delete next.strokeStyle;
+              onUpdate(next);
+            }}
+          />{" "}
+          Dashed
+        </label>
+        <NameAndAnswer object={object} onUpdate={onUpdate} drafts={drafts} disabled={disabled} />
+        <button disabled={disabled || drafts.pending} className="danger-button" onClick={onDelete}>
+          <Trash2 size={16} />
+          Delete circle
         </button>
       </section>
     );
