@@ -41,8 +41,6 @@ export interface Ctx<W extends object = { side: number; column: number; question
   diagrams: number;
   issues: (W & { message: string })[];
   where: W;
-  /** Tables keep their natural width (cells at least 14 mm) instead of filling the card: booklets. */
-  compactTables?: boolean;
   /** Maths notation in flowing text: {3/4} prints as a stacked fraction (worksheet `notation: "maths"`). */
   maths?: boolean;
   /** Collects one note per question whose flowing text holds a fraction that will not print stacked. */
@@ -124,7 +122,9 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) issue(ctx, `A table needs ${n(total - w)} mm more width than the column has.`);
   const roomy = natural.map((v) => Math.max(v, 14));
-  const compact = ctx.compactTables && roomy.reduce((a, b) => a + b, 0) <= w;
+  // A table keeps its natural width (cells at least 14 mm), every cell centred, on worksheets as
+  // in booklets (Tim, 16 Nov 2026); only a table too wide for that is stretched to the column.
+  const compact = roomy.reduce((a, b) => a + b, 0) <= w;
   const widths = compact ? roomy : natural.map((v) => (v * w) / total);
   w = compact ? roomy.reduce((a, b) => a + b, 0) : w;
   const xs = widths.map((_, j) => widths.slice(0, j).reduce((a, b) => a + b, 0));

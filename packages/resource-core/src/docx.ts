@@ -442,10 +442,10 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
   const natural = head.map((h, j) => Math.max(cellWidth(h.text, true), ...body.map((r) => cellWidth(r[j]?.text ?? ""))) + 5);
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) ctx.issues.push({ ...ctx.where, message: `A table needs ${Math.round((total - w) * 100) / 100} mm more width than the column has.` });
-  // Booklets keep a table at its natural width (cells at least 14 mm), every cell centred, as the
-  // SVG layout does; worksheets stretch it across the column.
+  // A table keeps its natural width (cells at least 14 mm), every cell centred, as the SVG layout
+  // does; only a table too wide for that is stretched to the column.
   const roomy = natural.map((v) => Math.max(v, 14));
-  const compact = !!ctx.compactTables && roomy.reduce((a, b) => a + b, 0) <= w;
+  const compact = roomy.reduce((a, b) => a + b, 0) <= w;
   const widths = compact ? roomy : natural.map((v) => (v * w) / total);
   const rule = { color: st.rule, width: 0.35 };
   const border = { top: rule, left: rule, bottom: rule, right: rule };
