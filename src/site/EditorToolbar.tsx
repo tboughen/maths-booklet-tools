@@ -102,13 +102,13 @@ function Toolbar(props: EditorToolbarProps) {
       const stage = parent.querySelector<HTMLElement>(":scope > .editor-stage");
       if (!stage?.clientWidth) return;
       const top = stage.getBoundingClientRect().top + window.scrollY;
-      // Leave room for the rows under the stage (the foot strip, then anything the tool keeps
-      // under it), so on a window too short for the editor frame the card still ends just above
-      // the foot of the window, as it does in the frame.
-      const under = Math.max(0, parent.getBoundingClientRect().bottom - stage.getBoundingClientRect().bottom);
+      // On a window too short for the editor frame, the stage and the foot strip under it end
+      // together just above the foot of the window. Rows a tool keeps under the strip follow on,
+      // as they always have: counting them here would squeeze the diagram on a laptop.
+      const foot = parent.querySelector<HTMLElement>(":scope > .editor-foot");
       parent.style.setProperty(
         "--resource-stage-height",
-        `${Math.max(320, window.innerHeight - top - under - 20)}px`,
+        `${Math.max(320, window.innerHeight - top - (foot?.offsetHeight ?? 0) - 20)}px`,
       );
     };
     measure();
@@ -116,6 +116,8 @@ function Toolbar(props: EditorToolbarProps) {
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     observer.observe(parent);
+    const foot = parent.querySelector(":scope > .editor-foot");
+    if (foot) observer.observe(foot);
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();

@@ -134,8 +134,8 @@ the strip.
 - Under 1,200 px the print size drops ", whatever the zoom".
 
 Touch screens and windows under 768 px get 44 px controls. On a window too short for the editor
-frame the stage is sized so that the strip, and any rows the tool keeps under it, still end
-inside the window. The Graph tool still
+frame the stage is sized so that the strip still ends inside the window; rows a tool keeps
+under it follow on. The Graph tool still
 shows its messages in its own toast.
 
 The strip is in the page in the same place it is drawn, straight after the stage, so the
