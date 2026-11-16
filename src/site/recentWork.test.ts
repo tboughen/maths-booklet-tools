@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { forgetWork, noteWork, noteWorkHere, resetRecentWorkForTests, whenText } from "./recentWork";
+import { forgetWork, noteWork, resetRecentWorkForTests, whenText, workRecorder } from "./recentWork";
 
 const stored = () => JSON.parse(localStorage.getItem("mathsdock.recentWork") ?? "[]") as { id: string; at: number; detail?: string }[];
 
@@ -27,18 +27,32 @@ describe("recent work, for Home's Carry on row", () => {
     expect(stored()).toEqual([{ id: "worksheets", at: 2000 }]);
   });
 
-  it("records the open page only when it is one that keeps work", () => {
-    noteWorkHere();
-    expect(stored()).toEqual([]);
-    history.replaceState(null, "", "/question-bank");
-    noteWorkHere();
-    expect(stored()).toEqual([]);
+  it("records a page's document steps against that page, wherever the address points", () => {
     history.replaceState(null, "", "/tools/venn");
-    noteWorkHere();
-    expect(stored().map((item) => item.id)).toEqual(["venn"]);
-    history.replaceState(null, "", "/worksheets");
-    noteWorkHere();
-    expect(stored().map((item) => item.id)).toEqual(["worksheets", "venn"]);
+    workRecorder("worksheets")("changed");
+    expect(stored().map((item) => item.id)).toEqual(["worksheets"]);
+    workRecorder("venn")("changed");
+    expect(stored().map((item) => item.id)).toEqual(["venn", "worksheets"]);
+    expect(workRecorder("venn")).toBe(workRecorder("venn"));
+  });
+
+  it("puts back what the list said once every step has been undone", () => {
+    noteWork("graph", undefined, 1000);
+    noteWork("venn", undefined, 2000);
+    // Graph had saved work from an earlier day; ratio tables had none.
+    workRecorder("graph")("changed");
+    workRecorder("ratio-table")("changed");
+    expect(stored().map((item) => item.id)).toEqual(["ratio-table", "graph", "venn"]);
+    workRecorder("ratio-table")("undone");
+    workRecorder("graph")("undone");
+    expect(stored()).toEqual([{ id: "venn", at: 2000 }, { id: "graph", at: 1000 }]);
+    // A later change is recorded again, and undoing it returns to the same earlier record.
+    workRecorder("graph")("changed");
+    workRecorder("graph")("undone");
+    expect(stored()).toEqual([{ id: "venn", at: 2000 }, { id: "graph", at: 1000 }]);
+    // Undone with nothing recorded changes nothing.
+    workRecorder("area")("undone");
+    expect(stored()).toEqual([{ id: "venn", at: 2000 }, { id: "graph", at: 1000 }]);
   });
 
   it("ignores stored values that are not a list of known places", () => {

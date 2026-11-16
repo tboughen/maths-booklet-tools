@@ -61,7 +61,7 @@ test("search finds tools by topic and pages by name, and works from the keyboard
   await expect(page).toHaveURL(/\/tools\/venn$/);
 });
 
-test("a Sparx code typed into the search opens its questions in the Question bank", async ({ page }) => {
+test("a Sparx code typed into the search opens it in the Question bank", async ({ page }) => {
   await page.goto("/");
   await search(page).fill("u538");
   await expect(results(page).first()).toContainText("Sparx code U538");
@@ -92,6 +92,27 @@ test("Carry on lists a diagram once it has been changed, newest first, and opens
   await expect(cards).toHaveCount(2);
   await cards.nth(1).click();
   await expect(page).toHaveURL(/\/tools\/ratio-table$/);
+});
+
+test("undoing every step takes a diagram off Carry on, or back to its earlier time", async ({ page }) => {
+  await page.goto("/tools/ratio-table");
+  const card = page.locator(".site-page:not([hidden]) .editor-card");
+  await card.getByRole("button", { name: "Add column", exact: true }).click();
+  await card.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
+  await expect(home(page)).toBeVisible();
+  await expect(carryOn(page)).toHaveCount(0);
+  // Work saved at an earlier time keeps that time when today's change is undone.
+  const earlier = new Date(2026, 0, 5, 9, 30).getTime();
+  await page.evaluate((at) => localStorage.setItem("mathsdock.recentWork", JSON.stringify([{ id: "ratio-table", at }])), earlier);
+  await page.goto("/tools/ratio-table");
+  await card.getByRole("button", { name: "Add column", exact: true }).click();
+  await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
+  await expect(carryOn(page).getByRole("link")).toContainText(/Changed today at \d\d:\d\d/);
+  await page.goBack();
+  await card.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
+  await expect(carryOn(page).getByRole("link")).toContainText("Changed on 5 January");
 });
 
 test("Carry on lists the paper being built and drops it when the paper is cleared", async ({ page }) => {

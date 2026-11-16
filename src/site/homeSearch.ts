@@ -1,14 +1,14 @@
 import type { ComponentType } from "react";
-import { bookletTools, pageHref, siteSections } from "./registry";
+import { normalizeCode } from "../bank/model";
+import { bookletTools, pageHref, siteSection, siteSections } from "./registry";
 import { searchTool } from "./toolCatalogue";
 
 export type Icon = ComponentType<{ size?: number; "aria-hidden"?: boolean | "true" | "false" }>;
 export type Found = { key: string; href: string; icon: Icon; name: string; note: string };
-const section = (id: (typeof siteSections)[number]["id"]) => siteSections.find((s) => s.id === id)!;
 
 /** A Sparx code is a letter and three digits, such as U332. */
 const sparxCode = (query: string) => {
-  const code = query.replace(/\s/g, "").toUpperCase();
+  const code = normalizeCode(query);
   return /^[A-Z]\d{3}$/.test(code) ? code : "";
 };
 
@@ -19,8 +19,9 @@ export function searchHome(query: string): Found[] {
   const found: Found[] = [];
   const code = sparxCode(query);
   if (code) {
-    const bank = section("question-bank");
-    found.push({ key: "code", href: `${bank.href}?code=${code}`, icon: bank.icon, name: `Sparx code ${code}`, note: "Open its questions in the Question bank." });
+    // Home does not hold the catalogue, so it cannot say whether the code has questions.
+    const bank = siteSection("question-bank");
+    found.push({ key: "code", href: `${bank.href}?code=${code}`, icon: bank.icon, name: `Sparx code ${code}`, note: "Look it up in the Question bank." });
   }
   for (const s of siteSections)
     if (words.every((word) => `${s.name} ${s.description}`.toLocaleLowerCase().includes(word)))

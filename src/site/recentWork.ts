@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { readPage, toolIds, type ToolId } from "./routes";
+import { toolIds, type ToolId } from "./routes";
 
 /**
  * Where a teacher last changed something on this device, newest first. Home's "Carry on" row
@@ -55,10 +55,30 @@ export function noteWork(id: WorkPlace, detail?: string, now = Date.now()) {
   write([{ id, at: now, ...(detail ? { detail } : {}) }, ...snapshot().filter((item) => item.id !== id)].slice(0, LIMIT));
 }
 
-/** Records a change to the page that is open, if it is one that keeps work: a diagram tool or a builder. */
-export function noteWorkHere() {
-  const page = readPage();
-  if (isPlace(page)) noteWork(page);
+/** What each place's record was before its first change since the site opened; `null` for none. */
+const before = new Map<WorkPlace, RecentWork | null>();
+const recorders = new Map<WorkPlace, (state: "changed" | "undone") => void>();
+/**
+ * The recorder for one page's document steps (`DocumentChangeContext`). A change is recorded as
+ * made now. Undoing every step puts back what the list said before, because the page then holds
+ * what it held when the site opened.
+ */
+export function workRecorder(id: WorkPlace) {
+  let recorder = recorders.get(id);
+  if (!recorder) {
+    recorder = (state) => {
+      if (state === "changed") {
+        if (!before.has(id)) before.set(id, snapshot().find((item) => item.id === id) ?? null);
+        noteWork(id);
+      } else if (before.has(id)) {
+        const old = before.get(id);
+        const rest = snapshot().filter((item) => item.id !== id);
+        write(old ? [...rest, old].sort((a, b) => b.at - a.at).slice(0, LIMIT) : rest);
+      }
+    };
+    recorders.set(id, recorder);
+  }
+  return recorder;
 }
 
 /** Drops a place whose work has gone, such as a cleared paper. */
@@ -93,4 +113,5 @@ export function whenText(at: number, now = Date.now()): string {
 /** Tests start each case from what storage holds. */
 export function resetRecentWorkForTests() {
   current = null;
+  before.clear();
 }

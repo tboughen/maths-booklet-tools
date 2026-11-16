@@ -13,6 +13,8 @@ import { NotFound } from "./NotFound";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { ToolPageContext } from "./toolPage";
+import { DocumentChangeContext } from "../editor-kit/documentChange";
+import type { WorkPlace } from "./recentWork";
 import { upgradeLegacyLink } from "./routes";
 import {
   AssessmentPage,
@@ -69,6 +71,20 @@ function focusVisiblePage(host: HTMLElement | null) {
 function Ready({ onReady }: { onReady: () => void }) {
   useEffect(onReady, [onReady]);
   return null;
+}
+
+/**
+ * Each page's listener for its document steps, which keeps Home's "Carry on" row. One function
+ * for each page, so the pages do not redraw; the store's code loads on the first change.
+ */
+const recorders = new Map<WorkPlace, (state: "changed" | "undone") => void>();
+function workRecorder(id: WorkPlace) {
+  let recorder = recorders.get(id);
+  if (!recorder) {
+    recorder = (state) => void import("./recentWork").then((store) => store.workRecorder(id)(state));
+    recorders.set(id, recorder);
+  }
+  return recorder;
 }
 
 /** The current address within the site: path, query and hash. */
@@ -207,7 +223,9 @@ export default function SiteApp() {
             <div key={tool.id} className="site-page site-page--tool" hidden={page !== tool.id}>
               <LazyPage onReady={pageReady}>
                 <ToolPageContext value={tool.id}>
-                  <tool.component active={page === tool.id} />
+                  <DocumentChangeContext value={workRecorder(tool.id)}>
+                    <tool.component active={page === tool.id} />
+                  </DocumentChangeContext>
                 </ToolPageContext>
               </LazyPage>
             </div>
@@ -223,14 +241,18 @@ export default function SiteApp() {
       {visited.includes("worksheets") && (
         <div className="site-page" hidden={page !== "worksheets"}>
           <LazyPage onReady={pageReady}>
-            <WorksheetPage active={page === "worksheets"} />
+            <DocumentChangeContext value={workRecorder("worksheets")}>
+              <WorksheetPage active={page === "worksheets"} />
+            </DocumentChangeContext>
           </LazyPage>
         </div>
       )}
       {visited.includes("booklets") && (
         <div className="site-page" hidden={page !== "booklets"}>
           <LazyPage onReady={pageReady}>
-            <BookletPage active={page === "booklets"} />
+            <DocumentChangeContext value={workRecorder("booklets")}>
+              <BookletPage active={page === "booklets"} />
+            </DocumentChangeContext>
           </LazyPage>
         </div>
       )}

@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ArrowRight, Search } from "lucide-react";
-import { bookletTools, pageHref, siteSections } from "./registry";
+import { bookletTools, pageHref, siteSection, siteSections } from "./registry";
 import { useFavouriteToolList } from "./favouriteTools";
 import { searchHome, type Icon } from "./homeSearch";
 import { useRecentWork, whenText, type RecentWork } from "./recentWork";
 import "./home.css";
-
-const section = (id: (typeof siteSections)[number]["id"]) => siteSections.find((s) => s.id === id)!;
 
 /** What a "Carry on" card says about a place, or nothing if the place no longer exists. */
 function carryOn(work: RecentWork) {
@@ -18,7 +16,7 @@ function carryOn(work: RecentWork) {
   return null;
 }
 const pick = (id: "worksheets" | "booklets" | "paper-builder") => {
-  const s = section(id);
+  const s = siteSection(id);
   return { href: s.href, icon: s.icon as Icon, kind: s.name as string };
 };
 
@@ -54,6 +52,8 @@ export default function Home() {
 
   const links = () => [...(list.current?.querySelectorAll<HTMLAnchorElement>("a") ?? [])];
   function boxKeys(event: ReactKeyboardEvent<HTMLInputElement>) {
+    // Enter that confirms composed text, or carries a modifier key, is not a request to open a result.
+    if (event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
     if (event.key === "Enter") links()[0]?.click();
     else if (event.key === "ArrowDown" && links().length) {
       event.preventDefault();

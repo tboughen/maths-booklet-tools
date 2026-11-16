@@ -190,16 +190,19 @@ the page opened, like every other page, so a tool's first load does not carry it
 
 - **"What do you need today?"** and one search box. It finds the six pages by name or by what
   they do, and diagram tools by name or teaching topic (`searchHome` in `homeSearch.ts`, using
-  the Diagram builder's search words). A Sparx code, a letter and three digits, opens its
-  questions in the Question bank. `/` moves to the box, Down moves into what it found, Enter
+  the Diagram builder's search words). A Sparx code, a letter and three digits, is offered
+  as a link to that code in the Question bank; Home cannot tell whether the code has questions. `/` moves to the box, Down moves into what it found, Enter
   opens the first, Escape clears. It does not search exam questions: the bank's catalogue is too
   large to load on Home.
 - **Carry on.** The last three places where the teacher changed something on this device, newest
   first, each saying when. A place is recorded when a change is made, never for only opening a
   page, and the row is left out until there is one. `recentWork.ts` keeps a place and a time,
-  never the work: the shared Undo and Redo buttons record a diagram tool or a builder once there
-  is a step to undo, and the Question bank records the paper being built and drops it when the
-  paper is cleared.
+  never the work. The site shell gives each diagram tool and builder a recorder for its own page
+  (`DocumentChangeContext` in the editor kit, `workRecorder` in `recentWork.ts`), and the shared
+  document history tells it about every new step, undo and redo. Undoing every step puts back
+  what the row said before. The Question bank records the paper being built when the teacher
+  changes its codes or questions, not when a newer catalogue reconciles it, and drops it when
+  the paper is cleared.
 - **Tools.** One card for each of the six pages: a large icon, the name and what it does. Six to
   a row from 1,400 px wide, then three, two and one.
 - **Favourites.** The teacher's starred diagram tools as small picture cards. Stars are added in
