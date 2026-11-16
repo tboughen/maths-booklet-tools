@@ -1,4 +1,4 @@
-import { ExampleGallery } from "./examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
 import { EditorFoot } from "./site/EditorFoot";
 import { EditorHint } from "./site/EditorHint";
@@ -521,10 +521,18 @@ export default function App({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={graphGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource) => setPendingExample(resource)}
+                  onWorked={(resource) => commit({ ...resource, selectedObjectId: null }, "use worked version")}
+                />
+              }
               onUndo={undo}
               onRedo={redo}
               onReset={resetDiagram}
-              resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -629,13 +637,7 @@ export default function App({ active = true }: { active?: boolean }) {
             className="inspector-stack"
             aria-label="Graph settings"
           >
-            <ExampleGallery
-              examples={graphGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) => commit({ ...resource, selectedObjectId: null }, "use worked version")}
-            />
+            <ReturnToDiagram />
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
             {equationOpen ? (

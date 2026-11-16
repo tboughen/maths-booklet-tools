@@ -148,7 +148,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
     await expect.poll(() => saved(page, key)).not.toBeNull();
     const before = await saved(page, key);
     const launch = page.getByRole("button", {
-      name: "Start from an example",
+      name: "Examples",
       exact: true,
     });
     await launch.click();
@@ -319,7 +319,7 @@ test("invalid notation survives tool navigation; Escape restores exports and mod
   const key = "maths-booklet-tools:number-line:v1";
   const before = await saved(page, key);
   await page
-    .getByRole("button", { name: "Start from an example", exact: true })
+    .getByRole("button", { name: "Examples", exact: true })
     .click();
   await page
     .getByRole("dialog")

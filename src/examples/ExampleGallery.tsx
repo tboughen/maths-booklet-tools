@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { LayoutGrid } from "lucide-react";
 import type { GalleryExample } from "./galleryCatalogue";
 
 const previews = import.meta.glob<string>("../assets/example-previews/*.svg", {
@@ -8,6 +9,30 @@ const previews = import.meta.glob<string>("../assets/example-previews/*.svg", {
   import: "default",
 });
 
+/**
+ * First in the settings column. Out of sight beside the diagram until a keyboard reaches it; on a
+ * stacked page it is the way back up.
+ */
+export function ReturnToDiagram() {
+  return (
+    <button
+      type="button"
+      className="editor-diagram-link"
+      onClick={(event) => {
+        const card = event.currentTarget.closest(".workspace")?.querySelector<HTMLElement>(".editor-card");
+        if (card) {
+          card.tabIndex = -1;
+          card.focus();
+          card.scrollIntoView({ block: "start" });
+        }
+      }}
+    >
+      ↑ Return to diagram
+    </button>
+  );
+}
+
+/** The "Examples" button of the action bar and the gallery it opens. */
 export function ExampleGallery<T>({
   examples,
   active,
@@ -37,34 +62,21 @@ export function ExampleGallery<T>({
   }
   return (
     <>
-      <div className="example-launch">
-        <button
-          ref={trigger}
-          disabled={disabled}
-          className="example-launch-button"
-          onClick={() => {
-            setError("");
-            setOpen(true);
-          }}
-        >
-          Start from an example
-        </button>
-        <button
-          className="editor-diagram-link"
-          onClick={(event) => {
-            const card = event.currentTarget
-              .closest(".workspace")
-              ?.querySelector<HTMLElement>(".editor-card");
-            if (card) {
-              card.tabIndex = -1;
-              card.focus();
-              card.scrollIntoView({ block: "start" });
-            }
-          }}
-        >
-          ↑ Return to diagram
-        </button>
-      </div>
+      <button
+        ref={trigger}
+        type="button"
+        disabled={disabled}
+        className="tool-button example-launch-button"
+        aria-label="Examples"
+        title="Start from an example"
+        onClick={() => {
+          setError("");
+          setOpen(true);
+        }}
+      >
+        <LayoutGrid size={17} aria-hidden="true" />
+        <span>Examples</span>
+      </button>
       {active &&
         open &&
         createPortal(

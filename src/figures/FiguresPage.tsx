@@ -7,7 +7,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { useResourceFit } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { figuresGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -796,6 +796,16 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={figuresGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(r, title) => replace(r, `Open ${title}?`)}
+                  onWorked={(r) => commit(r, "use worked version")}
+                />
+              }
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -920,9 +930,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={message}
               hint={<EditorHint tool="figures">Click a line or an angle to label or mark it. Drag the round handles to move points; points on circles stay on them.</EditorHint>}
-            >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
-            </EditorFoot>
+            />
             {(issue || g.notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
                 {g.issues.map((x) => (
@@ -937,13 +945,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Geometry figure settings">
-            <ExampleGallery
-              examples={figuresGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(r, title) => replace(r, `Open ${title}?`)}
-              onWorked={(r) => commit(r, "use worked version")}
-            />
+            <ReturnToDiagram />
             <section className="panel-card pt-panel" aria-label="Selected object">
               <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
               <div className="pt-fields">

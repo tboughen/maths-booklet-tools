@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 // U1: every tool's foot strip reads zoom, Actual size, the print size, then view-only controls, then one note.
+// The answers switch is not one of them: it sits in the action bar (e2e/answer-switch.spec.ts).
 const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "sample-space", "factor-tree", "angles", "area", "figures"];
-const viewOnly = new Set(["answer-preview-toggle", "answer-copy-toggle", "checkbox", "button:Finish drawing"]);
+const viewOnly = new Set(["checkbox", "button:Finish drawing"]);
 
 for (const tool of tools) {
   test(`${tool} foot strip keeps the shared order`, async ({ page }) => {
@@ -20,7 +21,7 @@ for (const tool of tools) {
     );
     expect(order.slice(0, 3), order.join(", ")).toEqual(["preview-zoom", "preview-detail", "resource-size"]);
     expect(order.at(-1), order.join(", ")).toBe("editor-foot-note");
-    // Between the size and the note, only view controls: toggles that change what the screen shows (answers,
+    // Between the size and the note, only view controls: toggles that change what the screen shows (editing
     // guides) and the number line's "Finish drawing". Anything that changes the resource belongs in the inspector.
     const slot = order.slice(3, -1);
     expect(slot.every((name) => viewOnly.has(name)), slot.join(", ")).toBe(true);

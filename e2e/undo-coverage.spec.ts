@@ -33,7 +33,7 @@ for (const tool of toolIds) {
     const redo = bar.getByRole("button", { name: "Redo", exact: true });
     await expect(undo).toBeDisabled();
     let start = await settled(page);
-    await page.getByRole("button", { name: "Start from an example", exact: true }).click();
+    await page.getByRole("button", { name: "Examples", exact: true }).click();
     const gallery = page.getByRole("dialog");
     await gallery.getByRole("button", { name: /worked|answers|complete/i }).first().click();
     await expect(gallery).toHaveCount(0);

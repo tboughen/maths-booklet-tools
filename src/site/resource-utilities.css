@@ -89,21 +89,6 @@
   border-block: 1px solid #d7e3ed;
   overflow-wrap: anywhere;
 }
-/* Answer switches sit in the foot strip's view slot, after the print size (U1, U5). */
-.answer-preview-toggle,
-.answer-copy-toggle {
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-  min-height: 38px;
-  cursor: pointer;
-}
-.answer-preview-toggle input,
-.answer-copy-toggle input {
-  width: 17px;
-  height: 17px;
-  accent-color: #2465ad;
-}
 .graph-control-group {
   display: contents;
   border: 0;

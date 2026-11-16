@@ -245,7 +245,8 @@ for (const [tool, key, paper, stage] of tools) {
       expect(await buttons.allTextContents()).toEqual([
         "",
         "",
-        "Reset",
+        "Examples",
+        "Start again",
         "Copy image",
         "Copy for Word",
         "File ",

@@ -6,7 +6,7 @@ import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { fitResource } from "../site/useResourceFit";
-import { ExampleGallery } from "../examples/ExampleGallery";
+import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
@@ -820,6 +820,24 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              examples={
+                <ExampleGallery
+                  examples={triangleGallery}
+                  active={active}
+                  disabled={blocked}
+                  onUse={(resource, title) =>
+                    replacement(resource, `Open ${title}?`)
+                  }
+                  onWorked={(resource) => commit(resource, "use worked version")}
+                />
+              }
+              answers={
+                <AnswerPreviewToggle
+                  checked={showAnswers}
+                  disabled={blocked}
+                  onChange={setShowAnswers}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -1263,11 +1281,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </EditorHint>
               }
             >
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                disabled={blocked}
-                onChange={setShowAnswers}
-              />
             </EditorFoot>
             <div
               className="tr-structure"
@@ -1549,15 +1562,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Triangle settings">
-            <ExampleGallery
-              examples={triangleGallery}
-              active={active}
-              disabled={blocked}
-              onUse={(resource, title) =>
-                replacement(resource, `Open ${title}?`)
-              }
-              onWorked={(resource) => commit(resource, "use worked version")}
-            />
+            <ReturnToDiagram />
             <div className="tr-label-editor-slot" />
             <section className="panel-card tr-panel specialist-tools">
               <h2>Selected object</h2>
@@ -2349,7 +2354,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     if (!blocked) {
                       commit(next);
                       setMessage(
-                        "Answer saved and hidden. Choose Teacher preview: show hidden answers to see it, or use a worked version.",
+                        "Answer saved and hidden. Switch on Show hidden answers to see it, or use a worked version.",
                       );
                     }
                   }}
@@ -2401,7 +2406,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   view.
                 </p>
                 <p className="tr-note">
-                  Teacher preview: show hidden answers is screen only. Downloads keep
+                  Show hidden answers is screen only. Downloads keep
                   saved pupil visibility. Use worked version replaces the
                   current resource; Undo restores it.
                 </p>

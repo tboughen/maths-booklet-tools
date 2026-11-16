@@ -18,7 +18,7 @@ for (const tool of toolIds) {
     const bar = page.getByRole("group", { name: "Resource utilities", exact: true });
     await expect(bar).toBeVisible();
     // Make a real change first: replace the starter with an example's worked version (one undoable step).
-    await page.getByRole("button", { name: "Start from an example", exact: true }).click();
+    await page.getByRole("button", { name: "Examples", exact: true }).click();
     const gallery = page.getByRole("dialog");
     await gallery.getByRole("button", { name: /worked|answers|complete/i }).first().click();
     await expect(gallery).toHaveCount(0);
@@ -32,7 +32,7 @@ for (const tool of toolIds) {
       return settled;
     }, { intervals: [700] }).toBe(true);
 
-    await bar.getByRole("button", { name: /^(Reset|Reset diagram|New model)$/ }).click();
+    await bar.getByRole("button", { name: "Start again", exact: true }).click();
     const confirm = page.getByRole("dialog").last();
     await expect(confirm).toBeVisible();
     // Every confirmation asks a reset question; its confirm button is the dialog's last action, after Cancel.
