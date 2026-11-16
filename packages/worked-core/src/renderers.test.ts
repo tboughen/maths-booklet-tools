@@ -17,6 +17,7 @@ import { examples as functionMachine } from "../../function-machine-core/src/exa
 import { examples as bubbleMethod } from "../../bubble-method-core/src/examples";
 import { examples as writtenMethod } from "../../written-method-core/src/examples";
 import { examples as figure } from "../../figure-core/src/examples";
+import { examples as solid } from "../../solid-core/src/examples";
 import { create as valueGraph } from "../../value-graph-core/src/interchange";
 import { createGraph } from "../../graph-core/src/interchange";
 import { create as algebraGrid } from "../../algebra-grid-core/src/index";
@@ -34,7 +35,7 @@ const samples: Partial<Record<DiagramFamily, () => unknown>> = {
   "construction": () => first(construction), "cuboid": () => first(cuboid), "elevations": () => first(elevations),
   "triangle": () => first(triangle), "bar-model": () => barModel(exampleNames[0]),
   "value-graph": () => valueGraph(),
-  "function-machine": () => functionMachine[0].make(true), "bubble-method": () => bubbleMethod[0].make(true), "written-method": () => first(writtenMethod), "figures": () => first(figure), "graph": () => createGraph({ objects: [{ kind: "point", position: { x: 1, y: 2 } }] }),
+  "function-machine": () => functionMachine[0].make(true), "bubble-method": () => bubbleMethod[0].make(true), "written-method": () => first(writtenMethod), "figures": () => first(figure), "solids": () => first(solid), "graph": () => createGraph({ objects: [{ kind: "point", position: { x: 1, y: 2 } }] }),
 };
 
 describe("every MathsDock renderer draws inside worked solutions", () => {
