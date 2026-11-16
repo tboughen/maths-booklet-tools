@@ -157,14 +157,15 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
         );
       case "answerLine": {
         const blanks = item.blanks;
-        const shape = !blanks ? "line" : String(blanks.length);
+        const coordinates = blanks?.length === 2 && item.prefix === "(" && item.suffix === ")" && blanks[1].before === ",";
+        const shape = !blanks ? "line" : coordinates ? "coordinates" : String(blanks.length);
         return (
           <div className="ws-line-edit" role="group" aria-label={`${label} answer line`}>
             <Field label={blanks ? "Before the first blank" : "Before the line"} value={item.prefix} max={40} disabled={blocked} onCommit={(prefix) => set({ ...item, prefix })} />
             {blanks ? (
               blanks.map((b, i) => (
                 <div key={i} className="ws-line-edit" role="group" aria-label={`${label} blank ${i + 1}`}>
-                  {i > 0 && <Field label={`Before blank ${i + 1}`} value={b.before} max={20} disabled={blocked} onCommit={(before) => set({ ...item, blanks: blanks.map((x, j) => (j === i ? { ...x, before } : x)) })} />}
+                  {(i > 0 || b.before) && <Field label={`Before blank ${i + 1}`} value={b.before} max={20} disabled={blocked} onCommit={(before) => set({ ...item, blanks: blanks.map((x, j) => (j === i ? { ...x, before } : x)) })} />}
                   <Field label={`Blank ${i + 1} saved answer (answers PDF only)`} value={b.answer} max={40} disabled={blocked} onCommit={(answer) => set({ ...item, blanks: blanks.map((x, j) => (j === i ? { ...x, answer } : x)) })} />
                 </div>
               ))
@@ -182,10 +183,13 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
                   const { type, beside, prefix, suffix, inline } = item;
                   const base = { type, prefix, suffix, inline, answer: "", ...(beside ? { beside } : {}) };
                   const v = e.target.value;
-                  if (v === "line") return set(base);
-                  if (v === "coordinates") return set({ ...base, prefix: "(", suffix: ")", blanks: [{ before: "", answer: blanks?.[0]?.answer ?? "" }, { before: ",", answer: blanks?.[1]?.answer ?? "" }] });
+                  // A line's saved answer moves into the first blank, and back again.
+                  const carried = blanks?.[0]?.answer ?? item.answer;
+                  const first = carried.length <= 40 ? carried : "";
+                  if (v === "line") return set(coordinates ? { ...base, prefix: "", suffix: "", answer: first } : { ...base, answer: first });
+                  if (v === "coordinates") return set({ ...base, prefix: "(", suffix: ")", blanks: [{ before: "", answer: first }, { before: ",", answer: blanks?.[1]?.answer ?? "" }] });
                   const count = Number(v);
-                  set({ ...base, blanks: Array.from({ length: count }, (_, i) => blanks?.[i] ?? { before: "", answer: "" }) });
+                  set({ ...base, blanks: Array.from({ length: count }, (_, i) => blanks?.[i] ?? { before: "", answer: i === 0 ? first : "" }) });
                 }}
               >
                 <option value="line">One answer line</option>

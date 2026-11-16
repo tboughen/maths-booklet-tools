@@ -34,13 +34,15 @@ const lines = (svg: string) =>
 
 describe("answer frame with short blanks", () => {
   it("prints y = ____ x + ____ with two short blanks and the fixed text between them", () => {
-    const eq = { type: "answerLine", prefix: "*y* =", suffix: "", answer: "", inline: false, blanks: [{ answer: "2" }, { before: "*x* +", answer: "-9" }] };
+    const eq = { type: "answerLine", prefix: "y =", suffix: "", answer: "", inline: false, blanks: [{ answer: "2" }, { before: "x +", answer: "-9" }] };
     const doc = sheet([eq]);
     const r = renderResource(doc, { view: "answers" });
     expect(r.issues).toEqual([]);
     const [a, b] = lines(r.pages[0]).slice(-2);
     expect(a[1] - a[0]).toBeCloseTo(FRAME_BLANK, 1);
     expect(b[1] - b[0]).toBeCloseTo(FRAME_BLANK, 1);
+    // Maths notation typesets the fixed text too: italic letters.
+    expect(r.pages[0]).toMatch(/font-style="italic">y<\/tspan> =/);
     expect(r.pages[0]).toMatch(/font-style="italic">x<\/tspan> \+/);
     // The whole frame is short: well under the 55 mm the old pair of lines took each.
     expect(b[1] - a[0]).toBeLessThan(55);
@@ -75,6 +77,11 @@ describe("answer frame with short blanks", () => {
 
   it("refuses a plain answer as well as coordinates", () => {
     expect(() => sheet([coord("1", "2", { answer: "(1, 2)" })])).toThrow(/answer frame/);
+  });
+
+  it("reports a character the font lacks in the fixed text", () => {
+    const r = renderResource(sheet([coord("1", "2", { blanks: [{ answer: "1" }, { before: "⅓", answer: "2" }] })]));
+    expect(r.issues.map((i) => i.message).join(" ")).toContain("⅓");
   });
 
   it("has two answer slots", () => {

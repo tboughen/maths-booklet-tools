@@ -714,7 +714,7 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
 }
 
 /** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
-const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
+const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "before", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
 /** The printed characters in a document part that the worksheet font does not hold, each once. */
 export function missingCharacters(value: unknown): string[] {
   const known = measuredWidths("regular");

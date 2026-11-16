@@ -381,7 +381,9 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
       let at = 0;
       f.pieces.forEach((p, k) => {
         if (p.kind === "text") {
-          const end = k + 1 < f.pieces.length ? f.pieces[k + 1].x : p.x + widthOf(p.text) + 1.2;
+          // The last text (a suffix) takes its slack only from room left in the slot.
+          const textEnd = p.x + widthOf(p.text);
+          const end = k + 1 < f.pieces.length ? f.pieces[k + 1].x : Math.max(textEnd, Math.min(textEnd + 1.2, slot));
           add(end - at, text(p.text), p.x - at > 0.01 ? { margin: { left: p.x - at } } : {});
           at = end;
         } else {
