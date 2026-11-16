@@ -64,14 +64,28 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   the left edge of the guidance column. A mark or note sits just after the line, grid or table it
   belongs to when its words, and any "Also scores" line, each fit on one line (Tim, 16 November
   2026); working below moves down only if it would reach under that Also line. Longer guidance, and
-  guidance pushed down by an earlier note, uses the column. Marks on drawings stay in the column.
-- Step kinds: `line` (aligned on its sign), `text`, `bubbles`, `diagram` (an algebra grid, ratio
-  table, number line or factor tree envelope drawn by its own renderer), `carry` (a value from an earlier
-  part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (lines, paths, crosses,
-  rings and labels on any shown surface) and `answer` (centred on its line; `"align": "left"` for
-  written words on a full-width line).
+  guidance pushed down by an earlier note, uses the column. A drawing's mark goes in the column
+  unless the step gives `noteAt`: then it starts there, beside the drawing, and moves with it.
+- Step kinds: `line` (aligned on its sign), `text`, `bubbles`, `diagram` (any MathsDock envelope
+  drawn by its own renderer, as the pupil sees it: algebra grid, ratio table, number line, factor
+  tree, angles, area, Venn, probability or frequency tree, two-way table, sample space, chart,
+  construction, cuboid, elevations, triangle, value graph, graph or bar model), `carry` (a value from
+  an earlier part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (shapes on any
+  shown surface) and `answer` (centred on its line; `"align": "left"` for written words on a
+  full-width line).
+- Printed grids: `grids` lists calibrated grids, each `{ id, on, x: [{at, value}, {at, value}], y: [...] }`
+  where `at` is a printed gridline's position in points and `value` the number it shows. A `draw`
+  step with `"grid": id` then gives every position in that grid's units, so "draw y = 2x + 1" is
+  written as the line from (0, 1) to (5, 11), not measured in points. A drawing that leaves the cut
+  is reported.
+- Draw shapes: `line`, `path` and `curve` (smooth through its points), each optionally `dashed`;
+  `cross`, `ring`, `label`; `arc` (compass arc: centre, radius, angles anticlockwise from the right
+  as on paper); `region` (shaded); `reading` (dashed reading line ending in an arrow); `vector`
+  (arrowhead in the middle, or at the end); `angle` (arc or right-angle square at a vertex, with an
+  optional size); `ticks` (equal-length ticks or parallel arrows, 1 to 3).
 - Typed maths prints properly: `-` is a minus sign (a hyphen between letters stays), `*` a times
-  sign, `<=` and `>=` their signs, `{a/b}` a stacked fraction, `^2` or `^{12}` a power.
+  sign, `<=` and `>=` their signs, `{a/b}` a stacked fraction, `^2` or `^{12}` a power, `_{a}` an
+  underlined vector, `vec{AB}` an arrow over AB and `[3;-2]` a column vector.
 - Step numbers count through every part in order, so step-by-step reveal shows the same steps
   whatever is served.
 
@@ -94,5 +108,3 @@ is kept outside the repository; the batch records its hash.
 ## Still to come
 
 - A worked-solutions PDF in Paper Builder.
-- Vectors in handwriting are underlined; the working font cannot underline yet, so 27(a) to (c)
-  print plain letters.

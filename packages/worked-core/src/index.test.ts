@@ -284,3 +284,101 @@ describe("worked-solution checks", () => {
     expect(problems).toContain("Part (b) has no working.");
   });
 });
+
+describe("worked-solution drawings on printed grids", () => {
+  // stem-1 prints x from 0 at 50 pt to 10 at 250 pt, and y from 0 at 250 pt to 10 at 50 pt.
+  const grid = { id: "g", on: "stem-1", x: [{ at: 50, value: 0 }, { at: 250, value: 10 }], y: [{ at: 250, value: 0 }, { at: 50, value: 10 }] };
+  const withDraw = (draw: object, grids: object[] = [grid]) => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.grids = grids;
+    raw.parts[1].steps[2] = { kind: "draw", on: "stem-1", ...draw };
+    return parseWorked(raw);
+  };
+  const stem = (data: WorkedData) => layoutWorked(data, surfaces).overlays.get("stem-1")!.svg;
+
+  it("draws in the grid's own units", () => {
+    const svg = stem(withDraw({ grid: "g", shapes: [{ type: "line", from: [0, 1], to: [5, 11 / 2] }] }));
+    expect(svg).toContain('d="M50 230L150 140"');
+  });
+  it("rejects a grid that is missing, on another cut or calibrated on one gridline", () => {
+    expect(() => withDraw({ grid: "h", shapes: [{ type: "cross", at: [1, 1] }] })).toThrow(/no grid called h/);
+    expect(() => withDraw({ grid: "g", shapes: [{ type: "cross", at: [1, 1] }] }, [{ ...grid, on: "a-1" }])).toThrow(/is on a-1/);
+    expect(() => withDraw({ grid: "g", shapes: [{ type: "cross", at: [1, 1] }] }, [{ ...grid, x: [grid.x[0], grid.x[0]] }])).toThrow(/two different gridlines/);
+  });
+  it("reports a drawing that leaves the cut", () => {
+    const issues = layoutWorked(withDraw({ grid: "g", shapes: [{ type: "line", from: [0, 0], to: [30, 0] }] }), surfaces).issues;
+    expect(issues.map(i => i.message)).toContain("Step 9: the drawing goes outside the cut.");
+  });
+  it("draws arcs, regions, reading lines, vectors, angles and ticks", () => {
+    const svg = stem(withDraw({ shapes: [
+      { type: "arc", centre: [100, 150], radius: 40, from: 0, to: 90 },
+      { type: "region", points: [[60, 60], [120, 60], [60, 120]] },
+      { type: "reading", points: [[60, 280], [60, 200], [20, 200]] },
+      { type: "vector", from: [200, 200], to: [260, 200] },
+      { type: "angle", at: [300, 250], from: [400, 250], to: [300, 150], label: "90°", right: true },
+      { type: "angle", at: [300, 100], from: [400, 100], to: [380, 40], label: "x" },
+      { type: "ticks", from: [400, 280], to: [460, 280], count: 2 },
+      { type: "curve", points: [[50, 50], [100, 120], [150, 50]], dashed: true },
+    ] }));
+    // Anticlockwise from the right on paper: the arc ends straight above its centre.
+    expect(svg).toMatch(/M140 150L[^"]*L100 110"/);
+    expect(svg).toContain('fill-opacity="0.15"');
+    expect(svg.match(/stroke-dasharray="4 3"/g)).toHaveLength(2);
+    expect(svg).toContain("M307 250l0 -7l-7 0");
+    expect(svg).toContain("C");
+    expect(svg).toContain(">90°<");
+  });
+  it("puts a drawing's mark beside it when noteAt is given, and in the column otherwise", () => {
+    const mark = { code: "B1", note: "line through (0, 1) and (5, 5.5)" };
+    const beside = layoutWorked(withDraw({ grid: "g", noteAt: [6, 8], shapes: [{ type: "line", from: [0, 1], to: [5, 5.5] }], mark }), surfaces);
+    expect(beside.overlays.get("stem-1")!.svg).toContain('<rect x="170" y="81"');
+    expect(beside.overlays.get("b-1")!.svg).not.toContain("line through");
+    const column = layoutWorked(withDraw({ grid: "g", shapes: [{ type: "line", from: [0, 1], to: [5, 5.5] }], mark }), surfaces);
+    expect(column.overlays.get("b-1")!.svg).toContain("line through");
+  });
+});
+
+describe("worked-solution vectors", () => {
+  it("reads underlined vectors, arrows over and column vectors", () => {
+    expect(pieces("2_{a} + vec{AB}")).toEqual([{ kind: "run", text: "2", sup: false }, { kind: "run", text: "a", sup: false, under: true }, { kind: "run", text: " + ", sup: false }, { kind: "run", text: "AB", sup: false, arrow: true }]);
+    expect(pieces("[3;−2]")).toEqual([{ kind: "column", top: "3", bottom: "−2" }]);
+    expect(pieces("[3 marks]")).toEqual([{ kind: "run", text: "[3 marks]", sup: false }]);
+  });
+  it("gives a column vector a two-line row like a fraction", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "line", lhs: "_{p} + _{q}", rhs: "[3;-2] + [1;4]" }, { kind: "answer", value: "[4;2]", mark: { code: "B2", note: "correct vector" } }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    expect(svg).toMatch(/Q[\d.]+ [\d.]+ [\d.]+ [\d.]+M/);
+    expect(svg).toContain('stroke-width="0.8"');
+  });
+});
+
+describe("worked-solution drawing review fixes", () => {
+  const base = () => JSON.parse(JSON.stringify(sample()));
+  it("keeps a compass arc circular on a grid with unequal scales", () => {
+    const raw = base();
+    raw.grids = [{ id: "g", on: "stem-1", x: [{ at: 0, value: 0 }, { at: 100, value: 1 }], y: [{ at: 200, value: 0 }, { at: 190, value: 1 }] }];
+    raw.parts[1].steps[2] = { kind: "draw", on: "stem-1", grid: "g", shapes: [{ type: "arc", centre: [2, 5], radius: 1, from: 0, to: 90 }] };
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("stem-1")!.svg;
+    expect(svg).toMatch(/M300 150L[^"]*L200 50"/);
+  });
+  it("moves guidance beside a drawing with it, and reports room that would split them", () => {
+    const raw = base();
+    raw.parts[0].area.bottom = 60;
+    raw.parts[1].steps[2] = { kind: "draw", on: "a-1", noteAt: [250, 45], note: "guide", shapes: [{ type: "line", from: [250, 120], to: [280, 150] }] };
+    const issues = layoutWorked(parseWorked(raw), surfaces).issues.map(i => i.message);
+    expect(issues.some(m => /would split this drawing/.test(m))).toBe(true);
+  });
+  it("puts a straight angle's label above its arc", () => {
+    const raw = base();
+    raw.parts[1].steps[2] = { kind: "draw", on: "stem-1", shapes: [{ type: "angle", at: [200, 200], from: [300, 200], to: [100, 200], label: "180°" }] };
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("stem-1")!.svg;
+    const y = Number(/<text x="[\d.]+" y="([\d.]+)"[^>]*>180°/.exec(svg)?.[1] ?? /y="([\d.]+)"[^>]*>180/.exec(svg)![1]);
+    expect(y).toBeLessThan(190);
+  });
+  it("flags a vector inside a fraction or power", () => {
+    const raw = base();
+    raw.parts[1].steps[1] = { ...raw.parts[1].steps[1], text: "{_{a}/2}" };
+    expect(checkWorked(parseWorked(raw), question, surfaces).some(p => /vector inside a fraction/.test(p))).toBe(true);
+  });
+});

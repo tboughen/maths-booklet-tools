@@ -12,6 +12,22 @@ import { renderSvg as renderNumberLine, validate as validateNumberLine } from ".
 import { renderRatioSvg } from "../../ratio-table-core/src/svg";
 import { validateRatioEnvelope } from "../../ratio-table-core/src/interchange";
 import { renderSvg as renderFactorTree, validate as validateFactorTree } from "../../factor-tree-core/src/index";
+import { renderSvg as renderAngles, validate as validateAngles } from "../../angle-core/src/index";
+import { renderSvg as renderArea, validate as validateArea } from "../../area-core/src/index";
+import { renderSvg as renderVenn, validate as validateVenn } from "../../venn-core/src/index";
+import { renderSvg as renderProbabilityTree, validate as validateProbabilityTree } from "../../probability-tree-core/src/index";
+import { renderSvg as renderFrequencyTree, validate as validateFrequencyTree } from "../../frequency-tree-core/src/index";
+import { renderSvg as renderTwoWay, validate as validateTwoWay } from "../../two-way-table-core/src/index";
+import { renderSvg as renderSampleSpace, validate as validateSampleSpace } from "../../sample-space-core/src/index";
+import { renderSvg as renderChart, validate as validateChart } from "../../chart-core/src/index";
+import { renderSvg as renderConstruction, validate as validateConstruction } from "../../construction-core/src/index";
+import { renderSvg as renderCuboid, validate as validateCuboid } from "../../cuboid-core/src/index";
+import { renderSvg as renderElevation, validate as validateElevation } from "../../elevation-core/src/index";
+import { renderSvg as renderTriangle, validate as validateTriangle } from "../../triangle-core/src/index";
+import { renderSvg as renderValueGraph, validate as validateValueGraph } from "../../value-graph-core/src/interchange";
+import { validateEnvelope as validateGraph } from "../../graph-core/src/interchange";
+import { renderDiagramSvg as renderGraph } from "../../graph-core/src/svg";
+import { renderSvg as renderBarModel, validate as validateBarModel } from "../../bar-model-core/src/v3";
 import type { Band } from "./slices";
 export { slices, type Band } from "./slices";
 
@@ -33,12 +49,36 @@ const MM = 72 / 25.4;
 
 // ---------------------------------------------------------------- schema
 
-export const DIAGRAM_FAMILIES = ["algebra-grid", "ratio-table", "number-line", "factor-tree"] as const;
+/**
+ * Every MathsDock renderer a worked solution can draw, each from its own saved envelope. Diagrams are
+ * drawn as the pupil sees them: values in the working are written into the envelope as given.
+ */
+const RENDERERS = {
+  "algebra-grid": (e: unknown) => renderGrid(validateGrid(e)),
+  "ratio-table": (e: unknown) => renderRatioSvg(validateRatioEnvelope(e).document),
+  "number-line": (e: unknown) => renderNumberLine(validateNumberLine(e)),
+  "factor-tree": (e: unknown) => renderFactorTree(validateFactorTree(e)),
+  "angles": (e: unknown) => renderAngles(validateAngles(e)),
+  "area": (e: unknown) => renderArea(validateArea(e)),
+  "venn": (e: unknown) => renderVenn(validateVenn(e)),
+  "probability-tree": (e: unknown) => renderProbabilityTree(validateProbabilityTree(e)),
+  "frequency-tree": (e: unknown) => renderFrequencyTree(validateFrequencyTree(e)),
+  "two-way-table": (e: unknown) => renderTwoWay(validateTwoWay(e)),
+  "sample-space": (e: unknown) => renderSampleSpace(validateSampleSpace(e)),
+  "chart": (e: unknown) => renderChart(validateChart(e)),
+  "construction": (e: unknown) => renderConstruction(validateConstruction(e)),
+  "cuboid": (e: unknown) => renderCuboid(validateCuboid(e)),
+  "elevations": (e: unknown) => renderElevation(validateElevation(e)),
+  "triangle": (e: unknown) => renderTriangle(validateTriangle(e)),
+  "value-graph": (e: unknown) => renderValueGraph(validateValueGraph(e)),
+  "graph": (e: unknown) => renderGraph(validateGraph(e).document),
+  "bar-model": (e: unknown) => renderBarModel(validateBarModel(e)),
+} as const;
+export const DIAGRAM_FAMILIES = Object.keys(RENDERERS) as [keyof typeof RENDERERS, ...(keyof typeof RENDERERS)[]];
 export type DiagramFamily = typeof DIAGRAM_FAMILIES[number];
 const text = (max: number) => z.string().trim().min(1).max(max);
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
 const coordinate = z.number().finite().min(0).max(2000);
-const point = z.tuple([coordinate, coordinate]);
 /** One mark, with its mark-scheme code. A bracketed code such as "(B1)" is partial credit and is not counted. */
 const markSchema = z.object({
   code: z.string().regex(/^(\([BMAPC][1-9]\)|[BMAPC][1-9])$/),
@@ -48,13 +88,36 @@ const markSchema = z.object({
 }).strict();
 const beside = { mark: markSchema.optional(), note: text(140).optional() };
 const relation = z.enum(["=", "<", ">", "≤", "≥", "≠", "≈"]);
+/** A position on a surface: in its points, or in graph units when the drawing names a calibrated grid. */
+const where = z.tuple([z.number().finite().min(-1e6).max(1e6), z.number().finite().min(-1e6).max(1e6)]);
+const dashed = z.boolean().default(false);
 const shape = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("line"), from: point, to: point }).strict(),
-  z.object({ type: z.literal("path"), points: z.array(point).min(2).max(60) }).strict(),
-  z.object({ type: z.literal("cross"), at: point, label: text(8).optional() }).strict(),
-  z.object({ type: z.literal("ring"), at: point, r: z.number().positive().max(40).default(5) }).strict(),
-  z.object({ type: z.literal("label"), at: point, text: text(24), background: z.boolean().default(true) }).strict(),
+  z.object({ type: z.literal("line"), from: where, to: where, dashed }).strict(),
+  z.object({ type: z.literal("path"), points: z.array(where).min(2).max(60), dashed }).strict(),
+  /** A smooth curve through the points, in order: a plotted quadratic, a cumulative-frequency curve. */
+  z.object({ type: z.literal("curve"), points: z.array(where).min(3).max(80), dashed }).strict(),
+  z.object({ type: z.literal("cross"), at: where, label: text(8).optional() }).strict(),
+  z.object({ type: z.literal("ring"), at: where, r: z.number().positive().max(40).default(5) }).strict(),
+  z.object({ type: z.literal("label"), at: where, text: text(24), background: z.boolean().default(true) }).strict(),
+  /** A compass arc about a centre; angles in degrees, anticlockwise from the right as on paper. */
+  z.object({ type: z.literal("arc"), centre: where, radius: z.number().positive().max(1e6), from: z.number().min(-720).max(720), to: z.number().min(-720).max(720) }).strict()
+    .refine(s => s.to !== s.from, { message: "An arc needs two different angles.", path: ["to"] }),
+  /** A shaded region with its edges left as printed or drawn: the region a set of inequalities describes. */
+  z.object({ type: z.literal("region"), points: z.array(where).min(3).max(60) }).strict(),
+  /** A dashed reading line ending in an arrow: up from the axis to the curve, then across to the other axis. */
+  z.object({ type: z.literal("reading"), points: z.array(where).min(2).max(3) }).strict(),
+  /** A vector: a line with its arrowhead in the middle (as Edexcel draws them) or at the end. */
+  z.object({ type: z.literal("vector"), from: where, to: where, head: z.enum(["middle", "end"]).default("middle") }).strict(),
+  /** An angle marked at a vertex between two arms, with its size; a right angle draws its square. */
+  z.object({ type: z.literal("angle"), at: where, from: where, to: where, label: text(12).optional(), right: z.boolean().default(false) }).strict(),
+  /** Equal-length ticks or parallel arrows across the middle of a side. */
+  z.object({ type: z.literal("ticks"), from: where, to: where, count: z.number().int().min(1).max(3).default(1), style: z.enum(["ticks", "arrows"]).default("ticks") }).strict(),
 ]);
+/** One printed gridline: its position in the cut's points and the value it shows. */
+const gridline = z.object({ at: coordinate, value: z.number().finite() }).strict();
+const twoLines = z.tuple([gridline, gridline]).refine(([p, q]) => p.at !== q.at && p.value !== q.value, { message: "Use two different gridlines." });
+/** A printed coordinate grid calibrated once, so drawings on it are given in its own units. */
+const gridSchema = z.object({ id, on: id, x: twoLines, y: twoLines }).strict();
 const stepSchema = z.discriminatedUnion("kind", [
   /** An equation or inequality line, aligned on its sign with the other lines of the part. */
   z.object({ kind: z.literal("line"), lhs: text(80), rel: relation.default("="), rhs: text(80), ...beside }).strict(),
@@ -69,7 +132,13 @@ const stepSchema = z.discriminatedUnion("kind", [
   /** Guidance with no mark; "watch" marks a slip the mark scheme itself flags. */
   z.object({ kind: z.literal("note"), text: text(160), watch: z.boolean().default(false) }).strict(),
   /** Drawing on a surface, in its points: a graph line, a tangent, a triangle, a ringed point. */
-  z.object({ kind: z.literal("draw"), on: id, shapes: z.array(shape).min(1).max(30), ...beside }).strict(),
+  z.object({ kind: z.literal("draw"), on: id,
+    /** A calibrated grid on the same surface: every position below is then in its units. */
+    grid: id.optional(),
+    shapes: z.array(shape).min(1).max(30),
+    /** Where the drawing's mark or note starts (its first baseline), beside the drawing; the guidance column when absent. */
+    noteAt: where.optional(),
+    ...beside }).strict(),
   /** The final answer, written on the part's answer line, box or table. */
   z.object({ kind: z.literal("answer"), value: text(90), at: z.number().int().min(0).max(5).default(0), mark: markSchema.optional(),
     /** Words on a full-width line start at its left; a value sits in the middle of its line. */
@@ -97,8 +166,18 @@ export const workedDataSchema = z.object({
   schemaVersion: z.literal(WORKED_SCHEMA_VERSION),
   questionId: text(80),
   questionRevision: z.string().regex(/^[A-Za-z0-9_-]{1,128}$/),
+  grids: z.array(gridSchema).max(12).default([]),
   parts: z.array(partSchema).min(1).max(12),
-}).strict();
+}).strict().superRefine((d, ctx) => {
+  const ids = d.grids.map(g => g.id);
+  ids.forEach((g, i) => { if (ids.indexOf(g) !== i) ctx.addIssue({ code: "custom", message: `There are two grids called ${g}.`, path: ["grids", i, "id"] }); });
+  d.parts.forEach((p, i) => p.steps.forEach((s, j) => {
+    if (s.kind !== "draw" || s.grid === undefined) return;
+    const grid = d.grids.find(g => g.id === s.grid);
+    if (!grid) ctx.addIssue({ code: "custom", message: `There is no grid called ${s.grid}.`, path: ["parts", i, "steps", j, "grid"] });
+    else if (grid.on !== s.on) ctx.addIssue({ code: "custom", message: `Grid ${s.grid} is on ${grid.on}, not ${s.on}.`, path: ["parts", i, "steps", j, "grid"] });
+  }));
+});
 
 export type WorkedData = z.output<typeof workedDataSchema>;
 export type WorkedPart = WorkedData["parts"][number];
@@ -123,15 +202,25 @@ export function mathsText(s: string): string {
   return s.replace(/<=/g, "≤").replace(/>=/g, "≥").replace(/\*/g, "×").replace(/(?<![A-Za-z])-|-(?![A-Za-z])/g, "−");
 }
 
-type Piece = { kind: "run"; text: string; sup: boolean } | { kind: "fraction"; num: string; den: string };
+type Piece = { kind: "run"; text: string; sup: boolean; under?: boolean; arrow?: boolean }
+  | { kind: "fraction"; num: string; den: string }
+  | { kind: "column"; top: string; bottom: string };
 
-/** Splits "{3/4}" stacked fractions and "^2" or "^{12}" powers out of a line. */
+/**
+ * Splits "{3/4}" stacked fractions and "^2" or "^{12}" powers out of a line, and the vector forms:
+ * "_{a}" an underlined (handwritten bold) vector, "vec{AB}" an arrow over AB, "[3;-2]" a column vector.
+ */
 export function pieces(s: string): Piece[] {
   const out: Piece[] = [];
   let run = "";
   const flush = () => { if (run) out.push({ kind: "run", text: run, sup: false }); run = ""; };
   for (let i = 0; i < s.length; i++) {
     const c = s[i];
+    const rest = s.slice(i);
+    const vector = /^(_|vec)\{([^{}]+)\}/.exec(rest);
+    if (vector) { flush(); out.push({ kind: "run", text: vector[2], sup: false, ...(vector[1] === "_" ? { under: true } : { arrow: true }) }); i += vector[0].length - 1; continue; }
+    const column = /^\[([^[\];]+);([^[\];]+)\]/.exec(rest);
+    if (column) { flush(); out.push({ kind: "column", top: column[1].trim(), bottom: column[2].trim() }); i += column[0].length - 1; continue; }
     if (c === "{") {
       const end = s.indexOf("}", i);
       const inner = end > i ? s.slice(i + 1, end) : "";
@@ -152,9 +241,12 @@ export function pieces(s: string): Piece[] {
 
 const handWidth = (s: string, size: number) => Array.from(s).reduce((n, c) => n + handAdvance(c), 0) * size;
 const noteWidth = (s: string, size: number, bold = false) => Array.from(s).reduce((n, c) => n + interAdvance(c, bold ? "bold" : "regular"), 0) * size;
-const pieceWidth = (p: Piece, size: number) => p.kind === "run" ? handWidth(p.text, p.sup ? size * 0.7 : size) : Math.max(handWidth(p.num, size), handWidth(p.den, size)) + size * 0.4;
+const pieceWidth = (p: Piece, size: number) => p.kind === "run" ? handWidth(p.text, p.sup ? size * 0.7 : size)
+  : p.kind === "fraction" ? Math.max(handWidth(p.num, size), handWidth(p.den, size)) + size * 0.4
+  : Math.max(handWidth(p.top, size), handWidth(p.bottom, size)) + size * 1.1;
 export const mathsWidth = (s: string, size = HAND_SIZE) => pieces(s).reduce((n, p) => n + pieceWidth(p, size), 0);
-const hasFraction = (s: string) => pieces(s).some(p => p.kind === "fraction");
+/** Fractions and column vectors stand two lines tall, so their line takes more room. */
+const hasFraction = (s: string) => pieces(s).some(p => p.kind !== "run");
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const n = (v: number) => Number(v.toFixed(2));
 
@@ -164,8 +256,20 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
   for (const p of pieces(s)) {
     const w = pieceWidth(p, size);
     // Each run is held to its measured width, so a power or fraction after it lands where it was laid out.
-    if (p.kind === "run") out += `<text x="${n(cursor)}" y="${n(p.sup ? y - size * 0.4 : y)}" font-size="${n(p.sup ? size * 0.7 : size)}" fill="${fill}" xml:space="preserve"${p.text.trim().length > 1 ? ` textLength="${n(w)}" lengthAdjust="spacing"` : ""}>${esc(p.text)}</text>`;
-    else {
+    if (p.kind === "run") {
+      out += `<text x="${n(cursor)}" y="${n(p.sup ? y - size * 0.4 : y)}" font-size="${n(p.sup ? size * 0.7 : size)}" fill="${fill}" xml:space="preserve"${p.text.trim().length > 1 ? ` textLength="${n(w)}" lengthAdjust="spacing"` : ""}>${esc(p.text)}</text>`;
+      if (p.under) out += `<path d="M${n(cursor + 0.5)} ${n(y + size * 0.2)}H${n(cursor + w - 0.5)}" stroke="${fill}" stroke-width="0.8" fill="none"/>`;
+      if (p.arrow) {
+        const top = y - size * 0.95, end = cursor + w - 0.5;
+        out += `<path d="M${n(cursor + 0.5)} ${n(top)}H${n(end)}M${n(end - 3)} ${n(top - 2)}L${n(end)} ${n(top)}L${n(end - 3)} ${n(top + 2)}" stroke="${fill}" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+      }
+    } else if (p.kind === "column") {
+      const mid = cursor + w / 2, high = y - size * 1.45, low = y + size * 0.95, half = (high + low) / 2;
+      const l = cursor + size * 0.3, r = cursor + w - size * 0.3;
+      out += `<path d="M${n(l)} ${n(high)}Q${n(l - size * 0.28)} ${n(half)} ${n(l)} ${n(low)}M${n(r)} ${n(high)}Q${n(r + size * 0.28)} ${n(half)} ${n(r)} ${n(low)}" stroke="${fill}" stroke-width="0.9" fill="none"/>`
+        + `<text x="${n(mid)}" y="${n(y - size * 0.54)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.top)}</text>`
+        + `<text x="${n(mid)}" y="${n(y + size * 0.63)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.bottom)}</text>`;
+    } else {
       const mid = cursor + w / 2, bar = y - size * 0.32;
       out += `<text x="${n(mid)}" y="${n(bar - size * 0.22)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.num)}</text>`
         + `<path d="M${n(cursor + size * 0.1)} ${n(bar)}H${n(cursor + w - size * 0.1)}" stroke="${fill}" stroke-width="0.9" fill="none"/>`
@@ -181,12 +285,11 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
 /** Prefixes each selector with the overlay's own class. */
 const scopeCss = (css: string) => css.replace(/(^|})\s*([^{}@]+)\{/g, (_, end: string, selectors: string) => `${end}${selectors.split(",").map(x => `.wk ${x.trim()}`).join(",")}{`);
 
+const fnv = (s: string) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193); return (h >>> 0).toString(36); };
+
 /** A MathsDock diagram as SVG with its printed size in points. */
 export function diagramSvg(family: DiagramFamily, envelope: unknown): { svg: string; width: number; height: number } {
-  const svg = family === "algebra-grid" ? renderGrid(validateGrid(envelope))
-    : family === "number-line" ? renderNumberLine(validateNumberLine(envelope))
-    : family === "factor-tree" ? renderFactorTree(validateFactorTree(envelope))
-    : renderRatioSvg(validateRatioEnvelope(envelope).document);
+  const svg = RENDERERS[family](envelope).replace(/^\s*<\?xml[^>]*\?>\s*/, "");
   const root = /^<svg\b[^>]*>/.exec(svg)?.[0] ?? "";
   const size = (name: string) => {
     const m = new RegExp(`${name}="([0-9.]+)(mm|cm)"`).exec(root);
@@ -195,10 +298,119 @@ export function diagramSvg(family: DiagramFamily, envelope: unknown): { svg: str
   };
   const viewBox = /viewBox="([^"]+)"/.exec(root)?.[1];
   if (!viewBox) throw new Error(`The ${family} drawing has no viewBox.`);
-  const inner = svg.slice(root.length).replace(/<\/svg>\s*$/, "").replace(/<title>[\s\S]*?<\/title>|<desc>[\s\S]*?<\/desc>/g, "")
+  const inner = svg.slice(root.length).replace(/<\/svg>\s*$/, "").replace(/<title\b[^>]*>[\s\S]*?<\/title>|<desc\b[^>]*>[\s\S]*?<\/desc>/g, "")
     // A diagram's own style rules would reach the whole page once the overlay is in it: keep them inside.
     .replace(/<style>([\s\S]*?)<\/style>/g, (_, css: string) => `<style>${scopeCss(css)}</style>`);
-  return { svg: `<svg viewBox="${viewBox}" overflow="visible">${inner}</svg>`, width: size("width"), height: size("height") };
+  // Two drawings on one page must not share clip or marker ids: each gets its own prefix from its content.
+  const prefix = `w${fnv(inner)}-`;
+  const scoped = inner.replace(/\bid="([^"]+)"/g, `id="${prefix}$1"`).replace(/url\(#([^)]+)\)/g, `url(#${prefix}$1)`).replace(/href="#([^"]+)"/g, `href="#${prefix}$1"`)
+    .replace(/aria-labelledby="[^"]*"/g, "");
+  return { svg: `<svg viewBox="${viewBox}" overflow="visible">${scoped}</svg>`, width: size("width"), height: size("height") };
+}
+
+// ---------------------------------------------------------------- drawings
+
+type Grid = WorkedData["grids"][number];
+type Shape = Extract<WorkedStep, { kind: "draw" }>["shapes"][number];
+type Pt = readonly [number, number];
+
+/** Graph units to the cut's points for a calibrated grid; positions are points already without one. */
+export function toPoints(grid: Grid | undefined): (p: Pt) => [number, number] {
+  if (!grid) return p => [p[0], p[1]];
+  const axis = ([p, q]: Grid["x"]) => (v: number) => p.at + (v - p.value) * (q.at - p.at) / (q.value - p.value);
+  const x = axis(grid.x), y = axis(grid.y);
+  return p => [x(p[0]), y(p[1])];
+}
+
+const DASH = `stroke-dasharray="4 3"`;
+const stroke = (d: string, width = 1.1, extra = "") => `<path d="${d}" stroke="${INK}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" fill="none"${extra ? ` ${extra}` : ""}/>`;
+const pt = (p: Pt) => `${n(p[0])} ${n(p[1])}`;
+const unit = (from: Pt, to: Pt): [number, number] => { const dx = to[0] - from[0], dy = to[1] - from[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+/** A filled arrowhead with its tip at `tip`, pointing along u. */
+const head = (tip: Pt, u: Pt, length = 7, half = 3) => `<path d="M${pt(tip)}L${pt([tip[0] - u[0] * length - u[1] * half, tip[1] - u[1] * length + u[0] * half])}L${pt([tip[0] - u[0] * length + u[1] * half, tip[1] - u[1] * length - u[0] * half])}Z" fill="${INK}" stroke="none"/>`;
+/** A smooth curve through points (Catmull-Rom as cubic Béziers), so it passes through every plotted point. */
+function smooth(p: Pt[]): string {
+  let d = `M${pt(p[0])}`;
+  for (let i = 0; i < p.length - 1; i++) {
+    const a = p[i - 1] ?? p[i], b = p[i], c = p[i + 1], e = p[i + 2] ?? c;
+    d += `C${pt([b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6])} ${pt([c[0] - (e[0] - b[0]) / 6, c[1] - (e[1] - b[1]) / 6])} ${pt(c)}`;
+  }
+  return d;
+}
+
+/** A drawing's SVG in the cut's points, with every point it reaches and the boxes of its labels. */
+export function drawShapes(shapes: Shape[], place: (p: Pt) => [number, number]) {
+  let svg = "";
+  const points: [number, number][] = [], boxes: Box[] = [];
+  const at = (p: Pt) => { const q = place(p); points.push(q); return q; };
+  const text = (t: string, x: number, y: number, background: boolean, what = "drawing label") => {
+    const s = mathsText(t), w = mathsWidth(s, 11);
+    boxes.push({ x: x - 2, y: y - 11, width: w + 4, height: 14, what });
+    points.push([x + w, y]);
+    return (background ? `<rect x="${n(x - 2)}" y="${n(y - 11)}" width="${n(w + 4)}" height="14" fill="#fff"/>` : "") + maths(s, x, y, 11);
+  };
+  for (const s of shapes) {
+    switch (s.type) {
+      case "line": svg += stroke(`M${pt(at(s.from))}L${pt(at(s.to))}`, 1.1, s.dashed ? DASH : ""); break;
+      case "path": svg += stroke(`M${s.points.map(p => pt(at(p))).join("L")}`, 1, s.dashed ? DASH : ""); break;
+      case "curve": svg += stroke(smooth(s.points.map(at)), 1, s.dashed ? DASH : ""); break;
+      case "cross": {
+        const c = at(s.at);
+        svg += stroke(`M${n(c[0] - 3.5)} ${n(c[1] - 3.5)}l7 7M${n(c[0] + 3.5)} ${n(c[1] - 3.5)}l-7 7`);
+        if (s.label) svg += `<text x="${n(c[0] - 7)}" y="${n(c[1] - 5)}" font-size="${HAND_SIZE}" fill="${INK}" text-anchor="end">${esc(mathsText(s.label))}</text>`;
+        break;
+      }
+      case "ring": { const c = at(s.at); svg += `<circle cx="${n(c[0])}" cy="${n(c[1])}" r="${n(s.r)}" stroke="${INK}" stroke-width="1" fill="none"/>`; break; }
+      case "label": { const c = at(s.at); svg += text(s.text, c[0], c[1], s.background); break; }
+      case "arc": {
+        // A compass arc is a circle on the paper: its radius is in the grid's x units (or points), and
+        // it turns anticlockwise as seen on paper whichever way the grid's values run.
+        const c = place(s.centre), r = Math.abs(place([s.centre[0] + s.radius, s.centre[1]])[0] - c[0]);
+        const steps = Math.max(8, Math.ceil(Math.abs(s.to - s.from) / 3));
+        const p: Pt[] = [];
+        for (let i = 0; i <= steps; i++) { const t = (s.from + (s.to - s.from) * i / steps) * Math.PI / 180; const q: [number, number] = [c[0] + r * Math.cos(t), c[1] - r * Math.sin(t)]; points.push(q); p.push(q); }
+        svg += stroke(`M${p.map(pt).join("L")}`, 0.8);
+        break;
+      }
+      case "region": svg += `<path d="M${s.points.map(p => pt(at(p))).join("L")}Z" fill="${INK}" fill-opacity="0.15" stroke="none"/>`; break;
+      case "reading": {
+        const p = s.points.map(at);
+        svg += stroke(`M${p.map(pt).join("L")}`, 0.9, DASH) + head(p[p.length - 1], unit(p[p.length - 2], p[p.length - 1]), 6, 2.6);
+        break;
+      }
+      case "vector": {
+        const a = at(s.from), b = at(s.to), u = unit(a, b);
+        svg += stroke(`M${pt(a)}L${pt(b)}`) + head(s.head === "end" ? b : [(a[0] + b[0]) / 2 + u[0] * 3.5, (a[1] + b[1]) / 2 + u[1] * 3.5], u);
+        break;
+      }
+      case "angle": {
+        const v = at(s.at), p = place(s.from), q = place(s.to), u = unit(v, p), w = unit(v, q);
+        if (s.right) svg += stroke(`M${pt([v[0] + u[0] * 7, v[1] + u[1] * 7])}l${n(w[0] * 7)} ${n(w[1] * 7)}l${n(-u[0] * 7)} ${n(-u[1] * 7)}`, 0.8);
+        else svg += stroke(`M${pt([v[0] + u[0] * 11, v[1] + u[1] * 11])}A11 11 0 0 ${u[0] * w[1] - u[1] * w[0] > 0 ? 1 : 0} ${pt([v[0] + w[0] * 11, v[1] + w[1] * 11])}`, 0.8);
+        if (s.label) {
+          // A straight angle has no bisector between its arms: the label goes on the side its arc bulges.
+          const m = Math.hypot(u[0] + w[0], u[1] + w[1]) < 1e-6 ? [u[1], -u[0]] : unit([0, 0], [u[0] + w[0], u[1] + w[1]]), t = mathsText(s.label), width = mathsWidth(t, 11);
+          // Centred on the bisector, just clear of the arc whichever way the bisector points.
+          const r = 13 + Math.hypot(width / 2 + 2, 7);
+          svg += text(s.label, v[0] + m[0] * r - width / 2, v[1] + m[1] * r + 4, false, "angle label");
+        }
+        break;
+      }
+      case "ticks": {
+        const a = at(s.from), b = at(s.to), u = unit(a, b), nrm: Pt = [-u[1], u[0]], m: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        let d = "";
+        for (let i = 0; i < s.count; i++) {
+          const o = (i - (s.count - 1) / 2) * (s.style === "ticks" ? 3 : 4), c: Pt = [m[0] + u[0] * o, m[1] + u[1] * o];
+          d += s.style === "ticks"
+            ? `M${pt([c[0] - nrm[0] * 4, c[1] - nrm[1] * 4])}L${pt([c[0] + nrm[0] * 4, c[1] + nrm[1] * 4])}`
+            : `M${pt([c[0] - u[0] * 3 + nrm[0] * 3, c[1] - u[1] * 3 + nrm[1] * 3])}L${pt(c)}L${pt([c[0] - u[0] * 3 - nrm[0] * 3, c[1] - u[1] * 3 - nrm[1] * 3])}`;
+        }
+        svg += stroke(d, 0.9);
+        break;
+      }
+    }
+  }
+  return { svg, points, boxes };
 }
 
 // ---------------------------------------------------------------- layout
@@ -274,6 +486,34 @@ const chip = (code: string, x: number, y: number) => `<g class="wk-mark"><rect x
 const UI = `font-family="MathsDock UI, Inter, sans-serif"`;
 const HAND = `font-family="${HAND_FAMILY}, 'Shantell Sans', cursive"`;
 
+/** Guidance at x with its first baseline at y, wrapped to width: a mark chip and words, an "Also scores" line, a note. */
+function guidance(x: number, y0: number, width: number, mark: WorkedMark | undefined, note: string | undefined, watch: boolean, marks: boolean) {
+  let y = y0, svg = "", used = 0;
+  const top = y0 - NOTE_SIZE;
+  if (mark) {
+    const chipWidth = noteWidth(mark.code, 9, true) + 8;
+    const words = wrap(mark.note, width - chipWidth - 5, NOTE_SIZE);
+    svg += chip(mark.code, x, y);
+    // The words keep their place without the chip, so guidance never jumps when the switch changes.
+    words.forEach((l, i) => { used = Math.max(used, chipWidth + 5 + noteWidth(l, NOTE_SIZE)); svg += `<text x="${n(x + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(l)}</text>`; });
+    y += (words.length - 1) * NOTE_LEADING;
+    // Its room is kept without the mark notes too, so the layout is the same either way.
+    if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { y += 12; used = Math.max(used, chipWidth + 5 + noteWidth(l, 9)); if (marks) svg += `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${esc(l)}</text>`; }
+    if (note) y += NOTE_LEADING;
+  }
+  if (note) {
+    const prefix = watch ? "Watch out:" : "";
+    wrap(prefix ? `${prefix} ${note}` : note, width, NOTE_SIZE).forEach((l, i) => {
+      const body = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>${esc(l.slice(prefix.length))}` : esc(l);
+      if (i) y += NOTE_LEADING;
+      used = Math.max(used, noteWidth(l, NOTE_SIZE) + (i === 0 && prefix ? 4 : 0));
+      svg += `<text x="${n(x)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}" xml:space="preserve">${body}</text>`;
+    });
+  }
+  const bottom = y + 3;
+  return { svg, bottom, box: { x, y: top, width: Math.min(used + 2, width), height: bottom - top, what: "guidance" } satisfies Box };
+}
+
 /**
  * Lays out the shown parts' working over their surfaces. Positions come from the data's working
  * space and guidance column; the checks report anything that would overlap or leave the cut.
@@ -318,7 +558,7 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
     let noteX = 0;
     const placeNote = (k: number, baseline: number, mark: WorkedMark | undefined, note: string | undefined, watch = false, beside?: number) => {
       if (!mark && !note) return false;
-      let y = Math.max(baseline, noteBottom + NOTE_LEADING);
+      const y = Math.max(baseline, noteBottom + NOTE_LEADING);
       // Close beside its line only when the words fit on that one line; longer guidance would run
       // down past the working below it.
       const near = beside !== undefined && y <= baseline + 0.5 ? Math.min(part.notesX, beside + NOTE_GAP) : part.notesX;
@@ -330,32 +570,10 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         return wrap(watch ? `Watch out: ${note}` : note ?? "", room, NOTE_SIZE).length === 1;
       };
       const x = near < part.notesX && oneLine(near) ? near : part.notesX;
-      const width = d.surface.width - x - 4;
-      const top = y - NOTE_SIZE;
-      let svg = "", used = 0;
-      if (mark) {
-        const chipWidth = noteWidth(mark.code, 9, true) + 8;
-        const words = wrap(mark.note, width - chipWidth - 5, NOTE_SIZE);
-        svg += chip(mark.code, x, y);
-        // The words keep their place without the chip, so guidance never jumps when the switch changes.
-        words.forEach((l, i) => { used = Math.max(used, chipWidth + 5 + noteWidth(l, NOTE_SIZE)); svg += `<text x="${n(x + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${esc(l)}</text>`; });
-        y += (words.length - 1) * NOTE_LEADING;
-        // Its room is kept without the mark notes too, so the layout is the same either way.
-        if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { y += 12; used = Math.max(used, chipWidth + 5 + noteWidth(l, 9)); if (marks) svg += `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${esc(l)}</text>`; }
-        if (note) y += NOTE_LEADING;
-      }
-      if (note) {
-        const prefix = watch ? "Watch out:" : "";
-        wrap(prefix ? `${prefix} ${note}` : note, width, NOTE_SIZE).forEach((l, i) => {
-          const body = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>${esc(l.slice(prefix.length))}` : esc(l);
-          if (i) y += NOTE_LEADING;
-          used = Math.max(used, noteWidth(l, NOTE_SIZE) + (i === 0 && prefix ? 4 : 0));
-          svg += `<text x="${n(x)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}" xml:space="preserve">${body}</text>`;
-        });
-      }
-      noteBottom = y + 3;
+      const g = guidance(x, y, d.surface.width - x - 4, mark, note, watch, marks);
+      noteBottom = g.bottom;
       noteX = x;
-      emit(d, k, `<g ${UI}>${svg}</g>`, a.y, [{ x, y: top, width: Math.min(used + 2, width), height: y + 3 - top, what: "guidance" }]);
+      emit(d, k, `<g ${UI}>${g.svg}</g>`, a.y, [g.box]);
       return x < part.notesX;
     };
     // Close guidance with an "Also scores" line under it: the next working moves down only if it
@@ -432,29 +650,28 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
         case "draw": {
           const target = draft(step.on);
           if (!target) { issues.push({ surface: part.on, message: `Step ${k}: no cut called ${step.on} is shown.` }); break; }
+          const grid = step.grid === undefined ? undefined : data.grids.find(g => g.id === step.grid);
+          const place = toPoints(grid);
           const shapes = step.shapes;
+          const drawn = drawShapes(shapes, place);
+          const outside = drawn.points.some(([x, y]) => x < -0.5 || y < -0.5 || x > target.surface.width + 0.5 || y > target.surface.height + 0.5);
+          if (outside) issues.push({ surface: step.on, message: `Step ${k}: the drawing goes outside the cut.` });
+          const beside = step.noteAt && (step.mark || step.note) ? place(step.noteAt) : undefined;
           // Drawn after every part, so the target's own added room is known.
           later.push(() => {
-            let svg = "", top = Infinity, low = -Infinity;
-            const boxes: Box[] = [];
-            const at = (p: readonly [number, number]) => { top = Math.min(top, p[1]); low = Math.max(low, p[1]); return `${n(p[0])} ${n(p[1])}`; };
-            for (const s of shapes) {
-              if (s.type === "line") svg += `<path d="M${at(s.from)}L${at(s.to)}" stroke="${INK}" stroke-width="1.1" stroke-linecap="round" fill="none"/>`;
-              else if (s.type === "path") svg += `<path d="M${s.points.map(at).join("L")}" stroke="${INK}" stroke-width="1" stroke-linejoin="round" fill="none"/>`;
-              else if (s.type === "cross") { at(s.at); svg += `<path d="M${n(s.at[0] - 3.5)} ${n(s.at[1] - 3.5)}l7 7M${n(s.at[0] + 3.5)} ${n(s.at[1] - 3.5)}l-7 7" stroke="${INK}" stroke-width="1.1" fill="none"/>` + (s.label ? `<text x="${n(s.at[0] - 7)}" y="${n(s.at[1] - 5)}" font-size="${HAND_SIZE}" fill="${INK}" text-anchor="end">${esc(mathsText(s.label))}</text>` : ""); }
-              else if (s.type === "ring") { at(s.at); svg += `<circle cx="${n(s.at[0])}" cy="${n(s.at[1])}" r="${n(s.r)}" stroke="${INK}" stroke-width="1" fill="none"/>`; }
-              else {
-                at(s.at);
-                const t = mathsText(s.text), w = mathsWidth(t, 11);
-                boxes.push({ x: s.at[0] - 2, y: s.at[1] - 11, width: w + 4, height: 14, what: "drawing label" });
-                svg += (s.background ? `<rect x="${n(s.at[0] - 2)}" y="${n(s.at[1] - 11)}" width="${n(w + 4)}" height="14" fill="#fff"/>` : "") + maths(t, s.at[0], s.at[1], 11);
-              }
-            }
+            const g = beside && guidance(beside[0], beside[1], target.surface.width - beside[0] - 4, step.mark, step.note, false, marks);
+            // The guidance beside a drawing moves with it as one piece.
+            const ys = [...drawn.points.map(p => p[1]), ...(g ? [g.box.y, g.box.y + g.box.height] : [])];
+            const top = Math.min(...ys), low = Math.max(...ys);
             // A drawing moves as one piece, so added room must not split it from its graph.
             if (target.bands.some(b => b.at > top + 0.5 && b.at < low - 0.5)) issues.push({ surface: step.on, message: `Step ${k}: room added inside the cut would split this drawing.` });
-            emit(target, k, `<g ${HAND}>${svg}</g>`, top, boxes);
+            emit(target, k, `<g ${HAND}>${drawn.svg}</g>`, top, drawn.boxes);
+            // Guidance beside the drawing moves with it (Tim, 16 Nov 2026: marks close to what earns them).
+            if (g) {
+              emit(target, k, `<g ${UI}>${g.svg}</g>`, top, [g.box]);
+            }
           });
-          placeNote(k, cursor + LINE * 0.68, step.mark, step.note);
+          if (!beside) placeNote(k, cursor + LINE * 0.68, step.mark, step.note);
           break;
         }
         case "answer": {
@@ -563,6 +780,7 @@ export function checkWorked(data: WorkedData, question: { id: string; revision: 
       const words = s.kind === "line" ? [s.lhs, s.rhs] : s.kind === "text" ? [s.text] : s.kind === "answer" ? [s.value] : [];
       for (const w of words) if (/(^|[^{\d])\d+\/\d+(?![^{]*})/.test(w) || /[½⅓⅔¼¾⅕⅛]/.test(w)) problems.push(`"${w}" uses a slash or a small fraction; fractions are stacked: write {3/4}.`);
       const said = [s.kind === "text" || s.kind === "note" ? s.text : "", "note" in s && s.note ? s.note : "", "mark" in s && s.mark ? s.mark.note : ""].join(" ");
+      for (const w of words) if (/\{[^{}]*(_|vec)\{|\^\{[^{}]*_\{/.test(w)) problems.push(`"${w}" puts a vector inside a fraction or power; write {1/2}_{a}, not {_{a}/2}.`);
       if (/\bput\b/i.test(said)) problems.push(`"${said.trim()}" says "put"; the school says "substitute".`);
       if (/y\s*↓/.test(said)) problems.push(`"${said.trim()}" uses y ↓; movements are y ↑ with a negative number.`);
     }
