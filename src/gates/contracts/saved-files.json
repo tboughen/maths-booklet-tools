@@ -1828,7 +1828,9 @@
               "scatter",
               "histogram",
               "polygon",
-              "cumulative"
+              "cumulative",
+              "boxplot",
+              "stemleaf"
             ]
           },
           "categories": {
@@ -2607,6 +2609,282 @@
               "histogram",
               "polygon",
               "cumulative"
+            ],
+            "additionalProperties": false
+          },
+          "boxplot": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "minItems": 1,
+                "maxItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "min": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "lq": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "median": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "uq": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "max": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "min",
+                    "lq",
+                    "median",
+                    "uq",
+                    "max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "axis": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "max": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "step": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "stepMm": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "maximum": 40,
+                    "multipleOf": 2
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "step",
+                  "stepMm",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "bandMm": {
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 40,
+                "multipleOf": 2
+              },
+              "line": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "line",
+                  "arrow"
+                ]
+              }
+            },
+            "required": [
+              "rows",
+              "axis",
+              "bandMm",
+              "line"
+            ],
+            "additionalProperties": false
+          },
+          "stemleaf": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "stem": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "leaves": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "stemShow": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    },
+                    "leavesShow": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "stem",
+                    "leaves",
+                    "stemShow",
+                    "leavesShow"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "key": {
+                "type": "object",
+                "properties": {
+                  "stem": {
+                    "type": "string",
+                    "maxLength": 6
+                  },
+                  "leaf": {
+                    "type": "string",
+                    "maxLength": 1
+                  },
+                  "represents": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden",
+                      "none"
+                    ]
+                  }
+                },
+                "required": [
+                  "stem",
+                  "leaf",
+                  "represents",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              "leafMm": {
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 120
+              }
+            },
+            "required": [
+              "rows",
+              "key",
+              "leafMm"
             ],
             "additionalProperties": false
           }

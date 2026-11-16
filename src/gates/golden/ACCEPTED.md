@@ -694,3 +694,17 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - written methods: wm-division-remainder (worked): added
 - written methods: wm-long-division-decimal: added
 - written methods: wm-long-division-decimal (worked): added
+
+## 2026-11-16: Box plots become a chart kind: two source-linked examples (Jun 2017 3H Q9, Nov 2017 1H Q12), pupil and answers copies
+
+- charts: chart-boxplot-holiday: added
+- charts: chart-boxplot-holiday (worked): added
+- charts: chart-boxplot-heights: added
+- charts: chart-boxplot-heights (worked): added
+
+## 2026-11-16: Stem-and-leaf diagrams become a chart kind: two source-linked examples (Nov 2017 1F Q10, Jun 2025 1F Q18), pupil and answers copies
+
+- charts: chart-stemleaf-scores: added
+- charts: chart-stemleaf-scores (worked): added
+- charts: chart-stemleaf-heights: added
+- charts: chart-stemleaf-heights (worked): added
