@@ -9,7 +9,7 @@ import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
@@ -538,25 +538,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 if (upload) void importFile(upload);
               }}
             />
-            <div className="vn-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerCopyToggle
-                checked={view === "answer"}
-                disabled={blocked}
-                onChange={(checked) => setView(checked ? "answer" : "pupil")}
-              />
-            </div>
-            <EditorHint
-              tool="venn"
-              prompt={
-                mode === "shade"
-                  ? "Shade mode: click a region to shade or clear it."
-                  : undefined
-              }
-            >
-              Click a region or label to edit it.
-            </EditorHint>
             <div
               className="vn-scroll editor-stage"
               ref={fitted.ref}
@@ -659,13 +640,33 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     ))}
               </div>
             </div>
-            {(message || draft || issue || note.length > 0) && (
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="venn"
+                  prompt={
+                    mode === "shade"
+                      ? "Shade mode: click a region to shade or clear it."
+                      : undefined
+                  }
+                >
+                  Click a region or label to edit it.
+                </EditorHint>
+              }
+            >
+              <AnswerCopyToggle
+                checked={view === "answer"}
+                disabled={blocked}
+                onChange={(checked) => setView(checked ? "answer" : "pupil")}
+              />
+            </EditorFoot>
+            {(draft || issue || note.length > 0) && (
               <div className="vn-status" aria-live="polite">
-                {message && (
-                  <p className="resource-feedback" role="status">
-                    {message}
-                  </p>
-                )}
                 {draft && (
                   <p>
                     Apply or cancel the open editor before another edit or

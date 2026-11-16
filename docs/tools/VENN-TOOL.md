@@ -17,7 +17,7 @@ runtime dependencies or newly published question-bank assets.
   Outer set / Inner set label and definition editors follow the actual geometry.
   Renaming changes only the chosen label, retaining every region and shade.
 - "Teacher copy: show hidden answers" replaces the resource-view dropdown. It sits
-  in the preview bar after the export size, with a note that downloads show the
+  in the foot strip after the print size, with a note that downloads show the
   answers too. It controls the existing temporary output view,
   and preserves pupil visibility in autosave/editable files. It is disabled
   during pending edits/replacements/recovery/export like the previous control.

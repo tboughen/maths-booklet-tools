@@ -3,8 +3,8 @@ export const ANSWER_PREVIEW_LABEL = "Teacher preview: show hidden answers";
 
 /**
  * Shows saved hidden answers on screen only. Downloads, links and editable files keep the saved
- * pupil visibility, so this is never a document setting. Sits after the export size in the
- * preview bar (U1).
+ * pupil visibility, so this is never a document setting. Sits after the print size in the
+ * foot strip (U1).
  */
 export function AnswerPreviewToggle({
   checked,

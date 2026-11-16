@@ -15,7 +15,7 @@ import {
 } from "../export/svg";
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { plotClipBleed } from "../../packages/graph-core/src/svg";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   regionBoundaries,
   regionHalfPlanes,
@@ -76,8 +76,12 @@ import type {
   SvgLayout,
 } from "../domain/types";
 
+/** The editor draws a 1 cm grid square 60 units wide; at 100% zoom it is 1 cm of screen (96 px to the inch). */
+const PRINT_SIZE = 96 / 2.54 / 60;
+
 interface GraphCanvasProps {
   document: GraphEditorDocument;
+  /** 0 fits the graph to its space; 1 draws it at print size. */
   zoom?: number;
   disabled?: boolean;
   tool: DrawingTool;
@@ -88,6 +92,8 @@ interface GraphCanvasProps {
     end: "negative" | "positive",
     delta: -1 | 1,
   ) => void;
+  /** Told the scale the graph is drawn at, so the page can show it beside the zoom. */
+  onScale?: (scale: number) => void;
 }
 
 type ObjectDrag = {
@@ -268,6 +274,7 @@ export function GraphCanvas({
   onAxisAdjust,
   disabled = false,
   zoom = 0,
+  onScale,
 }: GraphCanvasProps) {
   const fontFamily =
     document.styleProfile === "portable-v1"
@@ -311,16 +318,21 @@ export function GraphCanvas({
     height: metrics.height * 0.6,
   };
   const compact = availableWidth < 600;
+  // Fit stops at 400% of print size, the largest step the zoom offers.
   const scale =
-    zoom ||
-    fitResource(
-      paper.width,
-      paper.height,
-      availableWidth,
-      availableHeight,
-      compact ? 168 : 264,
-      144,
+    zoom * PRINT_SIZE ||
+    Math.min(
+      4 * PRINT_SIZE,
+      fitResource(
+        paper.width,
+        paper.height,
+        availableWidth,
+        availableHeight,
+        compact ? 168 : 264,
+        144,
+      ),
     );
+  useEffect(() => onScale?.(scale / PRINT_SIZE), [onScale, scale]);
   const paperWidth = paper.width * scale,
     paperHeight = paper.height * scale;
   // Small/tall fitted artwork still needs room for native-size button pairs.

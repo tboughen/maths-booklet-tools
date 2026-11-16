@@ -24,14 +24,14 @@ function saveDismissed(tool: HintKey) {
 }
 
 /**
- * The one hint line every editor shows directly under its preview bar.
+ * The one hint every editor shows, at the end of its foot strip (`EditorFoot`).
  *
  * `children` is the first-use tip: the teacher can hide it for good, and that
  * choice is remembered in this browser. `prompt` is an instruction for the
  * current drawing mode (for example "Choose the other endpoint"); it takes the
  * same place, always shows while that mode is active and cannot be hidden.
  * The prompt's status region is always mounted, so screen readers announce
- * each new prompt. The line sits outside the resource, so it never appears in an export.
+ * each new prompt. The hint sits outside the resource, so it never appears in an export.
  */
 export function EditorHint({
   tool,
@@ -71,14 +71,8 @@ export function EditorHint({
             onClick={() => {
               saveDismissed(tool);
               setDismissed(true);
-              // Keep focus on a real control: the nearest one above, normally the preview bar's zoom.
-              for (let el = slot.current?.previousElementSibling; el; el = el.previousElementSibling) {
-                const control = el.querySelector<HTMLElement>("select:not(:disabled), button:not(:disabled), input:not(:disabled)");
-                if (control) {
-                  control.focus();
-                  break;
-                }
-              }
+              // Keep focus on a real control: the zoom at the start of the same strip.
+              slot.current?.closest(".editor-foot")?.querySelector<HTMLElement>("select:not(:disabled)")?.focus();
             }}
           >
             <X size={16} aria-hidden="true" />

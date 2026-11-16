@@ -9,7 +9,7 @@ import { fitResource } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import {
   useEffect,
@@ -912,21 +912,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 if (upload && !blocked) void importFile(upload);
               }}
             />
-            <div className="tr-preview-bar">
-              <PreviewControls
-                zoom={zoom === "fit" ? 0 : Number(zoom)}
-                onZoom={(value) => setZoom(value ? String(value) : "fit")}
-              />
-              <ResourceSize
-                width={exportMetrics.width / 10}
-                height={exportMetrics.height / 10}
-              />
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                disabled={blocked}
-                onChange={setShowAnswers}
-              />
-            </div>
             {showAnswers && (
               <p className="tr-banner">
                 Answer preview only. Copy and image downloads use saved pupil
@@ -934,10 +919,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 settings.
               </p>
             )}
-            <EditorHint tool="triangle">
-              Click a wedge to edit an angle, or a label to edit its text. Drag
-              a vertex to reshape. Select a triangle to add its area.
-            </EditorHint>
             <div
               className="tr-scroll editor-stage"
               ref={scroll}
@@ -1264,6 +1245,30 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </div>
+            <EditorFoot
+              zoom={zoom === "fit" ? 0 : Number(zoom)}
+              onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              scale={viewScale}
+              size={
+                <ResourceSize
+                  width={exportMetrics.width / 10}
+                  height={exportMetrics.height / 10}
+                />
+              }
+              status={message}
+              hint={
+                <EditorHint tool="triangle">
+                  Click a wedge to edit an angle, or a label to edit its text. Drag
+                  a vertex to reshape. Select a triangle to add its area.
+                </EditorHint>
+              }
+            >
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                disabled={blocked}
+                onChange={setShowAnswers}
+              />
+            </EditorFoot>
             <div
               className="tr-structure"
               role="group"
@@ -1501,11 +1506,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               <div className="tr-error tr-feedback" role="status">
                 {exportMetrics.issues.join(" ")} Editable saving remains
                 available.
-              </div>
-            )}
-            {!!message && (
-              <div className="tr-feedback" role="status">
-                {message}
               </div>
             )}
             {!!notes.length && (
