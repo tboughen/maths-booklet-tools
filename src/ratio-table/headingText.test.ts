@@ -23,3 +23,8 @@ it("exposes default arrows as deletable Unicode and retains unchanged legacy hea
     direction: "up",
   });
 });
+
+it("prints % and £ headings upright even when the heading they replace was italic", () => {
+  expect(headingFromText(DEFAULT_HEADINGS[0], "% →")).toEqual({ text: "%", italic: false, direction: "right" });
+  expect(headingFromText(DEFAULT_HEADINGS[1], "£")).toEqual({ text: "£", italic: false, direction: "none" });
+});

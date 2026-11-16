@@ -150,6 +150,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     lines,
     complete: "true explicitly completes every tree as hidden answers with answers-only circles; {hidden:false} prints them.",
   },
+  nets: {
+    example,
+    worked,
+    nets: "1 to 6 nets side by side.",
+    grid: "squares (default), dots or none.",
+    unitCm: "Grid square size: 1 (default) or 0.5 cm.",
+    lines,
+  },
   "function-machine": {
     example,
     worked,
