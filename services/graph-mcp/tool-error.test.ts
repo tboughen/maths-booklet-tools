@@ -99,7 +99,7 @@ describe("one error shape across the connector (M12)", () => {
     const client = await start();
     const slope = await failure(client, "create_diagram", { kind: "graph", spec: { objects: [{ kind: "line", equation: { kind: "slope", slope: "a/b", intercept: "1" } }] } });
     expect(slope.fields?.map((f) => f.path)).toEqual(["spec.objects.0.equation.slope"]);
-    const kind = await failure(client, "create_diagram", { kind: "graph", spec: { objects: [{ kind: "curve" }] } });
+    const kind = await failure(client, "create_diagram", { kind: "graph", spec: { objects: [{ kind: "parabola" }] } });
     expect(kind.fields?.[0].path).toBe("spec.objects.0.kind");
     expect(kind.fields?.[0].message).toMatch(/point.*segment.*line/);
     const sheet = await failure(client, "create_diagram", { kind: "venn", envelope: { tool: "venn", schemaVersion: 2, rendererVersion: "venn-2", document: { labels: "x" } } });

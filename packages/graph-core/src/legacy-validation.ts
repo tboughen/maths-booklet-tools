@@ -1,4 +1,5 @@
 import { regionProblem } from "./region";
+import { curveProblem } from "./curve";
 import { LABEL_SIDES, MAX_LABEL_TEXT_LENGTH, OBJECT_NAME_PATTERN } from "./axes";
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
 import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
@@ -49,6 +50,22 @@ function isGraphObject(value: unknown): value is GraphObject {
     (candidate.answerOnly !== undefined && candidate.answerOnly !== true)
   )
     return false;
+  if (candidate.kind === "curve")
+    return (
+      Array.isArray(candidate.points) &&
+      candidate.points.length >= 2 &&
+      candidate.points.length <= 40 &&
+      candidate.points.every(isCoordinate) &&
+      (candidate.smooth === undefined || candidate.smooth === true) &&
+      (candidate.strokeStyle === undefined || candidate.strokeStyle === "dashed") &&
+      curveProblem(candidate.points) === null
+    );
+  if (candidate.kind === "reading")
+    return (
+      Object.keys(candidate).every((key) => ["id", "kind", "at", "read", "answerOnly"].includes(key)) &&
+      isCoordinate(candidate.at) &&
+      (candidate.read === "x" || candidate.read === "y" || candidate.read === "both")
+    );
   if (candidate.kind === "point")
     return (
       isCoordinate(candidate.position) &&
