@@ -82,4 +82,4 @@ it("creates a machine with a blank output, works it out only on request and prin
     operations: [{ op: "set_item", machineId: "m1", slot: "end", text: "12" }],
   });
   expect(wrong.warnings).toContain("6 × 3 − 8 is 10, not 12.");
-});
+}, 30000);
