@@ -49,7 +49,7 @@ const graphGuide: FamilyGuide = {
     polygonVertices: [3, 12],
     unitsPerSquare: "any positive scale per 1 cm square, such as 0.5, 1, 2, 5, 10, 20, 25, 50; minutes for time axes",
     commonUnitsPerSquare: [0.5, 1, 2, 5, 10, 20, 25, 50],
-    axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title", "name (one letter)"],
+    axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title", "titleAbove: true (y only, title above the axis)", "name (one letter)"],
     grids: ["1cm", "5mm", "2mm", "none"],
     originLabels: ["0", "O"],
     lines: ["normal", "bold"],

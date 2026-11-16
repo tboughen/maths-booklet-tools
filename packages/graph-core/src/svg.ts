@@ -347,6 +347,13 @@ function exportRightPadding(document: DiagramDocumentV1): number {
       extent,
       (index - total) * UNITS_PER_CM + axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE) / 2,
     );
+  // A y title above the axis can run past the plot when the axis is near its right edge.
+  const y = yAxisTextGeometry(document);
+  if (y.above)
+    extent = Math.max(
+      extent,
+      y.titleLeft + Math.max(...y.title.map((l) => proseWidth(l, AXIS_LABEL_FONT_SIZE))) - total * UNITS_PER_CM,
+    );
   return Math.max(fixed, Math.ceil(extent + EXPORT_CONTENT_MARGIN));
 }
 

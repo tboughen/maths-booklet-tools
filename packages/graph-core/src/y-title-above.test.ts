@@ -32,6 +32,22 @@ describe("y-axis title above the axis", () => {
     const svg = renderDiagramSvg(graph({ titleAbove: true }));
     expect(svg).toContain(">Distance from home (km)</tspan>");
   });
+  it("keeps a title above an axis at the plot's right edge inside the picture", () => {
+    const d = documentFromEnvelope(
+      createGraph({
+        axes: {
+          x: { negativeSquares: 6, positiveSquares: 0, unitsPerSquare: 1 },
+          y: { negativeSquares: 0, positiveSquares: 6, unitsPerSquare: 1, title: "Distance from home (km)", titleAbove: true },
+        },
+        objects: [],
+      }),
+    );
+    // The axis is at the plot's right edge; the title starts just left of it and runs past it,
+    // so the picture widens to keep the whole of "Distance from" in it.
+    const m = getExportMetrics(d), y = axisTextPlacement(d).yTitle!;
+    expect(y.lines[0]).toBe("Distance from");
+    expect(m.width).toBeGreaterThan(m.layout.plotLeft + y.leftFromPlotLeft + 280);
+  });
   it("leaves graphs without it exactly as before", () => {
     expect(getExportMetrics(graph({})).layout.plotTop).toBe(70);
     expect(axisTextPlacement(graph({})).yTitle).not.toHaveProperty("firstBaselineFromPlotTop");
