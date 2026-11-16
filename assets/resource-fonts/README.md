@@ -9,11 +9,14 @@ Noto Sans Math Regular (github.com/google/fonts, ofl/notosansmath; copyright 202
 SIL Open Font License 1.1, see `NotoSansMath-OFL.txt`), scaled so ≤ matches Inter's ≤ and centred on Inter's
 maths axis, with the operator advance of Inter (wider where the glyph needs it). They are upright in the italic
 file, as maths symbols are.
-Kerning is removed from every pair that involves a digit or a maths sign (0-9, ¹ ² ³, ½ ¼ ¾, ° % + − × ÷ = < > ≤ ≥ ≠ ≈ ±
-/ √ π ∞ → ↑, and the contextual alternates and ligatures Inter swaps in for them) by `python3 assets/resource-fonts/unkern-maths.py`
-(needs fontTools and uharfbuzz; rerun it after any change to the subsets). Inter's prose kerning pulled "7." in by
-0.125 em and ".1" by 0.086 em, so 7.1 read as one shape; numbers now print at their plain advance widths, in the PDF, PNG,
-website preview and Word files alike. (Inter's contextual alternates still swap a few glyphs, such as
-a wider * beside digits and an arrow for -> or =>, so those strings can print wider than measured.) Kerning between letters and ordinary punctuation is kept.
+`python3 assets/resource-fonts/maths-spacing.py` (needs fontTools and uharfbuzz; rerun it after any change to the
+subsets) sets the files up for maths:
+- Kerning is removed from every pair that involves a digit or a maths sign (0-9, ¹ ² ³, ½ ¼ ¾, ° % + − × ÷ = < > ≤ ≥ ≠
+  ≈ ± / √ π ∞ → ↑). Inter's prose kerning pulled "7." in by 0.125 em and ".1" by 0.086 em, so 7.1 read as one shape.
+  Kerning between letters and ordinary punctuation is kept.
+- Inter's contextual alternates (calt) are removed: they turned "3x2" into a multiplication sign, widened "*" beside
+  digits, made arrows of "->" and "=>" and raised ":" between digits.
+Every character therefore prints as itself, and numbers at exactly the advance widths below, in the PDF, PNG, website
+preview and Word files alike.
 `packages/resource-core/src/metrics.ts` holds the advance widths generated from these files.
 Diagrams keep their own STIX Two fonts (`assets/graph-fonts`).

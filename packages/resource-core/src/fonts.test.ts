@@ -79,12 +79,16 @@ describe("worksheet text fonts", () => {
 
 // The PDF writer lays text out with fontkit (through PDFKit), which applies the fonts' kerning.
 // Inter kerns for prose ("7." by 0.125 em, ".1" by 0.086 em), which squashed decimals such as 7.1,
-// so the subsets carry no kerning on digits or maths signs (assets/resource-fonts/unkern-maths.py).
-// Numbers then print at their plain advance widths; prose keeps its kerning.
+// so the subsets carry no kerning on digits or maths signs, and no contextual alternates, which turned
+// "3x2" into a multiplication sign (assets/resource-fonts/maths-spacing.py). Every character prints as
+// itself at the advance width metrics.ts measures; kerning between letters is kept.
 describe("worksheet text kerning", () => {
   const require = createRequire(import.meta.url);
   const fontkit = require("fontkit") as {
-    create(b: Buffer): { layout(s: string): { glyphs: { advanceWidth: number }[]; positions: { xAdvance: number }[] } };
+    create(b: Buffer): {
+      layout(s: string): { glyphs: { id: number; advanceWidth: number }[]; positions: { xAdvance: number }[] };
+      glyphForCodePoint(c: number): { id: number };
+    };
   };
   const kerned = (font: ReturnType<typeof fontkit.create>, s: string) => {
     const run = font.layout(s);
@@ -93,8 +97,14 @@ describe("worksheet text kerning", () => {
   for (const file of ["Inter-Regular.ttf", "Inter-SemiBold.ttf", "Inter-Italic.ttf"]) {
     const font = fontkit.create(readFileSync(`assets/resource-fonts/${file}`));
     it(`${file} sets numbers and maths signs without kerning`, () => {
-      for (const s of ["7.5", "17.1", "0.75", "7,000", "74", "−7", "7 − 2", "30°.", "45°,", "4.7%", "7:3", "T7", "7A", "7n", "7p", "y=7", "Y=2", "T+A", "1/7", "2½", "x²", "7…", "x=>", "y->"])
+      for (const s of ["7.5", "17.1", "0.75", "7,000", "74", "−7", "7 − 2", "30°.", "45°,", "4.7%", "7:3", "T7", "7A", "7n", "7p", "y=7", "Y=2", "T+A", "1/7", "2½", "x²", "7…", "x=>"])
         expect(kerned(font, s), `${file} "${s}"`).toBe(false);
+    });
+    it(`${file} prints every character as itself, with no contextual alternates`, () => {
+      for (const s of ["3x2", "3 x 4", "2*3", "1:2", "->", "=>", "<-", "H-H", "(H)", "x+y"]) {
+        const ids = font.layout(s).glyphs.map((g) => g.id);
+        expect(ids, `${file} "${s}"`).toEqual([...s].map((c) => font.glyphForCodePoint(c.codePointAt(0)!).id));
+      }
     });
     it(`${file} keeps kerning in ordinary words`, () => {
       for (const s of ["To", "AV", "Yes", "We"]) expect(kerned(font, s), `${file} "${s}"`).toBe(true);
