@@ -270,20 +270,36 @@ describe("sketch axes", () => {
   });
 });
 
-describe("axis numbers over lines", () => {
-  it("draws axis numbers after plotted lines and before points and names", () => {
+describe("lines through axis numbers", () => {
+  it("draws axis numbers before plotted lines, points and names, so lines print straight through them", () => {
     const svg = renderDiagramSvg(doc({ objects: [{ kind: "line", equation: { kind: "slope", slope: 3, intercept: -1 }, name: "L" }, { kind: "point", position: { x: 2, y: 1 }, name: "A" }] }));
     const line = svg.indexOf("<line x1", svg.indexOf('clip-path="url(#plot-clip)">'));
     const numbers = svg.indexOf('class="axis-labels"');
     const cross = svg.indexOf('fill="none"><path d="M');
-    expect(line).toBeGreaterThan(0);
-    expect(numbers).toBeGreaterThan(line);
-    expect(cross).toBeGreaterThan(numbers);
+    expect(numbers).toBeGreaterThan(0);
+    expect(line).toBeGreaterThan(numbers);
+    expect(cross).toBeGreaterThan(line);
     expect(svg.indexOf("object-names")).toBeGreaterThan(numbers);
     // Names have a white outline, not a white box that would cut grid lines.
     const name = svg.match(/<g class="object-name object-name-straight"[^>]*>(.*?)<\/g>/)![1];
     expect(name).not.toContain("<rect");
     expect(name).toContain('stroke="#ffffff"');
+  });
+  it("moves an axis number clear of a cross marked on the axis", () => {
+    const at = (svg: string, label: string) => svg.match(new RegExp(`<text x="([-\\d.]+)" y="([-\\d.]+)" text-anchor="end">${label}</text>`))!.slice(1).map(Number);
+    const plain = renderDiagramSvg(doc({ objects: [] }));
+    const marked = renderDiagramSvg(doc({ objects: [{ kind: "point", position: { x: 0, y: 1 } }] }));
+    const [x0, y0] = at(plain, "1"), [x1, y1] = at(marked, "1");
+    expect(y1).toBe(y0);
+    expect(x1).toBeLessThan(x0 - 10);
+    expect(at(marked, "2")).toEqual(at(plain, "2"));
+  });
+  it("lengthens the y-axis so its arrowhead clears a number on the top line", () => {
+    const yEnd = (svg: string) => Number(svg.match(/<line [^>]*y2="([-\d.]+)" marker-end/g)![1].match(/y2="([-\d.]+)"/)![1]);
+    const top = renderDiagramSvg(doc({ objects: [] }));
+    const highest = Math.min(...[...top.matchAll(/<g class="axis-number"><rect x="[-\d.]+" y="([-\d.]+)"/g)].map((m) => Number(m[1])));
+    // The head is 25 units long, drawn 0.85 of that back from the line's end.
+    expect(yEnd(top) + 25 * 0.85).toBeLessThan(highest - 3);
   });
 });
 

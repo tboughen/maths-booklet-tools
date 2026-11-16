@@ -33,6 +33,7 @@ const undoRegistry: Record<string, string> = {
   "factor-tree": "factor-tree/FactorTreePage.tsx",
   "written-method": "written-method/WrittenMethodPage.tsx",
   "function-machine": "function-machine/FunctionMachinePage.tsx",
+  nets: "nets/NetsPage.tsx",
   "sample-space": "sample-space/SampleSpacePage.tsx",
   worksheets: "worksheet/WorksheetPage.tsx",
   booklets: "booklet/BookletPage.tsx",

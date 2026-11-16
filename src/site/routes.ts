@@ -27,6 +27,7 @@ export const toolIds = [
   "factor-tree",
   "written-method",
   "function-machine",
+  "nets",
   "sample-space",
 ] as const;
 export type ToolId = (typeof toolIds)[number];

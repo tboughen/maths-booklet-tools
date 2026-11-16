@@ -13,7 +13,7 @@ describe("A4 booklet renderer", () => {
     // retaken when the example's fractions became stacked, and when maths notation began typesetting
     // typed maths: the objective's y = mx ± c now prints with italic letters, and when ratio-table
     // fraction parts and operation labels rose to the 10 pt house minimum, U111, and when graph axes and grids took the
-    // Edexcel line weights for exam parity, and when short equations, ranges and a short last word began keeping together on one line, and when the graph plot clip began reaching half a line width past the grid, and when a hidden ratio-table operation got a 13 mm answer line, 16 Nov 2026). The PDF pages and the Word files are
+    // Edexcel line weights for exam parity, and when short equations, ranges and a short last word began keeping together on one line, and when the graph plot clip began reaching half a line width past the grid, and when a hidden ratio-table operation got a 13 mm answer line (16 Nov 2026), and when graph lines began printing straight through the axis numbers, 16 Nov 2026). The PDF pages and the Word files are
     // both made from the plan, so any change here moves printed pages: update these only for a
     // deliberate change to the printed booklet.
     const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
@@ -21,18 +21,18 @@ describe("A4 booklet renderer", () => {
     const [a, b] = a7Booklet.document.lessons;
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(a7Booklet, 1);
-    expect(sha(renderBooklet(a7Booklet).pages)).toBe("04374d217b5cfd6376a7258a85122f7d862e0be7edadd386bde06f99ba410b0f");
-    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("d4b295eb210db1a4a581b5ebb1570936dc636880d9c14d2ef38c67916fe86728");
-    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("43823be93902b42b83409481afe880d6189ab52a9c380d5fc3bd2b68667f7fd3");
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("13c712cdf9dee8f3c7dffe0e7b882e457ac7916af248c12b12f6e6638cd82204");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("a15d48d537395dde44ea41b0b3bf8a40a524af978fa8960a1dc701d54f66ef72");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("9dca5f540572f5dc7d6129580fc0360643b6d9edcc257c9351e8516de59e9e02");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
-    expect(sha(whole.pages)).toBe("d487e8281f0bc749e201d849b1019515592f431ef1fe4e08a9011284d6286767");
+    expect(sha(whole.pages)).toBe("9f2ebd5510a69064252b165544e5a57d7fb0d69b530ec30670f3d547b74befce");
   });
 
   it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {
     // The example booklet as main saved it on 14 November 2026 (no notation field, ⅓ and ⅔ typed
     // as single characters). These are the hashes main pinned for it (retaken when ratio-table small text rose to
-    // 10 pt, U111, for the Edexcel graph line weights, and when flowing text began keeping short last words, ranges and short equations together, and for the graph plot clip, 15 Nov 2026, and for the 13 mm hidden ratio-table operation line, 16 Nov 2026), so plain booklets are otherwise unchanged; the only difference is that ⅓ and ⅔, which printed as gaps, are now reported.
+    // 10 pt, U111, for the Edexcel graph line weights, and when flowing text began keeping short last words, ranges and short equations together, and for the graph plot clip, 15 Nov 2026, and for graph lines printing through the axis numbers, 16 Nov 2026), so plain booklets are otherwise unchanged; the only difference is that ⅓ and ⅔, which printed as gaps, are now reported.
     const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
     const old = validateBooklet(structuredClone(savedBeforeNotation));
     expect(old.document.notation).toBe("plain");
@@ -41,12 +41,12 @@ describe("A4 booklet renderer", () => {
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(old, 1);
     const pupil = renderBooklet(old);
-    expect(sha(pupil.pages)).toBe("1160f141e5247c334c2109200da4e0ec6a42b27cf13cafddeb9dbe35738cb085");
-    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("c1ae7987885443b182e737480b5c8714f5744fd2a6cc8df0220296c24021960b");
-    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("383bb9c5d0ea5eda8f28f1cc14162fd9c70b54445246e344c39fdea6d025da68");
+    expect(sha(pupil.pages)).toBe("55a0dc58d0c820ad888f20b0eb5aed0893620ae8402c8fa0d403abc02d05b647");
+    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("58a0feb7d1e021ab22a1e3020fdb4add0f1972c7758f48a2ca4f57cf18cbbb7c");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("56e53982514b4560cd8d461674af2e71525aee7a02bd22601df60bda18b62ed0");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(56);
-    expect(sha(whole.pages)).toBe("b654f968d60595777180f8a9137548190f86742b24f917e01d842feed11e1de4");
+    expect(sha(whole.pages)).toBe("233bbf802c568f8a1079504cc2ffb0177354150e07f1ba94dbecbb2f279a4065");
     expect(pupil.issues.length).toBeGreaterThan(0);
     for (const i of pupil.issues) expect(i.message).toMatch(/^Lesson 2, [A-Za-z ]+, question \d uses "[⅓⅔]" \(U\+215[34]\)/);
   });
