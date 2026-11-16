@@ -423,10 +423,9 @@ function axisTickLabelMarkup(
         : x;
   const rectY = baseline - AXIS_LABEL_FONT_SIZE * (tight ? 0.74 : 0.82);
   const className = origin ? "axis-number axis-number-origin" : "axis-number";
-  const originTransform = origin
-    ? ` transform="translate(${n(x)} ${n(baseline)}) skewX(-12) translate(${n(-x)} ${n(-baseline)})"`
-    : "";
-  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}"${originTransform}>${escapeXml(label)}</text></g>`;
+  // A numeric origin label ("0") prints upright like every other axis number; only the letter O
+  // is italic, and that is drawn by originMarkup.
+  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}">${escapeXml(label)}</text></g>`;
 }
 
 /**

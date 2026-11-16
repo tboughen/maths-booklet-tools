@@ -160,9 +160,6 @@ function AxisTickLabel({
         ? x - width
         : x;
   const rectY = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
-  const originTransform = origin
-    ? `translate(${x} ${baseline}) skewX(-12) translate(${-x} ${-baseline})`
-    : undefined;
   return (
     <g className={`axis-number${origin ? " axis-number--origin" : ""}`}>
       <rect
@@ -176,7 +173,6 @@ function AxisTickLabel({
         x={x}
         y={baseline}
         textAnchor={textAnchor}
-        transform={originTransform}
       >
         {text}
       </text>
