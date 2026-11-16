@@ -25,7 +25,22 @@ export function timeseriesLayout(e: Envelope) {
   const slot = s.slotMm,
     W = s.points.length * slot,
     H = ys.length;
-  const x0 = MARGIN + (yTitle.length ? yTitleWidth + 3 : 0) + tickWidth + 2.5,
+  // Time labels, then group labels printed once under each run of equal groups.
+  const labels = s.points.map((p) => p.label.trim());
+  const groups: { text: string; from: number; to: number }[] = [];
+  s.points.forEach((p, i) => {
+    const t = p.group.trim(),
+      last = groups[groups.length - 1];
+    if (last && last.text === t && last.to === i - 1) last.to = i;
+    else groups.push({ text: t, from: i, to: i });
+  });
+  const hasGroups = groups.some((g) => g.text);
+  const titleLines = wrap(s.xTitle, Math.max(W, 40), ""),
+    titleWidth = Math.max(0, ...titleLines.map(runWidth));
+  // Text centred under the first times may reach left of the vertical axis's labels: move the plot right so it all prints.
+  const reach = Math.max(runWidth(plain(labels[0] ?? "")) / 2, ...groups.map((g) => runWidth(plain(g.text)) / 2 - (g.from + g.to) * slot / 2), titleWidth / 2 - W / 2);
+  const axisLeft = (yTitle.length ? yTitleWidth + 3 : 0) + tickWidth + 2.5;
+  const x0 = MARGIN + Math.max(axisLeft, reach),
     y0 = MARGIN + ARROW + 2;
   const X = (i: number) => x0 + i * slot;
   const Y = (v: number) => y0 + H - ((v - ys.lo) / (ys.hi - ys.lo)) * H;
@@ -50,22 +65,15 @@ export function timeseriesLayout(e: Envelope) {
   const given = points.filter(Boolean).length;
   if (given > 0 && given < s.points.length && points.some((p, i) => !p && i > 0 && i < s.points.length - 1 && points.slice(0, i).some(Boolean) && points.slice(i + 1).some(Boolean)))
     notes.push("A blank value breaks the line between the times either side of it.");
-  // Time labels, then group labels printed once under each run of equal groups.
-  const labels = s.points.map((p) => p.label.trim());
   if (labels.some((l) => runWidth(plain(l)) > slot - 0.5)) issues.push("A time label is wider than the space between times. Use shorter labels or a longer space.");
-  const groups: { text: string; from: number; to: number }[] = [];
-  s.points.forEach((p, i) => {
-    const t = p.group.trim(),
-      last = groups[groups.length - 1];
-    if (last && last.text === t && last.to === i - 1) last.to = i;
-    else groups.push({ text: t, from: i, to: i });
-  });
-  const hasGroups = groups.some((g) => g.text);
+  // Each group prints centred under its run; neighbouring groups must not run into each other.
+  const centre = (g: { from: number; to: number }) => ((g.from + g.to) * slot) / 2;
+  const half = (g: { text: string }) => runWidth(plain(g.text)) / 2;
+  if (groups.some((g, i) => i > 0 && g.text && groups[i - 1].text && centre(groups[i - 1]) + half(groups[i - 1]) + 1 > centre(g) - half(g)))
+    issues.push("Two group labels run into each other. Use shorter groups or a longer space between times.");
   const labelY = y0 + H + 1.5 + FONT * 0.8,
     groupY = labelY + (hasGroups ? FONT * 1.5 : 0),
-    titleLines = wrap(s.xTitle, Math.max(W, 40), ""),
     titleY = groupY + (titleLines.length ? FONT * 1.6 : 0);
-  const titleWidth = Math.max(0, ...titleLines.map(runWidth));
   const right = Math.max(x0 + W + ARROW + 1.5, x0 + W / 2 + titleWidth / 2, ...labels.map((l, i) => X(i) + runWidth(plain(l)) / 2));
   const width = Math.ceil((right + MARGIN) * 10) / 10,
     height = Math.ceil((titleY + Math.max(0, titleLines.length - 1) * LINE + FONT * 0.3 + MARGIN) * 10) / 10;

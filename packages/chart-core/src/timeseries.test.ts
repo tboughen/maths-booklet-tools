@@ -103,6 +103,19 @@ describe("time series graphs", () => {
     expect(wide.issues).toContain("The graph is wider than 18 cm. Use fewer times or a shorter space between them.");
   });
 
+  it("keeps long first labels, groups and titles inside the graph, and names groups that run together", () => {
+    const fits = (g: ReturnType<typeof timeseriesLayout>, w: number) => g.X(0) - w / 2 >= 0;
+    const long = timeseriesLayout(times(["20"], (s) => ((s.slotMm = 40), (s.points[0].label = "Wednesday 12"))));
+    expect(long.issues).toEqual([]);
+    expect(fits(long, 23.7)).toBe(true);
+    const title = timeseriesLayout(times(["20", "30"], (s) => void (s.xTitle = "Number of visitors each week of the year")));
+    expect(title.plot.x + title.plot.width / 2 - 39.1 / 2).toBeGreaterThanOrEqual(0);
+    const plain = timeseriesLayout(times());
+    expect(plain.plot.x).toBe(timeseriesLayout(times(undefined, (s) => void (s.xTitle = ""))).plot.x);
+    const crowded = timeseriesLayout(times(["1", "2", "3"], (s) => s.points.forEach((p, i) => ((p.label = ""), (p.group = String(2016 + i)), (s.slotMm = 4)))));
+    expect(crowded.issues).toEqual(["Two group labels run into each other. Use shorter groups or a longer space between times."]);
+  });
+
   it("hide every value, then show all", () => {
     const hidden = setAllShown(times(), "hidden");
     expect(hidden.document.timeseries!.points.every((p) => p.show === "hidden")).toBe(true);
