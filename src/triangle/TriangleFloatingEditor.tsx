@@ -25,6 +25,9 @@ export function TriangleFloatingEditor({
       else {
         const inspector = panel.closest(".inspector-stack");
         if (inspector) inspector.scrollTop = 0;
+        // On a tall window the settings scroll with the workspace (editor-frame.css).
+        const workspace = panel.closest(".workspace");
+        if (workspace) workspace.scrollTop = 0;
       }
       if (matchMedia("(pointer: coarse)").matches) panel.focus();
       else {

@@ -36,8 +36,12 @@ import * as area from "../../packages/area-core/src/index";
 import { examples as areaExamples } from "../../packages/area-core/src/examples";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import { examples as ftExamples } from "../../packages/factor-tree-core/src/examples";
+import * as wm from "../../packages/written-method-core/src/index";
+import { examples as wmExamples } from "../../packages/written-method-core/src/examples";
 import * as fm from "../../packages/function-machine-core/src/index";
 import { examples as fmExamples } from "../../packages/function-machine-core/src/examples";
+import * as nets from "../../packages/net-core/src/index";
+import { examples as netExamples } from "../../packages/net-core/src/examples";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 
@@ -65,7 +69,9 @@ export const tools: Tool[] = [
   { name: "plans and elevations", envelopes: () => elevationExamples.flatMap(x => [x.make(false), x.make(true)]), validate: elevations.validate, parseFile: elevations.parseFile, link: { encode: elevations.linkHash, decode: elevations.decodeLinkHash } },
   { name: "sample space diagrams", envelopes: () => ssExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ss.validate, parseFile: ss.parseFile, link: { encode: ss.linkHash, decode: ss.decodeLinkHash } },
   { name: "factor trees", envelopes: () => ftExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ft.validate, parseFile: ft.parseFile, link: { encode: ft.linkHash, decode: ft.decodeLinkHash } },
+  { name: "written methods", envelopes: () => wmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: wm.validate, parseFile: wm.parseFile, link: { encode: wm.linkHash, decode: wm.decodeLinkHash } },
   { name: "function machines", envelopes: () => fmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: fm.validate, parseFile: fm.parseFile, link: { encode: fm.linkHash, decode: fm.decodeLinkHash } },
+  { name: "nets", envelopes: () => netExamples.flatMap(x => [x.make(false), x.make(true)]), validate: nets.validate, parseFile: nets.parseFile, link: { encode: nets.linkHash, decode: nets.decodeLinkHash } },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, parseFile: twoWayTable.parseFile, link: { encode: twoWayTable.linkHash, decode: twoWayTable.decodeLinkHash } },
   { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, parseFile: angles.parseFile, link: { encode: angles.linkHash, decode: angles.decodeLinkHash } },
   { name: "area and perimeter", envelopes: () => areaExamples.flatMap(x => [x.make(false), x.make(true)]), validate: area.validate, parseFile: area.parseFile, link: { encode: area.linkHash, decode: area.decodeLinkHash } },

@@ -29,23 +29,23 @@ import type { Envelope, Target } from "./index";
  */
 const PT = 25.4 / 72;
 /** Exam parity (Edexcel papers, measured): axes and data lines 1.5 pt; graph paper 0.51, 1.02 and 1.417 pt. */
-const AXIS_W = 1.5 * PT;
-const DATA_W = 1.474 * PT;
+export const AXIS_W = 1.5 * PT;
+export const DATA_W = 1.474 * PT;
 const POLYGON_W = 1 * PT;
 const GRID_W = [0.51 * PT, 1.02 * PT, 1.417 * PT];
 const GRID_COLOUR = "#b3b3b3";
 const BAR_GREY = "#bfbfbf";
 const TABLE_RULE = "#9d9d9d";
-const ARROW = 4;
+export const ARROW = 4;
 const CROSS = 1.1;
 const ROW_H = 7.6;
 const TABLE_GAP = 6;
-const LINE = FONT * 1.15;
+export const LINE = FONT * 1.15;
 
 export const groupedKind = (kind: string): kind is GroupedKind => kind === "histogram" || kind === "polygon" || kind === "cumulative";
 
 /** Text runs: a single-letter word equal to the variable prints in italics, as in the papers. */
-type Run = { t: string; italic: boolean };
+export type Run = { t: string; italic: boolean };
 function runs(text: string, variable: string): Run[] {
   if (!variable) return [{ t: text, italic: false }];
   const out: Run[] = [];
@@ -58,7 +58,7 @@ function runs(text: string, variable: string): Run[] {
 const OTHER: Record<string, number> = { "<": 0.564, "⩽": 0.66, "–": 0.5, "(": 0.333, ")": 0.333 };
 /** An italic letter leans left over the space before it, so it gets a little more room. */
 const ITALIC_PAD = 0.3;
-const runWidth = (r: Run[]) =>
+export const runWidth = (r: Run[]) =>
   r.reduce((w, x) => w + [...x.t].reduce((a, c) => a + (OTHER[c] ?? glyphAdvance(c, x.italic)), 0) * FONT + (x.italic ? ITALIC_PAD : 0), 0);
 const textEl = (t: string, x: number, y: number, anchor: string, fill: string, italic: boolean) =>
   `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}"${italic ? ' font-style="italic"' : ""} fill="${fill}"${/^\s|\s$/.test(t) ? ' xml:space="preserve"' : ""}>${esc(t)}</text>`;
@@ -66,7 +66,7 @@ const textEl = (t: string, x: number, y: number, anchor: string, fill: string, i
  * Mixed runs print as separate texts placed end to end: a renderer that falls back to STIX Two
  * Math for "⩽" would otherwise set the whole line in that font and lose the italic letter.
  */
-function richText(r: Run[], x: number, y: number, anchor: "start" | "middle" | "end" = "middle", fill = "black") {
+export function richText(r: Run[], x: number, y: number, anchor: "start" | "middle" | "end" = "middle", fill = "black") {
   if (r.length === 1) return textEl(r[0].t, x, y, anchor, fill, r[0].italic);
   const total = runWidth(r);
   let left = anchor === "start" ? x : anchor === "end" ? x - total : x - total / 2;
@@ -78,7 +78,7 @@ function richText(r: Run[], x: number, y: number, anchor: "start" | "middle" | "
     })
     .join("");
 }
-function wrap(text: string, width: number, variable: string): Run[][] {
+export function wrap(text: string, width: number, variable: string): Run[][] {
   const lines: string[] = [];
   for (const word of text.trim().split(/\s+/).filter(Boolean)) {
     const last = lines[lines.length - 1];

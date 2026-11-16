@@ -18,6 +18,7 @@ import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
@@ -175,7 +176,7 @@ export default function NumberLinePage({
       title: string;
       envelope: Envelope;
     } | null>(null),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
     [dirty, setDirty] = useState<Set<string>>(new Set()),
@@ -779,7 +780,7 @@ export default function NumberLinePage({
               }
               menuId="number-line-downloads"
               menuOpen={menu}
-              onToggleMenu={() => setMenu(!menu)}
+              onMenuChange={setMenu}
             />
             {dirty.size > 0 && !busy && !recovery && (
               <p role="status" className="resource-feedback nl-pending-note">

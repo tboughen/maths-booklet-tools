@@ -6,7 +6,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FunctionMachineIcon, FrequencyTreeIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
+import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, WrittenMethodIcon, FunctionMachineIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -16,11 +16,13 @@ import twoWayTablePreview from "../assets/tool-previews/two-way-tables.svg";
 import anglesPreview from "../assets/tool-previews/angle-diagrams.svg";
 import areaPreview from "../assets/tool-previews/area-and-perimeter.svg";
 import factorTreePreview from "../assets/tool-previews/factor-trees.svg";
-import functionMachinePreview from "../assets/tool-previews/function-machines.svg";
+import writtenMethodPreview from "../assets/tool-previews/written-methods.svg";
+import functionMachinePreview from "../assets/tool-previews/function-machines.svg?no-inline";
+import netsPreview from "../assets/tool-previews/nets.svg?no-inline";
 import sampleSpacePreview from "../assets/tool-previews/sample-space-diagrams.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
-import constructionPreview from "../assets/tool-previews/constructions.svg";
+import constructionPreview from "../assets/tool-previews/constructions.svg?no-inline";
 import elevationsPreview from "../assets/tool-previews/plans-and-elevations.svg";
 
 /** Add booklet editors here; the overview, navigation and page host share this list.
@@ -43,8 +45,10 @@ export const bookletTools = [
   { id: "two-way-table", name: "Two-way tables", description: "Make exam-style two-way tables with totals, and cells left blank or hidden for pupils.", icon: TwoWayTableIcon, component: toolPage(() => import("../two-way-table/TwoWayTablePage")), preview: { src: twoWayTablePreview, alt: "Two-way table of how Year 7 and Year 8 travel to school, with five cells left for pupils." } },
   { id: "angles", name: "Angle diagrams", description: "Draw angles on straight lines, round a point, on parallel lines and in polygons, with sizes given or left for pupils.", icon: AnglesIcon, component: toolPage(() => import("../angles/AnglesPage")), preview: { src: anglesPreview, alt: "Two parallel lines with arrow marks cut by a transversal: one angle is 58° and two angles marked x and y are left for pupils." } },
   { id: "area", name: "Area and perimeter", description: "Draw compound shapes, triangles, trapeziums, circles, semicircles and sectors, with lengths given or left for pupils.", icon: AreaIcon, component: toolPage(() => import("../area/AreaPage")), preview: { src: areaPreview, alt: "An L-shaped compound shape with sides of 12 cm, 5 cm, 5 cm and 10 cm and two sides left for pupils." } },
-  { id: "factor-tree", name: "Factor trees", description: "Draw factor trees down to circled primes, with an index-form answer line and numbers left blank or hidden.", icon: FactorTreeIcon, FunctionMachineIcon, component: toolPage(() => import("../factor-tree/FactorTreePage")), preview: { src: factorTreePreview, alt: "Factor tree for 360 with the first split given and the rest left for pupils, above an answer line." } },
+  { id: "factor-tree", name: "Factor trees", description: "Draw factor trees down to circled primes, with an index-form answer line and numbers left blank or hidden.", icon: FactorTreeIcon, component: toolPage(() => import("../factor-tree/FactorTreePage")), preview: { src: factorTreePreview, alt: "Factor tree for 360 with the first split given and the rest left for pupils, above an answer line." } },
+  { id: "written-method", name: "Written methods", description: "Set out column addition and subtraction, long multiplication and short or long division, with digits left blank or hidden.", icon: WrittenMethodIcon, component: toolPage(() => import("../written-method/WrittenMethodPage")), preview: { src: writtenMethodPreview, alt: "Long multiplication of 546 by 43 with the working left for pupils." } },
   { id: "function-machine", name: "Function machines", description: "Draw function machines with operations and values left blank or hidden for pupils, and their inverse machines.", icon: FunctionMachineIcon, component: toolPage(() => import("../function-machine/FunctionMachinePage")), preview: { src: functionMachinePreview, alt: "A number machine: 7 goes in, then multiply by 4 and add 3, with the value between the boxes and the output left for pupils." } },
+  { id: "nets", name: "Nets of 3D shapes", description: "Draw nets of cubes, cuboids, prisms and pyramids on centimetre squares, with letters, dots and faces hidden for pupils.", icon: NetsIcon, component: toolPage(() => import("../nets/NetsPage")), preview: { src: netsPreview, alt: "The cross-shaped net of a cube on centimetre squares, with a dot on the top face." } },
   { id: "sample-space", name: "Sample space diagrams", description: "Make sample space diagrams for two dice, spinners and coins, with outcomes left blank, hidden or circled.", icon: SampleSpaceIcon, component: toolPage(() => import("../sample-space/SampleSpacePage")), preview: { src: sampleSpacePreview, alt: "Sample space diagram for the totals of two dice, with four totals given and the rest left for pupils." } },
 ] as const;
 
@@ -53,6 +57,8 @@ export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
 export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
 export const BookletPage = lazyPage(() => import("../booklet/BookletPage"));
+/** Home is a page like the rest: its code loads when it is the page opened, not with every tool. */
+export const HomePage = lazyPage(() => import("./Home"));
 /** The Diagram builder page loads on first visit, so Home stays light. */
 export const DiagramBuilderPage = lazyPage(() => import("./DiagramBuilder").then((m) => ({ default: m.DiagramBuilder })));
 export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from "./routes";
@@ -65,18 +71,20 @@ const _toolsHaveSwitcher: readonly { component: { withToolSwitcher: true } }[] =
 void _toolsHaveSwitcher;
 /** Home and the main navigation describe the same teacher destinations. */
 export const siteSections = [
-  { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: QuestionBankIcon, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.", action: "Open Question bank" },
-  { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: PaperBuilderIcon, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
-  { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: AssessmentIcon, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
-  { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: DiagramBuilderIcon, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Make a diagram" },
-  { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: WorksheetBuilderIcon, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
-  { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookletBuilderIcon, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
+  { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: QuestionBankIcon, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes." },
+  { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: PaperBuilderIcon, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme." },
+  { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: AssessmentIcon, description: "Turn question-level assessment results into personalised practice for each pupil." },
+  { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: DiagramBuilderIcon, description: "Create graphs, ratio tables and diagrams for your teaching resources." },
+  { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: WorksheetBuilderIcon, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs." },
+  { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookletBuilderIcon, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson." },
 ] as const;
 export type SectionId = PageId | "paper-builder";
 export function readSection(where: { pathname: string; search: string } = location): SectionId {
   const page = readPage(where);
   return page === "question-bank" && new URLSearchParams(where.search).get("bankView") === "topics" ? "paper-builder" : page;
 }
+/** One of the six pages, by id. */
+export const siteSection = (id: (typeof siteSections)[number]["id"]) => siteSections.find((s) => s.id === id)!;
 export function sectionName(section: SectionId): string {
   return section === "paper-builder" ? "Paper builder" : pageName(section);
 }
@@ -92,6 +100,7 @@ export function pageName(id: PageId): string {
 }
 /** Starts downloading a page's code; the first page is loaded before the site renders. */
 export function preloadPage(id: PageId) {
+  if (id === "home") return HomePage.preload();
   if (id === "question-bank") return QuestionBank.preload();
   if (id === "assessment-follow-up") return AssessmentPage.preload();
   if (id === "worksheets") return WorksheetPage.preload();

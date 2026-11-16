@@ -1,0 +1,599 @@
+{
+ "kind": "nets",
+ "schemaVersion": 1,
+ "rendererVersion": "nets-1",
+ "document": {
+  "nets": [
+   {
+    "id": "n1",
+    "solid": "cube",
+    "caption": {
+     "text": "A",
+     "show": "show"
+    },
+    "size": {
+     "across": 0,
+     "down": 0
+    },
+    "faces": [
+     {
+      "id": "f1",
+      "points": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f2",
+      "points": [
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        2,
+        2
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f3",
+      "points": [
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        2,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f4",
+      "points": [
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f5",
+      "points": [
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f6",
+      "points": [
+       [
+        4,
+        3
+       ],
+       [
+        5,
+        3
+       ],
+       [
+        5,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     }
+    ],
+    "vertices": [],
+    "edges": []
+   },
+   {
+    "id": "n2",
+    "solid": "cube",
+    "caption": {
+     "text": "B",
+     "show": "show"
+    },
+    "size": {
+     "across": 0,
+     "down": 0
+    },
+    "faces": [
+     {
+      "id": "f1",
+      "points": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f2",
+      "points": [
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        2,
+        2
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f3",
+      "points": [
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        2,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f4",
+      "points": [
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f5",
+      "points": [
+       [
+        4,
+        2
+       ],
+       [
+        5,
+        2
+       ],
+       [
+        5,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f6",
+      "points": [
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     }
+    ],
+    "vertices": [],
+    "edges": []
+   },
+   {
+    "id": "n3",
+    "solid": "cube",
+    "caption": {
+     "text": "C",
+     "show": "show"
+    },
+    "size": {
+     "across": 0,
+     "down": 0
+    },
+    "faces": [
+     {
+      "id": "f1",
+      "points": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f2",
+      "points": [
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        2,
+        2
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f3",
+      "points": [
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f4",
+      "points": [
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        2,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f5",
+      "points": [
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     },
+     {
+      "id": "f6",
+      "points": [
+       [
+        4,
+        2
+       ],
+       [
+        5,
+        2
+       ],
+       [
+        5,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "show": "show",
+      "label": {
+       "text": "",
+       "show": "show"
+      },
+      "mark": {
+       "kind": "none",
+       "show": "show"
+      }
+     }
+    ],
+    "vertices": [],
+    "edges": []
+   }
+  ],
+  "grid": "squares",
+  "unitCm": 1
+ }
+}

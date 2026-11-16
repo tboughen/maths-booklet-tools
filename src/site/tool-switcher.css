@@ -19,7 +19,8 @@
 .tool-switcher-panel ul { display: contents; margin: 0; padding: 0; list-style: none; }
 .tool-switcher-panel li { display: contents; }
 .tool-switcher-panel a { text-decoration: none; }
-.tool-switcher-search { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink-3); }
+/* Two classes, so that a tool's own rule for its labels cannot stack the icon over the box. */
+.tool-switcher .tool-switcher-search { display: flex; flex-direction: row; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink-3); }
 .tool-switcher-search:focus-within { border-color: var(--md-blue); box-shadow: 0 0 0 2px var(--md-blue-soft); }
 .site-app .tool-switcher-search input:focus-visible { outline: 0; }
 .tool-switcher-search input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--md-ink); font: inherit; font-size: var(--md-text-md); }

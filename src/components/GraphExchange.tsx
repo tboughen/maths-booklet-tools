@@ -2,6 +2,7 @@ import { pathLink } from "../site/routes";
 import {
   EditorDownloadMenu,
   type DownloadAction,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { useEffect, useRef, useState } from "react";
@@ -41,7 +42,8 @@ export function GraphExchange({
   worked?: FileMenuItem;
   onClose: () => void;
   onMessage: (message: string, error?: boolean) => void;
-  visible: boolean;
+  /** Which menu is open, if either. */
+  visible: MenuKind | false;
   enabled?: boolean;
   imageActions: DownloadAction[];
   active?: boolean;

@@ -1,0 +1,53 @@
+{
+ "kind": "written-method",
+ "schemaVersion": 1,
+ "rendererVersion": "written-method-1",
+ "document": {
+  "method": "short-division",
+  "numbers": [
+   {
+    "id": "n1",
+    "value": {
+     "text": "145",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n2",
+    "value": {
+     "text": "6",
+     "show": "show"
+    }
+   }
+  ],
+  "working": [],
+  "answer": {
+   "text": "24",
+   "show": "show"
+  },
+  "remainder": {
+   "text": "1",
+   "show": "show"
+  },
+  "extend": {
+   "text": "",
+   "show": "show"
+  },
+  "marks": [
+   {
+    "row": "n1",
+    "place": 1,
+    "text": "1",
+    "show": "show"
+   },
+   {
+    "row": "n1",
+    "place": 0,
+    "text": "2",
+    "show": "show"
+   }
+  ],
+  "cellMm": 7,
+  "intentionalError": false
+ }
+}

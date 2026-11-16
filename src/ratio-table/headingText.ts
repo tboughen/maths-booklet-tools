@@ -1,4 +1,4 @@
-import type { RatioDocument } from "../../packages/ratio-table-core/src/schema";
+import { headingPowers, letterHeading, type RatioDocument } from "../../packages/ratio-table-core/src/schema";
 
 type Heading = RatioDocument["headings"][number];
 
@@ -25,9 +25,8 @@ export function headingFromText(heading: Heading, value: string): Heading {
       : value.endsWith("↓")
         ? "down"
         : "none";
-  return {
-    ...heading,
-    text: (direction === "none" ? value : value.slice(0, -1)).trim(),
-    direction,
-  };
+  const text = headingPowers((direction === "none" ? value : value.slice(0, -1)).trim());
+  // % and £ are symbols, never italic letters, whatever the heading was before (Tim, 16 Nov 2026).
+  // A changed heading takes its italics from its text, as the compact form does; unchanged text keeps them.
+  return { ...heading, text, direction, ...(text === heading.text ? {} : { italic: letterHeading(text) }) };
 }
