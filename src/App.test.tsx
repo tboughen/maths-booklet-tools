@@ -162,9 +162,10 @@ describe("graph builder", () => {
         (Number(plotRect?.getAttribute("x")) +
           Number(plotRect?.getAttribute("width"))),
     ).toBe(17);
+    // The y-axis reaches far enough for its arrowhead to clear the number on the top line.
     expect(
       Number(plotRect?.getAttribute("y")) - Number(yAxis?.getAttribute("y2")),
-    ).toBe(17);
+    ).toBeCloseTo(25.4 * 0.48 + 2.4 + 15 * 0.85, 2);
     expect(
       Number(yAxis?.getAttribute("x1")) - Number(yName?.getAttribute("x")),
     ).toBeCloseTo(7.2);
