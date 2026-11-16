@@ -45,3 +45,21 @@ or a caller asks for it, so a pupil's answer is never drawn for them.
 
 The connector's graph capabilities budget rose from 26,900 to 32,400 bytes for these schemas
 (see `services/graph-mcp/catalogue-budget.json`).
+
+## Real-life and travel graphs (Graph tool)
+
+- **Graphs through points.** *Graph through points* adds a `curve` object: 2 to 40 points in
+  order, joined by straight pieces (a travel graph, a conversion graph) or, with *Smooth curve*,
+  a smooth curve through every point (a velocity–time graph, a printed curve read off a paper,
+  a sketch of y = f(x)). It can be dashed, named (C) and hidden as an answer, so "complete the
+  travel graph" is a visible curve plus an answer-only curve. Arrow keys move the whole graph.
+- **Reading lines.** *Reading lines* adds a `reading` object at a point: dashed legs to the axes
+  (to where the axes cross, so a travel graph starting at 13 00 reads to its own axis) with a
+  filled head where the value is read. "y value" goes up from the x-axis and across to the
+  y-axis; "x value" goes the other way; "Both" drops to each axis with two heads. It has no name.
+- **Axis letters.** An axis takes `name`, one letter such as t or v, printed in italic at the
+  arrow. Unlike a title, it does not replace the letter; with both, the letter sits at the
+  arrow and the title beside the axis, as velocity–time graphs print them.
+- **Connector.** `{kind: "curve", points, smooth?, strokeStyle?, name?, answerOnly?}`,
+  `{kind: "reading", at, read: "x" | "y" | "both", answerOnly?}` and `axes.x.name`. The graph
+  capabilities budget rose to 35,400 bytes (measured 33,724).

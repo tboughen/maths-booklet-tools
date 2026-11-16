@@ -24,8 +24,7 @@ import {
   AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
   AXIS_STROKE_POINTS,
-  AXIS_X_NAME,
-  AXIS_Y_NAME,
+  axisLetter,
   EQUATION_FONT_POINTS,
   GRID_STROKE_POINTS,
   CENTIMETRE_GRID_STROKE_POINTS,
@@ -40,7 +39,10 @@ import {
   pointsToDiagramUnits,
 } from "./graphStyle";
 import type {
+  Bounds,
   Coordinate,
+  CurveObject,
+  ReadingObject,
   DiagramDocumentV1,
   LabelSide,
   PointLabel,
@@ -53,7 +55,8 @@ import type {
 import { guidance } from "./print-guidance";
 import { polygonCentroid, polygonVisible } from "./polygon";
 import { arrowheadPath } from "./arrow";
-import { VECTOR_ARROWHEAD_POINTS } from "./graphStyle";
+import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "./graphStyle";
+import { axesCrossing, curveVisible, readingLegs, readingVisible, smoothCurvePath } from "./curve";
 
 /** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
 export const POLYGON_SHADE = "#d4d4d4";
@@ -523,14 +526,15 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: st
   }
 
   const originX = origin.x - AXIS_LABEL_FONT_SIZE * 0.38;
-  const xName = document.axes.x.title
+  const xLetter = axisLetter("x", document.axes.x), yLetter = axisLetter("y", document.axes.y);
+  const xName = !xLetter
     ? ""
     : `
-      <text class="axis-name axis-name-x" x="${n(layout.plotRight + 48)}" y="${n(xNumberBaseline)}" font-family="${svgFontFamily(document)}">${AXIS_X_NAME}</text>`;
-  const yName = document.axes.y.title
+      <text class="axis-name axis-name-x" x="${n(layout.plotRight + 48)}" y="${n(xNumberBaseline)}" font-family="${svgFontFamily(document)}">${xLetter}</text>`;
+  const yName = !yLetter
     ? ""
     : `
-      <text class="axis-name axis-name-y" x="${n(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${AXIS_Y_NAME}</text>`;
+      <text class="axis-name axis-name-y" x="${n(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${yLetter}</text>`;
   const originLabel = originMarkup(document, originX, xNumberBaseline);
   // Bold axes (U111) get arrowheads 1.5 times as large, so the heavier line stays inside the head.
   const arrowSize = document.lines === "bold" ? 37.5 : 25;
@@ -629,6 +633,8 @@ function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
   return document.objects.filter((o): o is Named => {
     if (!o.name) return false;
     if (o.kind === "region") return regionPolygon(regionHalfPlanes(o), layout.bounds).length > 0;
+    if (o.kind === "reading") return false;
+    if (o.kind === "curve") return curveNameAnchor(o, layout.bounds) !== null;
     return o.kind === "point"
       ? o.position.x >= layout.bounds.xMin - 1e-9 &&
           o.position.x <= layout.bounds.xMax + 1e-9 &&
@@ -676,6 +682,14 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number, ax
     centre = { x: (right ? p.x + dx : p.x - dx) - total / 2 + box.width / 2, y: up ? p.y - dy : p.y + dy };
   } else if (object.kind === "polygon") {
     centre = coordinateToSvg(polygonCentroid(object.vertices), layout);
+  } else if (object.kind === "curve" || object.kind === "reading") {
+    // A curve's name sits up and to the right of its last point on the grid, kept inside the plot.
+    const anchor = object.kind === "curve" ? curveNameAnchor(object, layout.bounds) : null;
+    const p = coordinateToSvg(anchor ?? (object.kind === "reading" ? object.at : object.points[0]), layout);
+    const dx = 0.2 * unitsPerCm + box.width / 2, dy = 0.2 * unitsPerCm + box.height / 2;
+    const right = p.x + dx + box.width / 2 <= layout.plotRight;
+    const up = p.y - dy - box.height / 2 >= layout.plotTop;
+    centre = { x: right ? p.x + dx : p.x - dx, y: up ? p.y - dy : p.y + dy };
   } else {
     const visible = visibleStraightPoints(object, layout.bounds)!;
     const a = coordinateToSvg(visible[0], layout);
@@ -860,6 +874,29 @@ export function gradientLabelPlacement(
   };
 }
 
+/** The last point of a curve on the grid, where its name goes, or null when none is on the grid. */
+function curveNameAnchor(object: CurveObject, bounds: Bounds): Coordinate | null {
+  for (let i = object.points.length - 1; i >= 0; i--) if (pointInBounds(object.points[i], bounds)) return object.points[i];
+  return null;
+}
+
+/** Dashed reading legs to the axes, with a filled head where each reading is taken. */
+export function readingMarkup(document: DiagramDocumentV1, object: ReadingObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM): string {
+  const scale = document.lines === "bold" ? BOLD_LINE_FACTOR : 1;
+  const length = pointsToDiagramUnits(READING_ARROWHEAD_POINTS.length, unitsPerCm) * scale;
+  const half = pointsToDiagramUnits(READING_ARROWHEAD_POINTS.halfWidth, unitsPerCm) * scale;
+  const dash = ` stroke-dasharray="${n(unitsPerCm * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(unitsPerCm * STRAIGHT_DASH_GAP_CENTIMETRES)}"`;
+  const fill = object.answerOnly ? GRAPH_ANSWER_COLOUR : "#202224";
+  const parts = readingLegs(object, axesCrossing(document.axes)).map((leg) => {
+    const a = coordinateToSvg(leg.start, layout), b = coordinateToSvg(leg.end, layout);
+    // The dashes stop at the back of the head, so the head reads cleanly on the axis.
+    const d = Math.hypot(b.x - a.x, b.y - a.y);
+    const stop = leg.head && d > length ? { x: b.x - ((b.x - a.x) / d) * length, y: b.y - ((b.y - a.y) / d) * length } : b;
+    return `<line x1="${n(a.x)}" y1="${n(a.y)}" x2="${n(stop.x)}" y2="${n(stop.y)}"${dash}/>${leg.head ? `<path d="${arrowheadPath(a, b, "end", length, half)}" fill="${fill}" stroke="none"/>` : ""}`;
+  });
+  return `<g class="graph-reading" data-object-id="${escapeXml(object.id)}">${parts.join("")}</g>`;
+}
+
 /** A vector's filled arrowhead, at the end or centred on the middle, scaled with bold lines. */
 export function vectorArrowMarkup(document: DiagramDocumentV1, object: StraightObject, ends: [Coordinate, Coordinate], layout: SvgLayout, unitsPerCm = UNITS_PER_CM): string {
   const scale = document.lines === "bold" ? BOLD_LINE_FACTOR : 1;
@@ -924,6 +961,19 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: Gra
           `<line class="region-boundary" data-object-id="${escapeXml(object.id)}" x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
         );
       }
+      continue;
+    }
+    if (object.kind === "curve") {
+      if (!curveVisible(object, layout.bounds)) continue;
+      const svgPoints = object.points.map((p) => coordinateToSvg(p, layout));
+      const d = object.smooth ? smoothCurvePath(svgPoints) : `M ${svgPoints.map((p) => `${n(p.x)} ${n(p.y)}`).join(" L ")}`;
+      const dash = object.strokeStyle === "dashed" ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"` : "";
+      straightOut.push(`<path class="graph-curve" data-object-id="${escapeXml(object.id)}" d="${d}" stroke-linejoin="round"${dash}/>`);
+      continue;
+    }
+    if (object.kind === "reading") {
+      if (!readingVisible(object, layout.bounds)) continue;
+      straightOut.push(readingMarkup(document, object, layout));
       continue;
     }
     if (object.kind === "point") {

@@ -269,6 +269,21 @@ export function AxisSettings({
                 }}
               />
               <GraphDraftField
+                id={axis + "-letter"}
+                label={axis + "-axis letter"}
+                displayLabel="Letter"
+                inputMode="text"
+                hint={axis === "x" ? "Leave blank for x, or t for time" : "Leave blank for y, or v for velocity"}
+                value={config.name ?? ""}
+                drafts={drafts}
+                disabled={disabled}
+                onApplyText={(text) => {
+                  const name = text.trim();
+                  if (name && !/^[a-zA-Z]$/.test(name)) throw Error("Use one letter, such as t or v.");
+                  onDocument(editAxis(document, axis, (c) => (name ? { ...c, name } : without(c, "name"))));
+                }}
+              />
+              <GraphDraftField
                 id={axis + "-units-per-square"}
                 label={axis + "-axis units per square"}
                 displayLabel={time ? "Minutes per square" : "Units per square"}
