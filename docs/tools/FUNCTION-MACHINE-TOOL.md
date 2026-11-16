@@ -37,7 +37,7 @@ and what it fills is hidden by default. **Add the inverse machine** puts the mac
 boxes in reverse order with inverse operations (× ↔ ÷, + ↔ −, square ↔ √), arrows right to left, its end as the
 new start. × 0 and ÷ 0 cannot be undone, so they have no inverse: the inverse machine is refused and Work out
 never goes back through them. Nothing goes back through √ to a negative number either, since a square root is
-never negative. A cube box has no inverse box to print (cube root), so Work out leaves it alone.
+never negative. The inverse of a cube box prints as "cube root"; Work out does not go back through it.
 
 ## Teacher notes
 
