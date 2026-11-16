@@ -1,10 +1,10 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, answerTexts, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { ANSWER_SLOT_GAP, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -348,7 +348,9 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
   const widthOf = (s: string) => (maths ? lineWidth(parseRuns(shownText(s), "regular", true), size) : plainWidth(s, size));
   // A lone inline line is short and left-aligned, as on the SVG page.
   const one = lone ? lines[0] : null;
-  const slot = one
+  const slot = one?.blanks
+    ? Math.min(w, answerNeed(one, maths))
+    : one
     ? loneSlot(one.prefix ? widthOf(one.prefix) + 1.8 : 0, one.suffix ? widthOf(one.suffix) + 1.8 : 0, one.answer ? widthOf(one.answer) : 0, w)
     : (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   lines.forEach((l, i) => {
@@ -358,13 +360,43 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
     }
     const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
     const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
-    const mid = slot - pre - post;
-    if (mid < 18) ctx.issues.push({ ...ctx.where, message: "An answer line is shorter than 18 mm." });
-    const text = (s: string, o: RunStyle = {}) =>
+    const text = (s: string, o: RunStyle = {}, align: "left" | "center" = "left") =>
       answerHasFraction(s, maths)
         ? // A stacked fraction sits on a small gap so its denominator clears the line (LibreOffice check, 14 Nov 2026).
-          para(soleRuns(shownText(s), o, "regular", maths), { line: FRAC_WRITE_MM - FRAC_WORD_LIFT }) + gap(FRAC_WORD_LIFT)
-        : para(runs(shownText(s), o, "regular", maths), { line: lineBox(size) });
+          para(soleRuns(shownText(s), o, "regular", maths, align === "center" ? "center" : undefined), { line: FRAC_WRITE_MM - FRAC_WORD_LIFT, align }) + gap(FRAC_WORD_LIFT)
+        : para(runs(shownText(s), o, "regular", maths), { line: lineBox(size), align });
+    if (l.blanks) {
+      // An answer frame as on the SVG page: each fixed text in its own cell (its gap as a left
+      // margin), each blank a bottom-bordered cell holding its saved answer centred (answers copy
+      // only), then the rest of the slot empty.
+      const f = answerFrame(widthOf, l.prefix, l.blanks, l.suffix);
+      if (f.width > slot + 0.01) ctx.issues.push({ ...ctx.where, message: `An answer frame needs ${Math.round((f.width - slot) * 100) / 100} mm more width than its row has. Give it a row of its own or a wider column.` });
+      const add = (width: number, content: string, o: Partial<CellOpts> = {}) => {
+        if (width <= 0.01) return;
+        grid.push(width);
+        cells.push(cell(content, { width, vAlign: "bottom", ...o }));
+      };
+      // A text cell runs on to the next piece, so the gap after it is slack Word may need to keep
+      // the text on one line (as a prefix cell keeps 1.8 mm).
+      let at = 0;
+      f.pieces.forEach((p, k) => {
+        if (p.kind === "text") {
+          const end = k + 1 < f.pieces.length ? f.pieces[k + 1].x : p.x + widthOf(p.text) + 1.2;
+          add(end - at, text(p.text), p.x - at > 0.01 ? { margin: { left: p.x - at } } : {});
+          at = end;
+        } else {
+          add(p.x - at, gap(END_MM));
+          add(p.end - p.x, ctx.view === "answers" && p.answer ? text(p.answer, { color: ctx.st.answer }, "center") : gap(END_MM), {
+            borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
+          });
+          at = p.end;
+        }
+      });
+      add(slot - at, gap(END_MM));
+      return;
+    }
+    const mid = slot - pre - post;
+    if (mid < 18) ctx.issues.push({ ...ctx.where, message: "An answer line is shorter than 18 mm." });
     if (pre) {
       grid.push(pre);
       cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom" }));
@@ -390,7 +422,7 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, in
   const { grid, cells } = answerCells(lines, w, ctx, lone);
   const below = grid.map((g) => cell(gap(END_MM), { width: g }));
   // A row holding a stacked fraction is taller, in both copies, as on the SVG page.
-  const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, !!ctx.maths)));
+  const tall = lines.some((l) => answerTexts(l).some((s) => answerHasFraction(s, !!ctx.maths)));
   return table(grid, [row(cells, { mm: tall ? FRAC_WRITE_MM : ANSWER_WRITE_MM, exact: true }), row(below, { mm: ANSWER_BELOW_MM, exact: true })], indent);
 }
 
@@ -605,7 +637,8 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
       const textW = w - S.partIndent;
-      const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline ? it.items[0] : null;
+      // An answer frame always takes a row of its own.
+      const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline && !it.items[0].blanks ? it.items[0] : null;
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
       const head = { left: indent + S.partIndent, hanging: S.partIndent };
