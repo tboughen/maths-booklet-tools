@@ -168,7 +168,7 @@ export function normalizeDocument(input: unknown): RatioDocument {
     if (step.side && document.headings.length !== 2)
       throw new RatioError(
         "invalid_ratio_table",
-        "A scaling step can print on one side only in a two-column table.",
+        "Only a two-column table can print a scaling step on one side (left or right); remove side for a wider table.",
       );
     if (step.operation === "divide" && step.factor === "0")
       throw new RatioError("invalid_operation", "Cannot divide by zero.");

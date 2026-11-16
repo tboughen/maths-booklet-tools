@@ -56,5 +56,7 @@ describe("a step on one side only", () => {
     const moved = applyRatioOperations(both, [{ op: "set_transition", transition: { ...both.document.transitions[0], side: "left" } }]);
     expect(moved.document.transitions[0].side).toBe("left");
     expect(() => createRatioTable({ table: [["1", "2", "3"], ["2", "4", "6"]], steps: ["left: × 2"] })).toThrow(/two-column/);
+    const wider = applyRatioOperations(right, [{ op: "add_column", heading: { text: "z", italic: true, direction: "none" } }]);
+    expect(wider.document.transitions[0]).not.toHaveProperty("side");
   });
 });

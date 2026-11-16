@@ -296,6 +296,9 @@ export function applyRatioOperations(
       case "add_column":
         document.headings.push(op.heading);
         document.rows.forEach((row) => row.cells.push({ kind: "empty" }));
+        // A wider table prints every step beside each column, so one-sided steps become two-sided
+        // as part of this (undoable) change.
+        for (const t of document.transitions) delete t.side;
         break;
       case "remove_column":
         if (op.column >= document.headings.length)
