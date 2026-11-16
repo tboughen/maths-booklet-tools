@@ -34,10 +34,10 @@ describe("split question-bank catalogue (S43, A15)", () => {
       expect(q.hasWorkedSolution).toBe(catalogue.questions[i].workedSolution !== undefined);
     }
     // The same filters, topics and paper-builder entries come from the index as from the whole catalogue.
-    const route = {bankView: "questions" as const, code: catalogue.topics.find(t => t.availableCount)!.code, tier: "all" as const, calculator: "all" as const, collection: "all" as const, crossover: "all" as const, question: "", view: 0};
+    const route = {bankView: "questions" as const, code: catalogue.topics.find(t => t.availableCount)!.code, tier: "all" as const, calculator: "all" as const, collection: "all" as const, crossover: "all" as const, revision: "hide" as const, question: "", view: 0};
     expect(filterQuestions(index, route).map(q => q.id)).toEqual(filterQuestions(catalogue, route).map(q => q.id));
     const draft = {codes: [route.code], manual: {}, excluded: [], order: [], version: catalogue.version};
-    const all = {tier: "all" as const, calculator: "all" as const, collection: "all" as const, crossover: "all" as const};
+    const all = {tier: "all" as const, calculator: "all" as const, collection: "all" as const, crossover: "all" as const, revision: "include" as const};
     expect(draftEntries(catalogueCoverage(index, all), draft).map(e => e.key)).toEqual(draftEntries(catalogueCoverage(catalogue as BankCatalogue, all), draft).map(e => e.key));
   });
   it("names each paper file by its content and makes the index much lighter", () => {

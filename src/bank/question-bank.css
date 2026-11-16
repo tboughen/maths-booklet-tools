@@ -59,6 +59,7 @@
 .qb-result button { text-align: left; background: transparent; border: 0; color: #233b55; padding: 0; }
 .qb-result b { font-size: 14px; }
 .qb-result span, .qb-result small { display: block; margin-top: 6px; font-size: 13px; color: #536579; }
+.qb-result .qb-revision-tag, .qb-source-heading .qb-revision-tag { color: #8a4b00; font-weight: 600; }
 .qb-source { padding: 10px 18px; align-items: center; gap: 12px; }
 .qb-source > div { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
 .qb-source > div:first-child { align-items: flex-start; flex-direction: column; gap: 3px; }

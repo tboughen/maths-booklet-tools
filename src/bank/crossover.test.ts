@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { emptyRoute, exportSelection, filterQuestions, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
+import { emptyRoute as defaultRoute, exportSelection, filterQuestions, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
 
+// These checks cover the whole bank, so Year 11 revision papers are included.
+const emptyRoute = {...defaultRoute, revision: "include" as const};
 const catalogue = verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue);
 const identity = (q: BankQuestion) => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
 const shared = catalogue.questions.filter(q => q.tier === "F" && q.equivalentId);
@@ -69,9 +71,10 @@ describe("reviewed Foundation/Higher crossover catalogue", () => {
       expect(new Set(found.map(identity)), topic.code).toEqual(identities);
       expect(found.length, topic.code).toBe(identities.size);
     }
-    expect(routeQuery(only)).toBe("?crossover=only");
+    expect(routeQuery(only)).toBe("?crossover=only&revision=include");
     expect(readRoute("?crossover=only").crossover).toBe("only");
     expect(readRoute("?crossover=yes").crossover).toBe("all");
-    expect(routeQuery(emptyRoute)).toBe("");
+    expect(routeQuery(defaultRoute)).toBe("");
+    expect(routeQuery(emptyRoute)).toBe("?revision=include");
   });
 });
