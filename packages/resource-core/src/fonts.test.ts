@@ -3,6 +3,7 @@
 // empty box (□) used in missing-number questions, so PDF and Word never print a missing glyph,
 // and the fonts' own advance widths match the table, so line breaks match what was measured.
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { advance, measuredWidths, type FontStyle } from "./metrics";
 
@@ -72,6 +73,31 @@ describe("worksheet text fonts", () => {
         // The table is rounded to 4 decimal places.
         expect(Math.abs(advanceOf(font, glyph!) - width), `${file} ${c}`).toBeLessThan(0.00006);
       }
+    });
+  }
+});
+
+// The PDF writer lays text out with fontkit (through PDFKit), which applies the fonts' kerning.
+// Inter kerns for prose ("7." by 0.125 em, ".1" by 0.086 em), which squashed decimals such as 7.1,
+// so the subsets carry no kerning on digits or maths signs (assets/resource-fonts/unkern-maths.py).
+// Numbers then print at exactly the advance widths metrics.ts measures; prose keeps its kerning.
+describe("worksheet text kerning", () => {
+  const require = createRequire(import.meta.url);
+  const fontkit = require("fontkit") as {
+    create(b: Buffer): { layout(s: string): { glyphs: { advanceWidth: number }[]; positions: { xAdvance: number }[] } };
+  };
+  const kerned = (font: ReturnType<typeof fontkit.create>, s: string) => {
+    const run = font.layout(s);
+    return run.positions.some((p, i) => p.xAdvance !== run.glyphs[i].advanceWidth);
+  };
+  for (const file of ["Inter-Regular.ttf", "Inter-SemiBold.ttf", "Inter-Italic.ttf"]) {
+    const font = fontkit.create(readFileSync(`assets/resource-fonts/${file}`));
+    it(`${file} sets numbers and maths signs without kerning`, () => {
+      for (const s of ["7.5", "17.1", "0.75", "7,000", "74", "−7", "7 − 2", "30°.", "45°,", "4.7%", "7:3", "T7", "7A", "7n", "7p", "y=7", "Y=2", "T+A", "1/7", "2½", "x²", "7…"])
+        expect(kerned(font, s), `${file} "${s}"`).toBe(false);
+    });
+    it(`${file} keeps kerning in ordinary words`, () => {
+      for (const s of ["To", "AV", "Yes", "We"]) expect(kerned(font, s), `${file} "${s}"`).toBe(true);
     });
   }
 });
