@@ -88,7 +88,7 @@ const ratioGuide: FamilyGuide = {
     rows: { minimum: 1, maximum: 6 },
     cellKinds: ["number", "empty", "answer-line", "hidden"],
     headingDirections: ["right", "up", "down", "none"],
-    compactSpec: { columns: "heading strings ending in → ↑ ↓", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]; prefix left: or right: for one side only (two columns)" },
+    compactSpec: { columns: "heading strings, optionally ending in → ↑ ↓ (no arrow for plain x | y); x^2 or x² and x^3 print a superscript, 1/x and 1/x^2 a stacked fraction", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]; prefix left: or right: for one side only (two columns)" },
     sizes: ["standard", "large"],
     lines: ["normal", "bold"],
     modes: ["simple", "annotated"],

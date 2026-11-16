@@ -1,4 +1,4 @@
-import type { RatioDocument } from "../../packages/ratio-table-core/src/schema";
+import { headingPowers, letterHeading, type RatioDocument } from "../../packages/ratio-table-core/src/schema";
 
 type Heading = RatioDocument["headings"][number];
 
@@ -25,7 +25,8 @@ export function headingFromText(heading: Heading, value: string): Heading {
       : value.endsWith("↓")
         ? "down"
         : "none";
-  const text = (direction === "none" ? value : value.slice(0, -1)).trim();
+  const text = headingPowers((direction === "none" ? value : value.slice(0, -1)).trim());
   // % and £ are symbols, never italic letters, whatever the heading was before (Tim, 16 Nov 2026).
-  return { ...heading, text, direction, ...(/[%£]/.test(text) ? { italic: false } : {}) };
+  // A power or reciprocal of one letter (x^2, 1/x) has an italic letter, like a plain x.
+  return { ...heading, text, direction, ...(/[%£]/.test(text) ? { italic: false } : letterHeading(text) && /[\^/]/.test(text) ? { italic: true } : {}) };
 }

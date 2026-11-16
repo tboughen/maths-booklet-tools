@@ -115,7 +115,7 @@ export function ratioMetrics(document: RatioDocument) {
     gutterRight = two ? gutterFor(document.transitions.filter((t) => printsOn(t, 1))) : 0;
   for (const heading of document.headings) {
     if (
-      textWidth(heading.text, FONT, heading.italic) +
+      headingWidth(heading) +
         (heading.direction !== "none" ? 38 : 0) >
       126
     )
@@ -191,6 +191,70 @@ function number(value: string, x: number, y: number, size = FONT, fill = INK): s
     text(bottom, x, y + size * 0.78, small, false, fill)
   );
 }
+/**
+ * Proportion headings (Tim, NP17, 16 Nov 2026): "x^2" and "x^3" print a true superscript, and
+ * "1/x" or "1/x^2" a stacked fraction. Letters in an italic heading are italic; digits stay upright.
+ * Superscripts print at 10 pt, the house minimum. Other text (m/s, %, £) prints as typed.
+ */
+const HEADING_FRACTION = /^(\d+)\/([A-Za-z]+(?:\^\d)?)$/;
+const SUP_RISE = 0.36;
+type HeadingRun = { text: string; sup: boolean };
+function headingRuns(value: string): HeadingRun[] {
+  return value
+    .split(/\^(\d)/)
+    .map((t, i) => ({ text: t, sup: i % 2 === 1 }))
+    .filter((r) => r.text);
+}
+/** Each character's advance, italic only for letters in an italic heading. */
+const styledWidth = (value: string, size: number, italic: boolean) =>
+  Array.from(value).reduce((sum, c) => sum + glyphAdvance(c, italic && /[A-Za-z]/.test(c)) * size, 0);
+function runsWidth(runs: HeadingRun[], size: number, italic: boolean) {
+  return runs.reduce((sum, r) => sum + styledWidth(r.text, r.sup ? Math.max(size * SMALL, FONT * SMALL) : size, italic), 0);
+}
+/** Runs from `left` on one baseline, letters italic when asked, superscripts raised. */
+function runsMarkup(runs: HeadingRun[], left: number, baseline: number, size: number, italic: boolean) {
+  let x = left,
+    out = "";
+  for (const r of runs) {
+    const s = r.sup ? Math.max(size * SMALL, FONT * SMALL) : size,
+      y = r.sup ? baseline - size * SUP_RISE : baseline;
+    // Letters and other characters in separate pieces, so only letters lean.
+    for (const piece of r.text.match(/[A-Za-z]+|[^A-Za-z]+/g) ?? []) {
+      const lean = italic && /[A-Za-z]/.test(piece);
+      out += `<text fill="${INK}" x="${x}" y="${y}" font-size="${s}"${lean ? ' font-style="italic"' : ""}>${escape(piece)}</text>`;
+      x += styledWidth(piece, s, italic);
+    }
+  }
+  return out;
+}
+export function headingWidth(heading: RatioDocument["headings"][number], size = FONT): number {
+  const f = heading.text.match(HEADING_FRACTION);
+  if (f) {
+    const small = part(size);
+    return Math.max(textWidth(f[1], small), runsWidth(headingRuns(f[2]), small, heading.italic)) + 10;
+  }
+  if (!heading.text.includes("^")) return textWidth(heading.text, size, heading.italic);
+  return runsWidth(headingRuns(heading.text), size, heading.italic);
+}
+/** A heading centred on x, its middle on y (the row's centre line). */
+function headingMarkup(heading: RatioDocument["headings"][number], x: number, y: number, size = FONT) {
+  const f = heading.text.match(HEADING_FRACTION);
+  // A plain heading prints exactly as before: one centred text.
+  if (!f && !heading.text.includes("^")) return text(heading.text, x, y + size * 0.31, size, heading.italic);
+  if (!f) {
+    const runs = headingRuns(heading.text);
+    return runsMarkup(runs, x - runsWidth(runs, size, heading.italic) / 2, y + size * 0.31, size, heading.italic);
+  }
+  const small = part(size),
+    bottom = headingRuns(f[2]),
+    bar = Math.max(textWidth(f[1], small), runsWidth(bottom, small, heading.italic)) + 8;
+  return (
+    text(f[1], x, y - size * 0.15, small) +
+    `<path d="M${x - bar / 2} ${y}H${x + bar / 2}" stroke-width="2"/>` +
+    // A power in the denominator sits a little lower, so its raised digit clears the bar.
+    runsMarkup(bottom, x - runsWidth(bottom, small, heading.italic) / 2, y + size * 0.78 + (bottom.some((r) => r.sup) ? 5 : 0), small, heading.italic)
+  );
+}
 const answerLine = (x: number, y: number, width = ANSWER_LINE_WIDTH) =>
   `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="2"/>`;
 function cellMarkup(cell: RatioCell, x: number, y: number, view: RatioView) {
@@ -228,17 +292,11 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
   ).join("");
   let body = `<path class="ratio-rules" d="${rules}M${left} ${top + 100}H${left + m.tableWidth}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
   document.headings.forEach((heading, i) => {
-    const width = textWidth(heading.text, FONT, heading.italic),
+    const width = headingWidth(heading),
       centre = left + 75 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
-    body += text(
-      heading.text,
-      textX,
-      top + 50 + FONT * 0.31,
-      FONT,
-      heading.italic,
-    );
+    body += headingMarkup(heading, textX, top + 50);
     if (heading.direction !== "none")
       body += arrow(textX + width / 2 + 22, top + 50, heading.direction);
   });

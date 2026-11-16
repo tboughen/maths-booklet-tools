@@ -6,6 +6,8 @@ import {
   DEFAULT_HEADINGS,
   documentSchema,
   headingsSchema,
+  headingPowers,
+  letterHeading,
   ratioEnvelopeSchema,
   ratioSpecSchema,
   rowSchema,
@@ -81,10 +83,10 @@ export function compactHeading(value: string): RatioDocument["headings"][number]
   const v = value.trim(),
     end = v.slice(-1),
     direction = end === "→" ? "right" : end === "↑" ? "up" : end === "↓" ? "down" : "none";
-  const text = (direction === "none" ? v : v.slice(0, -1)).trim();
+  const text = headingPowers((direction === "none" ? v : v.slice(0, -1)).trim());
   return readSchema(headingsSchema.element, {
     text,
-    italic: /^[A-Za-z]$/.test(text),
+    italic: letterHeading(text),
     direction,
   });
 }
