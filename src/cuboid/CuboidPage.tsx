@@ -517,7 +517,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               </p>
             )}
             <div
-              className="cb-scroll"
+              className="cb-scroll editor-stage"
               ref={fitted.ref}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget && !dirty.size)

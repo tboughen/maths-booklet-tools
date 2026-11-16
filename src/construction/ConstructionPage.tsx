@@ -539,7 +539,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
             <EditorHint tool="construction">Drag a point to move it, or select it and use the arrow keys. Add constructions and measurements in the settings.</EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   ref={stage}

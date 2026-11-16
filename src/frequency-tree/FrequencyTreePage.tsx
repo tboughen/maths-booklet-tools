@@ -363,7 +363,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               Click an oval or a name on the tree to edit it. Enter applies;
               Escape restores.
             </EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"

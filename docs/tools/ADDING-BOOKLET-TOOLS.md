@@ -27,7 +27,7 @@ export default function NewTool({ active = true }: { active?: boolean }) {
       <section className="workspace">
         <Panel className="editor-card">
           {/* EditorToolbar: Undo, Redo, Reset, Copy for Word and downloads. */}
-          {/* Working preview */}
+          <div className="pt-scroll editor-stage">{/* Working preview: the element that scrolls the diagram */}</div>
         </Panel>
         <aside className="inspector-stack" aria-label="New tool settings">
           <section className="panel-card specialist-tools">{/* Specialist actions and settings */}</section>
@@ -39,6 +39,8 @@ export default function NewTool({ active = true }: { active?: boolean }) {
 ```
 
 Use the shared tokens and interface classes in `src/site/site.css` for colours, typography, spacing, borders, controls and focus. Add narrowly scoped styles for specialist controls. The shared interface follows the Question bank's white and blue-grey appearance. Mathematical content has its own rendering and fonts; interface styles must not change exported diagrams.
+
+The element that scrolls the diagram carries the class `editor-stage` and is a direct child of the card: the editor frame gives it every pixel the bars leave ([app house style](APP-HOUSE-STYLE.md)). Show the tool's message ("Image copied", a failed copy) in a `.resource-feedback` paragraph inside the card, which the frame keeps at the card's foot.
 
 Use `EditorToolbar` for common document utilities rather than recreating them. Keep specialist modes and configuration in the inspector, paired structure controls beside the resource, and direct value/label editing on the resource. Keep import dialogs outside any hidden export-menu wrapper so links can open them while that menu is closed. See [the layout audit](../archive/EDITOR-LAYOUT-AUDIT.md).
 

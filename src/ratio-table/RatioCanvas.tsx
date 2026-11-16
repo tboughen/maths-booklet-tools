@@ -103,7 +103,7 @@ export function RatioCanvas({
   });
   return (
     <div
-      className="ratio-stage"
+      className="ratio-stage editor-stage"
       ref={stage}
       role="region"
       aria-label="Ratio table workspace"

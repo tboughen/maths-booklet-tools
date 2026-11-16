@@ -396,7 +396,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               Click a label on the tree to edit it. Enter applies; Escape
               restores.
             </EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"
