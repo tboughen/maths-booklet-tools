@@ -21,6 +21,7 @@ import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
 import { twoWayTableConfig } from "./guides/two-way-table";
 import { ftConfig } from "./guides/factor-tree";
+import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
 import { bmConfig } from "./guides/bubble-method";
 import { ssConfig } from "./guides/sample-space";
@@ -215,6 +216,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "frequency-tree": fromConfig(frequencyTreeConfig),
   "two-way-table": fromConfig(twoWayTableConfig),
   "factor-tree": fromConfig(ftConfig),
+  "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
   "bubble-method": fromConfig(bmConfig),
   "sample-space": fromConfig(ssConfig),
@@ -360,6 +362,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
   "factor-tree": ["factor trees", "prime factor decomposition", "writing a number as a product of primes", "index form"],
+  "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
   "bubble-method": ["bubble method", "balancing", "solving linear equations", "solving inequalities", "changing the subject"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],

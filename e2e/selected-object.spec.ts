@@ -18,6 +18,7 @@ const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "factor-tree" },
   { tool: "function-machine", select: (page) => page.getByRole("button", { name: "Edit the box 1", exact: true }).click() },
   { tool: "bubble-method", select: (page) => page.getByRole("button", { name: "Edit the left bubble of step 1", exact: true }).click() },
+  { tool: "written-method", select: (page) => page.getByRole("button", { name: "Edit the answer", exact: true }).click() },
   { tool: "sample-space" },
   { tool: "construction", select: (page) => page.getByRole("button", { name: /^Select point / }).first().click() },
 ];

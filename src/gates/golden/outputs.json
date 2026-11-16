@@ -2311,6 +2311,104 @@
    "mm": "120x85",
    "png600": "2835x2008",
    "pixels": "5d1602d4ee8b5f2d"
+  },
+  "written methods: wm-add-decimals": {
+   "json": "c4dc6ef961e97f36",
+   "svg": "cc60a0ea48bcd5c6",
+   "mm": "44x28.3",
+   "png600": "1039x669",
+   "pixels": "0ae80e3bdde1289d"
+  },
+  "written methods: wm-add-decimals (worked)": {
+   "json": "41555a99e20e8852",
+   "svg": "f9e6c1ac4f1e3a04",
+   "mm": "44x28.3",
+   "png600": "1039x669",
+   "pixels": "7abd439aaea0f2f5"
+  },
+  "written methods: wm-column-add": {
+   "json": "50e0555d1fc4324b",
+   "svg": "ce19a2357b45d9df",
+   "mm": "44x28.3",
+   "png600": "1039x669",
+   "pixels": "e4a15efb20847ddb"
+  },
+  "written methods: wm-column-add (worked)": {
+   "json": "34f2f1b965568359",
+   "svg": "db5a44fa6a4b3165",
+   "mm": "44x28.3",
+   "png600": "1039x669",
+   "pixels": "552b6165d22f1ac3"
+  },
+  "written methods: wm-column-subtract": {
+   "json": "e9dbc4141e33c44c",
+   "svg": "0d82264274c82385",
+   "mm": "37x31.8",
+   "png600": "874x751",
+   "pixels": "3a370feec6ecbfaf"
+  },
+  "written methods: wm-column-subtract (worked)": {
+   "json": "e7f04f93308bd188",
+   "svg": "4007748c8742e2f1",
+   "mm": "37x31.8",
+   "png600": "874x751",
+   "pixels": "ab11a2948c75a1f3"
+  },
+  "written methods: wm-division-remainder": {
+   "json": "eaa64c232649665f",
+   "svg": "d0342dedecdd4004",
+   "mm": "40.42x17.8",
+   "png600": "955x420",
+   "pixels": "f719f9d44efbd0c1"
+  },
+  "written methods: wm-division-remainder (worked)": {
+   "json": "86b8cb00a46b1b80",
+   "svg": "274530fd6e836c31",
+   "mm": "40.42x17.8",
+   "png600": "955x420",
+   "pixels": "d6816103c22e94c3"
+  },
+  "written methods: wm-long-division-decimal": {
+   "json": "f4c77bc9d5525227",
+   "svg": "3cfd8462e66f1988",
+   "mm": "36.84x17.8",
+   "png600": "870x420",
+   "pixels": "2ef406ab411e91b2"
+  },
+  "written methods: wm-long-division-decimal (worked)": {
+   "json": "4060fe714af14a1d",
+   "svg": "78a6cfe1009344a4",
+   "mm": "37.84x62.2",
+   "png600": "894x1469",
+   "pixels": "b469ee1cdcbc1d8f"
+  },
+  "written methods: wm-long-multiplication": {
+   "json": "07db6031c6c39580",
+   "svg": "a0f041a197202e50",
+   "mm": "44x50.1",
+   "png600": "1039x1183",
+   "pixels": "528b09c82a8fc1fc"
+  },
+  "written methods: wm-long-multiplication (worked)": {
+   "json": "3b6355381ad7a7c4",
+   "svg": "04d873a4a08de3ac",
+   "mm": "44x50.1",
+   "png600": "1039x1183",
+   "pixels": "e02ecf974ed11205"
+  },
+  "written methods: wm-short-division": {
+   "json": "3493b81cebe35dfa",
+   "svg": "8062e61c1c02bce3",
+   "mm": "41.92x17.8",
+   "png600": "990x420",
+   "pixels": "795335b4c374d667"
+  },
+  "written methods: wm-short-division (worked)": {
+   "json": "0ecad964ecb9ed4b",
+   "svg": "e8dc76c009253b3e",
+   "mm": "41.92x17.8",
+   "png600": "990x420",
+   "pixels": "00c5a6971f489ee3"
   }
  }
 }

@@ -1,0 +1,31 @@
+.wm-marks {
+  border: 1px solid var(--line, #c9d3dd);
+  border-radius: 6px;
+  margin: 8px 0;
+  padding: 6px 10px;
+}
+.wm-mark-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px 8px;
+}
+.wm-mark {
+  display: grid;
+  gap: 2px;
+  font-size: 0.85rem;
+}
+.wm-mark input:not([type="checkbox"]) {
+  width: 3.5em;
+}
+.wm-cross {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+}
+.wm-editor .pt-hit {
+  border-radius: 3px;
+}
+.wm-editor .pt-fields select {
+  min-width: 11em;
+}

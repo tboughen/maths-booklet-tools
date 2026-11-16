@@ -149,7 +149,8 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     intentionalError: "true marks an error-spotting task, so wrong splits, circles and answers raise no warning.",
     lines,
     complete: "true explicitly completes every tree as hidden answers with answers-only circles; {hidden:false} prints them.",
-  },  "function-machine": {
+  },
+  "function-machine": {
     example,
     worked,
     ops: "One machine: its boxes, first to last, such as [\"× 3\", \"− 8\"]; \"\" is an empty box for pupils.",
@@ -169,6 +170,20 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     steps: "Up to 8 steps, each {bubble or left/right, leftUnder?, rightUnder?, line}: the bubbles, then the line they lead to (blank if left out).",
     intentionalError: "true marks an error-spotting task, so bubbles that differ raise no warning.",
     lines,
+  },
+  "written-method": {
+    example,
+    worked,
+    method: "add, subtract, multiply (long multiplication), short-division (bus stop) or long-division.",
+    numbers: "add: 2 to 4 numbers; subtract and multiply: 2; division: [number to divide, number to divide by]. \"\" is a pupil blank.",
+    working: "A number of blank working rows, or rows [{text, place, kind}] for long multiplication and long division.",
+    answer: "The answer row; \"\" (default) is a pupil blank, {text, hidden:true} a saved answer.",
+    remainder: "Division: true leaves an \"r ...\" space after the answer, or give the remainder.",
+    extend: "Division: zeros written after the point to keep dividing, such as \"0\".",
+    cellMm: "Each digit's square at print size, 5 to 10 mm (default 7).",
+    intentionalError: "true marks an error-spotting task, so rows that do not follow raise no warning.",
+    lines,
+    complete: "true explicitly works the method out as hidden answers; {hidden:false} prints them, {decimals:true} keeps dividing past the point.",
   },
 
   triangle: {

@@ -20,6 +20,7 @@ import { envelopeSchema as valueGraph } from "../../packages/value-graph-core/sr
 import { envelopeSchema as venn } from "../../packages/venn-core/src/index";
 import { envelopeSchema as twoWayTable } from "../../packages/two-way-table-core/src/index";
 import { envelopeSchema as ft } from "../../packages/factor-tree-core/src/index";
+import { envelopeSchema as wm } from "../../packages/written-method-core/src/index";
 import { envelopeSchema as fm } from "../../packages/function-machine-core/src/index";
 import { envelopeSchema as bm } from "../../packages/bubble-method-core/src/index";
 import { envelopeSchema as ss } from "../../packages/sample-space-core/src/index";
@@ -45,7 +46,7 @@ function compare(name: string, actual: unknown) {
 
 const savedFiles: Record<string, z.ZodType> = {
   angles, area, "algebra-grid": algebraGrid, "bar-model": barModelV3, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
-  triangle, "two-way-table": twoWayTable, "factor-tree": ft, "function-machine": fm, "bubble-method": bm, "sample-space": ss, "value-graph": valueGraph, venn,
+  triangle, "two-way-table": twoWayTable, "factor-tree": ft, "written-method": wm, "function-machine": fm, "bubble-method": bm, "sample-space": ss, "value-graph": valueGraph, venn,
 };
 
 describe("contracts", () => {
