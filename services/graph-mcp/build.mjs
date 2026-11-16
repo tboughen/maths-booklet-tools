@@ -51,6 +51,7 @@ for (const directory of [
   "packages/area-core",
   "packages/figure-core",
   "packages/factor-tree-core",
+  "packages/function-machine-core",
   "packages/sample-space-core",
   "packages/triangle-core",
   "packages/resource-core",

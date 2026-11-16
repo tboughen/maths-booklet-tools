@@ -149,7 +149,20 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     intentionalError: "true marks an error-spotting task, so wrong splits, circles and answers raise no warning.",
     lines,
     complete: "true explicitly completes every tree as hidden answers with answers-only circles; {hidden:false} prints them.",
+  },  "function-machine": {
+    example,
+    worked,
+    ops: "One machine: its boxes, first to last, such as [\"× 3\", \"− 8\"]; \"\" is an empty box for pupils.",
+    start: "One machine: the word or number before the first box (default \"input\").",
+    end: "One machine: the word or number after the last box (default \"output\").",
+    machines: "1 to 3 machines stacked, each {start, ops, between, end, direction}.",
+    boxShape: "pentagon (arrow-shaped, default) or rectangle.",
+    intentionalError: "true marks an error-spotting task, so values that do not follow raise no warning.",
+    lines,
+    inverse: "true explicitly adds machine 1's inverse beneath it, arrows right to left.",
+    complete: "true explicitly works every machine out as hidden answers; {hidden:false} prints them, {between:false} leaves the arrows bare.",
   },
+
   triangle: {
     shape: "right, scalene, isosceles or equilateral.",
     example: "A saved example triangle by key, instead of shape.",

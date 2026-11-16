@@ -214,6 +214,9 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
   "factor-tree"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
+  "function-machine"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

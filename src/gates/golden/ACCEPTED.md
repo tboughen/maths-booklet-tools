@@ -654,6 +654,19 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - factor trees: ft-two-ways-84: svg c601bef7d887ab91 -> df291ccdee269b3c
 - factor trees: ft-two-ways-84: pixels 722a3009c5de1ff8 -> 952e895b2024773c
 
+## 2026-11-16: Add function machines (new tool) to the output gates
+
+- function machines: fm-find-output: added
+- function machines: fm-find-output (worked): added
+- function machines: fm-find-input: added
+- function machines: fm-find-input (worked): added
+- function machines: fm-missing-operation: added
+- function machines: fm-missing-operation (worked): added
+- function machines: fm-letters: added
+- function machines: fm-letters (worked): added
+- function machines: fm-two-machines: added
+- function machines: fm-two-machines (worked): added
+
 ## 2026-11-16: Statistical charts gain histograms, frequency polygons and cumulative frequency graphs: adds goldens for the four new gallery examples; no existing output changed
 
 - charts: chart-histogram-puzzle: added

@@ -35,6 +35,8 @@ import * as figures from "../../packages/figure-core/src/index";
 import { printFacts as figuresPrintFacts } from "../../packages/figure-core/src/interchange";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import { printFacts as ftPrintFacts } from "../../packages/factor-tree-core/src/interchange";
+import * as fm from "../../packages/function-machine-core/src/index";
+import { printFacts as fmPrintFacts } from "../../packages/function-machine-core/src/interchange";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { printFacts as ssPrintFacts } from "../../packages/sample-space-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
@@ -75,6 +77,7 @@ export type DiagramSource =
   | { kind: "area"; envelope: area.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "figures"; envelope: figures.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "factor-tree"; envelope: ft.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "function-machine"; envelope: fm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "sample-space"; envelope: ss.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
@@ -141,6 +144,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "factor-tree") {
     const view = source.outputView ?? "pupil", g = ft.layout(ft.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: ftPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "function-machine") {
+    const view = source.outputView ?? "pupil", g = fm.layout(fm.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: fmPrintFacts(source.envelope, view) };
   }
   if (source.kind === "two-way-table") {
     const view = source.outputView ?? "pupil", g = twt.layout(twt.forView(source.envelope, view));

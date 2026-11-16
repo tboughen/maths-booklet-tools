@@ -1,0 +1,67 @@
+{
+ "kind": "function-machine",
+ "schemaVersion": 1,
+ "rendererVersion": "function-machine-1",
+ "document": {
+  "machines": [
+   {
+    "id": "m1",
+    "direction": "right",
+    "start": {
+     "text": "12",
+     "show": "show"
+    },
+    "steps": [
+     {
+      "op": {
+       "text": "÷ 4",
+       "show": "show"
+      },
+      "out": null
+     },
+     {
+      "op": {
+       "text": "+ 6",
+       "show": "show"
+      },
+      "out": null
+     }
+    ],
+    "end": {
+     "text": "9",
+     "show": "show"
+    }
+   },
+   {
+    "id": "m2",
+    "direction": "right",
+    "start": {
+     "text": "12",
+     "show": "show"
+    },
+    "steps": [
+     {
+      "op": {
+       "text": "− 3",
+       "show": "show"
+      },
+      "out": null
+     },
+     {
+      "op": {
+       "text": "× 1/3",
+       "show": "show"
+      },
+      "out": null
+     }
+    ],
+    "end": {
+     "text": "3",
+     "show": "show"
+    }
+   }
+  ],
+  "boxShape": "pentagon",
+  "intentionalError": false
+ }
+}
