@@ -111,7 +111,7 @@ test("file import, self-contained SVG and 600ppi PNG work in a real browser", as
     path: testInfo.outputPath("portable-editor.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "File" }).click();
+  await page.getByRole("button", { name: "Download" }).click();
   const svgDownload = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /SVG/ }).click();
   const svgFile = await svgDownload,
@@ -127,7 +127,7 @@ test("file import, self-contained SVG and 600ppi PNG work in a real browser", as
   await expect(check.locator("parsererror")).toHaveCount(0);
   await check.screenshot({ path: testInfo.outputPath("portable-svg.png") });
   await check.close();
-  await page.getByRole("button", { name: "File" }).click();
+  await page.getByRole("button", { name: "Download" }).click();
   const pngDownload = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /PNG/ }).click();
   const png = await readFile((await (await pngDownload).path())!);

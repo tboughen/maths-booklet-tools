@@ -17,6 +17,7 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
@@ -173,7 +174,7 @@ export default function LessonBarModelPage({
     [count, setCount] = useState("5"),
     [ratio, setRatio] = useState("3:5"),
     [partitioned, setPartitioned] = useState(true),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0);
   const expected = useRef(startup.expected),
@@ -560,7 +561,7 @@ export default function LessonBarModelPage({
                 )
               }
               menuOpen={menu}
-              onToggleMenu={() => setMenu((x) => !x)}
+              onMenuChange={setMenu}
               menuId="bar-model-v2-files"
             />
             <EditorDownloadMenu

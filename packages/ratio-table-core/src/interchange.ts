@@ -6,6 +6,9 @@ import {
   DEFAULT_HEADINGS,
   documentSchema,
   headingsSchema,
+  headingPowers,
+  letterHeading,
+  spokenHeading,
   ratioEnvelopeSchema,
   ratioSpecSchema,
   rowSchema,
@@ -81,10 +84,10 @@ export function compactHeading(value: string): RatioDocument["headings"][number]
   const v = value.trim(),
     end = v.slice(-1),
     direction = end === "→" ? "right" : end === "↑" ? "up" : end === "↓" ? "down" : "none";
-  const text = (direction === "none" ? v : v.slice(0, -1)).trim();
+  const text = headingPowers((direction === "none" ? v : v.slice(0, -1)).trim());
   return readSchema(headingsSchema.element, {
     text,
-    italic: /^[A-Za-z]$/.test(text),
+    italic: letterHeading(text),
     direction,
   });
 }
@@ -102,21 +105,27 @@ export function compactCell(value: string): SpecRow["cells"][number] {
     throw compactError(`Cell "${v}": write a number, "" for empty, "_" for an answer line or [n] for a hidden answer.`);
   return { kind: "number", value: v };
 }
-/** A compact step between two rows: "× 2", "÷ 2" (or x, *, /); "[÷ 2]" hides it in the pupil copy. */
+/**
+ * A compact step between two rows: "× 2", "÷ 2" (or x, *, /); "[÷ 2]" hides it in the pupil copy;
+ * a "left:" or "right:" prefix prints it on that side only.
+ */
 export function compactStep(value: string, from: string, to: string): RatioTransition | null {
   let v = value.trim();
   if (v === "") return null;
+  const sided = v.match(/^(left|right)\s*:\s*/i);
+  if (sided) v = v.slice(sided[0].length);
   const hidden = /^\[.*\]$/.test(v);
   if (hidden) v = v.slice(1, -1).trim();
   const m = v.match(/^([×x*÷/])\s*(.+)$/);
   if (!m)
-    throw compactError(`Step "${value}": write "× 2" or "÷ 2", or "" for no step.`);
+    throw compactError(`Step "${value}": write "× 2" or "÷ 2" (optionally "left: × 2" or "right: × 2"), or "" for no step.`);
   return {
     from,
     to,
     operation: "×x*".includes(m[1]) ? "multiply" : "divide",
     factor: m[2].trim(),
     ...(hidden ? { hidden: true } : {}),
+    ...(sided ? { side: sided[1].toLowerCase() as "left" | "right" } : {}),
   };
 }
 /** Expands the compact columns/table/steps form into the full spec fields. */
@@ -290,6 +299,9 @@ export function applyRatioOperations(
       case "add_column":
         document.headings.push(op.heading);
         document.rows.forEach((row) => row.cells.push({ kind: "empty" }));
+        // A wider table prints every step beside each column, so one-sided steps become two-sided
+        // as part of this (undoable) change.
+        for (const t of document.transitions) delete t.side;
         break;
       case "remove_column":
         if (op.column >= document.headings.length)
@@ -546,7 +558,7 @@ export function describeRatio(envelope: RatioEnvelope, view: "pupil" | "answer" 
         `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "hidden" ? (view === "answer" ? `hidden answer ${c.value}` : c.line ? "answer line" : "empty") : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
     )
     .join("; ");
-  return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
+  return `Ratio table, headings ${d.headings.map((h) => spokenHeading(h.text) + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
 }
 export function encodeRatio(envelope: RatioEnvelope): string {
   return toBase64Url(canonicalRatio(envelope));

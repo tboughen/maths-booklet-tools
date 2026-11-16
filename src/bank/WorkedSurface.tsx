@@ -19,19 +19,25 @@ interface Props {
  */
 export function WorkedSurface({ pdf, view, overlay, scale, retryKey, colour, marks = true, upTo }: Props) {
   const ink = useRef<HTMLDivElement>(null);
+  const svg = overlay?.svg, shown = overlay !== undefined;
+  // The working is written in only when it changes, so a re-render (a new scale, the Mark notes
+  // switch) never puts back the steps that step by step has hidden.
+  // Built by packages/worked-core from checked data: every text is escaped there.
+  useLayoutEffect(() => {
+    if (ink.current && svg !== undefined) ink.current.innerHTML = svg;
+  }, [svg, shown]);
   // The working is laid out once; the switches only hide parts of it, so nothing moves.
   useLayoutEffect(() => {
     for (const group of ink.current?.querySelectorAll<SVGGElement>("[data-step]") ?? []) {
       group.style.display = upTo !== undefined && Number(group.dataset.step) > upTo ? "none" : "";
     }
-  }, [upTo, overlay]);
+  }, [upTo, svg, shown]);
   const parts = slices({ height: view.height, bands: overlay?.bands ?? [] });
   const height = view.height + (overlay ? overlay.bands.reduce((n, b) => n + b.size, 0) + overlay.footer : 0);
   return <div className={`qb-worked-surface${marks ? "" : " qb-worked-pupil"}`} style={{ width: view.width * scale, height: height * scale }}>
     {parts.map(part => <div className="qb-worked-slice" key={part.from} style={{ top: part.y * scale, height: (part.to - part.from) * scale }}>
       <div style={{ marginTop: -part.from * scale }}><PdfView path={pdf} view={view} scale={scale} retryKey={retryKey} label="Worked solution" overlay={colour}/></div>
     </div>)}
-    {/* Built by packages/worked-core from checked data: every text is escaped there. */}
-    {overlay && <div ref={ink} className="qb-worked-ink" aria-hidden="true" dangerouslySetInnerHTML={{ __html: overlay.svg }}/>}
+    {overlay && <div ref={ink} className="qb-worked-ink" aria-hidden="true"/>}
   </div>;
 }

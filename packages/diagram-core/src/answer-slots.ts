@@ -197,11 +197,36 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
   "factor-tree"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
+  "written-method"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
   "function-machine"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
   "probability-objects"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
+  },
+  nets(doc, out) {
+    const nets = Array.isArray(doc.nets) ? (doc.nets as Node[]) : [];
+    nets.forEach((n, i) => {
+      const base = `document.nets.${i}`;
+      const label = (l: unknown, path: string, onHidden = false) => {
+        if (!isNode(l) || !str(l.text)) return;
+        out.push(slot(path, onHidden || l.show === "hidden" ? "hidden" : "supplied", str(l.text)));
+      };
+      label(n.caption, `${base}.caption`);
+      (Array.isArray(n.faces) ? (n.faces as Node[]) : []).forEach((f, j) => {
+        const path = `${base}.faces.${j}`,
+          hidden = f.show === "hidden";
+        // A hidden face is itself an answer: pupils draw it.
+        out.push(slot(path, hidden ? "hidden" : "supplied", `face ${str(f.id)}`));
+        label(f.label, `${path}.label`, hidden);
+        const m = isNode(f.mark) ? f.mark : {};
+        if (str(m.kind) && m.kind !== "none") out.push(slot(`${path}.mark`, hidden || m.show === "hidden" ? "hidden" : "supplied", str(m.kind)));
+      });
+      for (const key of ["vertices", "edges"] as const)
+        (Array.isArray(n[key]) ? (n[key] as Node[]) : []).forEach((v, j) => label(v.label, `${base}.${key}.${j}.label`));
+    });
   },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));

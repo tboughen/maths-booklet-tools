@@ -24,6 +24,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -690,6 +692,27 @@
                                             "inline": {
                                               "default": false,
                                               "type": "boolean"
+                                            },
+                                            "blanks": {
+                                              "minItems": 2,
+                                              "maxItems": 4,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "before": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 20
+                                                  },
+                                                  "answer": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 40
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
                                             }
                                           },
                                           "required": [
@@ -760,6 +783,8 @@
                                                     "factor-tree",
                                                     "function-machine",
                                                     "probability-objects",
+                                                    "nets",
+                                                    "written-method",
                                                     "sample-space",
                                                     "triangle",
                                                     "construction",
@@ -1192,6 +1217,27 @@
                                                       "inline": {
                                                         "default": false,
                                                         "type": "boolean"
+                                                      },
+                                                      "blanks": {
+                                                        "minItems": 2,
+                                                        "maxItems": 4,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "before": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 20
+                                                            },
+                                                            "answer": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 40
+                                                            }
+                                                          },
+                                                          "additionalProperties": false
+                                                        }
                                                       }
                                                     },
                                                     "required": [
@@ -1262,6 +1308,8 @@
                                                               "factor-tree",
                                                               "function-machine",
                                                               "probability-objects",
+                                                              "nets",
+                                                              "written-method",
                                                               "sample-space",
                                                               "triangle",
                                                               "construction",
@@ -1869,6 +1917,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -1934,6 +1984,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -2095,7 +2147,7 @@
   {
     "name": "create_worksheet",
     "title": "Make an A3 worksheet",
-    "description": "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,notation:'maths' (always on a new worksheet, so {3/4} prints as a stacked fraction),spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. Cards are numbered automatically across both sides; a reminder card (only info items) is not numbered, because only questions take numbers, so count only question cards when a stem says 'Question N' (issues flag a reference to the card itself or past the last question, and a wrong 'Total for Question N'). Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline} (inline:true for a single number or short answer: alone it prints a short 30 mm line after its prefix, and several in a row share it; inline:false is a full-width line for a sentence), space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Any item but a part may have beside:true: it prints to the right of the item before it, in one row (two items a row; not the first item, not after a part, not with inline answer lines), e.g. a small graph with its ratio table beside it; a diagram keeps its printed width and text takes the rest. Text markup is only **bold** and *italic*, plus {3/4} for a stacked fraction: write every fraction this way, never 1/2 or ½. Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. A note naming a question means a fraction there will not print stacked: rewrite it as {3/4} and create again. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.",
+    "description": "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,notation:'maths' (always on a new worksheet, so {3/4} prints as a stacked fraction),spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. Cards are numbered automatically across both sides; a reminder card (only info items) is not numbered, because only questions take numbers, so count only question cards when a stem says 'Question N' (issues flag a reference to the card itself or past the last question, and a wrong 'Total for Question N'). Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline} (inline:true for a single number or short answer: alone it prints a short 30 mm line after its prefix, and several in a row share it; inline:false is a full-width line for a sentence; blanks:[{before?,answer}] (2-4) instead of answer: short blanks after prefix, e.g. ( _ , _ )), space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Any item but a part may have beside:true: it prints to the right of the item before it, in one row (two items a row; not the first item, not after a part, not with inline answer lines), e.g. a small graph with its ratio table beside it; a diagram keeps its printed width and text takes the rest. Text markup is only **bold** and *italic*, plus {3/4} for a stacked fraction: write every fraction this way, never 1/2 or ½. Saved answers (answerLine answers, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. A note naming a question means a fraction there will not print stacked: rewrite it as {3/4} and create again. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -2451,6 +2503,27 @@
                                             "inline": {
                                               "default": false,
                                               "type": "boolean"
+                                            },
+                                            "blanks": {
+                                              "minItems": 2,
+                                              "maxItems": 4,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "before": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 20
+                                                  },
+                                                  "answer": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 40
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
                                             }
                                           },
                                           "required": [
@@ -2521,6 +2594,8 @@
                                                     "factor-tree",
                                                     "function-machine",
                                                     "probability-objects",
+                                                    "nets",
+                                                    "written-method",
                                                     "sample-space",
                                                     "triangle",
                                                     "construction",
@@ -2953,6 +3028,27 @@
                                                       "inline": {
                                                         "default": false,
                                                         "type": "boolean"
+                                                      },
+                                                      "blanks": {
+                                                        "minItems": 2,
+                                                        "maxItems": 4,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "before": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 20
+                                                            },
+                                                            "answer": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 40
+                                                            }
+                                                          },
+                                                          "additionalProperties": false
+                                                        }
                                                       }
                                                     },
                                                     "required": [
@@ -3023,6 +3119,8 @@
                                                               "factor-tree",
                                                               "function-machine",
                                                               "probability-objects",
+                                                              "nets",
+                                                              "written-method",
                                                               "sample-space",
                                                               "triangle",
                                                               "construction",
@@ -3638,6 +3736,31 @@
                                             "inline": {
                                               "default": false,
                                               "type": "boolean"
+                                            },
+                                            "blanks": {
+                                              "minItems": 2,
+                                              "maxItems": 4,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "before": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 20
+                                                  },
+                                                  "answer": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 40
+                                                  }
+                                                },
+                                                "required": [
+                                                  "before",
+                                                  "answer"
+                                                ],
+                                                "additionalProperties": false
+                                              }
                                             }
                                           },
                                           "required": [
@@ -3712,6 +3835,8 @@
                                                     "factor-tree",
                                                     "function-machine",
                                                     "probability-objects",
+                                                    "nets",
+                                                    "written-method",
                                                     "sample-space",
                                                     "triangle",
                                                     "construction",
@@ -4148,6 +4273,31 @@
                                                       "inline": {
                                                         "default": false,
                                                         "type": "boolean"
+                                                      },
+                                                      "blanks": {
+                                                        "minItems": 2,
+                                                        "maxItems": 4,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "before": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 20
+                                                            },
+                                                            "answer": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 40
+                                                            }
+                                                          },
+                                                          "required": [
+                                                            "before",
+                                                            "answer"
+                                                          ],
+                                                          "additionalProperties": false
+                                                        }
                                                       }
                                                     },
                                                     "required": [
@@ -4222,6 +4372,8 @@
                                                               "factor-tree",
                                                               "function-machine",
                                                               "probability-objects",
+                                                              "nets",
+                                                              "written-method",
                                                               "sample-space",
                                                               "triangle",
                                                               "construction",
@@ -4724,7 +4876,7 @@
   {
     "name": "diagram_capabilities",
     "title": "Diagram options",
-    "description": "List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, factor-tree, function-machine, probability-objects, sample-space, triangle, construction, elevations, angles, area.",
+    "description": "List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, factor-tree, function-machine, probability-objects, nets, written-method, sample-space, triangle, construction, elevations, angles, area.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4747,6 +4899,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -4785,6 +4939,8 @@
                   "factor-tree",
                   "function-machine",
                   "probability-objects",
+                  "nets",
+                  "written-method",
                   "sample-space",
                   "triangle",
                   "construction",
@@ -4843,6 +4999,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -4900,6 +5058,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -4998,6 +5158,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -5157,6 +5319,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -5269,6 +5433,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -5418,6 +5584,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",
@@ -5495,6 +5663,8 @@
             "factor-tree",
             "function-machine",
             "probability-objects",
+            "nets",
+            "written-method",
             "sample-space",
             "triangle",
             "construction",

@@ -40,6 +40,8 @@ export const NumberLineIcon = icon(<><path d="M2 16h20M5 14v4M12 14v4M19 14v4" /
 export const FactorTreeIcon = icon(<><path d="M12 3 7.8 7.9M12 3l5 6M17 9l-2.7 7.6M17 9l1.9 7.6" /><circle cx="13.5" cy="19" r="2.5" /><circle cx="19.5" cy="19" r="2.5" /><circle className="md-icon-part md-icon-wash" cx="6" cy="10" r="2.8" /></>);
 /** Function machines: an arrow into an arrow-shaped box and out again. */
 export const FunctionMachineIcon = icon(<><path d="M2 12h4M17 12h5M20 10l2 2-2 2" /><path className="md-icon-part" d="M6 7h7l3 5-3 5H6z" /></>);
+/** Nets of 3D shapes: the cross-shaped net of a cube. */
+export const NetsIcon = icon(<><path d="M9 3h6v18H9zM3 9h18v6H3z" /><path className="md-icon-part" d="M9 9h6v6H9z" /></>);
 /** Written methods: a column calculation with its answer line. */
 export const WrittenMethodIcon = icon(<><path d="M9 4h.01M13 4h.01M17 4h.01M9 9h.01M13 9h.01M17 9h.01M4 9l2 0M5 8v2" /><path className="md-icon-part" d="M3 13h18" /><path d="M9 18h.01M13 18h.01M17 18h.01" /></>);
 /** Spinners, dice and bags: a spinner with an arrow, beside a dice face. */

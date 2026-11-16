@@ -108,7 +108,7 @@ One two-sided A3 landscape worksheet in the MathsDock house style. The page rend
 
 # Answers and blanks
 - Pupil blanks, answer lines and hidden answers are different states. A table cell is "supplied" (printed), "blank" (an empty box) or "hidden" (an empty box whose saved answer prints only on the teacher's answers copy).
-- Put the correct answer in hidden cells, answerLine.answer and choice.answer wherever the answer is a single definite value, so the teacher's answers copy is useful. Check each answer carefully. Leave them empty for open questions.
+- Put the correct answer in hidden cells, answerLine.answer (or each answer in answerLine.blanks: 2-4 short blanks on one line, e.g. prefix "(", blanks [{answer:"3"},{before:",",answer:"-2"}], suffix ")" for coordinates, or prefix "y =", blanks [{answer:"2"},{before:"x +",answer:"-9"}]) and choice.answer wherever the answer is a single definite value, so the teacher's answers copy is useful. Check each answer carefully. Leave them empty for open questions.
 - Never put an answer where pupils will see it, except deliberately supplied worked examples or scaffold entries.
 
 # How to work

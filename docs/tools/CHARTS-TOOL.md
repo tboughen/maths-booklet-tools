@@ -187,15 +187,93 @@ polygon", "draw the cumulative frequency graph").
   2H Q11 stops numbering at 80 on a grid to 90), the tool numbers every step to the end. Older
   papers print 1.0, 2.0 on a frequency density axis; the tool prints 1, 2.
 
+## Box plots
+
+Edexcel prints box plots on true-size 2 mm graph paper: a numbered scale below the grid, 1.5 pt
+whiskers, box and median, and 1 cm end lines (measured on June 2017 3H Q9 and November 2017 1H
+Q12). The papers draw the scale with no axis line, a plain line or an arrowed line.
+
+- **Settings:** `boxplot {rows, axis, bandMm, line}`. `rows` holds 1 to 3 plots, each
+  `{label, min, lq, median, uq, max}` with every value `{value, show}`. `axis` is the same
+  true-size scale as the grouped charts, `{min, max, step, stepMm, title}`. `bandMm` (even, 20
+  to 40) is the height given to each plot; `line` is `none`, `line` or `arrow`. Without
+  `boxplot` a box plot starts with one empty band on a 0 to 100 scale, never made-up data.
+- **Pupil states:** a plot with every value blank is an empty band for pupils to draw a whole
+  plot. A hidden value leaves its 1 cm line, and every part that needs it (a quartile's whisker
+  and the box), for pupils; each part prints only when every value it needs prints. Answers
+  copies draw the hidden parts in pink at the same size.
+- **Validation:** values must be numbers inside the scale and in order (smallest, lower
+  quartile, median, upper quartile, largest); the scale must end on a 2 mm grid line; the plot
+  fits 18 cm. A plot with only some of its values gets a note, not an error.
+- **Editor:** Box plots and Scale and graph paper cards replace the Data and axes cards. Clicking
+  a plot focuses its median; + and − beside the diagram add or remove the last plot. "Hide this
+  plot" hides all five values of one plot.
+- **Examples:** June 2017 3H Q9 (compare two box plots, the second hidden) and November 2017 1H
+  Q12 (draw a box plot for Year 11 beside Year 7).
+
+## Stem-and-leaf diagrams
+
+Edexcel prints stem-and-leaf diagrams as 1 cm rows with thin rules between them, a stem column
+left of one vertical line, single-digit leaves spaced along each row, and a boxed key (measured
+on November 2017 1F Q10, June 2018 3F Q14, June 2025 1F Q18 and November 2024 3H Q6). Questions
+that ask pupils to draw one print empty ruled rows and an empty "Key:" box.
+
+- **Settings:** `stemleaf {rows, key, leafMm}`. `rows` holds 1 to 12 rows, each
+  `{stem, leaves, stemShow, leavesShow}`; `leaves` is single digits as typed ("2 3 3 4 5" or
+  "23345"). `key` is `{stem, leaf, represents, show}` and prints Key: 1 | 2 represents 12 points;
+  `show` is `show`, `hidden` (an empty Key: box for pupils, the key kept as the answer) or
+  `none`. `leafMm` (20 to 120) is the width of the leaves column. Without `stemleaf` a diagram
+  starts as three empty ruled rows and an empty key box, never made-up data.
+- **Pupil states:** a blank row is an empty ruled row. A row's stem and its leaves hide
+  separately and leave their space for pupils; answers copies print them in pink. A hidden key's
+  box is as wide as its answer, so both copies are the same size.
+- **Never calculated:** leaves print as typed and are never sorted (a note says when a row is
+  out of order, for "spot the mistake" questions); the tool never builds a diagram from raw data.
+- **Validation:** each leaf is one digit; stems are numbers or blank; a printed key needs its
+  stem, leaf and words; every row's leaves must fit the leaves column; the diagram fits 18 cm.
+- **Editor:** Stems and leaves (a row table with Hide Stem and Hide Leaves) and Key and size
+  cards replace the Data and axes cards. Clicking a row focuses its leaves; + and − beside the
+  diagram add or remove the last row.
+- **Examples:** November 2017 1F Q10 (read a printed diagram) and June 2025 1F Q18 (draw one:
+  the ordered diagram and key are saved as hidden answers).
+- **Not included:** back-to-back stem-and-leaf diagrams (none in the bank's papers).
+
+## Time series graphs
+
+Edexcel prints time series graphs on true-size 2 mm graph paper under arrowed axes, with the
+times equally spaced along the horizontal axis from the corner (the first time sits on the
+vertical axis), crosses joined by straight lines, and the year printed once under its run of
+quarters (measured on Mock Set 4 3F Q7 and June 2019 3F Q27). Construct questions print the
+labelled grid only.
+
+- **Settings:** `timeseries {points, slotMm, xTitle, yAxis}`. `points` holds 1 to 24 times, each
+  `{label, group, value, show}`: `label` prints under the time (Jan, 1, Mon), `group` (such as a
+  year) prints once under its run of equal groups, and `value` is a number as typed or blank.
+  `slotMm` (an even number of millimetres) is the space between times; `yAxis` is the shared
+  graph-paper axis (`min`, `max`, `step`, `stepMm`, `title`). Without `timeseries` a graph
+  starts as twelve months with no values on a 0 to 60 axis, never made-up data.
+- **Pupil states:** a blank value is no point and breaks the line; 0 is a value. A hidden value
+  leaves its cross and both lines to it for pupils to plot (a line prints only when both its
+  crosses print, so it never gives a hidden value away); answers copies print them in pink at the
+  same size. Hide every value for a "draw the graph" question.
+- **Never calculated:** values are plotted as typed; no trend line, moving average or
+  prediction is drawn.
+- **Validation:** values are numbers inside the vertical axis; labels fit the space between
+  times; the graph fits 18 cm by 26 cm.
+- **Editor:** Times and values (label, group, value and Hide per time, with Label as months,
+  quarters or days buttons that change only the labels) and Axes and graph paper cards replace
+  the Data and axes cards. + and − beside the graph add or remove the last time.
+- **Examples:** Mock Set 4 3F Q7 (read monthly gas use from a printed graph) and a quarterly
+  sales construct task in the style of the papers (every value saved as a hidden answer).
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
 
 ## Not yet included
 
-Horizontal bars, a printed data table beside the chart, time series graphs, comparative pie
-charts of different sizes, box plots and stem-and-leaf diagrams (box plots and stem-and-leaf
-diagrams are being added next, 16 Nov 2026). Each is a separate, reviewed extension or tool.
+Horizontal bars, a printed data table beside the chart, comparative pie charts of different sizes and back-to-back stem-and-leaf diagrams. Each is a separate,
+reviewed extension or tool.
 
 ## MCP connector
 
@@ -212,9 +290,10 @@ diagrams are being added next, 16 Nov 2026). Each is a separate, reviewed extens
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled. `presentation.pie`
   (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`), `presentation.scatter`
   (`points`, `xAxis`, `yAxis`, `grid`, `minor`, `bestFit`, `readings`) and `presentation.grouped`
-  (`variable`, `inequality`, `classes`, `xAxis`, `table`, `histogram`, `polygon`, `cumulative`)
-  merge field by field with the current settings (axes and each kind's settings too); a given
-  `points` or `classes` array replaces them all.
+  (`variable`, `inequality`, `classes`, `xAxis`, `table`, `histogram`, `polygon`, `cumulative`),
+  `presentation.boxplot`, `presentation.stemleaf` and `presentation.timeseries` (`points`, `slotMm`,
+  `xTitle`, `yAxis`) merge field by field with the current settings (axes and each kind's settings too); a given
+  `points`, `classes` or `rows` array replaces them all.
 - `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
   answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain

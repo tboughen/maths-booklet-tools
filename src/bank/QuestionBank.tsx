@@ -18,7 +18,8 @@ import { catalogueCoverage } from "./coverage";
 import { questionResource } from "./resources";
 import { addedNote, servedParts } from "./cuts";
 import { draftEntries, draftReducer, hasDraftIntent } from "./paper-builder";
-import { loadPaperDraft, savePaperDraft } from "./paper-storage";
+import { loadPaperDraft, paperSummary, savePaperDraft } from "./paper-storage";
+import { forgetWork, noteWork } from "../site/recentWork";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
@@ -37,6 +38,8 @@ const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery
 interface Slide {items: {pdf: string; view: BankView; worked?: boolean; overlay?: SurfaceOverlay}[]; width: number; height: number; label: string; repeatedContext?: string}
 /** The gap between stacked cuts, in points. */
 const STACK_GAP = 12;
+/** What the teacher has chosen for the paper, to tell a real change from a re-save. */
+const paperChoiceOf = (draft: { codes: unknown; manual: unknown; excluded: unknown }) => JSON.stringify([draft.codes, draft.manual, draft.excluded]);
 const roomPreference = ():RoomLayout => {try {const v=localStorage.getItem("qb-room");return v==="single"||v==="two"?v:"auto";}catch{return "auto";}};
 
 export default function QuestionBank({ active = true }: { active?: boolean }) {
@@ -70,7 +73,14 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [showPerformance,setShowPerformance]=useState(false);
   const [listOpen,setListOpen]=useState(false);
   const [draft,dispatchDraft]=useReducer(draftReducer,undefined,()=>loadPaperDraft());
-  useEffect(()=>{savePaperDraft(draft);},[draft]);
+  // Home's "Carry on" row lists the paper once the teacher changes what is in it, and drops it when it is cleared.
+  const paperChoice=useRef<string|undefined>(undefined);
+  useEffect(()=>{
+    savePaperDraft(draft);
+    const choice=paperChoiceOf(draft);
+    if(paperChoice.current!==undefined&&paperChoice.current!==choice){if(hasDraftIntent(draft))noteWork("paper-builder",paperSummary(draft));else forgetWork("paper-builder");}
+    paperChoice.current=choice;
+  },[draft]);
   const draftRef=useRef(draft);draftRef.current=draft;
   const [reviewOpen,setReviewOpen]=useState(false);
   const [imageBusy,setImageBusy]=useState(false);
@@ -93,7 +103,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   },[]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
-    fetchCatalogueIndex(controller.signal).then(data=>{const c=withPerformance(data);setDetails({});setDetailError("");setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version){const reconciled="The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.";setNotice(previous=>previous?`${previous} ${reconciled}`:reconciled);}}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
+    fetchCatalogueIndex(controller.signal).then(data=>{const c=withPerformance(data);setDetails({});setDetailError("");setCatalogue(c);const old=draftRef.current;
+      // Reconciling with a newer catalogue is not the teacher's change, so Home's "Carry on" keeps its time.
+      paperChoice.current=paperChoiceOf(draftReducer(old,{type:"reconcile",catalogue:c}));
+      dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version){const reconciled="The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.";setNotice(previous=>previous?`${previous} ${reconciled}`:reconciled);}}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
   useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);

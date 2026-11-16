@@ -38,7 +38,7 @@ export function useMenuDialog(box: RefObject<HTMLElement | null>, onCancel: () =
       const target =
         previous instanceof HTMLElement && previous.isConnected
           ? previous
-          : Array.from(document.querySelectorAll<HTMLElement>("button.file-menu-button")).find((b) => b.offsetParent !== null);
+          : Array.from(document.querySelectorAll<HTMLElement>('button.file-menu-button:not([data-menu="download"])')).find((b) => b.offsetParent !== null);
       target?.focus();
     };
   }, [box]);

@@ -12,7 +12,7 @@ test("every tool's SVG export is small and draws exactly as it does with the who
   const full = await Promise.all(fontFiles.map(async (name) => (await readFile(`assets/graph-fonts/${name}`)).toString("base64")));
   for (const tool of tools) {
     await page.goto(`/tools/${tool}`);
-    await page.getByRole("button", { name: "File", exact: true }).click();
+    await page.getByRole("button", { name: "Download", exact: true }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: /Download SVG/ }).click();
     const svg = (await readFile((await (await download).path())!)).toString();

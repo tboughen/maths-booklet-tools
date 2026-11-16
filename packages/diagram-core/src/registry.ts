@@ -36,10 +36,14 @@ import * as twt from "../../two-way-table-core/src/index";
 import * as twtIo from "../../two-way-table-core/src/interchange";
 import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
+import * as wm from "../../written-method-core/src/index";
+import * as wmIo from "../../written-method-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
 import * as po from "../../probability-objects-core/src/index";
 import * as poIo from "../../probability-objects-core/src/interchange";
+import * as nets from "../../net-core/src/index";
+import * as netsIo from "../../net-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -69,6 +73,8 @@ export const DIAGRAM_KINDS = [
   "factor-tree",
   "function-machine",
   "probability-objects",
+  "nets",
+  "written-method",
   "sample-space",
   "triangle",
   "construction",
@@ -286,7 +292,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   charts: family<chart.Envelope>({
     kind: "charts",
     label: "statistical chart",
-    summary: "Bar, dual, composite and vertical line charts on exam axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons and cumulative frequency graphs, with bars, sectors, rows, points or curves left for pupils.",
+    summary: "Bar, dual, composite and vertical line charts on exam axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots, stem-and-leaf diagrams and time series graphs, with bars, sectors, rows, points, curves, plots or leaves left for pupils.",
     route: "/tools/charts",
     answerView: true,
     envelopeSchema: chart.envelopeSchema,
@@ -397,6 +403,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     hash: ft.hash,
     svg: (e, view) => ft.renderSvg(ft.forView(e, view, true)),
   }),
+  "written-method": family<wm.Envelope>({
+    kind: "written-method",
+    label: "written method",
+    summary: "Written methods: column addition and subtraction, long multiplication, short (bus stop) and long division, with digits, carries and rows blank or hidden for pupils; worked out only on request.",
+    route: "/tools/written-method",
+    answerView: true,
+    envelopeSchema: wm.envelopeSchema,
+    createSchema: wmIo.createSchema,
+    revisionSchema: wmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = wm.validate(raw);
+      check(wm.exportIssue(wm.forView(e, view)));
+      return e;
+    },
+    create: (input) => wmIo.create(input),
+    revise: (input) => wmIo.revise(input),
+    hash: wm.hash,
+    svg: (e, view) => wm.renderSvg(wm.forView(e, view, true)),
+  }),
   "function-machine": family<fm.Envelope>({
     kind: "function-machine",
     label: "function machine",
@@ -434,6 +459,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => poIo.revise(input),
     hash: po.hash,
     svg: (e, view) => po.renderSvg(po.forView(e, view, true)),
+  }),
+  nets: family<nets.Envelope>({
+    kind: "nets",
+    label: "nets of 3D shapes",
+    summary: "Nets of cubes, cuboids, prisms and pyramids on squared paper: letters, dots and lengths, hidden for pupils.",
+    route: "/tools/nets",
+    answerView: true,
+    envelopeSchema: nets.envelopeSchema,
+    createSchema: netsIo.createSchema,
+    revisionSchema: netsIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = nets.validate(raw);
+      check(nets.exportIssue(nets.forView(e, view)));
+      return e;
+    },
+    create: (input) => netsIo.create(input),
+    revise: (input) => netsIo.revise(input),
+    hash: nets.hash,
+    svg: (e, view) => nets.renderSvg(nets.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",

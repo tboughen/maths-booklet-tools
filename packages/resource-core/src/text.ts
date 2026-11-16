@@ -206,6 +206,36 @@ export const ANSWER_SLOT_GAP = 6;
  */
 export const SHORT_ANSWER_LINE = 30;
 export const loneSlot = (pre: number, post: number, answerW: number, w: number) => Math.min(w, pre + post + Math.max(SHORT_ANSWER_LINE, answerW ? answerW + 2 : 0));
+/**
+ * An answer frame: fixed text with two or more short blanks on one left-aligned line, as Edexcel
+ * prints "( ____ , ____ )" or "y = ____ x + ____" (Tim, A7.05 marking, 16 Nov 2026). Each blank is
+ * 20 mm, longer only when its saved answer needs it. Offsets are millimetres from the frame's left
+ * edge; `widthOf` measures text.
+ */
+export const FRAME_BLANK = 20;
+export type FramePiece = { kind: "text"; x: number; text: string } | { kind: "blank"; x: number; end: number; answer: string };
+export function answerFrame(widthOf: (s: string) => number, prefix: string, blanks: readonly { before: string; answer: string }[], suffix: string) {
+  const pieces: FramePiece[] = [];
+  let x = 0;
+  // A comma or closing bracket sits close to the blank before it.
+  const gapBefore = (t: string) => (pieces.length === 0 ? 0 : /^[,)\]]/.test(t) ? 0.8 : 1.2);
+  const addText = (t: string) => {
+    if (!t) return;
+    x += gapBefore(t);
+    pieces.push({ kind: "text", x, text: t });
+    x += widthOf(t);
+  };
+  addText(prefix);
+  for (const b of blanks) {
+    addText(b.before);
+    if (pieces.length) x += 1.2;
+    const w = Math.max(FRAME_BLANK, b.answer ? widthOf(b.answer) + 4 : 0);
+    pieces.push({ kind: "blank", x, end: x + w, answer: b.answer });
+    x += w;
+  }
+  addText(suffix);
+  return { pieces, width: x };
+}
 /** Shortest answer line a pupil can write on (mm). */
 export const ANSWER_LINE_MIN = 18;
 /**

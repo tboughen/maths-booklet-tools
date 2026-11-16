@@ -115,4 +115,11 @@ describe("headings with units", () => {
     expect(renderRatioSvg(e.document)).toContain(">m/s<");
     expect(() => createRatioTable({ columns: ["x", "m\\s"], table: [["1", "2"]] })).toThrow(/Invalid ratio table/);
   });
+  it("accepts % and £ headings upright, measured from the font", () => {
+    const e = createRatioTable({ columns: ["%", "£"], table: [["100", "240"], ["15", "[36]"]] });
+    expect(e.document.headings.map(h => [h.text, h.italic])).toEqual([["%", false], ["£", false]]);
+    const svg = renderRatioSvg(e.document);
+    expect(svg).toContain(">%<");
+    expect(svg).toContain(">£<");
+  });
 });
