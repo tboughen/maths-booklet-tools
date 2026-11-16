@@ -772,6 +772,21 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - algebra tiles: at-draw-the-tiles: added
 - algebra tiles: at-draw-the-tiles (worked): added
 
+## 2026-11-16: Add the new geometry figures family (circle theorems, similar and congruent shapes): new outputs only
+
+- geometry figures: figures-tangent-cyclic: added
+- geometry figures: figures-tangent-cyclic (worked): added
+- geometry figures: figures-two-tangents: added
+- geometry figures: figures-two-tangents (worked): added
+- geometry figures: figures-centre-angle: added
+- geometry figures: figures-centre-angle (worked): added
+- geometry figures: figures-similar-right: added
+- geometry figures: figures-similar-right (worked): added
+- geometry figures: figures-parallel-in-triangle: added
+- geometry figures: figures-parallel-in-triangle (worked): added
+- geometry figures: figures-congruent-four: added
+- geometry figures: figures-congruent-four (worked): added
+
 ## 2026-11-16: Add the bubble method diagram family (A3, A4.08-09, A6, A10)
 
 - bubble method: bm-subject-one-step: added

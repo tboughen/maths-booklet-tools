@@ -1,0 +1,72 @@
+/* Select buttons and drag handles: editor only, never printed. */
+.fig-hit {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 1px dashed transparent;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.fig-hit.fig-unmarked {
+  border-color: #9fb3c8;
+}
+.fig-hit:hover {
+  border-color: var(--blue);
+}
+.fig-hit:focus-visible {
+  outline: 2px solid var(--blue);
+}
+.fig-hit.fig-current,
+.fig-handle.fig-current {
+  border: 2px solid var(--blue);
+  background: #1d4ed814;
+}
+.fig-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 2px solid var(--blue);
+  border-radius: 50%;
+  padding: 0;
+  background: #fff;
+  cursor: grab;
+  touch-action: none;
+  z-index: 1;
+}
+.fig-handle.fig-current {
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+}
+.fig-handle:active {
+  cursor: grabbing;
+}
+.fig-handle:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.fig-sub {
+  margin: 10px 0 4px;
+  font-size: 14px;
+}
+.fig-row {
+  align-items: end;
+  flex-wrap: wrap;
+}
+.fig-row input {
+  width: 6em;
+}
+.fig-row select {
+  max-width: 9em;
+}
+.fig-wide {
+  grid-column: 1 / -1;
+}
+.fig-wide select {
+  width: 100%;
+  max-width: none;
+}

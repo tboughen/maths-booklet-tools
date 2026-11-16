@@ -4,7 +4,7 @@
 import { test, expect } from "@playwright/test";
 
 // The ratio table shows its switch only once a table has hidden answers (e2e/ratio-table.spec.ts).
-const copies = ["venn", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "sample-space", "factor-tree", "function-machine", "bubble-method", "algebra-tiles", "nets", "written-method", "angles", "area"];
+const copies = ["venn", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "sample-space", "factor-tree", "function-machine", "bubble-method", "algebra-tiles", "nets", "written-method", "angles", "area", "figures"];
 const previews = ["expanding-factorising", "triangle"];
 const PINK = "rgb(176, 18, 91)";
 
