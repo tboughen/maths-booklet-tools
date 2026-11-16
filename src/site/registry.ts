@@ -16,12 +16,12 @@ import twoWayTablePreview from "../assets/tool-previews/two-way-tables.svg";
 import anglesPreview from "../assets/tool-previews/angle-diagrams.svg";
 import areaPreview from "../assets/tool-previews/area-and-perimeter.svg";
 import factorTreePreview from "../assets/tool-previews/factor-trees.svg";
-import functionMachinePreview from "../assets/tool-previews/function-machines.svg";
-import netsPreview from "../assets/tool-previews/nets.svg";
+import functionMachinePreview from "../assets/tool-previews/function-machines.svg?no-inline";
+import netsPreview from "../assets/tool-previews/nets.svg?no-inline";
 import sampleSpacePreview from "../assets/tool-previews/sample-space-diagrams.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
-import constructionPreview from "../assets/tool-previews/constructions.svg";
+import constructionPreview from "../assets/tool-previews/constructions.svg?no-inline";
 import elevationsPreview from "../assets/tool-previews/plans-and-elevations.svg";
 
 /** Add booklet editors here; the overview, navigation and page host share this list.
