@@ -32,6 +32,7 @@ import { renderSvg as renderBarModel, validate as validateBarModel } from "../..
 import { renderSvg as renderFunctionMachine, validate as validateFunctionMachine } from "../../function-machine-core/src/index";
 import { renderSvg as renderWrittenMethod, validate as validateWrittenMethod } from "../../written-method-core/src/index";
 import { renderSvg as renderFigure, validate as validateFigure } from "../../figure-core/src/index";
+import { renderSvg as renderSolid, validate as validateSolid } from "../../solid-core/src/index";
 import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS, WORKING_DASH_POINTS } from "../../graph-core/src/graphStyle";
 import { smoothCurvePath } from "../../graph-core/src/curve";
 import { arrowheadPath } from "../../graph-core/src/arrow";
@@ -84,6 +85,7 @@ const RENDERERS = {
   "function-machine": (e: unknown) => renderFunctionMachine(validateFunctionMachine(e)),
   "written-method": (e: unknown) => renderWrittenMethod(validateWrittenMethod(e)),
   "figures": (e: unknown) => renderFigure(validateFigure(e)),
+  "solids": (e: unknown) => renderSolid(validateSolid(e)),
 } as const;
 export const DIAGRAM_FAMILIES = Object.keys(RENDERERS) as [keyof typeof RENDERERS, ...(keyof typeof RENDERERS)[]];
 export type DiagramFamily = typeof DIAGRAM_FAMILIES[number];
