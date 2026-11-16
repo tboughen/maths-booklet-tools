@@ -20,7 +20,7 @@ Start here for any new tool or substantial tool change.
 
 Per-tool records:
 
-- Graph: [MCP diagram outputs](tools/MCP-DIAGRAM-OUTPUTS.md), [direct SVG delivery](tools/DIRECT-SVG-DELIVERY.md), [six-tool MCP](tools/SIX-TOOL-MCP.md).
+- Graph: [exam graph work: transformations, vectors, real-life and curve work](tools/GRAPH-EXAM-WORK.md), [MCP diagram outputs](tools/MCP-DIAGRAM-OUTPUTS.md), [direct SVG delivery](tools/DIRECT-SVG-DELIVERY.md), [six-tool MCP](tools/SIX-TOOL-MCP.md).
 - Ratio tables: [editor](tools/RATIO-TABLE-TOOL.md), [MCP](tools/RATIO-TABLE-MCP.md).
 - Plotting quadratics: [VALUE-GRAPH-TOOL.md](tools/VALUE-GRAPH-TOOL.md).
 - Expanding and factorising: [editor](tools/EXPANDING-FACTORISING.md), [MCP](tools/ALGEBRA-GRID-MCP.md).
@@ -42,7 +42,7 @@ Per-tool records:
 - [Worksheet renderer](content/WORKSHEET-RENDERER.md): the A3 worksheet document, layout rules and the evidence behind the MathsDock style (wave 3).
 - [Word output for worksheets](content/WORD-OUTPUT.md): how the pupil and answers `.docx` files are built so they cannot reflow, the rendering test and the real-Word check.
 - [Booklet maker](tools/BOOKLET-MAKER.md): the A4 unit booklet document, its layout and the AI lesson standard.
-- [Per-question worked solutions](content/WORKED-SOLUTION-REGISTRATION.md).
+- [Worked solutions: the standard](content/WORKED-SOLUTIONS.md) and [their files and registration](content/WORKED-SOLUTION-REGISTRATION.md).
 - [Automatic question accessibility](content/ACCESSIBILITY-TESTING.md).
 - [Past-paper examples in Graph tool and Ratio tables](content/TOOL-SOURCE-EXAMPLES.md).
 - [Mock set 1](mock-set-01/README.md).

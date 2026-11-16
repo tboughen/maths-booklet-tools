@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type For
 import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, Eye, EyeOff, FileDown, List, Maximize2, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
+import { WorkedSurface } from "./WorkedSurface";
+import { addedHeight, loadWorked, workedImageBlob, workedPlan, type WorkedShown } from "./worked";
+import type { SurfaceOverlay } from "../../packages/worked-core/src/index";
 import { ZoomControls, ZoomOverview } from "./ZoomControls";
 import { useStageZoom } from "./useStageZoom";
 import { stepZoom } from "./zoom";
@@ -31,7 +34,7 @@ type WebContext = {registerTool: (tool: {name:string;description:string;inputSch
 /** The bank page's path and query for a route. */
 const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery(route);
 /** What one step of the viewer shows: a question page, or a part stacked under its stem and the parts it needs. */
-interface Slide {items: {pdf: string; view: BankView}[]; width: number; height: number; label: string; repeatedContext?: string}
+interface Slide {items: {pdf: string; view: BankView; worked?: boolean; overlay?: SurfaceOverlay}[]; width: number; height: number; label: string; repeatedContext?: string}
 /** The gap between stacked cuts, in points. */
 const STACK_GAP = 12;
 const roomPreference = ():RoomLayout => {try {const v=localStorage.getItem("qb-room");return v==="single"||v==="two"?v:"auto";}catch{return "auto";}};
@@ -122,11 +125,37 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const topic=catalogue?.topics.find(t=>t.code===route.code);
   const match=question?matchingParts(question,route.code):undefined;
   const served=useMemo(()=>question&&route.code&&match?servedParts(question,match.labels):undefined,[question,route.code,match]);
-  const partMode=role==="question"&&!!served&&partsView;
+  const partMode=role!=="scheme"&&!!served&&partsView;
+  // Keyed on what it shows, not on `served`, which is rebuilt on every render.
+  const planKey=question&&role==="worked-solution"&&question.workedSolution?`${question.id}|${question.revision}|${question.workedSolution.revision}|${partMode&&served?served.cuts.map(c=>c.cut.id).join(","):"whole"}`:"";
+  const planInputs=useRef({question,partMode,served});planInputs.current={question,partMode,served};
+  const solutionPlan=useMemo(()=>{const {question:q,partMode:parts,served:s}=planInputs.current;return planKey&&q?workedPlan(q,parts?s:undefined):undefined;},[planKey]);
+  const [worked,setWorked]=useState<{plan:unknown;shown?:WorkedShown;error?:string}>();
+  const [workedRetry,setWorkedRetry]=useState(0);
+  useEffect(()=>{
+    if(!question||!solutionPlan)return;
+    let current=true;setWorked({plan:solutionPlan});
+    loadWorked(question,solutionPlan).then(shown=>{if(current){setWorked({plan:solutionPlan,shown});if(shown.issues.length)console.warn(`Worked solution ${question.id}:`,shown.issues);}},error=>{if(current)setWorked({plan:solutionPlan,error:error instanceof Error?error.message:"The worked solution could not load."});});
+    return()=>{current=false;};
+  },[question,solutionPlan,workedRetry]);
+  const workedShown=worked?.plan===solutionPlan?worked:undefined;
+  // Mark notes (on for teachers, off for a pupil copy) and step by step; both only hide parts of the working.
+  const [workedMarks,setWorkedMarks]=useState(()=>{try{return localStorage.getItem("qb-worked-marks")!=="off";}catch{return true;}});
+  const [stepMode,setStepMode]=useState(false);
+  const [stepsShown,setStepsShown]=useState(0);
+  const shownSteps=useMemo(()=>workedShown?.shown?.shownSteps??[],[workedShown]);
+  useEffect(()=>{setStepsShown(0);},[planKey]);
+  const upTo=stepMode?(stepsShown?shownSteps[stepsShown-1]:0):undefined;
+  const chooseMarks=(on:boolean)=>{setWorkedMarks(on);try{localStorage.setItem("qb-worked-marks",on?"on":"off");}catch{/* Kept for this visit only. */}};
   const views=useMemo<Slide[]>(()=>{
+    if(role==="worked-solution"){
+      const items=workedShown?.shown?.items;
+      if(!items?.length)return [];
+      return [{items:items.map(item=>({...item,worked:true})),width:Math.max(...items.map(i=>i.view.width)),height:items.reduce((n,i)=>n+i.view.height+addedHeight(i.overlay),0)+STACK_GAP*(items.length-1),label:partMode&&served?`Worked solution · ${served.title}`:"Worked solution"}];
+    }
     if(partMode&&served){const items=served.cuts.flatMap(s=>s.cut.views.map(view=>({pdf:s.cut.pdf,view})));return [{items,width:Math.max(...items.map(i=>i.view.width)),height:items.reduce((n,i)=>n+i.view.height,0)+STACK_GAP*(items.length-1),label:served.title}];}
     return (resource?.views||[]).map(view=>({items:[{pdf:resource!.pdf,view}],width:view.width,height:view.height,label:view.label,repeatedContext:view.repeatedContext}));
-  },[partMode,served,resource]);
+  },[partMode,served,resource,role,workedShown]);
   const viewIndex=Math.min(Math.max(0,role!=="question"?mode.view:route.view),Math.max(0,views.length-1));
   const view=views[viewIndex];
   const suggestions=catalogue?.topics.filter(t=>search.trim()?`${t.code} ${t.title}`.toLowerCase().includes(search.trim().toLowerCase()):catalogue.pilotCodes.includes(t.code)).slice(0,30)||[];
@@ -227,7 +256,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   function isSelected(id:string){const q=catalogue?.questions.find(q=>q.id===id);return !!q&&included.has(questionIdentity(q));}
   function selectQuestion(id:string,checked:boolean){const q=catalogue?.questions.find(q=>q.id===id);if(q)dispatchDraft({type:"question",question:q,checked});}
   function startExport(){if(!hasDraftIntent(draft))dispatchDraft({type:"add",questions:results});setReviewOpen(true);}
-  async function imageExport(copy:boolean){if(!question||!view)return;setImageBusy(true);try{const pending=partMode&&!wholeImage?stackImage(view.items,`${question.source} · ${view.label}`):questionImage(question,role,view.items[0].view,wholeImage);if(copy&&navigator.clipboard?.write&&typeof ClipboardItem!=="undefined"){try{await navigator.clipboard.write([new ClipboardItem({"image/png":pending})]);setNotice("Image copied. Paste it into Word or PowerPoint.");return;}catch{/* Download fallback. */}}downloadBlob(await pending,`${question.id}-${role}-${wholeImage?"whole":partMode&&served?`part-${served.parts.join("-")}`:viewIndex+1}.png`);setNotice(copy?"Clipboard access was unavailable. The image was downloaded instead.":"Image downloaded with its source reference.");}catch(error){setNotice(error instanceof Error?error.message:"The image could not be exported.");}finally{setImageBusy(false);}}
+  async function imageExport(copy:boolean){if(!question||!view)return;setImageBusy(true);try{const pending=role==="worked-solution"&&solutionPlan?workedImageBlob(question,wholeImage?workedPlan(question,undefined):solutionPlan,{marks:workedMarks,upTo:wholeImage?undefined:upTo},`${question.source} · Worked solution${!wholeImage&&partMode&&served?` · ${served.title}`:""}${!wholeImage&&stepMode?` · step ${stepsShown} of ${shownSteps.length}`:""}${workedMarks?"":" · pupil copy"}`):partMode&&!wholeImage?stackImage(view.items,`${question.source} · ${view.label}`):questionImage(question,role,view.items[0].view,wholeImage);if(copy&&navigator.clipboard?.write&&typeof ClipboardItem!=="undefined"){try{await navigator.clipboard.write([new ClipboardItem({"image/png":pending})]);setNotice("Image copied. Paste it into Word or PowerPoint.");return;}catch{/* Download fallback. */}}downloadBlob(await pending,`${question.id}-${role}-${wholeImage?"whole":partMode&&served?`part-${served.parts.join("-")}`:viewIndex+1}.png`);setNotice(copy?"Clipboard access was unavailable. The image was downloaded instead.":"Image downloaded with its source reference.");}catch(error){setNotice(error instanceof Error?error.message:"The image could not be exported.");}finally{setImageBusy(false);}}
   const countText=`${formatCount(results.length)} ${results.length===1?"question":"questions"}`;
   const rangeText=view?`View ${viewIndex+1}${two?`–${viewIndex+2}`:""} of ${views.length}`:"";
   const displayNotes=display?[...(question?.sourceErrata||[]).map(item=>item.note),...(role==="scheme"&&question?.schemeSourceNote?[question.schemeSourceNote]:[])]:[];
@@ -236,6 +265,13 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const answerControls=question&&<>
     <button className={`qb-button${role==="scheme"?" qb-answer-active":""}`} aria-pressed={role==="scheme"} onClick={reveal}>{role==="scheme"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="scheme"?"Hide mark scheme":"Show mark scheme"}</button>
     <div className="qb-solution-action"><button className={`qb-button${role==="worked-solution"?" qb-answer-active":""}`} aria-pressed={role==="worked-solution"} disabled={!question.workedSolution} onClick={revealSolution}>{role==="worked-solution"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="worked-solution"?"Hide worked solution":"Show worked solution"}</button>{!question.workedSolution&&<small>Not available yet</small>}</div>
+    {role==="worked-solution"&&workedShown?.shown&&<div className="qb-worked-options" role="group" aria-label="Worked solution options">
+      <label><input type="checkbox" checked={workedMarks} onChange={e=>chooseMarks(e.target.checked)}/> Mark notes</label>
+      <button className={`qb-button${stepMode?" qb-answer-active":""}`} aria-pressed={stepMode} onClick={()=>{setStepMode(!stepMode);setStepsShown(0);}}>Step by step</button>
+      {stepMode&&<><button className="qb-button" aria-label="Previous step" aria-disabled={stepsShown<=0} onClick={()=>setStepsShown(n=>Math.max(0,n-1))}><ArrowLeft size={16}/></button>
+        <span className="qb-step-count" aria-live="polite">Step {stepsShown} of {shownSteps.length}</span>
+        <button className="qb-button" aria-label="Next step" aria-disabled={stepsShown>=shownSteps.length} onClick={()=>setStepsShown(n=>Math.min(shownSteps.length,n+1))}><ArrowRight size={16}/></button></>}
+    </div>}
   </>;
 
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
@@ -269,7 +305,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           <div className="qb-source">
             <div className="qb-source-copy"><div className="qb-source-heading"><strong>{question?.source||"Topic results"}</strong>{question&&<span>{question.tier==="H"?"Higher":"Foundation"} · {question.calculator?"Calculator":"Non-calculator"} · {question.marks} mark{question.marks===1?"":"s"}</span>}{question?.revisionUse&&<span className="qb-revision-tag">Year 11 revision: {question.revisionUse}</span>}</div>
               {question&&showPerformance&&<PerformanceBadge question={question} catalogue={catalogue} tier={route.tier}/>}
-              {question&&<div className="qb-view-info"><span>{role!=="question"?resource?.label:view?.label}{view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}{served&&role==="question"&&<span className="qb-parts-view">{partMode?<>{served.cuts.some(c=>c.role==="context")?"Shown under its stem. ":""}{addedNote(served)} {served.marks} mark{served.marks===1?"":"s"}. </>:null}<button className="qb-text-button" aria-pressed={!partMode} onClick={()=>setPartsView(!partsView)}>{partMode?"Show whole question":`Show only ${served.title.toLowerCase()}`}</button></span>}</div>}
+              {question&&<div className="qb-view-info"><span>{role!=="question"?resource?.label:view?.label}{view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}{served&&role!=="scheme"&&<span className="qb-parts-view">{partMode?<>{served.cuts.some(c=>c.role==="context")?"Shown under its stem. ":""}{addedNote(served)} {served.marks} mark{served.marks===1?"":"s"}. </>:null}<button className="qb-text-button" aria-pressed={!partMode} onClick={()=>setPartsView(!partsView)}>{partMode?"Show whole question":`Show only ${served.title.toLowerCase()}`}</button></span>}</div>}
               {question?.sourceErrata?.map((erratum,i)=><p className="qb-erratum" key={i}>{erratum.note}</p>)}
               {role==="scheme"&&question?.schemeSourceNote&&<p className="qb-erratum">{question.schemeSourceNote}</p>}
             </div>
@@ -278,7 +314,6 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
               {answerControls}
               <details className="qb-more"><summary aria-label="Question options" title="Question options"><MoreHorizontal size={20}/></summary><div className="qb-more-menu">
                 <a href={assetUrl(question.printPdf)} target="_blank" rel="noreferrer">Source question PDF</a>
-                {question.workedSolution&&<a href={assetUrl(question.workedSolution.pdf)} target="_blank" rel="noreferrer">Worked solution PDF</a>}
                 <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${bankAddress({...route,question:question.id,view:role==="question"?viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
                 <button onClick={()=>{downloadBlob(new Blob([JSON.stringify({question:question.id,source:question.source,code:route.code,view:viewIndex+1,role,version:catalogue?.version,issue:"Describe the correction here."},null,2)],{type:"application/json"}),`question-feedback-${question.id}.json`);setNotice("Feedback details downloaded. Add a description and keep it with your question-bank notes.");}}>Report a problem</button>
                 {question.equivalentSource&&<p>Also appears as {question.equivalentSource}.</p>}
@@ -290,7 +325,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
           <div className="qb-stage-frame"><div ref={stage} style={{backgroundColor:overlay === "off" ? undefined : overlays.find(option=>option.value===overlay)?.colour,cursor:stageCursor}} className={`qb-stage${role==="scheme"?" qb-scheme-stage":""}${question&&pannable?" qb-pannable":""}`}>
-            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:Math.max(...visibleViews.map(v=>v.height*scale))}}>{visibleViews.map(v=><div className="qb-view-stack" style={{gap:STACK_GAP*scale}} key={v.items.map(i=>`${i.pdf}|${i.view.page}`).join("+")}>{v.items.map(item=><PdfView key={`${question.id}|${question.revision}|${role}|${question.workedSolution?.revision||""}|${item.pdf}|${item.view.page}`} path={item.pdf} label={resource!.label} view={item.view} scale={scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,inkKey(item)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(inkKey(item),strokes)}}/>)}</div>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="revision"?"Only Year 11 revision papers have this topic":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":reason==="revision"?"Its questions come from papers kept for the Year 11 revision programme, which are hidden. Include them only if pupils will not meet these questions later.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",revision:"hide"});else if(reason==="revision")go({...route,revision:"include",question:"",view:0});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":reason==="revision"?"Include Year 11 revision papers":"Search another topic"}</button></div>}
+            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:visibleViews.length?Math.max(...visibleViews.map(v=>v.height*scale)):0}}>{role==="worked-solution"&&!workedShown?.shown&&(workedShown?.error?<div className="qb-empty" role="alert"><h2>Could not load the worked solution</h2><p>{workedShown.error}</p><button className="qb-button" onClick={()=>setWorkedRetry(v=>v+1)}>Try again</button></div>:<p role="status">Loading worked solution…</p>)}{visibleViews.map(v=><div className="qb-view-stack" style={{gap:STACK_GAP*scale}} key={v.items.map(i=>`${i.pdf}|${i.view.page}`).join("+")}>{v.items.map(item=>item.worked?<WorkedSurface key={`${question.id}|${question.revision}|${question.workedSolution?.revision||""}|${item.pdf}|${item.view.page}|${item.view.id}`} pdf={item.pdf} view={item.view} overlay={item.overlay} scale={scale} retryKey={reload} colour={overlay} marks={workedMarks} upTo={upTo}/>:<PdfView key={`${question.id}|${question.revision}|${role}|${item.pdf}|${item.view.page}`} path={item.pdf} label={resource!.label} view={item.view} scale={scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,inkKey(item)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(inkKey(item),strokes)}}/>)}</div>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="revision"?"Only Year 11 revision papers have this topic":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":reason==="revision"?"Its questions come from papers kept for the Year 11 revision programme, which are hidden. Include them only if pupils will not meet these questions later.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",revision:"hide"});else if(reason==="revision")go({...route,revision:"include",question:"",view:0});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":reason==="revision"?"Include Year 11 revision papers":"Search another topic"}</button></div>}
           </div>
           {question&&<ZoomOverview stage={stage} active={pannable&&zoom>1.001} redrawKey={`${question.id}|${role}|${viewIndex}|${scale}|${overlay}|${partMode}`}/>}
           {question&&annotating&&<AnnotationBar preferences={annotatePrefs} onChange={setAnnotatePrefs} canUndo={visibleKeys.some(key=>layerOf(ink,key).past.length>0)} canRedo={visibleKeys.some(key=>layerOf(ink,key).future.length>0)} hasInk={viewHasInk} anyInk={hasInk(ink)} onUndo={undoInk} onRedo={redoInk} onClear={clearInk} onClearAll={clearAllInk} onClose={()=>setAnnotating(false)}/>}

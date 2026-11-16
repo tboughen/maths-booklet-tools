@@ -374,6 +374,19 @@ export function visibleStraightPoints(
     : clipSegment(object.start, object.end, bounds);
 }
 
+/**
+ * The ends a vector's arrowhead is placed between: the part of the segment on the grid, in its own
+ * direction, so a middle head sits in the middle of what prints. An end head needs the end point
+ * itself on the grid; otherwise there is no head (and the connector warns).
+ */
+export function vectorArrowEnds(object: StraightObject, bounds: Bounds): [Coordinate, Coordinate] | null {
+  if (!object.arrow || object.display !== "segment") return null;
+  const visible = clipSegment(object.start, object.end, bounds);
+  if (!visible) return null;
+  if (object.arrow === "end" && !pointInBounds(object.end, bounds)) return null;
+  return visible;
+}
+
 export function squaredDistance(first: Coordinate, second: Coordinate): number {
   return (first.x - second.x) ** 2 + (first.y - second.y) ** 2;
 }

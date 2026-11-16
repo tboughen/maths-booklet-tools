@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assetFile, digest, prepareRelease } from "./release";
 import { verifySchemeIndex } from "./package.mjs";
+import { validateWorkedSolution } from "../../workedSolution";
 const roots: string[] = [];
 afterEach(() => {for (const root of roots.splice(0)) rmSync(root, {recursive: true, force: true});});
 function fixture(path = "bank/assets/one.pdf") {
@@ -41,6 +42,23 @@ describe("Cloudflare release construction", () => {
     expect(cut.pdf).toBe(`bank/assets/sha256/${digest("%PDF-part")}.pdf`);
     expect(cut.views[0].preview).toBe(`bank/assets/sha256/${digest("png-part")}.png`);
     expect(release.manifest.assets.map(a => a.key)).toEqual(expect.arrayContaining([cut.pdf, cut.views[0].preview]));
+  });
+  it("publishes a worked solution's steps file as an immutable JSON object", () => {
+    const root = fixture();
+    mkdirSync(join(root, "bank/assets/worked/one"), {recursive: true});
+    writeFileSync(join(root, "bank/assets/worked/one/w1.json"), '{"schemaVersion":2}');
+    const workedSolution = {schemaVersion: 2, revision: "w1", basedOnQuestionRevision: "r1", data: "bank/assets/worked/one/w1.json", dataSha256: digest('{"schemaVersion":2}')};
+    const catalogue = {version: "test", questions: [{id: "one", revision: "r1", marks: 4, questionPdf: "bank/assets/one.pdf", printPdf: "bank/assets/one.pdf", schemePdf: "bank/assets/one.pdf",
+      questionViews: [{preview: "bank/assets/view.png"}], schemeViews: [], workedSolution}]};
+    writeFileSync(join(root, "bank/catalogue.json"), JSON.stringify(catalogue));
+    const release = prepareRelease(root, "commit");
+    const key = `bank/assets/sha256/${digest('{"schemaVersion":2}')}.json`;
+    expect(JSON.parse(release.catalogueJson).questions[0].workedSolution).toEqual({...workedSolution, data: key});
+    // The browser checks the released attachment again, so the immutable path must pass that check.
+    expect(() => validateWorkedSolution(JSON.parse(release.catalogueJson).questions[0].workedSolution, "r1")).not.toThrow();
+    expect(release.manifest.assets.find(a => a.key === key)).toMatchObject({contentType: "application/json", sources: ["bank/assets/worked/one/w1.json"]});
+    writeFileSync(join(root, "bank/assets/worked/one/w1.json"), "not json");
+    expect(() => prepareRelease(root, "commit")).toThrow();
   });
   it("changes object URLs when bytes change, without replacing the previous release", () => {
     const root = fixture();

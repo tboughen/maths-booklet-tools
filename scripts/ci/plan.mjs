@@ -14,7 +14,7 @@ import { classifyPaths } from '../cloudflare/classify.mjs';
 const proseOnly = /^(?:docs\/.*|[^/]+)\.md$/;
 // The build checks every registered worked-solution file against the bank, so a change to any of
 // these checks out the full bank and runs that check. Everything else uses the lite bank.
-const solutionInputs = /^(?:public\/bank\/|scripts\/bank\/|workedSolution\.ts$|bankAssets\.ts$|vite\.config\.ts$|package(?:-lock)?\.json$|\.gitmodules$)/;
+const solutionInputs = /^(?:public\/bank\/|scripts\/bank\/|packages\/worked-core\/|src\/bank\/worked-bank\.test\.ts$|workedSolution\.ts$|bankAssets\.ts$|vite\.config\.ts$|package(?:-lock)?\.json$|\.gitmodules$)/;
 // Read from disk rather than imported, so vitest cannot trace them through the module graph.
 const unimportedTestInputs = /^(?:docs\/|public\/|src\/test\/|src\/gates\/|vitest|tsconfig)/;
 

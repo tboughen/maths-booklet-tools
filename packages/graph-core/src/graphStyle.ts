@@ -65,3 +65,12 @@ export function axisNameYGapCentimetres(document: DiagramDocumentV1): number {
     ? 0.2
     : Y_AXIS_LABEL_GAP_CENTIMETRES;
 }
+
+/**
+ * Working marks shared with the worked-solution engine (worked-core imports these rather than
+ * keeping its own copy), in points. Vector arrowheads 7 pt long and 6 pt wide; reading-line
+ * arrowheads 6 pt by 5.2 pt; working dashes 4 pt on, 3 pt off.
+ */
+export const VECTOR_ARROWHEAD_POINTS = { length: 7, halfWidth: 3 } as const;
+export const READING_ARROWHEAD_POINTS = { length: 6, halfWidth: 2.6 } as const;
+export const WORKING_DASH_POINTS = [4, 3] as const;

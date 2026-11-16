@@ -7,6 +7,7 @@ import {
   gridDivisions,
   isSketch,
   pointInBounds,
+  vectorArrowEnds,
   visibleStraightPoints,
 } from "./diagram";
 import {
@@ -51,6 +52,8 @@ import type {
 } from "./types";
 import { guidance } from "./print-guidance";
 import { polygonCentroid, polygonVisible } from "./polygon";
+import { arrowheadPath } from "./arrow";
+import { VECTOR_ARROWHEAD_POINTS } from "./graphStyle";
 
 /** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
 export const POLYGON_SHADE = "#d4d4d4";
@@ -857,6 +860,15 @@ export function gradientLabelPlacement(
   };
 }
 
+/** A vector's filled arrowhead, at the end or centred on the middle, scaled with bold lines. */
+export function vectorArrowMarkup(document: DiagramDocumentV1, object: StraightObject, ends: [Coordinate, Coordinate], layout: SvgLayout, unitsPerCm = UNITS_PER_CM): string {
+  const scale = document.lines === "bold" ? BOLD_LINE_FACTOR : 1;
+  const length = pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.length, unitsPerCm) * scale;
+  const half = pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.halfWidth, unitsPerCm) * scale;
+  const d = arrowheadPath(coordinateToSvg(ends[0], layout), coordinateToSvg(ends[1], layout), object.arrow ?? "end", length, half);
+  return `<path class="vector-arrow" data-object-id="${escapeXml(object.id)}" d="${d}" fill="${object.answerOnly ? GRAPH_ANSWER_COLOUR : "#202224"}" stroke="none"/>`;
+}
+
 /** The legs and labels of a line's gradient triangle (U76), or nothing when it cannot be drawn. */
 export function gradientTriangleMarkup(document: DiagramDocumentV1, object: StraightObject, layout: SvgLayout, view: GraphView): { legs: string; labels: string; answerLabels: string } {
   const none = { legs: "", labels: "", answerLabels: "" };
@@ -950,6 +962,8 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: Gra
       straightOut.push(
         `<line x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
       );
+      const arrowEnds = vectorArrowEnds(object, layout.bounds);
+      if (arrowEnds) straightOut.push(vectorArrowMarkup(document, object, arrowEnds, layout));
     }
     if (object.gradientTriangle) {
       const triangle = gradientTriangleMarkup(document, object, layout, view);
