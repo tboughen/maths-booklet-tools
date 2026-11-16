@@ -89,3 +89,33 @@ the teacher unticks it.
   `{kind: "strips", of, from, to, count, shaded?, answerOnly?}` into polygons when the graph is
   created or revised, so saved files only hold ordinary objects. The graph capabilities budget
   rose to 39,000 bytes (measured 37,159).
+
+## Equation curves (Graph tool)
+
+For questions that print or ask for an equation curve: graphical solving, estimating a gradient
+or an area, trig graphs and graph transformations. The Graph tool now draws equation curves
+exactly, so every Graph tool feature (lines, readings, tangents, strips, names, answer-only
+objects, fine grids) works with them. A table of values with its plotted graph stays in
+Plotting quadratics.
+
+- **Equation curve.** *Equation curve* adds a `function` object, y = x² to start. Type any
+  equation that Plotting quadratics reads (y = 2x² − 3x + 1, y = x³ − 4x, y = 6/x + 1, y = 3 × 2ˣ),
+  or a trig graph in degrees (y = sin x, y = 2cos(x + 30) − 1, y = tan 2x). From x and To x
+  limit the curve; leave them blank to draw it across the grid. A curve can be dashed, named and
+  hidden as an answer. Arrow keys leave it where it is, because its equation fixes its place.
+- **Drawing.** The curve is joined cubic Bézier pieces that match its value and gradient at each
+  joint (about 160 across the grid). Branches break at asymptotes (x = 0 for k/x, every 180° for
+  tan) and where the curve goes far off the grid, so no line joins across an asymptote.
+- **Trig graphs** need an x-axis scale such as 30 or 45 units per square (`unitsPerSquare`) and a
+  y-axis scale such as 0.5.
+- **Working.** Tangents use the curve's exact gradient. Strips use its exact values and are
+  refused across an asymptote. Straight lines stay straight-line objects (an equation curve needs
+  an x² or x³ term, k/x, a power or a trig function). Graph
+  transformations are several curves, for example y = x² and y = (x − 2)², typed expanded as
+  y = x² − 4x + 4.
+- **Connector.** `{kind: "function", equation: {family: "polynomial", a?, b?, c?, cubic?} |
+  {family: "reciprocal", k, c?} | {family: "exponential", coefficient?, base, c?} |
+  {family: "trig", fn: "sin" | "cos" | "tan", amplitude?, multiplier?, shift?, c?}, from?, to?,
+  strokeStyle?, name?, answerOnly?}`. Omitted terms are 0, and amplitude, multiplier and
+  coefficient are 1. `tangent` and `strips` take an equation curve as `of`. The graph
+  capabilities budget rose to 43,200 bytes (measured 41,132).

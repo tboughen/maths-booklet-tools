@@ -57,6 +57,7 @@ import { guidance } from "./print-guidance";
 import { polygonCentroid, polygonVisible } from "./polygon";
 import { arrowheadPath } from "./arrow";
 import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "./graphStyle";
+import { functionNameAnchor, functionPathData, functionVisible } from "./function";
 import { axesCrossing, circleVisible, curveVisible, readingLegs, readingVisible, smoothCurvePath } from "./curve";
 
 /** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
@@ -637,6 +638,7 @@ function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
     if (o.kind === "reading") return false;
     if (o.kind === "circle") return circleVisible(o, layout.bounds);
     if (o.kind === "curve") return curveNameAnchor(o, layout.bounds) !== null;
+    if (o.kind === "function") return functionNameAnchor(o, layout.bounds) !== null;
     return o.kind === "point"
       ? o.position.x >= layout.bounds.xMin - 1e-9 &&
           o.position.x <= layout.bounds.xMax + 1e-9 &&
@@ -688,10 +690,10 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number, ax
     // Up and to the right of the circle, beside the point at 45°.
     const edge = coordinateToSvg({ x: object.centre.x + object.radius * Math.SQRT1_2, y: object.centre.y + object.radius * Math.SQRT1_2 }, layout);
     centre = { x: edge.x + 0.14 * unitsPerCm + box.width / 2, y: edge.y - 0.14 * unitsPerCm - box.height / 2 };
-  } else if (object.kind === "curve" || object.kind === "reading") {
+  } else if (object.kind === "curve" || object.kind === "reading" || object.kind === "function") {
     // A curve's name sits up and to the right of its last point on the grid, kept inside the plot.
-    const anchor = object.kind === "curve" ? curveNameAnchor(object, layout.bounds) : null;
-    const p = coordinateToSvg(anchor ?? (object.kind === "reading" ? object.at : object.points[0]), layout);
+    const anchor = object.kind === "curve" ? curveNameAnchor(object, layout.bounds) : object.kind === "function" ? functionNameAnchor(object, layout.bounds) : null;
+    const p = coordinateToSvg(anchor ?? (object.kind === "reading" ? object.at : object.kind === "curve" ? object.points[0] : { x: 0, y: 0 }), layout);
     const dx = 0.2 * unitsPerCm + box.width / 2, dy = 0.2 * unitsPerCm + box.height / 2;
     const right = p.x + dx + box.width / 2 <= layout.plotRight;
     const up = p.y - dy - box.height / 2 >= layout.plotTop;
@@ -984,6 +986,13 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: Gra
       const d = object.smooth ? smoothCurvePath(svgPoints) : `M ${svgPoints.map((p) => `${n(p.x)} ${n(p.y)}`).join(" L ")}`;
       const dash = object.strokeStyle === "dashed" ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"` : "";
       straightOut.push(`<path class="graph-curve" data-object-id="${escapeXml(object.id)}" d="${d}" stroke-linejoin="round"${dash}/>`);
+      continue;
+    }
+    if (object.kind === "function") {
+      if (!functionVisible(object, layout.bounds)) continue;
+      const d = functionPathData(object, layout.bounds, (p) => coordinateToSvg(p, layout), n);
+      const dash = object.strokeStyle === "dashed" ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"` : "";
+      straightOut.push(`<path class="graph-function" data-object-id="${escapeXml(object.id)}" d="${d}" stroke-linejoin="round"${dash}/>`);
       continue;
     }
     if (object.kind === "circle") {

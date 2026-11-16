@@ -1,23 +1,26 @@
 import { useState } from "react";
 import { Spline } from "lucide-react";
-import type { CurveObject, GraphObject } from "../domain/types";
+import type { CurveObject, FunctionObject, GraphObject } from "../domain/types";
 import { parseNumericInput } from "../../packages/graph-core/src/equations";
 import { stripObjects, tangentObject } from "../../packages/graph-core/src/working";
 
 /**
- * Working on a graph through points (tangents, area under a graph): a tangent at
+ * Working on a graph through points or an equation curve (tangents, area under a graph): a tangent at
  * an x value, or equal trapezium strips. Each is added as ordinary objects in one undo step and is
  * a hidden answer unless the teacher unticks it, so nothing is drawn for pupils unless asked.
  */
 export function CurveWorkFields({
   object,
+  span,
   unitsPerSquare,
   base,
   onAdd,
   makeId,
   disabled,
 }: {
-  object: CurveObject;
+  object: CurveObject | FunctionObject;
+  /** The grid's x range, for an equation curve with no from or to. */
+  span?: { from: number; to: number };
   unitsPerSquare: number;
   /** The y value of the x-axis, where strips stand. */
   base: number;
@@ -25,7 +28,8 @@ export function CurveWorkFields({
   makeId: (prefix: "polygon" | "straight") => string;
   disabled?: boolean;
 }) {
-  const first = object.points[0].x, last = object.points[object.points.length - 1].x;
+  const first = object.kind === "curve" ? object.points[0].x : object.from ?? span?.from ?? 0;
+  const last = object.kind === "curve" ? object.points[object.points.length - 1].x : object.to ?? span?.to ?? first + 4 * unitsPerSquare;
   const [x, setX] = useState(String(Number(((first + last) / 2).toFixed(3))));
   const [from, setFrom] = useState(String(Math.min(first, last)));
   const [to, setTo] = useState(String(Math.max(first, last)));
