@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import { bookletTools, pageHref, siteSection, siteSections } from "./registry";
 import { useFavouriteToolList } from "./favouriteTools";
@@ -37,8 +37,9 @@ export default function Home() {
   }).slice(0, 3);
   const found = searchHome(query);
 
-  // Press / anywhere on this page to search, unless typing in a field already.
-  useEffect(() => {
+  // Press / anywhere on this page to search, unless typing in a field already. A layout effect,
+  // so the key works from the moment the box can be seen.
+  useLayoutEffect(() => {
     function key(event: KeyboardEvent) {
       if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
       if (!root.current || root.current.closest("[hidden]")) return;
