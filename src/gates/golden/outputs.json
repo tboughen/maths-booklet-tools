@@ -870,6 +870,34 @@
    "png600": "3189x1276",
    "pixels": "c813ba11d2dd8ce1"
   },
+  "charts: chart-timeseries-gas": {
+   "json": "8698f6bba2c6934e",
+   "svg": "323a3cc3aa0ce31f",
+   "mm": "158.2x82",
+   "png600": "3737x1937",
+   "pixels": "167b924dc9025bf0"
+  },
+  "charts: chart-timeseries-gas (worked)": {
+   "json": "8698f6bba2c6934e",
+   "svg": "323a3cc3aa0ce31f",
+   "mm": "158.2x82",
+   "png600": "3737x1937",
+   "pixels": "167b924dc9025bf0"
+  },
+  "charts: chart-timeseries-quarters": {
+   "json": "c75dc8e649095815",
+   "svg": "2f5284c6a0283905",
+   "mm": "161.8x97.8",
+   "png600": "3822x2310",
+   "pixels": "4a5cd5475972f817"
+  },
+  "charts: chart-timeseries-quarters (worked)": {
+   "json": "016e64bad96f4942",
+   "svg": "7ba79046a4fe3632",
+   "mm": "161.8x97.8",
+   "png600": "3822x2310",
+   "pixels": "96a321a6a12978cc"
+  },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
    "svg": "fff25f4f64245caf",

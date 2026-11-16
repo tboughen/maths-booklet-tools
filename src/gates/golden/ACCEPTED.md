@@ -740,3 +740,21 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2021_1F_Q18: pixels 3b83e69e52882db4 -> 73f4b254153f6d45
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 1e4d146e65ced02b -> 17c1b8b9cb919579
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 648a83f51c414026 -> 9fa8c511c7cdd661
+
+## 2026-11-16: Time series graphs added to the charts tool and connector text
+
+- charts: chart-timeseries-gas: added
+- charts: chart-timeseries-gas (worked): added
+- charts: chart-timeseries-quarters: added
+- charts: chart-timeseries-quarters (worked): added
+
+## 2026-11-16: Time series quarters example: the £ sign now has its real STIX width (font metrics on main), so the y-axis title Sales (£1000s) fits on one line
+
+- charts: chart-timeseries-quarters: svg 1cda4922d06adbd5 -> 2f5284c6a0283905
+- charts: chart-timeseries-quarters: mm 154.6x97.8 -> 161.8x97.8
+- charts: chart-timeseries-quarters: png600 3652x2310 -> 3822x2310
+- charts: chart-timeseries-quarters: pixels 0efdd88c8745ee60 -> 4a5cd5475972f817
+- charts: chart-timeseries-quarters (worked): svg c8d82a838be20375 -> 7ba79046a4fe3632
+- charts: chart-timeseries-quarters (worked): mm 154.6x97.8 -> 161.8x97.8
+- charts: chart-timeseries-quarters (worked): png600 3652x2310 -> 3822x2310
+- charts: chart-timeseries-quarters (worked): pixels 5693cdde1c4f8d23 -> 96a321a6a12978cc

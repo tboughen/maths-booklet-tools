@@ -289,7 +289,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   charts: family<chart.Envelope>({
     kind: "charts",
     label: "statistical chart",
-    summary: "Bar, dual, composite and vertical line charts on exam axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots and stem-and-leaf diagrams, with bars, sectors, rows, points, curves, plots or leaves left for pupils.",
+    summary: "Bar, dual, composite and vertical line charts on exam axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots, stem-and-leaf diagrams and time series graphs, with bars, sectors, rows, points, curves, plots or leaves left for pupils.",
     route: "/tools/charts",
     answerView: true,
     envelopeSchema: chart.envelopeSchema,

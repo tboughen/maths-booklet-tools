@@ -1,4 +1,4 @@
-import { create, validate, GROUPED_DEFAULTS, type BoxRow, type StemRow, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
+import { create, validate, GROUPED_DEFAULTS, type BoxRow, type StemRow, type TimePoint, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
 
 type Data = { name: string; fill: Fill; values: string[]; hidden?: number[] };
 function chart(
@@ -63,6 +63,12 @@ function stems(rows: [string, string][], hidden: boolean): StemRow[] {
   const show = hidden ? ("hidden" as const) : ("show" as const);
   return rows.map(([stem, leaves]) => ({ stem, leaves, stemShow: show, leavesShow: show }));
 }
+
+function times(labels: string[], groups: string[], values: string[], hidden: boolean): TimePoint[] {
+  const show = hidden ? ("hidden" as const) : ("show" as const);
+  return labels.map((label, i) => ({ label, group: groups[i] ?? "", value: values[i] ?? "", show }));
+}
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** Editable starting points. Source examples name the question they adapt;
  * values read from a source graph are noted as readings. */
@@ -407,6 +413,42 @@ export const examples: {
         rows: stems([["13", "5 7 8"], ["14", "2 4 6 6 7 9"], ["15", "0 2 4"]], !worked),
         key: { stem: "13", leaf: "5", represents: "135 cm", show: worked ? "show" : "hidden" },
         leafMm: 50,
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "timeseries-gas",
+    title: "Mock Set 4 3F Q7: read a time series graph",
+    note: "Average units of gas used each day, month by month. Values read from the source graph.",
+    sourceId: "1MA1_MOCK_SET_04_3F_Q7",
+    worked: false,
+    make: () => {
+      const e = create();
+      e.document.kind = "timeseries";
+      e.document.timeseries = {
+        points: times(MONTHS, [], ["49", "50", "52", "44", "22", "18", "15", "10", "10", "25", "42", "46"], false),
+        slotMm: 10,
+        xTitle: "Month",
+        yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "Units of gas" },
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "timeseries-quarters",
+    title: "Draw a time series graph of quarterly sales",
+    note: "Construct task in the style of the papers: quarters 1 to 4 under each year. Every value is saved as a hidden answer, so pupils see a blank labelled grid.",
+    worked: true,
+    make: (worked) => {
+      const e = create();
+      e.document.kind = "timeseries";
+      const q = ["1", "2", "3", "4"];
+      e.document.timeseries = {
+        points: times([...q, ...q, ...q], ["2023", "2023", "2023", "2023", "2024", "2024", "2024", "2024", "2025", "2025", "2025", "2025"], ["34", "41", "52", "38", "36", "45", "57", "40", "39", "48", "61", "44"], !worked),
+        slotMm: 10,
+        xTitle: "Year and quarter",
+        yAxis: { min: "0", max: "70", step: "10", stepMm: 10, title: "Sales (£1000s)" },
       };
       return validate(e);
     },
