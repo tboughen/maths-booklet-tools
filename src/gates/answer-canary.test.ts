@@ -29,6 +29,8 @@ import * as area from "../../packages/area-core/src/index";
 import { examples as areaExamples } from "../../packages/area-core/src/examples";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import { examples as ftExamples } from "../../packages/factor-tree-core/src/examples";
+import * as fm from "../../packages/function-machine-core/src/index";
+import { examples as fmExamples } from "../../packages/function-machine-core/src/examples";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 import * as venn from "../../packages/venn-core/src/index";
@@ -81,6 +83,7 @@ const tools: Tool[] = [
   { name: "plans and elevations", envelopes: () => elevationExamples.flatMap(x => [x.make(false), x.make(true)]), validate: elevations.validate, pupilSvg: elevations.renderSvg },
   { name: "sample space diagrams", envelopes: () => ssExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ss.validate, pupilSvg: ss.renderSvg },
   { name: "factor trees", envelopes: () => ftExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ft.validate, pupilSvg: ft.renderSvg },
+  { name: "function machines", envelopes: () => fmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: fm.validate, pupilSvg: fm.renderSvg },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, pupilSvg: twoWayTable.renderSvg },
   { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, pupilSvg: (e: angles.Envelope) => angles.renderSvg(e) },
   { name: "area and perimeter", envelopes: () => areaExamples.flatMap(x => [x.make(false), x.make(true)]), validate: area.validate, pupilSvg: (e: area.Envelope) => area.renderSvg(e) },

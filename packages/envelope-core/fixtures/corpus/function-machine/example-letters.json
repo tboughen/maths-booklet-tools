@@ -1,0 +1,42 @@
+{
+ "kind": "function-machine",
+ "schemaVersion": 1,
+ "rendererVersion": "function-machine-1",
+ "document": {
+  "machines": [
+   {
+    "id": "m1",
+    "direction": "right",
+    "start": {
+     "text": "n",
+     "show": "show"
+    },
+    "steps": [
+     {
+      "op": {
+       "text": "× 3",
+       "show": "show"
+      },
+      "out": {
+       "text": "3n",
+       "show": "hidden"
+      }
+     },
+     {
+      "op": {
+       "text": "+ 2",
+       "show": "show"
+      },
+      "out": null
+     }
+    ],
+    "end": {
+     "text": "3n + 2",
+     "show": "hidden"
+    }
+   }
+  ],
+  "boxShape": "pentagon",
+  "intentionalError": false
+ }
+}

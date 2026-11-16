@@ -1248,6 +1248,76 @@
    "png600": "2929x2976",
    "pixels": "b5d6434cb3e86c22"
   },
+  "function machines: fm-find-input": {
+   "json": "4024e54df08f0057",
+   "svg": "8dd28dbe53376d95",
+   "mm": "110x13",
+   "png600": "2598x307",
+   "pixels": "b24e3c5402e072dc"
+  },
+  "function machines: fm-find-input (worked)": {
+   "json": "79166035b6af5274",
+   "svg": "eafda9de3a3a55e9",
+   "mm": "113x33.56",
+   "png600": "2669x793",
+   "pixels": "21aadaf01c801dfe"
+  },
+  "function machines: fm-find-output": {
+   "json": "cd25726413773c5b",
+   "svg": "044d5e5f7bc37012",
+   "mm": "113x15.56",
+   "png600": "2669x367",
+   "pixels": "cf49edcb7cd6ed3e"
+  },
+  "function machines: fm-find-output (worked)": {
+   "json": "2ea8d0cb81f55473",
+   "svg": "aec2e163768b5082",
+   "mm": "113x15.56",
+   "png600": "2669x367",
+   "pixels": "48848e95bbb6a618"
+  },
+  "function machines: fm-letters": {
+   "json": "e09e350fde7aa397",
+   "svg": "5465ec97ab37c464",
+   "mm": "113x15.56",
+   "png600": "2669x367",
+   "pixels": "db257e185d7fcb61"
+  },
+  "function machines: fm-letters (worked)": {
+   "json": "3f09029154a34a8c",
+   "svg": "5aae093fba231252",
+   "mm": "113x15.56",
+   "png600": "2669x367",
+   "pixels": "8e90c84cb289adca"
+  },
+  "function machines: fm-missing-operation": {
+   "json": "d51a1b2cfe8e0fab",
+   "svg": "3323e9cf4ac63985",
+   "mm": "104x15.56",
+   "png600": "2457x367",
+   "pixels": "ac6267755de2bd41"
+  },
+  "function machines: fm-missing-operation (worked)": {
+   "json": "2b2faafb69b5f07a",
+   "svg": "27568f2d239dfa32",
+   "mm": "104x15.56",
+   "png600": "2457x367",
+   "pixels": "7787504668610856"
+  },
+  "function machines: fm-two-machines": {
+   "json": "487ab924f9aaed24",
+   "svg": "544b383671f2d410",
+   "mm": "110x31",
+   "png600": "2598x732",
+   "pixels": "ce071ca7db9a57c4"
+  },
+  "function machines: fm-two-machines (worked)": {
+   "json": "4d472758243e94a1",
+   "svg": "5786e0a898cdab27",
+   "mm": "110x31",
+   "png600": "2598x732",
+   "pixels": "447f5a85c348a8f0"
+  },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
    "json": "75f5e8de89a74165",
    "svg": "12a0af07a17e5f4b",

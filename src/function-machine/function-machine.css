@@ -1,0 +1,9 @@
+.fm-machine {
+  border: 1px solid var(--line, #c9d3dd);
+  border-radius: 6px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+}
+.fm-editor .pt-hit {
+  border-radius: 4px;
+}
