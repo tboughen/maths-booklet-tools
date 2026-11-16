@@ -8,7 +8,8 @@ import { ANSWER_COLOUR } from "../../envelope-core/src/answer-state";
 
 const corpus = join(__dirname, "../../envelope-core/fixtures/corpus");
 // The bar-model default is two 10 mm sections, too narrow for the 40 mm note; BM08 is 135 mm wide.
-const preferred: Record<string, string> = { "bar-model": "past-paper-bm08.json" };
+// The empty written method is 23 mm wide; 546 × 43 worked is wider than the note.
+const preferred: Record<string, string> = { "bar-model": "past-paper-bm08.json", "written-method": "example-long-multiplication-worked.json" };
 const saved = (kind: string) =>
   preferred[kind] ? (JSON.parse(readFileSync(join(corpus, kind, preferred[kind]), "utf8")) as Record<string, unknown>) : readdirSync(join(corpus, kind))
     .filter((n) => n.endsWith(".json"))

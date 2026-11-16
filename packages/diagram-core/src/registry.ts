@@ -36,6 +36,8 @@ import * as twt from "../../two-way-table-core/src/index";
 import * as twtIo from "../../two-way-table-core/src/interchange";
 import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
+import * as wm from "../../written-method-core/src/index";
+import * as wmIo from "../../written-method-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
 import * as nets from "../../net-core/src/index";
@@ -69,6 +71,7 @@ export const DIAGRAM_KINDS = [
   "factor-tree",
   "function-machine",
   "nets",
+  "written-method",
   "sample-space",
   "triangle",
   "construction",
@@ -397,6 +400,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     hash: ft.hash,
     svg: (e, view) => ft.renderSvg(ft.forView(e, view, true)),
   }),
+  "written-method": family<wm.Envelope>({
+    kind: "written-method",
+    label: "written method",
+    summary: "Written methods: column addition and subtraction, long multiplication, short (bus stop) and long division, with digits, carries and rows blank or hidden for pupils; worked out only on request.",
+    route: "/tools/written-method",
+    answerView: true,
+    envelopeSchema: wm.envelopeSchema,
+    createSchema: wmIo.createSchema,
+    revisionSchema: wmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = wm.validate(raw);
+      check(wm.exportIssue(wm.forView(e, view)));
+      return e;
+    },
+    create: (input) => wmIo.create(input),
+    revise: (input) => wmIo.revise(input),
+    hash: wm.hash,
+    svg: (e, view) => wm.renderSvg(wm.forView(e, view, true)),
+  }),
   "function-machine": family<fm.Envelope>({
     kind: "function-machine",
     label: "function machine",
@@ -419,7 +441,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   nets: family<nets.Envelope>({
     kind: "nets",
     label: "nets of 3D shapes",
-    summary: "Nets of cubes, cuboids, prisms, pyramids and tetrahedra on squared paper: face letters, dots, shading, corner letters, lengths; hidden faces and labels for pupils.",
+    summary: "Nets of cubes, cuboids, prisms and pyramids on squared paper: letters, dots and lengths, hidden for pupils.",
     route: "/tools/nets",
     answerView: true,
     envelopeSchema: nets.envelopeSchema,

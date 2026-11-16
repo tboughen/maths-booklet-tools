@@ -21,6 +21,7 @@ import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
 import { twoWayTableConfig } from "./guides/two-way-table";
 import { ftConfig } from "./guides/factor-tree";
+import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
 import { netsConfig } from "./guides/nets";
 import { ssConfig } from "./guides/sample-space";
@@ -215,6 +216,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "frequency-tree": fromConfig(frequencyTreeConfig),
   "two-way-table": fromConfig(twoWayTableConfig),
   "factor-tree": fromConfig(ftConfig),
+  "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
   nets: fromConfig(netsConfig),
   "sample-space": fromConfig(ssConfig),
@@ -360,7 +362,8 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
   "factor-tree": ["factor trees", "prime factor decomposition", "writing a number as a product of primes", "index form"],
-  nets: ["nets of 3D shapes", "nets of cubes and cuboids", "where does the dot end up", "opposite faces"],
+  nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
+  "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
