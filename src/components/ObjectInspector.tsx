@@ -1,4 +1,6 @@
 import { GraphDraftField } from "./GraphDraftField";
+import { TransformFields } from "./TransformFields";
+import { makeId } from "../domain/diagram";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
@@ -337,6 +339,10 @@ interface ObjectInspectorProps {
   onEditEquation: (object: StraightObject) => void;
   /** The visible grid, so a new gradient triangle starts where it fits. */
   bounds?: Bounds;
+  /** Every object in the drawing, so an image gets a free name. */
+  objects?: GraphObject[];
+  /** Adds new objects (a shape's image) as one undoable step. */
+  onAdd?: (objects: GraphObject[]) => void;
 }
 
 function CoordinateFields({
@@ -383,6 +389,8 @@ export function ObjectInspector({
   drafts,
   disabled = false,
   bounds,
+  objects = [],
+  onAdd,
 }: ObjectInspectorProps) {
   if (!object) {
     return (
@@ -474,6 +482,16 @@ export function ObjectInspector({
           disabled={disabled}
         />
         <p className="panel-note">Arrow keys move the whole shape.</p>
+        {onAdd && (
+          <TransformFields
+            key={object.id}
+            object={object}
+            objects={objects}
+            onAdd={onAdd}
+            makeId={makeId}
+            disabled={disabled || drafts.pending}
+          />
+        )}
         <button
           disabled={disabled || drafts.pending}
           className="danger-button"
@@ -522,7 +540,11 @@ export function ObjectInspector({
           disabled={disabled || drafts.pending}
           className={object.display === "line" ? "active" : ""}
           aria-pressed={object.display === "line"}
-          onClick={() => onUpdate({ ...object, display: "line" })}
+          onClick={() => {
+            const next: StraightObject = { ...object, display: "line" };
+            delete next.arrow;
+            onUpdate(next);
+          }}
         >
           Line
         </button>
@@ -548,6 +570,29 @@ export function ObjectInspector({
           </button>
         </div>
       </div>
+      {object.display === "segment" && (
+        <div className="line-style-field">
+          <span>Vector arrow</span>
+          <div className="segmented" role="group" aria-label="Vector arrow">
+            {([["none", "None"], ["middle", "Middle"], ["end", "End"]] as const).map(([value, label]) => (
+              <button
+                key={value}
+                disabled={disabled || drafts.pending}
+                className={(object.arrow ?? "none") === value ? "active" : ""}
+                aria-pressed={(object.arrow ?? "none") === value}
+                onClick={() => {
+                  const next: StraightObject = { ...object };
+                  if (value === "none") delete next.arrow;
+                  else next.arrow = value;
+                  onUpdate(next);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="endpoint-section">
         <CoordinateFields
           drafts={drafts}

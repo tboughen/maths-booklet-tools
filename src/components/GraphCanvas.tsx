@@ -15,6 +15,9 @@ import {
 } from "../export/svg";
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { plotClipBleed } from "../../packages/graph-core/src/svg";
+import { arrowheadPath } from "../../packages/graph-core/src/arrow";
+import { vectorArrowEnds } from "../../packages/graph-core/src/diagram";
+import { VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   regionBoundaries,
@@ -807,10 +810,11 @@ export function GraphCanvas({
                 if (!visible) return null;
                 const start = coordinateToSvg(visible[0], layout);
                 const end = coordinateToSvg(visible[1], layout);
-                return (
+                const selected = object.id === visibleDocument.selectedObjectId;
+                const line = (
                   <line
                     key={object.id}
-                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
+                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${selected ? " graph-straight--selected" : ""}`}
                     x1={start.x}
                     y1={start.y}
                     x2={end.x}
@@ -821,6 +825,24 @@ export function GraphCanvas({
                         : undefined
                     }
                   />
+                );
+                const arrowEnds = vectorArrowEnds(object, layout.bounds);
+                if (!arrowEnds) return line;
+                const scale = document.lines === "bold" ? 1.5 : 1;
+                return (
+                  <g key={object.id}>
+                    {line}
+                    <path
+                      className={`graph-vector-arrow${object.answerOnly ? " graph-vector-arrow--answer" : ""}${selected ? " graph-vector-arrow--selected" : ""}`}
+                      d={arrowheadPath(
+                        coordinateToSvg(arrowEnds[0], layout),
+                        coordinateToSvg(arrowEnds[1], layout),
+                        object.arrow ?? "end",
+                        pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.length, EDITOR_UNITS_PER_CENTIMETRE) * scale,
+                        pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.halfWidth, EDITOR_UNITS_PER_CENTIMETRE) * scale,
+                      )}
+                    />
+                  </g>
                 );
               })}
           </g>

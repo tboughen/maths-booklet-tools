@@ -84,7 +84,9 @@ function isGraphObject(value: unknown): value is GraphObject {
       isCoordinate(candidate.equationLabelPosition)) &&
     (candidate.labels === undefined ||
       (Array.isArray(candidate.labels) && candidate.labels.every(isPointLabel))) &&
-    (candidate.gradientTriangle === undefined || isGradientTriangle(candidate.gradientTriangle))
+    (candidate.gradientTriangle === undefined || isGradientTriangle(candidate.gradientTriangle)) &&
+    (candidate.arrow === undefined ||
+      (candidate.display === "segment" && (candidate.arrow === "end" || candidate.arrow === "middle")))
   );
 }
 

@@ -677,6 +677,11 @@ export default function App({ active = true }: { active?: boolean }) {
                 onDelete={() => commit(deleteSelectedObject(document))}
                 onEditEquation={openEquationEditor}
                 bounds={getBounds(document)}
+                objects={document.objects}
+                onAdd={(added) => {
+                  if (locked() || !added.length) return;
+                  commit({ ...document, objects: [...document.objects, ...added], selectedObjectId: added[0].id });
+                }}
               />
             ) : null}
             <fieldset className="graph-control-group" disabled={blocked}>

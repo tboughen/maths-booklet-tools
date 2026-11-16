@@ -4823,6 +4823,13 @@
                         "run"
                       ],
                       "additionalProperties": false
+                    },
+                    "arrow": {
+                      "type": "string",
+                      "enum": [
+                        "end",
+                        "middle"
+                      ]
                     }
                   },
                   "required": [
