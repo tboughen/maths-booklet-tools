@@ -3,11 +3,9 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, Eye, EyeOff, Fi
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
 import { WorkedSurface } from "./WorkedSurface";
-import { addedHeight, loadWorked, workedImageBlob, workedPlan, type WorkedShown } from "./worked";
-import type { SurfaceOverlay } from "../../packages/worked-core/src/index";
+import { loadWorked, workedImageBlob, workedPlan, type WorkedShown } from "./worked";
 import { ZoomControls, ZoomOverview } from "./ZoomControls";
-import { useStageZoom } from "./useStageZoom";
-import { stepZoom } from "./zoom";
+import { STACK_GAP, usePane } from "./usePane";
 import { AnnotationBar } from "./AnnotationBar";
 import { annotationReducer, readAnnotationPreferences, saveAnnotationPreferences, withTool, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
 import type { AnnotationSettings } from "./AnnotationLayer";
@@ -15,7 +13,6 @@ import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
 import { assetUrl, downloadBlob, preloadQuestion, questionImage, stackImage } from "./pdf";
 import { catalogueCoverage } from "./coverage";
-import { questionResource } from "./resources";
 import { addedNote, servedParts } from "./cuts";
 import { draftEntries, draftReducer, hasDraftIntent } from "./paper-builder";
 import { loadPaperDraft, paperSummary, savePaperDraft } from "./paper-storage";
@@ -23,7 +20,7 @@ import { forgetWork, noteWork } from "../site/recentWork";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
-import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type BankView, type RoomLayout, type ViewRole } from "./model";
+import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
 import { createDetailLoader, fetchCatalogueIndex, type BankIndex } from "./catalogueLoader";
 import { withPerformance } from "./performance";
 import { PerformanceBadge } from "./PerformanceBadge";
@@ -34,10 +31,8 @@ import { formatCount } from "./format";
 type WebContext = {registerTool: (tool: {name:string;description:string;inputSchema:object;annotations:{readOnlyHint:boolean};execute:(input:unknown)=>unknown},options:{signal:AbortSignal})=>void|Promise<void>};
 /** The bank page's path and query for a route. */
 const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery(route);
-/** What one step of the viewer shows: a question page, or a part stacked under its stem and the parts it needs. */
-interface Slide {items: {pdf: string; view: BankView; worked?: boolean; overlay?: SurfaceOverlay}[]; width: number; height: number; label: string; repeatedContext?: string}
-/** The gap between stacked cuts, in points. */
-const STACK_GAP = 12;
+/** Every pane at fit. */
+const FIT: Record<ViewRole, number> = {question: 1, scheme: 1, "worked-solution": 1};
 /** What the teacher has chosen for the paper, to tell a real change from a re-save. */
 const paperChoiceOf = (draft: { codes: unknown; manual: unknown; excluded: unknown }) => JSON.stringify([draft.codes, draft.manual, draft.excluded]);
 const roomPreference = ():RoomLayout => {try {const v=localStorage.getItem("qb-room");return v==="single"||v==="two"?v:"auto";}catch{return "auto";}};
@@ -56,7 +51,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [search,setSearch]=useState(route.code);
   const [notice,setNotice]=useState("");
   const [mode,setMode]=useState<{id:string;role:ViewRole;view:number}>({id:"",role:"question",view:0});
-  const [zoom,setZoom]=useState(1);
+  // Each pane (question, mark scheme, worked solution) keeps its own zoom.
+  const [zooms,setZooms]=useState(FIT);
   const [fit,setFit]=useState<"page"|"width">("page");
   const [room,setRoom]=useState<RoomLayout>(roomPreference);
   const [overlay,setOverlay]=useState<Overlay>(overlayPreference);
@@ -87,8 +83,6 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [wholeImage,setWholeImage]=useState(false);
   // With a topic open, a question cut into parts shows only its matching parts unless the teacher asks for the whole question.
   const [partsView,setPartsView]=useState(true);
-  const [stageSize,setStageSize]=useState({width:900,height:500});
-  const stage=useRef<HTMLDivElement>(null);
   const searchInput=useRef<HTMLInputElement>(null);
   // The question view a teacher had zoomed into before showing its mark scheme or worked solution.
   const questionView=useRef<{id:string;zoom:number;scroll:{left:number;top:number}}|undefined>(undefined);
@@ -99,7 +93,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const address=bankAddress(next);
     if(activePage.current && location.pathname+location.search!==address) history[replace?"replaceState":"pushState"]({},"",address);
     if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
-    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice(viewError??"");
+    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZooms(FIT);setNotice(viewError??"");
   },[]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
@@ -109,11 +103,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version){const reconciled="The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.";setNotice(previous=>previous?`${previous} ${reconciled}`:reconciled);}}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
-  useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
+  useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZooms(FIT);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
   // The Filters panel and question options menu close when a teacher clicks, taps or tabs anywhere else, or presses Escape.
   useEffect(()=>{const menus=()=>Array.from(app.current?.querySelectorAll<HTMLDetailsElement>("details.qb-filters[open], details.qb-more[open]")??[]);const outside=(event:Event)=>{for(const menu of menus())if(!menu.contains(event.target as Node))menu.open=false;};const escape=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;const menu=menus().find(m=>m.contains(document.activeElement));if(!menu)return;event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector("summary")?.focus();};document.addEventListener("pointerdown",outside);document.addEventListener("focusin",outside);document.addEventListener("keydown",escape,true);return()=>{document.removeEventListener("pointerdown",outside);document.removeEventListener("focusin",outside);document.removeEventListener("keydown",escape,true);};},[]);
-  useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
 
   const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection,crossover:route.crossover,revision:route.revision}),[route.tier,route.calculator,route.collection,route.crossover,route.revision]);
@@ -134,14 +127,14 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const following=results[questionIndex+1] as BankListQuestion|undefined;
   useEffect(()=>{if(!listed||topicsMode)return;let current=true;setDetailError("");loadDetails(following&&active?[listed,following]:[listed]).catch(error=>{if(current)setDetailError(error instanceof Error?error.message:"This question could not be loaded.");});return()=>{current=false;};},[listed,following,topicsMode,active,loadDetails,reload]);
   const role=mode.id===question?.id?mode.role:"question";
-  const resource=question?questionResource(question,role):undefined;
   const topic=catalogue?.topics.find(t=>t.code===route.code);
   const match=question?matchingParts(question,route.code):undefined;
   const served=useMemo(()=>question&&route.code&&match?servedParts(question,match.labels):undefined,[question,route.code,match]);
-  const partMode=role!=="scheme"&&!!served&&partsView;
+  // Only the matching parts, where a topic is open and the question is cut into parts (never for a mark scheme).
+  const partsOn=!!served&&partsView;
   // Keyed on what it shows, not on `served`, which is rebuilt on every render.
-  const planKey=question&&role==="worked-solution"&&question.workedSolution?`${question.id}|${question.revision}|${question.workedSolution.revision}|${partMode&&served?served.cuts.map(c=>c.cut.id).join(","):"whole"}`:"";
-  const planInputs=useRef({question,partMode,served});planInputs.current={question,partMode,served};
+  const planKey=question&&role==="worked-solution"&&question.workedSolution?`${question.id}|${question.revision}|${question.workedSolution.revision}|${partsOn&&served?served.cuts.map(c=>c.cut.id).join(","):"whole"}`:"";
+  const planInputs=useRef({question,partMode:partsOn,served});planInputs.current={question,partMode:partsOn,served};
   const solutionPlan=useMemo(()=>{const {question:q,partMode:parts,served:s}=planInputs.current;return planKey&&q?workedPlan(q,parts?s:undefined):undefined;},[planKey]);
   const [worked,setWorked]=useState<{plan:unknown;shown?:WorkedShown;error?:string}>();
   const [workedRetry,setWorkedRetry]=useState(0);
@@ -160,25 +153,19 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   useEffect(()=>{setStepsShown(0);},[planKey]);
   const upTo=stepMode?(stepsShown?shownSteps[stepsShown-1]:0):undefined;
   const chooseMarks=(on:boolean)=>{setWorkedMarks(on);try{localStorage.setItem("qb-worked-marks",on?"on":"off");}catch{/* Kept for this visit only. */}};
-  const views=useMemo<Slide[]>(()=>{
-    if(role==="worked-solution"){
-      const items=workedShown?.shown?.items;
-      if(!items?.length)return [];
-      return [{items:items.map(item=>({...item,worked:true})),width:Math.max(...items.map(i=>i.view.width)),height:items.reduce((n,i)=>n+i.view.height+addedHeight(i.overlay),0)+STACK_GAP*(items.length-1),label:partMode&&served?`Worked solution · ${served.title}`:"Worked solution"}];
-    }
-    if(partMode&&served){const items=served.cuts.flatMap(s=>s.cut.views.map(view=>({pdf:s.cut.pdf,view})));return [{items,width:Math.max(...items.map(i=>i.view.width)),height:items.reduce((n,i)=>n+i.view.height,0)+STACK_GAP*(items.length-1),label:served.title}];}
-    return (resource?.views||[]).map(view=>({items:[{pdf:resource!.pdf,view}],width:view.width,height:view.height,label:view.label,repeatedContext:view.repeatedContext}));
-  },[partMode,served,resource,role,workedShown]);
-  const viewIndex=Math.min(Math.max(0,role!=="question"?mode.view:route.view),Math.max(0,views.length-1));
-  const view=views[viewIndex];
+  // One pane for each role. For now only the role in use is on screen.
+  const moveNow=useRef<(direction:number)=>void>(()=>undefined);
+  const swipe=useCallback((direction:1|-1)=>moveNow.current(direction),[]);
+  const zoomSetters=useMemo(()=>{const set=(target:ViewRole)=>(value:number)=>setZooms(previous=>previous[target]===value?previous:{...previous,[target]:value});return{question:set("question"),scheme:set("scheme"),"worked-solution":set("worked-solution")};},[]);
+  const paneOptions={question,served,partsView,fit,room,onSwipe:swipe,enabled:!!question&&!topicsMode,drawing:annotating&&annotatePrefs.tool!=="hand",layout:`${!!catalogue}|${display}|${listOpen}|${route.bankView}`};
+  const questionPane=usePane({...paneOptions,role:"question",shown:role==="question",wanted:route.view,zoom:zooms.question,setZoom:zoomSetters.question});
+  const schemePane=usePane({...paneOptions,role:"scheme",shown:role==="scheme",wanted:role==="scheme"?mode.view:0,zoom:zooms.scheme,setZoom:zoomSetters.scheme});
+  const workedPane=usePane({...paneOptions,role:"worked-solution",shown:role==="worked-solution",worked:workedShown?.shown,wanted:role==="worked-solution"?mode.view:0,zoom:zooms["worked-solution"],setZoom:zoomSetters["worked-solution"]});
+  const pane=role==="scheme"?schemePane:role==="worked-solution"?workedPane:questionPane;
+  const {stage,resource,partMode,views,viewIndex,view,two,visibleViews,scale,zoom,pannable,panBy,zoomStep,zoomFit,inkKey,visibleKeys}=pane;
+  const setZoom=zoomSetters[role];
+  const restoreQuestionScroll=questionPane.restoreScroll;
   const suggestions=catalogue?.topics.filter(t=>search.trim()?`${t.code} ${t.title}`.toLowerCase().includes(search.trim().toLowerCase()):catalogue.pilotCodes.includes(t.code)).slice(0,30)||[];
-  const availablePair=views.slice(viewIndex,viewIndex+2);
-  const pairScale=availablePair.length===2?Math.min((stageSize.width-48)/availablePair.reduce((n,v)=>n+v.width,0),(stageSize.height-32)/Math.max(...availablePair.map(v=>v.height))):0;
-  const two=availablePair.length===2&&(room==="two"||(room==="auto"&&stageSize.width>=1500&&pairScale>=1.3));
-  const visibleViews=two?availablePair:view?[view]:[];
-  const widthScale=visibleViews.length?(stageSize.width-32-(two?16:0))/visibleViews.reduce((n,v)=>n+v.width,0):1;
-  const fitScale=visibleViews.length?Math.min(widthScale,(stageSize.height-32)/Math.max(...visibleViews.map(v=>v.height))):1;
-  const scale=Math.max(.01,(fit==="width"?widthScale:fitScale)*zoom);
   const reason=catalogue?emptyReason(catalogue,route):null;
   const previous=!!listed&&(questionIndex>0||viewIndex>0);
   const next=!!listed&&(questionIndex<results.length-1||viewIndex+visibleViews.length<views.length);
@@ -188,12 +175,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     if(question&&newView>=0&&newView<views.length){if(role!=="question")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",bankAddress(updated));window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
     else{const target=results[questionIndex+direction];if(target)go({...route,question:target.id,view:direction<0?Math.max(0,(target.questionViewCount??1)-1):0});}
   },[listed,question,viewIndex,two,views.length,role,route,results,questionIndex,go]);
-  const pannable=visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0)+32>stageSize.width+1||Math.max(0,...visibleViews.map(v=>v.height*scale))+32>stageSize.height+1;
-  const {requestZoom,restoreScroll,panBy}=useStageZoom({stage,zoom,scale,setZoom,onSwipe:move,layoutKey:`${question?.id}|${role}|${viewIndex}|${two}|${partMode}`,enabled:!!question&&!topicsMode,drawing:annotating&&annotatePrefs.tool!=="hand"});
-  const zoomStep=useCallback((direction:1|-1)=>requestZoom(stepZoom(zoom,direction)),[requestZoom,zoom]);
-  const zoomFit=useCallback(()=>requestZoom(1),[requestZoom]);
-  const inkKey=useCallback((item:{pdf:string;view:{page:number}})=>question?`${question.id}|${question.revision}|${role}|${item.pdf}|${item.view.page}`:"",[question,role]);
-  const visibleKeys=visibleViews.flatMap(v=>v.items).map(inkKey).filter(Boolean);
+  moveNow.current=move;
   const visibleKeysRef=useRef(visibleKeys);visibleKeysRef.current=visibleKeys;
   const inkRef=useRef(ink);inkRef.current=ink;
   const commitInk=useCallback((key:string,strokes:Stroke[])=>{undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"set",key,strokes});},[]);
@@ -213,8 +195,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     if(role==="question"&&stage.current)questionView.current={id:question.id,zoom,scroll:{left:stage.current.scrollLeft,top:stage.current.scrollTop}};
     setMode({id:question.id,role:next,view:0});
     const saved=questionView.current;
-    if(next==="question"&&saved?.id===question.id){setZoom(saved.zoom);restoreScroll(saved.scroll);}else setZoom(1);
-  },[question,role,zoom,restoreScroll]);
+    if(next==="question"&&saved?.id===question.id){setZooms(previous=>({...previous,question:saved.zoom}));restoreQuestionScroll(saved.scroll);}else setZooms(previous=>({...previous,[next]:1}));
+  },[question,role,zoom,stage,restoreQuestionScroll]);
   const reveal=useCallback(()=>switchRole(role==="scheme"?"question":"scheme"),[switchRole,role]);
   const revealSolution=()=>{if(question?.workedSolution)switchRole(role==="worked-solution"?"question":"worked-solution");};
   const leaveDisplay=useCallback(()=>{setDisplay(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>undefined);},[]);
