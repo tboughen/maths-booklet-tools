@@ -439,3 +439,8 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-annotate-spare { visibility: hidden; }
 /* Colours and sizes stay in place but read as inactive while a non-drawing tool is chosen. */
 .qb-annotate-bar[data-drawing=false] .qb-annotate-colour, .qb-annotate-bar[data-drawing=false] .qb-annotate-size { opacity: .45; }
+/* Worked solutions: the cut in slices with added room between, and the working over it. */
+.qb-worked-surface { position: relative; background: #fff; }
+.qb-worked-slice { position: absolute; left: 0; right: 0; overflow: hidden; }
+.qb-worked-ink { position: absolute; inset: 0; pointer-events: none; }
+.qb-worked-ink svg { display: block; width: 100%; height: 100%; overflow: visible; }

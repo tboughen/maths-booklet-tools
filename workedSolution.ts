@@ -1,60 +1,45 @@
 // Shared browser, registration and release contract. No Node/browser side effects.
-export interface SolutionView {
-  id: string;
-  label: string;
-  page: number;
-  width: number;
-  height: number;
-  preview: string;
-  description: string;
-  sourcePages: number[];
-  repeatedContext?: string;
-}
+//
+// A worked solution is data: checked steps for each part, stored as one JSON file in the private
+// bank and drawn by MathsDock over the question's own cuts (packages/worked-core). The catalogue
+// holds only this attachment: where the file is, its hash and the question revision it was written
+// for. See docs/content/WORKED-SOLUTIONS.md.
 
 export interface WorkedSolution {
-  schemaVersion: 1;
-  /** Missing on retained legacy full-page resources. */
-  layout?: "individual-question";
+  schemaVersion: 2;
+  /** Changes whenever the steps change; each revision has its own file. */
   revision: string;
   basedOnQuestionRevision: string;
-  pdf: string;
-  pdfSha256: string;
-  views: SolutionView[];
+  /** The steps file: bank/assets/worked/<question id>/<revision>.json */
+  data: string;
+  dataSha256: string;
 }
 
-export function bankAssetPath(path: unknown, extension?: "pdf" | "png"): path is string {
-  return typeof path === "string" && /^bank\/assets\/[A-Za-z0-9_./-]+\.(pdf|png)$/.test(path)
+export type BankAssetExtension = "pdf" | "png" | "json";
+
+export function bankAssetPath(path: unknown, extension?: BankAssetExtension): path is string {
+  return typeof path === "string" && /^bank\/assets\/[A-Za-z0-9_./-]+\.(pdf|png|json)$/.test(path)
     && !path.split("/").some(part => part === ".." || part === "." || part === "")
     && (!extension || path.endsWith(`.${extension}`));
 }
 
-const text = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
-const revision = (value: unknown): value is string => text(value) && /^[A-Za-z0-9_-]{1,128}$/.test(value);
-const canonical = (value: unknown): string | undefined => Array.isArray(value) ? `[${value.map(canonical).join(",")}]`
-  : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical((value as Record<string,unknown>)[key])}`).join(",")}}` : JSON.stringify(value);
+const revision = (value: unknown): value is string => typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+const KEYS = ["basedOnQuestionRevision", "data", "dataSha256", "revision", "schemaVersion"].join();
+
+/** The steps file's path for a question and revision. */
+export const workedDataPath = (questionId: string, solutionRevision: string) => `bank/assets/worked/${questionId}/${solutionRevision}.json`;
 
 export function validateWorkedSolution(value: unknown, questionRevision: string): asserts value is WorkedSolution {
   const fail = () => { throw new Error("Worked solution is incomplete, invalid or based on a different question revision."); };
   if (!value || typeof value !== "object" || Array.isArray(value)) return fail();
   const s = value as WorkedSolution;
-  if (s.schemaVersion !== 1 || !revision(s.revision) || !revision(s.basedOnQuestionRevision)
-      || (s.layout !== undefined && s.layout !== "individual-question")
-      || s.basedOnQuestionRevision !== questionRevision || !bankAssetPath(s.pdf, "pdf")
-      || !/^[a-f0-9]{64}$/.test(s.pdfSha256) || !Array.isArray(s.views) || !s.views.length) return fail();
-  const ids = new Set<string>();
-  let previousSourcePage = 0;
-  for (const [index, view] of s.views.entries()) {
-    if (!view || !text(view.id) || ids.has(view.id) || !text(view.label) || !text(view.description)
-        || view.page !== index + 1 || !Number.isFinite(view.width) || view.width <= 0
-        || !Number.isFinite(view.height) || view.height <= 0 || !bankAssetPath(view.preview, "png")
-        || !Array.isArray(view.sourcePages) || !view.sourcePages.length
-        || view.sourcePages.some((page, i) => !Number.isSafeInteger(page) || page <= 0 || (i > 0 && page <= view.sourcePages[i-1]))
-        || (s.layout !== "individual-question" && (view.sourcePages.length !== 1 || view.sourcePages[0] <= previousSourcePage))
-        || (view.repeatedContext !== undefined && !text(view.repeatedContext))) return fail();
-    ids.add(view.id);
-    previousSourcePage = view.sourcePages[0];
-  }
+  if (Object.keys(s).sort().join() !== KEYS || s.schemaVersion !== 2 || !revision(s.revision) || !revision(s.basedOnQuestionRevision)
+      || s.basedOnQuestionRevision !== questionRevision || !bankAssetPath(s.data, "json")
+      || !s.data.startsWith("bank/assets/worked/") || !/^[a-f0-9]{64}$/.test(s.dataSha256)) return fail();
 }
+
+const canonical = (value: unknown): string | undefined => Array.isArray(value) ? `[${value.map(canonical).join(",")}]`
+  : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical((value as Record<string,unknown>)[key])}`).join(",")}}` : JSON.stringify(value);
 
 // Catalogue rebuilders must preserve attachments or explicitly resolve a conflict.
 // Never transfer one implicitly to changed question content or another ID.

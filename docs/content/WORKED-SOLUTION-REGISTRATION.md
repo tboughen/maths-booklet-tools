@@ -1,228 +1,101 @@
-# Per-question worked solutions
+# Per-question worked solutions: files and registration
 
-The Question bank supports an optional authored **Worked solution** alongside the
-official mark scheme. Questions remain the initial view. Each answer type is
-revealed deliberately and replaces the current resource in the same pane. Hiding
-it returns to Question. Switching question, filters, crossover identity or reloading
-opens Question. Worked-solution visibility also resets on browser/section navigation;
-the existing mark-scheme session is retained when returning to the same question
-from another section. Ordinary question links never encode an answer role. Display
-mode includes the same reveal controls.
+A worked solution is **data**: checked steps for each part of a question, kept as one JSON file in
+the private bank and drawn by MathsDock over the question's own cuts at true size. What the steps
+say and how they look is in [WORKED-SOLUTIONS.md](WORKED-SOLUTIONS.md). This page covers where the
+files live, how one is attached to a question, and how it reaches the website.
 
-Questions without a registration show a disabled **Show worked solution** and
-**Not available yet**. This feature does not populate the bank. Existing paper
-exports and paper-review previews continue to use questions and official schemes.
-Copy image/PNG uses the selected resource; **Whole question** includes all its
-pages. The options menu offers its complete **Worked solution PDF** separately
-from **Source question PDF**. Existing canvas limits and PDF fallbacks apply.
+The old worked solutions (one flat PDF and PNG per question, schema 1) were retired on
+16 November 2026 together with all code that read them. Their files stay in the bank under
+`worked/<question id>/<old revision>/` as the starting point for the new data; nothing serves them.
 
-## Resource contract
+## In the Question bank
 
-`BankQuestion.workedSolution` is optional for compatibility with existing
-catalogues. When present it is an atomic object:
+Questions open first. **Show worked solution** is deliberate and replaces the current resource in
+the same pane; hiding it returns to Question. Switching question, filters, crossover identity or
+reloading opens Question, and ordinary question links never encode an answer role. Questions with
+no attachment show a disabled button and **Not available yet**.
 
-```json
-{
-  "schemaVersion": 1,
-  "layout": "individual-question",
-  "revision": "immutable-solution-revision",
-  "basedOnQuestionRevision": "exact-bank-question-revision",
-  "pdf": "bank/assets/worked/QUESTION_ID/REVISION/solution.pdf",
-  "pdfSha256": "EXACT_64_CHARACTER_LOWERCASE_SHA256",
-  "views": [
-    {
-      "id": "solution-page-1",
-      "label": "Question 12",
-      "page": 1,
-      "width": 595.28,
-      "height": 841.89,
-      "preview": "bank/assets/worked/QUESTION_ID/REVISION/solution-1.png",
-      "description": "Question 12, all parts and worked solution",
-      "sourcePages": [8]
-    }
-  ]
-}
-```
+- In part view the working shows over the served part's cuts (and its stem), with only that part's
+  grey (N). The whole question shows every cut stacked, with the **Total for Question** line the
+  cuts leave out. An uncut question shows its own views.
+- The steps file and the handwriting font load only when a worked solution is first opened.
+- Copy image and PNG are switched off for a worked solution until worked exports arrive.
+  Paper Builder keeps its two outputs (questions, mark schemes).
 
-This example contains placeholders, not an accepted registration. Use the actual
-native PDF dimensions in points. `page` is the one-based page in the derivative
-PDF; `sourcePages` contains its one original full-paper page number. Every PDF
-page has exactly one view in derivative order. With `layout: "individual-question"`,
-each view names one or more positive source page numbers in ascending order;
-a source page can occur in multiple views when blocks are composed or continued.
-Record purposeful repeated context in `repeatedContext` and bind the full owned
-block/transform mapping in the editable recipe. Retained legacy solutions without
-`layout` keep their existing one-source-page/strictly-increasing validation.
-Continuation pages 8/9 become derivative pages 1/2. Revisions are bounded
-nonempty identifiers using letters, digits, `_` and `-`. Hashes use lowercase hex.
+## The catalogue attachment
 
-Keep the bank question revision and existing question/scheme resources unchanged
-when adding an attachment. The solution has its own immutable revision. Changing
-question content invalidates the solution's base revision; reconcile and review it
-explicitly rather than transferring an old answer to new content. Every crossover
-appearance needs its own registration, even if identical file bytes deduplicate
-in content-addressed storage. No equivalent-ID fallback is used.
-
-## Prepare the individual resource
-
-Create one whole-question resource containing every target part, required prompt,
-figure, context, checked black working and nearby dark-pink TF09 guidance.
-Compose owned native source blocks at 1:1, extending prompt-only bounds to include
-working and notes. Exclude neighbouring printed questions and their worked
-overlays. Include every target continuation in the same question resource/PDF.
-Produce physical derivative pages with matching PDF/PNG dimensions; CSS clipping,
-white masks or changing only a CropBox/preview do not establish correct output.
-Check actual viewer, copy and download routes. Preserve the checked full-paper
-master and editable bundle unchanged as source evidence.
-
-Check every final page in colour and greyscale, its original glyphs/positions,
-mathematics, mark logic and neighbour-answer isolation under the current method
-rulebook. Retain source/checked-paper hashes and a review record tied to the exact
-target PDF, PNG hashes and source page mapping. Review flags remain nonblocking
-under the rulebook; mathematical defects must be repaired. The registration helper
-does not solve questions, inspect mathematical correctness or prove target-only
-content automatically. Its review-evidence hashes identify the operator's retained
-checks, which must actually exist and refer to these bytes.
-
-## Stage a batch locally
-
-Use Node 24 with the repository's locked dependencies. The command produces a
-new directory containing a **catalogue proposal**, new assets and `receipt.json`.
-It never edits the input catalogue, uploads objects or deploys a website.
-
-```powershell
-node scripts/bank/register-worked-solutions.ts `
-  "--catalogue=C:/absolute/current/catalogue.json" `
-  "--batch=C:/absolute/task/batch.json" `
-  "--public=C:/absolute/asset-input/public" `
-  "--output=C:/absolute/task/staged-batch-001"
-```
-
-Use the current reviewed **source** catalogue from the candidate checkout, after
-reconciling its IDs/revisions with the actual live catalogue. The live catalogue
-has content-addressed URLs; it is not a replacement for source paths whose files
-are held locally.
-
-The input public directory contains files at the relative paths in the solution.
-The batch format is:
+`BankQuestion.workedSolution` is optional. When present it is exactly:
 
 ```json
 {
-  "schemaVersion": 1,
-  "batchId": "past-paper-batch-001",
-  "registrations": [
-    {
-      "questionId": "EXACT_BANK_QUESTION_ID",
-      "expectedQuestionRevision": "EXACT_BANK_QUESTION_REVISION",
-      "solution": { "...": "complete workedSolution object above" },
-      "files": [
-        { "path": "bank/assets/worked/QUESTION_ID/REVISION/solution.pdf", "sha256": "ACTUAL_PDF_SHA256" },
-        { "path": "bank/assets/worked/QUESTION_ID/REVISION/solution-1.png", "sha256": "ACTUAL_PNG_SHA256" }
-      ],
-      "evidence": {
-        "sourcePdfSha256": "ACTUAL_ORIGINAL_PAPER_SHA256",
-        "checkedPaperPdfSha256": "ACTUAL_CHECKED_ALL_ANSWERS_PAPER_SHA256",
-        "reviewRecordSha256": "ACTUAL_TARGET_REVIEW_RECORD_SHA256",
-        "targetOnly": true,
-        "fullOriginalPages": false,
-        "resourceScope": "individual-whole-question",
-        "recipeSha256": "ACTUAL_EDITABLE_COMPOSITION_RECIPE_SHA256",
-        "allPartsChecked": true,
-        "neighbourQuestionsExcluded": true
-      }
-    }
-  ]
+  "schemaVersion": 2,
+  "revision": "ws-2026-11-16-a",
+  "basedOnQuestionRevision": "31a7cdaf55d22bfb",
+  "data": "bank/assets/worked/1MA1_JUN_2017_1F_Q20/ws-2026-11-16-a.json",
+  "dataSha256": "<sha-256 of the file's bytes>"
 }
 ```
 
-List each unique referenced PDF/PNG exactly once in `files`. The helper validates
-IDs/base revisions, complete view metadata, safe contained paths, exact hashes,
-actual PDF page count/geometry (unrotated unit-point pages without derivative
-CropBox clipping), PNG decoding and preview proportions before
-publishing any proposal directory. Individual-question previews also accept
-independent upward pixel rounding on each axis only when both dimensions admit
-one uniform native render scale; stretched images still fail. Legacy preview
-validation is unchanged. Byte snapshots feed the staged files and
-receipt. Duplicate IDs, a changed question, differing existing solution, missing
-file or failed check leaves no final output. A repeated exact registration is an
-`unchanged` no-op; use a new output directory for its receipt. New registrations
-must declare individual-question layout and truthful individual review evidence.
-Legacy full-page attachments remain readable and can be repeated exactly with
-their historical full-page evidence; they cannot be newly added or substituted.
-Never overwrite a previous batch or resolve a conflict by changing only its
-expected revision.
+- `data` is always `bank/assets/worked/<question id>/<revision>.json`, and a new revision is a new
+  file. Files are never edited in place once registered.
+- `basedOnQuestionRevision` must equal the question's `revision`. A changed question hides its
+  solution until the solution is checked against it and registered again.
+- The steps file names the same question id and revision (`questionId`, `questionRevision`);
+  the page refuses a file whose hash or owner differs from the catalogue.
 
-## Guarded replacement
+The shared contract is `workedSolution.ts`; the steps schema, renderer and checks are
+`packages/worked-core`.
 
-To correct an existing attachment, include `expectedPreviousSolution` containing
-the complete exact previous `workedSolution` object, alongside the new `solution`.
-Keep `expectedQuestionRevision` unchanged and freshly reconciled. The helper
-compares the entire expected prior object, including views and hashes, with the
-current attachment. A different or absent attachment rejects the proposal.
+## Register a batch
 
-Use a new immutable solution revision and new PDF/preview paths. Do not remove the
-old attachment first, edit a retained revision's files, or bypass catalogue-rebuild
-guards. The receipt records `replaced` with the old/new objects; `added` and
-`unchanged` remain separate. An exact repeat after successful replacement is a
-no-op even though the supplied expected-old object is now historical. It must
-still be well formed and identify distinct old assets/revision.
+1. Write the steps files into the bank checkout at their `data` paths.
+2. Write a batch file:
 
-All entries and asset bytes are validated before the final proposal directory
-appears. A failed batch leaves live/input data untouched. Keep both old and new
-manifests for later authorised publication and recovery. This local helper does
-not upload, qualify, merge or deploy anything.
+   ```json
+   { "schemaVersion": 2, "batchId": "pilot-jun-2017-1f",
+     "registrations": [{ "questionId": "…", "expectedQuestionRevision": "…", "solution": { …attachment… } }] }
+   ```
 
-The staged catalogue preserves unrelated metadata and appearance identities. Its
-version changes when attachments are added. The receipt binds the input catalogue,
-batch, proposed catalogue, source/review hashes, per-ID action and all asset hashes.
-It records `staged_not_published`; it is not an upload or live-acceptance receipt.
+   To replace an attachment, add `expectedPreviousSolution` with the current one; the new one needs
+   a new revision and file.
+3. Stage it (plain Node 24, no build):
 
-## Preserve attachments during catalogue regeneration
+   ```
+   node scripts/bank/register-worked-solutions.ts --catalogue=/abs/public/bank/catalogue.json \
+     --batch=/abs/batch.json --public=/abs/public --output=/abs/fresh-output-directory
+   ```
 
-If another importer regenerates question records, use the same staging command
-with `--proposed-catalogue=C:/absolute/regenerated/catalogue.json`. The current
-catalogue remains `--catalogue`. An empty `registrations` array is valid for a
-preservation-only pass. The shared `preserveWorkedSolutions` guard restores omitted
-attachments for unchanged IDs/revisions and refuses removed, changed or conflicting
-attached questions. Integrate the guarded proposal, never the unguarded rebuild.
-No historical/stopped authoring controller is reactivated by this feature.
+   This checks each attachment, file hash and owner, refuses conflicts and writes a proposed
+   catalogue, the files and a receipt to the new directory. The source catalogue is never touched.
+4. Copy the proposal in, then run the full checks on the real bank:
+   `npx vitest run src/bank/worked-bank.test.ts`. They parse every steps file and run every
+   machine check of the standard (marks add up, every answer line filled, carried answers match,
+   stacked fractions, school words, nothing overlapping or off the cut). Nothing is committed while
+   any check fails.
 
-## Qualification and publication
-
-Integrate reviewed proposals and their assets into an owned current-main candidate.
-Reconcile the live catalogue and source revisions again before doing so; a stale
-local snapshot is not live authority. Follow [the release pipeline](../release/RELEASE-PIPELINE.md)
-and the workspace publication rulebook. Both preview and Cloudflare builds verify
-registered solution files. `bankAssets.ts` includes all solution PDFs/previews;
-`release.ts` rewrites them to the existing immutable SHA-256 keys. The transformation
-identity binds their shared schema and file validator, so old inventory reuse is
-invalidated when that implementation changes.
-
-Preserve all classifier-selected checks. These publisher/transform changes are
-conservative infrastructure changes; do not invent a narrow audit exemption.
-Keep qualification, merge, deployment, object upload and actual live verification
-as separate recorded stages. An empty-slot feature release proves no production
-solution content. The later upload tranche must verify each newly adopted object's
-public bytes/headers/ranges and actual HTTPS reveals, including shared-page and
-multi-page cases. Keep resumable batch receipts and exact outstanding IDs.
-
-There is no new public upload API, storage service, paid dependency, schema upgrade
-for diagram documents, bulk worked-solution booklet export or automatic sharing.
+If another importer regenerates question records, stage with
+`--proposed-catalogue=/abs/regenerated/catalogue.json` and an empty `registrations` array. The
+`preserveWorkedSolutions` guard keeps attachments for unchanged questions and refuses removed or
+changed ones.
 
 ## Where the files are committed
 
-`public/bank/assets/` is the `tboughen/mathsdock-bank` repository, linked as a Git
-submodule. Registering resources therefore takes two commits: commit and push the
-new files inside `public/bank/assets` first, then commit `catalogue.json` and the
-updated submodule link in this repository. The release bank fingerprint
-(`HEAD:public/bank`) includes that link, so qualification still pins exact files.
+`public/bank/assets/` is the private `tboughen/mathsdock-bank` repository, linked as a submodule.
+Commit and push the steps files inside it first, then commit `catalogue.json` and the updated
+submodule link here. The bank fingerprint (`HEAD:public/bank`) includes that link.
 
-`catalogue.json` stays the only catalogue file to edit. Every build derives the
-light `bank/catalogue-index.json` and one `bank/catalogue-papers/<paperId>.<hash>.json`
-detail file per paper from it (`bankCatalogueSplit.ts`); the question bank page
-loads the index first and a paper's file only when one of its questions is
-opened, previewed or exported. Never edit or commit the derived files.
+`catalogue.json` is the only catalogue file to edit. Every build derives the light
+`bank/catalogue-index.json` and one detail file per paper from it (`bankCatalogueSplit.ts`).
 
-The bank repository is private. Workflows check it out at the linked commit with the
-`BANK_READ_TOKEN` repository secret: a fine-grained token with read-only Contents
-access to `tboughen/mathsdock-bank` only. Renew it before it expires.
+Workflows check the bank out with the `BANK_READ_TOKEN` secret (read-only Contents access to the
+bank only). Renew it before it expires.
+
+## Release
+
+`bankAssets.ts` lists each steps file with the other bank assets, and only as `.json`.
+`scripts/cloudflare/release.ts` checks it parses, then rewrites `data` to its immutable
+`bank/assets/sha256/<hash>.json` object served as `application/json` behind staff sign-in.
+Preview and Cloudflare builds check every registered file's hash and owner
+(`scripts/bank/solution-files.ts`). Worked solutions are switched on paper by paper, and each
+switch-on is a website release that needs Tim's go.
