@@ -898,11 +898,15 @@ export function GraphCanvas({
                     key={index}
                     x={layout.plotLeft + placement.yTitle!.leftFromPlotLeft * FROM_PRINT}
                     y={
-                      (layout.plotTop + layout.plotBottom) / 2 +
-                      ((index - (placement.yTitle!.lines.length - 1) / 2) *
-                        placement.lineHeight) *
-                        FROM_PRINT +
-                      AXIS_LABEL_FONT_SIZE * 0.34
+                      placement.yTitle!.firstBaselineFromPlotTop !== undefined
+                        ? // Above the axis, as the print copy places it.
+                          layout.plotTop +
+                          (placement.yTitle!.firstBaselineFromPlotTop + index * placement.lineHeight) * FROM_PRINT
+                        : (layout.plotTop + layout.plotBottom) / 2 +
+                          ((index - (placement.yTitle!.lines.length - 1) / 2) *
+                            placement.lineHeight) *
+                            FROM_PRINT +
+                          AXIS_LABEL_FONT_SIZE * 0.34
                     }
                   >
                     {line}

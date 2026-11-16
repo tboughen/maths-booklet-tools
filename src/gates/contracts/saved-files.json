@@ -4779,6 +4779,11 @@
                     "description": "Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y.",
                     "type": "string",
                     "maxLength": 60
+                  },
+                  "titleAbove": {
+                    "description": "y only: print the title above the axis (Edexcel style), so the graph stays narrow beside a table.",
+                    "type": "boolean",
+                    "const": true
                   }
                 },
                 "required": [
@@ -4834,6 +4839,11 @@
                     "description": "Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y.",
                     "type": "string",
                     "maxLength": 60
+                  },
+                  "titleAbove": {
+                    "description": "y only: print the title above the axis (Edexcel style), so the graph stays narrow beside a table.",
+                    "type": "boolean",
+                    "const": true
                   }
                 },
                 "required": [
@@ -7052,8 +7062,8 @@
                 "text": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 12,
-                  "pattern": "^[A-Za-z0-9 _/%£-]+$|^(?:\\d+\\/)?[A-Za-z]+\\^\\d$"
+                  "maxLength": 16,
+                  "pattern": "^[A-Za-z0-9 _/%£°()-]+$|^(?:\\d+\\/)?[A-Za-z]+\\^\\d$"
                 },
                 "italic": {
                   "type": "boolean"

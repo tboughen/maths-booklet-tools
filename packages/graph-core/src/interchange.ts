@@ -155,6 +155,10 @@ export const axisSchema = z
     title: titleSchema
       .optional()
       .describe("Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y."),
+    titleAbove: z
+      .literal(true)
+      .optional()
+      .describe("y only: print the title above the axis (Edexcel style), so the graph stays narrow beside a table."),
   })
   .strict();
 const gridSchema = z
@@ -220,6 +224,10 @@ const axesSchema = z
           message: `Use 2 to ${maximum} squares on the ${key} axis.`,
         });
     }
+    if (axes.x.titleAbove)
+      c.addIssue({ code: "custom", path: ["x", "titleAbove"], message: "Only the y-axis title can print above its axis." });
+    if (axes.y.titleAbove && !axes.y.title)
+      c.addIssue({ code: "custom", path: ["y", "titleAbove"], message: "Give the y-axis a title to print above it." });
   });
 export const equationSchema = z.discriminatedUnion("kind", [
   z
@@ -903,6 +911,7 @@ function canonicalAxis(a: AxisConfig): AxisConfig {
     ...(a.labelEvery !== undefined ? { labelEvery: a.labelEvery } : {}),
     ...(a.format !== undefined ? { format: a.format } : {}),
     ...(a.title !== undefined ? { title: a.title } : {}),
+    ...(a.titleAbove ? { titleAbove: true as const } : {}),
     ...(a.name !== undefined ? { name: a.name } : {}),
   };
 }
