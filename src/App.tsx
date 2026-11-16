@@ -281,6 +281,16 @@ export default function App({ active = true }: { active?: boolean }) {
                   }
                 : {}),
             }
+          : selectedObject.kind === "curve"
+          ? {
+              ...selectedObject,
+              points: selectedObject.points.map((p) => ({ x: cleanNumber(p.x + dx), y: cleanNumber(p.y + dy) })),
+              ...(selectedObject.namePosition
+                ? { namePosition: { x: cleanNumber(selectedObject.namePosition.x + dx), y: cleanNumber(selectedObject.namePosition.y + dy) } }
+                : {}),
+            }
+          : selectedObject.kind === "reading"
+          ? { ...selectedObject, at: { x: cleanNumber(selectedObject.at.x + dx), y: cleanNumber(selectedObject.at.y + dy) } }
           : selectedObject.kind === "point"
           ? {
               ...selectedObject,
@@ -358,6 +368,34 @@ export default function App({ active = true }: { active?: boolean }) {
       objects: [...document.objects, shape],
       selectedObjectId: shape.id,
     });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds a graph through points for the teacher to edit: four points across the grid, joined. */
+  function addCurve() {
+    if (locked()) return;
+    const b = getBounds(document);
+    const at = (fx: number, fy: number) => ({ x: cleanNumber(b.xMin + (b.xMax - b.xMin) * fx), y: cleanNumber(b.yMin + (b.yMax - b.yMin) * fy) });
+    const curve: GraphObject = { id: makeId("curve"), kind: "curve", points: [at(0.1, 0.2), at(0.35, 0.6), at(0.6, 0.6), at(0.9, 0.85)] };
+    commit({ ...document, objects: [...document.objects, curve], selectedObjectId: curve.id });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds reading lines at a point for the teacher to move onto the graph. */
+  function addReading() {
+    if (locked()) return;
+    const b = getBounds(document);
+    const reading: GraphObject = {
+      id: makeId("reading"),
+      kind: "reading",
+      at: { x: cleanNumber((b.xMin + b.xMax) / 2), y: cleanNumber((b.yMin + b.yMax) / 2) },
+      read: "y",
+    };
+    commit({ ...document, objects: [...document.objects, reading], selectedObjectId: reading.id });
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
@@ -696,6 +734,8 @@ export default function App({ active = true }: { active?: boolean }) {
                 onEquation={() => openEquationEditor()}
                 onShape={addShape}
                 onRegion={addRegion}
+                onCurve={addCurve}
+                onReading={addReading}
               />
             </fieldset>
             <AxisSettings

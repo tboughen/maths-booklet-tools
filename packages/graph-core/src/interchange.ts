@@ -29,6 +29,7 @@ import {
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
+import { curveProblem, curveVisible, readingVisible } from "./curve";
 import { imageObjects, transformationProblem, type Transformation } from "./transform";
 import { gradientLabelClashes } from "./svg";
 import {
@@ -44,6 +45,8 @@ import { MathsDockError, zodFields } from "../../envelope-core/src/errors";
 import { RENDERER_VERSION } from "./version";
 export { RENDERER_VERSION };
 export const MAX_REQUEST_BYTES = 64 * 1024;
+/** Points in one curve: enough for a travel graph or a curve read off a paper every half square. */
+export const MAX_CURVE_POINTS = 40;
 export const MAX_LINK_LENGTH = 8192;
 export const MAX_FILE_BYTES = 1024 * 1024;
 export class GraphError extends MathsDockError {
@@ -125,6 +128,11 @@ export const axisSchema = z
       .enum(["number", "time"])
       .optional()
       .describe("time reads values as minutes after midnight and prints 12 00, 12 30. Default number."),
+    name: z
+      .string()
+      .regex(/^[a-zA-Z]$/, "Use one letter, such as t or v.")
+      .optional()
+      .describe("Italic letter at the arrow, such as t."),
     title: titleSchema
       .optional()
       .describe("Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y."),
@@ -304,6 +312,29 @@ export const objectInputSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: identifier.optional(),
+      kind: z.literal("curve"),
+      points: z.array(inputCoordinate).min(2).max(MAX_CURVE_POINTS).describe("2 to 40 points in order."),
+      smooth: z.boolean().optional().describe("Smooth through every point; omitted joins with straight pieces."),
+      strokeStyle: z.enum(["solid", "dashed"]).optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("A travel or real-life graph through points."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("reading"),
+      at: inputCoordinate,
+      read: z.enum(["x", "y", "both"]).describe("Which value is read: the head is on that axis."),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("Dashed reading lines from a point to the axes."),
+  z
+    .object({
+      id: identifier.optional(),
       kind: z.literal("image"),
       of: identifier.describe("An earlier polygon's id."),
       transformation: transformationSchema,
@@ -404,6 +435,27 @@ const objectSchema = z.discriminatedUnion("kind", [
       boundaries: z.boolean(),
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("curve"),
+      points: z.array(coordinate).min(2).max(MAX_CURVE_POINTS),
+      smooth: z.literal(true).optional(),
+      strokeStyle: z.literal("dashed").optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("reading"),
+      at: coordinate,
+      read: z.enum(["x", "y", "both"]),
       answerOnly: z.literal(true).optional(),
     })
     .strict(),
@@ -563,8 +615,8 @@ function makeObject(
 ): GraphObject {
   const id = input.id ?? `object-${index + 1}`;
   const named = {
-    ...(input.name ? { name: input.name } : {}),
-    ...(input.namePosition ? { namePosition: input.namePosition } : {}),
+    ...("name" in input && input.name ? { name: input.name } : {}),
+    ...("namePosition" in input && input.namePosition ? { namePosition: input.namePosition } : {}),
     ...(input.answerOnly ? { answerOnly: true as const } : {}),
   };
   if (input.kind === "point")
@@ -577,6 +629,20 @@ function makeObject(
       ...(input.shaded ? { shaded: true as const } : {}),
       ...named,
     };
+  if (input.kind === "curve") {
+    const problem = curveProblem(input.points);
+    if (problem) throw new GraphError("invalid_graph", `${id}: ${problem}`);
+    return {
+      id,
+      kind: "curve",
+      points: input.points.map((p) => ({ x: p.x, y: p.y })),
+      ...(input.smooth ? { smooth: true as const } : {}),
+      ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
+      ...named,
+    };
+  }
+  if (input.kind === "reading")
+    return { id, kind: "reading", at: { x: input.at.x, y: input.at.y }, read: input.read, ...(input.answerOnly ? { answerOnly: true as const } : {}) };
   if (input.kind === "region") {
     const problem = regionProblem(input);
     if (problem) throw new GraphError("invalid_region", `${id}: ${problem}`);
@@ -692,6 +758,7 @@ function canonicalAxis(a: AxisConfig): AxisConfig {
     ...(a.labelEvery !== undefined ? { labelEvery: a.labelEvery } : {}),
     ...(a.format !== undefined ? { format: a.format } : {}),
     ...(a.title !== undefined ? { title: a.title } : {}),
+    ...(a.name !== undefined ? { name: a.name } : {}),
   };
 }
 function canonicalName(o: GraphObject) {
@@ -704,8 +771,19 @@ function canonicalName(o: GraphObject) {
 export function canonicalEnvelope(envelope: GraphEnvelope): string {
   const document = documentFromEnvelope(envelope);
   // Explicit property construction fixes ordering and defaults across all clients.
-  document.objects = document.objects.map((o) =>
-    o.kind === "region"
+  document.objects = document.objects.map((o): GraphObject =>
+    o.kind === "curve"
+      ? {
+          id: o.id,
+          kind: o.kind,
+          points: o.points.map((p) => ({ x: p.x, y: p.y })),
+          ...(o.smooth ? { smooth: true as const } : {}),
+          ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}),
+          ...canonicalName(o),
+        }
+      : o.kind === "reading"
+      ? { id: o.id, kind: o.kind, at: { x: o.at.x, y: o.at.y }, read: o.read, ...(o.answerOnly ? { answerOnly: true as const } : {}) }
+      : o.kind === "region"
       ? {
           id: o.id,
           kind: o.kind,
@@ -894,7 +972,11 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
   });
   return crowded.concat(arrows, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
     .filter((o) =>
-      o.kind === "region"
+      o.kind === "curve"
+        ? !curveVisible(o, bounds)
+        : o.kind === "reading"
+        ? !readingVisible(o, bounds)
+        : o.kind === "region"
         ? !regionPolygon(regionHalfPlanes(o), bounds).length
         : o.kind === "point"
         ? !pointInBounds(o.position, bounds)
@@ -915,7 +997,11 @@ export function describeGraph(envelope: GraphEnvelope): string {
     `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
-      o.kind === "region"
+      o.kind === "curve"
+        ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}${o.smooth ? "smooth curve" : "graph of straight pieces"} through ${o.points.map((p) => `(${p.x}, ${p.y})`).join(" ")}${named(o)}`
+        : o.kind === "reading"
+        ? `${o.id}: dashed reading lines at (${o.at.x}, ${o.at.y}), ${o.read === "both" ? "to both axes" : `reading ${o.read}`}${named(o)}`
+        : o.kind === "region"
         ? `${o.id}: region ${o.inequalities.join(", ")}${named(o)}, ${o.shade === "wanted" ? "region shaded" : "unwanted side shaded, region left clear"}${o.boundaries ? ", boundaries drawn (dashed for < and >)" : ""}`
         : o.kind === "point"
         ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`
