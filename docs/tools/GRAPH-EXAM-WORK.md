@@ -60,6 +60,12 @@ The connector's graph capabilities budget rose from 26,900 to 32,400 bytes for t
 - **Axis letters.** An axis takes `name`, one letter such as t or v, printed in italic at the
   arrow. Unlike a title, it does not replace the letter; with both, the letter sits at the
   arrow and the title beside the axis, as velocity–time graphs print them.
+- **Y title above the axis.** `axes.y.titleAbove: true` (editor: *Title above the axis*, shown
+  once the y-axis has a title) prints the title on one line above the axis, starting at the
+  left edge of the y numbers, as many Edexcel graphs print it. The graph gains height and loses
+  the 2 to 4 cm the title took beside the axis, so a titled graph fits beside a ratio table in a
+  third-width worksheet column. It wraps only if wider than the graph. Graphs without it are
+  unchanged (16 Nov 2026).
 - **Connector.** `{kind: "curve", points, smooth?, strokeStyle?, name?, answerOnly?}`,
   `{kind: "reading", at, read: "x" | "y" | "both", answerOnly?}` and `axes.x.name`. The graph
   capabilities budget rose to 35,400 bytes (measured 33,724).

@@ -460,6 +460,7 @@ export function isAxisConfig(value: unknown): value is AxisConfig {
       (typeof candidate.title === "string" &&
         candidate.title.trim().length > 0 &&
         candidate.title.length <= MAX_AXIS_TITLE_LENGTH)) &&
+    (candidate.titleAbove === undefined || candidate.titleAbove === true) &&
     (candidate.name === undefined || (typeof candidate.name === "string" && /^[a-zA-Z]$/.test(candidate.name)))
   );
 }

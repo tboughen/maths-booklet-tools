@@ -228,7 +228,8 @@ describe("exact ratio-table documents and revisions", () => {
         },
       ]),
     ).toThrow(/too wide/);
-    expect(() =>
+    // A long heading widens the columns instead of being refused.
+    expect(
       applyRatioOperations(envelope, [
         {
           op: "set_headings",
@@ -237,8 +238,8 @@ describe("exact ratio-table documents and revisions", () => {
             envelope.document.headings[1],
           ],
         },
-      ]),
-    ).toThrow(/heading is too wide/);
+      ]).document.headings[0].text,
+    ).toBe("Temperature");
     const link = ratioEditorLink(
       envelope,
       "https://example.com/maths-booklet-tools/?tool=question-bank&code=U851#old",
