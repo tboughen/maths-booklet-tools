@@ -12,7 +12,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { downloadName } from "../export/filenames";
 import { useResourceFit } from "../site/useResourceFit";
@@ -66,6 +65,10 @@ import {
   scatterTableNames,
   scatterOf,
   type ScatterSettings,
+  groupedKind,
+  groupedOf,
+  MAX_CLASSES,
+  type GroupedSettings,
   pieLabelChoices,
   pieLabelNames,
   pieOf,
@@ -83,6 +86,8 @@ import {
 import { chartEditorLink, parseChartLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
+import { DraftField } from "./DraftField";
+import { GroupedCards } from "./GroupedCards";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
@@ -97,70 +102,6 @@ function fresh() {
 function initial() {
   const start = openDraft({ key: STORAGE, parse: parseFile, fresh: fresh, recoveryMessage: "Saved chart data needs recovery. Download the original before starting afresh." });
   return { e: start.document, recovery: start.recovery, message: start.message };
-}
-
-/** Text field that keeps its draft while typing and commits on Enter or leaving
- * the field; Escape restores the saved text. Invalid numbers are committed as
- * typed so they stay visible with an error and block export. */
-function DraftField({
-  id,
-  label,
-  value,
-  onCommit,
-  disabled,
-  invalid,
-  inputMode,
-  maxLength,
-  className,
-}: {
-  id?: string;
-  label: string;
-  value: string;
-  onCommit: (value: string) => void;
-  disabled?: boolean;
-  invalid?: boolean;
-  inputMode?: "decimal";
-  maxLength: number;
-  className?: string;
-}) {
-  const [draft, setDraft] = useState(value);
-  const [editing, setEditing] = useState(false);
-  useEffect(() => {
-    if (!editing) setDraft(value);
-  }, [value, editing]);
-  const commit = () => {
-    setEditing(false);
-    if (draft !== value) onCommit(draft);
-  };
-  return (
-    <input
-      id={id}
-      className={className}
-      aria-label={label}
-      value={draft}
-      disabled={disabled}
-      maxLength={maxLength}
-      inputMode={inputMode}
-      aria-invalid={invalid || undefined}
-      onChange={(ev) => {
-        setEditing(true);
-        setDraft(ev.target.value);
-      }}
-      onBlur={commit}
-      onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
-        if (ev.key === "Enter") {
-          ev.preventDefault();
-          commit();
-        }
-        if (ev.key === "Escape") {
-          ev.preventDefault();
-          ev.stopPropagation();
-          setDraft(value);
-          setEditing(false);
-        }
-      }}
-    />
-  );
 }
 
 /** Settings cards for a scatter graph: points, axes and grid, and the line of best fit with readings. */
@@ -503,7 +444,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     pictogram = d.kind === "pictogram",
     scatter = d.kind === "scatter",
     sc = scatterOf(d),
-    mark = pie ? "sector" : pictogram ? "row" : scatter ? "point" : line ? "line" : "bar";
+    grouped = groupedKind(d.kind) ? d.kind : null,
+    gr = groupedOf(d),
+    mark = pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -532,6 +475,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       const next = structuredClone(scatterOf(n));
       update(next);
       n.scatter = next;
+    });
+  }
+  /** One undoable edit of the grouped classes and axes (histograms, polygons, cumulative frequency). */
+  function patchGrouped(update: (s: GroupedSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(groupedOf(n));
+      update(next);
+      n.grouped = next;
     });
   }
   function undo() {
@@ -669,7 +620,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms and scatter graphs."
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons and cumulative frequency graphs."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -798,19 +749,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   />
                   {g.targets.map((t) => {
                     const point = scatter ? sc.points[t.category] : null;
+                    const klass = grouped ? gr.classes[t.category] : null;
                     const cell = point ?? d.series[t.series].values[t.category];
-                    const id = point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
-                    const hiddenHere =
-                      view === "pupil" &&
-                      cell.show === "hidden" &&
-                      (point !== null || (cell as { value: string }).value.trim() !== "");
+                    const id = klass ? `ch-class-frequency-${t.category}` : point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
+                    const hiddenHere = klass
+                      ? view === "pupil" && klass.graph === "hidden"
+                      : view === "pupil" &&
+                        cell.show === "hidden" &&
+                        (point !== null || (cell as { value: string }).value.trim() !== "");
                     return (
                       <button
                         key={id}
                         type="button"
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
                         aria-label={
-                          point
+                          klass
+                            ? `Edit class ${t.category + 1}: ${klass.lower} to ${klass.upper}, frequency ${klass.frequency}`
+                            : point
                             ? `Edit point ${t.category + 1}: (${point.x}, ${point.y})`
                             : `Edit ${mark}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`
                         }
@@ -847,7 +802,28 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                {scatter ? (
+                {grouped ? (
+                <StructureStepper
+                  vertical
+                  name="Classes"
+                  caption=""
+                  add={{
+                    label: "Add a class at the end",
+                    title: "Add class",
+                    disabled: blocked || gr.classes.length >= MAX_CLASSES,
+                    onClick: () => {
+                      patchGrouped((s) => void s.classes.push({ lower: s.classes[s.classes.length - 1]?.upper ?? "", upper: "", frequency: "", table: "show", graph: "show" }));
+                      requestAnimationFrame(() => focusField(`ch-class-upper-${gr.classes.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last class (class ${gr.classes.length})`,
+                    title: "Remove last class",
+                    disabled: blocked || gr.classes.length <= 1,
+                    onClick: () => patchGrouped((s) => void s.classes.pop()),
+                  }}
+                />
+                ) : scatter ? (
                 <StructureStepper
                   vertical
                   name="Points"
@@ -902,7 +878,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               status={message}
               hint={
                 <EditorHint tool="charts">
-                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter ? "point" : "bar, line or category label"} to edit its value. Enter
+                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter || grouped ? mark : "bar, line or category label"} to edit its value. Enter
                   applies; Escape restores.
                 </EditorHint>
               }
@@ -947,7 +923,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 ))}
               </div>
             </section>
-            {!scatter && (
+            {!scatter && !grouped && (
             <section className="panel-card ch-panel">
               <h2>Data</h2>
               <div className="ch-table-wrap">
@@ -1114,6 +1090,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
             </section>
             )}
+            {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} />}
             {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} />}
             {pie && (
               <section className="panel-card ch-panel">
