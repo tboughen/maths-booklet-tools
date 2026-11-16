@@ -27,8 +27,11 @@ export interface AxisConfig {
   /** Omitted means "number". */
   format?: AxisNumberFormat;
   /** Words and unit in brackets, such as "Distance from home (km)". Replaces the italic axis
-   * letter when present. */
+   * letter when present, unless the axis also has a name. */
   title?: string;
+  /** The italic letter at the arrow, such as t or v, in place of x or y. With a title, both
+   * print: the letter at the arrow and the title beside the axis, as velocity–time graphs do. */
+  name?: string;
 }
 
 interface BaseObject {
@@ -91,6 +94,9 @@ export interface StraightObject extends BaseObject, NamedObject {
   labels?: PointLabel[];
   /** A right-angled triangle under or over the line that shows its gradient (U76). */
   gradientTriangle?: GradientTriangle;
+  /** A vector arrowhead (segments only): at the end, or centred on the middle as exam vector
+   * diagrams print it. Omitted means no arrowhead. */
+  arrow?: "end" | "middle";
 }
 
 /** Where a gradient triangle sits on its line, and what its legs print. */
@@ -127,7 +133,59 @@ export interface RegionObject extends BaseObject, NamedObject {
   boundaries: boolean;
 }
 
-export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject;
+/** A graph drawn through points in order (U914, U862, U611): joined by straight pieces, as a
+ * travel graph is, or smooth, as a velocity–time curve or a sketch of y = f(x) is printed. */
+export interface CurveObject extends BaseObject, NamedObject {
+  kind: "curve";
+  /** 2 to 40 points in order, in graph units. */
+  points: Coordinate[];
+  /** A smooth curve through every point. Omitted joins them with straight pieces. */
+  smooth?: true;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+/** Dashed reading lines from a point on a graph to the axes, with an arrowhead on the axis where
+ * the value is read (U862 conversion graphs, U601 graphical solutions). "y" reads y for a given
+ * x: up from the x-axis to the point, then across to the y-axis. "x" reads x for a given y.
+ * "both" drops to both axes with a head on each. A reading line is never named. */
+export interface ReadingObject extends BaseObject, NamedObject {
+  kind: "reading";
+  at: Coordinate;
+  read: "x" | "y" | "both";
+}
+
+/** A circle such as x² + y² = 25: drawn true to the axes' scales, so unequal scales print an
+ * ellipse as a graph paper would. */
+export interface CircleObject extends BaseObject, NamedObject {
+  kind: "circle";
+  centre: Coordinate;
+  /** In graph units, the same distance along either axis. */
+  radius: number;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+/** y = a x² + b x + c (+ cubic x³), y = k/x + c, y = coefficient × baseˣ + c, or the trig graph
+ * y = amplitude × fn(multiplier × x + shift) + c with x in degrees. */
+export type FunctionEquation =
+  | { family: "polynomial"; a: number; b: number; c: number; cubic?: number }
+  | { family: "reciprocal"; k: number; c: number }
+  | { family: "exponential"; coefficient: number; base: number; c: number }
+  | { family: "trig"; fn: "sin" | "cos" | "tan"; amplitude: number; multiplier: number; shift: number; c: number };
+
+/** An equation curve drawn exactly (quadratic, cubic, reciprocal, exponential, trig in degrees),
+ * between from and to when given, else across the grid. */
+export interface FunctionObject extends BaseObject, NamedObject {
+  kind: "function";
+  equation: FunctionEquation;
+  from?: number;
+  to?: number;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject | CurveObject | ReadingObject | CircleObject | FunctionObject;
 
 export interface DiagramDocumentV1 {
   version: 1;
