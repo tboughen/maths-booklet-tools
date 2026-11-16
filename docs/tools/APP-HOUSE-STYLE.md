@@ -250,11 +250,15 @@ bank.
 - With two or three panes on, each has a small header with its icon and name. A pane by itself
   has none, so the page gets the room. The worked solution's header also holds its own options,
   Mark notes and Step by step, so using them never moves the page.
-- Each pane has its own zoom and place. An answer opens at fit. A zoomed pane keeps the same part
-  of the page at its top left when a neighbour is switched on or off, and when it comes back.
+- Each pane has its own zoom and place. An answer opens afresh at fit each time it is switched on.
+  A zoomed pane keeps the same part of the page at its top left when a neighbour is switched on or
+  off, and the question comes back where it was left. The fit mode (Fit view, Fit width) is shared,
+  so choosing one puts every pane back at fit.
 - The footer (zoom, fit, Whole question, Copy image, PNG, Previous and Next) and the keys act on
-  the pane last used: the one last switched on or last touched. Its header has a blue line, and
-  the footer names it beside the view count.
+  the pane last used: the one last switched on, clicked, touched, pinched or tabbed to. Its header
+  has a blue line, and the footer names it beside the view count.
+- The browser's Back within one question keeps the panes; Back to another question shows only the
+  question. Pane headers never print.
 - M switches the mark scheme. Annotations work on every pane on screen, and undo follows the
   order they were drawn in.
 - On a window that is upright or under 1,000 px wide the panes stack, each at the full width.

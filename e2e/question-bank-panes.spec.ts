@@ -4,7 +4,8 @@ import { pane, paneSwitch } from "./question-bank-panes";
 // A real question from the lite bank used by pull-request CI.
 const address = "/question-bank?code=U151&question=1MA1_JUN_2018_1H_Q4";
 const level = (page: Page) => page.locator(".qb-footer .qb-zoom output");
-const drawn = (page: Page) => expect.poll(() => page.locator(".qb-stage canvas").evaluateAll(nodes => nodes.length > 0 && nodes.every(n => (n as HTMLCanvasElement).width > 0))).toBe(true);
+// The first page a cold server draws can take longer than the usual five seconds.
+const drawn = (page: Page) => expect.poll(() => page.locator(".qb-stage canvas").evaluateAll(nodes => nodes.length > 0 && nodes.every(n => (n as HTMLCanvasElement).width > 0)), { timeout: 15000 }).toBe(true);
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 const pressed = (page: Page) => page.locator(".qb-source-actions .qb-switch").evaluateAll(nodes => nodes.filter(n => n.getAttribute("aria-pressed") === "true").map(n => n.textContent));
 
@@ -73,6 +74,50 @@ test.describe("question bank panes", () => {
     download = page.waitForEvent("download");
     await page.getByRole("button", { name: "PNG", exact: true }).click();
     expect((await download).suggestedFilename()).toContain("-scheme-");
+  });
+
+  test("the keyboard and a pinch choose the pane in use, and a new fit mode resets every pane", async ({ page }) => {
+    await open(page);
+    await paneSwitch(page, "Mark scheme").click();
+    await drawn(page);
+    await expect(pane(page, "Mark scheme")).toHaveClass(/qb-pane-active/);
+    // Tabbing to a pane makes it the one the keys act on.
+    await pane(page, "Question").focus();
+    await expect(pane(page, "Question")).toHaveClass(/qb-pane-active/);
+    await page.keyboard.press("=");
+    await expect(level(page)).toHaveText("125%");
+    // Ctrl + wheel over the other pane zooms that pane, and the footer follows it.
+    const scheme = await box(pane(page, "Mark scheme").locator(".qb-stage"));
+    await page.mouse.move(scheme.x + scheme.width / 2, scheme.y + 60);
+    await page.keyboard.down("Control"); await page.mouse.wheel(0, -200); await page.keyboard.up("Control");
+    await expect(pane(page, "Mark scheme")).toHaveClass(/qb-pane-active/);
+    await expect.poll(async () => parseInt(await level(page).textContent() ?? "0")).toBeGreaterThan(100);
+    // The fit mode is shared, so choosing one puts every pane back at fit.
+    await page.getByLabel("Fit mode").selectOption("width");
+    await expect(level(page)).toHaveText("100%");
+    await pane(page, "Question").focus();
+    await expect(level(page)).toHaveText("100%");
+  });
+
+  test("an answer switched on again opens afresh at fit", async ({ page }) => {
+    await open(page);
+    await paneSwitch(page, "Mark scheme").click();
+    await drawn(page);
+    for (let i = 0; i < 3; i++) await page.keyboard.press("=");
+    await expect(level(page)).toHaveText("200%");
+    const stage = pane(page, "Mark scheme").locator(".qb-stage");
+    await stage.evaluate(el => { el.scrollLeft = 120; el.scrollTop = 60; });
+    await expect.poll(() => stage.evaluate(el => el.scrollLeft)).toBe(120);
+    await paneSwitch(page, "Mark scheme").click();
+    await paneSwitch(page, "Mark scheme").click();
+    await expect(level(page)).toHaveText("100%");
+    await drawn(page);
+    expect(await stage.evaluate(el => [el.scrollLeft, el.scrollTop])).toEqual([0, 0]);
+    // Zoomed again, it starts from the middle as a first zoom does, not from where it was left.
+    await page.keyboard.press("=");
+    await expect(level(page)).toHaveText("125%");
+    const fresh = await stage.evaluate(el => ({ left: el.scrollLeft, width: el.scrollWidth - el.clientWidth }));
+    expect(Math.abs(fresh.left - fresh.width / 2)).toBeLessThan(2);
   });
 
   test("M switches the mark scheme, and the question comes back when the last pane is switched off", async ({ page }) => {

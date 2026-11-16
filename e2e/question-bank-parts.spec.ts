@@ -29,3 +29,33 @@ test("a matching part shows on its own with the earlier part it needs, and the w
   await paneSwitch(page, "Question").click();
   await expect(page.getByRole("button", { name: "Show whole question" })).toHaveCount(0);
 });
+
+test("the parts keep their zoom and place beside the mark scheme, and stepping back through the question keeps the panes", async ({ page }) => {
+  await page.goto(address);
+  await drawn(page, 2);
+  const level = page.locator(".qb-footer .qb-zoom output");
+  const top = () => pane(page, "Question").locator(".qb-stage").evaluate(el => el.scrollTop);
+  for (let i = 0; i < 3; i++) await page.keyboard.press("=");
+  await expect(level).toHaveText("200%");
+  await page.locator(".qb-stage").evaluate(el => { el.scrollTop = 200; });
+  await expect.poll(top).toBe(200);
+  await paneSwitch(page, "Mark scheme").click();
+  await paneSwitch(page, "Question").click();
+  await expect(pane(page, "Question")).toHaveCount(0);
+  await paneSwitch(page, "Question").click();
+  await paneSwitch(page, "Mark scheme").click();
+  await expect(level).toHaveText("200%");
+  await expect.poll(top).toBe(200);
+
+  // The whole question has two pages: Next and the browser's Back move through them with the mark scheme still on.
+  await page.getByRole("button", { name: "Show whole question" }).click();
+  await paneSwitch(page, "Mark scheme").click();
+  await pane(page, "Question").locator(".qb-pane-header").click();
+  await expect(page.locator(".qb-navigation")).toContainText("Question · View 1 of 2");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.locator(".qb-navigation")).toContainText("Question · View 2 of 2");
+  await page.goBack();
+  await expect(page.locator(".qb-navigation")).toContainText("Question · View 1 of 2");
+  await expect(paneSwitch(page, "Mark scheme")).toHaveAttribute("aria-pressed", "true");
+  await expect(pane(page, "Mark scheme")).toBeVisible();
+});

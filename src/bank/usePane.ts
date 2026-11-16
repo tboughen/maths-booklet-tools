@@ -57,9 +57,10 @@ export function usePane({ role, shown, question, served, partsView, worked, want
   }, [shown, layout]);
 
   // Asked for only while the pane is on screen: a worked solution that does not fit its question's revision throws.
-  const resource = question && shown ? questionResource(question, role) : undefined;
+  const resource = useMemo(() => question && shown ? questionResource(question, role) : undefined, [question, shown, role]);
   const partMode = role !== "scheme" && !!served && partsView;
   const views = useMemo<Slide[]>(() => {
+    if (!shown) return [];
     if (role === "worked-solution") {
       const items = worked?.items;
       if (!items?.length) return [];
@@ -67,7 +68,7 @@ export function usePane({ role, shown, question, served, partsView, worked, want
     }
     if (partMode && served) { const items = served.cuts.flatMap(s => s.cut.views.map(view => ({ pdf: s.cut.pdf, view }))); return [{ items, width: Math.max(...items.map(i => i.view.width)), height: items.reduce((n, i) => n + i.view.height, 0) + STACK_GAP * (items.length - 1), label: served.title }]; }
     return (resource?.views || []).map(view => ({ items: [{ pdf: resource!.pdf, view }], width: view.width, height: view.height, label: view.label, repeatedContext: view.repeatedContext }));
-  }, [partMode, served, resource, role, worked]);
+  }, [shown, partMode, served, resource, role, worked]);
   const viewIndex = Math.min(Math.max(0, wanted), Math.max(0, views.length - 1));
   const view = views[viewIndex] as Slide | undefined;
   const availablePair = views.slice(viewIndex, viewIndex + 2);
@@ -78,13 +79,13 @@ export function usePane({ role, shown, question, served, partsView, worked, want
   const fitScale = visibleViews.length ? Math.min(widthScale, (stageSize.height - 32) / Math.max(...visibleViews.map(v => v.height))) : 1;
   const scale = Math.max(.01, (fit === "width" ? widthScale : fitScale) * zoom);
   const pannable = visibleViews.reduce((n, v) => n + v.width * scale, 0) + (two ? 16 : 0) + 32 > stageSize.width + 1 || Math.max(0, ...visibleViews.map(v => v.height * scale)) + 32 > stageSize.height + 1;
-  const { requestZoom, panBy } = useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey: `${question?.id}|${role}|${viewIndex}|${two}|${partMode}`, enabled: enabled && shown, drawing });
+  const { requestZoom, panBy, forgetPlace } = useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey: `${question?.id}|${role}|${viewIndex}|${two}|${partMode}`, shown, enabled: enabled && shown, drawing });
   const zoomStep = useCallback((direction: 1 | -1) => requestZoom(stepZoom(zoom, direction)), [requestZoom, zoom]);
   const zoomFit = useCallback(() => requestZoom(1), [requestZoom]);
   /** The screen-only ink layer of one view in this pane. */
   const inkKey = useCallback((item: { pdf: string; view: { page: number } }) => question ? `${question.id}|${question.revision}|${role}|${item.pdf}|${item.view.page}` : "", [question, role]);
   const visibleKeys = visibleViews.flatMap(v => v.items).map(inkKey).filter(Boolean);
-  return { role, stage, resource, partMode, views, viewIndex, view, two, visibleViews, scale, zoom, pannable, panBy, zoomStep, zoomFit, inkKey, visibleKeys };
+  return { role, stage, resource, partMode, views, viewIndex, view, two, visibleViews, scale, zoom, pannable, panBy, forgetPlace, zoomStep, zoomFit, inkKey, visibleKeys };
 }
 
 export type Pane = ReturnType<typeof usePane>;

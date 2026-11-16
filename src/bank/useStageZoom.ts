@@ -9,6 +9,8 @@ interface Options {
   onSwipe: (direction: 1 | -1) => void;
   /** Changes whenever the stage shows different content, so a pending scroll lands after that layout. */
   layoutKey: string;
+  /** Whether the stage is on screen. */
+  shown: boolean;
   enabled: boolean;
   /** A drawing tool is active: double-click draws dots rather than zooming. */
   drawing?: boolean;
@@ -43,7 +45,7 @@ function placeOf(stage: HTMLElement, scale: number): Point {
  * When the stage changes size or comes back on screen (a pane beside it is switched on or off), the
  * view keeps its place: the same part of the page stays at the top left.
  */
-export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, enabled, drawing = false }: Options) {
+export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, shown, enabled, drawing = false }: Options) {
   const live = useRef({ zoom, scale, setZoom, onSwipe, drawing });
   live.current = { zoom, scale, setZoom, onSwipe, drawing };
   const pending = useRef<Pending | undefined>(undefined);
@@ -83,13 +85,19 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       place.current = placeOf(el, scale); held.current = undefined;
     } else if (before?.layoutKey !== layoutKey) {
       place.current = undefined; held.current = undefined;
-    } else if (place.current && before.zoom === zoom && (before.scale !== scale || before.el !== el)) {
+    } else if (before.zoom !== zoom) {
+      // The zoom was set from outside (a new fit mode): the place is wherever that left the view.
+      place.current = placeOf(el, scale); held.current = undefined;
+    } else if (place.current && (before.scale !== scale || before.el !== el)) {
       const offset = contentOffset(el);
       el.scrollLeft = place.current.x * scale + offset.x; el.scrollTop = place.current.y * scale + offset.y;
       // The browser may stop short of the place while the stage is small; the place itself is kept.
       held.current = { left: el.scrollLeft, top: el.scrollTop };
     }
-  }, [scale, zoom, layoutKey, stage]);
+  }, [scale, zoom, layoutKey, shown, stage]);
+
+  /** Forgets the place, so a stage that comes back on screen starts from its top left. */
+  const forgetPlace = useCallback(() => { place.current = undefined; seen.current = undefined; held.current = undefined; }, []);
 
   useEffect(() => {
     const el = stage.current;
@@ -240,5 +248,5 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
     el.scrollBy({ left: x * el.clientWidth, top: y * el.clientHeight });
   }, [stage]);
 
-  return { requestZoom, panBy };
+  return { requestZoom, panBy, forgetPlace };
 }
