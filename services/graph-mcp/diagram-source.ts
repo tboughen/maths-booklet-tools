@@ -39,6 +39,8 @@ import * as wm from "../../packages/written-method-core/src/index";
 import { printFacts as wmPrintFacts } from "../../packages/written-method-core/src/interchange";
 import * as fm from "../../packages/function-machine-core/src/index";
 import { printFacts as fmPrintFacts } from "../../packages/function-machine-core/src/interchange";
+import * as bm from "../../packages/bubble-method-core/src/index";
+import { printFacts as bmPrintFacts } from "../../packages/bubble-method-core/src/interchange";
 import * as po from "../../packages/probability-objects-core/src/index";
 import { printFacts as poPrintFacts } from "../../packages/probability-objects-core/src/interchange";
 import * as nets from "../../packages/net-core/src/index";
@@ -87,6 +89,7 @@ export type DiagramSource =
   | { kind: "factor-tree"; envelope: ft.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "written-method"; envelope: wm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "function-machine"; envelope: fm.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "bubble-method"; envelope: bm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "probability-objects"; envelope: po.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "nets"; envelope: nets.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "algebra-tiles"; envelope: at.Envelope; outputView?: "pupil" | "answer" }
@@ -164,6 +167,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "probability-objects") {
     const view = source.outputView ?? "pupil", g = po.layout(po.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: poPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "bubble-method") {
+    const view = source.outputView ?? "pupil", g = bm.layout(bm.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: bmPrintFacts(source.envelope, view) };
   }
   if (source.kind === "function-machine") {
     const view = source.outputView ?? "pupil", g = fm.layout(fm.forView(source.envelope, view));

@@ -1,0 +1,48 @@
+{
+ "kind": "bubble-method",
+ "schemaVersion": 1,
+ "rendererVersion": "bubble-method-1",
+ "document": {
+  "first": {
+   "lhs": {
+    "text": "y",
+    "show": "show"
+   },
+   "rel": "=",
+   "rhs": {
+    "text": "x + 7",
+    "show": "show"
+   }
+  },
+  "steps": [
+   {
+    "left": {
+     "op": {
+      "text": "−7",
+      "show": "show"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "−7",
+      "show": "show"
+     },
+     "under": "auto"
+    },
+    "line": {
+     "lhs": {
+      "text": "y − 7",
+      "show": "show"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "x",
+      "show": "show"
+     }
+    }
+   }
+  ],
+  "intentionalError": false
+ }
+}

@@ -40,6 +40,8 @@ import * as wm from "../../written-method-core/src/index";
 import * as wmIo from "../../written-method-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
+import * as bm from "../../bubble-method-core/src/index";
+import * as bmIo from "../../bubble-method-core/src/interchange";
 import * as po from "../../probability-objects-core/src/index";
 import * as poIo from "../../probability-objects-core/src/interchange";
 import * as nets from "../../net-core/src/index";
@@ -76,6 +78,7 @@ export const DIAGRAM_KINDS = [
   "two-way-table",
   "factor-tree",
   "function-machine",
+  "bubble-method",
   "probability-objects",
   "nets",
   "written-method",
@@ -446,6 +449,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => fmIo.revise(input),
     hash: fm.hash,
     svg: (e, view) => fm.renderSvg(fm.forView(e, view, true)),
+  }),
+  "bubble-method": family<bm.Envelope>({
+    kind: "bubble-method",
+    label: "bubble method working",
+    summary: "Bubble method (balancing) for equations, inequalities and changing the subject: operations in bubbles under each side; sides and bubbles blank or hidden; never solved for you.",
+    route: "/tools/bubble-method",
+    answerView: true,
+    envelopeSchema: bm.envelopeSchema,
+    createSchema: bmIo.createSchema,
+    revisionSchema: bmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = bm.validate(raw);
+      check(bm.exportIssue(bm.forView(e, view)));
+      return e;
+    },
+    create: (input) => bmIo.create(input),
+    revise: (input) => bmIo.revise(input),
+    hash: bm.hash,
+    svg: (e, view) => bm.renderSvg(bm.forView(e, view, true)),
   }),
   "probability-objects": family<po.Envelope>({
     kind: "probability-objects",

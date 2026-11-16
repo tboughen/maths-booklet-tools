@@ -1,0 +1,75 @@
+{
+ "kind": "bubble-method",
+ "schemaVersion": 1,
+ "rendererVersion": "bubble-method-1",
+ "document": {
+  "first": {
+   "lhs": {
+    "text": "4x + 3",
+    "show": "show"
+   },
+   "rel": "=",
+   "rhs": {
+    "text": "23",
+    "show": "show"
+   }
+  },
+  "steps": [
+   {
+    "left": {
+     "op": {
+      "text": "−3",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "−3",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "line": {
+     "lhs": {
+      "text": "4x",
+      "show": "hidden"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "20",
+      "show": "hidden"
+     }
+    }
+   },
+   {
+    "left": {
+     "op": {
+      "text": "÷4",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "right": {
+     "op": {
+      "text": "÷4",
+      "show": "hidden"
+     },
+     "under": "auto"
+    },
+    "line": {
+     "lhs": {
+      "text": "x",
+      "show": "hidden"
+     },
+     "rel": "=",
+     "rhs": {
+      "text": "5",
+      "show": "hidden"
+     }
+    }
+   }
+  ],
+  "intentionalError": false
+ }
+}

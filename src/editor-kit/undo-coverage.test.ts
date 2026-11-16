@@ -34,6 +34,7 @@ const undoRegistry: Record<string, string> = {
   "factor-tree": "factor-tree/FactorTreePage.tsx",
   "written-method": "written-method/WrittenMethodPage.tsx",
   "function-machine": "function-machine/FunctionMachinePage.tsx",
+  "bubble-method": "bubble-method/BubbleMethodPage.tsx",
   "probability-objects": "probability-objects/ProbabilityObjectsPage.tsx",
   nets: "nets/NetsPage.tsx",
   "algebra-tiles": "algebra-tiles/AlgebraTilesPage.tsx",

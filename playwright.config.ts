@@ -69,6 +69,7 @@ const suites: Suite[] = [
   { name: "factor-tree", server: "dev", testMatch: "factor-tree.spec.ts" },
   { name: "written-method", server: "dev", testMatch: "written-method.spec.ts" },
   { name: "function-machine", server: "dev", testMatch: "function-machine.spec.ts" },
+  { name: "bubble-method", server: "dev", testMatch: "bubble-method.spec.ts" },
   { name: "probability-objects", server: "dev", testMatch: "probability-objects.spec.ts" },
   { name: "nets", server: "dev", testMatch: "nets.spec.ts" },
   { name: "algebra-tiles", server: "dev", testMatch: "algebra-tiles.spec.ts" },

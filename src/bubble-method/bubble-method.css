@@ -1,0 +1,12 @@
+.bm-editor .pt-hit {
+  border-radius: 999px;
+}
+.bm-editor .bm-line-hit {
+  border-radius: 4px;
+}
+.bm-step {
+  border: 1px solid var(--line, #c9d3dd);
+  border-radius: 6px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+}

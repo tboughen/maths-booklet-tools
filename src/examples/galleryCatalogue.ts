@@ -71,6 +71,8 @@ import { examples as functionMachines } from "../../packages/function-machine-co
 import { examples as netExamples } from "../../packages/net-core/src/examples";
 import { renderSvg as netsSvg } from "../../packages/net-core/src";
 import { renderSvg as functionMachineSvg } from "../../packages/function-machine-core/src";
+import { examples as bubbleMethods } from "../../packages/bubble-method-core/src/examples";
+import { renderSvg as bubbleMethodSvg } from "../../packages/bubble-method-core/src";
 import { examples as probabilityObjects } from "../../packages/probability-objects-core/src/examples";
 import { renderSvg as probabilityObjectsSvg } from "../../packages/probability-objects-core/src";
 import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/examples";
@@ -411,6 +413,14 @@ export const probabilityObjectsGallery = probabilityObjects.map((example) => ({
   description: example.note,
   make: example.make,
   render: probabilityObjectsSvg,
+  worked: true,
+}));
+export const bubbleMethodGallery = bubbleMethods.map((example) => ({
+  id: `bm-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: bubbleMethodSvg,
   worked: true,
 }));
 export const algebraTilesGallery = algebraTiles.map((example) => ({

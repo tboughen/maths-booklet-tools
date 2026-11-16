@@ -21,6 +21,7 @@ import * as figures from "../../packages/figure-core/src/index";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import * as wm from "../../packages/written-method-core/src/index";
 import * as fm from "../../packages/function-machine-core/src/index";
+import * as bm from "../../packages/bubble-method-core/src/index";
 import * as po from "../../packages/probability-objects-core/src/index";
 import * as nets from "../../packages/net-core/src/index";
 import * as at from "../../packages/algebra-tile-core/src/index";
@@ -40,7 +41,7 @@ import { PRINT_INSTRUCTIONS } from "./placement";
 import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** Families served by the shared /resource/download route and this result builder. */
-export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "sample-space", "factor-tree", "function-machine", "probability-objects", "algebra-tiles", "nets", "written-method", "triangle", "construction", "elevations", "angles", "area", "figures"] as const;
+export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "sample-space", "factor-tree", "function-machine", "bubble-method", "probability-objects", "algebra-tiles", "nets", "written-method", "triangle", "construction", "elevations", "angles", "area", "figures"] as const;
 export type ResourceKind = (typeof RESOURCE_KINDS)[number];
 export type NewSource = Extract<DiagramSource, { kind: ResourceKind }>;
 export const isResourceSource = (source: DiagramSource): source is NewSource =>
@@ -62,6 +63,7 @@ export function warningsOf(source: NewSource): string[] {
     case "factor-tree": return ft.warnings(source.envelope);
     case "written-method": return wm.warnings(source.envelope);
     case "function-machine": return fm.warnings(source.envelope);
+    case "bubble-method": return bm.warnings(source.envelope);
     case "probability-objects": return po.warnings(source.envelope);
     case "nets": return nets.warnings(source.envelope);
     case "algebra-tiles": return at.warnings(source.envelope);
@@ -88,6 +90,7 @@ function editorLinkOf(source: NewSource, base: string): string | null {
     case "factor-tree": return ft.editorLink(source.envelope, base);
     case "written-method": return wm.editorLink(source.envelope, base);
     case "function-machine": return fm.editorLink(source.envelope, base);
+    case "bubble-method": return bm.editorLink(source.envelope, base);
     case "probability-objects": return po.editorLink(source.envelope, base);
     case "nets": return nets.editorLink(source.envelope, base);
     case "algebra-tiles": return at.editorLink(source.envelope, base);
@@ -102,9 +105,9 @@ function editorLinkOf(source: NewSource, base: string): string | null {
 }
 /** Longest editor link a chat client handles reliably for each family's link format. */
 const editorLimit = (source: NewSource) =>
-  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "factor-tree" || source.kind === "function-machine" || source.kind === "probability-objects" || source.kind === "nets" || source.kind === "written-method" || source.kind === "algebra-tiles" || source.kind === "sample-space" || source.kind === "angles" || source.kind === "area" || source.kind === "figures" ? 16_000 : 7500;
+  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "factor-tree" || source.kind === "function-machine" || source.kind === "bubble-method" || source.kind === "probability-objects" || source.kind === "nets" || source.kind === "written-method" || source.kind === "algebra-tiles" || source.kind === "sample-space" || source.kind === "angles" || source.kind === "area" || source.kind === "figures" ? 16_000 : 7500;
 /** Families whose editable files can hold answers hidden from the pupil artwork. */
-const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "sample-space", "factor-tree", "function-machine", "probability-objects", "nets", "written-method", "algebra-tiles", "triangle", "construction", "elevations", "angles", "area", "figures"];
+const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "sample-space", "factor-tree", "function-machine", "bubble-method", "probability-objects", "nets", "written-method", "algebra-tiles", "triangle", "construction", "elevations", "angles", "area", "figures"];
 
 export function resourceTools(
   raster: RasterQueue,

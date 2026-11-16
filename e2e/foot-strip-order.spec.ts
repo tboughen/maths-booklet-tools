@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 // U1: every tool's foot strip reads zoom, Actual size, the print size, then view-only controls, then one note.
 // The answers switch is not one of them: it sits in the action bar (e2e/answer-switch.spec.ts).
-const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "sample-space", "factor-tree", "function-machine", "probability-objects", "algebra-tiles", "nets", "written-method", "angles", "area", "figures"];
+const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "sample-space", "factor-tree", "function-machine", "bubble-method", "probability-objects", "algebra-tiles", "nets", "written-method", "angles", "area", "figures"];
 const viewOnly = new Set(["checkbox", "button:Finish drawing"]);
 
 for (const tool of tools) {

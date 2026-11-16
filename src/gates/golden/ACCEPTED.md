@@ -786,3 +786,16 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - geometry figures: figures-parallel-in-triangle (worked): added
 - geometry figures: figures-congruent-four: added
 - geometry figures: figures-congruent-four (worked): added
+
+## 2026-11-16: Add the bubble method diagram family (A3, A4.08-09, A6, A10)
+
+- bubble method: bm-subject-one-step: added
+- bubble method: bm-subject-one-step (worked): added
+- bubble method: bm-subject-two-steps: added
+- bubble method: bm-subject-two-steps (worked): added
+- bubble method: bm-subject-formula: added
+- bubble method: bm-subject-formula (worked): added
+- bubble method: bm-solve-equation: added
+- bubble method: bm-solve-equation (worked): added
+- bubble method: bm-inequality: added
+- bubble method: bm-inequality (worked): added

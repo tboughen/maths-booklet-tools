@@ -220,6 +220,9 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
   "function-machine"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
+  "bubble-method"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
   "probability-objects"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

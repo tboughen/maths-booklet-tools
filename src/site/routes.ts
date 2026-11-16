@@ -28,6 +28,7 @@ export const toolIds = [
   "factor-tree",
   "written-method",
   "function-machine",
+  "bubble-method",
   "nets",
   "algebra-tiles",
   "sample-space",

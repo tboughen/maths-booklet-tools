@@ -177,6 +177,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     objects: "1 to 4 objects side by side: spinners {type:\"spinner\", labels, angles?, fills?, shape?, pointer?}, dice {type:\"dice\", view?, faces?, marks?} and bags {type:\"bag\", groups:[{label, fill, count}]}.",
     lines,
   },
+  "bubble-method": {
+    example,
+    worked,
+    start: "The first line, such as \"y = 3x + 2\" or \"2x − 5 < 9\" (default 2x + 3 = 11).",
+    steps: "Up to 8 steps, each {bubble or left/right, leftUnder?, rightUnder?, line}: the bubbles, then the line they lead to (blank if left out).",
+    intentionalError: "true marks an error-spotting task, so bubbles that differ raise no warning.",
+    lines,
+  },
   "written-method": {
     example,
     worked,
