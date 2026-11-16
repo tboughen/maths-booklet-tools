@@ -40,12 +40,24 @@ export const headingSchema = z
       .string()
       .min(1)
       .max(12)
-      // "/" for units such as m/s (Tim's queue, 11 Nov 2026).
-      .regex(/^[A-Za-z0-9 _/-]+$/),
+      // "/" for units such as m/s (Tim's queue, 11 Nov 2026); "%" and "£" for percentages and
+      // money (Tim, 16 Nov 2026).
+      .regex(/^[A-Za-z0-9 _/%£-]+$|^(?:\d+\/)?[A-Za-z]+\^\d$/, "Use letters, digits, spaces, _ / % £ -, or a power such as x^2 or 1/x^2."),
     italic: z.boolean(),
     direction: z.enum(["right", "up", "down", "none"]),
   })
   .strict();
+/** Typed powers become the saved form: "x²" is "x^2", "x³" is "x^3". */
+export const headingPowers = (t: string) => t.replaceAll("²", "^2").replaceAll("³", "^3");
+/** A heading that is one letter, a power of it or 1 over it ("x", "x^2", "1/x") prints the letter italic. */
+export const letterHeading = (t: string) => /^(?:1\/)?[A-Za-z](?:\^\d)?$/.test(t);
+/** A heading as it is read aloud: "x^2" is "x squared", "1/x" is "1 over x". */
+export const spokenHeading = (t: string) =>
+  t
+    .replace(/\^2\b/g, " squared")
+    .replace(/\^3\b/g, " cubed")
+    .replace(/\^(\d)/g, " to the power $1")
+    .replace(/^1\/([A-Za-z])/, "1 over $1");
 export const headingsSchema = z.array(headingSchema).min(1).max(3);
 export const rowSchema = z.object({ id, cells: cellsSchema }).strict();
 export const transitionSchema = z
@@ -56,6 +68,11 @@ export const transitionSchema = z
     factor: z.string().min(1).max(32),
     /** The operation label prints only in the answers copy; the pupil copy shows an answer line. */
     hidden: z.boolean().optional(),
+    /**
+     * Two-column tables only: the arrow and operation print on one side ("left" or "right").
+     * Omitted, they print on both sides.
+     */
+    side: z.enum(["left", "right"]).optional(),
   })
   .strict();
 export const documentSchema = z
@@ -112,7 +129,8 @@ export const ratioSpecSchema = z
      * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
      * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
      * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"
-     * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy. Any step turns on
+     * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy; "left: × 2" or
+     * "right: [÷ 2]" prints it on one side only (two columns). Any step turns on
      * the curved arrows unless mode says otherwise.
      */
     columns: z.array(z.string().min(1).max(16)).min(1).max(3).optional(),
@@ -158,6 +176,11 @@ export function normalizeDocument(input: unknown): RatioDocument {
     fromIds.add(step.from);
     step.factor = canonicalRatioNumber(step.factor);
     if (!step.hidden) delete step.hidden;
+    if (step.side && document.headings.length !== 2)
+      throw new RatioError(
+        "invalid_ratio_table",
+        "Only a two-column table can print a scaling step on one side (left or right); remove side for a wider table.",
+      );
     if (step.operation === "divide" && step.factor === "0")
       throw new RatioError("invalid_operation", "Cannot divide by zero.");
   }

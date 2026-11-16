@@ -12,8 +12,10 @@ import { examples as construction } from "../../construction-core/src/examples";
 import { examples as cuboid } from "../../cuboid-core/src/examples";
 import { examples as elevations } from "../../elevation-core/src/examples";
 import { examples as triangle } from "../../triangle-core/src/examples";
-import { examples as bubbleMethod } from "../../bubble-method-core/src/examples";
 import { example as barModel, exampleNames } from "../../bar-model-core/src/examples";
+import { examples as functionMachine } from "../../function-machine-core/src/examples";
+import { examples as bubbleMethod } from "../../bubble-method-core/src/examples";
+import { examples as writtenMethod } from "../../written-method-core/src/examples";
 import { create as valueGraph } from "../../value-graph-core/src/interchange";
 import { createGraph } from "../../graph-core/src/interchange";
 import { create as algebraGrid } from "../../algebra-grid-core/src/index";
@@ -29,8 +31,9 @@ const samples: Partial<Record<DiagramFamily, () => unknown>> = {
   "probability-tree": () => first(probabilityTree), "frequency-tree": () => first(frequencyTree),
   "two-way-table": () => first(twoWay), "sample-space": () => first(sampleSpace), "chart": () => first(chart),
   "construction": () => first(construction), "cuboid": () => first(cuboid), "elevations": () => first(elevations),
-  "triangle": () => first(triangle), "bubble-method": () => first(bubbleMethod), "bar-model": () => barModel(exampleNames[0]),
-  "value-graph": () => valueGraph(), "graph": () => createGraph({ objects: [{ kind: "point", position: { x: 1, y: 2 } }] }),
+  "triangle": () => first(triangle), "bar-model": () => barModel(exampleNames[0]),
+  "value-graph": () => valueGraph(),
+  "function-machine": () => functionMachine[0].make(true), "bubble-method": () => bubbleMethod[0].make(true), "written-method": () => first(writtenMethod), "graph": () => createGraph({ objects: [{ kind: "point", position: { x: 1, y: 2 } }] }),
 };
 
 describe("every MathsDock renderer draws inside worked solutions", () => {

@@ -104,7 +104,7 @@ for (const [tool, examples, key, confirm] of [
       await expect
         .poll(async () => JSON.parse((await stored())!).document)
         .toEqual(scaffold);
-      await page.getByRole("button", { name: "File", exact: true }).click();
+      await page.getByRole("button", { name: "Download", exact: true }).click();
       const downloading = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: /Download SVG/ }).click();
       const download = await downloading,
@@ -113,7 +113,7 @@ for (const [tool, examples, key, confirm] of [
       expect(svg).not.toMatch(
         /Use scaffold|Past-paper examples|axis-end-control/,
       );
-      await page.getByRole("button", { name: "File", exact: true }).click();
+      await page.getByRole("button", { name: "Download", exact: true }).click();
       const preparingPng = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: /Download PNG/ }).click();
       const png = await preparingPng;

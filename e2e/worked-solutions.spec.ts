@@ -190,7 +190,17 @@ test("step by step and the Mark notes switch hide parts of the working without m
   await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
   await expect(ink(page)).toBeVisible();
   const visibleSteps = () => ink(page).locator("[data-step]").evaluateAll(groups => groups.filter(g => (g as SVGGElement).style.display !== "none").map(g => (g as SVGGElement).dataset.step));
-  const box = () => ink(page).locator("text", { hasText: "4x + 3" }).first().boundingBox();
+  const answer = ink(page).locator("text", { hasText: "4x + 3" }).first();
+  const box = () => answer.boundingBox();
+  // The page refits the cut to the room a frame after the working appears: measure once the
+  // surface fills the stage height (less its 32 px padding), as this viewport fits by height.
+  const fitted = () => expect.poll(() => page.evaluate(() => {
+    const stage = document.querySelector(".qb-stage"), surface = document.querySelector(".qb-worked-surface");
+    return stage && surface ? Math.abs(surface.getBoundingClientRect().height - (stage.clientHeight - 32)) < 0.5 : false;
+  })).toBe(true);
+  const surfaceWidth = () => page.locator(".qb-worked-surface").evaluate(e => (e as HTMLElement).style.width);
+  await fitted();
+  await expect(answer).toBeVisible();
   const before = await box();
   await page.getByRole("button", { name: "Step by step", exact: true }).click();
   await expect(page.getByText("Step 0 of 6", { exact: true })).toBeVisible();
@@ -202,6 +212,18 @@ test("step by step and the Mark notes switch hide parts of the working without m
   expect(await box()).toEqual(before);
   await page.getByRole("button", { name: "Previous step", exact: true }).click();
   expect(new Set(await visibleSteps())).toEqual(new Set(["1"]));
+  // A re-render in step by step (the Mark notes switch, a new window size) keeps later steps hidden.
+  await page.getByRole("checkbox", { name: "Mark notes", exact: true }).uncheck();
+  expect(new Set(await visibleSteps())).toEqual(new Set(["1"]));
+  const width = await surfaceWidth();
+  await page.setViewportSize({ width: 1300, height: 950 });
+  await expect.poll(surfaceWidth).not.toBe(width);
+  await expect(page.getByText("Step 1 of 6", { exact: true })).toBeVisible();
+  expect(new Set(await visibleSteps())).toEqual(new Set(["1"]));
+  await page.getByRole("checkbox", { name: "Mark notes", exact: true }).check();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expect.poll(surfaceWidth).toBe(width);
+  await fitted();
   await page.getByRole("button", { name: "Step by step", exact: true }).click();
   expect((await visibleSteps()).length).toBeGreaterThan(5);
   await expect(ink(page).locator(".wk-mark").first()).toBeVisible();

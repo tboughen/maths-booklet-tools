@@ -256,3 +256,133 @@ export const graphRevealed = (c: object) => GRAPH_REVEALED.has(c);
 const TABLE_REVEALED = new WeakSet<object>();
 export const markTableRevealed = (c: object) => void TABLE_REVEALED.add(c);
 export const tableRevealed = (c: object) => TABLE_REVEALED.has(c);
+
+/**
+ * Box plots as Edexcel prints them: one or more plots stacked on true-size graph paper over one
+ * numbered horizontal scale, each with a label on the left. Every one of the five values can be
+ * hidden for pupils (draw the box plot, or a single missing quartile); a row with every value
+ * blank is an empty band for pupils to draw in.
+ */
+export const MAX_BOX_ROWS = 3;
+export const BOX_BAND_MM = { minimum: 20, maximum: 40, standard: 30 } as const;
+export const boxValueNames = ["min", "lq", "median", "uq", "max"] as const;
+export type BoxValueName = (typeof boxValueNames)[number];
+export const boxValueLabels: Record<BoxValueName, string> = { min: "Smallest", lq: "Lower quartile", median: "Median", uq: "Upper quartile", max: "Largest" };
+/** How a sentence names each value: in error messages and field labels. */
+export const boxValuePhrases: Record<BoxValueName, string> = { min: "smallest value", lq: "lower quartile", median: "median", uq: "upper quartile", max: "largest value" };
+const boxValue = z.object({ value: z.string().max(12), show: shown }).strict();
+export const boxRowSchema = z
+  .object({
+    label: plain(24),
+    min: boxValue,
+    lq: boxValue,
+    median: boxValue,
+    uq: boxValue,
+    max: boxValue,
+  })
+  .strict();
+export type BoxRow = z.infer<typeof boxRowSchema>;
+export const boxAxisLineChoices = ["none", "line", "arrow"] as const;
+export const boxAxisLineNames: Record<(typeof boxAxisLineChoices)[number], string> = { none: "Grid only", line: "Axis line", arrow: "Axis line with arrow" };
+export const boxplotSchema = z
+  .object({
+    rows: z.array(boxRowSchema).min(1).max(MAX_BOX_ROWS),
+    axis: paperAxisSchema,
+    /** Height of each plot's band of grid: an even number of millimetres. */
+    bandMm: z.number().int().min(BOX_BAND_MM.minimum).max(BOX_BAND_MM.maximum).multipleOf(2),
+    /** Edexcel prints the scale on the grid alone, under a bold line, or under an arrowed axis. */
+    line: z.enum(boxAxisLineChoices),
+  })
+  .strict();
+export type BoxplotSettings = z.infer<typeof boxplotSchema>;
+const emptyBox = (): BoxRow => ({ label: "", min: { value: "", show: "show" }, lq: { value: "", show: "show" }, median: { value: "", show: "show" }, uq: { value: "", show: "show" }, max: { value: "", show: "show" } });
+export const blankBoxRow = emptyBox;
+/** A new box plot: one empty plot on 0–100, never made-up data. */
+export const BOXPLOT_DEFAULTS: BoxplotSettings = {
+  rows: [emptyBox()],
+  axis: { min: "0", max: "100", step: "10", stepMm: 10, title: "" },
+  bandMm: BOX_BAND_MM.standard,
+  line: "arrow",
+};
+export const boxplotOf = (d: { boxplot?: BoxplotSettings }): BoxplotSettings => d.boxplot ?? BOXPLOT_DEFAULTS;
+
+/**
+ * Stem-and-leaf diagrams as Edexcel prints them: 1 cm rows ruled between, stems to the left of
+ * one vertical line, single-digit leaves spaced along each row, and a boxed key. A row's stem
+ * and its leaves can be hidden separately (pupils complete them); a blank row is an empty ruled
+ * row; the key can be printed, left as an empty "Key:" box for pupils, or left out.
+ */
+export const MAX_STEM_ROWS = 12;
+export const STEM_LEAF_MM = { minimum: 20, maximum: 120, standard: 50 } as const;
+export const stemRowSchema = z
+  .object({
+    stem: z.string().max(6),
+    /** Leaves as typed: single digits, with or without spaces. Never sorted by the tool. */
+    leaves: z.string().max(40),
+    stemShow: shown,
+    leavesShow: shown,
+  })
+  .strict();
+export type StemRow = z.infer<typeof stemRowSchema>;
+export const stemKeyChoices = ["show", "hidden", "none"] as const;
+export const stemKeyNames: Record<(typeof stemKeyChoices)[number], string> = { show: "Printed", hidden: "Empty box for pupils", none: "No key" };
+export const stemleafSchema = z
+  .object({
+    rows: z.array(stemRowSchema).min(1).max(MAX_STEM_ROWS),
+    /** "Key: 1 | 2 represents 12 points" */
+    key: z.object({ stem: plain(6), leaf: plain(1), represents: plain(32), show: z.enum(stemKeyChoices) }).strict(),
+    /** Width of the leaves column, in millimetres. */
+    leafMm: z.number().int().min(STEM_LEAF_MM.minimum).max(STEM_LEAF_MM.maximum),
+  })
+  .strict();
+export type StemleafSettings = z.infer<typeof stemleafSchema>;
+export const blankStemRow = (): StemRow => ({ stem: "", leaves: "", stemShow: "show", leavesShow: "show" });
+/** A new stem-and-leaf diagram: three empty ruled rows and a key box for pupils, never made-up data. */
+export const STEMLEAF_DEFAULTS: StemleafSettings = {
+  rows: [blankStemRow(), blankStemRow(), blankStemRow()],
+  key: { stem: "", leaf: "", represents: "", show: "hidden" },
+  leafMm: STEM_LEAF_MM.standard,
+};
+export const stemleafOf = (d: { stemleaf?: StemleafSettings }): StemleafSettings => d.stemleaf ?? STEMLEAF_DEFAULTS;
+/** A key with its stem, leaf and words: only such a key prints, or counts as a hidden answer. */
+export const stemKeyComplete = (k: StemleafSettings["key"]) => !!(k.stem.trim() && k.leaf.trim() && k.represents.trim());
+const stemKeyEmpty = (k: StemleafSettings["key"]) => !(k.stem.trim() || k.leaf.trim() || k.represents.trim());
+/** A key part filled in: an error whether it prints or is left for pupils. */
+export const stemKeyPartial = (k: StemleafSettings["key"]) => !stemKeyComplete(k) && !stemKeyEmpty(k);
+/** The leaves of a row: one digit each, or null where the row holds something else. */
+export function stemLeaves(text: string): string[] | null {
+  const t = text.trim();
+  if (!t) return [];
+  const parts = /[\s,]/.test(t) ? t.split(/[\s,]+/).filter(Boolean) : [...t];
+  return parts.every((p) => /^[0-9]$/.test(p)) ? parts : null;
+}
+
+/**
+ * Time series graphs as Edexcel prints them: equally spaced times along the horizontal axis
+ * (months, quarters, years or days, as typed), each value a cross, consecutive crosses joined
+ * by straight lines, on true-size graph paper. A time can carry a group label printed once
+ * under a run of equal groups (2016 under quarters 1 to 4). Hidden values are left for pupils
+ * to plot; with every value hidden the grid is a blank "construct" graph.
+ */
+export const MAX_TIMES = 24;
+export const timePointSchema = z.object({ label: plain(12), group: plain(12), value: z.string().max(12), show: shown }).strict();
+export type TimePoint = z.infer<typeof timePointSchema>;
+export const timeseriesSchema = z
+  .object({
+    points: z.array(timePointSchema).min(1).max(MAX_TIMES),
+    /** Distance between consecutive times: an even number of millimetres. */
+    slotMm: z.number().int().min(STEP_MM.minimum).max(STEP_MM.maximum).multipleOf(2),
+    xTitle: plain(40),
+    yAxis: paperAxisSchema,
+  })
+  .strict();
+export type TimeseriesSettings = z.infer<typeof timeseriesSchema>;
+export const blankTimePoint = (): TimePoint => ({ label: "", group: "", value: "", show: "show" });
+/** A new time series graph: the twelve months with no values, never made-up data. */
+export const TIMESERIES_DEFAULTS: TimeseriesSettings = {
+  points: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((label) => ({ label, group: "", value: "", show: "show" as const })),
+  slotMm: 10,
+  xTitle: "Month",
+  yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "" },
+};
+export const timeseriesOf = (d: { timeseries?: TimeseriesSettings }): TimeseriesSettings => d.timeseries ?? TIMESERIES_DEFAULTS;

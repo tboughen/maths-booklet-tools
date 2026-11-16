@@ -26,6 +26,7 @@ const CUES: Record<DiagramKind, RegExp> = {
   "written-method": /written method|column (addition|subtraction|method)|long multiplication|long division|short division|bus stop/,
   "function-machine": /function machine|number machine|input.*output/,
   "bubble-method": /bubble method|bubbles?|balanc|change the subject|changing the subject|rearrang|solve.*(equation|inequalit)/,
+  nets: /\bnets? (of|for)\b|\bnets of\b|is (this|it) a net|folded|opposite face|where does the dot/,
   "sample-space": /sample space|two dice|both dice|listing outcomes|list(ing)? (all )?(the |the possible )?outcomes|spinners?\b/,
   elevations: /plans? and elevation|elevation|plan view|isometric|\bplan\b/,
   construction: /construct|bisect|perpendicular|locus|loci|bearing|scale drawing|map scale|compass/,

@@ -82,7 +82,7 @@ describe("one error shape across the connector (M12)", () => {
       expect(body.retry, kind).toBe("refresh_envelope");
       expect(body.hint, kind).toContain("contentHash");
     }
-    expect(checked).toBe(22);
+    expect(checked).toBe(23);
   });
 
   it("keeps a core's own code and names spec fields on create", async () => {

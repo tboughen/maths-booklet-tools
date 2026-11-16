@@ -68,8 +68,8 @@ test("overview search matches teaching vocabulary, handles no results and retain
   page,
 }) => {
   await page.goto("/tools");
-  await expect(page.locator(".overview-tool-card")).toHaveCount(22);
-  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model", "/tools/charts", "/tools/probability-tree", "/tools/frequency-tree", "/tools/construction", "/tools/elevations", "/tools/two-way-table", "/tools/sample-space", "/tools/factor-tree", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/angles", "/tools/area"].sort());
+  await expect(page.locator(".overview-tool-card")).toHaveCount(23);
+  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model", "/tools/charts", "/tools/probability-tree", "/tools/frequency-tree", "/tools/construction", "/tools/elevations", "/tools/two-way-table", "/tools/sample-space", "/tools/factor-tree", "/tools/function-machine", "/tools/bubble-method", "/tools/nets", "/tools/written-method", "/tools/angles", "/tools/area"].sort());
   await page.getByRole("searchbox", { name: "Search tools" }).fill("sharing");
   await expect(page.locator(".overview-tool-card")).toHaveAttribute("href", "/tools/bar-model");
   await page
@@ -81,14 +81,13 @@ test("overview search matches teaching vocabulary, handles no results and retain
     "/tools/triangle",
   );
   await page.getByRole("searchbox").fill("inequalities");
-  await expect(page.locator(".overview-tool-card")).toHaveCount(2);
-  expect(await page.locator(".overview-tool-card").evaluateAll((cards) => cards.map((card) => card.getAttribute("href")).sort())).toEqual(["/tools/bubble-method", "/tools/number-line"]);
+  expect(await page.locator(".overview-tool-card").evaluateAll((cards) => cards.map((card) => card.getAttribute("href")))).toEqual(["/tools/number-line", "/tools/bubble-method"]);
   await page.getByRole("searchbox").fill("not-a-teaching-tool");
   await expect(page.getByRole("status")).toContainText("No tools found");
   await page.getByRole("button", { name: "Clear search" }).click();
-  await expect(page.locator(".overview-tool-card")).toHaveCount(22);
+  await expect(page.locator(".overview-tool-card")).toHaveCount(23);
   await page.getByRole("link", { name: "Maths Dock home" }).click();
-  await expect(page.locator(".overview-card")).toHaveCount(6);
+  await expect(page.locator(".home-tool")).toHaveCount(6);
 });
 
 for (const [tool, key, resource, stage, confirm] of tools) {

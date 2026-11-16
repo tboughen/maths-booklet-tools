@@ -295,3 +295,101 @@ test("histograms, frequency polygons and cumulative frequency share one class ta
   expect(doc.grouped.polygon.yAxis).toMatchObject({ max: "16", step: "2", stepMm: 10 });
   expect(doc.grouped.histogram.yAxis.max).toBe("4");
 });
+
+test("box plots: values edit from the plot, hidden values stay answers and an empty band is left for pupils", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "boxplot-heights")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const ends = (ink: string) => art.locator(`path[stroke='${ink}'][d$='v10']`);
+  // Year 11 is hidden for pupils; Year 7 prints its five 1 cm lines.
+  await expect(ends("black")).toHaveCount(5);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(ends("#b0125b")).toHaveCount(5);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A plot opens its median; a value out of order is a specific error that blocks export.
+  await page.getByRole("button", { name: /Edit box plot 2/ }).click();
+  const median = page.getByLabel("Box plot 2 median");
+  await expect(median).toBeFocused();
+  await median.fill("150");
+  await median.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Box plot 2: the median is less than the lower quartile." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(median).toHaveValue("158");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  // + adds an empty band where pupils draw a plot; it prints nothing and blocks nothing.
+  await page.getByRole("button", { name: "Add a box plot at the end" }).click();
+  await expect(page.getByLabel("Box plot 3 smallest value")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(ends("black")).toHaveCount(5);
+  await page.getByLabel("Axis line").selectOption("line");
+  const doc = (await saved(page)).document;
+  expect(doc.boxplot.rows).toHaveLength(3);
+  expect(doc.boxplot.rows[0].median).toEqual({ value: "165", show: "hidden" });
+  expect(doc.boxplot.rows[2].min).toEqual({ value: "", show: "show" });
+  expect(doc.boxplot.line).toBe("line");
+});
+
+test("stem-and-leaf diagrams: rows edit from the diagram, hidden leaves and an empty key box stay answers", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "stemleaf-heights")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const ink = (colour: string) => art.locator(`text[fill='${colour}']`);
+  // Pupils see three empty ruled rows and an empty key box.
+  await expect(ink("black")).toHaveText(["Key:"]);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(ink("#b0125b")).toHaveCount(3 + 12 + 2);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A row opens its leaves; a two-digit leaf is a specific error that blocks export.
+  await page.getByRole("button", { name: "Edit row 2: stem 14" }).click();
+  const leaves = page.getByLabel("Row 2 leaves");
+  await expect(leaves).toBeFocused();
+  await leaves.fill("2 4 66 7 9");
+  await leaves.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Row 2: each leaf is one digit, 0 to 9." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(leaves).toHaveValue("2 4 6 6 7 9");
+  // Show all prints the diagram and the key.
+  await page.getByRole("button", { name: "Show all" }).click();
+  await expect(ink("black")).toHaveCount(3 + 12 + 3);
+  await page.getByRole("button", { name: "Add a row at the end" }).click();
+  await expect(page.getByLabel("Row 4 stem")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  const doc = (await saved(page)).document;
+  expect(doc.stemleaf.rows).toHaveLength(4);
+  expect(doc.stemleaf.rows[1]).toEqual({ stem: "14", leaves: "2 4 6 6 7 9", stemShow: "show", leavesShow: "show" });
+  expect(doc.stemleaf.key.show).toBe("show");
+});
+
+test("time series graphs: values edit from the graph, hidden values stay answers and labels change without the values", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "timeseries-quarters")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  // Crosses and the lines joining them are the 1 pt paths.
+  const ink = (colour: string) => art.locator(`path[stroke='${colour}'][stroke-width='0.353']`);
+  // Pupils see a labelled blank grid: twelve hidden values, so twelve crosses and eleven lines are answers.
+  await expect(ink("black")).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(ink("#b0125b")).toHaveCount(12 + 11);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A time opens its value; a word is a specific error that blocks export.
+  await page.getByRole("button", { name: "Edit time 1: 1 2023" }).click();
+  const value = page.getByLabel("Time 1 value");
+  await expect(value).toBeFocused();
+  await value.fill("lots");
+  await value.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Time 1 (1): enter a number for the value, or leave it blank." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(value).toHaveValue("34");
+  // Show all prints the graph; relabelling keeps the values and groups.
+  await page.getByRole("button", { name: "Show all" }).click();
+  await expect(ink("black")).toHaveCount(12 + 11);
+  await page.getByRole("button", { name: "Label as months" }).click();
+  await expect(page.getByLabel("Time 2 label")).toHaveValue("Feb");
+  await page.getByRole("button", { name: "Add a time at the end" }).click();
+  await expect(page.getByLabel("Time 13 value")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  const doc = (await saved(page)).document;
+  expect(doc.timeseries.points).toHaveLength(13);
+  expect(doc.timeseries.points[1]).toEqual({ label: "Feb", group: "2023", value: "41", show: "show" });
+  expect(doc.timeseries.points[12]).toEqual({ label: "", group: "", value: "", show: "show" });
+});

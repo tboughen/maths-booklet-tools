@@ -28,6 +28,7 @@ export const toolIds = [
   "written-method",
   "function-machine",
   "bubble-method",
+  "nets",
   "sample-space",
 ] as const;
 export type ToolId = (typeof toolIds)[number];

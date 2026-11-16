@@ -53,6 +53,7 @@ for (const directory of [
   "packages/written-method-core",
   "packages/function-machine-core",
   "packages/bubble-method-core",
+  "packages/net-core",
   "packages/sample-space-core",
   "packages/triangle-core",
   "packages/resource-core",

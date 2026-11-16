@@ -1,6 +1,7 @@
+import { createElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { createHistory, EDITOR_HISTORY_LIMIT, pushHistory, redoHistory, redoLabel, replacePresent, undoHistory, undoLabel, undoCommand, useDocumentHistory } from ".";
+import { createHistory, EDITOR_HISTORY_LIMIT, pushHistory, redoHistory, redoLabel, replacePresent, undoHistory, undoLabel, undoCommand, useDocumentHistory, DocumentChangeContext } from ".";
 
 const key = (init: Partial<KeyboardEvent> & { key: string }, target: EventTarget | null = document.body) =>
   ({ ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, target, ...init }) as KeyboardEvent;
@@ -81,5 +82,24 @@ describe("shared editor history", () => {
     expect(result.current.canRedo).toBe(true);
     act(() => result.current.redo());
     expect(result.current.present).toEqual({ n: 2 });
+  });
+
+  it("tells the page's listener about steps, and when every step has been undone", () => {
+    const heard: string[] = [];
+    const wrapper = ({ children }: { children: ReactNode }) => createElement(DocumentChangeContext, { value: (state) => heard.push(state) }, children);
+    const { result } = renderHook(() => useDocumentHistory(() => ({ n: 0 }), { equals: (a, b) => a.n === b.n }), { wrapper });
+    expect(heard).toEqual([]);
+    act(() => result.current.commit({ n: 0 }, "same"));
+    act(() => result.current.replace({ n: 5 }));
+    expect(heard).toEqual([]);
+    act(() => result.current.commit({ n: 1 }, "add"));
+    act(() => result.current.commit({ n: 2 }, "add"));
+    expect(heard).toEqual(["changed", "changed"]);
+    act(() => result.current.undo());
+    act(() => result.current.undo());
+    expect(heard).toEqual(["changed", "changed", "changed", "undone"]);
+    act(() => result.current.redo());
+    expect(heard).toHaveLength(5);
+    expect(heard[4]).toBe("changed");
   });
 });

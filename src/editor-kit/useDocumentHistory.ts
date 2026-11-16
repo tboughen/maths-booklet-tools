@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createHistory, pushHistory, redoHistory, redoLabel, replacePresent, undoHistory, undoLabel, type History } from "./history";
 import { handleUndoKeys } from "./shortcuts";
+import { DocumentChangeContext } from "./documentChange";
 
 export interface DocumentHistoryOptions<T> {
   /** Treat a change equal to the present as no change (no undo step). */
@@ -23,6 +24,14 @@ export function useDocumentHistory<T>(initial: T | (() => T), options: DocumentH
   const undo = useCallback(() => setHistory(undoHistory), []);
   const redo = useCallback(() => setHistory(redoHistory), []);
   const replace = useCallback((next: T) => setHistory(h => replacePresent(h, next)), []);
+  const changed = useContext(DocumentChangeContext);
+  // Every recorded step, undo and redo makes a new `past`; `replace` keeps it.
+  const steps = useRef(history.past);
+  useEffect(() => {
+    if (steps.current === history.past) return;
+    steps.current = history.past;
+    changed?.(history.past.length ? "changed" : "undone");
+  }, [history.past, changed]);
   return useMemo(
     () => ({
       history,

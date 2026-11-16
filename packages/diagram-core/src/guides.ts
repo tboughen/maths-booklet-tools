@@ -24,6 +24,7 @@ import { ftConfig } from "./guides/factor-tree";
 import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
 import { bmConfig } from "./guides/bubble-method";
+import { netsConfig } from "./guides/nets";
 import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
@@ -89,7 +90,7 @@ const ratioGuide: FamilyGuide = {
     rows: { minimum: 1, maximum: 6 },
     cellKinds: ["number", "empty", "answer-line", "hidden"],
     headingDirections: ["right", "up", "down", "none"],
-    compactSpec: { columns: "heading strings ending in → ↑ ↓", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]" },
+    compactSpec: { columns: "heading strings, optionally ending in → ↑ ↓ (no arrow for plain x | y); x^2 or x² and x^3 print a superscript, 1/x and 1/x^2 a stacked fraction", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]; prefix left: or right: for one side only (two columns)" },
     sizes: ["standard", "large"],
     lines: ["normal", "bold"],
     modes: ["simple", "annotated"],
@@ -101,7 +102,7 @@ const ratioGuide: FamilyGuide = {
   create:
     "Lesson-style ratio table with 1-6 rows and 1-3 columns; omit spec for a blank two-column table with two empty rows. Every table is schemaVersion 2 / ratio-2; spec.schemaVersion may be omitted. Each row has one explicit cell per column: {kind:number,value:string}, {kind:empty}, {kind:answer-line} or {kind:hidden,value,line?} (a saved answer: blank, or an answer line with line:true, in the pupil copy; printed in the answer colour only in the answers copy, outputView answer). A transition with hidden:true prints its operation only in the answers copy; pupils get an answer line beside the arrow. Row IDs default to row-1, row-2. A transition between adjacent rows applies one operation to every column. mode annotated shows the curved arrows and factors; simple hides them. Default headings x → and y ↑; direction is right, up, down or none. For a gradient always head the y column y ↑: a line going down has a negative y movement (5 down to 1 is -4), so the table reads 2 | -4, then ÷ 2, giving 1 | -2, the gradient. Never use y ↓ for a gradient. Compact form for booklets and worksheets with many tables, instead of headings/rows/transitions: {columns:[\"x →\",\"y ↑\"], table:[[\"2\",\"-4\"],[\"1\",\"[-2]\"]], steps:[\"[÷ 2]\"]}. A cell is \"3\", \"-1/2\", \"2 1/2\" (a mixed number), \"\" (empty), \"_\" (answer line), \"[3]\" (hidden answer) or \"[3]_\" (hidden answer on an answer line); a step is \"\" (none), \"× 2\" or \"÷ 2\", in brackets to hide it; any step turns the arrows on. Numbers (cells, hidden answers and factors) are integers, decimals (up to 6 places), fractions such as 5/2, or mixed numbers such as \"2 1/2\" or \"2½\" (saved as \"2 1/2\"; the fraction part is less than 1). Fractions always print stacked; a mixed number prints the whole number beside a stacked fraction. Write the number in the form pupils should see: 5/2 stays improper and 2 1/2 stays mixed. Keep unanswered cells even when the answer is calculable.",
   revise:
-    'Each operation is {op,...}: add_column {heading:{text,italic,direction}}; remove_column {column}; set_cell {rowId,column,cell}; add_row {after,row:{id,cells}}; remove_row {rowId}; set_transition {transition:{from,to,operation,factor}}; remove_transition {from}; set_headings {headings}; set_size {size}; set_lines {lines:normal|bold} (normal is not saved); set_annotation_visibility {mode?,showArrows?,showOperations?}; fill_next_row {from,overwrite?}. Example: {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}. Column indexes are zero-based; after is a row ID or null. fill_next_row solves only when the user explicitly asks, and overwriting needs overwrite:true.',
+    'Each operation is {op,...}: add_column {heading:{text,italic,direction}}; remove_column {column}; set_cell {rowId,column,cell}; add_row {after,row:{id,cells}}; remove_row {rowId}; set_transition {transition:{from,to,operation,factor,hidden?,side?:left|right}} (side prints the step on one side of a two-column table; omit it for both; set_transition replaces the whole step, so repeat side and hidden when revising one; add_column makes every step two-sided); remove_transition {from}; set_headings {headings}; set_size {size}; set_lines {lines:normal|bold} (normal is not saved); set_annotation_visibility {mode?,showArrows?,showOperations?}; fill_next_row {from,overwrite?}. Example: {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}. Column indexes are zero-based; after is a row ID or null. fill_next_row solves only when the user explicitly asks, and overwriting needs overwrite:true.',
 };
 
 const valueGuide: FamilyGuide = {
@@ -219,6 +220,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
   "bubble-method": fromConfig(bmConfig),
+  nets: fromConfig(netsConfig),
   "sample-space": fromConfig(ssConfig),
   triangle: {
     ...fromConfig(triangleConfig),
@@ -357,11 +359,12 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
   "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
   "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
-  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "histograms with unequal class widths", "frequency polygons", "cumulative frequency graphs, medians and quartiles", "reading and drawing charts"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "histograms with unequal class widths", "frequency polygons", "cumulative frequency graphs, medians and quartiles", "box plots", "stem-and-leaf diagrams", "time series graphs", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
   "factor-tree": ["factor trees", "prime factor decomposition", "writing a number as a product of primes", "index form"],
+  nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
   "bubble-method": ["bubble method", "balancing", "solving linear equations", "solving inequalities", "changing the subject"],
@@ -373,5 +376,5 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["time-series graphs", "box plots", "stem-and-leaf diagrams", "circle theorems", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["back-to-back stem-and-leaf diagrams", "circle theorems", "prisms and cylinders as 3D drawings"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));

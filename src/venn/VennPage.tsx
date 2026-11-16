@@ -15,6 +15,7 @@ import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
 import {
   EditorDownloadMenu,
+  type MenuKind,
 } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
@@ -133,7 +134,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     [shade, setShade] = useState<Region["shade"]>("grey"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [pending, setPending] = useState<{
       e: Envelope;
@@ -494,7 +495,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               }
               menuId="venn-downloads"
               menuOpen={menu}
-              onToggleMenu={() => setMenu(!menu)}
+              onMenuChange={setMenu}
             />
             <EditorDownloadMenu
               wordHelp

@@ -1,4 +1,5 @@
 import { allTools, clickAway, switchTool } from "./tool-switcher";
+import { menuFor } from "./resource-actions";
 import { showExamples, closeExamples } from "./example-gallery";
 import { toolIds } from "../src/site/routes";
 import { test, expect, editorBase, type Page } from "./release-fixtures";
@@ -110,9 +111,9 @@ const tools = [
 ];
 // Tools without an answers copy have no "Worked notes…" item (U116).
 const noAnswersCopy = new Set(["value-table-graph", "cuboids"]);
-async function openMenu(page: Page) {
+async function openMenu(page: Page, menu: "Download" | "File" = "File") {
   const trigger = page.getByRole("button", {
-    name: "File",
+    name: menu,
     exact: true,
   });
   if ((await trigger.getAttribute("aria-expanded")) !== "true")
@@ -120,7 +121,7 @@ async function openMenu(page: Page) {
   await expect(page.getByRole("menu")).toBeVisible();
 }
 async function download(page: Page, label: string) {
-  await openMenu(page);
+  await openMenu(page, menuFor(label));
   const event = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: label, exact: true }).click();
   const file = await event;
@@ -172,24 +173,39 @@ for (const tool of tools) {
     for (const width of [1440, 320]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/?tool=${tool}`);
+      const menu = page.getByRole("menu");
+      const labels = () =>
+        menu
+          .getByRole("menuitem")
+          .evaluateAll((items) =>
+            items.map((i) => i.querySelector("strong")!.textContent),
+          );
+      // Download holds the pictures. Optional answers-copy downloads (U28) sit among them.
+      const pictures = page.getByRole("button", {
+        name: "Download",
+        exact: true,
+      });
+      await pictures.focus();
+      await pictures.press("ArrowDown");
+      await expect(page.getByRole("menu", { name: "Download", exact: true })).toHaveCount(1);
+      expect((await labels()).filter((l) => !/^Download (answers |pupil and answers)/.test(l ?? ""))).toEqual([
+        "Download SVG",
+        "Download PNG (600 ppi)",
+        "Download PDF (actual size)",
+      ]);
+      await page.keyboard.press("Escape");
+      await expect(menu).toHaveCount(0);
+      await expect(pictures).toBeFocused();
+      // File holds the editable file. Only one of the two menus is ever open.
       const trigger = page.getByRole("button", {
         name: "File",
         exact: true,
       });
       await trigger.focus();
       await trigger.press("ArrowDown");
-      const menu = page.getByRole("menu");
       await expect(menu).toHaveCount(1);
-      const labels = await menu
-        .getByRole("menuitem")
-        .evaluateAll((items) =>
-          items.map((i) => i.querySelector("strong")!.textContent),
-        );
-      // Optional answers-copy downloads (U28) sit among the images; the shared order is the rest.
-      expect(labels.filter((l) => !/^Download (answers |pupil and answers)/.test(l ?? "")).slice(0, noAnswersCopy.has(tool) ? 6 : 7)).toEqual([
-        "Download SVG",
-        "Download PNG (600 ppi)",
-        "Download PDF (actual size)",
+      await expect(page.getByRole("menu", { name: "File", exact: true })).toHaveCount(1);
+      expect((await labels()).slice(0, noAnswersCopy.has(tool) ? 3 : 4)).toEqual([
         "Title and note…",
         ...(noAnswersCopy.has(tool) ? [] : ["Worked notes…"]),
         "Save editable file",
@@ -347,7 +363,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     .getByRole("button", { name: "Edit equation", exact: true })
     .click();
   await page.getByRole("button", { name: "Use m and c", exact: true }).click();
-  await openMenu(page);
+  await openMenu(page, "Download");
   const gradient = page.getByRole("textbox", {
     name: "Gradient m",
     exact: true,
@@ -846,7 +862,7 @@ test("a missing portable font blocks the real SVG and leaves editable-file fallb
   const downloads: string[] = [];
   page.on("download", (file) => downloads.push(file.suggestedFilename()));
   await page.goto("/tools/graph");
-  await openMenu(page);
+  await openMenu(page, "Download");
   await page
     .getByRole("menuitem", { name: "Download SVG", exact: true })
     .click();
@@ -1005,20 +1021,32 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
   expect(saved.objects[1].equationLabelPosition.y).toBeCloseTo(2, 1);
 });
 
-// U4: one File menu, defined once, with the same items, notes and order in every tool.
+// U4: the Download and File menus, defined once, with the same items, notes and order in every tool.
 for (const tool of toolIds) {
-  test(`${tool}: the File menu matches every other tool`, async ({ page }) => {
+  test(`${tool}: the Download and File menus match every other tool`, async ({ page }) => {
     await page.goto(`/tools/${tool}`);
-    await page.getByRole("button", { name: "File", exact: true }).click();
     const menu = page.getByRole("menu");
-    const items = await menu.getByRole("menuitem").evaluateAll((nodes) =>
-      nodes.map((n) => [n.getAttribute("aria-label"), n.querySelector("small")?.textContent ?? ""]),
-    );
-    const common = items.filter(([label]) => !/^Download (answers |pupil and answers)/.test(label ?? ""));
-    expect(common).toEqual([
+    const listed = () =>
+      menu.getByRole("menuitem").evaluateAll((nodes) =>
+        nodes.map((n) => [n.getAttribute("aria-label"), n.querySelector("small")?.textContent ?? ""]),
+      );
+    await page.getByRole("button", { name: "Download", exact: true }).click();
+    const pictures = await listed();
+    expect(pictures.filter(([label]) => !/^Download (answers |pupil and answers)/.test(label ?? ""))).toEqual([
       ["Download SVG", ""],
       ["Download PNG (600 ppi)", ""],
       ["Download PDF (actual size)", ""],
+    ]);
+    // Optional teacher copies sit straight after the pupil images.
+    const answers = pictures.findIndex(([label]) => /^Download answers /.test(label ?? ""));
+    if (answers >= 0) expect(answers).toBe(3);
+    await expect(menu.getByRole("separator")).toHaveCount(0);
+    // Pressing File while Download is open swaps the menus: one press, and only File is open.
+    await page.getByRole("button", { name: "File", exact: true }).click();
+    await expect(page.getByRole("menu", { name: "File", exact: true })).toHaveCount(1);
+    await expect(menu).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Download", exact: true })).toHaveAttribute("aria-expanded", "false");
+    expect(await listed()).toEqual([
       ["Title and note…", "Saved in the file, never printed."],
       ...(noAnswersCopy.has(tool) ? [] : [["Worked notes…", "Dark-pink guidance on the answers copy only."]]),
       ["Save editable file", "Includes hidden answers."],
@@ -1026,10 +1054,7 @@ for (const tool of toolIds) {
       ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],
       ["First-time Word setup", ""],
     ]);
-    // Optional teacher copies sit straight after the pupil images.
-    const answers = items.findIndex(([label]) => /^Download answers /.test(label ?? ""));
-    if (answers >= 0) expect(answers).toBe(3);
-    await expect(menu.getByRole("separator")).toHaveCount(2);
+    await expect(menu.getByRole("separator")).toHaveCount(1);
     await menu.getByRole("menuitem", { name: "First-time Word setup", exact: true }).click();
     const help = page.getByRole("dialog", { name: "Keep full image quality in Word" });
     await expect(help).toBeVisible();
