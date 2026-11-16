@@ -344,6 +344,11 @@ export const STEMLEAF_DEFAULTS: StemleafSettings = {
   leafMm: STEM_LEAF_MM.standard,
 };
 export const stemleafOf = (d: { stemleaf?: StemleafSettings }): StemleafSettings => d.stemleaf ?? STEMLEAF_DEFAULTS;
+/** A key with its stem, leaf and words: only such a key prints, or counts as a hidden answer. */
+export const stemKeyComplete = (k: StemleafSettings["key"]) => !!(k.stem.trim() && k.leaf.trim() && k.represents.trim());
+const stemKeyEmpty = (k: StemleafSettings["key"]) => !(k.stem.trim() || k.leaf.trim() || k.represents.trim());
+/** A key part filled in: an error whether it prints or is left for pupils. */
+export const stemKeyPartial = (k: StemleafSettings["key"]) => !stemKeyComplete(k) && !stemKeyEmpty(k);
 /** The leaves of a row: one digit each, or null where the row holds something else. */
 export function stemLeaves(text: string): string[] | null {
   const t = text.trim();

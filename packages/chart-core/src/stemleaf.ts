@@ -1,6 +1,6 @@
 import { boldLines } from "../../envelope-core/src/house-style";
 import { richText, runWidth, type Run } from "./grouped";
-import { CHART_ANSWER_COLOUR, FONT, MARGIN, esc, n, readNumber, stemLeaves, stemleafOf } from "./shared";
+import { CHART_ANSWER_COLOUR, FONT, MARGIN, esc, n, readNumber, stemKeyComplete, stemKeyPartial, stemLeaves, stemleafOf } from "./shared";
 import type { Envelope, Target } from "./index";
 
 /**
@@ -58,7 +58,7 @@ export function stemleafLayout(e: Envelope) {
   const keyIntro = runWidth(plain("Key:")) + 2;
   // A hidden key's box is as wide as its answer, so both copies are the same size.
   const keyBody = runWidth(plain(k.stem.trim())) + 3 + runWidth(plain(`${k.leaf.trim()} represents ${k.represents.trim()}`));
-  if (k.show === "show" && !(k.stem.trim() && k.leaf.trim() && k.represents.trim())) issues.push("Key: fill in the stem, the leaf and what they represent, or leave the key empty for pupils.");
+  if ((k.show === "show" && !stemKeyComplete(k)) || (k.show === "hidden" && stemKeyPartial(k))) issues.push("Key: fill in the stem, the leaf and what they represent, or leave the key empty for pupils.");
   const keyW = k.show === "none" ? 0 : Math.max(KEY_BLANK, Math.ceil(keyIntro + keyBody + 6));
   const H = s.rows.length * ROW;
   const key = k.show === "none" ? null : { x: right + KEY_GAP, y: y0 + H / 2 - KEY_H / 2, width: keyW, height: KEY_H };

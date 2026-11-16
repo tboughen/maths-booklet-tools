@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { STEM_LEAF_MM, stemKeyChoices, stemKeyNames, type StemleafSettings } from "../../packages/chart-core/src";
+import { STEM_LEAF_MM, stemKeyChoices, stemKeyComplete, stemKeyNames, type StemleafSettings } from "../../packages/chart-core/src";
 import { DraftField } from "./DraftField";
 
 const WIDTH_CHOICES = Array.from({ length: (STEM_LEAF_MM.maximum - STEM_LEAF_MM.minimum) / 5 + 1 }, (_, i) => STEM_LEAF_MM.minimum + 5 * i);
@@ -20,6 +20,7 @@ export function StemLeafCards({
   onChange: (update: (s: StemleafSettings) => void) => void;
   linesControl: ReactNode;
 }) {
+  const keyBad = issues.some((x) => x.startsWith("Key:"));
   const bad = (row: number, what: string) => issues.some((x) => x.startsWith(`Row ${row + 1}:`) && x.includes(what));
   const widths = WIDTH_CHOICES.includes(s.leafMm) ? WIDTH_CHOICES : [...WIDTH_CHOICES, s.leafMm].sort((a, b) => a - b);
   return (
@@ -104,11 +105,11 @@ export function StemLeafCards({
           </button>
           <button
             type="button"
-            disabled={blocked || !(s.rows.some((r) => r.stemShow === "hidden" || r.leavesShow === "hidden") || (s.key.show === "hidden" && !!s.key.stem.trim()))}
+            disabled={blocked || !(s.rows.some((r) => r.stemShow === "hidden" || r.leavesShow === "hidden") || (s.key.show === "hidden" && stemKeyComplete(s.key)))}
             onClick={() =>
               onChange((n) => {
                 n.rows.forEach((r) => (r.stemShow = r.leavesShow = "show"));
-                if (n.key.show === "hidden" && n.key.stem.trim()) n.key.show = "show";
+                if (n.key.show === "hidden" && stemKeyComplete(n.key)) n.key.show = "show";
               })
             }
           >
@@ -123,15 +124,15 @@ export function StemLeafCards({
           <div className="ch-fields">
             <label>
               Stem
-              <DraftField label="Key stem" value={s.key.stem} maxLength={6} inputMode="decimal" disabled={blocked} onCommit={(v) => onChange((n) => void (n.key.stem = v))} />
+              <DraftField label="Key stem" invalid={keyBad} value={s.key.stem} maxLength={6} inputMode="decimal" disabled={blocked} onCommit={(v) => onChange((n) => void (n.key.stem = v))} />
             </label>
             <label>
               Leaf
-              <DraftField label="Key leaf" value={s.key.leaf} maxLength={1} inputMode="decimal" disabled={blocked} onCommit={(v) => onChange((n) => void (n.key.leaf = v))} />
+              <DraftField label="Key leaf" invalid={keyBad} value={s.key.leaf} maxLength={1} inputMode="decimal" disabled={blocked} onCommit={(v) => onChange((n) => void (n.key.leaf = v))} />
             </label>
             <label className="ch-wide">
               Represents
-              <DraftField label="Key represents" value={s.key.represents} maxLength={32} disabled={blocked} onCommit={(v) => onChange((n) => void (n.key.represents = v))} />
+              <DraftField label="Key represents" invalid={keyBad} value={s.key.represents} maxLength={32} disabled={blocked} onCommit={(v) => onChange((n) => void (n.key.represents = v))} />
             </label>
             <label className="ch-wide">
               Key for pupils

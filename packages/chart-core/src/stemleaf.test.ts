@@ -69,6 +69,15 @@ describe("stem-and-leaf diagrams", () => {
     expect(stemleafLayout(stems((s) => void (s.key.show = "none"))).key).toBeNull();
   });
 
+  it("a partly filled key is an error whether it prints or is left for pupils, and never counts as an answer", () => {
+    const partial = stems((s) => (s.key = { stem: "1", leaf: "", represents: "", show: "hidden" }));
+    expect(stemleafLayout(partial).issues).toEqual(["Key: fill in the stem, the leaf and what they represent, or leave the key empty for pupils."]);
+    expect(hasHidden(partial)).toBe(false);
+    expect(forView(partial, "answer", true).document.stemleaf!.key.show).toBe("hidden");
+    expect(setAllShown(partial, "show").document.stemleaf!.key.show).toBe("hidden");
+    expect(stemleafLayout(stems((s) => (s.key = { stem: "", leaf: "", represents: "", show: "hidden" }))).issues).toEqual([]);
+  });
+
   it("names a leaf that is not one digit, a stem that is not a number, an unfinished key and an overfull row", () => {
     expect(stemleafLayout(stems((s) => void (s.rows[0].leaves = "3 17"))).issues).toEqual(["Row 1: each leaf is one digit, 0 to 9."]);
     expect(stemleafLayout(stems((s) => void (s.rows[0].stem = "two"))).issues).toEqual(["Row 1: enter a number for the stem, or leave it blank."]);
