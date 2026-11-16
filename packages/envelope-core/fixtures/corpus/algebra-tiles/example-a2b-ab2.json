@@ -1,0 +1,55 @@
+{
+ "kind": "algebra-tiles",
+ "schemaVersion": 1,
+ "rendererVersion": "algebra-tiles-1",
+ "document": {
+  "letters": {
+   "long": "a",
+   "short": "b"
+  },
+  "terms": [
+   {
+    "id": "t1",
+    "count": 2,
+    "long": 2,
+    "short": 1,
+    "show": "show"
+   },
+   {
+    "id": "t2",
+    "count": 1,
+    "long": 1,
+    "short": 2,
+    "show": "show"
+   },
+   {
+    "id": "t3",
+    "count": -1,
+    "long": 2,
+    "short": 1,
+    "show": "show"
+   },
+   {
+    "id": "t4",
+    "count": 2,
+    "long": 1,
+    "short": 2,
+    "show": "show"
+   }
+  ],
+  "arrangement": "as-written",
+  "zeroPairs": "none",
+  "labels": true,
+  "fill": "colour",
+  "frame": false,
+  "expression": {
+   "text": "2a²b + ab² − a²b + 2ab²",
+   "show": "show"
+  },
+  "answer": {
+   "text": "a²b + 3ab²",
+   "show": "hidden"
+  },
+  "intentionalError": false
+ }
+}

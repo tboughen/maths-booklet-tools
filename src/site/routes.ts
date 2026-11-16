@@ -28,6 +28,7 @@ export const toolIds = [
   "written-method",
   "function-machine",
   "nets",
+  "algebra-tiles",
   "sample-space",
   "probability-objects",
 ] as const;

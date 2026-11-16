@@ -12,6 +12,7 @@ import { inflateSync, strFromU8, unzipSync } from "fflate";
 import { comparativeBarCharts, treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { lessonPagesOf, renderBooklet, validateBooklet } from "../../packages/resource-core/src/index";
+import { create as numberLine } from "../../packages/number-line-core/src/index";
 const renderable = (b: unknown) => validateBooklet(b);
 /** Incompressible teacher notes, so a test booklet is as large as a real unit once deflated. */
 const noise = (seed: number) => {
@@ -176,6 +177,23 @@ describe("worksheet tools", () => {
     expect(reply.issues[0]).toMatchObject({ side: 1, column: 1 });
     expect(JSON.stringify(r.content)).toContain("NOT print-ready");
   });
+
+  it("takes a narrow number line with number labels on its arrows", async () => {
+    const { client } = await start();
+    const withLine = (widthCm: number) => {
+      const doc = structuredClone(treeDiagrams) as unknown as { document: { sides: { columns: { cards: { items: { type: string; diagram?: unknown }[] }[] }[] }[] } };
+      const items = doc.document.sides[0].columns[0].cards.flatMap((c) => c.items);
+      const target = items.find((i) => i.type === "diagram")!;
+      const e = numberLine({ axis: { minimum: "3.4", maximum: "3.5", step: "1/100", labelEvery: 10, minorTicks: true, variable: "" }, widthCm: 6, markers: [{ id: "a", value: "3.47", label: "3.47" }] });
+      target.diagram = { tool: "number-line", envelope: { ...e, document: { ...e.document, widthCm } } };
+      return doc;
+    };
+    const r = await client.callTool({ name: "create_worksheet", arguments: { resource: withLine(5) } });
+    expect(r.isError, JSON.stringify(r.content)).not.toBe(true);
+    expect((r.structuredContent as unknown as Reply).issues).toEqual([]);
+    const narrower = await client.callTool({ name: "create_worksheet", arguments: { resource: withLine(3) } });
+    expect(narrower.isError).toBe(true);
+  }, 30_000);
 
   it("refuses invalid documents with a specific error", async () => {
     const { client } = await start();

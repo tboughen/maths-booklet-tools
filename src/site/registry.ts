@@ -6,7 +6,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, WrittenMethodIcon, FunctionMachineIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, ProbabilityObjectsIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
+import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, WrittenMethodIcon, FunctionMachineIcon, AlgebraTilesIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, ProbabilityObjectsIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -20,6 +20,7 @@ import writtenMethodPreview from "../assets/tool-previews/written-methods.svg";
 import functionMachinePreview from "../assets/tool-previews/function-machines.svg?no-inline";
 import netsPreview from "../assets/tool-previews/nets.svg?no-inline";
 import probabilityObjectsPreview from "../assets/tool-previews/spinners-dice-bags.svg?no-inline";
+import algebraTilesPreview from "../assets/tool-previews/algebra-tiles.svg?no-inline";
 import sampleSpacePreview from "../assets/tool-previews/sample-space-diagrams.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
@@ -50,6 +51,7 @@ export const bookletTools = [
   { id: "written-method", name: "Written methods", description: "Set out column addition and subtraction, long multiplication and short or long division, with digits left blank or hidden.", icon: WrittenMethodIcon, component: toolPage(() => import("../written-method/WrittenMethodPage")), preview: { src: writtenMethodPreview, alt: "Long multiplication of 546 by 43 with the working left for pupils." } },
   { id: "function-machine", name: "Function machines", description: "Draw function machines with operations and values left blank or hidden for pupils, and their inverse machines.", icon: FunctionMachineIcon, component: toolPage(() => import("../function-machine/FunctionMachinePage")), preview: { src: functionMachinePreview, alt: "A number machine: 7 goes in, then multiply by 4 and add 3, with the value between the boxes and the output left for pupils." } },
   { id: "nets", name: "Nets of 3D shapes", description: "Draw nets of cubes, cuboids, prisms and pyramids on centimetre squares, with letters, dots and faces hidden for pupils.", icon: NetsIcon, component: toolPage(() => import("../nets/NetsPage")), preview: { src: netsPreview, alt: "The cross-shaped net of a cube on centimetre squares, with a dot on the top face." } },
+  { id: "algebra-tiles", name: "Algebra tiles", description: "Draw algebra tiles for collecting like terms, including a²b and ab² blocks and negative tiles, with the answer left blank or hidden.", icon: AlgebraTilesIcon, component: toolPage(() => import("../algebra-tiles/AlgebraTilesPage")), preview: { src: algebraTilesPreview, alt: "Algebra tiles for 2a²b + ab² − a²b + 2ab²: a by a by b blocks and a by b by b blocks, one negative, above an answer line." } },
   { id: "sample-space", name: "Sample space diagrams", description: "Make sample space diagrams for two dice, spinners and coins, with outcomes left blank, hidden or circled.", icon: SampleSpaceIcon, component: toolPage(() => import("../sample-space/SampleSpacePage")), preview: { src: sampleSpacePreview, alt: "Sample space diagram for the totals of two dice, with four totals given and the rest left for pupils." } },
   { id: "probability-objects", name: "Spinners, dice and bags", description: "Draw spinners with equal or unequal sectors, dice and bags of counters, with labels left blank or hidden for pupils.", icon: ProbabilityObjectsIcon, component: toolPage(() => import("../probability-objects/ProbabilityObjectsPage")), preview: { src: probabilityObjectsPreview, alt: "An ordinary dice showing 3 beside a fair 8-sided spinner numbered 1 to 8 on its stick." } },
 ] as const;

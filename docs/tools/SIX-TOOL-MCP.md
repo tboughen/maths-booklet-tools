@@ -138,7 +138,7 @@ Solutions are null, interval, ray or points. Rays need value, direction and
 included; an intentional truncated ray additionally needs intentional:true and
 stop. Points have stable IDs and optional connections. Removal removes incident
 connections only. Axis edits that strand a solution fail. Default is a blank
--5..5 axis, width 14 cm. Limits: 8–18 cm, 2–32 whole tick intervals aligned to
+-5..5 axis, width 14 cm. Limits: 4–18 cm, 2–32 whole tick intervals aligned to
 zero, 33 points, 32 connections and existing label-spacing checks. Tick label
 states are value/hidden/answer-line. To show an explicitly requested saved answer,
 use set_presentation with teaching.answerVisible:true in a separate worked copy.
