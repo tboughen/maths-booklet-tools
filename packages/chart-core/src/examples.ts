@@ -1,4 +1,4 @@
-import { create, validate, GROUPED_DEFAULTS, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
+import { create, validate, GROUPED_DEFAULTS, type BoxRow, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
 
 type Data = { name: string; fill: Fill; values: string[]; hidden?: number[] };
 function chart(
@@ -50,6 +50,13 @@ function grouped(
     })),
   };
   return validate(e);
+}
+
+/** A box-plot row: label, five values, and whether its values are saved as hidden answers. */
+function box(label: string, values: [string, string, string, string, string], hidden: boolean): BoxRow {
+  const show = hidden ? ("hidden" as const) : ("show" as const);
+  const [min, lq, median, uq, max] = values.map((value) => ({ value, show }));
+  return { label, min, lq, median, uq, max };
 }
 
 /** Editable starting points. Source examples name the question they adapt;
@@ -328,5 +335,41 @@ export const examples: {
         { graph: [0, 1, 2, 3, 4, 5], table: [0, 1, 2, 3, 4, 5] },
         worked,
       ),
+  },
+  {
+    id: "boxplot-holiday",
+    title: "June 2017 3H Q9: read a box plot and draw another",
+    note: "Money spent on holidays. The male students' box plot is printed (values read from the source graph); the female students' plot from the table (60, 180, 300, 350, 650) is saved as a hidden answer for pupils to draw.",
+    sourceId: "1MA1_JUN_2017_3H_Q9",
+    worked: true,
+    make: (worked) => {
+      const e = create();
+      e.document.kind = "boxplot";
+      e.document.boxplot = {
+        rows: [box("Male students", ["20", "150", "250", "330", "750"], false), box("Female students", ["60", "180", "300", "350", "650"], !worked)],
+        axis: { min: "0", max: "1000", step: "100", stepMm: 10, title: "Money spent (£)" },
+        bandMm: 30,
+        line: "none",
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "boxplot-heights",
+    title: "November 2017 1H Q12: draw a box plot and compare",
+    note: "Heights of Year 11 and Year 7 girls. Year 11's box plot (154, 161, 165, 168, 174, from the table's least height, quartile, median, interquartile range and range) is saved as a hidden answer; Year 7's is printed, with values read from the source graph.",
+    sourceId: "1MA1_NOV_2017_1H_Q12",
+    worked: true,
+    make: (worked) => {
+      const e = create();
+      e.document.kind = "boxplot";
+      e.document.boxplot = {
+        rows: [box("Year 11", ["154", "161", "165", "168", "174"], !worked), box("Year 7", ["146", "155", "158", "165", "171"], false)],
+        axis: { min: "130", max: "180", step: "10", stepMm: 20, title: "height (cm)" },
+        bandMm: 30,
+        line: "arrow",
+      };
+      return validate(e);
+    },
   },
 ];

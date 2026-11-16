@@ -664,3 +664,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-polygon-plants (worked): added
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
+
+## 2026-11-16: Box plots become a chart kind: two source-linked examples (Jun 2017 3H Q9, Nov 2017 1H Q12), pupil and answers copies
+
+- charts: chart-boxplot-holiday: added
+- charts: chart-boxplot-holiday (worked): added
+- charts: chart-boxplot-heights: added
+- charts: chart-boxplot-heights (worked): added

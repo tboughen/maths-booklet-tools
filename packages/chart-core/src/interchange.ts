@@ -46,6 +46,8 @@ const presentation = z
         bestFit: core.bestFitSchema.nullable().optional(),
       })
       .optional(),
+    /** Fields merge; axis merges field by field; rows replaces every plot. */
+    boxplot: core.boxplotSchema.partial().extend({ axis: axisPatch }).optional(),
     /** Fields merge; xAxis and each kind's settings and yAxis merge field by field; classes replaces all classes. */
     grouped: core.groupedSchema
       .partial()
@@ -61,7 +63,7 @@ const presentation = z
 type Presentation = z.infer<typeof presentation>;
 /** Pie, pictogram and scatter settings merge field by field with the current ones; everything else replaces. */
 function present(d: core.ChartDocument, p: Presentation) {
-  const { pie, pictogram, scatter, grouped, ...rest } = p;
+  const { pie, pictogram, scatter, grouped, boxplot, ...rest } = p;
   Object.assign(d, rest);
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
   if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
@@ -72,6 +74,10 @@ function present(d: core.ChartDocument, p: Presentation) {
     if (bestFit === null) delete next.bestFit;
     else if (bestFit) next.bestFit = bestFit;
     d.scatter = next;
+  }
+  if (boxplot) {
+    const now = core.boxplotOf(d);
+    d.boxplot = { ...now, ...boxplot, axis: { ...now.axis, ...boxplot.axis } };
   }
   if (grouped) {
     const { xAxis, histogram, polygon, cumulative, ...fields } = grouped,
@@ -264,7 +270,7 @@ export function printFacts(e: core.Envelope, view: "pupil" | "answer" = "pupil")
       gridPitchMm: sc.grid === "none" ? [] : [...steps, ...(sc.grid === "fine" ? steps.map((x) => x / sc.minor) : [])],
     });
   }
-  if (core.groupedKind(shown.document.kind))
+  if (core.groupedKind(shown.document.kind) || shown.document.kind === "boxplot")
     return guidance({ textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4), gridPitchMm: [2, 10, 20] });
   if (!core.axisKind(shown.document.kind))
     return guidance({ textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4), gridPitchMm: [] });

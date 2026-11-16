@@ -256,3 +256,52 @@ export const graphRevealed = (c: object) => GRAPH_REVEALED.has(c);
 const TABLE_REVEALED = new WeakSet<object>();
 export const markTableRevealed = (c: object) => void TABLE_REVEALED.add(c);
 export const tableRevealed = (c: object) => TABLE_REVEALED.has(c);
+
+/**
+ * Box plots as Edexcel prints them: one or more plots stacked on true-size graph paper over one
+ * numbered horizontal scale, each with a label on the left. Every one of the five values can be
+ * hidden for pupils (draw the box plot, or a single missing quartile); a row with every value
+ * blank is an empty band for pupils to draw in.
+ */
+export const MAX_BOX_ROWS = 3;
+export const BOX_BAND_MM = { minimum: 20, maximum: 40, standard: 30 } as const;
+export const boxValueNames = ["min", "lq", "median", "uq", "max"] as const;
+export type BoxValueName = (typeof boxValueNames)[number];
+export const boxValueLabels: Record<BoxValueName, string> = { min: "Smallest", lq: "Lower quartile", median: "Median", uq: "Upper quartile", max: "Largest" };
+/** How a sentence names each value: in error messages and field labels. */
+export const boxValuePhrases: Record<BoxValueName, string> = { min: "smallest value", lq: "lower quartile", median: "median", uq: "upper quartile", max: "largest value" };
+const boxValue = z.object({ value: z.string().max(12), show: shown }).strict();
+export const boxRowSchema = z
+  .object({
+    label: plain(24),
+    min: boxValue,
+    lq: boxValue,
+    median: boxValue,
+    uq: boxValue,
+    max: boxValue,
+  })
+  .strict();
+export type BoxRow = z.infer<typeof boxRowSchema>;
+export const boxAxisLineChoices = ["none", "line", "arrow"] as const;
+export const boxAxisLineNames: Record<(typeof boxAxisLineChoices)[number], string> = { none: "Grid only", line: "Axis line", arrow: "Axis line with arrow" };
+export const boxplotSchema = z
+  .object({
+    rows: z.array(boxRowSchema).min(1).max(MAX_BOX_ROWS),
+    axis: paperAxisSchema,
+    /** Height of each plot's band of grid: an even number of millimetres. */
+    bandMm: z.number().int().min(BOX_BAND_MM.minimum).max(BOX_BAND_MM.maximum).multipleOf(2),
+    /** Edexcel prints the scale on the grid alone, under a bold line, or under an arrowed axis. */
+    line: z.enum(boxAxisLineChoices),
+  })
+  .strict();
+export type BoxplotSettings = z.infer<typeof boxplotSchema>;
+const emptyBox = (): BoxRow => ({ label: "", min: { value: "", show: "show" }, lq: { value: "", show: "show" }, median: { value: "", show: "show" }, uq: { value: "", show: "show" }, max: { value: "", show: "show" } });
+export const blankBoxRow = emptyBox;
+/** A new box plot: one empty plot on 0–100, never made-up data. */
+export const BOXPLOT_DEFAULTS: BoxplotSettings = {
+  rows: [emptyBox()],
+  axis: { min: "0", max: "100", step: "10", stepMm: 10, title: "" },
+  bandMm: BOX_BAND_MM.standard,
+  line: "arrow",
+};
+export const boxplotOf = (d: { boxplot?: BoxplotSettings }): BoxplotSettings => d.boxplot ?? BOXPLOT_DEFAULTS;

@@ -295,3 +295,36 @@ test("histograms, frequency polygons and cumulative frequency share one class ta
   expect(doc.grouped.polygon.yAxis).toMatchObject({ max: "16", step: "2", stepMm: 10 });
   expect(doc.grouped.histogram.yAxis.max).toBe("4");
 });
+
+test("box plots: values edit from the plot, hidden values stay answers and an empty band is left for pupils", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "boxplot-heights")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const ends = (ink: string) => art.locator(`path[stroke='${ink}'][d$='v10']`);
+  // Year 11 is hidden for pupils; Year 7 prints its five 1 cm lines.
+  await expect(ends("black")).toHaveCount(5);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(ends("#b0125b")).toHaveCount(5);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A plot opens its median; a value out of order is a specific error that blocks export.
+  await page.getByRole("button", { name: /Edit box plot 2/ }).click();
+  const median = page.getByLabel("Box plot 2 median");
+  await expect(median).toBeFocused();
+  await median.fill("150");
+  await median.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Box plot 2: the median is less than the lower quartile." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(median).toHaveValue("158");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  // + adds an empty band where pupils draw a plot; it prints nothing and blocks nothing.
+  await page.getByRole("button", { name: "Add a box plot at the end" }).click();
+  await expect(page.getByLabel("Box plot 3 smallest value")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(ends("black")).toHaveCount(5);
+  await page.getByLabel("Axis line").selectOption("line");
+  const doc = (await saved(page)).document;
+  expect(doc.boxplot.rows).toHaveLength(3);
+  expect(doc.boxplot.rows[0].median).toEqual({ value: "165", show: "hidden" });
+  expect(doc.boxplot.rows[2].min).toEqual({ value: "", show: "show" });
+  expect(doc.boxplot.line).toBe("line");
+});

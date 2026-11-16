@@ -187,6 +187,30 @@ polygon", "draw the cumulative frequency graph").
   2H Q11 stops numbering at 80 on a grid to 90), the tool numbers every step to the end. Older
   papers print 1.0, 2.0 on a frequency density axis; the tool prints 1, 2.
 
+## Box plots
+
+Edexcel prints box plots on true-size 2 mm graph paper: a numbered scale below the grid, 1.5 pt
+whiskers, box and median, and 1 cm end lines (measured on June 2017 3H Q9 and November 2017 1H
+Q12). The papers draw the scale with no axis line, a plain line or an arrowed line.
+
+- **Settings:** `boxplot {rows, axis, bandMm, line}`. `rows` holds 1 to 3 plots, each
+  `{label, min, lq, median, uq, max}` with every value `{value, show}`. `axis` is the same
+  true-size scale as the grouped charts, `{min, max, step, stepMm, title}`. `bandMm` (even, 20
+  to 40) is the height given to each plot; `line` is `none`, `line` or `arrow`. Without
+  `boxplot` a box plot starts with one empty band on a 0 to 100 scale, never made-up data.
+- **Pupil states:** a plot with every value blank is an empty band for pupils to draw a whole
+  plot. A hidden value leaves its 1 cm line, and every part that needs it (a quartile's whisker
+  and the box), for pupils; each part prints only when every value it needs prints. Answers
+  copies draw the hidden parts in pink at the same size.
+- **Validation:** values must be numbers inside the scale and in order (smallest, lower
+  quartile, median, upper quartile, largest); the scale must end on a 2 mm grid line; the plot
+  fits 18 cm. A plot with only some of its values gets a note, not an error.
+- **Editor:** Box plots and Scale and graph paper cards replace the Data and axes cards. Clicking
+  a plot focuses its median; + and − beside the diagram add or remove the last plot. "Hide this
+  plot" hides all five values of one plot.
+- **Examples:** June 2017 3H Q9 (compare two box plots, the second hidden) and November 2017 1H
+  Q12 (draw a box plot for Year 11 beside Year 7).
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
@@ -194,8 +218,8 @@ Lines are normal or bold (the Lines control beside Chart height). Bold multiplie
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, time series graphs, comparative pie
-charts of different sizes, box plots and stem-and-leaf diagrams (box plots and stem-and-leaf
-diagrams are being added next, 16 Nov 2026). Each is a separate, reviewed extension or tool.
+charts of different sizes and stem-and-leaf diagrams (stem-and-leaf diagrams are being added
+next, 16 Nov 2026). Each is a separate, reviewed extension or tool.
 
 ## MCP connector
 
