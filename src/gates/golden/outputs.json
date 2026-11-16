@@ -158,73 +158,73 @@
   },
   "algebra tiles: at-a2b-ab2": {
    "json": "afc98b8b706f3e2d",
-   "svg": "0687843b7f4f5937",
-   "mm": "148.34x38.89",
-   "png600": "3504x919",
-   "pixels": "98931980afe8a5b0"
+   "svg": "d4e25178a5fe2713",
+   "mm": "149.34x39.89",
+   "png600": "3528x942",
+   "pixels": "88db210a17dc128f"
   },
   "algebra tiles: at-a2b-ab2 (worked)": {
    "json": "5722b21930a5dcdc",
-   "svg": "a870bad5eed44b4e",
-   "mm": "148.34x38.89",
-   "png600": "3504x919",
-   "pixels": "180d1d8cc0b46e63"
+   "svg": "b1fb58a65dde8a81",
+   "mm": "149.34x39.89",
+   "png600": "3528x942",
+   "pixels": "37eff07c5f5469d5"
   },
   "algebra tiles: at-collect-two-letters": {
    "json": "85eb7cc5272a053b",
-   "svg": "1007b1c7bf6b6b39",
-   "mm": "80.48x35",
-   "png600": "1901x827",
-   "pixels": "14de733ca5c28a91"
+   "svg": "d6a5c85beaf74849",
+   "mm": "81.48x36",
+   "png600": "1925x850",
+   "pixels": "c6d20c6b1131b35e"
   },
   "algebra tiles: at-collect-two-letters (worked)": {
    "json": "d9380f73abce96c7",
-   "svg": "156e488bbf47aae4",
-   "mm": "80.48x35",
-   "png600": "1901x827",
-   "pixels": "f891295dac97013a"
+   "svg": "8efa796dafcd55bc",
+   "mm": "81.48x36",
+   "png600": "1925x850",
+   "pixels": "b4cf39272f34722e"
   },
   "algebra tiles: at-draw-the-tiles": {
    "json": "426366d89dce36ea",
-   "svg": "23750e8fec649bfb",
-   "mm": "53.5x41",
-   "png600": "1264x969",
-   "pixels": "cd0992437444fddc"
+   "svg": "0f00094e80bd7bec",
+   "mm": "54.5x42",
+   "png600": "1287x992",
+   "pixels": "f477ef7c9d4be4d5"
   },
   "algebra tiles: at-draw-the-tiles (worked)": {
    "json": "a3ef98545a164edf",
-   "svg": "d08492e149f9589f",
-   "mm": "53.5x41",
-   "png600": "1264x969",
-   "pixels": "971a17e8bcb486ea"
+   "svg": "c5f253d5f964cc0c",
+   "mm": "54.5x42",
+   "png600": "1287x992",
+   "pixels": "5be4eba1cae0e828"
   },
   "algebra tiles: at-squares-and-products": {
    "json": "d754bbb3738517ab",
-   "svg": "4d50c773840e0245",
-   "mm": "143.5x35",
-   "png600": "3390x827",
-   "pixels": "f2069eaeeaa81f95"
+   "svg": "2284819924b2f0fa",
+   "mm": "144.5x36",
+   "png600": "3413x850",
+   "pixels": "10cf5a1d903853a8"
   },
   "algebra tiles: at-squares-and-products (worked)": {
    "json": "96e8bb8d426bb600",
-   "svg": "2977373c1b62ece1",
-   "mm": "143.5x35",
-   "png600": "3390x827",
-   "pixels": "5d8ed0e6258a33ea"
+   "svg": "3a48f41adb20560d",
+   "mm": "144.5x36",
+   "png600": "3413x850",
+   "pixels": "4cc869a5c7db6aea"
   },
   "algebra tiles: at-zero-pairs": {
    "json": "0749917e3eddfe95",
-   "svg": "72bffb323dae1cfc",
-   "mm": "77.93x54.5",
-   "png600": "1841x1287",
-   "pixels": "6fa754a295a8cbbc"
+   "svg": "38afcfd3b077ea44",
+   "mm": "78.93x55.5",
+   "png600": "1864x1311",
+   "pixels": "97583cb2b9cb0382"
   },
   "algebra tiles: at-zero-pairs (worked)": {
    "json": "e361d15a51c61a9e",
-   "svg": "f00ca72cd0c25e43",
-   "mm": "77.93x54.5",
-   "png600": "1841x1287",
-   "pixels": "e937e8a5b4b5fe60"
+   "svg": "47e6e0f8459bf72d",
+   "mm": "78.93x55.5",
+   "png600": "1864x1311",
+   "pixels": "49a12b79dc2b0a7f"
   },
   "angle diagrams: angles-algebra-line": {
    "json": "591a54c3fc52c161",

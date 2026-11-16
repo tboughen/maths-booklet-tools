@@ -191,4 +191,25 @@ describe("algebra tiles", () => {
     await expect(io.revise({ envelope: hidden, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
     expect(() => io.create({ spec: { example: "a2b-ab2", tiles: "a" } })).toThrow(/Examples/);
   });
+
+  it("review fixes: hidden rings never reach the pupil copy; frames still wrap; 0 is simplified; odd input", () => {
+    const base = create("3x + 2 − x − 2");
+    const hidden = validate({ ...base, document: { ...base.document, arrangement: "grouped", zeroPairs: "hidden" } });
+    expect(renderSvg(hidden)).not.toContain('stroke-dasharray="1.6 0.8"');
+    expect(renderSvg(forView(hidden, "answer", true))).toContain(`stroke="${ANSWER_COLOUR}" stroke-width="0.4" stroke-dasharray="1.6 0.8"`);
+    for (const [tiles, arrangement] of [["x² + 11x³ − 6 + 12x²y + x", "as-written"], ["x² + 11x³ − 6 + 12x²y + x", "grouped"], ["12y² − xy", "grouped"]] as const) {
+      const e = create(tiles);
+      const framed = validate({ ...e, document: { ...e.document, frame: true, arrangement } });
+      expect(layout(framed).width, tiles).toBeLessThanOrEqual(180);
+    }
+    const zero = collect(create("x − x")).envelope;
+    expect(zero.document.answer?.text).toBe("0");
+    expect(warnings(zero)).toEqual([]);
+    expect(parseExpression("2 3", ab)).toBeNull();
+    expect(parseExpression("2 × 3", ab)).toBeNull();
+    expect(parseExpression("a ^ 2", ab)).toEqual([{ count: 1, long: 2, short: 0 }]);
+    expect(parseExpression("3A + 2", ab)).toEqual([{ count: 3, long: 1, short: 0 }, { count: 2, long: 0, short: 0 }]);
+    const long = io.create({ spec: { tiles: "3a²b − 2ab² + ab + 4 + 2a − b + a²b − 3 + 2ab", writeExpression: true } });
+    expect(long.document.expression?.text).toBe("3a²b − 2ab² + ab + 4 + 2a − b + a²b − 3 + 2ab");
+  });
 });

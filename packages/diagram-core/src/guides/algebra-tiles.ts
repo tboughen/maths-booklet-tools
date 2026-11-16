@@ -14,7 +14,7 @@ export const atConfig = {
     maximumTiles: at.MAX_TILES,
     letters: "Two letters at most: the long letter (first alphabetically unless letters is given) and the short letter. Not l or o.",
     tiles: "1 (a small square), a (a strip a by 1), a² (a square a by a), ab (a rectangle a by b), b² and b, and blocks for three letters: a³, a²b (a by a by b), ab² (a by b by b), b³. Each kind has its own shape, so unlike terms never look alike.",
-    negativeTiles: "Negative tiles are red (positive yellow), hatched and signed (−a), so they read in black and white.",
+    negativeTiles: "Negative tiles are red (positive yellow), hatched, and signed (−a) when labels print, so they read in black and white.",
     arrangements: ["as-written", "grouped"],
     zeroPairs: ["none", "show", "hidden"],
     fills: ["colour", "plain"],

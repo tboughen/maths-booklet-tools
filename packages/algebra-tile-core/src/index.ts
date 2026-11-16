@@ -27,7 +27,7 @@ export const MAX_TERMS = 16;
 export const MAX_COUNT = 12;
 export const MAX_TILES = 60;
 export const MAX_DEGREE = 3;
-export const MAX_TEXT = 40;
+export const MAX_TEXT = 80;
 export const ANSWER_COLOUR = "#b0125b";
 /** Letters a pupil could confuse with a number (o, l) or an operation (x is fine; it is italic) are refused. */
 const LETTER = /^[a-km-np-z]$/;
@@ -60,7 +60,7 @@ export const documentSchema = z
     zeroPairs: z.enum(["none", "show", "hidden"]),
     /** Print each tile's term on it (a, ab, a²b, 1). */
     labels: z.boolean(),
-    /** "colour": yellow positive and red negative tiles; "plain": white tiles. Negative tiles are always hatched and signed. */
+    /** "colour": yellow positive and red negative tiles; "plain": white tiles. Negative tiles are always hatched, and signed when labels print. */
     fill: z.enum(["colour", "plain"]),
     /** A dashed frame round the tiles: room for pupils to draw them. */
     frame: z.boolean(),
@@ -142,7 +142,7 @@ export async function hash(e: Envelope) {
 }
 export const hasHidden = (e: Envelope) => {
   const d = e.document;
-  return d.terms.some((t) => t.show === "hidden") || d.zeroPairs === "hidden" || [d.expression, d.answer].some((v) => v?.show === "hidden" && !!v.text);
+  return d.terms.some((t) => t.show === "hidden") || (d.zeroPairs === "hidden" && d.arrangement === "grouped") || [d.expression, d.answer].some((v) => v?.show === "hidden" && !!v.text);
 };
 
 /* ---------- Terms as text ---------- */
@@ -188,6 +188,8 @@ export function collectParts(parts: Part[]): Part[] {
 }
 const normalise = (text: string) =>
   text
+    .toLowerCase()
+    .replace(/\s*\^\s*/g, "^")
     .replace(/[-–—]/g, "−")
     .replace(/\^\(?2\)?/g, "²")
     .replace(/\^\(?3\)?/g, "³")
@@ -195,24 +197,26 @@ const normalise = (text: string) =>
     .replace(/[\s*×·]/g, "");
 /** The letters an expression uses, in the order they appear. */
 export function lettersIn(text: string): string[] {
-  return [...new Set(normalise(text).match(/[a-z]/gi) ?? [])];
+  return [...new Set(normalise(text).match(/[a-z]/g) ?? [])];
 }
 /**
  * Reads an expression such as "3a²b − 2ab^2 + ba + 4" into terms, as written (nothing is
  * collected). Letters must be the diagram's two letters; ba is ab. Null if it cannot be read.
  */
 export function parseExpression(text: string, letters: Letters): Part[] | null {
+  // Two numbers side by side ("2 3", "2 × 3") are not a term.
+  if (/\d[\s*×·]+\d/.test(text)) return null;
   const t = normalise(text);
   if (!t) return null;
   const pieces = t.match(/[+−]?[^+−]+/g);
   if (!pieces || pieces.join("") !== t) return null;
   const out: Part[] = [];
   for (const piece of pieces) {
-    const m = piece.match(/^([+−]?)(\d*)((?:[a-z][²³]?)*)$/i);
+    const m = piece.match(/^([+−]?)(\d*)((?:[a-z][²³]?)*)$/);
     if (!m || (!m[2] && !m[3])) return null;
     let long = 0,
       short = 0;
-    for (const f of m[3].match(/[a-z][²³]?/gi) ?? []) {
+    for (const f of m[3].match(/[a-z][²³]?/g) ?? []) {
       const p = f[1] === "²" ? 2 : f[1] === "³" ? 3 : 1;
       if (f[0] === letters.long) long += p;
       else if (f[0] === letters.short) short += p;
@@ -409,7 +413,8 @@ export function warnings(e: Envelope): string[] {
     const parts = parseExpression(v.text, d.letters);
     if (!parts) return out.push(`The ${name} "${v.text}" cannot be read as an expression in ${d.letters.long} and ${d.letters.short}.`);
     if (!equivalent(parts, tiles)) return out.push(`The ${name} ${v.text} does not match the tiles, which show ${shown}.`);
-    if (full && collectParts(parts).length !== parts.length) out.push(`The answer ${v.text} still has like terms to collect.`);
+    // A lone 0 is fully simplified; a 0 among other terms, or two like terms, is not.
+    if (full && parts.length > 1 && (parts.some((p) => p.count === 0) || collectParts(parts).length !== parts.length)) out.push(`The answer ${v.text} still has like terms to collect.`);
   };
   check(d.expression, "expression", false);
   check(d.answer, "answer", true);
@@ -458,7 +463,8 @@ export const LONG = 17;
 export const SHORT = 11;
 /** Blocks (three letters) are drawn in cabinet projection: depth at 45°, half length. */
 const DEPTH = 0.5 * Math.SQRT1_2;
-const MARGIN = 1;
+/** Room round the artwork; more than a zero-pair ring reaches beyond its tiles. */
+const MARGIN = 1.5;
 const TILE_GAP = 1.5;
 const TERM_GAP = 6;
 const GROUP_GAP = 9;
@@ -493,7 +499,7 @@ const isAnswer = (v: Value) => !!v.text && (v.show === "hidden" || ANSWERED.has(
 const room = (v: Value, blank: number) => (isAnswer(v) || !v.text ? Math.max(blank, v.text ? mathsWidth(v.text) : 0) : mathsWidth(v.text));
 
 /** Tiles for each term in order, left to right, wrapping before a term that no longer fits. */
-function asWritten(d: TilesDocument): Placed {
+function asWritten(d: TilesDocument, limit: number): Placed {
   const tiles: Tile[] = [];
   const rows: Tile[][] = [[]];
   let x = 0;
@@ -502,14 +508,14 @@ function asWritten(d: TilesDocument): Placed {
       n = Math.abs(t.count),
       termWidth = n * (s.w + s.depth) + (n - 1) * TILE_GAP;
     if (k > 0) {
-      if (x + TERM_GAP + termWidth > MAX_WIDTH_MM - 2 * MARGIN && x > 0) {
+      if (x + TERM_GAP + termWidth > limit && x > 0) {
         rows.push([]);
         x = 0;
       } else x += TERM_GAP;
     }
     for (let i = 0; i < n; i++) {
       if (i > 0) x += TILE_GAP;
-      if (x > 0 && x + s.w + s.depth > MAX_WIDTH_MM - 2 * MARGIN) {
+      if (x > 0 && x + s.w + s.depth > limit) {
         rows.push([]);
         x = 0;
       }
@@ -522,7 +528,7 @@ function asWritten(d: TilesDocument): Placed {
   return stack(rows);
 }
 /** Like tiles together, kinds in the order they first appear: positive tiles in a row, negative tiles in a row beneath. */
-function grouped(d: TilesDocument): Placed & { pairs: [Tile, Tile][] } {
+function grouped(d: TilesDocument, limit: number): Placed & { pairs: [Tile, Tile][] } {
   const order: string[] = [],
     groups = new Map<string, { pos: Tile[]; neg: Tile[] }>();
   for (const t of d.terms) {
@@ -544,7 +550,7 @@ function grouped(d: TilesDocument): Placed & { pairs: [Tile, Tile][] } {
       first = g.pos[0] ?? g.neg[0],
       step = first.w + first.depth + TILE_GAP;
     // A long group wraps into chunks so it still fits the print width.
-    const perRow = Math.max(1, Math.floor((MAX_WIDTH_MM - 2 * MARGIN + TILE_GAP) / step));
+    const perRow = Math.max(1, Math.floor((limit + TILE_GAP) / step));
     for (let c = 0; c < Math.max(g.pos.length, g.neg.length); c += perRow) {
       const pos = g.pos.slice(c, c + perRow),
         neg = g.neg.slice(c, c + perRow),
@@ -552,7 +558,7 @@ function grouped(d: TilesDocument): Placed & { pairs: [Tile, Tile][] } {
         width = cols * step - TILE_GAP,
         tall = first.h + first.depth,
         height = (pos.length ? tall : 0) + (neg.length ? tall : 0) + (pos.length && neg.length ? SIGN_GAP : 0);
-      if (x > 0 && x + GROUP_GAP + width > MAX_WIDTH_MM - 2 * MARGIN) {
+      if (x > 0 && x + GROUP_GAP + width > limit) {
         rows.push([]);
         x = 0;
       } else if (x > 0) x += GROUP_GAP;
@@ -602,15 +608,17 @@ export function layout(e: Envelope) {
   const d = e.document,
     issues: string[] = [],
     hits: Hit[] = [];
-  const placed = d.arrangement === "grouped" ? grouped(d) : { ...asWritten(d), pairs: [] as [Tile, Tile][] };
-  const pad = d.frame ? FRAME_PAD : 0;
+  const pad = d.frame ? FRAME_PAD : 0,
+    limit = MAX_WIDTH_MM - 2 * MARGIN - 2 * pad;
+  const placed = d.arrangement === "grouped" ? grouped(d, limit) : { ...asWritten(d, limit), pairs: [] as [Tile, Tile][] };
   const left = MARGIN + pad,
     top = MARGIN + pad;
   for (const t of placed.tiles) {
     t.x += left;
     t.y += top;
   }
-  const ringPairs = d.zeroPairs !== "none" && d.arrangement === "grouped" ? placed.pairs : [];
+  // "hidden" rings become "show" on the answers copy (forView); the pupil copy never draws them.
+  const ringPairs = d.zeroPairs === "show" && d.arrangement === "grouped" ? placed.pairs : [];
   let width = placed.width + 2 * pad,
     height = placed.height + 2 * pad;
   const frame = d.frame ? { x: MARGIN, y: MARGIN, w: width, h: height } : null;

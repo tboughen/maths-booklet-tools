@@ -174,7 +174,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     arrangement: "as-written (default) or grouped: like tiles together, positive above negative.",
     zeroPairs: "none (default), show or hidden: rings round zero pairs when grouped.",
     labels: "true (default) prints each tile's term on it.",
-    fill: "colour (yellow positive, red negative; default) or plain; negative tiles are always hatched and signed.",
+    fill: "colour (yellow positive, red negative; default) or plain; negative tiles are always hatched, and signed when labels print.",
     frame: "true draws a dashed frame round the tiles: room for pupils to draw them.",
     intentionalError: "true marks an error-spotting task, so a wrong expression or answer raises no warning.",
     lines,

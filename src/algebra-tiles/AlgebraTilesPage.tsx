@@ -776,7 +776,7 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                 <summary>Editing and printing help</summary>
                 <p className="pt-note">
                   Each kind of term has its own tile: 1 is a small square, a letter a strip, a squared letter a square, two letters a rectangle and
-                  three letters a block (a²b is a by a by b; ab² is a by b by b). Negative tiles are red, hatched and signed, so they still read in
+                  three letters a block (a²b is a by a by b; ab² is a by b by b). Negative tiles are red and hatched (and signed while labels print), so they still read in
                   black and white. Up to {MAX_TERMS} terms of {MAX_COUNT} tiles each.
                 </p>
                 <p className="pt-note">

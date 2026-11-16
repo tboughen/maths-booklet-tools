@@ -29,7 +29,7 @@ a²b and ab² (the A4.02 misconception) are different shapes. Degree 4 and highe
 
 Negative tiles follow the counters convention (METHODS: yellow positive, red negative). Because worksheets are often
 printed in black and white, a negative tile is also hatched and its label carries the sign (−a). `fill: "plain"`
-prints white tiles; negatives stay hatched and signed.
+prints white tiles; negatives stay hatched (and signed while labels print).
 
 ## Document
 
