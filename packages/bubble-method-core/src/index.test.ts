@@ -30,6 +30,9 @@ describe("bubble method", () => {
     expect(piecesOf(typesetSide("(y-2)/3"))).toEqual([expect.objectContaining({ kind: "fraction", num: "y − 2", den: "3" })]);
     expect(piecesOf("x/2 + 1").map((p) => p.kind)).toEqual(["fraction", "text"]);
     expect(piecesOf("1/2").map((p) => p.kind)).toEqual(["fraction"]);
+    expect(piecesOf("x/−2")).toEqual([expect.objectContaining({ kind: "fraction", num: "x", den: "−2" })]);
+    expect(piecesOf("−6/−2")).toEqual([expect.objectContaining({ kind: "fraction", num: "−6", den: "−2" })]);
+    expect(piecesOf("x − 6/2").map((p) => (p.kind === "text" ? p.text : `${p.num}/${p.den}`))).toEqual(["x", " − ", "6/2"]);
   });
 
   it("splits a side into its terms outside brackets and fractions", () => {
@@ -157,6 +160,10 @@ describe("bubble method", () => {
     const long = bm.create();
     long.document.first.lhs.text = "x".repeat(41);
     expect(() => bm.validate(long)).toThrow(/40 characters on each side/);
+    const wrongType = structuredClone(bm.create()) as unknown as { document: { first: { lhs: { text: unknown } } } };
+    wrongType.document.first.lhs.text = 5;
+    expect(() => bm.validate(wrongType)).toThrow(/not a supported bubble method file/);
+    expect(bm.renderSvg(io.create({ spec: { start: "y = x/3", steps: [{ bubble: "x3", line: "3y = x" }] } }))).toContain('aria-label="Bubble method: y = x/3; bubbles ×3 and ×3; 3y = x"');
   });
 
   it("keeps hidden answers out of the pupil copy and prints them in pink on the answers copy", () => {

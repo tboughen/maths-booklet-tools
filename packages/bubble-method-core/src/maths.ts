@@ -90,8 +90,11 @@ function groupBefore(t: string, end: number): { from: number; text: string } | n
   }
   let j = i;
   while (j > 0 && /[\p{L}\p{N}.²³√π]/u.test(t[j - 1])) j--;
-  // A leading minus sign stays in front of the fraction, as printed.
-  return j < i ? { from: j, text: t.slice(j, i) } : null;
+  if (j === i) return null;
+  // A minus straight after a sign or at the start belongs to a number on its own (−6/−2); in front of a
+  // term (x − 6/2) it stays outside the fraction, as printed.
+  if (t[j - 1] === "−" && (j === 1 || /[(×÷/]/.test(t[j - 2]))) j--;
+  return { from: j, text: t.slice(j, i) };
 }
 function groupAfter(t: string, start: number): { to: number; text: string } | null {
   let i = start;
@@ -104,9 +107,11 @@ function groupAfter(t: string, start: number): { to: number; text: string } | nu
     }
     return null;
   }
-  let j = i;
+  // A signed denominator (x/−2) keeps its sign.
+  let j = t[i] === "−" ? i + 1 : i;
+  const first = j;
   while (j < t.length && /[\p{L}\p{N}.²³√π]/u.test(t[j])) j++;
-  return j > i ? { to: j, text: t.slice(i, j) } : null;
+  return j > first ? { to: j, text: t.slice(i, j) } : null;
 }
 
 /** Already-typeset text split into upright text, italic letters and stacked fractions. */

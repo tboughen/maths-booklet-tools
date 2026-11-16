@@ -198,7 +198,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
     expected = useRef<string | null>(null);
   const e = history.present,
     d = e.document,
-    displayed = forView(e, view),
+    displayed = forView(e, view, true),
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
@@ -523,6 +523,12 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                               {t.text}
                             </option>
                           ))}
+                          {(() => {
+                            const u = underOf(selectedStep, selectedSide);
+                            return typeof u === "number" && u >= termChoices(selectedStep, selectedSide).length ? (
+                              <option value={u}>Term {u + 1} (not on the line above: shown under its last term)</option>
+                            ) : null;
+                          })()}
                         </select>
                       </label>
                     )}
@@ -568,7 +574,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                   <p className="pt-note">
                     {selectedSide
                       ? "Type operations such as -2, /3, x3 or +5: they print as −2, ÷3, ×3 and +5."
-                      : "Type 3x+2, y-2 or (y-2)/3: signs print as on a paper, letters in italic and fractions stacked."}
+                      : "Type 3x+2, y-2 or (y-2)/3: signs print as on a paper, letters in italic and fractions stacked. For a half of x type x/2 or (1/2)x; 1/2x stacks as 1 over 2x."}
                   </p>
                 </>
               ) : (

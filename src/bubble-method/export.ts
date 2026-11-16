@@ -50,6 +50,6 @@ export async function copyWord(e: Envelope, answers = false) {
 /** Pupil and answers copies in one ZIP (U28); the editor's view is not used. */
 export const downloadBoth = (e: Envelope) =>
   downloadBothCopies("bubble-method", e, async (view) => {
-    const copy = viewOf(e, view);
+    const copy = viewOf(e, view, true);
     return { svg: (await prepareImage(copy, view === "answer")).svg, png: await printPng(copy, view === "answer") };
   });

@@ -109,8 +109,9 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const issue = parsed.error.issues[0],
       path = issue?.path ?? [];
-    if (path.includes("text") && path.includes("op")) throw Error(`Use at most ${MAX_OP} characters in each bubble.`);
-    if (path.includes("text")) throw Error(`Use at most ${MAX_SIDE} characters on each side of a line.`);
+    const tooLong = issue?.code === "too_big";
+    if (tooLong && path.includes("text") && path.includes("op")) throw Error(`Use at most ${MAX_OP} characters in each bubble.`);
+    if (tooLong && path.includes("text")) throw Error(`Use at most ${MAX_SIDE} characters on each side of a line.`);
     if (path.length === 2 && path[1] === "steps") throw Error(`Use at most ${MAX_STEPS} steps.`);
     throw Error("This is not a supported bubble method file (version 1 is supported).");
   }
@@ -418,9 +419,10 @@ export function renderSvg(e: Envelope): string {
         if (p) out.push(markupCentred(typesetOp(p), b.cx, r.cy, ink(b.v)));
       }
   }
-  const said = (v: Value) => printed(v) || "blank";
+  const said = (v: Value) => (printed(v) ? typesetSide(printed(v)) : "blank");
+  const saidOp = (v: Value) => (printed(v) ? typesetOp(printed(v)) : "empty");
   const label = `Bubble method: ${said(d.first.lhs)} ${d.first.rel} ${said(d.first.rhs)}${d.steps
-    .map((s) => `; bubbles ${printed(s.left.op) || "empty"} and ${printed(s.right.op) || "empty"}; ${said(s.line.lhs)} ${s.line.rel} ${said(s.line.rhs)}`)
+    .map((s) => `; bubbles ${saidOp(s.left.op)} and ${saidOp(s.right.op)}; ${said(s.line.lhs)} ${s.line.rel} ${said(s.line.rhs)}`)
     .join("")}`;
   return boldLines(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${num(g.width)}mm" height="${num(g.height)}mm" viewBox="0 0 ${num(g.width)} ${num(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`,
