@@ -26,7 +26,7 @@ import {
   printRasterSize,
 } from "../packages/graph-core/src/png-bytes";
 import { triangleEditorLink } from "../src/triangle/links";
-import { clickResourceAction, openResourceMenu } from "./resource-actions";
+import { clickResourceAction, menuFor, openResourceMenu } from "./resource-actions";
 const report = resolve(
     process.env.TRIANGLE_REPORT_DIR || "test-results/triangle-artifacts",
   ),
@@ -65,7 +65,7 @@ async function saved(page: Page) {
   ) as Promise<Envelope>;
 }
 async function download(page: Page, action: string) {
-  await openResourceMenu(page);
+  await openResourceMenu(page, menuFor(action));
   const event = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: action, exact: true }).click();
   const d = await event;

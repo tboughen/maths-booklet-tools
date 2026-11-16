@@ -36,6 +36,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
         "Start again",
         "Copy image",
         "Copy for Word",
+        "Download",
         "File",
       ]);
       await expect(
@@ -57,7 +58,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
         }));
       if (commonStyle) expect(style).toEqual(commonStyle);
       else commonStyle = style;
-      await bar.getByRole("button", { name: "File", exact: true }).click();
+      await bar.getByRole("button", { name: "Download", exact: true }).click();
       const popover = page.getByRole("menu");
       await expect(popover).toBeVisible();
       const menuBox = await popover.boundingBox();
@@ -75,7 +76,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
       );
       await lastAction.press("Escape");
       await expect(
-        bar.getByRole("button", { name: "File", exact: true }),
+        bar.getByRole("button", { name: "Download", exact: true }),
       ).toHaveAttribute("aria-expanded", "false");
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),

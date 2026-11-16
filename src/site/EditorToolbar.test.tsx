@@ -55,7 +55,7 @@ describe("reset notice (U25)", () => {
           onCopy={() => {}}
           onCopyClipboard={() => {}}
           menuOpen={false}
-          onToggleMenu={() => {}}
+          onMenuChange={() => {}}
         />,
       ),
     );
@@ -114,7 +114,7 @@ describe("reset notice (U25)", () => {
     act(() =>
       root!.render(
         <EditorToolbar canUndo canRedo={false} onUndo={() => {}} onRedo={() => {}} resetStep={2} active={false}
-          onReset={() => {}} onCopy={() => {}} onCopyClipboard={() => {}} menuOpen={false} onToggleMenu={() => {}} />,
+          onReset={() => {}} onCopy={() => {}} onCopyClipboard={() => {}} menuOpen={false} onMenuChange={() => {}} />,
       ),
     );
     expect(notice()).toBeNull();
