@@ -69,6 +69,18 @@ import {
   groupedOf,
   MAX_CLASSES,
   type GroupedSettings,
+  boxplotOf,
+  stemleafOf,
+  timeseriesOf,
+  blankTimePoint,
+  MAX_TIMES,
+  type TimeseriesSettings,
+  blankStemRow,
+  MAX_STEM_ROWS,
+  type StemleafSettings,
+  blankBoxRow,
+  MAX_BOX_ROWS,
+  type BoxplotSettings,
   pieLabelChoices,
   pieLabelNames,
   pieOf,
@@ -88,6 +100,9 @@ import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } fro
 import "./charts.css";
 import { DraftField } from "./DraftField";
 import { GroupedCards } from "./GroupedCards";
+import { BoxPlotCards } from "./BoxPlotCards";
+import { StemLeafCards } from "./StemLeafCards";
+import { TimeSeriesCards } from "./TimeSeriesCards";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
@@ -446,7 +461,13 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     sc = scatterOf(d),
     grouped = groupedKind(d.kind) ? d.kind : null,
     gr = groupedOf(d),
-    mark = pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : line ? "line" : "bar";
+    boxplot = d.kind === "boxplot",
+    bp = boxplotOf(d),
+    stemleaf = d.kind === "stemleaf",
+    sl = stemleafOf(d),
+    timeseries = d.kind === "timeseries",
+    ts = timeseriesOf(d),
+    mark = timeseries ? "time" : stemleaf ? "row" : boxplot ? "box plot" : pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -483,6 +504,30 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       const next = structuredClone(groupedOf(n));
       update(next);
       n.grouped = next;
+    });
+  }
+  /** One undoable edit of the box plots. */
+  function patchBoxplot(update: (s: BoxplotSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(boxplotOf(n));
+      update(next);
+      n.boxplot = next;
+    });
+  }
+  /** One undoable edit of the time series graph. */
+  function patchTimeseries(update: (s: TimeseriesSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(timeseriesOf(n));
+      update(next);
+      n.timeseries = next;
+    });
+  }
+  /** One undoable edit of the stem-and-leaf diagram. */
+  function patchStemleaf(update: (s: StemleafSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(stemleafOf(n));
+      update(next);
+      n.stemleaf = next;
     });
   }
   function undo() {
@@ -620,7 +665,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons and cumulative frequency graphs."
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots, stem-and-leaf diagrams and time series graphs."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -750,6 +795,49 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   {g.targets.map((t) => {
                     const point = scatter ? sc.points[t.category] : null;
                     const klass = grouped ? gr.classes[t.category] : null;
+                    if (timeseries) {
+                      const id = `ch-time-value-${t.category}`;
+                      const pt = ts.points[t.category];
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          className={`ch-hit ${selected === id ? "ch-selected" : ""}`}
+                          aria-label={`Edit time ${t.category + 1}${pt?.label.trim() ? `: ${pt.label.trim()}${pt.group.trim() ? ` ${pt.group.trim()}` : ""}` : ""}`}
+                          disabled={blocked}
+                          style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
+                          onClick={() => focusField(id)}
+                        />
+                      );
+                    }
+                    if (stemleaf) {
+                      const id = `ch-stem-leaves-${t.category}`;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          className={`ch-hit ${selected === id ? "ch-selected" : ""}`}
+                          aria-label={`Edit row ${t.category + 1}${sl.rows[t.category]?.stem.trim() ? `: stem ${sl.rows[t.category].stem.trim()}` : ""}`}
+                          disabled={blocked}
+                          style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
+                          onClick={() => focusField(id)}
+                        />
+                      );
+                    }
+                    if (boxplot) {
+                      const id = `ch-box-median-${t.category}`;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          className={`ch-hit ${selected === id ? "ch-selected" : ""}`}
+                          aria-label={`Edit box plot ${t.category + 1}${bp.rows[t.category]?.label ? `: ${bp.rows[t.category].label}` : ""}`}
+                          disabled={blocked}
+                          style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
+                          onClick={() => focusField(id)}
+                        />
+                      );
+                    }
                     const cell = point ?? d.series[t.series].values[t.category];
                     const id = klass ? `ch-class-frequency-${t.category}` : point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
                     const hiddenHere = klass
@@ -802,7 +890,70 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                {grouped ? (
+                {timeseries ? (
+                <StructureStepper
+                  vertical
+                  name="Times"
+                  caption=""
+                  add={{
+                    label: "Add a time at the end",
+                    title: "Add time",
+                    disabled: blocked || ts.points.length >= MAX_TIMES,
+                    onClick: () => {
+                      patchTimeseries((s) => void s.points.push(blankTimePoint()));
+                      requestAnimationFrame(() => focusField(`ch-time-value-${ts.points.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last time (time ${ts.points.length})`,
+                    title: "Remove last time",
+                    disabled: blocked || ts.points.length <= 1,
+                    onClick: () => patchTimeseries((s) => void s.points.pop()),
+                  }}
+                />
+                ) : stemleaf ? (
+                <StructureStepper
+                  vertical
+                  name="Rows"
+                  caption=""
+                  add={{
+                    label: "Add a row at the end",
+                    title: "Add row",
+                    disabled: blocked || sl.rows.length >= MAX_STEM_ROWS,
+                    onClick: () => {
+                      patchStemleaf((s) => void s.rows.push(blankStemRow()));
+                      requestAnimationFrame(() => focusField(`ch-stem-stem-${sl.rows.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last row (row ${sl.rows.length})`,
+                    title: "Remove last row",
+                    disabled: blocked || sl.rows.length <= 1,
+                    onClick: () => patchStemleaf((s) => void s.rows.pop()),
+                  }}
+                />
+                ) : boxplot ? (
+                <StructureStepper
+                  vertical
+                  name="Box plots"
+                  caption=""
+                  add={{
+                    label: "Add a box plot at the end",
+                    title: "Add box plot",
+                    disabled: blocked || bp.rows.length >= MAX_BOX_ROWS,
+                    onClick: () => {
+                      patchBoxplot((s) => void s.rows.push(blankBoxRow()));
+                      requestAnimationFrame(() => focusField(`ch-box-min-${bp.rows.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last box plot (box plot ${bp.rows.length})`,
+                    title: "Remove last box plot",
+                    disabled: blocked || bp.rows.length <= 1,
+                    onClick: () => patchBoxplot((s) => void s.rows.pop()),
+                  }}
+                />
+                ) : grouped ? (
                 <StructureStepper
                   vertical
                   name="Classes"
@@ -878,7 +1029,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               status={message}
               hint={
                 <EditorHint tool="charts">
-                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter || grouped ? mark : "bar, line or category label"} to edit its value. Enter
+                  Click a {pie ? "sector" : pictogram ? "row or category" : scatter || grouped || boxplot || stemleaf || timeseries ? mark : "bar, line or category label"} to edit its value. Enter
                   applies; Escape restores.
                 </EditorHint>
               }
@@ -923,7 +1074,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 ))}
               </div>
             </section>
-            {!scatter && !grouped && (
+            {!scatter && !grouped && !boxplot && !stemleaf && !timeseries && (
             <section className="panel-card ch-panel">
               <h2>Data</h2>
               <div className="ch-table-wrap">
@@ -1090,6 +1241,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
             </section>
             )}
+            {timeseries && <TimeSeriesCards t={ts} blocked={blocked} selected={selected} issues={g.issues} onChange={patchTimeseries} linesControl={linesControl} />}
+            {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} />}
+            {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} />}
             {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} />}
             {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} />}
             {pie && (

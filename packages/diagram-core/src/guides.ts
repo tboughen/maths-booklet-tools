@@ -23,6 +23,7 @@ import { twoWayTableConfig } from "./guides/two-way-table";
 import { ftConfig } from "./guides/factor-tree";
 import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
+import { netsConfig } from "./guides/nets";
 import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
@@ -217,6 +218,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "factor-tree": fromConfig(ftConfig),
   "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
+  nets: fromConfig(netsConfig),
   "sample-space": fromConfig(ssConfig),
   triangle: {
     ...fromConfig(triangleConfig),
@@ -355,11 +357,12 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
   "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
   "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
-  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "histograms with unequal class widths", "frequency polygons", "cumulative frequency graphs, medians and quartiles", "reading and drawing charts"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "histograms with unequal class widths", "frequency polygons", "cumulative frequency graphs, medians and quartiles", "box plots", "stem-and-leaf diagrams", "time series graphs", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
   "factor-tree": ["factor trees", "prime factor decomposition", "writing a number as a product of primes", "index form"],
+  nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
@@ -370,5 +373,5 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["time-series graphs", "box plots", "stem-and-leaf diagrams", "circle theorems", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["back-to-back stem-and-leaf diagrams", "circle theorems", "prisms and cylinders as 3D drawings"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));

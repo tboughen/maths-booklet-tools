@@ -1,0 +1,59 @@
+.nets-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.nets-face,
+.nets-cell {
+  fill: transparent;
+  stroke: none;
+  cursor: pointer;
+  outline: none;
+}
+.nets-face:hover,
+.nets-cell:hover {
+  fill: #2b6cb018;
+}
+.nets-face:focus-visible,
+.nets-cell:focus-visible {
+  stroke: var(--blue, #2b6cb0);
+  stroke-width: 0.6;
+}
+.nets-selected {
+  fill: #2b6cb014;
+  stroke: #517a9e;
+  stroke-width: 0.5;
+  stroke-dasharray: 1.2 0.8;
+}
+.nets-hidden-face {
+  fill: #b5487a10;
+  stroke: #b5487a;
+  stroke-width: 0.4;
+  stroke-dasharray: 1.2 0.8;
+}
+.nets-cell {
+  stroke: #2b6cb040;
+  stroke-width: 0.15;
+}
+.nets-net {
+  border: 1px solid var(--line, #c9d3dd);
+  border-radius: 6px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+}
+.nets-corners {
+  display: grid;
+  gap: 6px;
+  padding-top: 6px;
+}
+.nets-corner-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  gap: 6px;
+  align-items: end;
+  font-size: 12px;
+}
+.nets-corner-row input:not([type="checkbox"]) {
+  width: 100%;
+}

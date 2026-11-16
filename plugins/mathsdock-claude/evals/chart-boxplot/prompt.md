@@ -1,6 +1,6 @@
 ---
-description: 'Box plots are not drawn: the reply says so and no chart is passed off as one.'
-tags: [charts, limits]
+description: 'A box plot is drawn with the charts tool.'
+tags: [charts]
 runs: 1
 max_turns: 14
 timeout_seconds: 420

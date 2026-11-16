@@ -14,12 +14,12 @@ import {
   pointLabelPlacement,
 } from "../export/svg";
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
-import { plotClipBleed } from "../../packages/graph-core/src/svg";
+import { headHalfWidthAt, plotClipBleed } from "../../packages/graph-core/src/svg";
 import { arrowheadPath } from "../../packages/graph-core/src/arrow";
 import { axesCrossing, circleVisible, readingLegs, smoothCurvePath } from "../../packages/graph-core/src/curve";
 import { functionNameAnchor, functionPathData, functionRuns } from "../../packages/graph-core/src/function";
 import { vectorArrowEnds } from "../../packages/graph-core/src/diagram";
-import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
+import { GRID_STROKE_POINTS, READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   regionBoundaries,
@@ -122,6 +122,8 @@ const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(
   AXIS_LABEL_FONT_POINTS,
   EDITOR_UNITS_PER_CENTIMETRE,
 );
+/** A cross's stroke in print units, as the export draws it, for its reach past the arms. */
+const GRID_STROKE_POINTS_UNITS = pointsToDiagramUnits(GRID_STROKE_POINTS, 100);
 const AXIS_ARROW_EXTENSION =
   12 + EDITOR_UNITS_PER_CENTIMETRE * AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES;
 /** The editor draws at 60 units per cm; print geometry is 100 units per cm. */
@@ -623,13 +625,29 @@ export function GraphCanvas({
   const placement = axisTextPlacement(document);
   const xLabels = [];
   const xNumberBaseline = origin.y + placement.xNumberDrop * FROM_PRINT;
+  // A cross on or beside an axis would print over a number, so the number moves clear of it,
+  // away from the axis (the export does the same, svg.ts axesMarkup).
+  // Hidden answer points are left out, so the preview places numbers as the pupil copy prints them.
+  const crossReach = (14 + GRID_STROKE_POINTS_UNITS) * FROM_PRINT;
+  const crosses = visibleDocument.objects.flatMap((o) => {
+    if (o.kind !== "point" || o.answerOnly || !pointInBounds(o.position, layout.bounds)) return [];
+    const p = coordinateToSvg(o.position, layout);
+    return [{ l: p.x - crossReach, r: p.x + crossReach, t: p.y - crossReach, b: p.y + crossReach }];
+  });
+  // The same boxes AxisTickLabel draws.
+  const labelHeight = axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
+  const hits = (l: number, r: number, t: number, b: number) => crosses.filter((c) => c.l < r && c.r > l && c.t < b && c.b > t);
   for (const tick of axisTicks(document, "x")) {
+    const x = layout.plotLeft + tick.index * layout.square;
+    const half = axisLabelBoxWidth(tick.label, AXIS_LABEL_FONT_SIZE) / 2;
+    const top = xNumberBaseline - AXIS_LABEL_FONT_SIZE * 0.82;
+    const hit = hits(x - half, x + half, top, top + labelHeight);
     xLabels.push(
       <AxisTickLabel
         key={tick.index}
         text={tick.label}
-        x={layout.plotLeft + tick.index * layout.square}
-        baseline={xNumberBaseline}
+        x={x}
+        baseline={xNumberBaseline + (hit.length ? Math.max(...hit.map((c) => c.b + 2.4 - top)) : 0)}
       />,
     );
   }
@@ -637,18 +655,27 @@ export function GraphCanvas({
   const yNumberX =
     origin.x - EDITOR_UNITS_PER_CENTIMETRE * Y_AXIS_LABEL_GAP_CENTIMETRES;
   for (const tick of axisTicks(document, "y").reverse()) {
+    const baseline = layout.plotBottom - tick.index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34;
+    const width = axisLabelBoxWidth(tick.label, AXIS_LABEL_FONT_SIZE);
+    const top = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
+    const hit = hits(yNumberX - width, yNumberX, top, top + labelHeight);
     yLabels.push(
       <AxisTickLabel
         key={tick.index}
         text={tick.label}
-        x={yNumberX}
-        baseline={
-          layout.plotBottom - tick.index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34
-        }
+        x={yNumberX - (hit.length ? Math.max(...hit.map((c) => yNumberX - (c.l - 2.4))) : 0)}
+        baseline={baseline}
         textAnchor="end"
       />,
     );
   }
+  // The y-axis reaches far enough above a top number for the arrowhead to clear it.
+  const yArrowExtension = Math.max(
+    AXIS_ARROW_EXTENSION,
+    axisTicks(document, "y").some((t) => t.index === document.axes.y.negativeSquares + document.axes.y.positiveSquares)
+      ? AXIS_LABEL_FONT_SIZE * 0.48 + 2.4 + (document.lines === "bold" ? 22.5 : 15) * 0.85
+      : 0,
+  );
 
   return (
     <div ref={stage} className="graph-stage editor-stage" data-tool={tool}>
@@ -800,9 +827,89 @@ export function GraphCanvas({
               x1={origin.x}
               y1={layout.plotBottom}
               x2={origin.x}
-              y2={layout.plotTop - AXIS_ARROW_EXTENSION}
+              y2={layout.plotTop - yArrowExtension}
               markerEnd="url(#editor-axis-arrow)"
             />
+          </g>
+          {/* Axis numbers sit under every plotted line, as Edexcel prints lines straight through them. */}
+          <g className="axis-labels">
+            {xLabels}
+            {yLabels}
+            {sharedOriginLabel(document) && (
+              <AxisTickLabel
+                text={document.originLabel === "0" ? "0" : "𝑂"}
+                x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
+                baseline={xNumberBaseline}
+                textAnchor="end"
+                origin={document.originLabel === "0"}
+              />
+            )}
+            {axisLetter("x", document.axes.x) && (
+              <text
+                className="axis-name axis-name--x"
+                x={layout.plotRight + 29}
+                y={xNumberBaseline}
+                fontFamily={fontFamily}
+              >
+                {axisLetter("x", document.axes.x)}
+              </text>
+            )}
+            {axisLetter("y", document.axes.y) && (
+              <text
+                className="axis-name axis-name--y"
+                x={Math.min(
+                  origin.x - EDITOR_UNITS_PER_CENTIMETRE * axisNameYGapCentimetres(document),
+                  // The y letter stays clear of the (longer, possibly bold) arrowhead beside it.
+                  origin.x - headHalfWidthAt(18, yArrowExtension, document.lines === "bold" ? 22.5 : 15),
+                )}
+                y={layout.plotTop - 18}
+                textAnchor="end"
+                fontFamily={fontFamily}
+              >
+                {axisLetter("y", document.axes.y)}
+              </text>
+            )}
+            {placement.xTitle && (
+              <text
+                className="axis-title axis-title--x"
+                textAnchor="middle"
+                fontFamily={fontFamily}
+              >
+                {placement.xTitle.lines.map((line, index) => (
+                  <tspan
+                    key={index}
+                    x={(layout.plotLeft + layout.plotRight) / 2}
+                    y={
+                      layout.plotBottom +
+                      (placement.xTitle!.baselineBelowPlot +
+                        index * placement.lineHeight) *
+                        FROM_PRINT
+                    }
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            )}
+            {placement.yTitle && (
+              <text className="axis-title axis-title--y" fontFamily={fontFamily}>
+                {placement.yTitle.lines.map((line, index) => (
+                  <tspan
+                    key={index}
+                    x={layout.plotLeft + placement.yTitle!.leftFromPlotLeft * FROM_PRINT}
+                    y={
+                      (layout.plotTop + layout.plotBottom) / 2 +
+                      ((index - (placement.yTitle!.lines.length - 1) / 2) *
+                        placement.lineHeight) *
+                        FROM_PRINT +
+                      AXIS_LABEL_FONT_SIZE * 0.34
+                    }
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            )}
           </g>
           <g clipPath="url(#editor-line-clip)">
             {visibleDocument.objects.flatMap((object) =>
@@ -951,85 +1058,6 @@ export function GraphCanvas({
                 </g>
               );
             })}
-          </g>
-          <g className="axis-labels">
-            {xLabels}
-            {yLabels}
-            {sharedOriginLabel(document) && (
-              <AxisTickLabel
-                text={document.originLabel === "0" ? "0" : "𝑂"}
-                x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
-                baseline={xNumberBaseline}
-                textAnchor="end"
-                origin={document.originLabel === "0"}
-              />
-            )}
-            {axisLetter("x", document.axes.x) && (
-              <text
-                className="axis-name axis-name--x"
-                x={layout.plotRight + 29}
-                y={xNumberBaseline}
-                fontFamily={fontFamily}
-              >
-                {axisLetter("x", document.axes.x)}
-              </text>
-            )}
-            {axisLetter("y", document.axes.y) && (
-              <text
-                className="axis-name axis-name--y"
-                x={
-                  origin.x -
-                  EDITOR_UNITS_PER_CENTIMETRE *
-                    axisNameYGapCentimetres(document)
-                }
-                y={layout.plotTop - 18}
-                textAnchor="end"
-                fontFamily={fontFamily}
-              >
-                {axisLetter("y", document.axes.y)}
-              </text>
-            )}
-            {placement.xTitle && (
-              <text
-                className="axis-title axis-title--x"
-                textAnchor="middle"
-                fontFamily={fontFamily}
-              >
-                {placement.xTitle.lines.map((line, index) => (
-                  <tspan
-                    key={index}
-                    x={(layout.plotLeft + layout.plotRight) / 2}
-                    y={
-                      layout.plotBottom +
-                      (placement.xTitle!.baselineBelowPlot +
-                        index * placement.lineHeight) *
-                        FROM_PRINT
-                    }
-                  >
-                    {line}
-                  </tspan>
-                ))}
-              </text>
-            )}
-            {placement.yTitle && (
-              <text className="axis-title axis-title--y" fontFamily={fontFamily}>
-                {placement.yTitle.lines.map((line, index) => (
-                  <tspan
-                    key={index}
-                    x={layout.plotLeft + placement.yTitle!.leftFromPlotLeft * FROM_PRINT}
-                    y={
-                      (layout.plotTop + layout.plotBottom) / 2 +
-                      ((index - (placement.yTitle!.lines.length - 1) / 2) *
-                        placement.lineHeight) *
-                        FROM_PRINT +
-                      AXIS_LABEL_FONT_SIZE * 0.34
-                    }
-                  >
-                    {line}
-                  </tspan>
-                ))}
-              </text>
-            )}
           </g>
           <g clipPath="url(#editor-plot-clip)">
             {visibleDocument.objects
