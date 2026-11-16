@@ -27,6 +27,7 @@ export const toolIds = [
   "factor-tree",
   "written-method",
   "function-machine",
+  "nets",
   "algebra-tiles",
   "sample-space",
 ] as const;

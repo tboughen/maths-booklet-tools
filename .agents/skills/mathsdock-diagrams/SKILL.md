@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (including histograms, frequency polygons, cumulative frequency graphs, box plots and stem-and-leaf diagrams; not time series), probability trees, triangles, constructions, loci and bearings, plans and elevations, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
+description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (including histograms, frequency polygons, cumulative frequency graphs, box plots, stem-and-leaf diagrams and time series graphs), probability trees, triangles, constructions, loci and bearings, plans and elevations, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
 ---
 
 # MathsDock diagrams
@@ -44,7 +44,7 @@ discovered, in the same way: read the family's capabilities, then create or revi
 Everything below applies to both.
 
 What the connector cannot draw: curves on the coordinate `graph` (use `value-graph` for
-quadratics), time series graphs and back-to-back stem-and-leaf diagrams. Say so plainly. Never present
+quadratics) and back-to-back stem-and-leaf diagrams. Say so plainly. Never present
 a substitute image, Markdown table or hand-drawn SVG as the tool's output; offer a labelled
 alternative only if the teacher wants one.
 
@@ -198,7 +198,7 @@ compact form, which keeps a booklet with many tables small:
 A cell is `"4"` (printed), `"2 1/2"` or `"2½"` (a mixed number, printed as 2 beside a
 stacked half), `""` (blank), `"_"` (answer line), `"[2]"` (hidden answer, answers
 copy only) or `"[2]_"`; a step is `"× 3"` or `"÷ 2"`, and `"[÷ 2]"` leaves pupils an answer
-line beside the arrow. Keep plain tables for tables of values and other non-ratio tables.
+line beside the arrow; `"left: × 2"` or `"right: [÷ 2]"` prints a step on one side only. Columns without an arrow (`"x"`, `"y"`) print plain; `"x^2"`, `"x^3"`, `"1/x"` and `"1/x^2"` print a superscript or stacked fraction for proportion tables. Keep plain tables for tables of values and other non-ratio tables.
 
 ## Files and links
 

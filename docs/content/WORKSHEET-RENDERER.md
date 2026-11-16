@@ -32,7 +32,11 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
   (cells supplied, blank or hidden), `choice` (circle one or tick one), `answerLine` (prefix,
   suffix, inline groups, and a saved answer of up to 160 characters, printed only on the answers copy;
   raised from 60 on 14 November 2026 at Tim's choice, R27. An answer wider than its line is still
-  reported, so the maker shortens it or gives it a longer line rather than letting it run past), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
+  reported, so the maker shortens it or gives it a longer line rather than letting it run past;
+  `blanks: [{before, answer}]` (two to four) in place of `answer` prints an answer frame: short
+  20 mm blanks on one left-aligned line with fixed text before, between and after them, such as
+  "( ____ , ____ )" or "y = ____ x + ____", each blank's saved answer centred on it in the answers
+  copy only (Tim, A7.05 marking, 16 November 2026)), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
   size, optionally with blank axes: arrows, *x*, *y* and *O* but no numbers, so pupils choose the
   scale), `diagram` (a full editable Charts or Probability tree envelope) and `part` (a, b, c… holding further items).
 - `beside: true` on an item prints it to the right of the item before it, in one row (Tim,

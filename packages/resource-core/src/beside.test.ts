@@ -7,7 +7,8 @@ import { BESIDE_GAP, countSpaces } from "./render";
 // Two items side by side in one card, such as a small graph with its ratio table to the right
 // (Tim, A7.04 marking, 15 Nov 2026).
 const graph = { type: "diagram", diagram: { tool: "graph", spec: { axes: { x: { negativeSquares: 0, positiveSquares: 4, unitsPerSquare: 1 }, y: { negativeSquares: 0, positiveSquares: 5, unitsPerSquare: 1 } }, objects: [] } } };
-const ratio = { type: "diagram", diagram: { tool: "ratio-table", spec: { columns: ["x →", "y ↑"], table: [["2", "-4"], ["1", "[-2]"]], steps: ["[÷ 2]"] } } };
+const ratio = { type: "diagram", diagram: { tool: "ratio-table", spec: { columns: ["x →", "y ↑"], table: [["2", "-4"], ["1", "[-2]"]], steps: ["right: [÷ 2]"] } } };
+// One side only: a hidden step leaves a 13 mm line (Tim, 16 Nov 2026), and both sides would not fit beside a graph in a third of the sheet.
 const sheet = (items: unknown[], layout: "three" | "two" = "three"): Resource =>
   validate({
     tool: "resource",

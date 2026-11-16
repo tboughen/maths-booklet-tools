@@ -22,6 +22,7 @@ import { envelopeSchema as twoWayTable } from "../../packages/two-way-table-core
 import { envelopeSchema as ft } from "../../packages/factor-tree-core/src/index";
 import { envelopeSchema as wm } from "../../packages/written-method-core/src/index";
 import { envelopeSchema as fm } from "../../packages/function-machine-core/src/index";
+import { envelopeSchema as netsSchema } from "../../packages/net-core/src/index";
 import { envelopeSchema as at } from "../../packages/algebra-tile-core/src/index";
 import { envelopeSchema as ss } from "../../packages/sample-space-core/src/index";
 import { envelopeSchema as charts } from "../../packages/chart-core/src/index";
@@ -46,7 +47,7 @@ function compare(name: string, actual: unknown) {
 
 const savedFiles: Record<string, z.ZodType> = {
   angles, area, "algebra-grid": algebraGrid, "bar-model": barModelV3, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
-  triangle, "two-way-table": twoWayTable, "factor-tree": ft, "written-method": wm, "algebra-tiles": at, "function-machine": fm, "sample-space": ss, "value-graph": valueGraph, venn,
+  triangle, "two-way-table": twoWayTable, "factor-tree": ft, "written-method": wm, "algebra-tiles": at, "function-machine": fm, nets: netsSchema, "sample-space": ss, "value-graph": valueGraph, venn,
 };
 
 describe("contracts", () => {

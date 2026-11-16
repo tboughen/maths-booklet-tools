@@ -7,10 +7,10 @@ const nav = (page: import("@playwright/test").Page) => page.getByRole("navigatio
 test("home and navigation share the same destinations and plain, equally sized cards", async ({ page }) => {
   await page.goto("/");
   await expect(nav(page).getByRole("link")).toHaveText(names);
-  await expect(page.locator(".overview-card h2")).toHaveText(names);
-  await expect(page.locator(".overview-card img")).toHaveCount(0);
+  await expect(page.locator(".home-tool h3")).toHaveText(names);
+  await expect(page.locator(".home-tool img")).toHaveCount(0);
   await expect(page.getByText(tagline, { exact: true })).toBeVisible();
-  const heights = await page.locator(".overview-card").evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
+  const heights = await page.locator(".home-tool").evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
   expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(1);
   await page.getByRole("main").getByRole("link").filter({ has: page.getByRole("heading", { name: "Paper builder", exact: true }) }).click();
   await expect(page.getByRole("heading", { name: "Paper builder", exact: true })).toBeVisible();

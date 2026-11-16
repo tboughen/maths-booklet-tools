@@ -97,6 +97,27 @@ app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights
 each tool had before.
 
+### A tall window
+
+On a tall window, such as a portrait monitor (at least 1,000 px wide and 1,200 px high, and no
+wider than four fifths of its height), the settings go underneath the work so that the diagram
+keeps the full width:
+
+- The card with the diagram takes two thirds of the height, whatever the settings hold, so
+  nothing done in the settings resizes the diagram.
+- The settings sit under it in three columns, each read from top to bottom. A settings card is
+  never split between two columns. The browser balances the columns, so a card can change column
+  when another grows.
+- Settings longer than the last third scroll underneath the card. The card stays where it is, so
+  the diagram is in view while a setting changes. The scroll bar sits at the window's edge and
+  takes no width from the diagram.
+- The action bar has the whole width, so it keeps its words for longer (see The action bar).
+
+A tool needs nothing of its own for this. Its settings cards must be direct children of
+`.inspector-stack`. The Graph tool and Ratio tables keep theirs inside groups that have no box of
+their own, and `editor-frame.css` names those two groups. Script that scrolls the settings must
+scroll `.workspace` as well, because that is what scrolls on a tall window.
+
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
 `editor-stage` as a direct child of the card, and putting an `EditorFoot` straight after it. A tool
@@ -161,7 +182,9 @@ then Copy image, Copy for Word, **Download** and **File**.
 - Where the bar would not fit on one row it gives up room in two steps. First Examples and Start
   again show their icons only: up to 1,279 px wide in every tool, and up to 1,500 px in a tool
   with an answers switch. Then the copy, Download and File buttons show their words only: up to
-  1,180 px, and up to 1,365 px in a tool with an answers switch.
+  1,180 px, and up to 1,365 px in a tool with an answers switch. On a tall window, where the bar
+  has the whole width, only a tool with an answers switch gives up room: icons only up to
+  1,172 px wide, words only up to 1,037 px.
 - On a phone the four buttons at the right sit two by two.
 
 ## The answers switch
@@ -183,13 +206,37 @@ builders use the same switch, without the label.
 
 A tool passes its switch to `EditorToolbar` as `answers`.
 
+## Home
+
+Home is the start page (`src/site/Home.tsx`, styled by `home.css`). Its code loads when Home is
+the page opened, like every other page, so a tool's first load does not carry it. From the top:
+
+- **"What do you need today?"** and one search box. It finds the six pages by name or by what
+  they do, and diagram tools by name or teaching topic (`searchHome` in `homeSearch.ts`, using
+  the Diagram builder's search words). A Sparx code, a letter and three digits, is offered
+  as a link to that code in the Question bank; Home cannot tell whether the code has questions. `/` moves to the box, Down moves into what it found, Enter
+  opens the first, Escape clears. It does not search exam questions: the bank's catalogue is too
+  large to load on Home.
+- **Carry on.** The last three places where the teacher changed something on this device, newest
+  first, each saying when. A place is recorded when a change is made, never for only opening a
+  page, and the row is left out until there is one. `recentWork.ts` keeps a place and a time,
+  never the work. The site shell gives each diagram tool and builder a recorder for its own page
+  (`DocumentChangeContext` in the editor kit, `workRecorder` in `recentWork.ts`), and the shared
+  document history tells it about every new step, undo and redo. Undoing every step puts back
+  what the row said before. The Question bank records the paper being built when the teacher
+  changes its codes or questions, not when a newer catalogue reconciles it, and drops it when
+  the paper is cleared.
+- **Tools.** One card for each of the six pages: a large icon, the name and what it does. Six to
+  a row from 1,400 px wide, then three, two and one.
+- **Favourites.** The teacher's starred diagram tools as small picture cards. Stars are added in
+  the Diagram builder and the tool switcher.
+
+Card size carries meaning: a bigger card lets you do more, so a Tools card is much larger than a
+favourite. Small words that sit straight on the page colour use `--md-ink-2`, because
+`--md-ink-3` is too pale there.
+
 ## Decided, and built in later steps
 
-- **Tall windows.** Settings go underneath the work in three columns, so the work keeps the full
-  width.
 - **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
   is on sits side by side, and switching one off lets the rest grow.
 - **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.
-- **Home.** A start page: search, Carry on, a row called Tools with one clean card for each page,
-  and favourites below as small picture cards. Card size carries meaning: a bigger card lets you
-  do more, so a Tools card is much larger than a favourite.

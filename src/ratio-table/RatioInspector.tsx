@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { spokenHeading } from "../../packages/ratio-table-core/src/schema";
 import { ArrowDown, Grid3X3, Table2, Trash2 } from "lucide-react";
 import type {
   RatioDocument,
@@ -133,6 +134,7 @@ export function RatioInspector({
           operation: step?.operation ?? ("multiply" as const),
           factor: step?.factor ?? "2",
           hidden: step?.hidden ?? false,
+          ...(step?.side ? { side: step.side } : {}),
         }
       : null;
   function setStep(
@@ -164,7 +166,7 @@ export function RatioInspector({
           <Table2 size={17} />
           <h2>
             {selection?.kind === "cell" && row
-              ? `Row ${rowIndex + 1} · ${document.headings[selection.column]?.text}`
+              ? `Row ${rowIndex + 1} · ${spokenHeading(document.headings[selection.column]?.text ?? "")}`
               : selection?.kind === "heading"
                 ? `Column ${selection.column + 1}`
                 : selection?.kind === "headings"
@@ -189,7 +191,7 @@ export function RatioInspector({
             <label className="ratio-label">
               Cell type
               <select
-                aria-label={`Row ${rowIndex + 1} ${document.headings[selection.column].text} cell type`}
+                aria-label={`Row ${rowIndex + 1} ${spokenHeading(document.headings[selection.column].text)} cell type`}
                 value={cellType(row.cells[selection.column])}
                 disabled={pendingInputs}
                 onChange={(event) =>
@@ -317,6 +319,37 @@ export function RatioInspector({
               />
               Hide the operation in the pupil copy
             </label>
+            {document.headings.length === 2 && (
+              <label className="ratio-label">
+                Show on
+                <select
+                  aria-label={`Row ${fromIndex + 1} scaling sides`}
+                  disabled={pendingInputs || !step}
+                  value={transition.side ?? "both"}
+                  onChange={(event) => {
+                    const side = event.target.value;
+                    const { from, to, operation, factor, hidden } = transition;
+                    onAction([
+                      {
+                        op: "set_transition",
+                        transition: {
+                          from,
+                          to,
+                          operation,
+                          factor,
+                          hidden,
+                          ...(side === "left" || side === "right" ? { side } : {}),
+                        },
+                      },
+                    ]);
+                  }}
+                >
+                  <option value="both">Both sides</option>
+                  <option value="left">Left side only</option>
+                  <option value="right">Right side only</option>
+                </select>
+              </label>
+            )}
             {!step && (
               <button
                 className="panel-button"

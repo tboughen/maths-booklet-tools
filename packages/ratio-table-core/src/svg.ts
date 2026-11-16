@@ -11,6 +11,11 @@ const SMALL = 10 / 12;
 const part = (size: number) => Math.max(size * SMALL, FONT * SMALL);
 const ROW_HEIGHT = 100;
 const ANSWER_LINE_WIDTH = 60;
+/**
+ * The answer line for a hidden scaling operation ("÷ 3"): 13 mm at standard size, room to write
+ * the sign and a factor by hand (Tim, A7 marking, 16 Nov 2026). 6 mm was too tight.
+ */
+export const FACTOR_LINE_WIDTH = 130;
 /** Saved answers print in the answers copy only, in the house answer colour. */
 export const RATIO_ANSWER_COLOUR = "#b0125b";
 const INK = "#202020";
@@ -50,23 +55,47 @@ export function numberWidth(value: string, size = FONT): number {
 const annotatedLabels = (document: RatioDocument) =>
   document.mode === "annotated" && document.transitions.length > 0 && document.showOperations;
 /** The width an operation label takes beside its arrow. A hidden label reserves a full answer line. */
-function labelSlot(step: RatioDocument["transitions"][number]) {
+export function labelSlot(step: RatioDocument["transitions"][number]) {
   const size = FONT * SMALL,
     total =
       textWidth(step.operation === "multiply" ? "×" : "÷", size) +
       6 +
       numberWidth(step.factor, size);
-  return step.hidden ? Math.max(total, ANSWER_LINE_WIDTH) : total;
+  return step.hidden ? Math.max(total, FACTOR_LINE_WIDTH) : total;
+}
+/** Does this step print on the left (-1) or right (1) side of a two-column table? */
+export const printsOn = (step: RatioDocument["transitions"][number], side: -1 | 1) =>
+  !step.side || step.side === (side < 0 ? "left" : "right");
+/**
+ * Where a step's arrow and operation print: both sides of a two-column table (or the one side it
+ * names), and beside every column of a wider table.
+ */
+export function stepLanes(
+  document: RatioDocument,
+  m: Pick<ReturnType<typeof ratioMetrics>, "tableLeft" | "tableWidth" | "columnWidth">,
+  step: RatioDocument["transitions"][number],
+) {
+  if (document.headings.length !== 2)
+    return document.headings.map((_, column) => ({
+      side: 1 as const,
+      edge: m.tableLeft + column * m.columnWidth + 150,
+      name: `column ${column + 1}`,
+    }));
+  return [
+    { side: -1 as const, edge: m.tableLeft, name: "left" },
+    { side: 1 as const, edge: m.tableLeft + m.tableWidth, name: "right" },
+  ].filter((lane) => printsOn(step, lane.side));
 }
 export function ratioMetrics(document: RatioDocument) {
   const scale = { standard: 1, large: 1.2 }[document.size];
   const annotated =
     document.mode === "annotated" && document.transitions.length > 0;
-  let gutter = 0;
-  if (annotated && (document.showArrows || document.showOperations)) {
+  // The room beside the table for the arrows and operations of these steps.
+  const gutterFor = (steps: RatioDocument["transitions"]) => {
+    if (!annotated || !steps.length || !(document.showArrows || document.showOperations)) return 0;
     const operationWidth = document.showOperations
       ? Math.max(
-          ...document.transitions.map((t) =>
+          ...steps.map((t) =>
             Math.max(
               32 + numberWidth(t.factor, FONT * SMALL),
               t.hidden ? labelSlot(t) + 6 : 0,
@@ -74,14 +103,19 @@ export function ratioMetrics(document: RatioDocument) {
           ),
         )
       : 0;
-    gutter = Math.max(
+    return Math.max(
       document.showArrows ? 48 : 0,
       operationWidth + (document.showArrows ? 62 : 18),
     );
-  }
+  };
+  const gutter = gutterFor(document.transitions);
+  // Two columns: each side is only as wide as the steps printed there.
+  const two = document.headings.length === 2;
+  const gutterLeft = two ? gutterFor(document.transitions.filter((t) => printsOn(t, -1))) : 0,
+    gutterRight = two ? gutterFor(document.transitions.filter((t) => printsOn(t, 1))) : 0;
   for (const heading of document.headings) {
     if (
-      textWidth(heading.text, FONT, heading.italic) +
+      headingWidth(heading) +
         (heading.direction !== "none" ? 38 : 0) >
       126
     )
@@ -102,14 +136,14 @@ export function ratioMetrics(document: RatioDocument) {
         );
   // Two-column documents retain their exact lesson layout. Three columns each
   // reserve a scaling lane, so the middle column's operation is explicit too.
-  const columnWidth = 150 + (document.headings.length !== 2 ? gutter : 0),
+  const columnWidth = 150 + (two ? 0 : gutter),
     tableWidth = document.headings.length * columnWidth,
-    width = 30 + tableWidth + (document.headings.length === 2 ? gutter * 2 : 0),
+    width = 30 + tableWidth + gutterLeft + gutterRight,
     height = (document.rows.length + 1) * ROW_HEIGHT + 30;
   return {
     width,
     height,
-    tableLeft: 15 + (document.headings.length === 2 ? gutter : 0),
+    tableLeft: 15 + gutterLeft,
     tableTop: 15,
     columnWidth,
     tableWidth,
@@ -157,6 +191,71 @@ function number(value: string, x: number, y: number, size = FONT, fill = INK): s
     text(bottom, x, y + size * 0.78, small, false, fill)
   );
 }
+/**
+ * Proportion headings (Tim, NP17, 16 Nov 2026): "x^2" and "x^3" print a true superscript, and
+ * "1/x" or "1/x^2" a stacked fraction. Letters in an italic heading are italic; digits stay upright.
+ * Superscripts print at 10 pt, the house minimum. Other text (m/s, %, £) prints as typed.
+ */
+// Only 1 over one letter (or its power) stacks; units such as 60/min or 1/km print inline as typed.
+const HEADING_FRACTION = /^(1)\/([A-Za-z](?:\^\d)?)$/;
+const SUP_RISE = 0.36;
+type HeadingRun = { text: string; sup: boolean };
+function headingRuns(value: string): HeadingRun[] {
+  return value
+    .split(/\^(\d)/)
+    .map((t, i) => ({ text: t, sup: i % 2 === 1 }))
+    .filter((r) => r.text);
+}
+/** Each character's advance, italic only for letters in an italic heading. */
+const styledWidth = (value: string, size: number, italic: boolean) =>
+  Array.from(value).reduce((sum, c) => sum + glyphAdvance(c, italic && /[A-Za-z]/.test(c)) * size, 0);
+function runsWidth(runs: HeadingRun[], size: number, italic: boolean) {
+  return runs.reduce((sum, r) => sum + styledWidth(r.text, r.sup ? Math.max(size * SMALL, FONT * SMALL) : size, italic), 0);
+}
+/** Runs from `left` on one baseline, letters italic when asked, superscripts raised. */
+function runsMarkup(runs: HeadingRun[], left: number, baseline: number, size: number, italic: boolean, rise = SUP_RISE) {
+  let x = left,
+    out = "";
+  for (const r of runs) {
+    const s = r.sup ? Math.max(size * SMALL, FONT * SMALL) : size,
+      y = r.sup ? baseline - size * rise : baseline;
+    // Letters and other characters in separate pieces, so only letters lean.
+    for (const piece of r.text.match(/[A-Za-z]+|[^A-Za-z]+/g) ?? []) {
+      const lean = italic && /[A-Za-z]/.test(piece);
+      out += `<text fill="${INK}" x="${x}" y="${y}" font-size="${s}"${lean ? ' font-style="italic"' : ""}>${escape(piece)}</text>`;
+      x += styledWidth(piece, s, italic);
+    }
+  }
+  return out;
+}
+export function headingWidth(heading: RatioDocument["headings"][number], size = FONT): number {
+  const f = heading.text.match(HEADING_FRACTION);
+  if (f) {
+    const small = part(size);
+    return Math.max(textWidth(f[1], small), runsWidth(headingRuns(f[2]), small, heading.italic)) + 10;
+  }
+  if (!heading.text.includes("^")) return textWidth(heading.text, size, heading.italic);
+  return runsWidth(headingRuns(heading.text), size, heading.italic);
+}
+/** A heading centred on x, its middle on y (the row's centre line). */
+function headingMarkup(heading: RatioDocument["headings"][number], x: number, y: number, size = FONT) {
+  const f = heading.text.match(HEADING_FRACTION);
+  // A plain heading prints exactly as before: one centred text.
+  if (!f && !heading.text.includes("^")) return text(heading.text, x, y + size * 0.31, size, heading.italic);
+  if (!f) {
+    const runs = headingRuns(heading.text);
+    return runsMarkup(runs, x - runsWidth(runs, size, heading.italic) / 2, y + size * 0.31, size, heading.italic);
+  }
+  const small = part(size),
+    bottom = headingRuns(f[2]),
+    bar = Math.max(textWidth(f[1], small), runsWidth(bottom, small, heading.italic)) + 8;
+  return (
+    text(f[1], x, y - size * 0.15, small) +
+    `<path d="M${x - bar / 2} ${y}H${x + bar / 2}" stroke-width="2"/>` +
+    // A power in the denominator sits a little lower, so its raised digit clears the bar.
+    runsMarkup(bottom, x - runsWidth(bottom, small, heading.italic) / 2, y + size * 0.78 + (bottom.some((r) => r.sup) ? 9 : 0), small, heading.italic, bottom.some((r) => r.sup) ? 0.3 : SUP_RISE)
+  );
+}
 const answerLine = (x: number, y: number, width = ANSWER_LINE_WIDTH) =>
   `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="2"/>`;
 function cellMarkup(cell: RatioCell, x: number, y: number, view: RatioView) {
@@ -194,17 +293,11 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
   ).join("");
   let body = `<path class="ratio-rules" d="${rules}M${left} ${top + 100}H${left + m.tableWidth}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
   document.headings.forEach((heading, i) => {
-    const width = textWidth(heading.text, FONT, heading.italic),
+    const width = headingWidth(heading),
       centre = left + 75 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
-    body += text(
-      heading.text,
-      textX,
-      top + 50 + FONT * 0.31,
-      FONT,
-      heading.italic,
-    );
+    body += headingMarkup(heading, textX, top + 50);
     if (heading.direction !== "none")
       body += arrow(textX + width / 2 + 22, top + 50, heading.direction);
   });
@@ -217,16 +310,7 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
     for (const step of document.transitions) {
       const index = document.rows.findIndex((r) => r.id === step.from),
         y = top + 150 + index * 100;
-      const lanes =
-        document.headings.length === 2
-          ? [
-              { side: -1, edge: left },
-              { side: 1, edge: left + 300 },
-            ]
-          : document.headings.map((_, column) => ({
-              side: 1,
-              edge: left + column * m.columnWidth + 150,
-            }));
+      const lanes = stepLanes(document, m, step);
       for (const { side, edge } of lanes) {
         const x = edge + side * 12;
         if (document.showArrows) {

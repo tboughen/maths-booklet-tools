@@ -121,13 +121,16 @@ export const CASES = [
   { name: 'chart-histogram', tags: ['charts'], kind: 'charts',
     description: 'A histogram with unequal class widths is drawn with the charts tool.',
     prompt: 'Draw a histogram of these heights: 140 to 150 cm: 4 pupils, 150 to 160 cm: 9, 160 to 180 cm: 6.' },
-  // The server's own instructions already say time series graphs are unsupported, so Claude can
-  // answer correctly without loading the skill; this case does not require it.
-  { name: 'time-series-unsupported', tags: ['charts', 'limits'], skillOptional: true,
-    description: 'Time series graphs are not supported: the reply says so and no chart is passed off as one.',
-    prompt: 'Draw a time series graph of the monthly rainfall: January 80 mm, February 62 mm, March 55 mm, April 41 mm.',
+  { name: 'chart-timeseries', tags: ['charts'], kind: 'charts',
+    description: 'A time series graph is drawn with the charts tool.',
+    prompt: 'Draw a time series graph of the monthly rainfall: January 80 mm, February 62 mm, March 55 mm, April 41 mm.' },
+  // The server's own instructions already say back-to-back stem-and-leaf diagrams are unsupported,
+  // so Claude can answer correctly without loading the skill; this case does not require it.
+  { name: 'back-to-back-unsupported', tags: ['charts', 'limits'], skillOptional: true,
+    description: 'Back-to-back stem-and-leaf diagrams are not supported: the reply says so and no chart is passed off as one.',
+    prompt: 'Draw a back-to-back stem-and-leaf diagram of the test scores. Boys: 23, 27, 31, 34, 38, 42. Girls: 25, 29, 33, 36, 41, 47.',
     extra: [
-      { name: 'says-unsupported', type: 'regex', target: 'last_message', pattern: "(?:can(?:'|’)?t|cannot|do(?:es)?n(?:'|’)?t|do(?:es)? not|is(?:n(?:'|’)?t| not)|not able to)[^.\\n]{0,60}time[- ]series|time[- ]series(?: graphs?)?[^.\\n]{0,60}(?:not supported|unsupported|isn(?:'|’)?t supported|aren(?:'|’)?t supported|not available)", flags: 'i', body: 'The reply says the connector cannot draw time series graphs.' },
+      { name: 'says-unsupported', type: 'regex', target: 'last_message', pattern: "(?:can(?:'|’)?t|cannot|do(?:es)?n(?:'|’)?t|do(?:es)? not|is(?:n(?:'|’)?t| not)|not able to)[^.\\n]{0,60}back[- ]to[- ]back|back[- ]to[- ]back(?: stem[- ](?:and|&)[- ]leaf)?(?: diagrams?)?[^.\\n]{0,60}(?:not supported|unsupported|isn(?:'|’)?t supported|aren(?:'|’)?t supported|not available)", flags: 'i', body: 'The reply says the connector cannot draw back-to-back stem-and-leaf diagrams.' },
       { name: 'no-chart-substitute-generic', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: '"kind"\\s*:\\s*"charts"', min: 0, max: 0, body: 'No chart was created in its place.' },
     ] },
   { name: 'real-download-link', tags: ['links'], kind: 'number-line',

@@ -260,3 +260,11 @@
   padding-left: 2px;
   padding-right: 2px;
 }
+.ch-times input:not([type="checkbox"]) {
+  width: 4.2em;
+}
+.ch-times th,
+.ch-times td {
+  padding-left: 2px;
+  padding-right: 2px;
+}

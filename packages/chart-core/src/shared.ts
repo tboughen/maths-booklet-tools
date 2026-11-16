@@ -356,3 +356,33 @@ export function stemLeaves(text: string): string[] | null {
   const parts = /[\s,]/.test(t) ? t.split(/[\s,]+/).filter(Boolean) : [...t];
   return parts.every((p) => /^[0-9]$/.test(p)) ? parts : null;
 }
+
+/**
+ * Time series graphs as Edexcel prints them: equally spaced times along the horizontal axis
+ * (months, quarters, years or days, as typed), each value a cross, consecutive crosses joined
+ * by straight lines, on true-size graph paper. A time can carry a group label printed once
+ * under a run of equal groups (2016 under quarters 1 to 4). Hidden values are left for pupils
+ * to plot; with every value hidden the grid is a blank "construct" graph.
+ */
+export const MAX_TIMES = 24;
+export const timePointSchema = z.object({ label: plain(12), group: plain(12), value: z.string().max(12), show: shown }).strict();
+export type TimePoint = z.infer<typeof timePointSchema>;
+export const timeseriesSchema = z
+  .object({
+    points: z.array(timePointSchema).min(1).max(MAX_TIMES),
+    /** Distance between consecutive times: an even number of millimetres. */
+    slotMm: z.number().int().min(STEP_MM.minimum).max(STEP_MM.maximum).multipleOf(2),
+    xTitle: plain(40),
+    yAxis: paperAxisSchema,
+  })
+  .strict();
+export type TimeseriesSettings = z.infer<typeof timeseriesSchema>;
+export const blankTimePoint = (): TimePoint => ({ label: "", group: "", value: "", show: "show" });
+/** A new time series graph: the twelve months with no values, never made-up data. */
+export const TIMESERIES_DEFAULTS: TimeseriesSettings = {
+  points: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((label) => ({ label, group: "", value: "", show: "show" as const })),
+  slotMm: 10,
+  xTitle: "Month",
+  yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "" },
+};
+export const timeseriesOf = (d: { timeseries?: TimeseriesSettings }): TimeseriesSettings => d.timeseries ?? TIMESERIES_DEFAULTS;

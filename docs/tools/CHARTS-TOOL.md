@@ -238,14 +238,41 @@ that ask pupils to draw one print empty ruled rows and an empty "Key:" box.
   the ordered diagram and key are saved as hidden answers).
 - **Not included:** back-to-back stem-and-leaf diagrams (none in the bank's papers).
 
+## Time series graphs
+
+Edexcel prints time series graphs on true-size 2 mm graph paper under arrowed axes, with the
+times equally spaced along the horizontal axis from the corner (the first time sits on the
+vertical axis), crosses joined by straight lines, and the year printed once under its run of
+quarters (measured on Mock Set 4 3F Q7 and June 2019 3F Q27). Construct questions print the
+labelled grid only.
+
+- **Settings:** `timeseries {points, slotMm, xTitle, yAxis}`. `points` holds 1 to 24 times, each
+  `{label, group, value, show}`: `label` prints under the time (Jan, 1, Mon), `group` (such as a
+  year) prints once under its run of equal groups, and `value` is a number as typed or blank.
+  `slotMm` (an even number of millimetres) is the space between times; `yAxis` is the shared
+  graph-paper axis (`min`, `max`, `step`, `stepMm`, `title`). Without `timeseries` a graph
+  starts as twelve months with no values on a 0 to 60 axis, never made-up data.
+- **Pupil states:** a blank value is no point and breaks the line; 0 is a value. A hidden value
+  leaves its cross and both lines to it for pupils to plot (a line prints only when both its
+  crosses print, so it never gives a hidden value away); answers copies print them in pink at the
+  same size. Hide every value for a "draw the graph" question.
+- **Never calculated:** values are plotted as typed; no trend line, moving average or
+  prediction is drawn.
+- **Validation:** values are numbers inside the vertical axis; labels fit the space between
+  times; the graph fits 18 cm by 26 cm.
+- **Editor:** Times and values (label, group, value and Hide per time, with Label as months,
+  quarters or days buttons that change only the labels) and Axes and graph paper cards replace
+  the Data and axes cards. + and − beside the graph add or remove the last time.
+- **Examples:** Mock Set 4 3F Q7 (read monthly gas use from a printed graph) and a quarterly
+  sales construct task in the style of the papers (every value saved as a hidden answer).
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
 
 ## Not yet included
 
-Horizontal bars, a printed data table beside the chart, time series graphs, comparative pie
-charts of different sizes and back-to-back stem-and-leaf diagrams. Each is a separate,
+Horizontal bars, a printed data table beside the chart, comparative pie charts of different sizes and back-to-back stem-and-leaf diagrams. Each is a separate,
 reviewed extension or tool.
 
 ## MCP connector
@@ -263,9 +290,10 @@ reviewed extension or tool.
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled. `presentation.pie`
   (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`), `presentation.scatter`
   (`points`, `xAxis`, `yAxis`, `grid`, `minor`, `bestFit`, `readings`) and `presentation.grouped`
-  (`variable`, `inequality`, `classes`, `xAxis`, `table`, `histogram`, `polygon`, `cumulative`)
-  merge field by field with the current settings (axes and each kind's settings too); a given
-  `points` or `classes` array replaces them all.
+  (`variable`, `inequality`, `classes`, `xAxis`, `table`, `histogram`, `polygon`, `cumulative`),
+  `presentation.boxplot`, `presentation.stemleaf` and `presentation.timeseries` (`points`, `slotMm`,
+  `xTitle`, `yAxis`) merge field by field with the current settings (axes and each kind's settings too); a given
+  `points`, `classes` or `rows` array replaces them all.
 - `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
   answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain

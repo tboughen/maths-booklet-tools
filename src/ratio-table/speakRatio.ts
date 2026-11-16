@@ -1,4 +1,5 @@
 import type { RatioCell, RatioDocument, RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
+import { spokenHeading } from "../../packages/ratio-table-core/src/schema";
 
 // Screen-reader text for the ratio table on screen. describeRatio stays as it is for MCP and saved
 // output; this one numbers rows from 1, says "blank" and "answer line", names arrows in words,
@@ -28,11 +29,12 @@ function speakCell(cell: RatioCell, view: "pupil" | "answer"): string {
 }
 
 function speakHeading(heading: RatioDocument["headings"][number]): string {
+  const text = spokenHeading(heading.text);
   switch (heading.direction) {
-    case "right": return `${heading.text} (arrow right)`;
-    case "up": return `${heading.text} (arrow up)`;
-    case "down": return `${heading.text} (arrow down)`;
-    case "none": return heading.text;
+    case "right": return `${text} (arrow right)`;
+    case "up": return `${text} (arrow up)`;
+    case "down": return `${text} (arrow down)`;
+    case "none": return text;
     default: return never(heading.direction);
   }
 }

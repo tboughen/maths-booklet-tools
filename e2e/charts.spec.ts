@@ -359,3 +359,37 @@ test("stem-and-leaf diagrams: rows edit from the diagram, hidden leaves and an e
   expect(doc.stemleaf.rows[1]).toEqual({ stem: "14", leaves: "2 4 6 6 7 9", stemShow: "show", leavesShow: "show" });
   expect(doc.stemleaf.key.show).toBe("show");
 });
+
+test("time series graphs: values edit from the graph, hidden values stay answers and labels change without the values", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "timeseries-quarters")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  // Crosses and the lines joining them are the 1 pt paths.
+  const ink = (colour: string) => art.locator(`path[stroke='${colour}'][stroke-width='0.353']`);
+  // Pupils see a labelled blank grid: twelve hidden values, so twelve crosses and eleven lines are answers.
+  await expect(ink("black")).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(ink("#b0125b")).toHaveCount(12 + 11);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  // A time opens its value; a word is a specific error that blocks export.
+  await page.getByRole("button", { name: "Edit time 1: 1 2023" }).click();
+  const value = page.getByLabel("Time 1 value");
+  await expect(value).toBeFocused();
+  await value.fill("lots");
+  await value.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Time 1 (1): enter a number for the value, or leave it blank." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(value).toHaveValue("34");
+  // Show all prints the graph; relabelling keeps the values and groups.
+  await page.getByRole("button", { name: "Show all" }).click();
+  await expect(ink("black")).toHaveCount(12 + 11);
+  await page.getByRole("button", { name: "Label as months" }).click();
+  await expect(page.getByLabel("Time 2 label")).toHaveValue("Feb");
+  await page.getByRole("button", { name: "Add a time at the end" }).click();
+  await expect(page.getByLabel("Time 13 value")).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  const doc = (await saved(page)).document;
+  expect(doc.timeseries.points).toHaveLength(13);
+  expect(doc.timeseries.points[1]).toEqual({ label: "Feb", group: "2023", value: "41", show: "show" });
+  expect(doc.timeseries.points[12]).toEqual({ label: "", group: "", value: "", show: "show" });
+});
