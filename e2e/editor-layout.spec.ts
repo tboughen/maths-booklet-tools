@@ -36,6 +36,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
         "Start again",
         "Copy image",
         "Copy for Word",
+        "Download",
         "File",
       ]);
       await expect(
