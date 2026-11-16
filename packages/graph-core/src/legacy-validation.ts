@@ -60,6 +60,13 @@ function isGraphObject(value: unknown): value is GraphObject {
       (candidate.strokeStyle === undefined || candidate.strokeStyle === "dashed") &&
       curveProblem(candidate.points) === null
     );
+  if (candidate.kind === "circle")
+    return (
+      Object.keys(candidate).every((key) => ["id", "kind", "centre", "radius", "strokeStyle", "name", "namePosition", "answerOnly"].includes(key)) &&
+      isCoordinate(candidate.centre) &&
+      typeof candidate.radius === "number" && Number.isFinite(candidate.radius) && candidate.radius > 0 &&
+      (candidate.strokeStyle === undefined || candidate.strokeStyle === "dashed")
+    );
   if (candidate.kind === "reading")
     return (
       Object.keys(candidate).every((key) => ["id", "kind", "at", "read", "answerOnly"].includes(key)) &&

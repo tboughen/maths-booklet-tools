@@ -63,3 +63,29 @@ The connector's graph capabilities budget rose from 26,900 to 32,400 bytes for t
 - **Connector.** `{kind: "curve", points, smooth?, strokeStyle?, name?, answerOnly?}`,
   `{kind: "reading", at, read: "x" | "y" | "both", answerOnly?}` and `axes.x.name`. The graph
   capabilities budget rose to 35,400 bytes (measured 33,724).
+
+## Curve working and circles (Graph tool)
+
+For tangents and gradients, area under a graph and circles x² + y² = r², drawn on a graph
+through points. Each is added as ordinary saved objects in one undo
+step, and the editor ticks "Answer only" by default, so nothing appears on a pupil copy unless
+the teacher unticks it.
+
+- **Tangents.** With a graph through points selected, *Working on this graph* takes an x value
+  and *Draw tangent* adds a segment touching the graph there, reaching 2 squares each side. The
+  gradient comes from the curve itself: the slope of the straight piece (the right-hand piece at
+  a corner) or of the smooth curve at x. A tangent is a normal segment, so it takes a gradient
+  triangle with values or blank labels.
+- **Trapezium strips.** *Draw strips* adds 1 to 10 equal-width trapezia from one x value to
+  another, down to the x-axis (where the axes cross), as shaded shapes (the connector names them
+  `…-strip-n`). Their top corners sit on the graph, so the strip tops are chords, as pupils draw
+  them. A strip whose ends sit either side of the x-axis, or that lies along it, is refused with
+  the reason.
+- **Circles.** *Add circle* adds a `circle` with a centre and a radius in x units. It is drawn
+  true to both scales (an ellipse when the axes use different scales), can be dashed, named and
+  hidden as an answer, and moves with the arrow keys. A circle partly off the grid gets a warning.
+- **Connector.** `{kind: "circle", centre, radius, strokeStyle?, name?, answerOnly?}` is saved;
+  `{kind: "tangent", of, x, run?, gradientTriangle?, answerOnly?}` is resolved into a segment and
+  `{kind: "strips", of, from, to, count, shaded?, answerOnly?}` into polygons when the graph is
+  created or revised, so saved files only hold ordinary objects. The graph capabilities budget
+  rose to 39,000 bytes (measured 37,159).

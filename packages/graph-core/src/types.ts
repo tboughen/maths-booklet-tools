@@ -155,7 +155,18 @@ export interface ReadingObject extends BaseObject, NamedObject {
   read: "x" | "y" | "both";
 }
 
-export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject | CurveObject | ReadingObject;
+/** A circle such as x² + y² = 25 (U875, U758, U598): drawn true to the axes' scales, so unequal
+ * scales print an ellipse as a graph paper would. */
+export interface CircleObject extends BaseObject, NamedObject {
+  kind: "circle";
+  centre: Coordinate;
+  /** In x-axis units. */
+  radius: number;
+  /** Omitted means solid. */
+  strokeStyle?: "dashed";
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject | CurveObject | ReadingObject | CircleObject;
 
 export interface DiagramDocumentV1 {
   version: 1;
