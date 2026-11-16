@@ -110,11 +110,33 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
       case "table":
         return (
           <div className="ws-table-edit" role="group" aria-label={`${label} table`}>
-            <div className="ws-table-row">
-              {item.columns.map((c, i) => (
-                <Field key={i} label={`Heading ${i + 1}`} value={c} max={40} disabled={blocked} onCommit={(v) => set({ ...item, columns: item.columns.map((x, j) => (j === i ? v : x)) })} />
-              ))}
-            </div>
+            <label className="ws-field">
+              <span>Shaded first row</span>
+              <select
+                aria-label={`${label} shaded first row`}
+                value={item.columns ? "headings" : "cells"}
+                disabled={blocked || (!item.columns && item.rows.length < 2)}
+                onChange={(e) => {
+                  // Printed headings, or a first row whose cells can be blank or hidden (an x row
+                  // along the page). Switching keeps every cell's text.
+                  if (e.target.value === "cells" && item.columns) {
+                    const { columns, ...rest } = item;
+                    set({ ...rest, rows: [columns.map((text) => ({ text, state: "supplied" as const })), ...item.rows] });
+                  } else if (e.target.value === "headings" && !item.columns && item.rows.length > 1)
+                    set({ ...item, columns: item.rows[0].map((c) => c.text), rows: item.rows.slice(1) });
+                }}
+              >
+                <option value="headings">Printed headings</option>
+                <option value="cells">Cells that can be blank or hidden</option>
+              </select>
+            </label>
+            {item.columns && (
+              <div className="ws-table-row">
+                {item.columns.map((c, i) => (
+                  <Field key={i} label={`Heading ${i + 1}`} value={c} max={40} disabled={blocked} onCommit={(v) => set({ ...item, columns: item.columns!.map((x, j) => (j === i ? v : x)) })} />
+                ))}
+              </div>
+            )}
             {item.rows.map((row, ri) => (
               <div className="ws-table-row" key={ri}>
                 {row.map((cell, ci) => {

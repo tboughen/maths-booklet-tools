@@ -625,6 +625,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
           diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
           cellStates: ["supplied", "blank", "hidden"],
+          tables: "omit columns to shade the first row, whose cells keep their states: a table of values along the page, x row over y row, with x blanks or hidden answers",
           markup: "**bold** and *italic* only; no HTML. With document.notation 'maths', {3/4} prints as a stacked fraction (native equation in Word): write every fraction this way",
           outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
           fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
