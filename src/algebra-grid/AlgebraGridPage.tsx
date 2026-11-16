@@ -498,6 +498,12 @@ export default function AlgebraGridPage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={
+                <AnswerPreviewToggle
+                  checked={showAnswers}
+                  onChange={setShowAnswers}
+                />
+              }
               canUndo={history.past.length > 0 && !blocked}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -748,10 +754,6 @@ export default function AlgebraGridPage({
                 </EditorHint>
               }
             >
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                onChange={setShowAnswers}
-              />
             </EditorFoot>
             <div className="ag-resource-footer">
               <span>

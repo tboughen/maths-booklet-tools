@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { HistoryButtons } from "./HistoryButtons";
 
 /** Starts the print-font fetch once, on the first sign of an export (U57). */
@@ -40,6 +40,8 @@ interface EditorToolbarProps {
   onToggleMenu: () => void;
   menuId?: string;
   menuDisabled?: boolean;
+  /** The tool's answers switch (`AnswerPreviewToggle` or `AnswerCopyToggle`), if it has hidden answers. */
+  answers?: ReactNode;
 }
 
 /** Common document actions; specialist editing controls belong to the inspector. */
@@ -101,6 +103,8 @@ function Toolbar(props: EditorToolbarProps) {
       );
       const stage = parent.querySelector<HTMLElement>(":scope > .editor-stage");
       if (!stage?.clientWidth) return;
+      // Where the stage starts in the card: the answers label sits over its top corner.
+      parent.style.setProperty("--editor-stage-top", `${stage.offsetTop}px`);
       const top = stage.getBoundingClientRect().top + window.scrollY;
       // On a window too short for the editor frame, the stage and the foot strip under it end
       // together just above the foot of the window. Rows a tool keeps under the strip follow on,
@@ -116,8 +120,7 @@ function Toolbar(props: EditorToolbarProps) {
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     observer.observe(parent);
-    const foot = parent.querySelector(":scope > .editor-foot");
-    if (foot) observer.observe(foot);
+    for (const row of parent.querySelectorAll(":scope > .editor-foot, :scope > .editor-stage")) observer.observe(row);
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();
@@ -150,6 +153,7 @@ function Toolbar(props: EditorToolbarProps) {
           <span>Reset</span>
         </button>
       </div>
+      {props.answers ? <div className="editor-view-actions">{props.answers}</div> : null}
       <div
         className="editor-copy-actions"
         // Export intent: fetch the print fonts before the click (U57).

@@ -567,6 +567,7 @@ export default function RatioTablePage({
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={hasRatioAnswers(envelope) ? <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} /> : undefined}
               canUndo={!recovery && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -740,7 +741,6 @@ export default function RatioTablePage({
                 />
                 Editing guides
               </label>
-              {hasRatioAnswers(envelope) && <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} />}
             </EditorFoot>
             <div className="ratio-preview-footer">
               <span>Zoom and editing guides do not appear in exports.</span>

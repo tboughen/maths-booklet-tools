@@ -325,6 +325,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={
+                <AnswerCopyToggle
+                  checked={view === "answer"}
+                  disabled={blocked}
+                  onChange={(checked) => setView(checked ? "answer" : "pupil")}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -455,11 +462,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 </EditorHint>
               }
             >
-              <AnswerCopyToggle
-                checked={view === "answer"}
-                disabled={blocked}
-                onChange={(checked) => setView(checked ? "answer" : "pupil")}
-              />
             </EditorFoot>
             {(issue || g.notes.length > 0) && (
               <div className="pt-status" aria-live="polite">

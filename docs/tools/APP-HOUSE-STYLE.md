@@ -116,8 +116,8 @@ and the separate status line. From the left:
   it moves when the zoom changes.
 - **Actual size.** Shows the diagram at 100%, its print size; pressing it again returns to Fit.
 - **The print size.** "Prints at 12.00 × 8.50 cm, whatever the zoom" (`ResourceSize`).
-- **View-only switches.** Showing hidden answers, editing guides, the number line's "Finish
-  drawing". Anything that changes the resource belongs in the settings.
+- **View-only switches.** Editing guides, the number line's "Finish drawing". Anything that
+  changes the resource belongs in the settings, and the answers switch is in the action bar.
 - **The note, at the right.** The tool's hint (`EditorHint`) or its drawing prompt ("Choose the
   other endpoint") at the far right, and the latest message ("Image copied", a failed copy, a
   protected draft) beside it. Room is kept for the message, so when one arrives the hint does not
@@ -145,12 +145,29 @@ keyboard and screen readers meet it in the order the eye does. Rows a tool keeps
 the action bar, so one press still skips the diagram; it shows over the corner of the stage, so
 nothing moves when it appears.
 
+## The answers switch
+
+A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads
+"Show hidden answers" in every tool (`AnswerPreviewToggle` and `AnswerCopyToggle` in
+`src/site/AnswerPreviewToggle.tsx`, styled by `answer-switch.css`; the Worksheet and Booklet
+builders use the same switch).
+
+- Off, it is a plain grey switch.
+- On, the switch and its words turn pink, and a small pink label appears over the top corner of
+  the diagram: "Teacher view: answers showing", then what a download will hold. A teacher preview
+  says "Screen only: downloads keep the pupil version." A teacher copy says "Downloads show the
+  answers too."
+- The label lies over the stage and lets clicks through, so nothing moves when it appears. It is
+  never part of an export.
+- The switch's full name for screen readers still says which kind it is ("Teacher preview: show
+  hidden answers" or "Teacher copy: show hidden answers").
+
+A tool passes its switch to `EditorToolbar` as `answers`.
+
 ## Decided, and built in later steps
 
 - **Tall windows.** Settings go underneath the work in three columns, so the work keeps the full
   width.
-- **Answers showing.** While hidden answers are on screen, the switch turns pink and a small pink
-  label marks the teacher's view.
 - **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
   is on sits side by side, and switching one off lets the rest grow.
 - **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.

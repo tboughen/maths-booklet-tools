@@ -820,6 +820,13 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={
+                <AnswerPreviewToggle
+                  checked={showAnswers}
+                  disabled={blocked}
+                  onChange={setShowAnswers}
+                />
+              }
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -1263,11 +1270,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </EditorHint>
               }
             >
-              <AnswerPreviewToggle
-                checked={showAnswers}
-                disabled={blocked}
-                onChange={setShowAnswers}
-              />
             </EditorFoot>
             <div
               className="tr-structure"

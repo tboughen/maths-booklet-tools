@@ -306,6 +306,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -401,7 +402,6 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 <EditorHint tool="two-way-table">Click a cell on the table to edit it. Enter applies; Escape restores.</EditorHint>
               }
             >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
             {(issue || notes.length > 0) && (
               <div className="pt-status" aria-live="polite">

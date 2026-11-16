@@ -548,6 +548,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -668,7 +669,6 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Drag the round handles to move rays, transversals and corners.</EditorHint>
               }
             >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
             {(issue || g.notes.length > 0) && (
               <div className="pt-status" aria-live="polite">

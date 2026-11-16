@@ -391,6 +391,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
+              answers={<AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />}
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
@@ -479,7 +480,6 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 <EditorHint tool="area">Click a side, line or the middle of the shape to label it. Change the shape in the settings.</EditorHint>
               }
             >
-              <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </EditorFoot>
             {(issue || g.notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
