@@ -58,6 +58,8 @@ import * as area from "../../area-core/src/index";
 import * as areaIo from "../../area-core/src/interchange";
 import * as figures from "../../figure-core/src/index";
 import * as figuresIo from "../../figure-core/src/interchange";
+import * as solids from "../../solid-core/src/index";
+import * as solidsIo from "../../solid-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -84,6 +86,7 @@ export const DIAGRAM_KINDS = [
   "angles",
   "area",
   "figures",
+  "solids",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -595,6 +598,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => figuresIo.revise(input),
     hash: figures.hash,
     svg: (e, view) => figures.renderSvg(e, view),
+  }),
+  solids: family<solids.Envelope>({
+    kind: "solids",
+    label: "3D solid",
+    summary: "3D solids drawn as Edexcel does, hidden edges dashed: cuboids and prisms, pyramids and frustums, cylinders, cones, spheres and hemispheres, alone or joined; named corners, lengths and angles given, letters, blanks or hidden answers.",
+    route: "/tools/solids",
+    answerView: true,
+    envelopeSchema: solids.envelopeSchema,
+    createSchema: solidsIo.createSchema,
+    revisionSchema: solidsIo.revisionSchema,
+    validate: (raw) => {
+      const e = solids.validate(raw);
+      check(solids.exportIssue(e));
+      return e;
+    },
+    create: (input) => solidsIo.create(input),
+    revise: (input) => solidsIo.revise(input),
+    hash: solids.hash,
+    svg: (e, view) => solids.renderSvg(e, view),
   }),
 };
 

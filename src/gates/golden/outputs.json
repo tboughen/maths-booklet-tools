@@ -2,6 +2,90 @@
  "platform": "linux-x64",
  "pixelPpi": 150,
  "outputs": {
+  "3D solids: solids-cone-hemisphere": {
+   "json": "0031be803ce869d9",
+   "svg": "f25350381bb3232e",
+   "mm": "60.9x74.3",
+   "png600": "1439x1755",
+   "pixels": "38130a46d3279f27"
+  },
+  "3D solids: solids-cone-hemisphere (worked)": {
+   "json": "0031be803ce869d9",
+   "svg": "f25350381bb3232e",
+   "mm": "60.9x74.3",
+   "png600": "1439x1755",
+   "pixels": "38130a46d3279f27"
+  },
+  "3D solids: solids-cone-sculpture": {
+   "json": "4118530d46bfbb51",
+   "svg": "36649a263e436fdc",
+   "mm": "72x114.3",
+   "png600": "1701x2700",
+   "pixels": "ca19400314674626"
+  },
+  "3D solids: solids-cone-sculpture (worked)": {
+   "json": "4118530d46bfbb51",
+   "svg": "36649a263e436fdc",
+   "mm": "72x114.3",
+   "png600": "1701x2700",
+   "pixels": "ca19400314674626"
+  },
+  "3D solids: solids-cuboid-diagonal": {
+   "json": "5d11b3c7298423c7",
+   "svg": "325c0434814eaf06",
+   "mm": "66.4x62.3",
+   "png600": "1569x1472",
+   "pixels": "127bc15b42049c87"
+  },
+  "3D solids: solids-cuboid-diagonal (worked)": {
+   "json": "5d11b3c7298423c7",
+   "svg": "325c0434814eaf06",
+   "mm": "66.4x62.3",
+   "png600": "1569x1472",
+   "pixels": "127bc15b42049c87"
+  },
+  "3D solids: solids-cylinder-tank": {
+   "json": "8d555559c7fd0454",
+   "svg": "ceb63461be352777",
+   "mm": "51.8x62.6",
+   "png600": "1224x1479",
+   "pixels": "711157dd8d70c20b"
+  },
+  "3D solids: solids-cylinder-tank (worked)": {
+   "json": "8d555559c7fd0454",
+   "svg": "ceb63461be352777",
+   "mm": "51.8x62.6",
+   "png600": "1224x1479",
+   "pixels": "711157dd8d70c20b"
+  },
+  "3D solids: solids-square-pyramid": {
+   "json": "5dce0bb9bdf1644a",
+   "svg": "c4b958bfb4383ca5",
+   "mm": "82.7x80.7",
+   "png600": "1954x1906",
+   "pixels": "b107ddc440d5772d"
+  },
+  "3D solids: solids-square-pyramid (worked)": {
+   "json": "5dce0bb9bdf1644a",
+   "svg": "c4b958bfb4383ca5",
+   "mm": "82.7x80.7",
+   "png600": "1954x1906",
+   "pixels": "b107ddc440d5772d"
+  },
+  "3D solids: solids-triangular-prism": {
+   "json": "963256013142d4bb",
+   "svg": "d0c699579874aef5",
+   "mm": "83.2x49.5",
+   "png600": "1965x1169",
+   "pixels": "551ff7004b4104a6"
+  },
+  "3D solids: solids-triangular-prism (worked)": {
+   "json": "7239a00ddd7b7817",
+   "svg": "297d59fc5545e906",
+   "mm": "83.2x49.5",
+   "png600": "1965x1169",
+   "pixels": "27e7fe94697fc2e3"
+  },
   "algebra grid: algebra-common": {
    "json": "07e29282433c6a66",
    "svg": "53ff8bec4805980c",

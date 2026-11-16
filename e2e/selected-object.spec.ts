@@ -16,6 +16,7 @@ const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "angles", select: (page) => page.getByRole("button", { name: /^Select angle 1 / }).click() },
   { tool: "area", select: (page) => page.getByRole("button", { name: /^Select the label on side 1 / }).click() },
   { tool: "figures", select: (page) => page.getByRole("button", { name: /^Select side AB / }).click() },
+  { tool: "solids", select: (page) => page.getByRole("button", { name: /^Select length p1p2 / }).click() },
   { tool: "factor-tree" },
   { tool: "nets", select: (page) => page.getByRole("button", { name: "Edit face 1", exact: true }).click() },
   { tool: "function-machine", select: (page) => page.getByRole("button", { name: "Edit the box 1", exact: true }).click() },

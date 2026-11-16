@@ -25,6 +25,7 @@ export const toolIds = [
   "angles",
   "area",
   "figures",
+  "solids",
   "factor-tree",
   "written-method",
   "function-machine",

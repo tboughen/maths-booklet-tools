@@ -33,6 +33,7 @@ import { envelopeSchema as elevations } from "../../packages/elevation-core/src/
 import { envelopeSchema as angles } from "../../packages/angle-core/src/index";
 import { envelopeSchema as area } from "../../packages/area-core/src/index";
 import { envelopeSchema as figures } from "../../packages/figure-core/src/index";
+import { envelopeSchema as solids } from "../../packages/solid-core/src/index";
 import { graphService } from "../../services/graph-mcp/server";
 
 const dir = "src/gates/contracts"; // vitest runs from the repository root
@@ -47,7 +48,7 @@ function compare(name: string, actual: unknown) {
 }
 
 const savedFiles: Record<string, z.ZodType> = {
-  angles, area, figures, "algebra-grid": algebraGrid, "bar-model": barModelV3, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
+  angles, area, figures, solids, "algebra-grid": algebraGrid, "bar-model": barModelV3, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
   triangle, "two-way-table": twoWayTable, "factor-tree": ft, "written-method": wm, "algebra-tiles": at, "function-machine": fm, nets: netsSchema, "sample-space": ss, "value-graph": valueGraph, venn,
 };
 

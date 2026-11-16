@@ -1,0 +1,129 @@
+{
+ "document": {
+  "angles": [],
+  "dims": [
+   {
+    "a": "l",
+    "b": "kt",
+    "gap": false,
+    "id": "sl",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "8 m"
+    },
+    "offset": 3,
+    "side": "left"
+   },
+   {
+    "a": "l",
+    "b": "r",
+    "gap": true,
+    "id": "dk",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "2.2 m"
+    },
+    "offset": 0,
+    "side": "auto"
+   },
+   {
+    "a": "hl",
+    "b": "hr",
+    "gap": false,
+    "id": "dh",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "6.4 m"
+    },
+    "offset": 40,
+    "side": "right"
+   }
+  ],
+  "hidden": "dashed",
+  "lines": [],
+  "names": [],
+  "notToScale": true,
+  "points": [
+   {
+    "id": "l",
+    "place": {
+     "deg": 180,
+     "end": "base",
+     "solid": "k",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "r",
+    "place": {
+     "deg": 0,
+     "end": "base",
+     "solid": "k",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "hl",
+    "place": {
+     "deg": 180,
+     "end": "base",
+     "solid": "h",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "hr",
+    "place": {
+     "deg": 0,
+     "end": "base",
+     "solid": "h",
+     "type": "rim"
+    },
+    "show": "none"
+   }
+  ],
+  "solids": [
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "axis": "y",
+    "h": 62,
+    "id": "k",
+    "r": 12,
+    "top": 0,
+    "type": "cone"
+   },
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "flat": "up",
+    "id": "h",
+    "r": 34,
+    "type": "hemisphere"
+   }
+  ],
+  "view": {
+   "tilt": 16,
+   "turn": 0,
+   "type": "turned"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}

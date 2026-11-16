@@ -264,4 +264,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     captions: "Free text such as Triangle A.",
     settings: "notToScale, fontPt and lines.",
   },
+  solids: {
+    example: "A starting drawing redrawn from a Question Bank question, by key.",
+    solids: "Up to 4 solids: prisms, pyramids and frustums, cylinders, cones, spheres and hemispheres, in 3D mm.",
+    points: "Up to 20 extra points: in 3D mm, along a line, or on a round solid's rim.",
+    names: "Letters beside corners and points.",
+    lines: "Extra straight lines between points, solid, dashed or dotted.",
+    dims: "Up to 12 lengths on edges or lines, beside them or on a double-headed arrow, each with a label.",
+    angles: "Up to 8 marked angles at a vertex between two points, with an arc or right-angle mark and a label.",
+    settings: "view (oblique or turned), hidden edges dashed or left out, notToScale, fontPt and lines.",
+  },
 };

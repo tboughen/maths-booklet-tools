@@ -1,0 +1,83 @@
+{
+ "document": {
+  "angles": [],
+  "dims": [],
+  "hidden": "dashed",
+  "lines": [],
+  "names": [
+   {
+    "id": "p1",
+    "text": "D"
+   },
+   {
+    "id": "p2",
+    "text": "C"
+   },
+   {
+    "id": "p3",
+    "text": "H"
+   },
+   {
+    "id": "p4",
+    "text": "E"
+   },
+   {
+    "id": "pb1",
+    "text": "A"
+   },
+   {
+    "id": "pb2",
+    "text": "B"
+   },
+   {
+    "id": "pb3",
+    "text": "G"
+   },
+   {
+    "id": "pb4",
+    "text": "F"
+   }
+  ],
+  "notToScale": true,
+  "points": [],
+  "solids": [
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "axis": "z",
+    "id": "p",
+    "length": 40,
+    "section": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": 34,
+      "y": 0
+     },
+     {
+      "x": 34,
+      "y": 35
+     },
+     {
+      "x": 0,
+      "y": 35
+     }
+    ],
+    "type": "prism"
+   }
+  ],
+  "view": {
+   "angle": 158,
+   "scale": 0.55,
+   "type": "oblique"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}
