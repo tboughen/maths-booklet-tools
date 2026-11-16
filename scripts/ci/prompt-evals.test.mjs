@@ -142,10 +142,10 @@ test('cases with a pupil answer also check that no tool call writes it into the 
   assert.doesNotMatch('**Answer version**: A ∩ B′ shaded.', both);
 });
 
-test('the histogram check needs the reply to say histograms are not supported', () => {
-  const g = caseFiles()['plugins/mathsdock-claude/evals/histogram-unsupported/graders/says-unsupported.md'];
+test('the time series check needs the reply to say time series graphs are not supported', () => {
+  const g = caseFiles()['plugins/mathsdock-claude/evals/time-series-unsupported/graders/says-unsupported.md'];
   const re = new RegExp(g.match(/^pattern: '(.*)'$/m)[1].replace(/''/g, "'"), 'i');
-  assert.match("I didn't use the MathsDock tools because they don't support histograms.", re);
-  assert.match('Histograms are not supported by the connector.', re);
-  assert.doesNotMatch("Here is your histogram. Don't forget to label the axes.", re);
+  assert.match("I didn't use the MathsDock tools because they don't support time series graphs.", re);
+  assert.match('Time series graphs are not supported by the connector.', re);
+  assert.doesNotMatch("Here is your time series graph. Don't forget to label the axes.", re);
 });

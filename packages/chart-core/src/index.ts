@@ -5,8 +5,10 @@ import { withFields } from "../../envelope-core/src/errors";
 import { pieLayout, pieSvg } from "./pie";
 import { pictogramLayout, pictogramSvg } from "./pictogram";
 import { scatterLayout, scatterSvg } from "./scatter";
+import { groupedHidden, groupedKind, groupedLayout, groupedSvg } from "./grouped";
+export { groupedLayout, groupedKind } from "./grouped";
 export { scatterLayout } from "./scatter";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, MAX_CLASSES, groupedSchema, markGraphRevealed, markTableRevealed, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
 export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
@@ -22,7 +24,7 @@ export const RENDERER_VERSION = "charts-1" as const;
  * graphs need a continuous axis and belong in their own tools. Switching kind never
  * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter", "histogram", "polygon", "cumulative"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
@@ -32,9 +34,12 @@ export const kindNames: Record<Kind, string> = {
   pie: "Pie chart",
   pictogram: "Pictogram",
   scatter: "Scatter graph",
+  histogram: "Histogram",
+  polygon: "Frequency polygon",
+  cumulative: "Cumulative frequency graph",
 };
 /** Kinds drawn on a categorical axis with a numerical scale. */
-export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram" && kind !== "scatter";
+export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram" && kind !== "scatter" && !groupedKind(kind);
 
 export const fills = [
   "grey",
@@ -111,6 +116,8 @@ export const envelopeSchema = z
         pictogram: pictogramSchema.optional(),
         /** Scatter graph points, axes, line of best fit and readings; absent means SCATTER_DEFAULTS. */
         scatter: scatterSchema.optional(),
+        /** Histogram, frequency polygon and cumulative frequency classes and axes; absent means GROUPED_DEFAULTS. */
+        grouped: groupedSchema.optional(),
       })
       .strict(),
     ...aboutShape,
@@ -175,6 +182,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
+    if (path.includes("grouped"))
+      throw withFields(Error(`Use 1 to ${MAX_CLASSES} classes with values of at most 12 characters, a single-letter variable, axis titles of at most 40 characters, steps of 4 to 40 mm (even numbers) and at most 4 readings.`), parsed.error);
     if (path.includes("scatter"))
       throw withFields(Error(`Use at most ${MAX_POINTS} scatter points and 3 readings, values of at most 12 characters, axis titles of at most 40 characters and axis lengths from 40 to 160 mm.`), parsed.error);
     if (path.includes("pictogram"))
@@ -220,6 +229,18 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
       }
       item.show = "show";
     }
+  const gr = groupedKind(n.document.kind) ? n.document.grouped : undefined;
+  if (gr) {
+    for (const c of gr.classes) {
+      if (c.graph === "hidden" && mark && c.frequency.trim()) markGraphRevealed(c);
+      if (c.table === "hidden" && mark && c.frequency.trim()) markTableRevealed(c);
+      c.graph = c.table = "show";
+    }
+    for (const r of gr.cumulative.readings) {
+      if (r.show === "hidden" && mark) markRevealed(r);
+      r.show = "show";
+    }
+  }
   for (const s of n.document.series)
     for (const c of s.values) {
       if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
@@ -228,10 +249,10 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   return n;
 }
 export const hasHidden = (e: Envelope) =>
-  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document) || scatterHidden(e.document);
+  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document) || scatterHidden(e.document) || (groupedKind(e.document.kind) && !!e.document.grouped && groupedHidden(e.document.grouped, e.document.kind));
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
-export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram" || kind === "scatter";
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram" || kind === "scatter" || groupedKind(kind);
 /** A scatter graph with a point, line or reading left for pupils. */
 const scatterHidden = (d: ChartDocument) =>
   d.kind === "scatter" &&
@@ -286,6 +307,10 @@ export function layout(e: Envelope): Frame {
   }
   if (e.document.kind === "scatter") {
     const g = scatterLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  if (groupedKind(e.document.kind)) {
+    const g = groupedLayout(e);
     return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
   }
   if (e.document.kind === "pictogram") {
@@ -478,6 +503,7 @@ export function renderSvg(e: Envelope): string {
   if (e.document.kind === "pie") return pieSvg(e);
   if (e.document.kind === "pictogram") return pictogramSvg(e);
   if (e.document.kind === "scatter") return scatterSvg(e);
+  if (groupedKind(e.document.kind)) return groupedSvg(e);
   const d = e.document,
     g = axesLayout(e),
     p = g.plot,
@@ -596,6 +622,15 @@ export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   if (sc) {
     for (const p of sc.points) p.show = show;
     if (show === "show") for (const item of [...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) item.show = "show";
+  }
+  // Grouped kinds: hide every graph part (pupils draw it); show all also shows table cells and readings.
+  const gr = groupedKind(n2.document.kind) ? n2.document.grouped : undefined;
+  if (gr) {
+    for (const c of gr.classes) {
+      c.graph = show;
+      if (show === "show") c.table = "show";
+    }
+    if (show === "show") for (const r of gr.cumulative.readings) r.show = "show";
   }
   return n2;
 }

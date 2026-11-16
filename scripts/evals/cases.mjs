@@ -118,14 +118,17 @@ export const CASES = [
   { name: 'chart-dual', tags: ['charts'], kind: 'charts',
     description: 'A dual bar chart is drawn with the charts tool.',
     prompt: 'Dual bar chart of favourite sport for Year 7 boys and girls: football 12 boys and 8 girls, netball 3 and 10, swimming 6 and 7.' },
-  // The server's own instructions already say histograms are unsupported, so Claude can answer
-  // correctly without loading the skill; this case does not require it.
-  { name: 'histogram-unsupported', tags: ['charts', 'limits'], skillOptional: true,
-    description: 'Histograms are not supported: the reply says so and no chart is passed off as one.',
-    prompt: 'Draw a histogram of these heights: 140 to 150 cm: 4 pupils, 150 to 160 cm: 9, 160 to 180 cm: 6.',
+  { name: 'chart-histogram', tags: ['charts'], kind: 'charts',
+    description: 'A histogram with unequal class widths is drawn with the charts tool.',
+    prompt: 'Draw a histogram of these heights: 140 to 150 cm: 4 pupils, 150 to 160 cm: 9, 160 to 180 cm: 6.' },
+  // The server's own instructions already say time series graphs are unsupported, so Claude can
+  // answer correctly without loading the skill; this case does not require it.
+  { name: 'time-series-unsupported', tags: ['charts', 'limits'], skillOptional: true,
+    description: 'Time series graphs are not supported: the reply says so and no chart is passed off as one.',
+    prompt: 'Draw a time series graph of the monthly rainfall: January 80 mm, February 62 mm, March 55 mm, April 41 mm.',
     extra: [
-      { name: 'says-unsupported', type: 'regex', target: 'last_message', pattern: "(?:can(?:'|’)?t|cannot|do(?:es)?n(?:'|’)?t|do(?:es)? not|is(?:n(?:'|’)?t| not)|not able to)[^.\\n]{0,60}histogram|histograms?[^.\\n]{0,60}(?:not supported|unsupported|isn(?:'|’)?t supported|aren(?:'|’)?t supported|not available)", flags: 'i', body: 'The reply says the connector cannot draw histograms.' },
-      { name: 'no-chart-substitute-generic', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: '"kind"\\s*:\\s*"charts"', min: 0, max: 0, body: 'No bar chart was created in its place.' },
+      { name: 'says-unsupported', type: 'regex', target: 'last_message', pattern: "(?:can(?:'|’)?t|cannot|do(?:es)?n(?:'|’)?t|do(?:es)? not|is(?:n(?:'|’)?t| not)|not able to)[^.\\n]{0,60}time[- ]series|time[- ]series(?: graphs?)?[^.\\n]{0,60}(?:not supported|unsupported|isn(?:'|’)?t supported|aren(?:'|’)?t supported|not available)", flags: 'i', body: 'The reply says the connector cannot draw time series graphs.' },
+      { name: 'no-chart-substitute-generic', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: '"kind"\\s*:\\s*"charts"', min: 0, max: 0, body: 'No chart was created in its place.' },
     ] },
   { name: 'real-download-link', tags: ['links'], kind: 'number-line',
     description: 'The reply gives the real signed link the tool returned.',

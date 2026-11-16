@@ -2456,7 +2456,10 @@
               "vline",
               "pie",
               "pictogram",
-              "scatter"
+              "scatter",
+              "histogram",
+              "polygon",
+              "cumulative"
             ]
           },
           "categories": {
@@ -2931,6 +2934,310 @@
               "minor",
               "readings",
               "table"
+            ],
+            "additionalProperties": false
+          },
+          "grouped": {
+            "type": "object",
+            "properties": {
+              "variable": {
+                "type": "string",
+                "pattern": "^[A-Za-z]?$"
+              },
+              "inequality": {
+                "type": "string",
+                "enum": [
+                  "lower-open",
+                  "lower-closed"
+                ]
+              },
+              "classes": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lower": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "upper": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "frequency": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "table": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    },
+                    "graph": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lower",
+                    "upper",
+                    "frequency",
+                    "table",
+                    "graph"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "xAxis": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "max": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "step": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "stepMm": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "maximum": 40,
+                    "multipleOf": 2
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "step",
+                  "stepMm",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "table": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "frequency",
+                  "cumulative"
+                ]
+              },
+              "histogram": {
+                "type": "object",
+                "properties": {
+                  "yAxis": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "max": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "step": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "stepMm": {
+                        "type": "integer",
+                        "minimum": 4,
+                        "maximum": 40,
+                        "multipleOf": 2
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max",
+                      "step",
+                      "stepMm",
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "fill": {
+                    "type": "string",
+                    "enum": [
+                      "white",
+                      "grey"
+                    ]
+                  }
+                },
+                "required": [
+                  "yAxis",
+                  "fill"
+                ],
+                "additionalProperties": false
+              },
+              "polygon": {
+                "type": "object",
+                "properties": {
+                  "yAxis": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "max": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "step": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "stepMm": {
+                        "type": "integer",
+                        "minimum": 4,
+                        "maximum": 40,
+                        "multipleOf": 2
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max",
+                      "step",
+                      "stepMm",
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "yAxis"
+                ],
+                "additionalProperties": false
+              },
+              "cumulative": {
+                "type": "object",
+                "properties": {
+                  "yAxis": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "max": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "step": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "stepMm": {
+                        "type": "integer",
+                        "minimum": 4,
+                        "maximum": 40,
+                        "multipleOf": 2
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max",
+                      "step",
+                      "stepMm",
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "curve": {
+                    "type": "string",
+                    "enum": [
+                      "smooth",
+                      "straight"
+                    ]
+                  },
+                  "fromZero": {
+                    "type": "boolean"
+                  },
+                  "crosses": {
+                    "type": "boolean"
+                  },
+                  "readings": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "axis": {
+                          "type": "string",
+                          "enum": [
+                            "x",
+                            "y"
+                          ]
+                        },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "axis",
+                        "value",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "yAxis",
+                  "curve",
+                  "fromZero",
+                  "crosses",
+                  "readings"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "variable",
+              "inequality",
+              "classes",
+              "xAxis",
+              "table",
+              "histogram",
+              "polygon",
+              "cumulative"
             ],
             "additionalProperties": false
           }

@@ -654,6 +654,17 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - factor trees: ft-two-ways-84: svg c601bef7d887ab91 -> df291ccdee269b3c
 - factor trees: ft-two-ways-84: pixels 722a3009c5de1ff8 -> 952e895b2024773c
 
+## 2026-11-16: Statistical charts gain histograms, frequency polygons and cumulative frequency graphs: adds goldens for the four new gallery examples; no existing output changed
+
+- charts: chart-histogram-puzzle: added
+- charts: chart-histogram-puzzle (worked): added
+- charts: chart-histogram-complete: added
+- charts: chart-histogram-complete (worked): added
+- charts: chart-polygon-plants: added
+- charts: chart-polygon-plants (worked): added
+- charts: chart-cumulative-office: added
+- charts: chart-cumulative-office (worked): added
+
 ## 2026-11-16: Add the new geometry figures family (circle theorems, similar and congruent shapes): new outputs only
 
 - geometry figures: figures-tangent-cyclic: added
