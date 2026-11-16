@@ -1,0 +1,140 @@
+{
+ "kind": "figures",
+ "schemaVersion": 1,
+ "rendererVersion": "figures-1",
+ "document": {
+  "points": [
+   {
+    "id": "e",
+    "place": {
+     "type": "free",
+     "x": 0,
+     "y": 0
+    },
+    "name": "E",
+    "show": "none"
+   },
+   {
+    "id": "c1",
+    "place": {
+     "type": "free",
+     "x": 96,
+     "y": 0
+    },
+    "name": "C",
+    "show": "none"
+   },
+   {
+    "id": "a",
+    "place": {
+     "type": "free",
+     "x": 36,
+     "y": 36
+    },
+    "name": "A",
+    "show": "none"
+   },
+   {
+    "id": "dd",
+    "place": {
+     "type": "along",
+     "a": "c1",
+     "b": "e",
+     "t": 0.67
+    },
+    "name": "D",
+    "show": "none"
+   },
+   {
+    "id": "b",
+    "place": {
+     "type": "along",
+     "a": "c1",
+     "b": "a",
+     "t": 0.67
+    },
+    "name": "B",
+    "show": "none"
+   }
+  ],
+  "circles": [],
+  "segments": [
+   {
+    "id": "ea",
+    "a": "e",
+    "b": "a",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 1,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "ac",
+    "a": "a",
+    "b": "c1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "ec",
+    "a": "e",
+    "b": "c1",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 0,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   },
+   {
+    "id": "db",
+    "a": "dd",
+    "b": "b",
+    "style": "solid",
+    "extend": [
+     0,
+     0
+    ],
+    "ticks": 0,
+    "arrows": 1,
+    "label": {
+     "state": "blank",
+     "text": "",
+     "answer": ""
+    },
+    "side": "auto"
+   }
+  ],
+  "angles": [],
+  "fills": [],
+  "captions": [],
+  "notToScale": true
+ }
+}

@@ -26,6 +26,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   "two-way-table": { columns: ["Walk", "Bus"], rows: [{ heading: "Year 7", cells: ["12", { text: "8", hidden: true }, "20"] }, { heading: "Year 8", cells: ["", "9", "15"] }] },
   angles: { figure: { type: "parallel" }, angles: [{ id: "p1-ur", text: "58" }, { id: "p2-ul", text: "x", answer: "122" }] },
   area: { preset: "l-shape", labels: [{ id: "e1", text: "12 cm" }, { id: "e6", text: "10 cm" }, { id: "area", answer: "85 cm²" }] },
+  figures: { example: "two-tangents" },
   "sample-space": { rows: ["H", "T"], columns: ["1", "2", "3"], cells: [["H1", { text: "H2", hidden: true }, ""]] },
   "factor-tree": { root: "36", complete: true },
   nets: { nets: [{ preset: { type: "cube", net: 5 }, faces: [{ mark: "dot" }, null, null, null, null, { mark: { kind: "dot", hidden: true } }] }] },  "written-method": { method: "multiply", numbers: ["546", "43"], complete: true },

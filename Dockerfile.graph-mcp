@@ -19,6 +19,7 @@ COPY packages/elevation-core packages/elevation-core
 COPY packages/two-way-table-core packages/two-way-table-core
 COPY packages/angle-core packages/angle-core
 COPY packages/area-core packages/area-core
+COPY packages/figure-core packages/figure-core
 COPY packages/factor-tree-core packages/factor-tree-core
 COPY packages/written-method-core packages/written-method-core
 COPY packages/function-machine-core packages/function-machine-core

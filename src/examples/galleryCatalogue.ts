@@ -61,6 +61,8 @@ import { examples as angleExamples } from "../../packages/angle-core/src/example
 import { renderSvg as angleSvg } from "../../packages/angle-core/src";
 import { examples as areaExamples } from "../../packages/area-core/src/examples";
 import { renderSvg as areaSvg } from "../../packages/area-core/src";
+import { examples as figureExamples } from "../../packages/figure-core/src/examples";
+import { renderSvg as figureSvg } from "../../packages/figure-core/src";
 import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
 import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
 import { examples as writtenMethods } from "../../packages/written-method-core/src/examples";
@@ -351,6 +353,14 @@ export const areaGallery = areaExamples.map((example) => ({
   description: example.note,
   make: example.make,
   render: (e: Parameters<typeof areaSvg>[0]) => areaSvg(e),
+  worked: example.worked,
+}));
+export const figuresGallery = figureExamples.map((example) => ({
+  id: `figures-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: (e: Parameters<typeof figureSvg>[0]) => figureSvg(e),
   worked: example.worked,
 }));
 export const sampleSpaceGallery = sampleSpaces.map((example) => ({

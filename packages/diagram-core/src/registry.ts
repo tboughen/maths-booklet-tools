@@ -56,6 +56,8 @@ import * as angles from "../../angle-core/src/index";
 import * as anglesIo from "../../angle-core/src/interchange";
 import * as area from "../../area-core/src/index";
 import * as areaIo from "../../area-core/src/interchange";
+import * as figures from "../../figure-core/src/index";
+import * as figuresIo from "../../figure-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -81,6 +83,7 @@ export const DIAGRAM_KINDS = [
   "elevations",
   "angles",
   "area",
+  "figures",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -573,6 +576,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => areaIo.revise(input),
     hash: area.hash,
     svg: (e, view) => area.renderSvg(e, view),
+  }),
+  figures: family<figures.Envelope>({
+    kind: "figures",
+    label: "geometry figure",
+    summary: "Geometry figures: circles with chords, tangents and radii (circle theorems), similar and congruent triangles and shapes, parallel lines and proofs; named points, side lengths and angles given, letters, blanks or hidden answers.",
+    route: "/tools/figures",
+    answerView: true,
+    envelopeSchema: figures.envelopeSchema,
+    createSchema: figuresIo.createSchema,
+    revisionSchema: figuresIo.revisionSchema,
+    validate: (raw) => {
+      const e = figures.validate(raw);
+      check(figures.exportIssue(e));
+      return e;
+    },
+    create: (input) => figuresIo.create(input),
+    revise: (input) => figuresIo.revise(input),
+    hash: figures.hash,
+    svg: (e, view) => figures.renderSvg(e, view),
   }),
 };
 
