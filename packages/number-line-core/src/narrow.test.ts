@@ -26,7 +26,7 @@ describe("narrow number lines and number labels on arrows", () => {
     expect(renderSvg(neg)).toContain(">−2.5</text>");
     const big = create({ axis: { minimum: "12000", maximum: "13000", step: "100", labelEvery: 10, minorTicks: true, variable: "" }, widthCm: 8, markers: [{ id: "b", value: "12500", label: "12 500" }] });
     expect(renderSvg(big)).toContain(">12 500</text>");
-    for (const bad of ["123456789", " 3.4", "3.4 ", "3  4", "<b>", "x/y"])
+    for (const bad of ["123456789", " 3.4", "3.4 ", "3  4", "<b>", "x/y", "-", "...", "3-4", "12 50", "£5"])
       expect(() => apply(rounding(6), [{ op: "add_marker", marker: { id: "a", value: "3.45", label: bad } }]), bad).toThrow();
   });
 
@@ -39,6 +39,12 @@ describe("narrow number lines and number labels on arrows", () => {
     const right = validate(create({ axis, widthCm: 6, markers: [{ id: "a", value: "-12000", label: "-12 000" }] })).document;
     expect(markerLabelX(right, right.markers![0])).toBeLessThanOrEqual(60 - 1);
     expect(() => create({ axis, widthCm: 6, markers: [{ id: "a", value: "-13000", label: "-13 000" }, { id: "b", value: "-12700", label: "-12 700" }] })).toThrow(/too close/);
+  });
+
+  it("refuses tick labels that would run off the edge or touch a letter printed below", () => {
+    expect(() => create({ axis: { minimum: "-130000", maximum: "-120000", step: "5000", variable: "" }, widthCm: 14 })).toThrow(/runs off the edge/);
+    expect(() => create({ axis: { minimum: "120000", maximum: "130000", step: "5000", variable: "x", variableBelow: true }, widthCm: 14 })).toThrow(/touches the letter x/);
+    expect(() => create({ axis: { minimum: "120000", maximum: "130000", step: "5000", variable: "x" }, widthCm: 14 })).not.toThrow();
   });
 
   it("refuses arrow labels that would collide", () => {

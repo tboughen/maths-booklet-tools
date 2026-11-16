@@ -38,8 +38,8 @@ export const pointSchema = z.object({ id, value: num, included: z.boolean().opti
 /** Narrowest and widest print widths (cm). Narrow lines rely on the label-collision checks below. */
 export const MIN_WIDTH_CM = 4, MAX_WIDTH_CM = 18;
 /** An arrow label: a letter such as A or P1, or a number such as 3.47, −2.5 or 12 500 (up to 8 characters). */
-export const MARKER_LABEL = /^(?=.{1,8}$)[A-Za-z0-9.,£%−-]+(?: [A-Za-z0-9.,£%−-]+)*$/;
-const markerLabel = z.string().regex(MARKER_LABEL, "Use up to 8 letters, digits or a number such as 3.47, −2.5 or 12 500 for an arrow label.");
+export const MARKER_LABEL = /^(?=.{1,8}$)(?:[A-Za-z0-9]+|[−-]?[0-9]+(?: [0-9]{3})*(?:\.[0-9]+)?)$/;
+const markerLabel = z.string().regex(MARKER_LABEL, "Use up to 8 characters for an arrow label: letters and digits such as A or P1, or a number such as 3.47, −2.5 or 12 500.");
 const widthCm = z.number().min(MIN_WIDTH_CM).max(MAX_WIDTH_CM);
 export const markerSchema = z.object({ id, value: num, label: markerLabel.optional() }).strict();
 export const connectionSchema = z.object({id, from: id, to: id}).strict();
@@ -175,6 +175,10 @@ export function validate(raw: unknown): Envelope {
         const w = state === "answer-line" ? 5 : numberWidth(displayNumber(d, v)), x = position(d, v);
         if (previous && x - previous.x < (previous.w + w) / 2 + 1.3)
             throw Error("Tick labels overlap at this print width. Widen the line, label fewer ticks or use a coarser step.");
+        if (x - w / 2 < 0.5 || x + w / 2 > d.widthCm * 10 - 0.5)
+            throw Error(`The tick label ${displayNumber(d, v)} runs off the edge of the drawing. Widen the line or extend the axis so it is not an end label.`);
+        if (d.axis.variable && d.axis.variableBelow && x + w / 2 > d.widthCm * 10 - 6 - 1)
+            throw Error(`The tick label ${displayNumber(d, v)} touches the letter ${d.axis.variable}. Show the letter beside the arrow instead, or extend the axis.`);
         previous = { x, w };
     }
     if (d.secondary) {
