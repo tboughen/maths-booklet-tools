@@ -678,6 +678,24 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
 
+## 2026-11-16: Add the nets of 3D shapes tool's gallery examples
+
+- nets: nets-dot-opposite: added
+- nets: nets-dot-opposite (worked): added
+- nets: nets-opposite-letters: added
+- nets: nets-opposite-letters (worked): added
+- nets: nets-which-are-nets: added
+- nets: nets-which-are-nets (worked): added
+- nets: nets-corners-meet: added
+- nets: nets-corners-meet (worked): added
+- nets: nets-cuboid-lengths: added
+- nets: nets-cuboid-lengths (worked): added
+- nets: nets-draw-cuboid-net: added
+- nets: nets-draw-cuboid-net (worked): added
+- nets: nets-complete-cube-net: added
+- nets: nets-complete-cube-net (worked): added
+- nets: nets-name-the-shape: added
+- nets: nets-name-the-shape (worked): added
 ## 2026-11-16: New written methods tool: column addition and subtraction, long multiplication, short and long division
 
 - written methods: wm-column-add: added

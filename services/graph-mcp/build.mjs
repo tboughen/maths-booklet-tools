@@ -52,6 +52,7 @@ for (const directory of [
   "packages/factor-tree-core",
   "packages/written-method-core",
   "packages/function-machine-core",
+  "packages/net-core",
   "packages/sample-space-core",
   "packages/triangle-core",
   "packages/resource-core",
