@@ -18,8 +18,8 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 | `create_booklet` | A4 unit booklets (see [BOOKLET-MAKER.md](BOOKLET-MAKER.md)); same items and families as worksheets. Added 11 Nov 2026, the ninth tool. |
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
-`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree`, `two-way-table`, `triangle`, `construction`, `elevations`, `angles` and `area`
-([constructions, loci and bearings](CONSTRUCTION-TOOL.md) and [plans and elevations](ELEVATIONS-TOOL.md), 14 Nov 2026; [angle diagrams](ANGLE-TOOL.md) and [area and perimeter](AREA-TOOL.md), 15 Nov 2026). `outputView` applies
+`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree`, `two-way-table`, `triangle`, `construction`, `elevations`, `angles`, `area` and `probability-objects`
+([constructions, loci and bearings](CONSTRUCTION-TOOL.md) and [plans and elevations](ELEVATIONS-TOOL.md), 14 Nov 2026; [angle diagrams](ANGLE-TOOL.md) and [area and perimeter](AREA-TOOL.md), 15 Nov 2026; [spinners, dice and bags](PROBABILITY-OBJECTS-TOOL.md), 16 Nov 2026). `outputView` applies
 only to families with an answers copy (ratio tables, graphs, number lines, Venn, bar models, charts,
 probability trees, frequency trees, expanding and factorising grids, triangles, constructions, plans and elevations, angle diagrams and area and perimeter). Value graphs and cuboids hold no
 saved answers (a blank value-graph cell or cuboid label has nothing stored), so they stay pupil-only: an answers copy

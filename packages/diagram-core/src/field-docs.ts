@@ -162,6 +162,12 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     inverse: "true explicitly adds machine 1's inverse beneath it, arrows right to left.",
     complete: "true explicitly works every machine out as hidden answers; {hidden:false} prints them, {between:false} leaves the arrows bare.",
   },
+  "probability-objects": {
+    example,
+    worked,
+    objects: "1 to 4 objects side by side: spinners {type:\"spinner\", labels, angles?, fills?, shape?, pointer?}, dice {type:\"dice\", view?, faces?, marks?} and bags {type:\"bag\", groups:[{label, fill, count}]}.",
+    lines,
+  },
 
   triangle: {
     shape: "right, scalene, isosceles or equilateral.",

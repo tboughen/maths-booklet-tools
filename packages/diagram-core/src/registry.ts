@@ -38,6 +38,8 @@ import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
+import * as po from "../../probability-objects-core/src/index";
+import * as poIo from "../../probability-objects-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
 import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
@@ -66,6 +68,7 @@ export const DIAGRAM_KINDS = [
   "two-way-table",
   "factor-tree",
   "function-machine",
+  "probability-objects",
   "sample-space",
   "triangle",
   "construction",
@@ -412,6 +415,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => fmIo.revise(input),
     hash: fm.hash,
     svg: (e, view) => fm.renderSvg(fm.forView(e, view, true)),
+  }),
+  "probability-objects": family<po.Envelope>({
+    kind: "probability-objects",
+    label: "spinners, dice and bags diagram",
+    summary: "Spinners (circles or regular polygons, equal or given angles, arrow or stick), dice (a cube or a row of faces, pips or numbers) and bags of counters, up to four side by side, with labels blank or hidden for pupils.",
+    route: "/tools/probability-objects",
+    answerView: true,
+    envelopeSchema: po.envelopeSchema,
+    createSchema: poIo.createSchema,
+    revisionSchema: poIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = po.validate(raw);
+      check(po.exportIssue(po.forView(e, view)));
+      return e;
+    },
+    create: (input) => poIo.create(input),
+    revise: (input) => poIo.revise(input),
+    hash: po.hash,
+    svg: (e, view) => po.renderSvg(po.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",

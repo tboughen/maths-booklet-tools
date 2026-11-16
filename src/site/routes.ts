@@ -27,6 +27,7 @@ export const toolIds = [
   "factor-tree",
   "function-machine",
   "sample-space",
+  "probability-objects",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */

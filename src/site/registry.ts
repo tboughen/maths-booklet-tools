@@ -6,7 +6,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FunctionMachineIcon, FrequencyTreeIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
+import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FunctionMachineIcon, FrequencyTreeIcon, ProbabilityObjectsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, SampleSpaceIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -17,6 +17,7 @@ import anglesPreview from "../assets/tool-previews/angle-diagrams.svg";
 import areaPreview from "../assets/tool-previews/area-and-perimeter.svg";
 import factorTreePreview from "../assets/tool-previews/factor-trees.svg";
 import functionMachinePreview from "../assets/tool-previews/function-machines.svg";
+import probabilityObjectsPreview from "../assets/tool-previews/spinners-dice-bags.svg";
 import sampleSpacePreview from "../assets/tool-previews/sample-space-diagrams.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
@@ -46,6 +47,7 @@ export const bookletTools = [
   { id: "factor-tree", name: "Factor trees", description: "Draw factor trees down to circled primes, with an index-form answer line and numbers left blank or hidden.", icon: FactorTreeIcon, FunctionMachineIcon, component: toolPage(() => import("../factor-tree/FactorTreePage")), preview: { src: factorTreePreview, alt: "Factor tree for 360 with the first split given and the rest left for pupils, above an answer line." } },
   { id: "function-machine", name: "Function machines", description: "Draw function machines with operations and values left blank or hidden for pupils, and their inverse machines.", icon: FunctionMachineIcon, component: toolPage(() => import("../function-machine/FunctionMachinePage")), preview: { src: functionMachinePreview, alt: "A number machine: 7 goes in, then multiply by 4 and add 3, with the value between the boxes and the output left for pupils." } },
   { id: "sample-space", name: "Sample space diagrams", description: "Make sample space diagrams for two dice, spinners and coins, with outcomes left blank, hidden or circled.", icon: SampleSpaceIcon, component: toolPage(() => import("../sample-space/SampleSpacePage")), preview: { src: sampleSpacePreview, alt: "Sample space diagram for the totals of two dice, with four totals given and the rest left for pupils." } },
+  { id: "probability-objects", name: "Spinners, dice and bags", description: "Draw spinners with equal or unequal sectors, dice and bags of counters, with labels left blank or hidden for pupils.", icon: ProbabilityObjectsIcon, component: toolPage(() => import("../probability-objects/ProbabilityObjectsPage")), preview: { src: probabilityObjectsPreview, alt: "An ordinary dice showing 3 beside a fair 8-sided spinner numbered 1 to 8 on its stick." } },
 ] as const;
 
 /** Site pages outside the booklet tools, loaded the same way. */

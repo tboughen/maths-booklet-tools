@@ -8802,6 +8802,419 @@
     ],
     "additionalProperties": false
   },
+  "probability-objects": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "probability-objects"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "probability-objects-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "spinner"
+                    },
+                    "shape": {
+                      "type": "string",
+                      "enum": [
+                        "circle",
+                        "polygon"
+                      ]
+                    },
+                    "sectors": {
+                      "minItems": 2,
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "show": {
+                                "type": "string",
+                                "enum": [
+                                  "show",
+                                  "hidden"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "show"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "fill": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "grey",
+                              "hatched",
+                              "dotted"
+                            ]
+                          },
+                          "angle": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 360
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "fill",
+                          "angle"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "rotation": {
+                      "type": "number",
+                      "minimum": 0,
+                      "exclusiveMaximum": 360
+                    },
+                    "pointer": {
+                      "type": "string",
+                      "enum": [
+                        "arrow",
+                        "stick",
+                        "none"
+                      ]
+                    },
+                    "pointerAngle": {
+                      "type": "number",
+                      "minimum": 0,
+                      "exclusiveMaximum": 360
+                    },
+                    "rightAngles": {
+                      "type": "boolean"
+                    },
+                    "sizeMm": {
+                      "type": "number",
+                      "minimum": 25,
+                      "maximum": 80
+                    },
+                    "emptyLabels": {
+                      "type": "string",
+                      "enum": [
+                        "blank",
+                        "none"
+                      ]
+                    },
+                    "caption": {
+                      "type": "string",
+                      "maxLength": 24,
+                      "description": "Printed under the object, such as \"Spinner A\"; \"\" for none."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type",
+                    "shape",
+                    "sectors",
+                    "rotation",
+                    "pointer",
+                    "pointerAngle",
+                    "rightAngles",
+                    "sizeMm",
+                    "emptyLabels",
+                    "caption"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "dice"
+                    },
+                    "view": {
+                      "type": "string",
+                      "enum": [
+                        "cube",
+                        "faces"
+                      ]
+                    },
+                    "faces": {
+                      "minItems": 1,
+                      "maxItems": 6,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "maxLength": 12
+                          },
+                          "show": {
+                            "type": "string",
+                            "enum": [
+                              "show",
+                              "hidden"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "show"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "marks": {
+                      "type": "string",
+                      "enum": [
+                        "pips",
+                        "numbers"
+                      ]
+                    },
+                    "sizeMm": {
+                      "type": "number",
+                      "minimum": 12,
+                      "maximum": 30
+                    },
+                    "emptyLabels": {
+                      "type": "string",
+                      "enum": [
+                        "blank",
+                        "none"
+                      ]
+                    },
+                    "caption": {
+                      "type": "string",
+                      "maxLength": 24,
+                      "description": "Printed under the object, such as \"Spinner A\"; \"\" for none."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type",
+                    "view",
+                    "faces",
+                    "marks",
+                    "sizeMm",
+                    "emptyLabels",
+                    "caption"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "bag"
+                    },
+                    "groups": {
+                      "minItems": 1,
+                      "maxItems": 6,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "show": {
+                                "type": "string",
+                                "enum": [
+                                  "show",
+                                  "hidden"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "show"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "fill": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "grey",
+                              "hatched",
+                              "dotted"
+                            ]
+                          },
+                          "count": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 40
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "fill",
+                          "count"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "caption": {
+                      "type": "string",
+                      "maxLength": 24,
+                      "description": "Printed under the object, such as \"Spinner A\"; \"\" for none."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type",
+                    "groups",
+                    "caption"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          }
+        },
+        "required": [
+          "objects"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      },
+      "worked": {
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
+        "minItems": 1,
+        "maxItems": 12,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "Dark-pink guidance for the worked copy, such as \"Multiply both by 3\". Wraps to widthMm."
+            },
+            "x": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
+            },
+            "y": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
+            },
+            "widthMm": {
+              "description": "Wrapping width in mm (default 60).",
+              "type": "number",
+              "minimum": 10,
+              "maximum": 200
+            },
+            "leader": {
+              "description": "Only when the note cannot sit right beside its maths: one straight line from the note to this point.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the top edge."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
   "sample-space": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

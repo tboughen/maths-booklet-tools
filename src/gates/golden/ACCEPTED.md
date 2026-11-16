@@ -677,3 +677,22 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-polygon-plants (worked): added
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
+
+## 2026-11-16: Add spinners, dice and bags to the output gates
+
+- spinners, dice and bags: po-four-sided: added
+- spinners, dice and bags: po-four-sided (worked): added
+- spinners, dice and bags: po-six-sectors: added
+- spinners, dice and bags: po-six-sectors (worked): added
+- spinners, dice and bags: po-unequal-sectors: added
+- spinners, dice and bags: po-unequal-sectors (worked): added
+- spinners, dice and bags: po-dice-and-spinner: added
+- spinners, dice and bags: po-dice-and-spinner (worked): added
+- spinners, dice and bags: po-bag-of-counters: added
+- spinners, dice and bags: po-bag-of-counters (worked): added
+- spinners, dice and bags: po-complete-the-spinner: added
+- spinners, dice and bags: po-complete-the-spinner (worked): added
+- spinners, dice and bags: po-two-spinners: added
+- spinners, dice and bags: po-two-spinners (worked): added
+- spinners, dice and bags: po-biased-dice: added
+- spinners, dice and bags: po-biased-dice (worked): added

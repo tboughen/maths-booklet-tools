@@ -1,0 +1,40 @@
+{
+ "kind": "probability-objects",
+ "schemaVersion": 1,
+ "rendererVersion": "probability-objects-1",
+ "document": {
+  "objects": [
+   {
+    "id": "o1",
+    "type": "bag",
+    "groups": [
+     {
+      "label": {
+       "text": "R",
+       "show": "show"
+      },
+      "fill": "none",
+      "count": 4
+     },
+     {
+      "label": {
+       "text": "B",
+       "show": "show"
+      },
+      "fill": "grey",
+      "count": 3
+     },
+     {
+      "label": {
+       "text": "G",
+       "show": "show"
+      },
+      "fill": "hatched",
+      "count": 2
+     }
+    ],
+    "caption": ""
+   }
+  ]
+ }
+}

@@ -42,6 +42,8 @@ export const FactorTreeIcon = icon(<><path d="M12 3 7.8 7.9M12 3l5 6M17 9l-2.7 7
 export const FunctionMachineIcon = icon(<><path d="M2 12h4M17 12h5M20 10l2 2-2 2" /><path className="md-icon-part" d="M6 7h7l3 5-3 5H6z" /></>);
 /** Written methods: a column calculation with its answer line. */
 export const WrittenMethodIcon = icon(<><path d="M9 4h.01M13 4h.01M17 4h.01M9 9h.01M13 9h.01M17 9h.01M4 9l2 0M5 8v2" /><path className="md-icon-part" d="M3 13h18" /><path d="M9 18h.01M13 18h.01M17 18h.01" /></>);
+/** Spinners, dice and bags: a spinner with an arrow, beside a dice face. */
+export const ProbabilityObjectsIcon = icon(<><circle cx="9" cy="12" r="7" /><path d="M9 5v14M3 12h12" /><path className="md-icon-part" d="M9 12l3.5-3.5" /><rect className="md-icon-part md-icon-wash" x="16" y="14" width="6" height="6" rx="1.2" /></>);
 /** Graph tool */
 export const GraphIcon = icon(<><path d="M3 15h18M9 3v18" /><path className="md-icon-part" d="M4.5 19.5 19 5" /></>);
 /** Plotting quadratics */

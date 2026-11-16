@@ -24,6 +24,7 @@ const CUES: Record<DiagramKind, RegExp> = {
   area: /\barea\b|perimeter|compound shape|rectilinear|circumference|circle|semicircle|sector|arc length|trapezium|parallelogram|shaded region/,
   "factor-tree": /factor tree|prime factor|product of (its )?primes|prime decomposition/,
   "function-machine": /function machine|number machine|input.*output/,
+  "probability-objects": /spinner|\bdice\b|\bdie\b|counters? in a bag|bag (of|contains|has)|beads|marbles|balls in a bag/,
   "sample-space": /sample space|two dice|both dice|listing outcomes|list(ing)? (all )?(the |the possible )?outcomes|spinners?\b/,
   elevations: /plans? and elevation|elevation|plan view|isometric|\bplan\b/,
   construction: /construct|bisect|perpendicular|locus|loci|bearing|scale drawing|map scale|compass/,
