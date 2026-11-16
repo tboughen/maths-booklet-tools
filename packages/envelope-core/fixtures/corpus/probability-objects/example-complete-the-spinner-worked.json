@@ -1,0 +1,87 @@
+{
+ "kind": "probability-objects",
+ "schemaVersion": 1,
+ "rendererVersion": "probability-objects-1",
+ "document": {
+  "objects": [
+   {
+    "id": "o1",
+    "type": "spinner",
+    "shape": "circle",
+    "sectors": [
+     {
+      "label": {
+       "text": "Red",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Red",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Blue",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Red",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Blue",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Red",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Green",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     },
+     {
+      "label": {
+       "text": "Green",
+       "show": "show"
+      },
+      "fill": "none",
+      "angle": null
+     }
+    ],
+    "rotation": 0,
+    "pointer": "none",
+    "pointerAngle": 40,
+    "rightAngles": false,
+    "sizeMm": 46,
+    "emptyLabels": "blank",
+    "caption": ""
+   }
+  ]
+ }
+}
