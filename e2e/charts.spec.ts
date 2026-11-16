@@ -399,7 +399,7 @@ test("frequency polygon mistakes and a second polygon, and misleading time serie
   const art = page.getByTestId("chart-resource").locator("svg").first();
   await page.getByLabel("Plot points at").selectOption("lower");
   await page.getByText("Join the last point to the first (mistake)").click();
-  await page.getByLabel("Table above the graph").selectOption("none");
+  await page.getByLabel("Table with the graph").selectOption("none");
   await page.getByText("Two frequency polygons, with a key").click();
   await page.getByLabel("First polygon name").fill("Boys");
   await page.getByLabel("First polygon name").press("Enter");

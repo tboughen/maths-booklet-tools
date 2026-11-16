@@ -195,7 +195,7 @@ export function GroupedCards({
           </label>
           <label>
             Table
-            <select aria-label="Table above the graph" value={g.table} disabled={blocked} onChange={(ev) => onChange((s) => void (s.table = ev.target.value as GroupedSettings["table"]))}>
+            <select aria-label="Table with the graph" value={g.table} disabled={blocked} onChange={(ev) => onChange((s) => void (s.table = ev.target.value as GroupedSettings["table"]))}>
               {groupedTableChoices.map((x) => (
                 <option key={x} value={x}>
                   {groupedTableNames[x]}

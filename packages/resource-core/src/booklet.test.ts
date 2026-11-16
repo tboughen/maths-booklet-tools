@@ -185,6 +185,12 @@ describe("PDF fonts", () => {
     // STIX Two Text has the minus sign; Inter runs are left to the text fonts.
     expect(out).toContain(`<text font-family="STIX Two Text,STIX Two Math,serif">−3 &lt; 5</text>`);
     expect(out).toContain(`<text font-family="Inter">a ⩽ b</text>`);
+    // A run that takes STIX from its group, as worked-solution notes do, is switched too; a run
+    // inside an Inter group, or after the STIX group closes, is not.
+    const grouped = `<g font-family="STIX Two Text,STIX Two Math,serif"><rect width="1"/><text x="2">x ≤ 3</text><text><tspan>√16</tspan></text></g><g font-family="Inter"><text>a ≤ b</text></g><text>c ≤ d</text>`;
+    expect(mathFontForMathLetters(grouped)).toBe(
+      `<g font-family="STIX Two Text,STIX Two Math,serif"><rect width="1"/><text x="2" font-family="'STIX Two Math'">x ≤ 3</text><text><tspan font-family="'STIX Two Math'">√16</tspan></text></g><g font-family="Inter"><text>a ≤ b</text></g><text>c ≤ d</text>`,
+    );
   });
 });
 

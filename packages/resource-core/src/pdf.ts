@@ -25,12 +25,32 @@ const MATH_ALPHANUMERIC = /[\u{1D400}-\u{1D7FF}]/u;
  * browser or resvg falls back to the next font in the list, but the PDF writer does not, so a STIX
  * run holding one of them is set in the maths font (its digits and spaces are the same widths). */
 const STIX_TEXT_MISSING = /[\u2190-\u2211\u2213-\u2422\u2424-\u25CB\u25CD-\u2BFF]/u;
+const FAMILY = /\bfont-family=("[^"]*"|'[^']*')/;
+/** The font family each text or tspan start tag inherits from its parents (a worked-solution
+ * layer, for example, sets STIX on its group and leaves the notes bare), keyed by its offset. */
+function inheritedFamilies(svg: string): Map<number, string> {
+  const at = new Map<number, string>(),
+    stack: string[] = [""];
+  for (const m of svg.matchAll(/<(\/?)([A-Za-z][\w:-]*)\b([^>]*?)(\/?)>/g)) {
+    const [, closing, tag, attrs, selfClosing] = m;
+    if (closing) {
+      if (stack.length > 1) stack.pop();
+      continue;
+    }
+    const parent = stack[stack.length - 1];
+    if (tag === "text" || tag === "tspan") at.set(m.index, parent);
+    if (!selfClosing) stack.push(attrs.match(FAMILY)?.[1] ?? parent);
+  }
+  return at;
+}
 export function mathFontForMathLetters(svg: string): string {
-  return svg.replace(/<(text|tspan)\b([^>]*)>([^<]*)<\/\1>/g, (whole, tag: string, attrs: string, body: string) => {
-    const stixRun = /\bfont-family=("[^"]*stix[^"]*"|'[^']*stix[^']*')/i.test(attrs);
+  const inherited = inheritedFamilies(svg);
+  return svg.replace(/<(text|tspan)\b([^>]*)>([^<]*)<\/\1>/g, (whole, tag: string, attrs: string, body: string, offset: number) => {
+    const family = attrs.match(FAMILY)?.[1] ?? inherited.get(offset) ?? "";
+    const stixRun = /stix/i.test(family);
     if (!MATH_ALPHANUMERIC.test(body) && !(stixRun && STIX_TEXT_MISSING.test(body))) return whole;
     const font = `font-family="'STIX Two Math'"`;
-    const next = /\bfont-family=("[^"]*"|'[^']*')/.test(attrs) ? attrs.replace(/\bfont-family=("[^"]*"|'[^']*')/, font) : `${attrs} ${font}`;
+    const next = FAMILY.test(attrs) ? attrs.replace(FAMILY, font) : `${attrs} ${font}`;
     return `<${tag}${next}>${body}</${tag}>`;
   });
 }
