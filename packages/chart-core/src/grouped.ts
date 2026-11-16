@@ -305,18 +305,27 @@ export function groupedLayout(e: Envelope) {
         revealed: tableRevealed(c.cell),
       };
     });
-    const head0 = wrap(g.xAxis.title || "Class", 44, g.variable),
-      head1 = wrap(cumulative ? "Cumulative frequency" : "Frequency", cumulative ? 26 : 44, g.variable);
-    const w0 = Math.max(36, ...head0.map(runWidth), ...rows.map((r) => runWidth(r.label))) + 6,
-      w1 = Math.max(36, ...head1.map(runWidth), ...rows.map((r) => runWidth([{ t: r.value, italic: false }]))) + 6;
+    // Beside the graph the columns are only as wide as their words, so the pair fits a worksheet card.
+    const besideTable = g.tableBeside,
+      least = besideTable ? 12 : 36,
+      headWrap = besideTable ? 26 : 44;
+    const head0 = wrap(g.xAxis.title || "Class", headWrap, g.variable),
+      head1 = wrap(cumulative ? "Cumulative frequency" : "Frequency", cumulative ? 26 : headWrap, g.variable);
+    const w0 = Math.max(least, ...head0.map(runWidth), ...rows.map((r) => runWidth(r.label))) + 6,
+      w1 = Math.max(least, ...head1.map(runWidth), ...rows.map((r) => runWidth([{ t: r.value, italic: false }]))) + 6;
     const headH = Math.max(ROW_H, Math.max(head0.length, head1.length) * LINE + 3);
     table = { x: 0, y: MARGIN, widths: [w0, w1], heading: [head0, head1], headH, rows };
   }
   const tableH = table ? table.headH + table.rows.length * ROW_H : 0;
-  const y0 = MARGIN + (table ? tableH + TABLE_GAP : 0) + ARROW + 1;
+  // Beside the graph, the table sits level with the top of the grid, to save height on a worksheet.
+  const beside = !!table && g.tableBeside;
+  const y0 = MARGIN + (table && !beside ? tableH + TABLE_GAP : 0) + ARROW + 1;
   if (table) {
     const tw = table.widths[0] + table.widths[1];
-    table.x = Math.max(MARGIN, x0 + W / 2 - tw / 2);
+    if (beside) {
+      table.x = x0 + W + ARROW + TABLE_GAP;
+      table.y = y0;
+    } else table.x = Math.max(MARGIN, x0 + W / 2 - tw / 2);
   }
   const X = (v: number) => x0 + ((v - xs.lo) / (xs.hi - xs.lo)) * W,
     Y = (v: number) => y0 + H - ((v - ys.lo) / (ys.hi - ys.lo)) * H;
@@ -502,9 +511,9 @@ export function groupedLayout(e: Envelope) {
   const key = kind === "polygon" && g.polygon.second ? lineKey(g.polygon.names, x0 + W + ARROW + 5, y0) : null;
   const right = Math.max(x0 + W + ARROW + 1.5, key ? key.x + key.width : 0, X(xs.ticks[xs.ticks.length - 1] ?? 0) + lastLabel, x0 + W / 2 + xTitleWidth / 2, table ? table.x + table.widths[0] + table.widths[1] : 0);
   const width = Math.ceil((right + MARGIN) * 10) / 10,
-    height = Math.ceil((xTitleY + Math.max(0, xTitle.length - 1) * LINE + FONT * 0.3 + MARGIN) * 10) / 10;
+    height = Math.ceil((Math.max(xTitleY + Math.max(0, xTitle.length - 1) * LINE + FONT * 0.3, beside ? y0 + tableH : 0) + MARGIN) * 10) / 10;
   if (x0 + W / 2 - xTitleWidth / 2 < MARGIN) issues.push("The horizontal axis title is wider than the graph. Use a shorter title or a longer axis.");
-  if (width > 180) issues.push("The graph is wider than 18 cm. Use fewer or shorter steps on the horizontal axis.");
+  if (width > 180) issues.push(beside ? "The graph and the table beside it are wider than 18 cm. Put the table above the graph, or use fewer or shorter steps on the horizontal axis." : "The graph is wider than 18 cm. Use fewer or shorter steps on the horizontal axis.");
   if (height > 260) issues.push("The graph and its table are taller than 26 cm. Use fewer or shorter steps on the vertical axis, or no table.");
   return { kind, settings: g, width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, X, Y, yTitle, xTitle, xLabelY, xTitleY, table, bars, points, curve, points2, curve2, key, readings, targets, issues, notes };
 }

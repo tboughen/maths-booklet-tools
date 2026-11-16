@@ -336,3 +336,38 @@ describe("frequency polygon mistakes and a second polygon", () => {
     expect(next.document.grouped!.polygon).toMatchObject({ close: true, plotAt: "midpoint" });
   });
 });
+
+describe("a table beside the graph", () => {
+  const plants = (beside: boolean, xStep = 20, yStep = 10) => {
+    const e = structuredClone(examples.find((x) => x.id === "polygon-plants")!.make(true)) as Envelope;
+    const g = e.document.grouped!;
+    g.tableBeside = beside;
+    g.xAxis.stepMm = xStep;
+    g.polygon.yAxis.stepMm = yStep;
+    return groupedLayout(e);
+  };
+  it("puts the table level with the top of the grid, to its right, and saves the table's height", () => {
+    const above = plants(false, 10),
+      beside = plants(true, 10);
+    expect(beside.issues).toEqual([]);
+    const t = beside.table!;
+    expect(t.y).toBeCloseTo(beside.plot.y);
+    expect(t.x).toBeGreaterThan(beside.plot.x + beside.plot.width);
+    expect(above.table!.y + 1).toBeLessThan(above.plot.y);
+    expect(beside.height).toBeLessThan(above.height - 40);
+    expect(beside.height).toBeLessThan(85);
+    expect(beside.width).toBeLessThanOrEqual(180);
+  });
+  it("grows the drawing to fit a table taller than the grid, and says when the pair is too wide", () => {
+    const short = plants(true, 10, 4);
+    expect(short.height).toBeGreaterThanOrEqual(short.table!.y + short.table!.headH + short.table!.rows.length * 7.6);
+    expect(plants(true, 20).issues).toContain("The graph and the table beside it are wider than 18 cm. Put the table above the graph, or use fewer or shorter steps on the horizontal axis.");
+  });
+  it("draws the table in the same place in the SVG", () => {
+    const e = structuredClone(examples.find((x) => x.id === "polygon-plants")!.make(true)) as Envelope;
+    e.document.grouped!.tableBeside = true;
+    e.document.grouped!.xAxis.stepMm = 10;
+    const t = groupedLayout(e).table!;
+    expect(renderSvg(e, "pupil")).toContain(`<rect x="${n(t.x)}" y="${n(t.y)}"`);
+  });
+});

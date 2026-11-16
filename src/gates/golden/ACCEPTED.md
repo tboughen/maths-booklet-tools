@@ -813,3 +813,18 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-timeseries-two (worked): added
 - charts: chart-timeseries-misleading: added
 - charts: chart-timeseries-misleading (worked): added
+
+## 2026-11-16: Grouped charts save the new tableBeside setting (false); drawings unchanged
+
+- charts: chart-cumulative-office: json 42c1b12588457e54 -> c20f48b07df67719
+- charts: chart-cumulative-office (worked): json b057c669587e9a9f -> 981b649b7fb8ebc3
+- charts: chart-histogram-complete: json b9f43a66bbf5a79a -> 4758222b9f198954
+- charts: chart-histogram-complete (worked): json b8a64a050e8e7316 -> 6b975935da227919
+- charts: chart-histogram-puzzle: json 9a6d5b2806f971d4 -> 599b0c4146ab80ee
+- charts: chart-histogram-puzzle (worked): json 59442619f7d048e3 -> 35a02df815be94f7
+- charts: chart-polygon-compare: json d88f652574aef1b9 -> b879dcfd4ae97b98
+- charts: chart-polygon-compare (worked): json d10a61ac3103d53e -> 72c6b474e4611239
+- charts: chart-polygon-mistakes: json 091792e860f25023 -> 1cf9071dd4a2ad35
+- charts: chart-polygon-mistakes (worked): json 091792e860f25023 -> 1cf9071dd4a2ad35
+- charts: chart-polygon-plants: json 40a4d8a9be24cdea -> 662a9eac4fc732ae
+- charts: chart-polygon-plants (worked): json 9469cf223fadeb7c -> e939f4ffdb361fc7

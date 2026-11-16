@@ -759,14 +759,14 @@
    "pixels": "35ae1397031d1bf3"
   },
   "charts: chart-cumulative-office": {
-   "json": "42c1b12588457e54",
+   "json": "c20f48b07df67719",
    "svg": "fed5794c930bb5f1",
    "mm": "178.2x174.9",
    "png600": "4209x4131",
    "pixels": "39f1cb36055743ec"
   },
   "charts: chart-cumulative-office (worked)": {
-   "json": "b057c669587e9a9f",
+   "json": "981b649b7fb8ebc3",
    "svg": "04e833485ffbab85",
    "mm": "178.2x174.9",
    "png600": "4209x4131",
@@ -787,28 +787,28 @@
    "pixels": "1e5ceb2f84c8b7f0"
   },
   "charts: chart-histogram-complete": {
-   "json": "b9f43a66bbf5a79a",
+   "json": "4758222b9f198954",
    "svg": "3aa0ceaf50c8a4e7",
    "mm": "134.4x101.4",
    "png600": "3175x2395",
    "pixels": "4a68a252cca97f9a"
   },
   "charts: chart-histogram-complete (worked)": {
-   "json": "b8a64a050e8e7316",
+   "json": "6b975935da227919",
    "svg": "a8db7d51bb96261a",
    "mm": "134.4x101.4",
    "png600": "3175x2395",
    "pixels": "6c53df8cea1fc6d4"
   },
   "charts: chart-histogram-puzzle": {
-   "json": "9a6d5b2806f971d4",
+   "json": "599b0c4146ab80ee",
    "svg": "ea8f44f1622e6d03",
    "mm": "157.3x173",
    "png600": "3716x4087",
    "pixels": "5060f615f263e6a3"
   },
   "charts: chart-histogram-puzzle (worked)": {
-   "json": "59442619f7d048e3",
+   "json": "35a02df815be94f7",
    "svg": "46d350517d78f6fd",
    "mm": "157.3x173",
    "png600": "3716x4087",
@@ -871,42 +871,42 @@
    "pixels": "2aebbaf53c15cf53"
   },
   "charts: chart-polygon-compare": {
-   "json": "d88f652574aef1b9",
+   "json": "b879dcfd4ae97b98",
    "svg": "f7d2b91ff88cb306",
    "mm": "160.8x101.4",
    "png600": "3798x2395",
    "pixels": "c84a1d6afd1528ec"
   },
   "charts: chart-polygon-compare (worked)": {
-   "json": "d10a61ac3103d53e",
+   "json": "72c6b474e4611239",
    "svg": "d3ecf775f9c8acdd",
    "mm": "160.8x101.4",
    "png600": "3798x2395",
    "pixels": "48930db3dfc2cc16"
   },
   "charts: chart-polygon-mistakes": {
-   "json": "091792e860f25023",
+   "json": "1cf9071dd4a2ad35",
    "svg": "0f9f962eae91e25e",
    "mm": "136.3x133",
    "png600": "3220x3142",
    "pixels": "9ddab8e7826847b7"
   },
   "charts: chart-polygon-mistakes (worked)": {
-   "json": "091792e860f25023",
+   "json": "1cf9071dd4a2ad35",
    "svg": "0f9f962eae91e25e",
    "mm": "136.3x133",
    "png600": "3220x3142",
    "pixels": "9ddab8e7826847b7"
   },
   "charts: chart-polygon-plants": {
-   "json": "40a4d8a9be24cdea",
+   "json": "662a9eac4fc732ae",
    "svg": "38eeae1a778a5ef0",
    "mm": "176.3x160.6",
    "png600": "4165x3794",
    "pixels": "7a43eb4304606f3a"
   },
   "charts: chart-polygon-plants (worked)": {
-   "json": "9469cf223fadeb7c",
+   "json": "e939f4ffdb361fc7",
    "svg": "f22f7cd3594f0c0b",
    "mm": "176.3x160.6",
    "png600": "4165x3794",

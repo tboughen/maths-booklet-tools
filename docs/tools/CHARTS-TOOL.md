@@ -165,6 +165,11 @@ polygon", "draw the cumulative frequency graph").
 - **Table:** a ruled table above the graph in the papers' style (grey rules): the horizontal
   axis title heads the class column; the second column is Frequency or Cumulative frequency
   (0 < *t* ⩽ 40 rows from the lowest boundary).
+- **Table beside the graph:** for a shorter worksheet card, the table can sit to the right of the
+  grid, level with its top, with columns only as wide as their words. June 2019 3H Q3 at
+  1 cm = 5 drops from 121 mm to 62 mm tall and is 163 mm wide, so it suits a half-width A3
+  column but not a three-column layout. Type size and grid scale never change. If the pair is
+  wider than 18 cm the tool says so.
 - **Pupil states:** a blank frequency is no data (empty cell, nothing drawn; a cumulative graph
   needs every frequency); 0 is a value. Each class has two hide flags: **Table** leaves its cell
   for pupils to complete; **Graph** leaves its bar, point or part of the curve for pupils to draw.

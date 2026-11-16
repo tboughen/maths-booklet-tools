@@ -225,6 +225,8 @@ export const groupedSchema = z
     xAxis: paperAxisSchema,
     /** A table above the graph, ruled as in the papers; the first column heading is the horizontal axis title. */
     table: z.enum(groupedTableChoices),
+    /** The table to the right of the graph instead of above it, for a shorter worksheet card. */
+    tableBeside: z.boolean(),
     histogram: z.object({ yAxis: paperAxisSchema, fill: z.enum(histogramFillChoices) }).strict(),
     polygon: z
       .object({
@@ -264,6 +266,7 @@ export const GROUPED_DEFAULTS: GroupedSettings = {
   classes: [blankGroupedClass()],
   xAxis: { min: "0", max: "100", step: "20", stepMm: 20, title: "" },
   table: "none",
+  tableBeside: false,
   histogram: { yAxis: { min: "0", max: "5", step: "1", stepMm: 20, title: "Frequency density" }, fill: "grey" },
   polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" }, plotAt: "midpoint", close: false, second: false, names: ["", ""] },
   cumulative: { yAxis: { min: "0", max: "100", step: "10", stepMm: 10, title: "Cumulative frequency" }, curve: "smooth", fromZero: true, crosses: false, readings: [] },

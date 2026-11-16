@@ -203,6 +203,10 @@ export function GroupedCards({
               ))}
             </select>
           </label>
+          <label className="ch-check">
+            <input type="checkbox" checked={g.tableBeside} disabled={blocked || g.table === "none"} onChange={(ev) => onChange((s) => void (s.tableBeside = ev.target.checked))} />
+            Table beside the graph (shorter)
+          </label>
         </div>
         <div className="ch-row">
           <button type="button" disabled={blocked} onClick={() => onChange((s) => s.classes.forEach((c) => (c.graph = c.graph2 = "hidden")))}>
