@@ -43,6 +43,7 @@ import {
   secondaryTicks,
   secondaryText,
   labelled,
+  MARKER_LABEL,
   type Envelope,
   type Operation,
   type Secondary,
@@ -1543,9 +1544,9 @@ export default function NumberLinePage({
                           {field(`Arrow ${i + 1} value`, k.value, (v) =>
                             change([{ op: "set_marker", id: k.id, value: v }]),
                           )}
-                          {field(`Arrow ${i + 1} letter`, k.label ?? "", (v) => {
-                            if (!/^[A-Za-z0-9]{0,3}$/.test(v.trim()))
-                              throw Error("Use up to 3 letters or digits for an arrow letter, such as A or P1.");
+                          {field(`Arrow ${i + 1} label`, k.label ?? "", (v) => {
+                            if (v.trim() && !MARKER_LABEL.test(v.trim()))
+                              throw Error("Use up to 8 characters for an arrow label: a letter such as A or P1, or a number such as 3.47, −2.5 or 12 500.");
                             change([
                               { op: "set_marker", id: k.id, label: v.trim() },
                             ]);

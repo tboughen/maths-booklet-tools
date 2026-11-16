@@ -35,7 +35,13 @@ catch (e) {
 const id = z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/);
 export const pointSchema = z.object({ id, value: num, included: z.boolean().optional() }).strict();
 /** An arrow that points down at a value on the line, for "what number is the arrow pointing to?" questions (U92). */
-export const markerSchema = z.object({ id, value: num, label: z.string().regex(/^[A-Za-z0-9]{1,3}$/).optional() }).strict();
+/** Narrowest and widest print widths (cm). Narrow lines rely on the label-collision checks below. */
+export const MIN_WIDTH_CM = 4, MAX_WIDTH_CM = 18;
+/** An arrow label: a letter such as A or P1, or a number such as 3.47, −2.5 or 12 500 (up to 8 characters). */
+export const MARKER_LABEL = /^(?=.{1,8}$)(?:[A-Za-z0-9]+|[−-]?[0-9]+(?: [0-9]{3})*(?:\.[0-9]+)?)$/;
+const markerLabel = z.string().regex(MARKER_LABEL, "Use up to 8 characters for an arrow label: letters and digits such as A or P1, or a number such as 3.47, −2.5 or 12 500.");
+const widthCm = z.number().min(MIN_WIDTH_CM).max(MAX_WIDTH_CM);
+export const markerSchema = z.object({ id, value: num, label: markerLabel.optional() }).strict();
 export const connectionSchema = z.object({id, from: id, to: id}).strict();
 /** A ray from one of the points to the end of the line, for "x < −1 or x ≥ 2". */
 export const pointRaySchema = z.object({ id, from: id, direction: z.enum(["left", "right"]) }).strict();
@@ -53,14 +59,14 @@ export const teachingSchema = z.object({ solutionVisible: z.boolean().default(tr
  */
 export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9/\s]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
 export type Secondary = z.infer<typeof secondarySchema>;
-export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(),
+export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: widthCm.default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(),
     /** Bold lines (U111). Normal lines are the default and are never saved. */
     lines: z.enum(LINE_WEIGHTS).transform(v => v === "bold" ? v : undefined).optional() }).strict();
 export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal(RENDERER_VERSION), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema, ...aboutShape }).strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;
-export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: z.number().min(8).max(18).optional(), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict();
+export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: widthCm.optional(), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict();
 export const FONT = 11 * 25.4 / 72;
 export const compare = (a: string, b: string) => { const x = parseNumber(a), y = parseNumber(b); const v = x.n * y.d - y.n * x.d; return v < 0n ? -1 : v > 0n ? 1 : 0; };
 export function add(a: string, b: string, sign = 1) { const x = parseNumber(a), y = parseNumber(b); return fractionString(rational(x.n * y.d + BigInt(sign) * y.n * x.d, x.d * y.d)); }
@@ -149,7 +155,7 @@ export function validate(raw: unknown): Envelope {
             throw Error("Use arrow markers or a second scale on a line, not both.");
         if (new Set(d.markers.map(k => k.id)).size !== d.markers.length)
             throw Error("Arrow markers need unique IDs.");
-        const placed = d.markers.map(k => ({ k, x: position(d, k.value), w: Math.max(2.6, k.label ? textWidth(k.label, FONT) : 0) })).sort((a, b) => a.x - b.x);
+        const placed = d.markers.map(k => ({ k, x: markerLabelX(d, k), w: Math.max(2.6, k.label ? markerLabelWidth(k.label) : 0) })).sort((a, b) => a.x - b.x);
         for (let i = 1; i < placed.length; i++)
             if (placed[i].x - placed[i - 1].x < (placed[i].w + placed[i - 1].w) / 2 + 1.3)
                 throw Error(`Arrow markers ${placed[i - 1].k.label ?? placed[i - 1].k.id} and ${placed[i].k.label ?? placed[i].k.id} are too close at this print width. Move one or widen the line.`);
@@ -169,6 +175,10 @@ export function validate(raw: unknown): Envelope {
         const w = state === "answer-line" ? 5 : numberWidth(displayNumber(d, v)), x = position(d, v);
         if (previous && x - previous.x < (previous.w + w) / 2 + 1.3)
             throw Error("Tick labels overlap at this print width. Widen the line, label fewer ticks or use a coarser step.");
+        if (x - w / 2 < 0.5 || x + w / 2 > d.widthCm * 10 - 0.5)
+            throw Error(`The tick label ${displayNumber(d, v)} runs off the edge of the drawing. Widen the line or extend the axis so it is not an end label.`);
+        if (d.axis.variable && d.axis.variableBelow && x + w / 2 > d.widthCm * 10 - 6 - 1)
+            throw Error(`The tick label ${displayNumber(d, v)} touches the letter ${d.axis.variable}. Show the letter beside the arrow instead, or extend the axis.`);
         previous = { x, w };
     }
     if (d.secondary) {
@@ -222,9 +232,9 @@ export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("remove_point"), id }).strict(),
     z.object({ op: z.literal("set_tick_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict(),
     z.object({ op: z.literal("set_presentation"), teaching: teachingPatch }).strict(),
-    z.object({ op: z.literal("set_print"), widthCm: z.number().min(8).max(18).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict().refine(o => o.widthCm !== undefined || o.lines !== undefined, "set_print needs widthCm or lines."),
+    z.object({ op: z.literal("set_print"), widthCm: widthCm.optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict().refine(o => o.widthCm !== undefined || o.lines !== undefined, "set_print needs widthCm or lines."),
     z.object({ op: z.literal("add_marker"), marker: markerSchema }).strict(),
-    z.object({ op: z.literal("set_marker"), id, value: num.optional(), label: z.string().regex(/^[A-Za-z0-9]{0,3}$/).optional() }).strict(),
+    z.object({ op: z.literal("set_marker"), id, value: num.optional(), label: z.union([z.literal(""), markerLabel]).optional() }).strict(),
     z.object({ op: z.literal("remove_marker"), id }).strict(),
     z.object({ op: z.literal("set_secondary"), secondary: secondarySchema.nullable() }).strict().describe("Add, change or remove (null) the second scale above the line: a double number line, or a percentage bar with style bar."),
     z.object({ op: z.literal("set_secondary_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict().describe("Show, hide or leave an answer line for one second-scale label, by its exact value."),
@@ -364,6 +374,14 @@ function esc(s: string) { return s.replaceAll("&", "&amp;").replaceAll("<", "&lt
 const PART = FONT * 10 / 11;
 /** The gap between a mixed number's whole part and its stacked fraction (mm). */
 const MIXED_GAP = .6;
+/** Arrow labels print a typed hyphen as a true minus sign. */
+const markerLabelText = (label: string) => label.replaceAll("-", "−");
+const markerLabelWidth = (label: string) => textWidth(markerLabelText(label), FONT);
+/** Centre of an arrow's label: over the arrow, moved inwards only as far as needed to stay 1 mm inside the drawing. */
+export function markerLabelX(d: LineDocument, k: { value: string; label?: string }) {
+    const x = position(d, k.value), half = k.label ? markerLabelWidth(k.label) / 2 : 0, width = d.widthCm * 10;
+    return Math.min(Math.max(x, half + 1), width - half - 1);
+}
 function numberWidth(s: string): number { if (s.includes(" ")) {
     const [whole, frac] = s.split(" ");
     return textWidth(whole.replace("-", "−"), FONT) + MIXED_GAP + numberWidth(frac);
@@ -428,7 +446,7 @@ export function renderSvg(e: Envelope, showAnswers = false) {
     }
     for (const k of d.markers ?? []) {
         const x = position(d, k.value);
-        art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? `<text x="${x}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(k.label)}</text>` : ""}</g>`;
+        art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? `<text x="${markerLabelX(d, k)}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(markerLabelText(k.label))}</text>` : ""}</g>`;
     }
     if (d.secondary) {
         const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? (bar ? 4.2 : 6.1) : 3.2);

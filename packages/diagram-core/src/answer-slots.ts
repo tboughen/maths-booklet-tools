@@ -191,6 +191,23 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       else out.push(slot(path, "blank"));
     });
   },
+  figures(doc, out) {
+    // As angles, for every side and angle label.
+    for (const key of ["segments", "angles"]) {
+      const list = Array.isArray(doc[key]) ? (doc[key] as Node[]) : [];
+      list.forEach((x, i) => {
+        const path = `document.${key}.${i}.label`,
+          l = isNode(x.label) ? x.label : {};
+        const text = str(l.text),
+          answer = str(l.answer);
+        if (l.state === "value") out.push(slot(path, "supplied", text));
+        else if (l.state === "answer-line") out.push(slot(path, "answerLine", answer));
+        else if (answer) out.push(slot(path, "hidden", answer));
+        else if (l.state === "symbol") out.push(slot(path, "supplied", text));
+        else out.push(slot(path, "blank"));
+      });
+    }
+  },
   "sample-space"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
@@ -224,6 +241,17 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       for (const key of ["vertices", "edges"] as const)
         (Array.isArray(n[key]) ? (n[key] as Node[]) : []).forEach((v, j) => label(v.label, `${base}.${key}.${j}.label`));
     });
+  },
+  "algebra-tiles"(doc, out) {
+    const d = isNode(doc.document) ? doc.document : {};
+    // A term's tiles are supplied, or hidden (pupils draw them); the lines under the tiles are {text, show}.
+    (Array.isArray(d.terms) ? d.terms : []).forEach((t, i) => {
+      if (!isNode(t)) return;
+      const text = `${String(t.count)}:${String(t.long)},${String(t.short)}`;
+      out.push(t.show === "hidden" ? slot(`document.terms.${i}`, "hidden", text) : slot(`document.terms.${i}`, "supplied", text));
+    });
+    for (const k of ["expression", "answer"] as const) if (isNode(d[k])) shown(d[k] as Node, `document.${k}`, out);
+    if (d.zeroPairs === "hidden") out.push(slot("document.zeroPairs", "hidden", "zero pairs"));
   },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));

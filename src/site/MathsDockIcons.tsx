@@ -39,6 +39,8 @@ export const NumberLineIcon = icon(<><path d="M2 16h20M5 14v4M12 14v4M19 14v4" /
 /** Factor trees */
 export const FactorTreeIcon = icon(<><path d="M12 3 7.8 7.9M12 3l5 6M17 9l-2.7 7.6M17 9l1.9 7.6" /><circle cx="13.5" cy="19" r="2.5" /><circle cx="19.5" cy="19" r="2.5" /><circle className="md-icon-part md-icon-wash" cx="6" cy="10" r="2.8" /></>);
 /** Function machines: an arrow into an arrow-shaped box and out again. */
+/** Algebra tiles: a squared tile, a strip and a unit tile. */
+export const AlgebraTilesIcon = icon(<><rect x="2" y="5" width="10" height="10" rx="1" /><rect x="14" y="5" width="3.5" height="10" rx="1" /><rect className="md-icon-part" x="19.5" y="11.5" width="3" height="3.5" rx=".5" /><path d="M2 19h20" /></>);
 export const FunctionMachineIcon = icon(<><path d="M2 12h4M17 12h5M20 10l2 2-2 2" /><path className="md-icon-part" d="M6 7h7l3 5-3 5H6z" /></>);
 /** Nets of 3D shapes: the cross-shaped net of a cube. */
 export const NetsIcon = icon(<><path d="M9 3h6v18H9zM3 9h18v6H3z" /><path className="md-icon-part" d="M9 9h6v6H9z" /></>);
@@ -60,6 +62,8 @@ export const ElevationsIcon = icon(<><path d="M3 20V8h6v6h6v6zM3 14h6M9 14v6" />
 export const AnglesIcon = icon(<><path d="M3 19h18M3 19 15 5" /><path className="md-icon-part" d="M10.5 19a7.5 7.5 0 0 0-2.6-5.7" /></>);
 /** Area and perimeter */
 export const AreaIcon = icon(<><path className="md-icon-wash" d="M4 4h9v7h7v9H4z" /></>);
+/** Geometry figures */
+export const FiguresIcon = icon(<><circle cx="12" cy="11" r="7" /><path d="M3 18h18" /><path className="md-icon-part" d="M6.5 15.5 12 18l5.5-2.5" /></>);
 /** Venn diagrams */
 export const VennIcon = icon(<><path className="md-icon-wash md-icon-no-line" d="M12 6.8a6 6 0 0 1 0 10.4 6 6 0 0 1 0-10.4z" /><circle cx="9" cy="12" r="6" /><circle cx="15" cy="12" r="6" /></>);
 /** Statistical charts */

@@ -655,7 +655,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const n = (v: number) => String(Math.round(v * 1000) / 1000);
 const FAMILY = "STIX Two Text,STIX Two Math,serif";
 /** Centred maths text at (x, cy), where cy is the vertical middle of the text. */
-function textSvg(t: string, x: number, cy: number, font: number, fill = "black") {
+export function textSvg(t: string, x: number, cy: number, font: number, fill = "black") {
   const parts = runs(t),
     total = parts.reduce((s, r) => s + runWidth(r, font), 0);
   let left = x - total / 2;

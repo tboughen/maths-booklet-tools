@@ -34,6 +34,8 @@ import * as angles from "../../packages/angle-core/src/index";
 import { examples as angleExamples } from "../../packages/angle-core/src/examples";
 import * as area from "../../packages/area-core/src/index";
 import { examples as areaExamples } from "../../packages/area-core/src/examples";
+import * as figures from "../../packages/figure-core/src/index";
+import { examples as figureExamples } from "../../packages/figure-core/src/examples";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import { examples as ftExamples } from "../../packages/factor-tree-core/src/examples";
 import * as wm from "../../packages/written-method-core/src/index";
@@ -42,6 +44,8 @@ import * as fm from "../../packages/function-machine-core/src/index";
 import { examples as fmExamples } from "../../packages/function-machine-core/src/examples";
 import * as nets from "../../packages/net-core/src/index";
 import { examples as netExamples } from "../../packages/net-core/src/examples";
+import * as at from "../../packages/algebra-tile-core/src/index";
+import { examples as atExamples } from "../../packages/algebra-tile-core/src/examples";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 
@@ -72,9 +76,11 @@ export const tools: Tool[] = [
   { name: "written methods", envelopes: () => wmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: wm.validate, parseFile: wm.parseFile, link: { encode: wm.linkHash, decode: wm.decodeLinkHash } },
   { name: "function machines", envelopes: () => fmExamples.flatMap(x => [x.make(false), x.make(true)]), validate: fm.validate, parseFile: fm.parseFile, link: { encode: fm.linkHash, decode: fm.decodeLinkHash } },
   { name: "nets", envelopes: () => netExamples.flatMap(x => [x.make(false), x.make(true)]), validate: nets.validate, parseFile: nets.parseFile, link: { encode: nets.linkHash, decode: nets.decodeLinkHash } },
+  { name: "algebra tiles", envelopes: () => atExamples.flatMap(x => [x.make(false), x.make(true)]), validate: at.validate, parseFile: at.parseFile, link: { encode: at.linkHash, decode: at.decodeLinkHash } },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, parseFile: twoWayTable.parseFile, link: { encode: twoWayTable.linkHash, decode: twoWayTable.decodeLinkHash } },
   { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, parseFile: angles.parseFile, link: { encode: angles.linkHash, decode: angles.decodeLinkHash } },
   { name: "area and perimeter", envelopes: () => areaExamples.flatMap(x => [x.make(false), x.make(true)]), validate: area.validate, parseFile: area.parseFile, link: { encode: area.linkHash, decode: area.decodeLinkHash } },
+  { name: "geometry figures", envelopes: () => figureExamples.flatMap(x => [x.make(false), x.make(true)]), validate: figures.validate, parseFile: figures.parseFile, link: { encode: figures.linkHash, decode: figures.decodeLinkHash } },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, parseFile: triangle.parseFile },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, parseFile: venn.parseFile },
   { name: "plotting quadratics", envelopes: () => quadraticSources.flatMap(x => [valueGraph.preset(x.name), workedQuadraticExample(x.name)]), validate: (raw: unknown) => valueGraph.parseFile(JSON.stringify(raw)), parseFile: valueGraph.parseFile, link: { encode: valueGraph.encode, decode: valueGraph.decode } },

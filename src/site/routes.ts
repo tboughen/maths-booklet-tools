@@ -24,10 +24,12 @@ export const toolIds = [
   "two-way-table",
   "angles",
   "area",
+  "figures",
   "factor-tree",
   "written-method",
   "function-machine",
   "nets",
+  "algebra-tiles",
   "sample-space",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
