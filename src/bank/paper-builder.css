@@ -1,0 +1,61 @@
+/* Paper builder: the Sparx codes on the left, your paper with a picture of each question on the right.
+   Loaded with the page, so it stays out of the first-load stylesheet. */
+.qb-topics-host:not([hidden]) { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1 1 auto; }
+.qb-topics-host > .page-heading { margin-bottom: 0; }
+.qb-topics-host > .page-heading > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
+.qb-topics-host > .page-heading p { margin: 0; }
+.qb-paper-columns { display: grid; grid-template-columns: minmax(0,1fr) clamp(360px,32vw,640px); gap: 12px; flex: 1 1 auto; min-height: 0; }
+
+.qb-topic-builder { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.qb-topic-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.qb-topic-controls input { flex: 1 1 200px; min-width: 0; min-height: 36px; padding: 6px 10px; font-size: 14px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: #fff; }
+.qb-app .qb-topic-controls select { min-height: 36px; max-width: 176px; border-color: var(--md-line-strong); border-radius: var(--md-radius); }
+.qb-topic-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 16px; margin: 0; color: #536579; font-size: 13px; }
+.qb-topic-status strong { color: var(--md-ink); }
+.qb-topic-table-scroll { flex: 1 1 auto; min-height: 110px; overflow: auto; border: 1px solid var(--md-line); border-radius: var(--md-radius-card); background: #fff; }
+.qb-topic-table-scroll > p { margin: 12px; }
+.qb-topic-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+.qb-topic-table th { position: sticky; top: 0; z-index: 1; background: #f4f7fb; }
+.qb-topic-table th, .qb-topic-table td { height: 32px; padding: 2px 12px; border-bottom: 1px solid #e6ecf3; }
+.qb-topic-table :is(th, td):first-child { width: 42px; padding-right: 0; }
+.qb-topic-table :is(th, td):nth-child(n+4) { font-variant-numeric: tabular-nums; text-align: right; }
+.qb-topic-table th button { border: 0; padding: 0; background: transparent; color: #253e59; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.qb-topic-table .qb-text-button { min-height: 28px; padding: 0; font-weight: 600; }
+.qb-topic-table small { margin-left: 8px; color: #65798f; font-size: 11px; }
+.qb-topic-table .qb-topic-chosen { background: var(--md-blue-soft); }
+
+.qb-paper-summary.qb-paper-panel { flex-direction: column; align-items: stretch; gap: 0; min-width: 0; min-height: 0; padding: 0; border-color: var(--md-line); border-radius: var(--md-radius-card); }
+.qb-paper-panel > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 10px 14px; border-bottom: 1px solid var(--md-line); color: #536579; font-size: 13px; }
+.qb-paper-panel h2 { margin: 0; color: var(--md-navy); font-size: 16px; }
+.qb-paper-panel > div:first-child > strong { font-weight: 500; }
+.qb-paper-panel .qb-code-chips, .qb-paper-panel > div:first-child > p { flex: 1 0 100%; }
+.qb-paper-list { flex: 0 1 auto; min-height: 0; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.qb-paper-list li { display: flex; align-items: center; gap: 12px; padding: 8px 6px 8px 14px; border-bottom: 1px solid #e6ecf3; color: #536579; font-size: 13px; }
+/* The picture keeps one scale, so the top of the question can be read; a narrower panel shows less of its width. */
+.qb-paper-picture { flex: 1 1 0; min-width: 0; height: 96px; overflow: hidden; border: 1px solid var(--md-line); border-radius: var(--md-radius-key); background: #fff; }
+.qb-paper-picture img { display: block; width: 372px; max-width: none; }
+.qb-paper-list li > span:nth-child(2) { flex: 0 0 172px; display: grid; gap: 3px; }
+.qb-paper-list strong { color: var(--md-ink); font-size: 14px; }
+.qb-paper-list i { margin-right: 4px; padding: 1px 8px; border: 1px solid #b3cbdc; border-radius: var(--md-radius-pill); background: var(--md-stage); color: #1d518c; font-size: 12px; font-style: normal; }
+.qb-paper-panel > .qb-small { margin: 0; padding: 10px 14px; color: #536579; font-size: 13px; }
+.qb-paper-panel > .qb-summary-actions { margin-top: auto; padding: 10px 14px; border-top: 1px solid var(--md-line); }
+.qb-paper-panel > .qb-summary-actions > :first-child { margin-right: auto; }
+
+/* An upright or narrow window puts your paper under the codes. */
+@media (max-width: 1000px), (max-aspect-ratio: 1 / 1) {
+  .qb-paper-columns { display: flex; flex-direction: column; }
+  .qb-topic-builder { flex: 1 1 0; }
+  .qb-paper-summary.qb-paper-panel { flex: 0 1 auto; max-height: 38dvh; }
+}
+/* A phone scrolls the codes as one page and keeps your paper, with its Review button, in view. */
+@media (max-width: 620px) {
+  .qb-topic-builder { overflow: auto; }
+  .qb-topic-table-scroll { flex: none; }
+  .qb-topic-table th, .qb-topic-table td { padding: 2px 8px; }
+  .qb-topic-table :is(th, td):nth-child(n+6) { display: none; }
+  .qb-paper-summary.qb-paper-panel { max-height: none; }
+  .qb-paper-list { max-height: 114px; }
+  .qb-paper-picture { height: 48px; }
+  .qb-paper-list li > span:nth-child(2) { flex-basis: 150px; }
+  .qb-paper-panel > .qb-small { display: none; }
+}
