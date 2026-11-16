@@ -33,6 +33,8 @@ describe("function machines", () => {
     expect(fm.inverseText("÷ 1/2")).toBe("× 1/2");
     expect(fm.inverseText("square")).toBe("√");
     expect(fm.inverseText("")).toBeNull();
+    expect(fm.inverseText("÷ 0")).toBeNull();
+    expect(fm.inverseText("× 0")).toBeNull();
   });
 
   it("works forwards only when asked, keeping what is entered, as hidden answers", () => {
@@ -48,6 +50,10 @@ describe("function machines", () => {
     const done = fm.complete(machine("", ["× 3", "− 8"], "−11")).envelope.document.machines[0];
     expect(done.start.text).toBe("−1");
     expect(fm.complete(machine("", ["× 3"], "7")).envelope.document.machines[0].start.text).toBe("7/3");
+    // Nothing goes back through × 0, ÷ 0, or through √ to a negative output.
+    for (const [op, end] of [["÷ 0", "5"], ["× 0", "0"], ["√", "−3"]])
+      expect(fm.complete(machine("", [op], end)).envelope.document.machines[0].start.text).toBe("");
+    expect(fm.complete(machine("", ["√"], "3")).envelope.document.machines[0].start.text).toBe("9");
   });
 
   it("adds the inverse machine beneath, running right to left", () => {

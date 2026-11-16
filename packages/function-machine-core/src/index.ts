@@ -272,6 +272,8 @@ export function inverseText(text: string): string | null {
   if (op.sign === "²") return "√";
   if (op.sign === "√") return "square";
   if (op.sign === "³") return "cube root";
+  // × 0 sends every input to 0 and ÷ 0 has no output, so neither can be undone.
+  if ((op.sign === "×" || op.sign === "÷") && op.by.n === 0n) return null;
   const back = { "+": "−", "−": "+", "×": "÷", "÷": "×" }[op.sign];
   return `${back} ${typeset(text).replace(/^[+−×÷]\s*/, "")}`;
 }
@@ -297,7 +299,9 @@ function backward(m: Machine): (Q.Q | null)[] {
   for (let i = m.steps.length - 1; i >= 0; i--) {
     const next = out[i + 1],
       op = invert(m.steps[i].op.text);
-    out[i] = next && op ? apply(op, next) : null;
+    // A square root is never negative, so nothing goes back through √ to a negative output.
+    const fromRoot = readOp(m.steps[i].op.text)?.sign === "√" && next !== null && next.n < 0n;
+    out[i] = next && op && !fromRoot ? apply(op, next) : null;
   }
   return out;
 }
@@ -352,7 +356,13 @@ export function addInverse(e: Envelope, machineId: string): Envelope {
   if (d.machines.length >= MAX_MACHINES) throw Error(`Use at most ${MAX_MACHINES} machines.`);
   const ops = [...m.steps].reverse().map((s) => {
     const t = inverseText(s.op.text);
-    if (t === null) throw Error(`"${s.op.text || "an empty box"}" has no inverse to write. Fill each box with an operation such as × 3 or − 8 first.`);
+    if (t === null)
+      throw Error(
+        readOp(s.op.text)
+          ? `"${s.op.text}" cannot be undone, so it has no inverse to write.`
+          : `"${s.op.text || "an empty box"}" has no inverse to write. Fill each box with an operation such as × 3 or − 8 first.`,
+      );
+    if (t.length > MAX_TEXT) throw Error(`The inverse of "${s.op.text}" is "${t}", longer than ${MAX_TEXT} characters. Shorten the operation first.`);
     return t;
   });
   const inverse: Machine = {
