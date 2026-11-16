@@ -334,7 +334,8 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
 
     for (const step of part.steps) {
       const k = ++stepNumber;
-      shownSteps.push(k);
+      // A bubble row with no line above it draws nothing, so step by step skips it (the checks report it).
+      if (!(step.kind === "bubbles" && !last)) shownSteps.push(k);
       switch (step.kind) {
         case "line": {
           const lhs = mathsText(step.lhs), rhs = mathsText(step.rhs);

@@ -224,5 +224,38 @@ test("a worked solution exports as an image with its working drawn in", async ({
   // 300 dpi of a 595-point cut, taller than the cut because room was added for the working.
   expect(image.width).toBe(Math.ceil(595.28 * 300 / 72));
   expect(image.height).toBeGreaterThan(420 * 300 / 72 + 104);
-  await test.info().attach("worked-export", { path: (await file.path())!, contentType: "image/png" });
+  // The working is drawn in: dark-pink guidance and handwriting ink. Counted in the browser's own canvas.
+  const count = async (path: string) => page.evaluate(async src => {
+    const image = new Image(); image.src = src; await image.decode();
+    const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+    const context = canvas.getContext("2d")!; context.drawImage(image, 0, 0);
+    const data = context.getImageData(0, 0, image.width, image.height).data;
+    let pink = 0, dark = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] > 140 && data[i + 1] < 60 && data[i + 2] > 60 && data[i + 2] < 130) pink++;
+      if (data[i] < 60 && data[i + 1] < 60 && data[i + 2] < 60) dark++;
+    }
+    return { pink, dark };
+  }, `data:image/png;base64,${(await readFile(path)).toString("base64")}`);
+  const teacher = await count((await file.path())!);
+  expect(teacher.pink).toBeGreaterThan(500);
+  expect(teacher.dark).toBeGreaterThan(5000);
+  // A pupil copy leaves the mark codes out of the picture but keeps the guidance words.
+  await page.getByRole("checkbox", { name: "Mark notes", exact: true }).uncheck();
+  const pupilDownload = page.waitForEvent("download"); await page.getByRole("button", { name: "PNG", exact: true }).click();
+  const pupil = await count((await (await pupilDownload).path())!);
+  expect(pupil.pink).toBeLessThan(teacher.pink);
+  expect(pupil.pink).toBeGreaterThan(100);
+});
+
+test("step by step starts again on another question", async ({ page }) => {
+  await seed(page);
+  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Step by step", exact: true }).click();
+  await page.getByRole("button", { name: "Next step", exact: true }).click();
+  await expect(page.getByText("Step 1 of 6", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Previous", exact: true }).click();
+  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await expect(page.getByText("Step 0 of 6", { exact: true })).toBeVisible();
 });

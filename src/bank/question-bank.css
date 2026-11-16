@@ -448,3 +448,4 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-worked-options { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .qb-worked-options label { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #253e59; }
 .qb-step-count { min-width: 6.5em; text-align: center; font-size: 13px; color: #253e59; font-variant-numeric: tabular-nums; }
+.qb-button[aria-disabled="true"] { opacity: 0.5; cursor: default; }

@@ -57,13 +57,16 @@ export async function layoutQuestionWorked(question: BankQuestion, plan: WorkedP
 let embedded: Promise<string> | undefined;
 /** The fonts the working uses, as data URLs, for a picture: an SVG drawn as an image cannot see the page's fonts. */
 function embeddedFonts(): Promise<string> {
-  const face = async (family: string, url: string, style = "normal") => {
-    const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+  const face = async (family: string, url: string, style = "normal", weight = "400") => {
+    const response = await fetch(url);
+    // A signed-out session answers with a sign-in page: never embed that as a font.
+    if (!response.ok || /html|text/.test(response.headers.get("content-type") ?? "")) throw new Error("The fonts for the image could not load. Reload the page and try again.");
+    const bytes = new Uint8Array(await response.arrayBuffer());
     let binary = "";
     for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-    return `@font-face{font-family:"${family}";font-style:${style};src:url(data:font/woff2;base64,${btoa(binary)}) format("woff2")}`;
+    return `@font-face{font-family:"${family}";font-style:${style};font-weight:${weight};src:url(data:font/woff2;base64,${btoa(binary)}) format("woff2")}`;
   };
-  embedded ??= Promise.all([face(HAND_FAMILY, handFont), face("MathsDock UI", uiFont), face("STIX Two Text", stixFont), face("STIX Two Text", stixItalicFont, "italic")]).then(faces => faces.join(""));
+  embedded ??= Promise.all([face(HAND_FAMILY, handFont), face("MathsDock UI", uiFont, "normal", "100 900"), face("STIX Two Text", stixFont), face("STIX Two Text", stixItalicFont, "italic")]).then(faces => faces.join(""));
   embedded.catch(() => { embedded = undefined; });
   return embedded;
 }
