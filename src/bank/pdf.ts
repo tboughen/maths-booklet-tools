@@ -66,6 +66,11 @@ export async function questionImage(question: BankQuestion, role: ViewRole, view
 export async function stackImage(items: {pdf: string; view: {page: number}}[], caption: string, align: "left" | "centre" = "left"): Promise<Blob> {
   const pages: HTMLCanvasElement[] = [];
   for (const item of items) pages.push(await renderPage(item.pdf, item.view.page, 300 / 72));
+  return stackCanvases(pages, caption, align);
+}
+
+/** Pictures stacked in order on white, 40 px apart, with the source caption underneath, as a PNG. */
+export function stackCanvases(pages: HTMLCanvasElement[], caption: string, align: "left" | "centre" = "left"): Promise<Blob> {
   const width = Math.max(...pages.map(p => p.width));
   const gap = 40;
   const footer = 104;

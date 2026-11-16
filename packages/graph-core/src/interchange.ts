@@ -26,9 +26,13 @@ import {
   pointsForEquation,
   equationForObject,
 } from "./equations";
-import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import type { AxisConfig, DiagramDocumentV1, FunctionEquation, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
+import { axesCrossing, circleVisible, curveProblem, curveVisible, readingLegs, readingVisible } from "./curve";
+import { stripObjects, tangentObject } from "./working";
+import { formatFunction, functionProblem, functionVisible } from "./function";
+import { imageObjects, transformationProblem, type Transformation } from "./transform";
 import { gradientLabelClashes } from "./svg";
 import {
   MAX_INEQUALITY_LENGTH,
@@ -43,6 +47,8 @@ import { MathsDockError, zodFields } from "../../envelope-core/src/errors";
 import { RENDERER_VERSION } from "./version";
 export { RENDERER_VERSION };
 export const MAX_REQUEST_BYTES = 64 * 1024;
+/** Points in one curve: enough for a travel graph or a curve read off a paper every half square. */
+export const MAX_CURVE_POINTS = 40;
 export const MAX_LINK_LENGTH = 8192;
 export const MAX_FILE_BYTES = 1024 * 1024;
 export class GraphError extends MathsDockError {
@@ -94,6 +100,23 @@ const answerOnlyInput = z
   .describe(
     "true makes this a hidden answer: drawn in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy stays blank for the pupil to draw. Use for the line or shape a pupil is asked to draw.",
   );
+const functionInput = z
+  .discriminatedUnion("family", [
+    z.object({ family: z.literal("polynomial"), cubic: numeric.optional(), a: numeric.optional(), b: numeric.optional(), c: numeric.optional() }).strict(),
+    z.object({ family: z.literal("reciprocal"), k: numeric, c: numeric.optional() }).strict(),
+    z.object({ family: z.literal("exponential"), coefficient: numeric.optional(), base: numeric, c: numeric.optional() }).strict(),
+    z
+      .object({ family: z.literal("trig"), fn: z.enum(["sin", "cos", "tan"]), amplitude: numeric.optional(), multiplier: numeric.optional(), shift: numeric.optional(), c: numeric.optional() })
+      .strict()
+      .describe("y = amplitude fn(multiplier x + shift) + c, x in degrees."),
+  ])
+  .describe("polynomial y = cubic x³ + a x² + b x + c; reciprocal y = k/x + c; exponential y = coefficient × baseˣ + c; omitted terms are 0 (amplitude, multiplier and coefficient 1).");
+const functionSaved = z.discriminatedUnion("family", [
+  z.object({ family: z.literal("polynomial"), a: finite, b: finite, c: finite, cubic: finite.optional() }).strict(),
+  z.object({ family: z.literal("reciprocal"), k: finite, c: finite }).strict(),
+  z.object({ family: z.literal("exponential"), coefficient: finite, base: finite, c: finite }).strict(),
+  z.object({ family: z.literal("trig"), fn: z.enum(["sin", "cos", "tan"]), amplitude: finite, multiplier: finite, shift: finite, c: finite }).strict(),
+]);
 const titleSchema = z
   .string()
   .max(MAX_AXIS_TITLE_LENGTH)
@@ -124,6 +147,11 @@ export const axisSchema = z
       .enum(["number", "time"])
       .optional()
       .describe("time reads values as minutes after midnight and prints 12 00, 12 30. Default number."),
+    name: z
+      .string()
+      .regex(/^[a-zA-Z]$/, "Use one letter, such as t or v.")
+      .optional()
+      .describe("Italic letter at the arrow, such as t."),
     title: titleSchema
       .optional()
       .describe("Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y."),
@@ -200,6 +228,7 @@ export const equationSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("vertical"), x: numeric }).strict(),
 ]);
 const coordinatesSchema = z.enum(["show", "blank"]);
+const arrowSchema = z.enum(["end", "middle"]);
 const straightInput = {
   id: identifier.optional(),
   start: inputCoordinate.optional(),
@@ -219,7 +248,31 @@ const straightInput = {
   answerOnly: answerOnlyInput,
   labels: labelsInput,
   gradientTriangle: gradientTriangleInput,
+  arrow: arrowSchema
+    .optional()
+    .describe("Segments only: a vector arrowhead at the end, or centred on the middle as exam vector diagrams print it."),
 };
+export const transformationSchema = z
+  .discriminatedUnion("kind", [
+    z.object({ kind: z.literal("translate"), vector: inputCoordinate }).strict(),
+    z.object({ kind: z.literal("reflect"), mirror: equationSchema.describe("y = x is slope 1, intercept 0; x = k is vertical.") }).strict(),
+    z
+      .object({
+        kind: z.literal("rotate"),
+        centre: inputCoordinate,
+        angle: z.union([z.literal(90), z.literal(180), z.literal(270)]),
+        direction: z.enum(["clockwise", "anticlockwise"]).default("clockwise").describe("Ignored for 180°."),
+      })
+      .strict(),
+    z
+      .object({
+        kind: z.literal("enlarge"),
+        centre: inputCoordinate,
+        scaleFactor: numeric.describe("Nonzero, such as 2, \"1/2\" or -2."),
+      })
+      .strict(),
+  ])
+  .describe("Corner i of the image is the image of corner i.");
 // One branch per kind, so a bad field is reported against that kind only (M11).
 export const objectInputSchema = z.discriminatedUnion("kind", [
   z
@@ -275,6 +328,98 @@ export const objectInputSchema = z.discriminatedUnion("kind", [
       (o) => (o.equation ? !o.start && !o.end : !!o.start && !!o.end),
       "A line needs either an equation or two distinct points, not both.",
     ),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("curve"),
+      points: z.array(inputCoordinate).min(2).max(MAX_CURVE_POINTS).describe("2 to 40 points in order."),
+      smooth: z.boolean().optional().describe("Smooth through every point; omitted joins with straight pieces."),
+      strokeStyle: z.enum(["solid", "dashed"]).optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("A travel or real-life graph through points."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("reading"),
+      at: inputCoordinate,
+      read: z.enum(["x", "y", "both"]).describe("Which value is read: the head is on that axis."),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("Dashed reading lines from a point to the axes."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("function"),
+      equation: functionInput,
+      from: numeric.optional().describe("Start x; omitted is the grid's left edge."),
+      to: numeric.optional(),
+      strokeStyle: z.enum(["solid", "dashed"]).optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("An equation curve drawn exactly."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("circle"),
+      centre: inputCoordinate,
+      radius: numeric,
+      strokeStyle: z.enum(["solid", "dashed"]).optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("A circle, such as x² + y² = 25: centre (0, 0), radius 5."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("tangent"),
+      of: identifier.describe("An earlier curve's id."),
+      x: numeric.describe("Where it touches."),
+      run: numeric.optional().describe("How far it reaches each side, in x units. Default 2 squares."),
+      gradientTriangle: gradientTriangleInput,
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("A tangent to an earlier curve, saved as a segment."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("strips"),
+      of: identifier.describe("An earlier curve's id."),
+      from: numeric,
+      to: numeric,
+      count: z.number().int().min(1).max(10),
+      shaded: z.boolean().optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict()
+    .describe("Equal trapezium strips under an earlier curve down to the x-axis, saved as shapes."),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("image"),
+      of: identifier.describe("An earlier polygon's id."),
+      transformation: transformationSchema,
+      shaded: z.boolean().optional(),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+      rays: z
+        .boolean()
+        .optional()
+        .describe("Enlargements only: dashed rays from the centre through each corner and its image."),
+    })
+    .strict()
+    .describe("The exact image of an earlier polygon, saved as a polygon. answerOnly when pupils draw it."),
   z
     .object({
       id: identifier.optional(),
@@ -349,6 +494,7 @@ const objectSchema = z.discriminatedUnion("kind", [
         .max(4)
         .optional(),
       gradientTriangle: z.object({ x: finite, run: finite, labels: gradientTriangleLabels.optional() }).strict().optional(),
+      arrow: arrowSchema.optional(),
     })
     .strict(),
   z
@@ -360,6 +506,52 @@ const objectSchema = z.discriminatedUnion("kind", [
       boundaries: z.boolean(),
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("curve"),
+      points: z.array(coordinate).min(2).max(MAX_CURVE_POINTS),
+      smooth: z.literal(true).optional(),
+      strokeStyle: z.literal("dashed").optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("function"),
+      equation: functionSaved,
+      from: finite.optional(),
+      to: finite.optional(),
+      strokeStyle: z.literal("dashed").optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("circle"),
+      centre: coordinate,
+      radius: finite.positive(),
+      strokeStyle: z.literal("dashed").optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("reading"),
+      at: coordinate,
+      read: z.enum(["x", "y", "both"]),
       answerOnly: z.literal(true).optional(),
     })
     .strict(),
@@ -392,10 +584,20 @@ const documentSchema = z
           code: "custom",
           message: `${o.id} needs two distinct points.`,
         });
+      if (o.kind === "function") {
+        const problem = functionProblem(o.equation) ?? (o.from !== undefined && o.to !== undefined && !(o.to > o.from) ? "to must be after from." : null);
+        if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
+      }
+      if (o.kind === "curve") {
+        const problem = curveProblem(o.points);
+        if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
+      }
       if (o.kind === "polygon") {
         const problem = polygonProblem(o.vertices);
         if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
       }
+      if (o.kind === "straight" && o.arrow && o.display !== "segment")
+        c.addIssue({ code: "custom", message: `${o.id}: only a segment can carry a vector arrowhead.` });
       if (o.kind === "straight" && o.gradientTriangle && Math.abs(o.gradientTriangle.run) < 1e-12)
         c.addIssue({ code: "custom", message: `${o.id}: a gradient triangle needs a run that is not zero.` });
     }
@@ -482,15 +684,59 @@ export function validateEnvelope(
     );
   return envelope;
 }
-function makeObject(
+/** The objects an input makes: one, or an image with its construction rays. */
+function makeObjects(
   input: z.output<typeof objectInputSchema>,
+  index: number,
+  document: DiagramDocumentV1,
+): GraphObject[] {
+  const id = input.id ?? `object-${index + 1}`;
+  if (input.kind === "tangent" || input.kind === "strips") {
+    const curve = document.objects.find((o) => o.id === input.of);
+    if (!curve || (curve.kind !== "curve" && curve.kind !== "function"))
+      throw new GraphError("invalid_graph", `${id}: ${curve ? `${input.of} is not a graph through points or an equation curve` : `no earlier graph has ID ${input.of}`}.`);
+    try {
+      if (input.kind === "tangent")
+        return [tangentObject(curve, input.x, input.run ?? 2 * document.axes.x.unitsPerSquare, {
+          id,
+          answerOnly: input.answerOnly,
+          ...(input.gradientTriangle ? { gradientTriangle: { x: input.gradientTriangle.x, run: input.gradientTriangle.run, ...(input.gradientTriangle.labels ? { labels: input.gradientTriangle.labels } : {}) } } : {}),
+        })];
+      return stripObjects(curve, input.from, input.to, input.count, document.axes.y.origin ?? 0, { id: (i) => `${id}-strip-${i + 1}`, shaded: input.shaded, answerOnly: input.answerOnly });
+    } catch (error) {
+      throw new GraphError("invalid_graph", `${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  if (input.kind !== "image") return [makeObject(input, index, document)];
+  const source = document.objects.find((o) => o.id === input.of);
+  if (!source || source.kind !== "polygon")
+    throw new GraphError("invalid_graph", `${id}: ${source ? `${input.of} is not a shape` : `no earlier shape has ID ${input.of}`}, so it has no image.`);
+  const t = input.transformation;
+  const transformation: Transformation =
+    t.kind === "rotate" ? { ...t, direction: t.angle === 180 ? "clockwise" : t.direction } : t;
+  const problem = transformationProblem(transformation);
+  if (problem) throw new GraphError("invalid_graph", `${id}: ${problem}`);
+  if (input.rays && t.kind !== "enlarge")
+    throw new GraphError("invalid_graph", `${id}: rays belong to an enlargement only.`);
+  const objects = imageObjects(source, transformation, {
+    id,
+    name: input.name,
+    shaded: input.shaded,
+    answerOnly: input.answerOnly,
+    rays: input.rays,
+  });
+  if (input.namePosition) objects[0].namePosition = input.namePosition;
+  return objects;
+}
+function makeObject(
+  input: Exclude<z.output<typeof objectInputSchema>, { kind: "image" | "tangent" | "strips" }>,
   index: number,
   document: DiagramDocumentV1,
 ): GraphObject {
   const id = input.id ?? `object-${index + 1}`;
   const named = {
-    ...(input.name ? { name: input.name } : {}),
-    ...(input.namePosition ? { namePosition: input.namePosition } : {}),
+    ...("name" in input && input.name ? { name: input.name } : {}),
+    ...("namePosition" in input && input.namePosition ? { namePosition: input.namePosition } : {}),
     ...(input.answerOnly ? { answerOnly: true as const } : {}),
   };
   if (input.kind === "point")
@@ -503,6 +749,45 @@ function makeObject(
       ...(input.shaded ? { shaded: true as const } : {}),
       ...named,
     };
+  if (input.kind === "curve") {
+    const problem = curveProblem(input.points);
+    if (problem) throw new GraphError("invalid_graph", `${id}: ${problem}`);
+    return {
+      id,
+      kind: "curve",
+      points: input.points.map((p) => ({ x: p.x, y: p.y })),
+      ...(input.smooth ? { smooth: true as const } : {}),
+      ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
+      ...named,
+    };
+  }
+  if (input.kind === "function") {
+    const equation = functionEquationFrom(input.equation);
+    const problem = functionProblem(equation) ?? (input.from !== undefined && input.to !== undefined && !(input.to > input.from) ? "to must be after from." : null);
+    if (problem) throw new GraphError("invalid_graph", `${id}: ${problem}`);
+    return {
+      id,
+      kind: "function",
+      equation,
+      ...(input.from !== undefined ? { from: input.from } : {}),
+      ...(input.to !== undefined ? { to: input.to } : {}),
+      ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
+      ...named,
+    };
+  }
+  if (input.kind === "circle") {
+    if (!(input.radius > 0)) throw new GraphError("invalid_graph", `${id}: a circle needs a radius above 0.`);
+    return {
+      id,
+      kind: "circle",
+      centre: { x: input.centre.x, y: input.centre.y },
+      radius: input.radius,
+      ...(input.strokeStyle === "dashed" ? { strokeStyle: "dashed" as const } : {}),
+      ...named,
+    };
+  }
+  if (input.kind === "reading")
+    return { id, kind: "reading", at: { x: input.at.x, y: input.at.y }, read: input.read, ...(input.answerOnly ? { answerOnly: true as const } : {}) };
   if (input.kind === "region") {
     const problem = regionProblem(input);
     if (problem) throw new GraphError("invalid_region", `${id}: ${problem}`);
@@ -550,6 +835,7 @@ function makeObject(
           },
         }
       : {}),
+    ...(input.arrow ? { arrow: input.arrow } : {}),
   };
 }
 export function createGraph(value: unknown): GraphEnvelope {
@@ -560,9 +846,9 @@ export function createGraph(value: unknown): GraphEnvelope {
   if (input.originLabel === "0") document.originLabel = "0";
   if (input.lines === "bold") document.lines = "bold";
   document.styleProfile = "portable-v1";
-  document.objects = input.objects.map((object, index) =>
-    makeObject(object, index, document),
-  );
+  // One at a time, so an image can refer to a shape made before it.
+  document.objects = [];
+  input.objects.forEach((object, index) => document.objects.push(...makeObjects(object, index, document)));
   return validateEnvelope(createEnvelope(document), true);
 }
 const operationSchema = z.discriminatedUnion("op", [
@@ -617,6 +903,7 @@ function canonicalAxis(a: AxisConfig): AxisConfig {
     ...(a.labelEvery !== undefined ? { labelEvery: a.labelEvery } : {}),
     ...(a.format !== undefined ? { format: a.format } : {}),
     ...(a.title !== undefined ? { title: a.title } : {}),
+    ...(a.name !== undefined ? { name: a.name } : {}),
   };
 }
 function canonicalName(o: GraphObject) {
@@ -626,11 +913,48 @@ function canonicalName(o: GraphObject) {
     ...(o.answerOnly ? { answerOnly: true as const } : {}),
   };
 }
+/** A saved equation with every term present, in a fixed order. */
+function canonicalFunction(e: FunctionEquation): FunctionEquation {
+  if (e.family === "polynomial") return { family: e.family, a: e.a, b: e.b, c: e.c, ...(e.cubic ? { cubic: e.cubic } : {}) };
+  if (e.family === "reciprocal") return { family: e.family, k: e.k, c: e.c };
+  if (e.family === "exponential") return { family: e.family, coefficient: e.coefficient, base: e.base, c: e.c };
+  return { family: e.family, fn: e.fn, amplitude: e.amplitude, multiplier: e.multiplier, shift: e.shift, c: e.c };
+}
+/** Fills an input equation's omitted terms. */
+function functionEquationFrom(e: z.output<typeof functionInput>): FunctionEquation {
+  if (e.family === "polynomial") return canonicalFunction({ family: e.family, a: e.a ?? 0, b: e.b ?? 0, c: e.c ?? 0, cubic: e.cubic });
+  if (e.family === "reciprocal") return { family: e.family, k: e.k, c: e.c ?? 0 };
+  if (e.family === "exponential") return { family: e.family, coefficient: e.coefficient ?? 1, base: e.base, c: e.c ?? 0 };
+  return { family: e.family, fn: e.fn, amplitude: e.amplitude ?? 1, multiplier: e.multiplier ?? 1, shift: e.shift ?? 0, c: e.c ?? 0 };
+}
 export function canonicalEnvelope(envelope: GraphEnvelope): string {
   const document = documentFromEnvelope(envelope);
   // Explicit property construction fixes ordering and defaults across all clients.
-  document.objects = document.objects.map((o) =>
-    o.kind === "region"
+  document.objects = document.objects.map((o): GraphObject =>
+    o.kind === "curve"
+      ? {
+          id: o.id,
+          kind: o.kind,
+          points: o.points.map((p) => ({ x: p.x, y: p.y })),
+          ...(o.smooth ? { smooth: true as const } : {}),
+          ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}),
+          ...canonicalName(o),
+        }
+      : o.kind === "function"
+      ? {
+          id: o.id,
+          kind: o.kind,
+          equation: canonicalFunction(o.equation),
+          ...(o.from !== undefined ? { from: o.from } : {}),
+          ...(o.to !== undefined ? { to: o.to } : {}),
+          ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}),
+          ...canonicalName(o),
+        }
+      : o.kind === "circle"
+      ? { id: o.id, kind: o.kind, centre: { x: o.centre.x, y: o.centre.y }, radius: o.radius, ...(o.strokeStyle ? { strokeStyle: o.strokeStyle } : {}), ...canonicalName(o) }
+      : o.kind === "reading"
+      ? { id: o.id, kind: o.kind, at: { x: o.at.x, y: o.at.y }, read: o.read, ...(o.answerOnly ? { answerOnly: true as const } : {}) }
+      : o.kind === "region"
       ? {
           id: o.id,
           kind: o.kind,
@@ -690,6 +1014,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
                 },
               }
             : {}),
+          ...(o.arrow ? { arrow: o.arrow } : {}),
         },
   );
   document.axes = {
@@ -746,13 +1071,13 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
       continue;
     }
     if (op.op === "add_object") {
-      const object = makeObject(op.object, document.objects.length, document);
-      if (!op.object.id) {
+      let id = op.object.id;
+      if (!id) {
         let n = 1;
-        while (document.objects.some((o) => o.id === `object-${n}`)) n++;
-        object.id = `object-${n}`;
+        while (document.objects.some((o) => o.id === `object-${n}` || o.id.startsWith(`object-${n}-ray-`) || o.id.startsWith(`object-${n}-strip-`))) n++;
+        id = `object-${n}`;
       }
-      document.objects.push(object);
+      document.objects.push(...makeObjects({ ...op.object, id }, document.objects.length, document));
       continue;
     }
     const index = document.objects.findIndex((o) => o.id === op.id);
@@ -768,11 +1093,15 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
           "invalid_graph",
           "Replacing an object must retain its ID.",
         );
-      document.objects[index] = makeObject(
-        { ...op.object, id: op.id },
-        index,
-        document,
-      );
+      if (op.object.kind === "strips")
+        throw new GraphError("invalid_graph", "Strips are several shapes: remove the object and add the strips with add_object.");
+      const made = makeObjects({ ...op.object, id: op.id }, index, document);
+      if (made.length !== 1)
+        throw new GraphError("invalid_graph", "Replace an image without rays, or remove it and add it again with rays.");
+      document.objects[index] = made[0];
+      // An image's enlargement rays belong to the image they were drawn for, so they go with it.
+      const rayId = new RegExp(`^${op.id}-ray-\\d+$`); // ids are letters, digits, _ and -, all literal here
+      document.objects = document.objects.filter((o) => !rayId.test(o.id));
       continue;
     }
     const object = document.objects[index];
@@ -805,13 +1134,37 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
   const crowded = xNumbersCrowded(envelope.document)
     ? ["The x-axis numbers touch at print size. Number every 2nd, 3rd or 5th line (labelEvery) or use a larger scale."]
     : [];
+  const arrows = envelope.document.objects.flatMap((o) =>
+    o.kind === "straight" && o.arrow === "end" && o.display === "segment" && visibleStraightPoints(o, bounds) && !pointInBounds(o.end, bounds)
+      ? [`${o.id}: the end of this vector is off the grid, so its arrowhead does not print. Move the end onto the grid or widen the axes.`]
+      : [],
+  );
+  const readings = envelope.document.objects.flatMap((o) =>
+    o.kind === "reading" && readingVisible(o, bounds) && !readingLegs(o, axesCrossing(envelope.document.axes)).some((l) => l.head)
+      ? [`${o.id}: this reading sits on the axis it reads, so it has no arrowhead. Move it onto the graph or choose the other value.`]
+      : [],
+  );
+  const circles = envelope.document.objects.flatMap((o) =>
+    o.kind === "circle" && circleVisible(o, bounds) &&
+    (o.centre.x - o.radius < bounds.xMin || o.centre.x + o.radius > bounds.xMax || o.centre.y - o.radius < bounds.yMin || o.centre.y + o.radius > bounds.yMax)
+      ? [`${o.id}: part of this circle is off the grid, so it is cut off. Make the radius smaller or widen the axes.`]
+      : [],
+  );
   const triangles = envelope.document.objects.flatMap((o) => {
     const problem = o.kind === "straight" ? gradientTriangleProblem(o, bounds) : null;
     return problem ? [`${o.id}: ${problem}`] : [];
   });
-  return crowded.concat(triangles, gradientLabelClashes(envelope.document), envelope.document.objects
+  return crowded.concat(arrows, readings, circles, triangles, gradientLabelClashes(envelope.document), envelope.document.objects
     .filter((o) =>
-      o.kind === "region"
+      o.kind === "circle"
+        ? !circleVisible(o, bounds)
+        : o.kind === "function"
+        ? !functionVisible(o, bounds)
+        : o.kind === "curve"
+        ? !curveVisible(o, bounds)
+        : o.kind === "reading"
+        ? !readingVisible(o, bounds)
+        : o.kind === "region"
         ? !regionPolygon(regionHalfPlanes(o), bounds).length
         : o.kind === "point"
         ? !pointInBounds(o.position, bounds)
@@ -832,7 +1185,15 @@ export function describeGraph(envelope: GraphEnvelope): string {
     `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
-      o.kind === "region"
+      o.kind === "function"
+        ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}curve ${formatFunction(o.equation)}${o.equation.family === "trig" ? " (x in degrees)" : ""}${o.from !== undefined || o.to !== undefined ? ` from x = ${o.from ?? b.xMin} to ${o.to ?? b.xMax}` : ""}${named(o)}`
+        : o.kind === "circle"
+        ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}circle centre (${o.centre.x}, ${o.centre.y}) radius ${o.radius}${named(o)}`
+        : o.kind === "curve"
+        ? `${o.id}: ${o.strokeStyle === "dashed" ? "dashed " : ""}${o.smooth ? "smooth curve" : "graph of straight pieces"} through ${o.points.map((p) => `(${p.x}, ${p.y})`).join(" ")}${named(o)}`
+        : o.kind === "reading"
+        ? `${o.id}: dashed reading lines at (${o.at.x}, ${o.at.y}), ${o.read === "both" ? "to both axes" : `reading ${o.read}`}${named(o)}`
+        : o.kind === "region"
         ? `${o.id}: region ${o.inequalities.join(", ")}${named(o)}, ${o.shade === "wanted" ? "region shaded" : "unwanted side shaded, region left clear"}${o.boundaries ? ", boundaries drawn (dashed for < and >)" : ""}`
         : o.kind === "point"
         ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`

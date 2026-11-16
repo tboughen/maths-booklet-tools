@@ -264,7 +264,8 @@ export default function App({ active = true }: { active?: boolean }) {
             ? document.axes.y.unitsPerSquare / 2
             : 0;
       // A region follows its inequalities, so arrow keys leave it where it is.
-      if (selectedObject.kind === "region") return;
+      // A region follows its inequalities and an equation curve its equation, so arrow keys leave them.
+      if (selectedObject.kind === "region" || selectedObject.kind === "function") return;
       const moved: GraphObject =
         selectedObject.kind === "polygon"
           ? {
@@ -282,6 +283,24 @@ export default function App({ active = true }: { active?: boolean }) {
                   }
                 : {}),
             }
+          : selectedObject.kind === "curve"
+          ? {
+              ...selectedObject,
+              points: selectedObject.points.map((p) => ({ x: cleanNumber(p.x + dx), y: cleanNumber(p.y + dy) })),
+              ...(selectedObject.namePosition
+                ? { namePosition: { x: cleanNumber(selectedObject.namePosition.x + dx), y: cleanNumber(selectedObject.namePosition.y + dy) } }
+                : {}),
+            }
+          : selectedObject.kind === "circle"
+          ? {
+              ...selectedObject,
+              centre: { x: cleanNumber(selectedObject.centre.x + dx), y: cleanNumber(selectedObject.centre.y + dy) },
+              ...(selectedObject.namePosition
+                ? { namePosition: { x: cleanNumber(selectedObject.namePosition.x + dx), y: cleanNumber(selectedObject.namePosition.y + dy) } }
+                : {}),
+            }
+          : selectedObject.kind === "reading"
+          ? { ...selectedObject, at: { x: cleanNumber(selectedObject.at.x + dx), y: cleanNumber(selectedObject.at.y + dy) } }
           : selectedObject.kind === "point"
           ? {
               ...selectedObject,
@@ -359,6 +378,60 @@ export default function App({ active = true }: { active?: boolean }) {
       objects: [...document.objects, shape],
       selectedObjectId: shape.id,
     });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds a graph through points for the teacher to edit: four points across the grid, joined. */
+  function addCurve() {
+    if (locked()) return;
+    const b = getBounds(document);
+    const at = (fx: number, fy: number) => ({ x: cleanNumber(b.xMin + (b.xMax - b.xMin) * fx), y: cleanNumber(b.yMin + (b.yMax - b.yMin) * fy) });
+    const curve: GraphObject = { id: makeId("curve"), kind: "curve", points: [at(0.1, 0.2), at(0.35, 0.6), at(0.6, 0.6), at(0.9, 0.85)] };
+    commit({ ...document, objects: [...document.objects, curve], selectedObjectId: curve.id });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds y = x² across the grid for the teacher to retype. */
+  function addFunction() {
+    if (locked()) return;
+    const curve: GraphObject = { id: makeId("function"), kind: "function", equation: { family: "polynomial", a: 1, b: 0, c: 0 } };
+    commit({ ...document, objects: [...document.objects, curve], selectedObjectId: curve.id });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds a circle centred on the origin (or the grid's middle) for the teacher to edit. */
+  function addCircle() {
+    if (locked()) return;
+    const b = getBounds(document);
+    const inside = (v: number, lo: number, hi: number) => (v >= lo && v <= hi ? v : cleanNumber((lo + hi) / 2));
+    const centre = { x: inside(0, b.xMin, b.xMax), y: inside(0, b.yMin, b.yMax) };
+    // The radius is a distance in data units on both axes, so the room is measured the same way.
+    const room = Math.min(centre.x - b.xMin, b.xMax - centre.x, centre.y - b.yMin, b.yMax - centre.y);
+    const radius = cleanNumber(Math.max(Math.min(document.axes.x.unitsPerSquare, document.axes.y.unitsPerSquare), room * 0.6));
+    const circle: GraphObject = { id: makeId("circle"), kind: "circle", centre, radius };
+    commit({ ...document, objects: [...document.objects, circle], selectedObjectId: circle.id });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds reading lines at a point for the teacher to move onto the graph. */
+  function addReading() {
+    if (locked()) return;
+    const b = getBounds(document);
+    const reading: GraphObject = {
+      id: makeId("reading"),
+      kind: "reading",
+      at: { x: cleanNumber((b.xMin + b.xMax) / 2), y: cleanNumber((b.yMin + b.yMax) / 2) },
+      read: "y",
+    };
+    commit({ ...document, objects: [...document.objects, reading], selectedObjectId: reading.id });
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
@@ -678,6 +751,12 @@ export default function App({ active = true }: { active?: boolean }) {
                 onDelete={() => commit(deleteSelectedObject(document))}
                 onEditEquation={openEquationEditor}
                 bounds={getBounds(document)}
+                objects={document.objects}
+                axes={document.axes}
+                onAdd={(added) => {
+                  if (locked() || !added.length) return;
+                  commit({ ...document, objects: [...document.objects, ...added], selectedObjectId: added[0].id });
+                }}
               />
             ) : null}
             <fieldset className="graph-control-group" disabled={blocked}>
@@ -692,6 +771,10 @@ export default function App({ active = true }: { active?: boolean }) {
                 onEquation={() => openEquationEditor()}
                 onShape={addShape}
                 onRegion={addRegion}
+                onCurve={addCurve}
+                onReading={addReading}
+                onCircle={addCircle}
+                onFunction={addFunction}
               />
             </fieldset>
             <AxisSettings

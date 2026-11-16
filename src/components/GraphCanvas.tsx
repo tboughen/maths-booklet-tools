@@ -15,6 +15,11 @@ import {
 } from "../export/svg";
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { plotClipBleed } from "../../packages/graph-core/src/svg";
+import { arrowheadPath } from "../../packages/graph-core/src/arrow";
+import { axesCrossing, circleVisible, readingLegs, smoothCurvePath } from "../../packages/graph-core/src/curve";
+import { functionNameAnchor, functionPathData, functionRuns } from "../../packages/graph-core/src/function";
+import { vectorArrowEnds } from "../../packages/graph-core/src/diagram";
+import { READING_ARROWHEAD_POINTS, VECTOR_ARROWHEAD_POINTS } from "../../packages/graph-core/src/graphStyle";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   regionBoundaries,
@@ -33,6 +38,7 @@ import {
   AXIS_LIMITS,
   axisOrigin,
   clampToBounds,
+  clipSegment,
   coordinateToSvg,
   createEditorLayout,
   getObjectById,
@@ -53,8 +59,7 @@ import { gradientTriangleCorners, gradientTriangleValues } from "../../packages/
 import {
   AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
-  AXIS_X_NAME,
-  AXIS_Y_NAME,
+  axisLetter,
   MATHS_FONT_FAMILY,
   PORTABLE_FONT_FAMILY,
   STRAIGHT_DASH_GAP_CENTIMETRES,
@@ -232,6 +237,45 @@ function objectHitIds(
         if (a.y > pointer.y !== b.y > pointer.y && pointer.x < ((b.x - a.x) * (pointer.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
       }
       if (inside) hits.push({ id: object.id, distance: 13, priority: 3 });
+      continue;
+    }
+    if (object.kind === "curve") {
+      // Near any piece of the curve picks it (smooth curves are close enough to their chords here).
+      // Only the parts on the grid can be picked, as only they are drawn.
+      const pieces = object.points.slice(1).flatMap((p, i) => {
+        const visible = clipSegment(object.points[i], p, layout.bounds);
+        return visible ? [visible.map((q) => coordinateToSvg(q, layout))] : [];
+      });
+      const distance = Math.min(Infinity, ...pieces.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
+      if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
+      continue;
+    }
+    if (object.kind === "circle") {
+      // Near the circle's edge picks it (true to both scales).
+      const c = coordinateToSvg(object.centre, layout);
+      const rx = (object.radius / document.axes.x.unitsPerSquare) * layout.square, ry = (object.radius / document.axes.y.unitsPerSquare) * layout.square;
+      const dx = (pointer.x - c.x) / rx, dy = (pointer.y - c.y) / ry;
+      const distance = Math.abs(Math.hypot(dx, dy) - 1) * Math.min(rx, ry);
+      if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
+      continue;
+    }
+    if (object.kind === "function") {
+      // Near any short piece of the curve on the grid picks it.
+      const pieces = functionRuns(object, layout.bounds).flatMap((run) =>
+        run.slice(1).flatMap((p, i) => {
+          const visible = clipSegment(run[i], p, layout.bounds);
+          return visible ? [visible.map((q) => coordinateToSvg(q, layout))] : [];
+        }),
+      );
+      const distance = Math.min(Infinity, ...pieces.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
+      if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
+      continue;
+    }
+    if (object.kind === "reading") {
+      if (!pointInBounds(object.at, layout.bounds)) continue;
+      const legs = readingLegs(object, axesCrossing(document.axes)).map((l) => [coordinateToSvg(l.start, layout), coordinateToSvg(l.end, layout)] as const);
+      const distance = Math.min(Infinity, ...legs.map(([a, b]) => pointToSegmentDistance(pointer, a, b)));
+      if (distance <= 13) hits.push({ id: object.id, distance, priority: 1 });
       continue;
     }
     const visible = visibleStraightPoints(object, layout.bounds);
@@ -807,10 +851,11 @@ export function GraphCanvas({
                 if (!visible) return null;
                 const start = coordinateToSvg(visible[0], layout);
                 const end = coordinateToSvg(visible[1], layout);
-                return (
+                const selected = object.id === visibleDocument.selectedObjectId;
+                const line = (
                   <line
                     key={object.id}
-                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
+                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${selected ? " graph-straight--selected" : ""}`}
                     x1={start.x}
                     y1={start.y}
                     x2={end.x}
@@ -822,7 +867,90 @@ export function GraphCanvas({
                     }
                   />
                 );
+                const arrowEnds = vectorArrowEnds(object, layout.bounds);
+                if (!arrowEnds) return line;
+                const scale = document.lines === "bold" ? 1.5 : 1;
+                return (
+                  <g key={object.id}>
+                    {line}
+                    <path
+                      className={`graph-vector-arrow${object.answerOnly ? " graph-vector-arrow--answer" : ""}${selected ? " graph-vector-arrow--selected" : ""}`}
+                      d={arrowheadPath(
+                        coordinateToSvg(arrowEnds[0], layout),
+                        coordinateToSvg(arrowEnds[1], layout),
+                        object.arrow ?? "end",
+                        pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.length, EDITOR_UNITS_PER_CENTIMETRE) * scale,
+                        pointsToDiagramUnits(VECTOR_ARROWHEAD_POINTS.halfWidth, EDITOR_UNITS_PER_CENTIMETRE) * scale,
+                      )}
+                    />
+                  </g>
+                );
               })}
+            {visibleDocument.objects.map((object) => {
+              const selected = object.id === visibleDocument.selectedObjectId;
+              const cls = `graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${selected ? " graph-straight--selected" : ""}`;
+              if (object.kind === "circle") {
+                const c = coordinateToSvg(object.centre, layout);
+                return (
+                  <ellipse
+                    key={object.id}
+                    className={`${cls} graph-circle`}
+                    cx={c.x}
+                    cy={c.y}
+                    rx={(object.radius / document.axes.x.unitsPerSquare) * layout.square}
+                    ry={(object.radius / document.axes.y.unitsPerSquare) * layout.square}
+                    strokeDasharray={object.strokeStyle === "dashed" ? STRAIGHT_DASH_ARRAY : undefined}
+                  />
+                );
+              }
+              if (object.kind === "function") {
+                return (
+                  <path
+                    key={object.id}
+                    className={`${cls} graph-function`}
+                    d={functionPathData(object, layout.bounds, (p) => coordinateToSvg(p, layout))}
+                    strokeLinejoin="round"
+                    strokeDasharray={object.strokeStyle === "dashed" ? STRAIGHT_DASH_ARRAY : undefined}
+                  />
+                );
+              }
+              if (object.kind === "curve") {
+                const pts = object.points.map((p) => coordinateToSvg(p, layout));
+                return (
+                  <path
+                    key={object.id}
+                    className={`${cls} graph-curve`}
+                    d={object.smooth ? smoothCurvePath(pts) : `M ${pts.map((p) => `${p.x} ${p.y}`).join(" L ")}`}
+                    strokeLinejoin="round"
+                    strokeDasharray={object.strokeStyle === "dashed" ? STRAIGHT_DASH_ARRAY : undefined}
+                  />
+                );
+              }
+              if (object.kind !== "reading" || !pointInBounds(object.at, layout.bounds)) return null;
+              const scale = document.lines === "bold" ? 1.5 : 1;
+              const length = pointsToDiagramUnits(READING_ARROWHEAD_POINTS.length, EDITOR_UNITS_PER_CENTIMETRE) * scale;
+              const half = pointsToDiagramUnits(READING_ARROWHEAD_POINTS.halfWidth, EDITOR_UNITS_PER_CENTIMETRE) * scale;
+              return (
+                <g key={object.id} className="graph-reading">
+                  {readingLegs(object, axesCrossing(document.axes)).map((leg, i) => {
+                    const a = coordinateToSvg(leg.start, layout), b = coordinateToSvg(leg.end, layout);
+                    const d = Math.hypot(b.x - a.x, b.y - a.y);
+                    const stop = leg.head && d > length ? { x: b.x - ((b.x - a.x) / d) * length, y: b.y - ((b.y - a.y) / d) * length } : b;
+                    return (
+                      <g key={i}>
+                        <line className={cls} x1={a.x} y1={a.y} x2={stop.x} y2={stop.y} strokeDasharray={STRAIGHT_DASH_ARRAY} />
+                        {leg.head && (
+                          <path
+                            className={`graph-vector-arrow${object.answerOnly ? " graph-vector-arrow--answer" : ""}${selected ? " graph-vector-arrow--selected" : ""}`}
+                            d={arrowheadPath(a, b, "end", length, half)}
+                          />
+                        )}
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+            })}
           </g>
           <g className="axis-labels">
             {xLabels}
@@ -836,17 +964,17 @@ export function GraphCanvas({
                 origin={document.originLabel === "0"}
               />
             )}
-            {!document.axes.x.title && (
+            {axisLetter("x", document.axes.x) && (
               <text
                 className="axis-name axis-name--x"
                 x={layout.plotRight + 29}
                 y={xNumberBaseline}
                 fontFamily={fontFamily}
               >
-                {AXIS_X_NAME}
+                {axisLetter("x", document.axes.x)}
               </text>
             )}
-            {!document.axes.y.title && (
+            {axisLetter("y", document.axes.y) && (
               <text
                 className="axis-name axis-name--y"
                 x={
@@ -858,7 +986,7 @@ export function GraphCanvas({
                 textAnchor="end"
                 fontFamily={fontFamily}
               >
-                {AXIS_Y_NAME}
+                {axisLetter("y", document.axes.y)}
               </text>
             )}
             {placement.xTitle && (
@@ -1023,6 +1151,14 @@ export function GraphCanvas({
                     ? !polygonVisible(object, layout.bounds)
                   : object.kind === "region"
                     ? !regionPolygon(regionHalfPlanes(object), layout.bounds).length
+                  : object.kind === "curve"
+                    ? !object.points.some((p) => pointInBounds(p, layout.bounds))
+                  : object.kind === "reading"
+                    ? true
+                  : object.kind === "circle"
+                    ? !circleVisible(object, layout.bounds)
+                  : object.kind === "function"
+                    ? !functionNameAnchor(object, layout.bounds)
                     : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;
