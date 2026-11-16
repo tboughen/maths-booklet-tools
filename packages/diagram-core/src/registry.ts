@@ -36,6 +36,8 @@ import * as twt from "../../two-way-table-core/src/index";
 import * as twtIo from "../../two-way-table-core/src/interchange";
 import * as ft from "../../factor-tree-core/src/index";
 import * as ftIo from "../../factor-tree-core/src/interchange";
+import * as wm from "../../written-method-core/src/index";
+import * as wmIo from "../../written-method-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
 import * as ss from "../../sample-space-core/src/index";
@@ -66,6 +68,7 @@ export const DIAGRAM_KINDS = [
   "two-way-table",
   "factor-tree",
   "function-machine",
+  "written-method",
   "sample-space",
   "triangle",
   "construction",
@@ -393,6 +396,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => ftIo.revise(input),
     hash: ft.hash,
     svg: (e, view) => ft.renderSvg(ft.forView(e, view, true)),
+  }),
+  "written-method": family<wm.Envelope>({
+    kind: "written-method",
+    label: "written method",
+    summary: "Written methods: column addition and subtraction, long multiplication, short (bus stop) and long division, with digits, carries and rows blank or hidden for pupils; worked out only on request.",
+    route: "/tools/written-method",
+    answerView: true,
+    envelopeSchema: wm.envelopeSchema,
+    createSchema: wmIo.createSchema,
+    revisionSchema: wmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = wm.validate(raw);
+      check(wm.exportIssue(wm.forView(e, view)));
+      return e;
+    },
+    create: (input) => wmIo.create(input),
+    revise: (input) => wmIo.revise(input),
+    hash: wm.hash,
+    svg: (e, view) => wm.renderSvg(wm.forView(e, view, true)),
   }),
   "function-machine": family<fm.Envelope>({
     kind: "function-machine",

@@ -677,3 +677,20 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-polygon-plants (worked): added
 - charts: chart-cumulative-office: added
 - charts: chart-cumulative-office (worked): added
+
+## 2026-11-16: New written methods tool: column addition and subtraction, long multiplication, short and long division
+
+- written methods: wm-column-add: added
+- written methods: wm-column-add (worked): added
+- written methods: wm-add-decimals: added
+- written methods: wm-add-decimals (worked): added
+- written methods: wm-column-subtract: added
+- written methods: wm-column-subtract (worked): added
+- written methods: wm-long-multiplication: added
+- written methods: wm-long-multiplication (worked): added
+- written methods: wm-short-division: added
+- written methods: wm-short-division (worked): added
+- written methods: wm-division-remainder: added
+- written methods: wm-division-remainder (worked): added
+- written methods: wm-long-division-decimal: added
+- written methods: wm-long-division-decimal (worked): added
