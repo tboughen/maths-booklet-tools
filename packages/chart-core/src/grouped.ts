@@ -392,11 +392,12 @@ export function groupedLayout(e: Envelope) {
         });
         const first = plotted[0],
           last = plotted[plotted.length - 1];
-        if (pg.close && plotted.length > 2)
+        // Closing joins the ends of one unbroken polygon; a broken polygon is left open.
+        if (pg.close && plotted.length > 2 && parts.length === plotted.length - 1)
           parts.push({ path: `M${n(last.x)},${n(last.y)}L${n(first.x)},${n(first.y)}`, index: first.index, drawn: first.drawn && last.drawn, revealed: first.revealed || last.revealed });
         if (set) curve2 = parts;
         else curve = parts;
-        if (plotted.length === 1) notes.push(`A frequency polygon needs at least two classes with frequencies to draw a line.`);
+        if (plotted.length === 1) notes.push(`The ${set ? "second " : ""}frequency polygon needs at least two classes with frequencies to draw a line.`);
       }
       if (pg.plotAt !== "midpoint") notes.push(`The points are plotted at the ${pg.plotAt} class bounds, not the midpoints: a mistake for pupils to find.`);
       if (pg.close) notes.push("The last point is joined to the first: a mistake for pupils to find.");

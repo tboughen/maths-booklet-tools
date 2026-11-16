@@ -38,6 +38,8 @@ export function GroupedCards({
   linesControl: ReactNode;
 }) {
   const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
+  /** A class's issue, told apart by whether it is about the second frequency. */
+  const classBad = (i: number, second: boolean) => issues.some((x) => x.startsWith(`Class ${i + 1}:`) && x.includes("second frequency") === second);
   const axisBad = (axis: string, field: "min" | "max" | "step") =>
     issues.some((x) => {
       if (!x.includes(`${axis} axis`) || x.startsWith("Class") || x.startsWith("Reading")) return false;
@@ -112,7 +114,7 @@ export function GroupedCards({
                         maxLength={12}
                         inputMode="decimal"
                         disabled={blocked}
-                        invalid={bad(`Class ${i + 1}:`)}
+                        invalid={f === "frequency" ? classBad(i, false) : bad(`Class ${i + 1}:`)}
                         onCommit={(v) => onChange((s) => void (s.classes[i][f] = v))}
                       />
                     </td>
@@ -127,7 +129,7 @@ export function GroupedCards({
                         maxLength={12}
                         inputMode="decimal"
                         disabled={blocked}
-                        invalid={bad(`Class ${i + 1}:`)}
+                        invalid={classBad(i, true)}
                         onCommit={(v) => onChange((s) => void (s.classes[i].frequency2 = v))}
                       />
                     </td>

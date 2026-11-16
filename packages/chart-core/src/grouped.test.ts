@@ -280,6 +280,11 @@ describe("frequency polygon mistakes and a second polygon", () => {
     expect(closed.notes).toContain("The last point is joined to the first: a mistake for pupils to find.");
   });
 
+  it("a broken polygon is left open", () => {
+    const g = groupedLayout(grouped("polygon", (g) => ((g.polygon.close = true), (g.classes[2].frequency = ""))));
+    expect(g.curve).toHaveLength(2);
+  });
+
   it("a hidden point also hides the closing line on the pupil copy", () => {
     const e = grouped("polygon", (g) => ((g.polygon.close = true), (g.classes[0].graph = "hidden")));
     const g = groupedLayout(e);

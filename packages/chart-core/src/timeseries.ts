@@ -17,7 +17,8 @@ const CROSS = 1.1;
 const plain = (t: string): Run[] => [{ t, italic: false }];
 /** The gap a broken vertical axis leaves between the corner and the grid, holding the zig-zag. */
 const BREAK = 6;
-type Plotted = { index: number; x: number; y: number; drawn: boolean; revealed: boolean } | null;
+/** saved: the point prints on the pupil copy (shown in the saved file, not only revealed for answers). */
+type Plotted = { index: number; x: number; y: number; drawn: boolean; revealed: boolean; saved: boolean } | null;
 
 export function timeseriesLayout(e: Envelope) {
   const s = timeseriesOf(e.document),
@@ -59,7 +60,9 @@ export function timeseriesLayout(e: Envelope) {
       const v = readNumber(text);
       if (v === null) return void issues.push(`${where}: enter a number for the ${what}, or leave it blank.`), null;
       if (ys.ok && (v < ys.lo - 1e-9 || v > ys.hi + 1e-9)) return void issues.push(`${where}: the ${what} ${formatNumber(v)} is outside the vertical axis.`), null;
-      return second ? { index: i, x: X(i), y: Y(v), drawn: p.show2 === "show", revealed: value2Revealed(p) } : { index: i, x: X(i), y: Y(v), drawn: p.show === "show", revealed: revealed(p) };
+      const drawn = (second ? p.show2 : p.show) === "show",
+        shown = second ? value2Revealed(p) : revealed(p);
+      return { index: i, x: X(i), y: Y(v), drawn, revealed: shown, saved: drawn && !shown };
     });
   // Lines join consecutive times; a blank value breaks the line. A curve passes smoothly through
   // the points (Catmull–Rom), each part still running only between its two times.
@@ -74,8 +77,12 @@ export function timeseriesLayout(e: Envelope) {
       if (!linked(a, b)) continue;
       let path = `M${n(a.x)},${n(a.y)}`;
       if (s.join === "curve") {
-        const before = seq[k - 1] && linked(seq[k - 1], a) ? seq[k - 1] : a,
-          after = seq[k + 2] && linked(b, seq[k + 2]) ? seq[k + 2] : b;
+        // A hidden neighbour would bend the curve towards its value, so only points pupils see
+        // shape it; the answers copy uses the same neighbours, so its curve is the same.
+        const usable = (q: NonNullable<Plotted> | undefined, from: NonNullable<Plotted>, forward: boolean) =>
+          q && q.saved && (forward ? linked(from, q) : linked(q, from)) ? q : null;
+        const before = usable(seq[k - 1], a, false) ?? a,
+          after = usable(seq[k + 2], b, true) ?? b;
         path += `C${n(a.x + (b.x - before.x) / 6)},${n(a.y + (b.y - before.y) / 6)} ${n(b.x - (after.x - a.x) / 6)},${n(b.y - (after.y - a.y) / 6)} ${n(b.x)},${n(b.y)}`;
       } else path += `L${n(b.x)},${n(b.y)}`;
       out.push({ from: a.index, drawn: a.drawn && b.drawn, revealed: a.revealed || b.revealed, path });
@@ -87,7 +94,7 @@ export function timeseriesLayout(e: Envelope) {
     points2 = s.second ? plot(true) : [],
     lines2 = join(points2);
   const given = points.filter(Boolean).length;
-  if (s.bridge && lines.some((l) => points[l.from + 1] === null))
+  if (s.bridge && (lines.some((l) => points[l.from + 1] === null) || lines2.some((l) => points2[l.from + 1] === null)))
     notes.push("The line is joined across a time with no value: misleading, for pupils to spot.");
   if (!s.bridge && given > 0 && given < s.points.length && points.some((p, i) => !p && i > 0 && i < s.points.length - 1 && points.slice(0, i).some(Boolean) && points.slice(i + 1).some(Boolean)))
     notes.push("A blank value breaks the line between the times either side of it.");

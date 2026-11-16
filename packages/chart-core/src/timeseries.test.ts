@@ -206,4 +206,12 @@ describe("time series graphs", () => {
     expect(bridged.lines.map((l) => l.from)).toEqual([0, 2]);
     expect(bridged.notes).toEqual(["The line is joined across a time with no value: misleading, for pupils to spot."]);
   });
+
+  it("a curve never bends towards a hidden value, and the answers copy keeps the same curve", () => {
+    const curve = (hidden: string) => times(["10", "20", hidden, "30"], (s) => ((s.join = "curve"), (s.points[2].show = "hidden")));
+    expect(renderSvg(curve("50"))).toBe(renderSvg(curve("0")));
+    const pupil = timeseriesLayout(curve("50")).lines.filter((l) => l.drawn).map((l) => l.path);
+    const answer = timeseriesLayout(forView(curve("50"), "answer", true)).lines.filter((l) => !l.revealed).map((l) => l.path);
+    expect(answer).toEqual(pupil);
+  });
 });
