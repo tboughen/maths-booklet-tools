@@ -16,26 +16,6 @@
   overflow: visible;
   flex-wrap: wrap;
 }
-.ratio-preview-controls {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 18px;
-  color: var(--muted);
-  font-size: 12px;
-  border-bottom: 1px solid var(--line);
-}
-.ratio-preview-controls label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ratio-preview-controls select {
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: white;
-  min-height: 32px;
-}
 .ratio-stage {
   min-height: 430px;
   display: flex;
@@ -553,9 +533,6 @@
   .ratio-toolbar .icon-button {
     width: 38px;
     flex-basis: 38px;
-  }
-  .ratio-preview-controls {
-    flex-wrap: wrap;
   }
   .ratio-export-menu {
     position: static;

@@ -13,7 +13,7 @@ import { NotationPanel } from "./NotationPanel";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
-import { PreviewControls } from "../site/PreviewControls";
+import { EditorFoot } from "../site/EditorFoot";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -838,34 +838,6 @@ export default function NumberLinePage({
             />
             {titleNote.dialog}
             {worked.dialog}
-            <div className="nl-preview-bar">
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize width={m.widthCm} height={m.heightCm} />
-              {mode !== "select" && (
-                <button
-                  onClick={() => {
-                    setMode("select");
-                    setFirst(null);
-                  }}
-                >
-                  Finish drawing
-                </button>
-              )}
-            </div>
-            <EditorHint
-              tool="number-line"
-              prompt={
-                mode === "select"
-                  ? undefined
-                  : mode === "interval"
-                    ? first
-                      ? "Choose the other endpoint."
-                      : "Choose the first endpoint."
-                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
-              }
-            >
-              Click a circle to change its type; drag to move it.
-            </EditorHint>
             <div
               className="nl-scroll editor-stage"
               ref={fitted.ref}
@@ -1031,11 +1003,40 @@ export default function NumberLinePage({
                 ))}
               </div>
             </div>
-            {message && (
-              <p role="status" className="resource-feedback">
-                {message}
-              </p>
-            )}
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={m.widthCm} height={m.heightCm} />}
+              status={message}
+              hint={
+                <EditorHint
+                  tool="number-line"
+                  prompt={
+                    mode === "select"
+                      ? undefined
+                      : mode === "interval"
+                        ? first
+                          ? "Choose the other endpoint."
+                          : "Choose the first endpoint."
+                        : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
+                  }
+                >
+                  Click a circle to change its type; drag to move it.
+                </EditorHint>
+              }
+            >
+              {mode !== "select" && (
+                <button
+                  onClick={() => {
+                    setMode("select");
+                    setFirst(null);
+                  }}
+                >
+                  Finish drawing
+                </button>
+              )}
+            </EditorFoot>
             {warnings(history.present).map((w) => (
               <p key={w} className="nl-message">
                 {w}

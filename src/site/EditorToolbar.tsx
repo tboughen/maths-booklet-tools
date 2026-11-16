@@ -44,6 +44,29 @@ interface EditorToolbarProps {
 
 /** Common document actions; specialist editing controls belong to the inspector. */
 export function EditorToolbar(props: EditorToolbarProps) {
+  return (
+    <>
+      <Toolbar {...props} />
+      {/* Out of sight beside the settings until a keyboard reaches it: one press skips the diagram's many targets. */}
+      <button
+        type="button"
+        className="editor-inspector-link"
+        onClick={(event) => {
+          const inspector = event.currentTarget.closest(".workspace")?.querySelector<HTMLElement>(".inspector-stack");
+          if (inspector) {
+            inspector.tabIndex = -1;
+            inspector.focus();
+            inspector.scrollIntoView({ block: "start", behavior: "auto" });
+          }
+        }}
+      >
+        Edit settings ↓
+      </button>
+    </>
+  );
+}
+
+function Toolbar(props: EditorToolbarProps) {
   const bar = useRef<HTMLDivElement>(null);
   // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
   // The history marks a newly recorded reset step with its own number and clears it on the next undo, redo or
@@ -76,14 +99,16 @@ export function EditorToolbar(props: EditorToolbarProps) {
         "--editor-toolbar-height",
         `${element.getBoundingClientRect().height}px`,
       );
-      const stage = parent.querySelector<HTMLElement>(
-        ".bm-scroll,.graph-stage,.ratio-stage,.tr-scroll,.ag-scroll,.vn-scroll,.nl-scroll,.cb-scroll,.vg-scroll",
-      );
+      const stage = parent.querySelector<HTMLElement>(":scope > .editor-stage");
       if (!stage?.clientWidth) return;
       const top = stage.getBoundingClientRect().top + window.scrollY;
+      // On a window too short for the editor frame, the stage and the foot strip under it end
+      // together just above the foot of the window. Rows a tool keeps under the strip follow on,
+      // as they always have: counting them here would squeeze the diagram on a laptop.
+      const foot = parent.querySelector<HTMLElement>(":scope > .editor-foot");
       parent.style.setProperty(
         "--resource-stage-height",
-        `${Math.max(320, window.innerHeight - top - 20)}px`,
+        `${Math.max(320, window.innerHeight - top - (foot?.offsetHeight ?? 0) - 20)}px`,
       );
     };
     measure();
@@ -91,6 +116,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     observer.observe(parent);
+    const foot = parent.querySelector(":scope > .editor-foot");
+    if (foot) observer.observe(foot);
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();

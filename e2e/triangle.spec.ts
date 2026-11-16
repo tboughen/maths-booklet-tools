@@ -353,7 +353,7 @@ test("empty file selection, malformed import and replacement cancellation preser
   event = page.waitForEvent("filechooser");
   await clickResourceAction(page, "Open editable file");
   await (await event).setFiles(bad);
-  await expect(page.locator(".tr-feedback")).not.toBeEmpty();
+  await expect(page.locator(".site-page:not([hidden]) .editor-foot .resource-feedback")).not.toBeEmpty();
   expect(canonical(await saved(page))).toBe(before);
   const good = join(staging, "replacement.json");
   writeFileSync(good, canonical(example("bisector")));
@@ -593,7 +593,7 @@ test("print-width draft validation, image clipboard and Word physical-size clipb
     data = "data:image/png;base64," + png.toString("base64"),
     expected = await pixels(page, data);
   await page.getByRole("button", { name: "Copy image", exact: true }).click();
-  await expect(page.locator(".tr-feedback")).toContainText("Image copied");
+  await expect(page.locator(".resource-feedback")).toContainText("Image copied");
   const copied = await page.evaluate(async () => {
     const all = await navigator.clipboard.read(),
       blob = await all
@@ -613,7 +613,7 @@ test("print-width draft validation, image clipboard and Word physical-size clipb
   await page
     .getByRole("button", { name: "Copy for Word", exact: true })
     .click();
-  await expect(page.locator(".tr-feedback")).toContainText(
+  await expect(page.locator(".resource-feedback")).toContainText(
     "Copied for Word at",
   );
   const html = await page.evaluate(async () => {
