@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, realpathSync, statSync, readdirSync } from "node:fs";
 import { resolve, sep } from "node:path";
 import { catalogueAssetPaths, type CatalogueAssets } from "../../bankAssets.ts";
+import { bankAssetPath } from "../../workedSolution.ts";
 import { parseSchemeIndex, schemeIds, schemeSourcePath, SCHEMES_PATH } from "../../bankSchemes.ts";
 
 // Question files are served by the website's own Worker at /bank/assets/*, behind
@@ -23,7 +24,7 @@ export const digest = (data: Uint8Array | string, algorithm = "sha256") => creat
 export function assetFile(publicRoot: string, path: string): string {
   // Reuse the publication validators before resolving filesystem paths. Uploads read every
   // inventory source through here, schemes of work included.
-  if (!schemeSourcePath(path)) catalogueAssetPaths({ questions: [{ questionPdf: path, printPdf: path, schemePdf: path, questionViews: [], schemeViews: [] }] });
+  if (!schemeSourcePath(path) && !bankAssetPath(path)) throw new Error("Invalid question-bank asset path");
   const root = realpathSync(publicRoot);
   const file = realpathSync(resolve(root, path));
   if (!file.startsWith(root + sep) || !statSync(file).isFile()) throw new Error("Asset escapes the public directory");
@@ -68,6 +69,8 @@ export function prepareSchemes(publicRoot: string): { schemesJson: string; asset
   return { schemesJson: JSON.stringify(out), assets };
 }
 
+const contentTypes = { pdf: "application/pdf", png: "image/png", json: "application/json" } as const;
+
 export function prepareRelease(publicRoot: string, sourceCommit: string, fingerprint = "") {
   const source = readFileSync(resolve(publicRoot, "bank/catalogue.json"));
   const catalogue = JSON.parse(source.toString()) as CatalogueAssets;
@@ -77,13 +80,15 @@ export function prepareRelease(publicRoot: string, sourceCommit: string, fingerp
   for (const path of paths) {
     const data = readFileSync(assetFile(publicRoot, path));
     const sha256 = digest(data);
-    const extension = path.endsWith(".pdf") ? "pdf" : "png";
+    const extension = path.endsWith(".pdf") ? "pdf" : path.endsWith(".json") ? "json" : "png";
+    // A worked solution's steps file must be JSON before it is published.
+    if (extension === "json") JSON.parse(data.toString("utf8"));
     const key = `bank/assets/sha256/${sha256}.${extension}`;
     pathMap.set(path, key);
     const existing = objects.get(key);
     if (existing) existing.sources.push(path);
     else objects.set(key, { key, sha256, md5: digest(data, "md5"), bytes: data.length,
-      contentType: extension === "pdf" ? "application/pdf" : "image/png", sources: [path] });
+      contentType: contentTypes[extension], sources: [path] });
   }
   for (const question of catalogue.questions) {
     for (const field of ["questionPdf", "printPdf", "schemePdf"] as const) question[field] = pathMap.get(question[field])!;
@@ -92,10 +97,7 @@ export function prepareRelease(publicRoot: string, sourceCommit: string, fingerp
       cut.pdf = pathMap.get(cut.pdf)!;
       for (const view of cut.views) view.preview = pathMap.get(view.preview)!;
     }
-    if (question.workedSolution) {
-      question.workedSolution.pdf = pathMap.get(question.workedSolution.pdf)!;
-      for (const view of question.workedSolution.views) view.preview = pathMap.get(view.preview)!;
-    }
+    if (question.workedSolution) question.workedSolution.data = pathMap.get(question.workedSolution.data)!;
   }
   const catalogueJson = JSON.stringify(catalogue);
   const { schemesJson, assets: schemes } = prepareSchemes(publicRoot);

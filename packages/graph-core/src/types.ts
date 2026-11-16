@@ -91,6 +91,9 @@ export interface StraightObject extends BaseObject, NamedObject {
   labels?: PointLabel[];
   /** A right-angled triangle under or over the line that shows its gradient (U76). */
   gradientTriangle?: GradientTriangle;
+  /** A vector arrowhead (segments only): at the end, or centred on the middle as exam vector
+   * diagrams print it. Omitted means no arrowhead. */
+  arrow?: "end" | "middle";
 }
 
 /** Where a gradient triangle sits on its line, and what its legs print. */
