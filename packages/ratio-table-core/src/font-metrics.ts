@@ -1,6 +1,7 @@
 // Generated from bundled STIX Two Text hmtx/cmap; regenerate with scripts/ratio-font-metrics.py.
 const regular: Record<string, number> = {
   " ": 0.235,
+  "%": 0.692,
   "-": 0.315,
   ".": 0.245,
   "/": 0.387,
@@ -67,12 +68,14 @@ const regular: Record<string, number> = {
   x: 0.479,
   y: 0.483,
   z: 0.458,
+  "\u00a3": 0.495,
   "\u00d7": 0.655,
   "\u00f7": 0.577,
   "\u2212": 0.72,
 };
 const italic: Record<string, number> = {
   " ": 0.225,
+  "%": 0.685,
   "-": 0.315,
   ".": 0.242,
   "/": 0.386,
@@ -139,6 +142,7 @@ const italic: Record<string, number> = {
   x: 0.453,
   y: 0.446,
   z: 0.425,
+  "\u00a3": 0.495,
   "\u00d7": 0.655,
   "\u00f7": 0.577,
   "\u2212": 0.72,
