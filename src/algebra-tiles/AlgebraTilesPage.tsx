@@ -56,6 +56,7 @@ import {
 import { LINK_PREFIX, parseAlgebraTilesLink, algebraTilesLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-tiles:v1");
 type Doc = Envelope["document"];
 /** What is selected on the diagram: a term (all its tiles) or a line under the tiles. */
@@ -508,8 +509,10 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Algebra tiles settings">
+          <aside className="inspector-stack md-kit" aria-label="Algebra tiles settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected item">
               <h2>{selected && (selectedTerm || selectedLine) ? `Selected: ${addressName(selected)}` : "Selected item"}</h2>
               {selectedTerm ? (
@@ -683,6 +686,8 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Expression and answer</h2>
               <label className="pt-hide">
@@ -785,6 +790,8 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

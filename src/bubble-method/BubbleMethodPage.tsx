@@ -59,6 +59,7 @@ import { terms } from "../../packages/bubble-method-core/src/maths";
 import { LINK_PREFIX, parseBubbleMethodLink, bubbleMethodLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:bubble-method:v1");
 type Doc = Envelope["document"];
 
@@ -362,7 +363,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <FieldErrors.Provider value={fieldErrorContext}>
-    <div className="app-shell booklet-editor pt-editor bm-editor">
+    <div className="app-shell booklet-editor pt-editor bub-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
         <PageHeading title="Bubble method" description="Set out solving equations and inequalities and changing the subject with the bubble method, with lines and bubbles left blank or hidden for pupils.">
           <ResourceSaveStatus text={saveState} />
@@ -451,7 +452,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                       <button
                         key={h.slot}
                         type="button"
-                        className={`pt-hit ${isBubble(h.slot) ? "" : "bm-line-hit"} ${selected === h.slot ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
+                        className={`pt-hit ${isBubble(h.slot) ? "" : "bub-line-hit"} ${selected === h.slot ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
                         aria-label={`Edit the ${slotName(h.slot)}`}
                         title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
                         disabled={blocked}
@@ -484,8 +485,10 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Bubble method settings">
+          <aside className="inspector-stack md-kit" aria-label="Bubble method settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected item">
               <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected item"}</h2>
               {selected && selectedValue ? (
@@ -594,11 +597,13 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Steps</h2>
               <p className="pt-note">Each step is a pair of bubbles and the line they lead to. Nothing is worked out for you.</p>
               {d.steps.map((s, i) => (
-                <fieldset key={i} className="bm-step">
+                <fieldset key={i} className="md-kit-group">
                   <legend>Step {i + 1}</legend>
                   <div className="pt-row">
                     <button type="button" disabled={blocked || d.steps.length >= MAX_STEPS} onClick={() => commit(() => addStep(e, i), "add step")}>
@@ -654,6 +659,8 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

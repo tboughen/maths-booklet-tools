@@ -1,9 +1,3 @@
-.wm-marks {
-  border: 1px solid var(--line, #c9d3dd);
-  border-radius: 6px;
-  margin: 8px 0;
-  padding: 6px 10px;
-}
 .wm-mark-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));

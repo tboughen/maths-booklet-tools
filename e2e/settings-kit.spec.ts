@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "./release-fixtures";
 
 // The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools, Plans and elevations
-// and the other statistics tools.
+// and the other tools that share the tree tools' settings classes.
 const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
@@ -308,15 +308,19 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-// The statistics tools that share the tree tools' settings classes. Each: its name, its address, the card a click on
-// the diagram fills, the other cards on the left and the cards on the right.
-const STATS: [string, string, string, string[], string[]][] = [
+// The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
+// diagram fills, the other cards on the left and the cards on the right.
+const SHARED: [string, string, string, string[], string[]][] = [
   ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
   ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
+  ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
+  ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps", "Layout"]],
+  ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
+  ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
 ];
 
-for (const [tool, path, selected, left, right] of STATS)
+for (const [tool, path, selected, left, right] of SHARED)
   test(`${tool} uses the kit, with everything in view`, async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(path);
@@ -362,4 +366,14 @@ test("Spinners, dice and bags: each object is a named group, and Layout stays in
   const layout = await chartCard(page, "Layout"), objects = await chartCard(page, "Objects");
   expect(layout.x).toBeLessThan(objects.x);
   expect(layout.y + layout.height).toBeLessThan(1080);
+});
+
+test("Bubble method: a tick sits beside its words, not above them", async ({ page }) => {
+  // The tool once shared a class prefix with Bar modelling, whose label rule stacked every tick over its words.
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/bubble-method");
+  const label = page.locator(".md-kit .panel-card label").filter({ hasText: "This working has a deliberate error" });
+  const tick = (await label.locator("input").boundingBox())!, whole = (await label.boundingBox())!;
+  expect(whole.height).toBeLessThan(24);
+  expect(tick.x).toBe(whole.x);
 });
