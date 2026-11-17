@@ -170,3 +170,33 @@ test("topic controls, table and review fit narrow screens with keyboard dismissa
     await expect(review).toBeFocused();await page.screenshot({path:resolve(report,`topics-${width}.png`)});
   }
 });
+
+test("your paper sits beside the codes with a picture of each question, and a cross removes one question",async({page})=>{
+  await page.setViewportSize({width:1920,height:1080});await page.goto("/question-bank?bankView=topics");
+  const builder=page.getByRole("region",{name:"Build a paper by topic",exact:true}),paper=page.getByRole("region",{name:"Your paper",exact:true});
+  await expect(paper).toContainText("Each code you tick adds its questions here straight away.");
+  await builder.getByRole("combobox",{name:"Paper type",exact:true}).selectOption("past");
+  for(const code of ["U538","U793"]){await page.getByRole("searchbox",{name:"Search codes or topics"}).fill(code);await page.getByRole("checkbox",{name:`Include questions for ${code}`,exact:true}).check();}
+  await expect(paper).toContainText("2 selected codes · 1 distinct question · 4 marks");
+  // Side by side on the usual screen: the paper starts where the codes end, and both fill the height.
+  const [codes,panel]=[await builder.boundingBox(),await paper.boundingBox()];
+  expect(panel!.x).toBeGreaterThanOrEqual(codes!.x+codes!.width);expect(panel!.width).toBeGreaterThan(500);expect(panel!.y+panel!.height).toBeGreaterThan(1000);
+  const row=paper.getByRole("listitem");
+  await expect(row).toHaveCount(1);await expect(row).toContainText("Higher · Non-calculator");await expect(row).toContainText("4 marks");
+  for(const code of ["U538","U793"])await expect(row).toContainText(code);
+  // The picture is the question itself, at a size that can be read.
+  await expect.poll(()=>row.locator("img").evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0&&el.getBoundingClientRect().width)).toBeGreaterThan(300);
+  await row.getByRole("button",{name:/^Remove /}).click();
+  await expect(paper).toContainText("2 selected codes · 0 distinct questions · 0 marks");await expect(row).toHaveCount(0);
+  // The panel says why it is empty, and the keyboard stays in it.
+  await expect(paper).toContainText("Every matching question has been removed.");
+  await expect(paper.getByRole("button",{name:"Clear paper",exact:true})).toBeFocused();
+  await paper.getByRole("button",{name:"Restore 1 removed",exact:true}).click();
+  await expect(row).toHaveCount(1);await expect(paper.getByRole("button",{name:/^Restore/})).toHaveCount(0);
+  // An upright monitor puts the paper under the codes, with the review button still on screen.
+  await page.setViewportSize({width:1080,height:1920});
+  const [above,below]=[await builder.boundingBox(),await paper.boundingBox()];
+  expect(below!.y).toBeGreaterThanOrEqual(above!.y+above!.height);expect(below!.width).toBeGreaterThan(1000);
+  await expect(paper.getByRole("button",{name:"Review paper",exact:true})).toBeInViewport();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(1080);
+});

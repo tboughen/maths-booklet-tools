@@ -38,8 +38,8 @@ test("split hosting displays question/scheme canvases, PNG previews and both rea
   await page.goto("/question-bank?code=U945&question=1MA1_JUN_2018_3H_Q3");
   await expect(page.locator(".site-page:not([hidden]) .qb-canvas-host canvas").first()).toBeVisible();
   await expect(page.locator(".qb-view-error")).toHaveCount(0);
-  await page.getByRole("button", {name: "Show mark scheme", exact: true}).click();
-  await expect(page.getByRole("button", {name: "Hide mark scheme", exact: true})).toBeVisible();
+  await page.getByRole("button", {name: "Mark scheme", exact: true}).click();
+  await expect(page.getByRole("button", {name: "Mark scheme", exact: true})).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();
   await expect(page.locator(".qb-view-error")).toHaveCount(0);
   await page.getByRole("button", {name: "Select question", exact: true}).click();

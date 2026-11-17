@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts } from "pdf-lib";
 import { Resvg } from "@resvg/resvg-js";
 import type { BankCatalogue, BankQuestion } from "../src/bank/model";
 import { routeCatalogue } from "./catalogue-route";
+import { pane, paneSwitch, showOnly } from "./question-bank-panes";
 
 const prefix = "bank/assets/worked-fixture/";
 const target = "SYNTHETIC_1F_Q1";
@@ -57,7 +58,7 @@ async function seed(page: Page, body = steps()) {
     return route.fulfill({ status: body ? 200 : 404, contentType: path.endsWith(".png") ? "image/png" : path.endsWith(".json") ? "application/json" : "application/pdf", body });
   });
   await page.goto(`/question-bank?tier=F&question=${target}`, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: "Show worked solution", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Worked solution", exact: true })).toBeEnabled();
   await expect(page.locator(".qb-canvas-host canvas")).toHaveCount(1);
   return { requests };
 }
@@ -67,35 +68,51 @@ const ink = (page: Page) => page.locator(".qb-worked-ink svg");
 test("worked solutions are drawn over the question, deliberately revealed and scoped to the selected question", async ({ page }) => {
   const { requests } = await seed(page);
   expect(requests.some(p => p.endsWith(".json"))).toBe(false);
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Hide worked solution", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".qb-view-info")).toContainText("Worked solution");
+  await paneSwitch(page, "Worked solution").click();
+  await expect(paneSwitch(page, "Worked solution")).toHaveAttribute("aria-pressed", "true");
+  // It opens beside the question, and the footer follows it.
+  await expect(pane(page, "Question")).toBeVisible();
+  await expect(pane(page, "Worked solution")).toBeVisible();
+  await expect(page.locator(".qb-navigation")).toContainText("Worked solution · View 1 of 1");
   await expect(ink(page)).toBeVisible();
   await expect(ink(page)).toContainText("4x + 3");
   await expect(ink(page).locator("ellipse")).toHaveCount(4);
   await expect(ink(page).locator(".wk-mark")).toHaveCount(2);
   // The question itself is underneath: the working is drawn over the printed page at true size.
-  await expect(page.getByRole("img", { name: "Synthetic printed question", exact: true })).toBeVisible();
+  await expect(pane(page, "Worked solution").getByRole("img", { name: "Synthetic printed question", exact: true })).toBeVisible();
   const [surface, svg] = await Promise.all([page.locator(".qb-worked-surface").boundingBox(), ink(page).boundingBox()]);
   expect(Math.abs(surface!.width - svg!.width)).toBeLessThan(1);
   expect(await page.evaluate(() => document.fonts.check('12px "MathsDock Hand"'))).toBe(true);
-  await page.getByRole("button", { name: "Show mark scheme", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Show worked solution", exact: true })).toHaveAttribute("aria-pressed", "false");
-  await expect(ink(page)).toHaveCount(0);
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  // The mark scheme joins them; each switch only turns its own pane on or off.
+  await paneSwitch(page, "Mark scheme").click();
+  await expect(pane(page, "Mark scheme")).toBeVisible();
   await expect(ink(page)).toBeVisible();
+  await paneSwitch(page, "Worked solution").click();
+  await expect(paneSwitch(page, "Worked solution")).toHaveAttribute("aria-pressed", "false");
+  await expect(ink(page)).toHaveCount(0);
+  await expect(pane(page, "Mark scheme")).toBeVisible();
+  await paneSwitch(page, "Worked solution").click();
+  await expect(ink(page)).toBeVisible();
+  // Whatever the order they were switched on, the panes sit as Question, Mark scheme, Worked solution.
+  await expect(page.locator(".qb-pane-header > span")).toHaveText(["Question", "Mark scheme", "Worked solution"]);
+  const lefts = await page.locator(".qb-pane").evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().left));
+  expect(lefts).toEqual([...lefts].sort((a, b) => a - b));
+  // Mark notes and step by step sit on the worked solution's own pane, also when it is the only one.
+  await expect(pane(page, "Worked solution").getByRole("group", { name: "Worked solution options", exact: true })).toBeVisible();
+  await showOnly(page, "Worked solution");
+  await expect(pane(page, "Worked solution").getByRole("group", { name: "Worked solution options", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.locator(".qb-source-heading strong")).toHaveText("Synthetic next Q2");
-  await expect(page.getByRole("button", { name: "Show worked solution", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Worked solution", exact: true })).toBeDisabled();
   await expect(page.getByText("Not available yet", { exact: true })).toBeVisible();
   await expect(ink(page)).toHaveCount(0);
   await page.goBack();
-  await expect(page.getByRole("button", { name: "Show worked solution", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Worked solution", exact: true })).toHaveAttribute("aria-pressed", "false");
 });
 
 test("working longer than the printed space adds room instead of shrinking", async ({ page }) => {
   await seed(page, steps(170));
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(ink(page)).toBeVisible();
   await expect(page.locator(".qb-worked-slice")).toHaveCount(2);
   await page.locator(".qb-worked-surface").screenshot({ path: test.info().outputPath("worked-room.png") });
@@ -107,7 +124,7 @@ test("working longer than the printed space adds room instead of shrinking", asy
 
 test("paper exports keep their two outputs and the old PDF link is gone", async ({ page }) => {
   await seed(page);
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(ink(page)).toBeVisible();
   await page.getByLabel("Question options", { exact: true }).click();
   await expect(page.getByRole("link", { name: "Worked solution PDF", exact: true })).toHaveCount(0);
@@ -124,7 +141,7 @@ test("a failed or changed steps file shows a clear message and can be retried", 
   await seed(page);
   let fail = true;
   await page.route(`**/${stepsFile}`, route => fail ? route.fulfill({ status: 503, body: "unavailable" }) : route.fallback());
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("could not load");
   await expect(ink(page)).toHaveCount(0);
   fail = false; await page.getByRole("button", { name: "Try again", exact: true }).click();
@@ -134,12 +151,12 @@ test("a failed or changed steps file shows a clear message and can be retried", 
 test("narrow screens and a crossover occurrence", async ({ page }) => {
   await seed(page);
   await page.setViewportSize({ width: 375, height: 900 });
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(ink(page)).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goto("/question-bank?tier=H&question=SYNTHETIC_1H_Q1");
   await expect(page.locator(".qb-source-heading strong")).toHaveText("Synthetic higher Q1");
-  await expect(page.getByRole("button", { name: "Show worked solution", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Worked solution", exact: true })).toBeDisabled();
 });
 
 test("a part found by its topic code shows its working over its own cut, and the whole question on request", async ({ page }) => {
@@ -177,7 +194,7 @@ test("a part found by its topic code shows its working over its own cut, and the
     return route.fulfill({ contentType: "image/png", body: new Resvg('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>').render().asPng() });
   });
   await page.goto(`/question-bank?code=${encodeURIComponent(code)}&tier=F&question=${question.id}`, { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(ink(page)).toContainText("Synthetic working");
   await expect(page.locator(".qb-view-info")).toContainText("Show whole question");
   await page.getByRole("button", { name: "Show whole question", exact: true }).click();
@@ -187,13 +204,13 @@ test("a part found by its topic code shows its working over its own cut, and the
 
 test("step by step and the Mark notes switch hide parts of the working without moving anything", async ({ page }) => {
   await seed(page);
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await showOnly(page, "Worked solution");
   await expect(ink(page)).toBeVisible();
   const visibleSteps = () => ink(page).locator("[data-step]").evaluateAll(groups => groups.filter(g => (g as SVGGElement).style.display !== "none").map(g => (g as SVGGElement).dataset.step));
   const answer = ink(page).locator("text", { hasText: "4x + 3" }).first();
   const box = () => answer.boundingBox();
   // The page refits the cut to the room a frame after the working appears: measure once the
-  // surface fills the stage height (less its 32 px padding), as this viewport fits by height.
+  // surface fills the stage height (less its 32 px padding), as the pane by itself fits by height here.
   const fitted = () => expect.poll(() => page.evaluate(() => {
     const stage = document.querySelector(".qb-stage"), surface = document.querySelector(".qb-worked-surface");
     return stage && surface ? Math.abs(surface.getBoundingClientRect().height - (stage.clientHeight - 32)) < 0.5 : false;
@@ -232,13 +249,13 @@ test("step by step and the Mark notes switch hide parts of the working without m
   await expect(ink(page).locator("text", { hasText: "subtracts 3 from both sides" })).toBeVisible();
   expect(await box()).toEqual(before);
   await page.reload();
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(page.getByRole("checkbox", { name: "Mark notes", exact: true })).not.toBeChecked();
 });
 
 test("a worked solution exports as an image with its working drawn in", async ({ page }) => {
   await seed(page, steps(170));
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(ink(page)).toBeVisible();
   const download = page.waitForEvent("download"); await page.getByRole("button", { name: "PNG", exact: true }).click();
   const file = await download;
@@ -273,12 +290,12 @@ test("a worked solution exports as an image with its working drawn in", async ({
 
 test("step by step starts again on another question", async ({ page }) => {
   await seed(page);
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await page.getByRole("button", { name: "Step by step", exact: true }).click();
   await page.getByRole("button", { name: "Next step", exact: true }).click();
   await expect(page.getByText("Step 1 of 6", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByRole("button", { name: "Previous", exact: true }).click();
-  await page.getByRole("button", { name: "Show worked solution", exact: true }).click();
+  await page.getByRole("button", { name: "Worked solution", exact: true }).click();
   await expect(page.getByText("Step 0 of 6", { exact: true })).toBeVisible();
 });

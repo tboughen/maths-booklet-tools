@@ -235,8 +235,53 @@ Card size carries meaning: a bigger card lets you do more, so a Tools card is mu
 favourite. Small words that sit straight on the page colour use `--md-ink-2`, because
 `--md-ink-3` is too pale there.
 
-## Decided, and built in later steps
+## Question bank: three switches (in the site)
 
-- **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
-  is on sits side by side, and switching one off lets the rest grow.
-- **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.
+The viewer has three switches in the question's header: **Question**, **Mark scheme** and
+**Worked solution** (`src/bank/QuestionBank.tsx`; each pane's views, fit, zoom and pan are
+`usePane` in `src/bank/usePane.ts`). A switch that is on is blue, like every pressed button in the
+bank.
+
+- Whatever is on sits side by side, always in that order, and switching one off lets the rest
+  grow. One pane always stays on: the only pane cannot be switched off, and switching off the last
+  answer brings the question back.
+- A question opens by itself. Another question, a filter or a reload shows only the question
+  again, so answers are never on screen by accident, and links never carry an answer.
+- With two or three panes on, each has a small header with its icon and name. A pane by itself
+  has none, so the page gets the room. The worked solution's header also holds its own options,
+  Mark notes and Step by step, so using them never moves the page.
+- Each pane has its own zoom and place. An answer opens afresh at fit each time it is switched on.
+  A zoomed pane keeps the same part of the page at its top left when a neighbour is switched on or
+  off, and the question comes back where it was left. The fit mode (Fit view, Fit width) is shared,
+  so choosing one puts every pane back at fit.
+- The footer (zoom, fit, Whole question, Copy image, PNG, Previous and Next) and the keys act on
+  the pane last used: the one last switched on, clicked, touched, pinched or tabbed to. Its header
+  has a blue line, and the footer names it beside the view count.
+- The browser's Back within one question keeps the panes; Back to another question shows only the
+  question. Pane headers never print.
+- M switches the mark scheme. Annotations work on every pane on screen, and undo follows the
+  order they were drawn in.
+- On a window that is upright or under 1,000 px wide the panes stack, each at the full width.
+- Tests: `e2e/question-bank-panes.spec.ts`, with the helpers `paneSwitch`, `pane` and `showOnly`
+  in `e2e/question-bank-panes.ts` for any test that shows an answer.
+
+## Paper builder: your paper beside the codes (in the site)
+
+The Paper builder has two parts side by side (`src/bank/TopicPaperBuilder.tsx`,
+`src/bank/PaperSummary.tsx`, styles in `src/bank/paper-builder.css`, which loads with the page and
+stays out of the first-load stylesheet).
+
+- **The codes, on the left.** One row of filters with no labels above them (each option says what
+  it is, and the name is in the tooltip and for screen readers), one line of counts, and the table
+  of Sparx codes with 32 px rows. A ticked row is blue.
+- **Your paper, on the right.** The counts and the ticked codes at the top, then one row for each
+  question with a picture of the top of the question, its paper, tier, calculator, the codes that
+  matched and its marks. The cross removes that one question, and "Restore removed" brings back
+  everything removed. Clear paper and Review paper stay at the bottom.
+- The picture keeps one scale, so the question can be read. A narrower panel shows less of its
+  width. Pictures load only when their row comes near the screen.
+- An upright window, or one under 1,000 px wide, puts your paper under the codes. On a phone the
+  codes scroll as one page and your paper, with its Review button, stays in view.
+- The order of the questions, the page layout and the downloads stay in Review paper.
+- The Question bank keeps the short "Your paper" bar under the question.
+- Tests: `e2e/paper-builder.spec.ts`.

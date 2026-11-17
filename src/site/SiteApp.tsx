@@ -75,13 +75,17 @@ function Ready({ onReady }: { onReady: () => void }) {
 
 /**
  * Each page's listener for its document steps, which keeps Home's "Carry on" row. One function
- * for each page, so the pages do not redraw; the store's code loads on the first change.
+ * for each page, so the pages do not redraw. The store's code is fetched as the first page that
+ * can change opens, not at the first change: a change made just before the page is left would
+ * otherwise go unrecorded.
  */
 const recorders = new Map<WorkPlace, (state: "changed" | "undone") => void>();
+const recentWork = () => import("./recentWork");
 function workRecorder(id: WorkPlace) {
   let recorder = recorders.get(id);
   if (!recorder) {
-    recorder = (state) => void import("./recentWork").then((store) => store.workRecorder(id)(state));
+    void recentWork().catch(() => {});
+    recorder = (state) => void recentWork().then((store) => store.workRecorder(id)(state));
     recorders.set(id, recorder);
   }
   return recorder;

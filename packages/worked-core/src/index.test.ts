@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { create as createGrid } from "../../algebra-grid-core/src/index";
 import { example as numberLine } from "../../number-line-core/src/examples";
-import { checkWorked, claimedMarks, diagramSvg, lastTerm, layoutWorked, mathsText, mathsWidth, parseWorked, pieces, slices, type WorkedData } from "./index";
+import { checkWorked, claimedMarks, diagramSvg, lastTerm, layoutWorked, mathsText, mathsWidth, noteMarkup, noteText, parseWorked, pieces, slices, type WorkedData } from "./index";
 
 const surfaces = [{ id: "a-1", width: 480, height: 200 }, { id: "b-1", width: 480, height: 160 }, { id: "stem-1", width: 480, height: 300 }];
 
@@ -380,5 +380,15 @@ describe("worked-solution drawing review fixes", () => {
     const raw = base();
     raw.parts[1].steps[1] = { ...raw.parts[1].steps[1], text: "{_{a}/2}" };
     expect(checkWorked(parseWorked(raw), question, surfaces).some(p => /vector inside a fraction/.test(p))).toBe(true);
+  });
+});
+
+describe("guidance typesetting", () => {
+  it("raises squares and cubes and turns a hyphen used as minus into a minus sign", () => {
+    expect(noteText("x^2 - 4 = -3, b = -42 and 2^3")).toBe("x² − 4 = −3, b = −42 and 2³");
+    expect(noteText("well-drawn line, 1-1 match")).toBe("well-drawn line, 1-1 match");
+    expect(noteText("10^2.5")).toBe("10^2.5");
+    expect(noteText("Watch out - M1 - method; 2n - 1 and (x + 2) - 3")).toBe("Watch out - M1 - method; 2n − 1 and (x + 2) − 3");
+    expect(noteMarkup("4.5 × 10^24 & 10^-3")).toBe("4.5 × 10<tspan dy=\"-3.5\" font-size=\"7\">24</tspan><tspan dy=\"3.5\">\u200b</tspan> &amp; 10<tspan dy=\"-3.5\" font-size=\"7\">−3</tspan><tspan dy=\"3.5\">\u200b</tspan>");
   });
 });
