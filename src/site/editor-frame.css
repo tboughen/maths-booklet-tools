@@ -42,5 +42,6 @@
   /* In two tools the cards sit inside groups that have no box of their own. */
   .site-app .site-page--tool .booklet-editor .inspector-stack > .ratio-settings { display: contents; }
   .site-app .site-page--tool .booklet-editor .inspector-stack > *,
-  .site-app .site-page--tool .booklet-editor .inspector-stack > :is(.graph-control-group, .ratio-settings) > * { break-inside: avoid; margin: 0 0 12px; }
+  .site-app .site-page--tool .booklet-editor .inspector-stack > :is(.graph-control-group, .ratio-settings) > *,
+  .site-app .site-page--tool .booklet-editor .inspector-stack > .md-kit-cards > * > * { break-inside: avoid; margin: 0 0 12px; }
 }
