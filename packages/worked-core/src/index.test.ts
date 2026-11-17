@@ -348,6 +348,7 @@ describe("worked-solution recurring decimals and fraction powers", () => {
   it("reads a braced power inside a stacked fraction", () => {
     expect(pieces("x = {4/x^{2}} + 1")).toEqual([{ kind: "run", text: "x = ", sup: false }, { kind: "fraction", num: "4", den: "x²" }, { kind: "run", text: " + 1", sup: false }]);
     expect(pieces("{a^3/2}")).toEqual([{ kind: "fraction", num: "a³", den: "2" }]);
+    expect(pieces("{4/x^{2n}}")).toEqual([{ kind: "fraction", num: "4", den: "x^{2n}" }]);
   });
 });
 

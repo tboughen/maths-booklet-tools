@@ -256,7 +256,7 @@ export function pieces(s: string): Piece[] {
 }
 
 /** A fraction's numerator or denominator is one line: squares and cubes print as ² and ³ there. */
-const fractionPart = (s: string) => s.trim().replace(/\^\{?2\}?(?![\d])/g, "²").replace(/\^\{?3\}?(?![\d])/g, "³");
+const fractionPart = (s: string) => s.trim().replace(/\^(?:\{2\}|2(?![0-9A-Za-z]))/g, "²").replace(/\^(?:\{3\}|3(?![0-9A-Za-z]))/g, "³");
 
 const handWidth = (s: string, size: number) => Array.from(s).reduce((n, c) => n + handAdvance(c), 0) * size;
 const noteWidth = (s: string, size: number, bold = false) => Array.from(s).reduce((n, c) => n + interAdvance(c, bold ? "bold" : "regular"), 0) * size;
