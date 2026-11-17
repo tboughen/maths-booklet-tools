@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "./release-fixtures";
 
-// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts and the tree tools.
+// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools and Plans and elevations.
 const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
@@ -250,4 +250,62 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(lists, path).toEqual(path === "/tools/factor-tree" ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
+});
+
+test("Plans and elevations uses the kit: the solid and printing on the left, the panels on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/elevations");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const solid = (await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!;
+  const printing = await chartCard(page, "Printing"), panels = await chartCard(page, "Panels");
+  expect(printing.x).toBe(solid.x);
+  expect(printing.y).toBeGreaterThan(solid.y + solid.height);
+  expect(panels.x).toBeGreaterThanOrEqual(solid.x + solid.width);
+  expect(panels.y).toBe(solid.y);
+  // The settings were 1,693 px long before the kit. With four panels they are now about 1,000 px in a 967 px column.
+  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1100);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // The grid of heights stays a small grid, and a square with cubes on it stays marked.
+  const grid = (await page.locator(".ev-heights").boundingBox())!;
+  expect(grid.width).toBeLessThan(solid.width / 2);
+  const filled = page.locator(".ev-heights select.ev-filled").first(), empty = page.locator(".ev-heights select:not(.ev-filled)").first();
+  expect(await filled.boundingBox()).toMatchObject({ height: 32 });
+  expect(await filled.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
+  expect(await empty.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
+  // The widest solid there can be (six columns) still fits its card at the narrowest two-column window.
+  await page.setViewportSize({ width: 1800, height: 900 });
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add a column on the right", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Add a column on the right", exact: true })).toBeDisabled();
+  const fits = await page.locator(".ev-heights").evaluate((el) => {
+    const cardStyle = getComputedStyle(el.closest(".panel-card")!), card = el.closest(".panel-card")!.getBoundingClientRect();
+    return el.getBoundingClientRect().right <= card.right - parseFloat(cardStyle.paddingRight) - parseFloat(cardStyle.borderRightWidth);
+  });
+  expect(fits).toBe(true);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const sizes = await stack.evaluate((el) => ({
+    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
+    fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
+    faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
+    cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
+  }));
+  expect(sizes).toEqual({ buttons: [32], fields: [32], faded: 0, cut: [] });
+
+  // One column in a smaller window, in the same order.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const [a, b, c] = [(await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!, await chartCard(page, "Printing"), await chartCard(page, "Panels")];
+  expect([b.x, c.x]).toEqual([a.x, a.x]);
+  expect(b.y).toBeGreaterThan(a.y);
+  expect(c.y).toBeGreaterThan(b.y);
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  const small = await stack.evaluate((el) =>
+    [...el.querySelectorAll<HTMLElement>(".panel-card :is(button, select, input:not([type=checkbox]), label:has(> input[type=checkbox]))")]
+      .filter((x) => x.getBoundingClientRect().height > 0 && x.getBoundingClientRect().height < 44)
+      .map((x) => x.textContent || x.getAttribute("aria-label")),
+  );
+  expect(small).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
