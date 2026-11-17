@@ -58,6 +58,27 @@ It rewrites `public/bank/catalogue.json` and stops, writing nothing, on any miss
 label that does not match the catalogue or any broken link. The cutter, the original papers and the
 manifests stay outside the repositories.
 
+### Lost-lines fix (17 November 2026)
+
+The first vector cut redacted the strips outside each crop and the masks with MuPDF's
+`LINE_ART_REMOVE_IF_TOUCHED` and `TEXT_REMOVE`. MuPDF then dropped whole paths that did not visibly
+touch them (a parallelogram drawn in one path with its angle arc, spinners, pie charts, semicircles,
+cylinders, number-machine boxes, hatching, recurring-decimal dots) and letters whose boxes grazed a
+mask. The cutter now removes a letter only when its centre is outside the crop or inside a mask, and a
+path only when a strip or mask wholly covers it; the crop clip hides the rest.
+
+A sweep rendered every bank cut and compared it with the cutter's render of the original page: 58
+cuts in 50 questions had lost ink. They were re-cut at the same paths and sizes. Fourteen were
+whole questions, so their `revision` changed:
+
+```
+python3 -I scripts/bank/apply-cut-fix.py <bank-checkout> <question id> ...
+```
+
+A worked solution registered on the old revision is removed by that script and stays hidden until it
+is checked against the re-cut and registered again. Any future cut should be swept the same way
+before it reaches the bank.
+
 ## In the app
 
 - **Question Bank.** With a topic open, a question cut into parts shows only the parts mapped to that
