@@ -627,17 +627,19 @@ export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet
  * and answers copies stay exactly as they are, and the notes print on A4 pages numbered from 1,
  * with the booklet's footer. Empty notes give no pages.
  */
-export function renderLessonNotes(saved: Booklet, lesson: number, options: Pick<BookletRenderOptions, "style" | "fontCss"> = {}): { pages: string[]; issues: BookletIssue[] } {
+export function renderLessonNotes(saved: Booklet, lesson: number, options: Pick<BookletRenderOptions, "style" | "fontCss"> & { numbering?: { lessonOffset: number } } = {}): { pages: string[]; issues: BookletIssue[] } {
   const booklet = typesetForPrint(saved);
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
   const issues: BookletIssue[] = [];
-  for (const c of missingCharacters({ text: doc.lessons[lesson].teacherNotes })) issues.push({ lesson: lesson + 1, message: missingCharacterMessage(`Lesson ${lesson + 1}'s teaching notes`, c) });
-  const planned = planNotes(doc.lessons[lesson], lesson + 1);
+  // A lesson printed from a one-lesson booklet keeps its number in the unit, as lessonPagesOf does.
+  const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0);
+  for (const c of missingCharacters({ text: doc.lessons[lesson].teacherNotes })) issues.push({ lesson: lesson + 1, message: missingCharacterMessage(`Lesson ${shown}'s teaching notes`, c) });
+  const planned = planNotes(doc.lessons[lesson], shown);
   planned.forEach((np, k) => {
-    for (const l of np.lines) if (l.tooWide) issues.push({ lesson: lesson + 1, page: k + 1, message: `Lesson ${lesson + 1}'s teaching notes have a word too long for the line: "${l.text.slice(0, 40)}". Break it up or shorten it.` });
+    for (const l of np.lines) if (l.tooWide) issues.push({ lesson: lesson + 1, page: k + 1, message: `Lesson ${shown}'s teaching notes have a word too long for the line: "${l.text.slice(0, 40)}". Break it up or shorten it.` });
   });
-  const pages = planned.map((np, k) => page(notesSvg(np, st) + footer(doc, k + 1, st), `${doc.title}, teaching notes for lesson ${lesson + 1}, page ${k + 1}`, options));
+  const pages = planned.map((np, k) => page(notesSvg(np, st) + footer(doc, k + 1, st), `${doc.title}, teaching notes for lesson ${shown}, page ${k + 1}`, { fontCss: options.fontCss }));
   return { pages, issues };
 }
 

@@ -162,6 +162,10 @@ describe("teaching notes as a file of their own (Tim, 17 Nov 2026)", () => {
     const xml = strFromU8(unzipSync(word.bytes)["word/document.xml"]);
     expect(xml).toContain("Teaching notes · Lesson 1");
     expect(xml).toContain("Misconception");
+    // A lesson printed from a one-lesson booklet keeps its number in the unit.
+    expect(renderLessonNotes(b, 0, { numbering: { lessonOffset: 2 } }).pages[0]).toContain("Teaching notes · Lesson 3");
+    const third = strFromU8(unzipSync((await writeLessonNotesDocx(b, 0, { ...docxOptions, numbering: { lessonOffset: 2 } })).bytes)["word/document.xml"]);
+    expect(third).toContain("Teaching notes · Lesson 3");
     await expect(writeLessonNotesDocx(booklet([section("practice", 1)]), 0, docxOptions)).rejects.toThrow(/no teaching notes/);
   });
 });

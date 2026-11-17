@@ -477,14 +477,15 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
 }
 
 /** A lesson's teaching notes as a Word file: the same pages as renderLessonNotes, numbered from 1. */
-export async function writeLessonNotesDocx(saved: Booklet, lesson: number, options: DocxOptions): Promise<RenderedBookletDocx> {
+export async function writeLessonNotesDocx(saved: Booklet, lesson: number, options: DocxOptions & { numbering?: { lessonOffset: number } }): Promise<RenderedBookletDocx> {
   const booklet = typesetForPrint(saved);
   const st = styles.mathsdock;
   const doc = booklet.document;
-  const rendered = renderLessonNotes(booklet, lesson);
+  const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0);
+  const rendered = renderLessonNotes(booklet, lesson, { numbering: options.numbering });
   const ctx: Ctx = { st, view: "answers", diagrams: 0, issues: [], where: { lesson: lesson + 1 }, media: [], rels: [], pictures: [], maths: doc.notation === "maths" };
-  const pages = planNotes(doc.lessons[lesson], lesson + 1).map((np) => notesPage(np, st));
-  if (!pages.length) throw Error(`Lesson ${lesson + 1} has no teaching notes to print.`);
+  const pages = planNotes(doc.lessons[lesson], shown).map((np) => notesPage(np, st));
+  if (!pages.length) throw Error(`Lesson ${shown} has no teaching notes to print.`);
   const body = pages.map((xml, i) => pageOpen(i === 0) + xml).join("");
   const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
   const parts: ExtraPart[] = [{ name: "footer1.xml", id: "rIdFooter1", relType: "footer", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml", xml: footerPart(label, st, false) }];
@@ -497,7 +498,7 @@ export async function writeLessonNotesDocx(saved: Booklet, lesson: number, optio
     body: body + LAST_PARAGRAPH + sect,
     ctx,
     options,
-    title: `${doc.title} lesson ${lesson + 1} teaching notes`,
+    title: `${doc.title} lesson ${shown} teaching notes`,
     subject: [doc.code, doc.group].filter(Boolean).join(" "),
     keywords: ["MathsDock booklet", "teaching notes", doc.code, doc.group].filter(Boolean).join("; "),
     description: "Made by MathsDock from the booklet source: the lesson's teaching notes.",
