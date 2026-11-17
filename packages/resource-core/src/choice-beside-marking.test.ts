@@ -173,3 +173,10 @@ describe("bold round a stacked fraction (16 Nov 2026)", () => {
     expect(page).toMatch(/<g data-fraction="stacked"><text(?![^>]*font-weight)[^>]*>1<\/text>/);
   });
 });
+
+describe("tick and cross in the sheet font (16 Nov 2026)", () => {
+  it("prints ✓ and ✗ without a missing-character issue", () => {
+    const r = renderResource(sheet([{ type: "text", text: "Perfect points ✓ Triangle ✓ Wrong step ✗" }]));
+    expect(r.issues.filter((i) => /does not have/.test(i.message))).toEqual([]);
+  });
+});
