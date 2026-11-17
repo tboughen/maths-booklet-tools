@@ -443,6 +443,29 @@ describe("guidance typesetting", () => {
   });
 });
 
+describe("worked-solution fractional powers and nth roots", () => {
+  const run = (text: string, sup = false) => ({ kind: "run", text, sup });
+  it("reads a fractional power as a small stacked fraction, with its sign", () => {
+    expect(pieces("64^{1/3} = 4")).toEqual([run("64"), { kind: "power", sign: "", num: "1", den: "3" }, run(" = 4")]);
+    expect(pieces("64^{-2/3}")).toEqual([run("64"), { kind: "power", sign: "−", num: "2", den: "3" }]);
+    expect(pieces("x^{2}")).toEqual([run("x"), run("2", true)]);
+  });
+  it("reads cube and fourth roots, and root{n}{...}, with a small index", () => {
+    expect(pieces("∛64")).toEqual([{ kind: "root", body: [run("64")], index: "3" }]);
+    expect(pieces("∜(81)")).toEqual([{ kind: "root", body: [run("81")], index: "4" }]);
+    expect(pieces("root{5}{x + 1}")).toEqual([{ kind: "root", body: [run("x + 1")], index: "5" }]);
+  });
+  it("draws the power's fraction raised and the root's index, and gives the line room", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "line", lhs: "64^{-2/3}", rhs: "{1/16}" }, { kind: "line", lhs: "∛64", rhs: "4" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    expect(svg).not.toContain("2/3");
+    expect(svg).toMatch(/>−<\/text><text [^>]*text-anchor="middle">2<\/text><path [^>]*\/><text [^>]*text-anchor="middle">3<\/text>/);
+    expect(svg).toMatch(/class="wk-root"[^>]*\/><text [^>]*>3<\/text>/);
+    expect(mathsWidth("∛64")).toBeGreaterThan(mathsWidth("√64"));
+  });
+});
+
 describe("worked-solution square roots", () => {
   const run = (text: string, sup = false) => ({ kind: "run", text, sup });
   it("reads sqrt{...} and a root sign before a number, letters or a bracket", () => {

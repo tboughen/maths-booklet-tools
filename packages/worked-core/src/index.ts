@@ -218,7 +218,8 @@ export function mathsText(s: string): string {
 type Piece = { kind: "run"; text: string; sup: boolean; under?: boolean; arrow?: boolean; dot?: boolean }
   | { kind: "fraction"; num: Piece[]; den: Piece[] }
   | { kind: "column"; top: string; bottom: string }
-  | { kind: "root"; body: Piece[] };
+  | { kind: "root"; body: Piece[]; index?: string }
+  | { kind: "power"; sign: string; num: string; den: string };
 
 /** The index of the bracket closing the one at i, or -1. */
 const closing = (s: string, i: number, open: string, close: string) => {
@@ -242,7 +243,8 @@ function topSlash(s: string): number {
  * "_{a}" an underlined (handwritten bold) vector, "vec{AB}" an arrow over AB, "[3;-2]" a column vector,
  * and "dot{4}" a recurring-decimal dot over the 4 (0.2dot{4}dot{6} is 0.2464646...).
  * "sqrt{...}" is a square root with an overbar, and so is "√" before a number, a letter run, a braced
- * group or a bracketed group "(...)", whose brackets the overbar replaces.
+ * group or a bracketed group "(...)", whose brackets the overbar replaces. "∛" and "∜" (or "root{n}{...}")
+ * are the same with a small index. A fractional power "^{2/3}" or "^{-1/2}" is a small stacked fraction.
  * A fraction's numerator and denominator are laid out as maths too, but flat: a fraction inside one stays inline.
  */
 export function pieces(s: string, flat = false): Piece[] {
@@ -260,14 +262,20 @@ export function pieces(s: string, flat = false): Piece[] {
       const end = closing(s, i + 4, "{", "}");
       if (end > i + 5) { flush(); out.push({ kind: "root", body: pieces(s.slice(i + 5, end), flat) }); i = end; continue; }
     }
-    if (c === "√") {
+    const nth = /^root\{([0-9a-z]+)\}\{/.exec(rest);
+    if (nth) {
+      const open = i + nth[0].length - 1, end = closing(s, open, "{", "}");
+      if (end > open + 1) { flush(); out.push({ kind: "root", body: pieces(s.slice(open + 1, end), flat), index: nth[1] }); i = end; continue; }
+    }
+    if (c === "√" || c === "∛" || c === "∜") {
+      const index = c === "∛" ? "3" : c === "∜" ? "4" : undefined;
       const next = s[i + 1];
       // A bracketed group loses its brackets under the overbar; a braced group is kept whole, so {a/b} stays a fraction.
       const end = next === "(" ? closing(s, i + 1, "(", ")") : next === "{" ? closing(s, i + 1, "{", "}") : -1;
       // A braced fraction keeps its braces so it stacks; any other braced group loses them.
       const body = end > i + 2 ? (next === "{" && topSlash(s.slice(i + 2, end)) > 0 ? s.slice(i + 1, end + 1) : s.slice(i + 2, end)) : undefined;
       const atom = body === undefined ? /^(?:[0-9]+(?:\.[0-9]+)?|[A-Za-z]+)/.exec(s.slice(i + 1))?.[0] : undefined;
-      if (body !== undefined || atom) { flush(); out.push({ kind: "root", body: pieces(body ?? atom!, flat) }); i = body !== undefined ? end : i + atom!.length; continue; }
+      if (body !== undefined || atom) { flush(); out.push({ kind: "root", body: pieces(body ?? atom!, flat), ...(index ? { index } : {}) }); i = body !== undefined ? end : i + atom!.length; continue; }
     }
     if (c === "{") {
       // The matching brace, so a fraction may hold a braced power: {4/x^{2}}.
@@ -285,6 +293,8 @@ export function pieces(s: string, flat = false): Piece[] {
       let power = "";
       if (s[i + 1] === "{") { const end = s.indexOf("}", i + 1); if (end > i) { power = s.slice(i + 2, end); i = end; } }
       else { const m = /^[−-]?[0-9a-zA-Z]+/.exec(s.slice(i + 1)); if (m) { power = m[0]; i += m[0].length; } }
+      const frac = /^([−-]?)\s*([^/{}\s]+)\s*\/\s*([^/{}\s]+)$/.exec(power);
+      if (frac) { flush(); out.push({ kind: "power", sign: frac[1] ? "−" : "", num: frac[2], den: frac[3] }); continue; }
       if (power) { flush(); out.push({ kind: "run", text: power, sup: true }); continue; }
     }
     run += c;
@@ -310,6 +320,7 @@ const extent = (ps: Piece[], size: number): { up: number; down: number } => ps.r
 const pieceExtent = (p: Piece, size: number): { up: number; down: number } => {
   if (p.kind === "run") return { up: p.sup ? size * 0.9 : p.arrow ? size * 1.05 : p.dot ? size * 1.0 : size * 0.72, down: p.under ? size * 0.25 : size * 0.2 };
   if (p.kind === "column") return { up: size * 1.45, down: size * 0.95 };
+  if (p.kind === "power") return { up: size * 1.4, down: size * 0.2 };
   if (p.kind === "fraction") return { up: size * 0.32 + numLift(p.num, size) + extent(p.num, size).up, down: denDrop(p.den, size) - size * 0.32 + extent(p.den, size).down };
   const body = extent(p.body, size);
   return { up: body.up + size * 0.22, down: body.down + size * 0.04 };
@@ -321,16 +332,20 @@ const denDrop = (den: Piece[], size: number) => Math.max(size * 0.95, extent(den
 /** A root's radical sign: wider for a taller root, so its long stroke keeps the same slope. */
 const radical = (p: Extract<Piece, { kind: "root" }>, size: number) => {
   const e = pieceExtent(p, size);
-  return { e, lead: size * 0.32 + (e.up + e.down) * 0.16 };
+  return { e, lead: size * 0.32 + (e.up + e.down) * 0.16 + (p.index ? handWidth(p.index, size * 0.55) * 0.6 : 0) };
 };
 const rowWidth = (ps: Piece[], size: number) => ps.reduce((n, p) => n + pieceWidth(p, size), 0);
 const pieceWidth = (p: Piece, size: number): number => p.kind === "run" ? handWidth(p.text, p.sup ? size * 0.7 : size)
   : p.kind === "fraction" ? Math.max(rowWidth(p.num, size), rowWidth(p.den, size)) + size * 0.4
   : p.kind === "root" ? radical(p, size).lead + rowWidth(p.body, size) + size * 0.12
+  : p.kind === "power" ? powerWidth(p, size)
   : Math.max(handWidth(p.top, size), handWidth(p.bottom, size)) + size * 1.1;
+/** A fractional power: its sign, then a small stacked fraction, raised like a power. */
+const POWER_SIZE = 0.58;
+const powerWidth = (p: Extract<Piece, { kind: "power" }>, size: number) => handWidth(p.sign, size * POWER_SIZE) + Math.max(handWidth(p.num, size * POWER_SIZE), handWidth(p.den, size * POWER_SIZE)) + size * 0.2;
 export const mathsWidth = (s: string, size = HAND_SIZE) => rowWidth(pieces(s), size);
 /** Fractions and column vectors stand two lines tall, so their line takes more room, and so does a root over one. */
-const tall = (p: Piece): boolean => p.kind === "fraction" || p.kind === "column" || (p.kind === "root" && p.body.some(tall));
+const tall = (p: Piece): boolean => p.kind === "fraction" || p.kind === "column" || p.kind === "power" || (p.kind === "root" && p.body.some(tall));
 const hasFraction = (s: string) => pieces(s).some(tall);
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const n = (v: number) => Number(v.toFixed(2));
@@ -365,7 +380,14 @@ function row(ps: Piece[], x: number, y: number, size: number, fill: string): str
       const { e, lead } = radical(p, size), top = y - e.up, foot = y + e.down, h = foot - top;
       const tick = cursor + size * 0.04, toe = cursor + size * 0.32 - size * 0.12 + h * 0.06, head = cursor + lead;
       out += `<path class="wk-root" d="M${n(tick)} ${n(foot - h * 0.42)}L${n(tick + size * 0.12)} ${n(foot - h * 0.5)}L${n(toe)} ${n(foot)}L${n(head)} ${n(top)}H${n(cursor + w - size * 0.04)}" stroke="${fill}" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`
+        + (p.index ? `<text x="${n(tick + size * 0.02)}" y="${n(foot - h * 0.5 - size * 0.12)}" font-size="${n(size * 0.55)}" fill="${fill}">${esc(p.index)}</text>` : "")
         + row(p.body, head + size * 0.04, y, size, fill);
+    } else if (p.kind === "power") {
+      const f = size * POWER_SIZE, sw = handWidth(p.sign, f), body = w - sw - size * 0.2, mid = cursor + size * 0.06 + sw + body / 2, bar = y - size * 0.78;
+      out += (p.sign ? `<text x="${n(cursor + size * 0.06)}" y="${n(bar + f * 0.3)}" font-size="${n(f)}" fill="${fill}">${p.sign}</text>` : "")
+        + `<text x="${n(mid)}" y="${n(bar - f * 0.22)}" font-size="${n(f)}" fill="${fill}" text-anchor="middle">${esc(p.num)}</text>`
+        + `<path d="M${n(mid - body / 2 - 0.5)} ${n(bar)}H${n(mid + body / 2 + 0.5)}" stroke="${fill}" stroke-width="0.7" fill="none"/>`
+        + `<text x="${n(mid)}" y="${n(bar + f * 0.88)}" font-size="${n(f)}" fill="${fill}" text-anchor="middle">${esc(p.den)}</text>`;
     } else {
       const bar = y - size * 0.32, nw = rowWidth(p.num, size), dw = rowWidth(p.den, size);
       out += row(p.num, cursor + (w - nw) / 2, bar - numLift(p.num, size), size, fill)
