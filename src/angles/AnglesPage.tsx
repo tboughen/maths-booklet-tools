@@ -67,6 +67,7 @@ import { handleUndoKeys, objectKeyCommand, redoLabel as redoStepName, stepName, 
 import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./angles.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:angles:v1");
 type View = "pupil" | "answer";
@@ -692,8 +693,10 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Angle diagram settings">
+          <aside className="inspector-stack md-kit" aria-label="Angle diagram settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected angle">
               <h2>{current ? `Angle: ${slotName(current)}` : "Selected angle"}</h2>
               <div className="pt-fields">
@@ -812,6 +815,84 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            <section className="panel-card pt-panel">
+              <h2>Printing</h2>
+              <div className="pt-fields">
+                <label>
+                  Size
+                  <select aria-label="Diagram size" value={d.sizeMm} disabled={blocked} onChange={(ev) => {
+                    const size = Number(ev.target.value);
+                    patch((n) => {
+                      // An irregular polygon grows with the size, like a regular one.
+                      if (n.figure.type === "polygon" && n.figure.corners) n.figure.corners = n.figure.corners.map((c) => ({ x: Math.round(((c.x * size) / d.sizeMm) * 10) / 10, y: Math.round(((c.y * size) / d.sizeMm) * 10) / 10 }));
+                      n.sizeMm = size;
+                    }, "change size");
+                  }}>
+                    {[40, 50, 60, 70, 80, 90, 100, 120].concat(d.sizeMm).filter((v, k, a) => a.indexOf(v) === k).sort((a, b) => a - b).map((v) => (
+                      <option key={v} value={v}>
+                        {v} mm
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Turn (°)
+                  <DraftField
+                    label="Turn the figure"
+                    value={String(d.turnDeg)}
+                    inputMode="decimal"
+                    maxLength={5}
+                    disabled={blocked}
+                    onCommit={(v) => {
+                      const x = num(v);
+                      if (!(x >= 0 && x <= 359)) {
+                        setMessage("Turn the figure by 0 to 359°.");
+                        return false;
+                      }
+                      return patch((n) => void (n.turnDeg = x), "turn figure");
+                    }}
+                  />
+                </label>
+                <label>
+                  Text size
+                  <select aria-label="Text size" value={d.fontPt ?? 11} disabled={blocked} onChange={(ev) => patch((n) => void (n.fontPt = Number(ev.target.value)), "change text size")}>
+                    {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                      <option key={v} value={v}>
+                        {v} pt
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Lines
+                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight), "change lines")}>
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
+                Print “Diagram NOT accurately drawn”
+              </label>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  The drawing never has to match the sizes: exam angle diagrams are not accurately drawn. When given sizes cannot all be right (a
+                  straight line that does not make 180°, unequal vertically opposite or corresponding angles, a polygon’s angle sum) a teacher note
+                  says so. Leave it if the error is deliberate.
+                </p>
+                <p className="pt-note">
+                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
+                  your browser blocks copying, and print at 100% (actual size).
+                </p>
+              </details>
+            </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Figure">
               <h2>Figure</h2>
               <div className="pt-fields">
@@ -1210,82 +1291,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </div>
               </details>
             </section>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
-              <div className="pt-fields">
-                <label>
-                  Size
-                  <select aria-label="Diagram size" value={d.sizeMm} disabled={blocked} onChange={(ev) => {
-                    const size = Number(ev.target.value);
-                    patch((n) => {
-                      // An irregular polygon grows with the size, like a regular one.
-                      if (n.figure.type === "polygon" && n.figure.corners) n.figure.corners = n.figure.corners.map((c) => ({ x: Math.round(((c.x * size) / d.sizeMm) * 10) / 10, y: Math.round(((c.y * size) / d.sizeMm) * 10) / 10 }));
-                      n.sizeMm = size;
-                    }, "change size");
-                  }}>
-                    {[40, 50, 60, 70, 80, 90, 100, 120].concat(d.sizeMm).filter((v, k, a) => a.indexOf(v) === k).sort((a, b) => a - b).map((v) => (
-                      <option key={v} value={v}>
-                        {v} mm
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Turn (°)
-                  <DraftField
-                    label="Turn the figure"
-                    value={String(d.turnDeg)}
-                    inputMode="decimal"
-                    maxLength={5}
-                    disabled={blocked}
-                    onCommit={(v) => {
-                      const x = num(v);
-                      if (!(x >= 0 && x <= 359)) {
-                        setMessage("Turn the figure by 0 to 359°.");
-                        return false;
-                      }
-                      return patch((n) => void (n.turnDeg = x), "turn figure");
-                    }}
-                  />
-                </label>
-                <label>
-                  Text size
-                  <select aria-label="Text size" value={d.fontPt ?? 11} disabled={blocked} onChange={(ev) => patch((n) => void (n.fontPt = Number(ev.target.value)), "change text size")}>
-                    {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
-                      <option key={v} value={v}>
-                        {v} pt
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Lines
-                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight), "change lines")}>
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
-                Print “Diagram NOT accurately drawn”
-              </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  The drawing never has to match the sizes: exam angle diagrams are not accurately drawn. When given sizes cannot all be right (a
-                  straight line that does not make 180°, unequal vertically opposite or corresponding angles, a polygon’s angle sum) a teacher note
-                  says so. Leave it if the error is deliberate.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
-                  your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

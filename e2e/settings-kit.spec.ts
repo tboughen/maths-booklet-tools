@@ -98,11 +98,13 @@ test("an upright monitor sets the same cards in three columns under the diagram"
 // Statistical charts: its cards are `.panel-card`, and every chart type has a data card and settings cards.
 const chartCard = async (page: Page, heading: string) =>
   (await page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: heading, exact: true }) }).boundingBox())!;
-// What every tool on the kit shares: the heights of its buttons and fields, the width of its ticks, buttons that are
-// off and faded as well (there should be none), cards with something cut off, and the font of a card's heading.
+// What every tool on the kit shares: the heights of its buttons and fields, the buttons whose words take a second
+// line (few, and named by the test that expects one), the width of its ticks, buttons that are off and faded as well
+// (there should be none), cards with something cut off, and the font of a card's heading.
 const kitSizes = (page: Page) =>
   page.locator(".inspector-stack.md-kit").evaluate((el) => ({
-    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
+    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height).filter((h) => h <= 33))],
+    wrapped: [...el.querySelectorAll<HTMLElement>(".panel-card button")].filter((b) => b.getBoundingClientRect().height > 33).map((b) => b.textContent),
     fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
     ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
     faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
@@ -219,7 +221,7 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
     const sizes = await kitSizes(page);
-    expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+    expect(sizes, path).toMatchObject({ buttons: [32], wrapped: [], fields: [32], ticks: [16], faded: 0, cut: [] });
     expect(sizes.heading, path).toContain("600 17px");
   }
   // A Hide tick's label sits 3 px under its field, in a list that is not cut off and scrolls only from 460 px.
@@ -292,7 +294,7 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
   expect(fits).toBe(true);
   await page.setViewportSize({ width: 1920, height: 1080 });
   const sizes = await kitSizes(page);
-  expect(sizes).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
+  expect(sizes).toMatchObject({ buttons: [32], wrapped: [], fields: [32], faded: 0, cut: [] });
 
   // One column in a smaller window, in the same order.
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -309,8 +311,8 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
 });
 
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
-// diagram fills, the other cards on the left and the cards on the right.
-const SHARED: [string, string, string, string[], string[]][] = [
+// diagram fills, the other cards on the left, the cards on the right and any button whose words need two lines.
+const SHARED: [string, string, string, string[], string[], string[]?][] = [
   ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
   ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
@@ -318,15 +320,20 @@ const SHARED: [string, string, string, string[], string[]][] = [
   ["Bubble method", "/tools/bubble-method", "Selected item", ["Layout"], ["Steps"]],
   ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
   ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
+  ["Angle diagrams", "/tools/angles", "Selected angle", ["Printing"], ["Figure"], ["Print every saved answer on the pupil copy"]],
+  ["Area and perimeter", "/tools/area", "Selected label", ["Printing"], ["Shape", "Hole and shading"], ["Print every saved answer on the pupil copy"]],
+  ["Geometry figures", "/tools/figures", "Selected object", ["Printing"], ["Add to the figure"], ["Print every saved answer on the pupil copy"]],
 ];
+// What a click on the diagram selects, whatever the tool calls it.
+const HIT = ".pt-hit, .ang-hit, .area-hit, .fig-hit";
 
-for (const [tool, path, selected, left, right] of SHARED)
+for (const [tool, path, selected, left, right, wrapped = []] of SHARED)
   test(`${tool} uses the kit, with everything in view`, async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(path);
     const stack = page.locator(".inspector-stack.md-kit");
     await expect(stack).toBeVisible();
-    await page.locator(".pt-hit").first().click();
+    await page.locator(HIT).first().click();
     const chosenCard = page.locator(`.md-kit .panel-card[aria-label="${selected}"]`);
     const chosen = (await chosenCard.boundingBox())!;
     const first = await chartCard(page, right[0]);
@@ -336,7 +343,7 @@ for (const [tool, path, selected, left, right] of SHARED)
     expect(Math.abs(first.width - chosen.width)).toBeLessThanOrEqual(1);
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
-    expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+    expect(await kitSizes(page)).toMatchObject({ buttons: [32], wrapped, fields: [32], ticks: [16], faded: 0, cut: [] });
 
     // One column in a smaller window, in the same order.
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -428,4 +435,38 @@ test("Algebra tiles, Function machines and Written methods still fit one screen 
   expect(square.x + square.width).toBeLessThanOrEqual(lines.x);
   expect(lines.x + lines.width).toBeLessThanOrEqual(layout.x + layout.width);
   expect(Math.abs(square.width - lines.width)).toBeLessThanOrEqual(1);
+});
+
+test("Angle diagrams and Area and perimeter: short fields keep their rows and the table of corners fits its card", async ({ page }) => {
+  // The narrowest window with two columns, so the narrowest card.
+  await page.setViewportSize({ width: 1800, height: 1000 });
+  await page.goto("/tools/angles");
+  const figure = page.getByRole("combobox", { name: "Figure", exact: true });
+  // A list on its own has the whole row, so the longest figure name is not cut short.
+  const card = await chartCard(page, "Figure");
+  expect((await figure.boundingBox())!.width).toBeGreaterThan(card.width - 40);
+  // A ray's direction is a short field with its Remove button beside it, not under it.
+  await figure.selectOption("point");
+  const ray = page.locator(".md-kit .ang-ray").first();
+  const field = (await ray.locator("input").boundingBox())!, remove = (await ray.getByRole("button").boundingBox())!;
+  expect(field.width).toBeLessThan(100);
+  expect(remove.x).toBeGreaterThan(field.x + field.width);
+  expect(Math.abs(remove.y + remove.height / 2 - (field.y + field.height / 2))).toBeLessThanOrEqual(1);
+
+  await page.goto("/tools/area");
+  const shape = page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: "Shape", exact: true }) });
+  await shape.locator("summary").click();
+  const table = shape.locator(".area-corner-table");
+  await expect(table.locator("thead th")).toHaveCount(5);
+  // All five columns are inside the card, and a number field still shows four digits.
+  expect(await shape.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  const box = (await shape.boundingBox())!, grid = (await table.boundingBox())!;
+  expect(grid.x + grid.width).toBeLessThanOrEqual(box.x + box.width);
+  expect((await table.locator("input:not([type=checkbox])").first().boundingBox())!.width).toBeGreaterThanOrEqual(40);
+  expect((await table.locator("select").first().boundingBox())!.width).toBeGreaterThanOrEqual(80);
+  // A dashed height is one row: two short lists and its Remove button.
+  await page.getByRole("button", { name: "Add a dashed height", exact: true }).click();
+  const row = shape.locator(".area-row").first();
+  const tops = await row.locator("select, button").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().bottom)));
+  expect(new Set(tops).size).toBe(1);
 });

@@ -316,7 +316,7 @@ first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModel
 Statistical charts the second (`src/charts/ChartsPage.tsx`), Probability trees, Frequency trees
 and Factor trees the next three, Plans and elevations the sixth, then Two-way tables, Sample
 space diagrams and Spinners, dice and bags, and then Algebra tiles, Bubble method, Function
-machines and Written methods. The other tools move over one at a time, and each one drops
+machines and Written methods, and Angle diagrams, Area and perimeter and Geometry figures. The other tools move over one at a time, and each one drops
 its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
@@ -397,5 +397,14 @@ its own button and field styles as it does.
   Bubble method's own classes now start `bub-`: they started `bm-`, which is Bar modelling's
   prefix, so Bar modelling's rules stacked every tick above its words and made the Show hidden
   answers switch differ from every other tool's.
+- **Angle diagrams, Area and perimeter and Geometry figures.** The selected angle, label or
+  object is the left column with Printing under it (a whole card moved, as in Plans and
+  elevations), and the figure itself is the right: Figure and Point names; Shape, Hole and
+  shading and Point names; Add to the figure and Shading and captions. With their folded parts
+  shut all three are in view at 1920 × 1080 (they were 1,026, 1,072 and 1,293 px long in a
+  967 px column). Area and perimeter's table of corners has five columns and used to run out of
+  its card: its columns now have fixed widths that fit the narrowest card (255 px), with "Right
+  angle" on two lines. "Print every saved answer on the pupil copy" keeps its name, so in a
+  narrow column it takes two lines; the test names it as the one button that may.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

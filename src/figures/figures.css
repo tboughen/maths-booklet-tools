@@ -57,16 +57,14 @@
   align-items: end;
   flex-wrap: wrap;
 }
-.fig-row input {
+/* One more class than the settings kit's field rule, so short fields keep their places in a row. */
+.pt-panel .pt-row.fig-row input {
   width: 6em;
 }
-.fig-row select {
+.pt-panel .pt-row.fig-row select {
+  width: auto;
   max-width: 9em;
 }
 .fig-wide {
   grid-column: 1 / -1;
-}
-.fig-wide select {
-  width: 100%;
-  max-width: none;
 }
