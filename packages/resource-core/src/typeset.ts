@@ -213,7 +213,7 @@ export function keepTogether(source: string): string {
 const BODY = new Set(["text", "prefix", "suffix", "answer", "before", "items", "options", "objective", "instruction", "keyIdea", "coverNote", "meaning", "remember", "learn", "next", "columns"]);
 /** Printed keys that wrap as paragraphs; answer lines, options, cells and headings stay as typed. */
 const FLOWING = new Set(["text", "items", "objective", "instruction", "keyIdea", "coverNote", "meaning", "remember", "learn", "next"]);
-const HEADINGS = new Set(["title", "heading", "label", "word"]);
+const HEADINGS = new Set(["title", "heading", "label", "word", "startBanner", "endBanner"]);
 
 function typesetValue(v: unknown, key: string, maths = true): unknown {
   if (typeof v === "string") {

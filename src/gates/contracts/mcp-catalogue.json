@@ -435,6 +435,16 @@
                               "type": "string",
                               "maxLength": 160
                             },
+                            "startBanner": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "endBanner": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 60
+                            },
                             "columns": {
                               "default": 1,
                               "anyOf": [
