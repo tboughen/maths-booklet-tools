@@ -69,6 +69,7 @@ import {
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./probability-tree.css";
+import "../site/settings-kit.css";
 import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
@@ -486,8 +487,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Probability tree settings">
+          <aside className="inspector-stack md-kit" aria-label="Probability tree settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             {selectedBranch && (
               <section className="panel-card pt-panel" aria-label="Selected branch">
                 <h2>Branch: {branchName(selectedBranch)}</h2>
@@ -593,6 +596,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Fill probabilities</h2>
               <p className="pt-note">Nothing is filled until you press a button. Each fill can be undone.</p>
@@ -805,6 +810,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

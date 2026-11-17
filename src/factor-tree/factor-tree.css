@@ -58,10 +58,13 @@
   padding: 0 12px;
 }
 .ft-tree {
-  border: 1px solid var(--line, #c9d3dd);
-  border-radius: 6px;
-  margin: 0 0 8px;
-  padding: 6px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  border: 1px solid var(--md-line);
+  border-radius: var(--md-radius);
+  margin: 0;
+  padding: 6px 10px 10px;
 }
 .ft-factors input {
   width: 100%;

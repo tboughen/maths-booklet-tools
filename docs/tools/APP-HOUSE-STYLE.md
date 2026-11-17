@@ -307,14 +307,15 @@ stays out of the first-load stylesheet).
 - The Question bank keeps the short "Your paper" bar under the question.
 - Tests: `e2e/paper-builder.spec.ts`.
 
-## The settings kit (in Bar modelling and Statistical charts)
+## The settings kit (in Bar modelling, Statistical charts and the tree tools)
 
 One look for the buttons, fields, notes and cards in a tool's settings column, in
 `src/site/settings-kit.css`. A tool opts in: it puts the class `md-kit` on its `.inspector-stack`
 and imports the file itself, so the kit loads with the tools that use it and stays out of the
-first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`) and
-Statistical charts the second (`src/charts/ChartsPage.tsx`). The other tools move over one at a
-time, and each one drops its own button and field styles as it does.
+first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`),
+Statistical charts the second (`src/charts/ChartsPage.tsx`), and Probability trees, Frequency trees
+and Factor trees the next three. The other tools move over one at a time, and each one drops
+its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
   order and its behaviour, so saved work, links and tests are untouched.
@@ -328,6 +329,9 @@ time, and each one drops its own button and field styles as it does.
   A field whose value cannot be used (`aria-invalid="true"`) is outlined in red.
 - A table of values keeps its own field widths. The tool sets them with one more class than the
   kit's rule, because the kit would stretch each field across its cell.
+- A list starts its words where a text field does (4 px of its own padding, because a list has an
+  inset already). Beside a label that takes two lines, a field keeps its height and sits level with
+  its neighbour.
 - A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
 - In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
   own width, so three short buttons take one line and not three.
@@ -347,5 +351,17 @@ time, and each one drops its own button and field styles as it does.
   right. A card component for a chart type takes `part="data"` or `part="rest"`, so the page can
   put each part in its column. At 1920 × 1080 the settings were 1,432 px long in a 944 px column
   and are now all in view for most chart types.
+- **The tree tools.** The left column is what is on the tree (the selected branch, group or
+  number, then the list of them). The right column is what is done with it (fill or work out,
+  questions, layout). A Hide tick sits under its field with a 3 px gap. The list of branches
+  scrolls inside its card from 460 px, but never on a phone, where it is as long as it needs to
+  be. With something selected, the settings at 1920 × 1080 were 1,597 px (Probability trees),
+  1,531 px (Frequency trees) and 1,157 px (Factor trees) long in a 967 px column. All three
+  are now in view.
+- **The shared `pt-` classes.** Seventeen tools use the settings classes in
+  `src/probability-tree/probability-tree.css` (`pt-panel`, `pt-row`, `pt-fields` and the rest), so
+  its old button and field rules stay until the last of them is on the kit. The kit loads later and
+  wins every tie. Two lines in the kit undo what the old rules would add (a row's own padding, a
+  faded button that is off). Remove those two lines and the old `.pt-panel` rules together.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

@@ -65,6 +65,7 @@ import { LINK_PREFIX, frequencyTreeLink, parseFrequencyTreeLink } from "./links"
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:frequency-tree:v1");
 type Doc = Envelope["document"];
@@ -449,8 +450,10 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Frequency tree settings">
+          <aside className="inspector-stack md-kit" aria-label="Frequency tree settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             {selectedNode && (
               <section className="panel-card pt-panel" aria-label="Selected group">
                 <h2>Group: {name(selectedNode.id)}</h2>
@@ -563,6 +566,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Work out counts</h2>
               <p className="pt-note">
@@ -703,6 +708,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

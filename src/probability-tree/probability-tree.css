@@ -201,7 +201,7 @@
 .pt-branches {
   display: grid;
   gap: 4px;
-  max-height: 420px;
+  max-height: 460px;
   overflow: auto;
   font-size: 13px;
 }
@@ -212,6 +212,18 @@
   align-items: center;
   border-radius: 4px;
   padding: 2px;
+}
+/* A field with its Hide tick underneath. */
+.pt-branch > span,
+.pt-question > span {
+  display: grid;
+  gap: 3px;
+}
+/* A list that scrolls inside a page that scrolls is hard to use with a finger. */
+@media (max-width: 767px), (pointer: coarse) {
+  .pt-branches {
+    max-height: none;
+  }
 }
 .pt-branch.pt-current {
   background: #e2efff;
