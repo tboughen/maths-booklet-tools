@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, planBooklet, renderBooklet, type BookletIssue, type PlannedLessonPage } from "./booklet-render";
+import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, renderBooklet, type BookletIssue, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -57,7 +57,7 @@ export interface RenderedBookletDocx {
   pages: number;
 }
 
-type Where = { lesson: number; section?: number; question?: number; page?: number };
+type Where = { lesson: number; section?: number; question?: number | string; page?: number };
 type Ctx = WordCtx<Where>;
 const S = SIZE;
 const W = A4.page.width - 2 * A4.marginX;
@@ -100,6 +100,27 @@ function noteBox(source: string, st: HouseStyle): { xml: string; h: number } {
   return { xml, h };
 }
 
+/** The key idea box (N3), as the SVG page draws it: "Key idea" in a left cell, each idea on its own line in a right cell. */
+function keyIdeaBox(keyIdea: string, st: HouseStyle): { xml: string; h: number } {
+  const K = KEY_IDEA;
+  const left = keyIdeaLabelWidth();
+  const tw_ = W - left - K.pad;
+  const ideas = keyIdeas(keyIdea);
+  const textH = ideas.reduce((h, idea) => h + lines(idea, S.body, tw_) * lh(S.body), 0) + K.ideaGap * (ideas.length - 1);
+  const label = cell(para(runs(K.label, { bold: true, color: st.navy }), {}), {
+    width: left,
+    shade: st.tint,
+    borders: { left: { color: st.navy, width: K.bar } },
+    margin: { top: K.pad, left: K.bar + K.pad, bottom: K.pad, right: 0 },
+  });
+  const text = cell(ideas.map((idea, i) => para(runs(idea), { after: i < ideas.length - 1 ? K.ideaGap : 0 })).join(""), {
+    width: W - left,
+    shade: st.tint,
+    margin: { top: K.pad, left: 0, bottom: K.pad, right: K.pad - WORD_WRAP_SLACK_MM },
+  });
+  return { xml: table([left, W - left], [row([label, text])]), h: textH + K.pad * 2 };
+}
+
 /** A navy tile with white bold text, `h` high: as a shaded cell's content, or nested inside a taller cell. */
 function tile(text: string, w: number, h: number, size: number, st: HouseStyle) {
   const content = para(run(text, { bold: true, color: "#ffffff", sizeMm: size }), { align: "center", line: lh(size) });
@@ -121,18 +142,15 @@ function lessonHead(lesson: Lesson, number: number, st: HouseStyle): { xml: stri
     ? cell(para(run(String(number), { bold: true, color: "#ffffff", sizeMm: A4.lessonTitle }), { align: "center", line: lh(A4.lessonTitle) }), { width: A4.lessonTile, shade: st.navy, vAlign: "center" })
     : cell(tile(String(number), A4.lessonTile, A4.lessonTile, A4.lessonTitle, st), { width: A4.lessonTile });
   const out = [table([A4.lessonTile, 3.5, W - x + WORD_WRAP_SLACK_MM], [row([number_, cell(gap(END_MM), { width: 3.5 }), title], { mm: rowH, exact: true })])];
-  let y = svgBottom + 1.4;
-  out.push(gap(y - rowH));
-  const objective = [lesson.code, lesson.objective].filter((s) => s.trim()).join(" • ");
-  if (objective) {
-    out.push(textPara(objective, A4.small, { color: st.muted }));
-    y += lines(objective, A4.small, W) * lh(A4.small);
-  }
+  // One title line (N2): the lesson's code and objective are not printed again under it.
+  // The SVG head ends below the tile, or below a longer title's full line box: the row's own height.
+  let y = Math.max(svgBottom, rowH);
+  if (y > rowH + 0.005) out.push(gap(y - rowH));
   if (lesson.keyIdea.trim()) {
-    out.push(gap(2.6));
-    const box = noteBox(`**Key idea** ${lesson.keyIdea}`, st);
+    out.push(gap(4));
+    const box = keyIdeaBox(lesson.keyIdea, st);
     out.push(box.xml);
-    y += 2.6 + box.h;
+    y += 4 + box.h;
   }
   return { xml: out.join(""), h: y };
 }

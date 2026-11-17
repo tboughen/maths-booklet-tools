@@ -30,6 +30,18 @@ export const SECTION_TITLES: Record<SectionKind, string> = {
 /** Sections whose cards are not numbered questions: worked pairs and notes. */
 export const UNNUMBERED: ReadonlySet<SectionKind> = new Set(["worked", "notes"]);
 
+/**
+ * How a section labels its questions (booklet standard N1, Tim 17 November 2026). Every question in
+ * a lesson has a label no other has:
+ * - continue (the default): numbers run on from the last numbered section of the lesson, so a
+ *   lesson has one run 1, 2, 3… through every cycle, mini whiteboard questions included;
+ * - restart: numbers start again at 1;
+ * - letters: A, B, C…, running on from the last lettered section (check in A to F, From earlier G
+ *   and H). Parts of a lettered question print i), ii) so a label never mixes a letter and a number.
+ */
+export const NUMBERING = ["continue", "restart", "letters"] as const;
+export type Numbering = (typeof NUMBERING)[number];
+
 export const sectionSchema = z
   .object({
     kind: z.enum(SECTION_KINDS),
@@ -39,6 +51,8 @@ export const sectionSchema = z
     instruction: text(160).default(""),
     /** 2 puts cards side by side in rows (worked example | your turn, pairs of short questions). */
     columns: z.union([z.literal(1), z.literal(2)]).default(1),
+    /** Question labels: continue the lesson's run of numbers (default), restart at 1, or letters A, B, C… */
+    numbering: z.enum(NUMBERING).default("continue"),
     cards: z.array(cardSchema).min(1).max(16),
   })
   .strict();
@@ -48,10 +62,15 @@ export const lessonSchema = z
     title: text(80),
     /** Objective code such as A7.03; may be empty. */
     code: text(16).default(""),
+    /** The objective in full, for the editor, plans and the AI. Not printed: the title line says it once (N2). */
     objective: text(200).default(""),
-    /** The lesson's one or two sentence big idea, printed in a key-idea card under the title. */
-    keyIdea: text(500).default(""),
-    sections: z.array(sectionSchema).min(1).max(12),
+    /** The lesson's big idea: one or two sentences, printed in a two-cell key-idea box under the title. A line break starts a new line. */
+    keyIdea: z
+      .string()
+      .max(500)
+      .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 && c !== "\n"), "Use ordinary text without control characters; a line break starts a new line.")
+      .default(""),
+    sections: z.array(sectionSchema).min(1).max(20),
     /** Teacher-facing plan: purpose, misconceptions, how support fades. Never printed. */
     teacherNotes: z.string().max(6000).default(""),
   })
@@ -109,6 +128,24 @@ export type BookletDocument = Booklet["document"];
 export type Lesson = z.infer<typeof lessonSchema>;
 export type Section = z.infer<typeof sectionSchema>;
 export type Intro = z.infer<typeof introSchema>;
+
+/** Letters A to Z, then AA, AB and so on. */
+export const questionLetter = (k: number): string => (k < 26 ? String.fromCharCode(65 + k) : questionLetter(Math.floor(k / 26) - 1) + String.fromCharCode(65 + (k % 26)));
+
+/** A question's printed label: a number, a letter, or null for worked and notes cards. */
+export type QuestionLabel = number | string | null;
+
+/** The label of every card in a lesson, section by section (N1): one run of numbers, one run of letters. */
+export function lessonLabels(lesson: Pick<Lesson, "sections">): QuestionLabel[][] {
+  let number = 0,
+    letter = 0;
+  return lesson.sections.map((s) => {
+    if (UNNUMBERED.has(s.kind)) return s.cards.map(() => null);
+    if (s.numbering === "letters") return s.cards.map(() => questionLetter(letter++));
+    if (s.numbering === "restart") number = 0;
+    return s.cards.map(() => ++number);
+  });
+}
 
 export const sectionTitle = (s: Pick<Section, "kind" | "title">) => s.title.trim() || SECTION_TITLES[s.kind];
 

@@ -17,12 +17,13 @@ import {
   SECTION_KINDS,
   SECTION_TITLES,
   sectionTitle,
-  UNNUMBERED,
+  lessonLabels,
   validateBooklet,
   type Booklet,
   type Card,
   type Item,
   type Lesson,
+  type Numbering,
 } from "../../packages/resource-core/src/index";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { BesideToggle, Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
@@ -277,7 +278,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           </label>
         </details>
         {lesson.sections.map((section, si) => {
-          const numbered = !UNNUMBERED.has(section.kind);
+          const labels = lessonLabels(lesson)[si];
           return (
             <div key={si} className="ws-column bk-section">
               <div className="bk-section-head">
@@ -312,11 +313,19 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                     <option value={1}>One (full width)</option>
                   </select>
                 </label>
+                <label className="ws-field">
+                  <span>Question labels</span>
+                  <select value={section.numbering} disabled={blocked} onChange={(e) => setLesson((l) => void (l.sections[si].numbering = e.target.value as Numbering))}>
+                    <option value="continue">Numbers, carrying on</option>
+                    <option value="restart">Numbers, from 1 again</option>
+                    <option value="letters">Letters A, B, C</option>
+                  </select>
+                </label>
               </div>
               <Field label="Heading (empty uses the kind)" value={section.title} max={60} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].title = v))} />
               <Field label="Instruction line" value={section.instruction} max={160} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].instruction = v))} />
               {section.cards.map((card, ci) => {
-                const label = numbered ? String(ci + 1) : "•";
+                const label = labels[ci] === null ? "•" : String(labels[ci]);
                 const setItem = (path: number[], next: Item | Leaf) =>
                   setLesson((l) => {
                     const items = l.sections[si].cards[ci].items;

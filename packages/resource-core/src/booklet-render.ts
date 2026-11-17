@@ -3,7 +3,7 @@ import { at, card, countSpaces, missingCharacterMessage, missingCharacters, type
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
 import type { FontStyle } from "./metrics";
-import { sectionTitle, UNNUMBERED, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
+import { lessonLabels, sectionTitle, type Booklet, type Intro, type Lesson, type QuestionLabel, type Section } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -38,8 +38,8 @@ export interface BookletIssue {
   lesson: number;
   /** 1-based section within the lesson, when the issue belongs to one. */
   section?: number;
-  /** Question number within the section, when the issue belongs to one card. */
-  question?: number;
+  /** The question's printed label (a number or a letter), when the issue belongs to one card. */
+  question?: number | string;
   /** 1-based printed page. */
   page?: number;
   message: string;
@@ -62,7 +62,7 @@ export interface RenderedBooklet {
   introPage: number | null;
 }
 
-type W = { lesson: number; section?: number; question?: number; page?: number };
+type W = { lesson: number; section?: number; question?: number | string; page?: number };
 type BCtx = Ctx<W>;
 const S = SIZE;
 const lh = (size: number) => size * S.lineHeight;
@@ -93,21 +93,50 @@ function lessonHead(lesson: Lesson, number: number, st: HouseStyle): Frag {
   // Single-line titles sit centred on the tile; longer ones start at its top.
   const ty = title.h <= lh(A4.lessonTitle) + 0.01 ? (A4.lessonTile - lh(A4.lessonTitle)) / 2 : -0.6;
   out.push(at(title, 0, ty));
-  let y = Math.max(A4.lessonTile, ty + title.h) + 1.4;
-  const objective = [lesson.code, lesson.objective].filter((s) => s.trim()).join(" • ");
-  if (objective) {
-    const f = para(objective, W, st, { size: A4.small, fill: st.muted });
-    out.push(at(f, 0, y));
-    y += f.h;
-  }
+  // One title line (N2): the lesson's code and objective are not printed again under it.
+  // Below the tile, or below a longer title's full line box, as Word's title row measures it.
+  let y = Math.max(A4.lessonTile, ty + title.h, title.h);
   if (lesson.keyIdea.trim()) {
-    y += 2.6;
-    const pad = 3;
-    const f = para(`**Key idea** ${lesson.keyIdea}`, W - pad * 2 - 1, st, { x: pad + 1 });
-    out.push(rect(0, y, W, f.h + pad * 2, `rx="1.4" fill="${st.tint}"`), rect(0, y, 1.1, f.h + pad * 2, `fill="${st.navy}"`), at(f, 0, y + pad));
-    y += f.h + pad * 2;
+    y += 4;
+    const box = keyIdeaBox(lesson.keyIdea, st);
+    out.push(at(box, 0, y));
+    y += box.h;
   }
   return { h: y, svg: out.join("") };
+}
+
+/** The key idea box's geometry, shared with Word: "Key idea" in a left cell, the ideas in a right cell, each on its own line. */
+export const KEY_IDEA = { pad: 3, bar: 1.1, label: "Key idea", gap: 6, ideaGap: 1 } as const;
+export const keyIdeaLabelWidth = () => KEY_IDEA.bar + KEY_IDEA.pad + plainWidth(KEY_IDEA.label, S.body, "bold") + KEY_IDEA.gap;
+/** The ideas of a key idea: one per line break, blank lines dropped. */
+export const keyIdeas = (keyIdea: string) =>
+  keyIdea
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+/** Key idea box (N3): two cells, "Key idea" on the left, the text on the right with a clear gap. */
+function keyIdeaBox(keyIdea: string, st: HouseStyle): Frag {
+  const K = KEY_IDEA;
+  const left = keyIdeaLabelWidth();
+  const tw = W - left - K.pad;
+  const out: string[] = [];
+  let y = 0;
+  keyIdeas(keyIdea).forEach((idea, i) => {
+    if (i) y += K.ideaGap;
+    const f = para(idea, tw, st, { x: left });
+    out.push(at(f, 0, y));
+    y += f.h;
+  });
+  const h = y + K.pad * 2;
+  return {
+    h,
+    svg:
+      rect(0, 0, W, h, `rx="1.4" fill="${st.tint}"`) +
+      rect(0, 0, K.bar, h, `fill="${st.navy}"`) +
+      textSvg(parseRuns(K.label, "bold"), K.bar + K.pad, K.pad + base(S.body), S.body, st.navy) +
+      at({ h: y, svg: out.join("") }, 0, K.pad),
+  };
 }
 
 function sectionHead(section: Section, st: HouseStyle, continued: boolean): Frag {
@@ -130,20 +159,19 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean): Frag
 }
 
 interface Row {
-  cards: { index: number; number: number | null }[];
+  cards: { index: number; number: QuestionLabel }[];
   /** Natural height, before spare space. */
   h: number;
   /** Most working or drawing spaces in one card of the row: how much it grows per mm of extra. */
   spaces: number;
 }
 
-function rowsOf(section: Section, sectionNo: number, lessonNo: number, ctx: BCtx): Row[] {
+function rowsOf(section: Section, labels: QuestionLabel[], sectionNo: number, lessonNo: number, ctx: BCtx): Row[] {
   const cols = section.columns;
   const w = cols === 2 ? BOOKLET_WIDTHS.half : BOOKLET_WIDTHS.full;
-  const numbered = !UNNUMBERED.has(section.kind);
   const rows: Row[] = [];
   for (let i = 0; i < section.cards.length; i += cols) {
-    const cards = section.cards.slice(i, i + cols).map((_, k) => ({ index: i + k, number: numbered ? i + k + 1 : null }));
+    const cards = section.cards.slice(i, i + cols).map((_, k) => ({ index: i + k, number: labels[i + k] }));
     const quiet: BCtx = { ...ctx, issues: [], diagrams: 0 };
     let h = 0,
       spaces = 0;
@@ -309,7 +337,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
 export type PlacedBlock =
   | { kind: "head"; y: number; h: number }
   | { kind: "section"; section: number; continued: boolean; y: number; h: number }
-  | { kind: "row"; section: number; cards: { index: number; number: number | null }[]; y: number; h: number; natural: number };
+  | { kind: "row"; section: number; cards: { index: number; number: QuestionLabel }[]; y: number; h: number; natural: number };
 /** One printed lesson page of the plan. */
 export interface PlannedLessonPage {
   /** 1-based lesson. */
@@ -354,8 +382,9 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       pg = { lesson: L, continued: true, blocks: [], end: contentTop + contHead };
       planned.push(pg);
     };
+    const labels = lessonLabels(lesson);
     lesson.sections.forEach((section, si) => {
-      const rows = rowsOf(section, si + 1, L, ctx);
+      const rows = rowsOf(section, labels[si], si + 1, L, ctx);
       const headFrag = sectionHead(section, st, false);
       const gapBefore = pg.blocks.length ? A4.sectionGap : 0;
       if (pg.end + gapBefore + headFrag.h + rows[0].h > A4.bottom && pg.blocks.length) fresh();
@@ -445,7 +474,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
       const yy = block.y;
       if (block.kind === "head") {
         out.push(at(lessonHead(lesson, p.lesson + (options.numbering?.lessonOffset ?? 0), st), A4.marginX, yy));
-        glyphs({ title: lesson.title, code: lesson.code, objective: lesson.objective, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
+        glyphs({ title: lesson.title, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
         continue;
       }
       if (block.kind === "section") {
@@ -462,7 +491,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
       block.cards.forEach((c, k) => {
         ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: pageNo };
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
-        glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${sectionTitle(section)}${c.number ? `, question ${c.number}` : ""}`);
+        glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${sectionTitle(section)}${c.number !== null ? `, question ${c.number}` : ""}`);
         const natural = card(section.cards[c.index], c.number, w, { ...ctx, issues: [] }, extra, 0).h;
         const f = card(section.cards[c.index], c.number, w, ctx, extra, Math.max(0, grown - natural));
         out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));
@@ -497,7 +526,7 @@ export function bookletFileName(booklet: Booklet, view: View = "pupil"): string 
 
 /** Where an issue is, in teacher words. */
 export function issuePlace(i: BookletIssue): string {
-  return [i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
+  return [i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
 }
 
 /** The printed pages of one lesson (0-based index), with the full booklet's page numbers. */

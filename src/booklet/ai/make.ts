@@ -37,7 +37,7 @@ export function placeholderLesson(p: { title: string; code: string; objective: s
     objective: p.objective,
     keyIdea: p.keyIdea,
     teacherNotes: p.plan,
-    sections: [{ kind: "notes", title: "Not made yet", instruction: "", columns: 1, cards: [{ title: "This lesson still needs making", items: [{ type: "text", text: `${reason} Choose this lesson under Ask for a change and press Rebuild lesson.` }] }] }],
+    sections: [{ kind: "notes", title: "Not made yet", instruction: "", columns: 1, numbering: "continue", cards: [{ title: "This lesson still needs making", items: [{ type: "text", text: `${reason} Choose this lesson under Ask for a change and press Rebuild lesson.` }] }] }],
   };
 }
 export const isPlaceholder = (l: Lesson) => l.sections.length === 1 && l.sections[0].kind === "notes" && l.sections[0].title === "Not made yet";
