@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { create as createGrid } from "../../algebra-grid-core/src/index";
 import { example as numberLine } from "../../number-line-core/src/examples";
-import { checkWorked, claimedMarks, diagramSvg, lastTerm, layoutWorked, mathsText, mathsWidth, noteMarkup, noteText, parseWorked, pieces, slices, type WorkedData } from "./index";
+import { checkWorked, claimedMarks, diagramSvg, guideWidth, NOTE_SIZE, noteWidth, lastTerm, layoutWorked, mathsText, mathsWidth, noteMarkup, noteText, parseWorked, pieces, slices, type WorkedData } from "./index";
 
 const surfaces = [{ id: "a-1", width: 480, height: 200 }, { id: "b-1", width: 480, height: 160 }, { id: "stem-1", width: 480, height: 300 }];
 
@@ -338,6 +338,20 @@ describe("worked-solution drawings on printed grids", () => {
   });
 });
 
+describe("worked-solution recurring decimals and fraction powers", () => {
+  it("puts a dot over each recurring digit", () => {
+    expect(pieces("0.2dot{4}dot{6}")).toEqual([{ kind: "run", text: "0.2", sup: false }, { kind: "run", text: "4", sup: false, dot: true }, { kind: "run", text: "6", sup: false, dot: true }]);
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "answer", value: "0.dot{3}", mark: { code: "B1", note: "cao" } }];
+    expect(layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg).toMatch(/<circle [^>]*r="[\d.]+"/);
+  });
+  it("reads a braced power inside a stacked fraction", () => {
+    expect(pieces("x = {4/x^{2}} + 1")).toEqual([{ kind: "run", text: "x = ", sup: false }, { kind: "fraction", num: "4", den: "x²" }, { kind: "run", text: " + 1", sup: false }]);
+    expect(pieces("{a^3/2}")).toEqual([{ kind: "fraction", num: "a³", den: "2" }]);
+    expect(pieces("{4/x^{2n}}")).toEqual([{ kind: "fraction", num: "4", den: "x^{2n}" }]);
+  });
+});
+
 describe("worked-solution vectors", () => {
   it("reads underlined vectors, arrows over and column vectors", () => {
     expect(pieces("2_{a} + vec{AB}")).toEqual([{ kind: "run", text: "2", sup: false }, { kind: "run", text: "a", sup: false, under: true }, { kind: "run", text: " + ", sup: false }, { kind: "run", text: "AB", sup: false, arrow: true }]);
@@ -390,5 +404,15 @@ describe("guidance typesetting", () => {
     expect(noteText("10^2.5")).toBe("10^2.5");
     expect(noteText("Watch out - M1 - method; 2n - 1 and (x + 2) - 3")).toBe("Watch out - M1 - method; 2n − 1 and (x + 2) − 3");
     expect(noteMarkup("4.5 × 10^24 & 10^-3")).toBe("4.5 × 10<tspan dy=\"-3.5\" font-size=\"7\">24</tspan><tspan dy=\"3.5\">\u200b</tspan> &amp; 10<tspan dy=\"-3.5\" font-size=\"7\">−3</tspan><tspan dy=\"3.5\">\u200b</tspan>");
+  });
+  it("stacks fractions in guidance and gives their line extra room", () => {
+    expect(noteText("Gradient of L is -{1/2}")).toBe("Gradient of L is −{1/2}");
+    expect(noteText("6 - {1/2}x and {-1/2}")).toBe("6 − {1/2}x and {−1/2}");
+    expect(guideWidth("is {1/2}", NOTE_SIZE)).toBeLessThan(noteWidth("is {1/2}", NOTE_SIZE));
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "line", lhs: "y", rhs: "6 - {1/2}x", note: "Gradient of L is -{1/2}." }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    expect(svg).not.toContain("{1/2}");
+    expect(svg).toMatch(/text-anchor="middle">1<\/text><path [^>]*\/><text [^>]*text-anchor="middle">2<\/text>/);
   });
 });

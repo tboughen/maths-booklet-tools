@@ -87,7 +87,11 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   optional size); `ticks` (equal-length ticks or parallel arrows, 1 to 3).
 - Typed maths prints properly: `-` is a minus sign (a hyphen between letters stays), `*` a times
   sign, `<=` and `>=` their signs, `{a/b}` a stacked fraction, `^2` or `^{12}` a power, `_{a}` an
-  underlined vector, `vec{AB}` an arrow over AB and `[3;-2]` a column vector.
+  underlined vector, `vec{AB}` an arrow over AB, `[3;-2]` a column vector and `dot{4}` a
+  recurring-decimal dot over the 4. A fraction may hold a square or cube: `{4/x^{2}}`.
+- Guidance is words with light typesetting: `^2` and `-` as in the working, and `{1/2}` a stacked
+  fraction (Tim, 17 Nov 2026: fractions in guidance are maths, never words such as "minus a half").
+  A line holding a fraction takes extra room above and below.
 - Step numbers count through every part in order, so step-by-step reveal shows the same steps
   whatever is served.
 
