@@ -226,6 +226,17 @@ const closing = (s: string, i: number, open: string, close: string) => {
   return -1;
 };
 
+/** The first "/" outside any nested braces, or -1: {√{a/b}/c} splits after the root. */
+function topSlash(s: string): number {
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === "{") depth++;
+    else if (s[i] === "}") depth--;
+    else if (s[i] === "/" && depth === 0) return i;
+  }
+  return -1;
+}
+
 /**
  * Splits "{3/4}" stacked fractions and "^2" or "^{12}" powers out of a line, and the vector forms:
  * "_{a}" an underlined (handwritten bold) vector, "vec{AB}" an arrow over AB, "[3;-2]" a column vector,
@@ -253,7 +264,8 @@ export function pieces(s: string, flat = false): Piece[] {
       const next = s[i + 1];
       // A bracketed group loses its brackets under the overbar; a braced group is kept whole, so {a/b} stays a fraction.
       const end = next === "(" ? closing(s, i + 1, "(", ")") : next === "{" ? closing(s, i + 1, "{", "}") : -1;
-      const body = end > i + 2 ? (next === "(" ? s.slice(i + 2, end) : s.slice(i + 1, end + 1)) : undefined;
+      // A braced fraction keeps its braces so it stacks; any other braced group loses them.
+      const body = end > i + 2 ? (next === "{" && topSlash(s.slice(i + 2, end)) > 0 ? s.slice(i + 1, end + 1) : s.slice(i + 2, end)) : undefined;
       const atom = body === undefined ? /^(?:[0-9]+(?:\.[0-9]+)?|[A-Za-z]+)/.exec(s.slice(i + 1))?.[0] : undefined;
       if (body !== undefined || atom) { flush(); out.push({ kind: "root", body: pieces(body ?? atom!, flat) }); i = body !== undefined ? end : i + atom!.length; continue; }
     }
@@ -261,7 +273,7 @@ export function pieces(s: string, flat = false): Piece[] {
       // The matching brace, so a fraction may hold a braced power: {4/x^{2}}.
       const end = closing(s, i, "{", "}");
       const inner = end > i ? s.slice(i + 1, end) : "";
-      const slash = inner.indexOf("/");
+      const slash = topSlash(inner);
       if (end > i && slash > 0 && slash < inner.length - 1) {
         flush();
         if (flat) out.push(...pieces(inner, true));
@@ -574,7 +586,7 @@ export function noteText(s: string): string {
     .replace(/(^|[\s(=×÷+,{])-(?=[\d.(a-zA-Zπ√{])/g, "$1−").replace(/((?:^|[\s(=])(?:\d[\d.]*[a-zA-Z]?|[a-zA-Z])|[)²³]) - (?=[\d(√π{]|[a-zA-Z](?![a-zA-Z]))/g, "$1 − ");
 }
 
-const GUIDE_FRACTION = /\{([^{}/]+)\/([^{}/]+)\}/g;
+const GUIDE_FRACTION = /(?<!\^)\{([^{}/]+)\/([^{}/]+)\}/g;
 /** Guidance may hold stacked fractions, {1/2}: smaller figures over and under a short bar. */
 const guideFraction = (num: string, den: string, size: number) => Math.max(noteWidth(num, size), noteWidth(den, size)) + 4;
 /** The width of a line of guidance as drawn, fractions included. */
@@ -585,7 +597,7 @@ export const guideWidth = (s: string, size: number, bold = false) => {
 };
 /** A line of guidance holding a stacked fraction stands taller, so it takes extra room above and below. */
 const FRACTION_ROOM = 7;
-const guideTall = (s: string) => /\{[^{}/]+\/[^{}/]+\}/.test(s);
+const guideTall = (s: string) => /(?<!\^)\{[^{}/]+\/[^{}/]+\}/.test(s);
 
 /** One line of guidance at x on baseline y, as SVG text: stacked fractions placed by measure between the words. */
 function noteLine(line: string, x: number, y: number, size: number, attrs = "", prefix = ""): string {
@@ -611,7 +623,7 @@ function noteLine(line: string, x: number, y: number, size: number, attrs = "", 
 
 /** One escaped line of guidance, with any remaining power such as ^24 or ^-3 raised and smaller. */
 export function noteMarkup(line: string): string {
-  return esc(line).replace(/\^\{([^{}]+)\}|\^(−?-?\d+)/g, (_, braced: string | undefined, digits: string | undefined) => { const p = braced ?? digits ?? ""; return `<tspan dy="-3.5" font-size="7">${p.replace("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`; });
+  return esc(line).replace(/\^\{([^{}]+)\}|\^(−?-?\d+)/g, (_, braced: string | undefined, digits: string | undefined) => { const p = braced ?? digits ?? ""; return `<tspan dy="-3.5" font-size="7">${p.replaceAll("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`; });
 }
 
 /** Guidance at x with its first baseline at y, wrapped to width: a mark chip and words, an "Also scores" line, a note. */

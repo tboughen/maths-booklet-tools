@@ -420,6 +420,9 @@ describe("guidance typesetting", () => {
     expect(noteText("6 - {1/2}x and {-1/2}")).toBe("6 − {1/2}x and {−1/2}");
     expect(noteMarkup("f^{-1}(x)")).toBe("f<tspan dy=\"-3.5\" font-size=\"7\">−1</tspan><tspan dy=\"3.5\">\u200b</tspan>(x)");
     expect(guideWidth("is {1/2}", NOTE_SIZE)).toBeLessThan(noteWidth("is {1/2}", NOTE_SIZE));
+    // A fractional power is raised, not stacked.
+    expect(guideWidth("x^{1/2}", NOTE_SIZE)).toBe(noteWidth("x^{1/2}", NOTE_SIZE));
+    expect(noteMarkup("x^{-1/2}")).toContain(">−1/2</tspan>");
     const raw = JSON.parse(JSON.stringify(sample()));
     raw.parts[0].steps = [{ kind: "line", lhs: "y", rhs: "6 - {1/2}x", note: "Gradient of L is -{1/2}." }];
     const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
@@ -438,6 +441,10 @@ describe("worked-solution square roots", () => {
     expect(pieces("√({1.1/1.05^{3}})")).toEqual([{ kind: "root", body: [{ kind: "fraction", num: [run("1.1")], den: [run("1.05"), run("3", true)] }] }]);
     expect(pieces("√{2/3}")).toEqual([{ kind: "root", body: [{ kind: "fraction", num: [run("2")], den: [run("3")] }] }]);
     expect(pieces("{1/√3}")).toEqual([{ kind: "fraction", num: [run("1")], den: [{ kind: "root", body: [run("3")] }] }]);
+    // A braced group that is not a fraction loses its braces under the overbar.
+    expect(pieces("√{x+1}")).toEqual([{ kind: "root", body: [run("x+1")] }]);
+    // A fraction splits at its own slash, not one inside a nested group.
+    expect(pieces("{√{a/b}/c}")).toEqual([{ kind: "fraction", num: [{ kind: "root", body: [run("a/b")] }], den: [run("c")] }]);
     // A root sign with nothing to cover stays as typed.
     expect(pieces("√ and √(")).toEqual([run("√ and √(")]);
     expect(mathsWidth("√36")).toBeGreaterThan(mathsWidth("36") + 4);
