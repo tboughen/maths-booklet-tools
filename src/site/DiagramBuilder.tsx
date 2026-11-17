@@ -203,8 +203,9 @@ function HouseStyleMenu() {
   return (
     <details ref={menu} className="house-style-menu">
       <summary><Settings2 size={16} aria-hidden="true" />House style</summary>
-      <fieldset className="house-style">
-        <legend>House style for new diagrams</legend>
+      {/* A group with its title as the first line. A fieldset would set its title across the top edge, half outside the panel. */}
+      <div className="house-style" role="group" aria-labelledby="house-style-title">
+        <strong id="house-style-title">House style for new diagrams</strong>
         <label>
           Text
           <select value={house.style} onChange={(event) => setHousePreference({ ...house, style: event.target.value as HouseStyle })}>
@@ -218,7 +219,7 @@ function HouseStyleMenu() {
           </select>
         </label>
         <p>Each diagram keeps its own settings, which you can still change in its editor. Saved files do not change.</p>
-      </fieldset>
+      </div>
     </details>
   );
 }
