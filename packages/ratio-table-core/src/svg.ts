@@ -10,6 +10,8 @@ const SMALL = 10 / 12;
 /** Stacked fraction parts: 10 pt, even inside a 10 pt operation label. */
 const part = (size: number) => Math.max(size * SMALL, FONT * SMALL);
 const ROW_HEIGHT = 100;
+/** The heading row's height when a heading is a stacked fraction such as 1/x^2. */
+const FRACTION_HEAD_HEIGHT = 130;
 /** A column's printed width (1.5 cm) before any long heading widens it. */
 const CELL_WIDTH = 150;
 const ANSWER_LINE_WIDTH = 60;
@@ -142,12 +144,18 @@ export function ratioMetrics(document: RatioDocument) {
   const columnWidth = cellWidth + (two ? 0 : gutter),
     tableWidth = document.headings.length * columnWidth,
     width = 30 + tableWidth + gutterLeft + gutterRight,
-    height = (document.rows.length + 1) * ROW_HEIGHT + 30;
+    // A stacked fraction heading (1/x, 1/x^2) gets a taller heading row so it clears the heading
+    // rule; other tables keep the exact layout (add room, never shrink).
+    headHeight = document.headings.some((h) => HEADING_FRACTION.test(h.text)) ? FRACTION_HEAD_HEIGHT : ROW_HEIGHT,
+    height = headHeight + document.rows.length * ROW_HEIGHT + 30;
   return {
     width,
     height,
     tableLeft: 15 + gutterLeft,
     tableTop: 15,
+    headHeight,
+    /** The top of the first row under the headings. */
+    bodyTop: 15 + headHeight,
     columnWidth,
     cellWidth,
     tableWidth,
@@ -293,27 +301,27 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
   const rules = Array.from(
     { length: document.headings.length - 1 },
     (_, i) =>
-      `M${left + (i + 1) * m.columnWidth} ${top}V${top + (document.rows.length + 1) * 100}`,
+      `M${left + (i + 1) * m.columnWidth} ${top}V${m.bodyTop + document.rows.length * 100}`,
   ).join("");
-  let body = `<path class="ratio-rules" d="${rules}M${left} ${top + 100}H${left + m.tableWidth}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
+  let body = `<path class="ratio-rules" d="${rules}M${left} ${m.bodyTop}H${left + m.tableWidth}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
   document.headings.forEach((heading, i) => {
     const width = headingWidth(heading),
       centre = left + m.cellWidth / 2 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
-    body += headingMarkup(heading, textX, top + 50);
+    body += headingMarkup(heading, textX, top + m.headHeight / 2);
     if (heading.direction !== "none")
-      body += arrow(textX + width / 2 + 22, top + 50, heading.direction);
+      body += arrow(textX + width / 2 + 22, top + m.headHeight / 2, heading.direction);
   });
   document.rows.forEach((row, i) =>
     row.cells.forEach((cell, column) => {
-      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + m.cellWidth / 2 + column * m.columnWidth, top + 150 + i * 100, view)}</g>`;
+      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + m.cellWidth / 2 + column * m.columnWidth, m.bodyTop + 50 + i * 100, view)}</g>`;
     }),
   );
   if (document.mode === "annotated")
     for (const step of document.transitions) {
       const index = document.rows.findIndex((r) => r.id === step.from),
-        y = top + 150 + index * 100;
+        y = m.bodyTop + 50 + index * 100;
       const lanes = stepLanes(document, m, step);
       for (const { side, edge } of lanes) {
         const x = edge + side * 12;
