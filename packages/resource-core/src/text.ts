@@ -79,7 +79,9 @@ function plainRuns(source: string, base: FontStyle): Run[] {
 }
 
 /** **bold** text that holds a stacked fraction: the fraction prints bold too ("**Gradient = {1/2}**"). */
-const BOLD_WITH_FRACTION = /\*\*((?:(?!\*\*).)*?\{[^{}/]{1,12}\/[^{}/]{1,12}\}(?:(?!\*\*).)*?)\*\*/g;
+/** Bold pairs in reading order, so the closing ** of one run never pairs with the opening ** of the next. */
+const BOLD_PAIR = /\*\*((?:(?!\*\*).)+?)\*\*/g;
+const HAS_FRACTION = /\{[^{}/]{1,12}\/[^{}/]{1,12}\}/;
 
 function fractionRuns(source: string, base: FontStyle, bold: boolean): Run[] {
   const runs: Run[] = [];
@@ -97,7 +99,9 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
   if (!maths) return plainRuns(source, base);
   const runs: Run[] = [];
   let at = 0;
-  for (const m of source.matchAll(BOLD_WITH_FRACTION)) {
+  for (const m of source.matchAll(BOLD_PAIR)) {
+    // A bold run without a fraction stays in the plain text, which prints its ** marks as bold.
+    if (!HAS_FRACTION.test(m[1])) continue;
     if (m.index > at) runs.push(...fractionRuns(source.slice(at, m.index), base, false));
     runs.push(...fractionRuns(m[1], "bold", true));
     at = m.index + m[0].length;

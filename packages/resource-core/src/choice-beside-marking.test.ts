@@ -168,6 +168,13 @@ describe("bold round a stacked fraction (16 Nov 2026)", () => {
     expect(num).toMatch(/<w:rFonts/);
   });
 
+  it("keeps several short bold runs apart when fractions sit between them", () => {
+    const page = renderResource(sheet([{ type: "text", text: "**f.**\u00a0{1/5},  **g.**\u00a0{4/5},  **i.**\u00a00,  **j.**\u00a0{1/10}" }])).pages[0];
+    expect(page).not.toContain("**");
+    for (const l of ["f.", "g.", "i.", "j."]) expect(page).toContain(`<tspan font-weight="600">${l}</tspan>`);
+    expect(page).not.toMatch(/<g data-fraction="stacked"><text[^>]*font-weight/);
+  });
+
   it("leaves a fraction outside the bold marks regular", () => {
     const page = renderResource(sheet([{ type: "text", text: "**Gradient =** {1/2}" }])).pages[0];
     expect(page).toMatch(/<g data-fraction="stacked"><text(?![^>]*font-weight)[^>]*>1<\/text>/);
