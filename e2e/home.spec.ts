@@ -80,6 +80,9 @@ test("Carry on lists a diagram once it has been changed, newest first, and opens
     await page.goto(`/tools/${tool}`);
     await page.locator(".site-page:not([hidden]) .editor-card").getByRole("button", { name: "Add column", exact: true }).click();
     await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeEnabled();
+    // The record is written once the store's code has loaded; a full page load straight after the
+    // change could otherwise leave before it lands (the released build is fast enough to do so).
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("mathsdock.recentWork") ?? "")).toContain(`"${tool}"`);
   }
   await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
   const cards = carryOn(page).getByRole("link");
@@ -113,6 +116,17 @@ test("undoing every step takes a diagram off Carry on, or back to its earlier ti
   await card.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
   await expect(carryOn(page).getByRole("link")).toContainText("Changed on 5 January");
+});
+
+test("a change is kept for Carry on without fetching anything more, so leaving straight after it loses nothing", async ({ page }) => {
+  await page.goto("/tools/ratio-table");
+  const add = page.locator(".site-page:not([hidden]) .editor-card").getByRole("button", { name: "Add column", exact: true });
+  await expect(add).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  // The code that keeps the record arrived with the page. With the network gone, the change is still recorded.
+  await page.route("**/*", (route) => route.abort());
+  await add.click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("mathsdock.recentWork") ?? "")).toContain('"ratio-table"');
 });
 
 test("Carry on lists the paper being built and drops it when the paper is cleared", async ({ page }) => {

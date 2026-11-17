@@ -9,12 +9,14 @@ interface Options {
   onSwipe: (direction: 1 | -1) => void;
   /** Changes whenever the stage shows different content, so a pending scroll lands after that layout. */
   layoutKey: string;
+  /** Whether the stage is on screen. */
+  shown: boolean;
   enabled: boolean;
   /** A drawing tool is active: double-click draws dots rather than zooming. */
   drawing?: boolean;
 }
 
-type Pending = { kind: "anchor"; anchor: Point; anchorAfter: Point; scale: number; offset: Point; scroll: ScrollState } | { kind: "scroll"; scroll: ScrollState };
+type Pending = { anchor: Point; anchorAfter: Point; scale: number; offset: Point; scroll: ScrollState };
 
 const interactive = "button,a,input,select,textarea,summary,label,[role=alert],.qb-view-error";
 
@@ -30,16 +32,27 @@ function stagePoint(stage: HTMLElement, clientX: number, clientY: number): Point
   return { x: clientX - rect.left - stage.clientLeft, y: clientY - rect.top - stage.clientTop };
 }
 const centre = (stage: HTMLElement): Point => ({ x: stage.clientWidth / 2, y: stage.clientHeight / 2 });
+/** The point of the page at the stage's top left corner, in page units. */
+function placeOf(stage: HTMLElement, scale: number): Point {
+  const offset = contentOffset(stage);
+  return { x: (stage.scrollLeft - offset.x) / scale, y: (stage.scrollTop - offset.y) / scale };
+}
 
 /**
  * Zoom and pan gestures for the question stage: Ctrl/Cmd + wheel and trackpad pinch, two-finger touch pinch,
  * drag to pan (mouse and one finger), double-click or double-tap, and swipe to change question at fit.
  * Every change is screen-only and anchored, so the point under the pointer or fingers stays put.
+ * When the stage changes size or comes back on screen (a pane beside it is switched on or off), the
+ * view keeps its place: the same part of the page stays at the top left.
  */
-export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, enabled, drawing = false }: Options) {
+export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, shown, enabled, drawing = false }: Options) {
   const live = useRef({ zoom, scale, setZoom, onSwipe, drawing });
   live.current = { zoom, scale, setZoom, onSwipe, drawing };
   const pending = useRef<Pending | undefined>(undefined);
+  // Where the teacher left the view, what the stage last showed, and the scroll made to hold that place.
+  const place = useRef<Point | undefined>(undefined);
+  const seen = useRef<{ el: HTMLElement; scale: number; zoom: number; layoutKey: string } | undefined>(undefined);
+  const held = useRef<ScrollState | undefined>(undefined);
 
   /** Zooms to `next`, keeping the content under `anchor` fixed (or moving it to `anchorAfter`). */
   const requestZoom = useCallback((next: number, anchor?: Point, anchorAfter?: Point) => {
@@ -54,21 +67,37 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       el.scrollLeft = moved.left; el.scrollTop = moved.top;
       return;
     }
-    pending.current = { kind: "anchor", anchor: at, anchorAfter: anchorAfter ?? at, scale: before.scale, offset: before.offset, scroll };
+    pending.current = { anchor: at, anchorAfter: anchorAfter ?? at, scale: before.scale, offset: before.offset, scroll };
     live.current.zoom = target;
     live.current.setZoom(target);
   }, [stage]);
 
-  /** Scroll to an absolute position once the next layout is in place (used to restore a question's view). */
-  const restoreScroll = useCallback((scroll: ScrollState) => { pending.current = { kind: "scroll", scroll }; }, []);
-
   useLayoutEffect(() => {
-    const el = stage.current, next = pending.current;
-    if (!el || !next) return;
+    const el = stage.current;
+    // Off screen: the place is kept for when the stage is back.
+    if (!el) return;
+    const before = seen.current, next = pending.current;
+    seen.current = { el, scale, zoom, layoutKey };
     pending.current = undefined;
-    const scroll = next.kind === "scroll" ? next.scroll : anchoredScroll(next.scroll, next.anchor, { scale: next.scale, offset: next.offset }, { scale, offset: contentOffset(el) }, next.anchorAfter);
-    el.scrollLeft = scroll.left; el.scrollTop = scroll.top;
-  }, [scale, layoutKey, stage]);
+    if (next) {
+      const scroll = anchoredScroll(next.scroll, next.anchor, { scale: next.scale, offset: next.offset }, { scale, offset: contentOffset(el) }, next.anchorAfter);
+      el.scrollLeft = scroll.left; el.scrollTop = scroll.top;
+      place.current = placeOf(el, scale); held.current = undefined;
+    } else if (before?.layoutKey !== layoutKey) {
+      place.current = undefined; held.current = undefined;
+    } else if (before.zoom !== zoom) {
+      // The zoom was set from outside (a new fit mode): the place is wherever that left the view.
+      place.current = placeOf(el, scale); held.current = undefined;
+    } else if (place.current && (before.scale !== scale || before.el !== el)) {
+      const offset = contentOffset(el);
+      el.scrollLeft = place.current.x * scale + offset.x; el.scrollTop = place.current.y * scale + offset.y;
+      // The browser may stop short of the place while the stage is small; the place itself is kept.
+      held.current = { left: el.scrollLeft, top: el.scrollTop };
+    }
+  }, [scale, zoom, layoutKey, shown, stage]);
+
+  /** Forgets the place, so a stage that comes back on screen starts from its top left. */
+  const forgetPlace = useCallback(() => { place.current = undefined; seen.current = undefined; held.current = undefined; }, []);
 
   useEffect(() => {
     const el = stage.current;
@@ -183,6 +212,13 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       requestZoom(toggleDetailZoom(live.current.zoom), stagePoint(el, event.clientX, event.clientY));
     };
 
+    // A scroll made here to hold the place is not the teacher's, so it does not move the place.
+    const scrolled = () => {
+      if (held.current?.left === el.scrollLeft && held.current.top === el.scrollTop) return;
+      held.current = undefined; place.current = placeOf(el, live.current.scale);
+    };
+
+    el.addEventListener("scroll", scrolled, { passive: true });
     el.addEventListener("wheel", wheel, { passive: false });
     el.addEventListener("gesturestart", gestureStartHandler);
     el.addEventListener("gesturechange", gestureChange);
@@ -193,6 +229,7 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
     el.addEventListener("dblclick", doubleClick);
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      el.removeEventListener("scroll", scrolled);
       el.removeEventListener("wheel", wheel);
       el.removeEventListener("gesturestart", gestureStartHandler);
       el.removeEventListener("gesturechange", gestureChange);
@@ -211,5 +248,5 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
     el.scrollBy({ left: x * el.clientWidth, top: y * el.clientHeight });
   }, [stage]);
 
-  return { requestZoom, restoreScroll, panBy };
+  return { requestZoom, panBy, forgetPlace };
 }

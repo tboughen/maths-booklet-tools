@@ -11,10 +11,11 @@ The old worked solutions (one flat PDF and PNG per question, schema 1) were reti
 
 ## In the Question bank
 
-Questions open first. **Show worked solution** is deliberate and replaces the current resource in
-the same pane; hiding it returns to Question. Switching question, filters, crossover identity or
-reloading opens Question, and ordinary question links never encode an answer role. Questions with
-no attachment show a disabled button and **Not available yet**.
+Questions open first. The **Worked solution** switch is deliberate and opens the working in a pane
+of its own beside whatever else is on (Question, Mark scheme); switching it off closes that pane
+(`docs/tools/APP-HOUSE-STYLE.md`, "Question bank: three switches"). Switching question, filters,
+crossover identity or reloading shows only Question, and ordinary question links never encode an
+answer role. Questions with no attachment show a disabled switch and **Not available yet**.
 
 - In part view the working shows over the served part's cuts (and its stem), with only that part's
   grey (N). The whole question shows every cut stacked, with the **Total for Question** line the

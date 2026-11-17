@@ -39,7 +39,7 @@ const suites: Suite[] = [
   { name: "e2e", server: "dev" },
   { name: "accessibility", server: "dev", testMatch: "accessibility.spec.ts", timeout: 60000 },
   { name: "gates", server: "dev", testMatch: "gates.spec.ts", timeout: 240000 },
-  { name: "question-bank", server: "dev", testMatch: /question-bank-(zoom|annotate|parts)\.spec\.ts/ },
+  { name: "question-bank", server: "dev", testMatch: /question-bank-(zoom|annotate|parts|panes)\.spec\.ts/ },
   {
     name: "algebra", server: "dev", external: env.MATHSDOCK_ALGEBRA_URL,
     testMatch: /algebra-grid\.spec\.ts|site-navigation\.spec\.ts/,
@@ -66,6 +66,7 @@ const suites: Suite[] = [
   { name: "angles", server: "dev", testMatch: "angles.spec.ts" },
   { name: "area", server: "dev", testMatch: "area.spec.ts" },
   { name: "figures", server: "dev", testMatch: "figures.spec.ts" },
+  { name: "solids", server: "dev", testMatch: "solids.spec.ts" },
   { name: "factor-tree", server: "dev", testMatch: "factor-tree.spec.ts" },
   { name: "written-method", server: "dev", testMatch: "written-method.spec.ts" },
   { name: "function-machine", server: "dev", testMatch: "function-machine.spec.ts" },

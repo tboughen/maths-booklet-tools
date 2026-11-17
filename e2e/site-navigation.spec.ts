@@ -46,7 +46,7 @@ test("the tool switcher lists every tool, marks the current one and fits a phone
   await page.goto("/tools/number-line");
   await current(page).locator(".tool-switcher-button").click();
   const panel = page.getByRole("dialog", { name: "Switch diagram tool" });
-  await expect(panel.locator(".tool-switcher-groups").getByRole("link")).toHaveCount(26);
+  await expect(panel.locator(".tool-switcher-groups").getByRole("link")).toHaveCount(27);
   await expect(panel.locator('[aria-current="page"]')).toHaveText("Number lines");
   const [box, view] = [(await panel.boundingBox())!, page.viewportSize()!];
   expect(box.x).toBeGreaterThanOrEqual(0);
@@ -198,7 +198,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
     .getByRole("button", { name: "Next", exact: true })
     .click();
   await current(page)
-    .getByRole("button", { name: "Show mark scheme", exact: true })
+    .getByRole("button", { name: "Mark scheme", exact: true })
     .click();
   const bankUrl = page.url();
   const source = await current(page)
@@ -216,7 +216,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
   );
   await expect(
     current(page).getByRole("button", {
-      name: "Hide mark scheme",
+      name: "Mark scheme",
       exact: true,
     }),
   ).toHaveAttribute("aria-pressed", "true");

@@ -1,0 +1,156 @@
+{
+ "document": {
+  "angles": [],
+  "dims": [
+   {
+    "a": "pt",
+    "b": "o",
+    "gap": false,
+    "id": "h",
+    "kind": "beside",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "4 cm"
+    },
+    "offset": 0,
+    "side": "right"
+   },
+   {
+    "a": "pt",
+    "b": "m",
+    "gap": false,
+    "id": "s",
+    "kind": "beside",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "5 cm"
+    },
+    "offset": 0,
+    "side": "left"
+   },
+   {
+    "a": "p1",
+    "b": "p2",
+    "gap": false,
+    "id": "ab",
+    "kind": "beside",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "6 cm"
+    },
+    "offset": 0,
+    "side": "right"
+   }
+  ],
+  "hidden": "dashed",
+  "lines": [
+   {
+    "a": "pt",
+    "b": "o",
+    "id": "vo",
+    "style": "dotted"
+   },
+   {
+    "a": "pt",
+    "b": "m",
+    "id": "vm",
+    "style": "dotted"
+   }
+  ],
+  "names": [
+   {
+    "id": "pt",
+    "text": "V"
+   },
+   {
+    "id": "p1",
+    "text": "A"
+   },
+   {
+    "id": "p2",
+    "text": "B"
+   },
+   {
+    "id": "p3",
+    "text": "C"
+   },
+   {
+    "id": "p4",
+    "text": "D"
+   },
+   {
+    "id": "m",
+    "text": "M"
+   }
+  ],
+  "notToScale": true,
+  "points": [
+   {
+    "id": "o",
+    "place": {
+     "a": "p1",
+     "b": "p3",
+     "t": 0.5,
+     "type": "along"
+    },
+    "show": "none"
+   },
+   {
+    "id": "m",
+    "place": {
+     "a": "p2",
+     "b": "p3",
+     "t": 0.5,
+     "type": "along"
+    },
+    "show": "none"
+   }
+  ],
+  "solids": [
+   {
+    "apex": {
+     "x": 24,
+     "y": 50,
+     "z": -22
+    },
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "base": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": 48,
+      "y": 0
+     },
+     {
+      "x": 48,
+      "y": 44
+     },
+     {
+      "x": 0,
+      "y": 44
+     }
+    ],
+    "id": "p",
+    "top": 0,
+    "type": "pyramid"
+   }
+  ],
+  "view": {
+   "angle": 45,
+   "scale": 0.75,
+   "type": "oblique"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}

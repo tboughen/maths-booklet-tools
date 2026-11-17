@@ -34,6 +34,7 @@ import { elevationsConfig } from "./guides/elevations";
 import { anglesConfig } from "./guides/angles";
 import { areaConfig } from "./guides/area";
 import { figuresConfig } from "./guides/figures";
+import { solidsConfig } from "./guides/solids";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -236,6 +237,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   angles: fromConfig(anglesConfig),
   area: fromConfig(areaConfig),
   figures: fromConfig(figuresConfig),
+  solids: fromConfig(solidsConfig),
 };
 
 const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
@@ -383,7 +385,8 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   angles: ["angles on a line and round a point", "vertically opposite angles", "angles in parallel lines", "polygon interior and exterior angles"],
   area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
   figures: ["circle theorems", "tangents and chords", "cyclic quadrilaterals", "similar triangles and shapes", "congruent triangles", "geometric proof", "parallel lines in triangles"],
+  solids: ["volume and surface area of prisms and cylinders", "cones, spheres, hemispheres and pyramids", "frustums", "compound solids", "3D Pythagoras and trigonometry", "angle between a line and a plane"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["back-to-back stem-and-leaf diagrams", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["back-to-back stem-and-leaf diagrams"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));

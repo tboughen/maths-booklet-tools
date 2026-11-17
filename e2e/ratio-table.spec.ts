@@ -188,7 +188,8 @@ test("long headings cannot leave a stale export enabled", async ({ page }) => {
     .getByRole("button", { name: "Edit headings", exact: true })
     .click();
   const heading = page.getByLabel("Column 1 heading", { exact: true });
-  await heading.fill("Temperature");
+  // Headings up to 16 characters are valid and widen the column (#420); 18 is too long.
+  await heading.fill("Temperature (degC)");
   await heading.press("Enter");
   await expect(heading).toHaveAttribute("aria-invalid", "true");
   await expect(

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
+import { pane, paneSwitch } from "./question-bank-panes";
 
 // A real question from the lite bank used by pull-request CI.
 const address = "/question-bank?code=U151&question=1MA1_JUN_2018_1H_Q4";
@@ -84,14 +85,35 @@ test.describe("question viewer zoom and pan", () => {
     await expect(page.locator(".qb-overview")).toHaveCount(0);
   });
 
-  test("the mark scheme opens at fit and hiding it restores the question's zoom and place", async ({ page }) => {
+  test("the mark scheme opens at fit beside the question, which keeps its zoom and place", async ({ page }) => {
     await open(page);
     for (let i = 0; i < 3; i++) await page.keyboard.press("=");
     await expect(level(page)).toHaveText("200%");
     await stage(page).evaluate(el => { el.scrollTop = 300; });
-    await page.getByRole("button", { name: "Show mark scheme" }).click();
+    // How far down the page the top of the question's stage is, as a share of the page.
+    const place = () => pane(page, "Question").locator(".qb-stage").evaluate(el => {
+      const a = el.getBoundingClientRect(), b = el.querySelector("canvas")!.getBoundingClientRect();
+      return (a.top - b.top) / b.height;
+    });
+    const before = await place();
+    await paneSwitch(page, "Mark scheme").click();
+    // The footer follows the pane last switched on, and each pane has its own zoom.
     await expect(level(page)).toHaveText("100%");
-    await page.getByRole("button", { name: "Hide mark scheme" }).click();
+    await expect(pane(page, "Mark scheme").locator("canvas").first()).toBeVisible();
+    // The question is smaller beside the mark scheme, and shows the same part of the page.
+    const beside = await place();
+    expect(Math.abs(beside - before)).toBeLessThan(0.01);
+    await pane(page, "Question").locator(".qb-stage").click({ position: { x: 5, y: 5 } });
+    await expect(level(page)).toHaveText("200%");
+    await paneSwitch(page, "Mark scheme").click();
+    await expect(level(page)).toHaveText("200%");
+    await expect.poll(async () => (await scroll(page)).top).toBe(300);
+    // Switching the question off and on again also brings it back where it was.
+    await paneSwitch(page, "Mark scheme").click();
+    await paneSwitch(page, "Question").click();
+    await expect(pane(page, "Question")).toHaveCount(0);
+    await paneSwitch(page, "Question").click();
+    await paneSwitch(page, "Mark scheme").click();
     await expect(level(page)).toHaveText("200%");
     await expect.poll(async () => (await scroll(page)).top).toBe(300);
     await page.getByRole("button", { name: "Next" }).click();
