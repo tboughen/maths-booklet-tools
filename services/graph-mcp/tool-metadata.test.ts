@@ -67,7 +67,7 @@ describe("MCP tool metadata (M4, M10, M17, M18)", () => {
     }
     const sheet = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
     expect(sheet.isError).toBeFalsy();
-    expect((sheet.structuredContent as { rendererVersion: string }).rendererVersion).toBe("worksheet-a3-1");
+    expect((sheet.structuredContent as { rendererVersion: string }).rendererVersion).toBe("worksheet-a3-2");
     expect(sheet.structuredContent).toEqual(JSON.parse((sheet.content as { text: string }[])[0].text));
   });
   it("accepts create_graph without schemaVersion and create_ratio_table with no arguments", async () => {

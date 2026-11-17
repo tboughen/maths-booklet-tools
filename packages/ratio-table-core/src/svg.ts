@@ -165,6 +165,16 @@ export function ratioMetrics(document: RatioDocument) {
     scale,
   };
 }
+/**
+ * How far the bottom row's numbers sit above the foot of the printed table, in millimetres: their
+ * baseline. Text placed beside a ratio table lines up with this row, because the answer comes from
+ * it (booklet standard N5, Tim 17 November 2026).
+ */
+export function ratioBottomBaselineMm(document: RatioDocument): number {
+  const m = ratioMetrics(document);
+  const baseline = m.tableTop + 150 + (document.rows.length - 1) * ROW_HEIGHT + FONT * 0.31;
+  return (m.height - baseline) * (m.heightCm * 10) / m.height;
+}
 function escape(value: string) {
   return value
     .replaceAll("&", "&amp;")

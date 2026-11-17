@@ -10,19 +10,22 @@ import {
   A4,
   bookletFileName,
   lessonFileName,
+  lessonNotesFileName,
   lessonPagesOf,
+  renderLessonNotes,
   issuePlace,
   singleLessonBooklet,
   renderBooklet,
   SECTION_KINDS,
   SECTION_TITLES,
   sectionTitle,
-  UNNUMBERED,
+  lessonLabels,
   validateBooklet,
   type Booklet,
   type Card,
   type Item,
   type Lesson,
+  type Numbering,
 } from "../../packages/resource-core/src/index";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { BesideToggle, Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
@@ -211,6 +214,20 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (r.issues.length) throw Error("Fix the layout checks before downloading.");
     downloadBlob(new Blob([r.bytes as BlobPart], { type: DOCX_TYPE }), pdfName(b, view, lesson).replace(/\.pdf$/, ".docx"));
   }
+  /** A lesson's teaching notes as their own PDF or Word file; the booklet copies never print them. */
+  async function downloadNotes(lesson: number, format: "pdf" | "docx") {
+    const name = lessonNotesFileName(b, lesson);
+    if (format === "pdf") {
+      const r = renderLessonNotes(b, lesson);
+      if (r.issues.length) throw Error(r.issues[0].message);
+      downloadBlob(await pagesPdf(r.pages, `${d.title} teaching notes`, "Page"), name);
+      return;
+    }
+    const [{ writeLessonNotesDocx }, kit] = await Promise.all([import("../../packages/resource-core/src/booklet-docx"), wordKit()]);
+    const r = await writeLessonNotesDocx(b, lesson, { fonts: kit.fonts, picture: kit.picture, version: "MathsDock booklet renderer, Word output 1" });
+    if (r.issues.length) throw Error(r.issues[0].message);
+    downloadBlob(new Blob([r.bytes as BlobPart], { type: DOCX_TYPE }), name.replace(/\.pdf$/, ".docx"));
+  }
   const editableName = () => bookletFileName(b).replace(/_A4\.pdf$/, ".json");
   const showPage = (page: number) => pagesRef.current?.querySelector(`#bk-page-${page}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -263,7 +280,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
         <Field label="Objective" value={lesson.objective} max={200} multiline disabled={blocked} onCommit={(v) => setLesson((l) => void (l.objective = v))} />
         <Field label="Key idea" value={lesson.keyIdea} max={500} multiline disabled={blocked} onCommit={(v) => setLesson((l) => void (l.keyIdea = v))} />
         <details className="bk-notes">
-          <summary>Teacher notes (not printed)</summary>
+          <summary>Teacher notes (their own file, never in the booklet)</summary>
           <label className="ws-field">
             <span>Lesson plan, misconceptions and fading</span>
             <textarea
@@ -275,9 +292,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               onBlur={(e) => e.target.value !== lesson.teacherNotes && setLesson((l) => void (l.teacherNotes = e.target.value))}
             />
           </label>
+          <p className="ws-hint">Start a line with "- " for a bullet; a blank line leaves a gap.</p>
+          <div className="bk-notes-actions">
+            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "pdf"), `Lesson ${li + 1} teaching notes PDF download started.`)}>
+              <Download size={15} aria-hidden="true" /> Notes PDF
+            </button>
+            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "docx"), `Lesson ${li + 1} teaching notes Word file download started.`)}>
+              <Download size={15} aria-hidden="true" /> Notes Word
+            </button>
+          </div>
         </details>
         {lesson.sections.map((section, si) => {
-          const numbered = !UNNUMBERED.has(section.kind);
+          const labels = lessonLabels(lesson)[si];
           return (
             <div key={si} className="ws-column bk-section">
               <div className="bk-section-head">
@@ -312,11 +338,19 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                     <option value={1}>One (full width)</option>
                   </select>
                 </label>
+                <label className="ws-field">
+                  <span>Question labels</span>
+                  <select value={section.numbering} disabled={blocked} onChange={(e) => setLesson((l) => void (l.sections[si].numbering = e.target.value as Numbering))}>
+                    <option value="continue">Numbers, carrying on</option>
+                    <option value="restart">Numbers, from 1 again</option>
+                    <option value="letters">Letters A, B, C</option>
+                  </select>
+                </label>
               </div>
               <Field label="Heading (empty uses the kind)" value={section.title} max={60} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].title = v))} />
               <Field label="Instruction line" value={section.instruction} max={160} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].instruction = v))} />
               {section.cards.map((card, ci) => {
-                const label = numbered ? String(ci + 1) : "•";
+                const label = labels[ci] === null ? "•" : String(labels[ci]);
                 const setItem = (path: number[], next: Item | Leaf) =>
                   setLesson((l) => {
                     const items = l.sections[si].cards[ci].items;
