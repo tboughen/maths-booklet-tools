@@ -158,21 +158,6 @@
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.ch-fieldset {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  min-width: 0;
-  margin: 0;
-  padding: 4px 10px 10px;
-  border: 1px solid var(--md-line);
-  border-radius: var(--md-radius);
-}
-.ch-fieldset legend {
-  padding: 0 4px;
-  color: var(--md-ink-2);
-  font-weight: 600;
-}
 .ch-fields .ch-wide {
   grid-column: 1 / -1;
 }

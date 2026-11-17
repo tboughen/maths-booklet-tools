@@ -54,6 +54,7 @@ import {
 import { LINK_PREFIX, parseFactorTreeLink, factorTreeLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:factor-tree:v1");
 type Doc = Envelope["document"];
@@ -470,8 +471,10 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Factor tree settings">
+          <aside className="inspector-stack md-kit" aria-label="Factor tree settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected number">
               <h2>{selected && selectedNode ? `Number: ${nodeName(selected)}` : "Selected number"}</h2>
               {selected && selectedTree && selectedNode ? (
@@ -578,7 +581,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
             <section className="panel-card pt-panel">
               <h2>Trees and answer lines</h2>
               {d.trees.map((t, i) => (
-                <fieldset key={t.id} className="ft-tree">
+                <fieldset key={t.id} className="md-kit-group">
                   <legend>{d.trees.length > 1 ? `Tree ${i + 1}` : "The tree"}</legend>
                   <label className="pt-hide">
                     <input
@@ -630,6 +633,8 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Complete the trees</h2>
               <p className="pt-note">
@@ -707,6 +712,8 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

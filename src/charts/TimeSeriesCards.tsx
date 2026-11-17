@@ -166,7 +166,7 @@ export function TimeSeriesCards({
       <>
       <section className="panel-card ch-panel">
         <h2>Axes and graph paper</h2>
-        <fieldset className="ch-fieldset">
+        <fieldset className="md-kit-group">
           <legend>Horizontal axis (time)</legend>
           <div className="ch-fields">
             <label>
@@ -185,7 +185,7 @@ export function TimeSeriesCards({
             </label>
           </div>
         </fieldset>
-        <fieldset className="ch-fieldset">
+        <fieldset className="md-kit-group">
           <legend>Vertical axis</legend>
           <div className="ch-fields">
             {(["min", "max", "step"] as const).map((f) => (

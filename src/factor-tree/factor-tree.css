@@ -57,12 +57,6 @@
 .ft-titles {
   padding: 0 12px;
 }
-.ft-tree {
-  border: 1px solid var(--line, #c9d3dd);
-  border-radius: 6px;
-  margin: 0 0 8px;
-  padding: 6px 10px;
-}
 .ft-factors input {
   width: 100%;
 }

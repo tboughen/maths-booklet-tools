@@ -62,10 +62,10 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  padding: 10px 12px;
   font-size: 12px;
 }
-.pt-row {
+/* On the settings kit (`.md-kit`) the card's gap spaces a row and a button that is off is not faded. */
+.pt-row:where(:not(.md-kit *)) {
   padding: 8px 0 0;
 }
 .pt-status {
@@ -185,7 +185,7 @@
   color: var(--ink, #213c59);
   cursor: pointer;
 }
-.pt-panel button:disabled {
+.pt-panel:where(:not(.md-kit *)) button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -201,7 +201,7 @@
 .pt-branches {
   display: grid;
   gap: 4px;
-  max-height: 420px;
+  max-height: 460px;
   overflow: auto;
   font-size: 13px;
 }
@@ -212,6 +212,18 @@
   align-items: center;
   border-radius: 4px;
   padding: 2px;
+}
+/* A field with its Hide tick underneath. */
+.pt-branch > span:has(> .pt-hide),
+.pt-question > span:has(> .pt-hide) {
+  display: grid;
+  gap: 3px;
+}
+/* On a phone the list is as long as it needs to be: no scrolling inside the scrolling page. */
+@media (max-width: 767px) {
+  .pt-branches {
+    max-height: none;
+  }
 }
 .pt-branch.pt-current {
   background: #e2efff;

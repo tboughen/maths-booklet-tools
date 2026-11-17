@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "./release-fixtures";
 
-// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling and Statistical charts.
+// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts and the tree tools.
 const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
@@ -173,4 +173,81 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
   expect((await page.getByLabel("Value for Car, boys", { exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect((await page.getByLabel("Axis start", { exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+// The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
+// right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
+const TREES: [string, string, string[], string[], number][] = [
+  ["/tools/probability-tree", "Selected branch", ["Branches"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 3],
+  ["/tools/frequency-tree", "Selected group", ["Total and groups"], ["Work out counts", "Questions", "Layout"], 2],
+  ["/tools/factor-tree", "Selected number", ["Trees and answer lines"], ["Complete the trees", "Layout"], 3],
+];
+
+test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  for (const [path, selected, left, right] of TREES) {
+    await page.goto(path);
+    const stack = page.locator(".inspector-stack.md-kit");
+    await expect(stack).toBeVisible();
+    await page.locator(".pt-hit").first().click();
+    const chosen = (await page.locator(`.md-kit .panel-card[aria-label="${selected}"]`).boundingBox())!;
+    const layout = await chartCard(page, "Layout");
+    for (const name of left) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(chosen.x);
+    for (const name of right) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(layout.x);
+    expect(layout.x, path).toBeGreaterThanOrEqual(chosen.x + chosen.width);
+    expect(Math.abs(layout.width - chosen.width), path).toBeLessThanOrEqual(1);
+    // With something selected the settings were 1,597, 1,531 and 1,157 px long before the kit.
+    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
+    expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
+    const sizes = await stack.evaluate((el) => ({
+      buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
+      fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
+      ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
+      // A button that is off is grey, not grey and faded as well.
+      faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
+      cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
+      heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
+    }));
+    expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+    expect(sizes.heading, path).toContain("600 17px");
+  }
+  // A Hide tick's label sits 3 px under its field, in a list that is not cut off and scrolls only from 460 px.
+  await page.goto("/tools/frequency-tree");
+  const row = page.locator(".pt-branch > span:has(> .pt-hide)").first();
+  const fieldBox = (await row.locator("input:not([type=checkbox])").boundingBox())!;
+  expect((await row.locator(".pt-hide").boundingBox())!.y).toBe(fieldBox.y + fieldBox.height + 3);
+  const list = page.locator(".pt-branches").first();
+  expect(await list.evaluate((el) => [el.scrollHeight <= el.clientHeight, getComputedStyle(el).maxHeight])).toEqual([true, "460px"]);
+  // Two paragraphs of help do not run together.
+  await page.getByText("Editing and printing help", { exact: true }).click();
+  const help = await page.locator(".md-kit details[open] > p").evaluateAll((all) => all.map((p) => p.getBoundingClientRect()).map((r) => [r.top, r.bottom]));
+  expect(help.length).toBeGreaterThanOrEqual(2);
+  expect(help[1][0] - help[0][1]).toBe(6);
+});
+
+test("the tree tools keep one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {
+  for (const [path, , left, right, upright] of TREES) {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(path);
+    const first = await chartCard(page, left[0]), layout = await chartCard(page, "Layout");
+    expect(layout.x, path).toBe(first.x);
+    expect(layout.y, path).toBeGreaterThan(first.y + first.height);
+
+    await page.setViewportSize({ width: 1080, height: 1920 });
+    const lefts = new Set<number>();
+    for (const name of [...left, ...right]) lefts.add(Math.round((await chartCard(page, name)).x));
+    expect(lefts.size, path).toBe(upright);
+
+    await page.setViewportSize({ width: 375, height: 800 });
+    const small = await page.locator(".inspector-stack.md-kit").evaluate((el) =>
+      [...el.querySelectorAll<HTMLElement>(".panel-card :is(button, select, input:not([type=checkbox]), label:has(> input[type=checkbox]))")]
+        .filter((c) => c.getBoundingClientRect().height > 0 && c.getBoundingClientRect().height < 44)
+        .map((c) => c.textContent || c.getAttribute("aria-label")),
+    );
+    expect(small, path).toEqual([]);
+    // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
+    const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
+    expect(lists, path).toEqual(path === "/tools/factor-tree" ? [] : [true]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
+  }
 });

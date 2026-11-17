@@ -126,7 +126,7 @@ export function StemLeafCards({
       <>
       <section className="panel-card ch-panel">
         <h2>Key and size</h2>
-        <fieldset className="ch-fieldset">
+        <fieldset className="md-kit-group">
           <legend>Key</legend>
           <div className="ch-fields">
             <label>
