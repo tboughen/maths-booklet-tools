@@ -356,7 +356,9 @@ its own button and field styles as it does.
   under the first column: it holds a card that comes last in the settings (Printing) but fits the
   shorter column, so the cards keep their order wherever there is one column.
 - Beside two columns the diagram's card is about 1,230 px wide at 1920 × 1080. The foot strip
-  under it still keeps to one row: the note shares the row, and a long hint takes two lines.
+  under it still keeps to one row: the note shares the row, and a long hint takes two lines. The
+  message keeps at least 220 px there (280 px elsewhere), which leaves the longest hint, 116
+  characters in Geometry figures, its two lines.
 - At 1920 × 1080 Bar modelling's settings were 3,369 px long in a 967 px column. They are now
   1,065 px, so nearly everything is in view without scrolling.
 - **Statistical charts.** Every chart type has a data card and one or more cards of settings. The
