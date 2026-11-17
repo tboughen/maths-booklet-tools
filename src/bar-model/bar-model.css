@@ -100,7 +100,8 @@
 .bm-v2 .bm-section-list {
   display: flex;
   flex-direction: column;
-  max-height: 320px;
+  /* Six sections show before the list scrolls by itself. */
+  max-height: 396px;
   overflow: auto;
   border: 1px solid var(--md-line);
   border-radius: var(--md-radius);
@@ -144,9 +145,6 @@
 .bm-v2 pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-.bm-v2 .inspector-stack > * {
-  min-width: 0;
 }
 .bm-v2 .bm-settings button,
 .bm-v2 .bm-draft button {

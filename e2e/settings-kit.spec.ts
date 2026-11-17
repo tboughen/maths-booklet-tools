@@ -31,6 +31,7 @@ test("a wide window sets the settings cards in two fixed columns, with 32 px con
   }
   for (const name of ["Bar", "Label position", "Fill", "Output"])
     expect((await page.getByLabel(name, { exact: true }).boundingBox())!.height, name).toBe(32);
+  expect(await page.getByLabel("Section 1", { exact: true }).boundingBox()).toMatchObject({ width: 16, height: 16 });
   // The diagram's own buttons are not settings.
   expect((await page.getByRole("button", { name: "+ Section", exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
 
@@ -43,6 +44,20 @@ test("a wide window sets the settings cards in two fixed columns, with 32 px con
   await expect(page.getByLabel("Saved label", { exact: true })).toBeFocused();
   expect(await box(page, "Title and calculations")).toEqual(title);
   expect((await page.locator(".bm-draft").boundingBox())!.x).toBeLessThan(title.x);
+  // What went wrong stands out from the notes around it.
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Add calculation line", exact: true }).click();
+  await page.getByLabel("Saved label", { exact: true }).fill("9/10/2026");
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  const alert = page.locator(".bm-draft [role=alert]");
+  await expect(alert).toBeVisible();
+  expect(await alert.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(179, 38, 30)");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  // A dialog that opens from the settings is not a settings card and keeps its own buttons.
+  await page.getByRole("button", { name: "Pupil model R1", exact: true }).click();
+  const cancel = page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true });
+  expect((await cancel.boundingBox())!.height).toBeGreaterThanOrEqual(44);
 });
 
 test("a smaller window keeps one column of settings, and a phone gets finger-sized controls", async ({ page }) => {
@@ -52,6 +67,12 @@ test("a smaller window keeps one column of settings, and a phone gets finger-siz
   expect(title.x).toBe(model.x);
   expect(title.y).toBeGreaterThan(model.y + model.height);
   expect((await page.getByRole("button", { name: "Edit quantity name", exact: true }).boundingBox())!.height).toBe(32);
+  // Two columns start only where the diagram still has the room it has at 1440.
+  await page.setViewportSize({ width: 1790, height: 900 });
+  expect((await box(page, "Title and calculations")).x).toBe((await box(page, "Current model")).x);
+  await page.setViewportSize({ width: 1800, height: 900 });
+  expect((await box(page, "Title and calculations")).x).toBeGreaterThan((await box(page, "Current model")).x);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1100);
 
   await page.setViewportSize({ width: 375, height: 800 });
   for (const name of ["Edit quantity name", "Edit inside label", "Worked R4"])

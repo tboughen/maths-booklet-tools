@@ -1400,7 +1400,7 @@ export default function LessonBarModelPage({
                 <summary>
                   <h2>Start a new model</h2>
                 </summary>
-                <p className="bm-note">
+                <p>
                   These settings only shape a new model. Starting one replaces
                   the current model; Undo brings it back.
                 </p>
@@ -1494,7 +1494,7 @@ export default function LessonBarModelPage({
               <Panel>
                 <div className="bm-settings">
                   <h2>Current model</h2>
-                  <p className="bm-note" role="status">
+                  <p role="status">
                     {d.bars.length} {d.bars.length === 1 ? "bar" : "bars"} ·{" "}
                     {d.bars.reduce((n, b) => n + b.parts.length, 0)}{" "}
                     {d.bars.reduce((n, b) => n + b.parts.length, 0) === 1

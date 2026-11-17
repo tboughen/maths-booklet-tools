@@ -299,11 +299,14 @@ other tools move over one at a time, and each one drops its own button and field
 - Text is 13 px, with 12 px labels and notes. Buttons, fields and lists are 32 px high
   (`--md-control`), and 44 px for a finger or a window under 768 px wide, like the foot strip.
 - A card's heading keeps the shared 17 px, and fields keep the shared outline (`--field-line`).
+- The kit styles what is inside a card (`.site-panel`) and nothing else. A dialog or a skip link
+  in the same column keeps its own look.
+- A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
 - In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
   own width, so three short buttons take one line and not three.
 - A name with buttons that belong to it (a section, an example) has a line to itself, with its
   buttons under it.
-- **Two columns on a wide window.** From 1,700 px wide (and landscape, at least 800 px high) the
+- **Two columns on a wide window.** From 1,800 px wide (and landscape, at least 800 px high) the
   settings column is about a third of the window and the cards sit in two fixed columns. The tool
   wraps its cards in `.md-kit-cards` with one `div` for each column. The columns are fixed, not
   balanced, so a card stays where it is when another card opens, closes or grows. Everywhere else

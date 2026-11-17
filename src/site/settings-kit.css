@@ -1,30 +1,34 @@
 /* The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"): one look for the buttons,
    fields, notes and cards in a tool's settings column. A tool opts in with the class `md-kit` on
    its `.inspector-stack` and imports this file itself, so it stays out of the first-load
-   stylesheet. Headings and field outlines keep the values every tool already shares. */
-.md-kit { color: var(--md-ink); font: 400 var(--md-text-sm)/1.4 var(--md-font); }
-.md-kit .site-panel { border-color: var(--md-line); border-radius: var(--md-radius-card); box-shadow: none; }
-.md-kit h3 { margin: 4px 0 0; color: #4a5d72; font: 600 var(--md-text-sm)/1.3 var(--md-font); }
-.md-kit p { margin: 0; color: #4a5d72; font-size: var(--md-text-xs); line-height: 1.4; }
-.md-kit label { display: grid; gap: 3px; color: #4a5d72; font-size: var(--md-text-xs); font-weight: 500; }
-.md-kit label:has(> input:is([type="checkbox"], [type="radio"])) { display: flex; align-items: center; gap: 6px; color: var(--md-ink); font-size: var(--md-text-sm); font-weight: 400; }
-.md-kit :is(button, select, input:not([type="checkbox"], [type="radio"], [type="file"])) { box-sizing: border-box; min-height: var(--md-control); max-width: 100%; border-radius: var(--md-radius); background: #fff; color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
-.md-kit button { padding: 4px 10px; border: 1px solid var(--md-line-strong); font-weight: 500; cursor: pointer; }
-.md-kit button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
-.md-kit button:disabled { border-color: var(--md-line); background: var(--md-page); color: #8292a5; cursor: default; }
-.md-kit :is(select, input:not([type="checkbox"], [type="radio"], [type="file"])) { width: 100%; padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); }
-.md-kit input:is([type="checkbox"], [type="radio"]) { flex: none; width: 16px; height: 16px; margin: 0; accent-color: var(--md-blue); }
+   stylesheet. The kit styles what is inside a card (`.site-panel`) and nothing else, so a dialog
+   or a skip link in the same column keeps its own look. Headings and field outlines keep the
+   values every tool already shares. */
+.md-kit .site-panel { min-width: 0; border-color: var(--md-line); border-radius: var(--md-radius-card); box-shadow: none; color: var(--md-ink); font: 400 var(--md-text-sm)/1.4 var(--md-font); }
+.md-kit .site-panel h3 { margin: 4px 0 0; color: var(--md-ink-2); font: 600 var(--md-text-sm)/1.3 var(--md-font); }
+.md-kit .site-panel p { margin: 0; color: var(--md-ink-2); font-size: var(--md-text-xs); line-height: 1.4; }
+/* What went wrong is never a quiet note. */
+.md-kit .site-panel p[role="alert"] { color: var(--md-red); font-size: var(--md-text-sm); font-weight: 500; }
+.md-kit .site-panel label { display: grid; gap: 3px; color: var(--md-ink-2); font-size: var(--md-text-xs); font-weight: 500; }
+.md-kit .site-panel label:has(> input:is([type="checkbox"], [type="radio"])) { display: flex; align-items: center; gap: 6px; color: var(--md-ink); font-size: var(--md-text-sm); font-weight: 400; }
+/* The exclusion sits in :where(), so buttons, lists and text fields weigh the same and the rules below can follow. */
+.md-kit .site-panel :is(button, select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { box-sizing: border-box; min-height: var(--md-control); max-width: 100%; border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
+.md-kit .site-panel button { padding: 4px 10px; border: 1px solid var(--md-line-strong); font-weight: 500; cursor: pointer; }
+.md-kit .site-panel button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
+.md-kit .site-panel button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); cursor: default; }
+.md-kit .site-panel :is(select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { width: 100%; padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); }
+.md-kit .site-panel input:is([type="checkbox"], [type="radio"]) { flex: none; width: 16px; height: 16px; min-height: 0; margin: 0; accent-color: var(--md-blue); }
 /* Fingers and small windows get full-height controls, as in the strip under the diagram. */
 @media (max-width: 767px), (pointer: coarse) {
   .md-kit { --md-control: 44px; }
-  .md-kit label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: var(--md-control); }
+  .md-kit .site-panel label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: var(--md-control); }
 }
 
 /* The cards sit in two groups with no boxes of their own. A wide window gives each group a column,
    so the settings are half as long and a card stays in its column as others open and close. */
 .md-kit-cards, .md-kit-cards > div { display: contents; }
-@media screen and (min-width: 1700px) and (min-height: 800px) and (min-aspect-ratio: 1 / 1) {
+@media screen and (min-width: 1800px) and (min-height: 800px) and (min-aspect-ratio: 1 / 1) {
   .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) { grid-template-columns: minmax(0, 1fr) clamp(600px, 33vw, 700px); }
-  .md-kit > .md-kit-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
-  .md-kit > .md-kit-cards > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
+  .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
