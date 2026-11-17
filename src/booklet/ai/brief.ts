@@ -3,6 +3,7 @@ import guide from "../../../docs/content/MATHS-RESOURCE-DESIGN-GUIDE.md?raw";
 import {
   BOOKLET_WIDTHS,
   introSchema,
+  keyIdeaText,
   issuePlace,
   lessonSchema,
   renderBooklet,
@@ -213,7 +214,7 @@ const lessonPlan = z
     title: text(80).describe("Short pupil-facing lesson title, e.g. 'Find the gradient of a line (positive)'."),
     code: text(16).describe("The objective code this lesson teaches, exactly as given; empty for a check-in lesson."),
     objective: text(200).describe("The full objective, exactly as given."),
-    keyIdea: text(500).describe("One or two sentences stating the big idea, new vocabulary in **bold**."),
+    keyIdea: keyIdeaText.describe("One or two sentences stating the big idea, new vocabulary in **bold**. A line break starts a new line."),
     plan: z
       .string()
       .max(3000)

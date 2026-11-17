@@ -96,6 +96,13 @@ describe("lesson checks", () => {
   it("checks a plan's shape", () => {
     expect(planJob.check({ plan: "", flags: "", title: "T", coverNote: "", intro: {}, lessons: [] }).ok).toBe(false);
   });
+
+  it("takes a key idea with a line break in the plan, as a lesson does (N3)", () => {
+    const lesson = { title: "Gradient", code: "A7.03", objective: "Find gradients", plan: "Use perfect points." };
+    const plan = (keyIdea: string) => ({ plan: "P", flags: "", title: "T", coverNote: "", intro: a7Booklet.document.intro, lessons: [{ ...lesson, keyIdea }] });
+    expect(planJob.check(plan("The **gradient** is up per 1 right.\n**Perfect points** sit on grid corners.")).ok).toBe(true);
+    expect(planJob.check(plan("One\ttwo")).ok).toBe(false);
+  });
 });
 
 describe("booklet edits", () => {

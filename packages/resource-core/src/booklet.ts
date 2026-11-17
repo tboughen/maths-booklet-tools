@@ -61,6 +61,12 @@ export const sectionSchema = z
   })
   .strict();
 
+/** A key idea: ordinary text up to 500 characters, where a line break starts a new line (N3). */
+export const keyIdeaText = z
+  .string()
+  .max(500)
+  .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 && c !== "\n"), "Use ordinary text without control characters; a line break starts a new line.");
+
 export const lessonSchema = z
   .object({
     title: text(80),
@@ -69,11 +75,7 @@ export const lessonSchema = z
     /** The objective in full, for the editor, plans and the AI. Not printed: the title line says it once (N2). */
     objective: text(200).default(""),
     /** The lesson's big idea: one or two sentences, printed in a two-cell key-idea box under the title. A line break starts a new line. */
-    keyIdea: z
-      .string()
-      .max(500)
-      .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 && c !== "\n"), "Use ordinary text without control characters; a line break starts a new line.")
-      .default(""),
+    keyIdea: keyIdeaText.default(""),
     sections: z.array(sectionSchema).min(1).max(20),
     /** Teacher-facing plan: purpose, misconceptions, how support fades. Never printed. */
     teacherNotes: z.string().max(6000).default(""),
