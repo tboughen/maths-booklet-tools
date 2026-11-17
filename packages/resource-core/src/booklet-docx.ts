@@ -66,7 +66,7 @@ const base = (size: number) => (lh(size) - size) / 2 + size * 0.82;
 /** Word draws a 0.3 mm bottom border with its centre about 0.2 mm below the row's edge (probe P8). */
 const BORDER_DROP = 0.2;
 /** Footer: the hairline's centre and the text baseline, as on the SVG pages. */
-const FOOT_TEXT_TOP = A4.footerBase + 1 - base(A4.pageNumber);
+const FOOT_TEXT_TOP = A4.footerBase - base(A4.pageNumber);
 const FOOT_ROW = FOOT_TEXT_TOP - A4.footerRule + lh(A4.pageNumber);
 /** Distance from the page's foot to the footer's last (1 pt) paragraph. */
 const FOOTER_DISTANCE = A4.page.height - (A4.footerRule + FOOT_ROW + END_MM);

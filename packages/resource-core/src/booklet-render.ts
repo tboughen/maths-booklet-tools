@@ -219,7 +219,7 @@ interface PlannedPage {
  * The unit name is left off (less to read): it is on the cover and in the running header.
  */
 function footer(_doc: Booklet["document"], page: number, st: HouseStyle) {
-  return hline(A4.marginX, A4.marginX + W, A4.footerRule, st) + textSvg([{ text: `Page ${page}`, style: "bold" }], A4.marginX + W / 2, A4.footerBase + 1, A4.pageNumber, st.navy, "middle");
+  return hline(A4.marginX, A4.marginX + W, A4.footerRule, st) + textSvg([{ text: `Page ${page}`, style: "bold" }], A4.marginX + W / 2, A4.footerBase, A4.pageNumber, st.navy, "middle");
 }
 
 /** One printed line of a lesson's teaching notes, placed on a notes page. */
