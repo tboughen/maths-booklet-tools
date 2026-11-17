@@ -14,6 +14,7 @@ export function TimeSeriesCards({
   issues,
   onChange,
   linesControl,
+  part,
 }: {
   t: TimeseriesSettings;
   blocked: boolean;
@@ -21,6 +22,8 @@ export function TimeSeriesCards({
   issues: string[];
   onChange: (update: (s: TimeseriesSettings) => void) => void;
   linesControl: ReactNode;
+  /** The data card, or the cards of settings that follow it: each has its own column in a wide window. */
+  part: "data" | "rest";
 }) {
   const bad = (i: number, second = false) =>
     issues.some((x) => (x.startsWith(`Time ${i + 1}:`) || x.startsWith(`Time ${i + 1} (`)) && x.includes("second value") === second);
@@ -36,6 +39,7 @@ export function TimeSeriesCards({
   const relabel = (label: (i: number) => string) => onChange((s) => s.points.forEach((p, i) => (p.label = label(i))));
   return (
     <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Times and values</h2>
         <div className="ch-table-wrap">
@@ -157,6 +161,9 @@ export function TimeSeriesCards({
           </button>
         </div>
       </section>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Axes and graph paper</h2>
         <fieldset className="ch-fieldset">
@@ -259,6 +266,8 @@ export function TimeSeriesCards({
           and join across it.
         </p>
       </section>
+      </>
+      )}
     </>
   );
 }

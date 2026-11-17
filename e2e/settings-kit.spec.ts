@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "./release-fixtures";
 
-// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling.
+// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling and Statistical charts.
 const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
@@ -92,4 +92,85 @@ test("an upright monitor sets the same cards in three columns under the diagram"
     expect(b.width, name).toBeLessThan(360);
   }
   expect(lefts.size).toBe(3);
+});
+
+// Statistical charts: its cards are `.panel-card`, and every chart type has a data card and settings cards.
+const chartCard = async (page: Page, heading: string) =>
+  (await page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: heading, exact: true }) }).boundingBox())!;
+
+test("Statistical charts uses the kit: the data in one column and its settings in the other", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/charts");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const type = await chartCard(page, "Chart type"), data = await chartCard(page, "Data"), axes = await chartCard(page, "Axes and grid");
+  expect(data.x).toBe(type.x);
+  expect(data.y).toBeGreaterThan(type.y + type.height);
+  expect(axes.x).toBeGreaterThanOrEqual(type.x + type.width);
+  expect(Math.abs(axes.width - type.width)).toBeLessThanOrEqual(1);
+  // The settings were 1,432 px long before the kit. Now they are all in view.
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // The chart type that is on is marked, and a click moves the mark.
+  const dual = page.getByRole("button", { name: "Dual bar chart", exact: true });
+  const colour = (name: string) => page.getByRole("button", { name, exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor);
+  await expect(dual).toHaveAttribute("aria-pressed", "true");
+  expect((await dual.boundingBox())!.height).toBe(32);
+  expect(await colour("Dual bar chart")).toBe("rgb(230, 239, 255)");
+  expect(await colour("Pictogram")).toBe("rgb(255, 255, 255)");
+  // A table's fields keep their own width, and its ticks are ticks.
+  expect(await page.getByLabel("Value for Car, boys", { exact: true }).boundingBox()).toMatchObject({ width: 84, height: 32 });
+  expect(await page.getByLabel("Axis start", { exact: true }).evaluate((el) => el.getBoundingClientRect().height)).toBe(32);
+  expect(await page.locator(".ch-table .ch-hide input").first().boundingBox()).toMatchObject({ width: 16, height: 16 });
+  const heading = await page.getByRole("heading", { name: "Chart type", exact: true }).evaluate((el) => getComputedStyle(el).font);
+  expect(heading).toContain("600 17px");
+
+  // Every chart type keeps its data on the left and its settings on the right, with nothing cut off.
+  for (const [kind, left, right] of [
+    ["Pie chart", "Data", "Pie chart"],
+    ["Pictogram", "Data", "Pictogram"],
+    ["Scatter graph", "Points", "Line of best fit and readings"],
+    ["Histogram", "Classes", "Axes and graph paper"],
+    ["Frequency polygon", "Classes", "Polygons and mistakes"],
+    ["Cumulative frequency graph", "Classes", "Readings"],
+    ["Box plot", "Box plots", "Scale and graph paper"],
+    ["Stem-and-leaf diagram", "Stems and leaves", "Key and size"],
+    ["Time series graph", "Times and values", "Axes and graph paper"],
+  ]) {
+    await page.getByRole("button", { name: kind, exact: true }).click();
+    expect((await chartCard(page, left)).x, kind).toBe(type.x);
+    expect((await chartCard(page, right)).x, kind).toBe(axes.x);
+    const cut = await stack.evaluate((el) =>
+      [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
+    );
+    expect(cut, kind).toEqual([]);
+  }
+  // A value that cannot be used is outlined in red, and a narrow table field stays narrow.
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  const value = page.getByLabel("Value for Car", { exact: true });
+  await value.fill("lots");
+  await value.press("Enter");
+  await expect(value).toHaveAttribute("aria-invalid", "true");
+  expect(await value.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe("rgb(179, 38, 30)");
+  expect((await value.boundingBox())!.width).toBe(84);
+});
+
+test("Statistical charts keeps one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/tools/charts");
+  const type = await chartCard(page, "Chart type"), axes = await chartCard(page, "Axes and grid");
+  expect(axes.x).toBe(type.x);
+  expect(axes.y).toBeGreaterThan(type.y + type.height);
+
+  await page.setViewportSize({ width: 1080, height: 1920 });
+  const lefts = new Set<number>();
+  for (const name of ["Chart type", "Data", "Axes and grid"]) lefts.add(Math.round((await chartCard(page, name)).x));
+  expect(lefts.size).toBe(3);
+
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect((await page.getByRole("button", { name: "Pictogram", exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect((await page.getByLabel("Value for Car, boys", { exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect((await page.getByLabel("Axis start", { exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

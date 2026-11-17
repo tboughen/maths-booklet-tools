@@ -221,13 +221,6 @@
   opacity: 0.5;
   cursor: default;
 }
-/* Inspector headings and text fields match the other booklet tools. */
-.bm-v2 :is(.bm-settings, .bm-draft) h2 {
-  margin: 0;
-  font:
-    600 17px/1.3 var(--md-font);
-  color: #213c59;
-}
 @media (max-width: 600px) {
   .bm-stage {
     margin: 0;

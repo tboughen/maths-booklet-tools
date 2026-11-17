@@ -57,16 +57,13 @@
   outline: 1px dashed #b5487a;
   background: #b5487a10;
 }
+/* The settings cards take their buttons, fields, notes and headings from the settings kit
+   (src/site/settings-kit.css). What is here is the charts' own layout inside a card. */
 .ch-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 8px 6px;
   align-items: center;
-  padding: 10px 12px;
-  font-size: 12px;
-}
-.ch-row {
-  padding: 8px 0 0;
 }
 .ch-status {
   padding: 8px 12px;
@@ -104,57 +101,30 @@
   display: block;
   width: 84px;
   margin-top: 4px;
-  font-size: 12px;
 }
-.ch-table input[aria-invalid="true"] {
-  border-color: #a3142f;
-  outline: 1px solid #a3142f;
+/* The fill list is as narrow as the value under it, so it gives its words the room. */
+.ch-panel .ch-table thead select {
+  padding-inline: 4px;
+  font-size: var(--md-text-xs);
 }
 .ch-field-selected {
   outline: 2px solid var(--blue);
 }
-.ch-hide {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--muted, #50617a);
-}
 .ch-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  font-size: 13px;
-}
-.ch-fields label {
-  display: grid;
-  gap: 3px;
-}
-.ch-fields input,
-.ch-fields select {
-  width: 100%;
-  min-width: 0;
 }
 .ch-box-value {
   display: grid;
   gap: 3px;
 }
 .ch-fields .ch-hide {
-  display: flex;
   justify-self: start;
 }
-.ch-fields .ch-hide input {
-  width: auto;
-  margin: 0;
-}
+/* A tick with its sentence takes the whole row. */
 .ch-fields .ch-check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.ch-note {
-  font-size: 12px;
-  color: var(--muted, #50617a);
+  grid-column: 1 / -1;
 }
 .ch-recovery {
   margin: 16px;
@@ -173,21 +143,6 @@
 .ch-editor select {
   font: inherit;
 }
-.ch-panel select,
-.ch-panel input:not([type="checkbox"]) {
-  background: white;
-  padding: 6px 7px;
-  border: 1px solid var(--line-strong, #becbd8);
-  border-radius: 4px;
-  max-width: 100%;
-  min-width: 0;
-  color: var(--ink, #213c59);
-}
-.ch-panel h2 {
-  font-size: 16px;
-  margin: 0 0 10px;
-}
-.ch-panel button,
 .ch-recovery button {
   border: 1px solid var(--line-strong, #becbd8);
   border-radius: 5px;
@@ -197,19 +152,6 @@
   color: var(--ink, #213c59);
   cursor: pointer;
 }
-.ch-panel button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.ch-kinds button[aria-pressed="true"] {
-  background: #e2efff;
-  border-color: #386ba5;
-  color: var(--ink, #213c59);
-}
-.ch-hide input,
-.ch-check input {
-  accent-color: #2465ad;
-}
 .ch-table td.ch-angle {
   text-align: right;
   white-space: nowrap;
@@ -217,14 +159,19 @@
   font-variant-numeric: tabular-nums;
 }
 .ch-fieldset {
-  border: 1px solid var(--line, #d7dee8);
-  border-radius: 6px;
-  margin: 0 0 10px;
-  padding: 6px 10px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 10px 10px;
+  border: 1px solid var(--md-line);
+  border-radius: var(--md-radius);
 }
 .ch-fieldset legend {
-  font-weight: 600;
   padding: 0 4px;
+  color: var(--md-ink-2);
+  font-weight: 600;
 }
 .ch-fields .ch-wide {
   grid-column: 1 / -1;

@@ -307,21 +307,27 @@ stays out of the first-load stylesheet).
 - The Question bank keeps the short "Your paper" bar under the question.
 - Tests: `e2e/paper-builder.spec.ts`.
 
-## The settings kit (in Bar modelling)
+## The settings kit (in Bar modelling and Statistical charts)
 
 One look for the buttons, fields, notes and cards in a tool's settings column, in
 `src/site/settings-kit.css`. A tool opts in: it puts the class `md-kit` on its `.inspector-stack`
 and imports the file itself, so the kit loads with the tools that use it and stays out of the
-first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`). The
-other tools move over one at a time, and each one drops its own button and field styles as it does.
+first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`) and
+Statistical charts the second (`src/charts/ChartsPage.tsx`). The other tools move over one at a
+time, and each one drops its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
   order and its behaviour, so saved work, links and tests are untouched.
 - Text is 13 px, with 12 px labels and notes. Buttons, fields and lists are 32 px high
   (`--md-control`), and 44 px for a finger or a window under 768 px wide, like the foot strip.
 - A card's heading keeps the shared 17 px, and fields keep the shared outline (`--field-line`).
-- The kit styles what is inside a card (`.site-panel`) and nothing else. A dialog or a skip link
-  in the same column keeps its own look.
+- The kit styles what is inside a card (`.site-panel` or `.panel-card`) and nothing else. A dialog
+  or a skip link in the same column keeps its own look. A `.panel-card` stacks what is in it with
+  one 8 px gap.
+- In a group of choices the one that is on (`aria-pressed="true"`) has a blue outline on soft blue.
+  A field whose value cannot be used (`aria-invalid="true"`) is outlined in red.
+- A table of values keeps its own field widths. The tool sets them with one more class than the
+  kit's rule, because the kit would stretch each field across its cell.
 - A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
 - In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
   own width, so three short buttons take one line and not three.
@@ -336,5 +342,10 @@ other tools move over one at a time, and each one drops its own button and field
   under it still keeps to one row: the note shares the row, and a long hint takes two lines.
 - At 1920 × 1080 Bar modelling's settings were 3,369 px long in a 967 px column. They are now
   1,065 px, so nearly everything is in view without scrolling.
+- **Statistical charts.** Every chart type has a data card and one or more cards of settings. The
+  chart type and the data are the left column, and the settings (axes, key, readings, help) are the
+  right. A card component for a chart type takes `part="data"` or `part="rest"`, so the page can
+  put each part in its column. At 1920 × 1080 the settings were 1,432 px long in a 944 px column
+  and are now all in view for most chart types.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
