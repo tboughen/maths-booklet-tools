@@ -215,13 +215,14 @@ export function mathsText(s: string): string {
   return s.replace(/<=/g, "≤").replace(/>=/g, "≥").replace(/\*/g, "×").replace(/(?<![A-Za-z])-|-(?![A-Za-z])/g, "−");
 }
 
-type Piece = { kind: "run"; text: string; sup: boolean; under?: boolean; arrow?: boolean }
+type Piece = { kind: "run"; text: string; sup: boolean; under?: boolean; arrow?: boolean; dot?: boolean }
   | { kind: "fraction"; num: string; den: string }
   | { kind: "column"; top: string; bottom: string };
 
 /**
  * Splits "{3/4}" stacked fractions and "^2" or "^{12}" powers out of a line, and the vector forms:
- * "_{a}" an underlined (handwritten bold) vector, "vec{AB}" an arrow over AB, "[3;-2]" a column vector.
+ * "_{a}" an underlined (handwritten bold) vector, "vec{AB}" an arrow over AB, "[3;-2]" a column vector,
+ * and "dot{4}" a recurring-decimal dot over the 4 (0.2dot{4}dot{6} is 0.2464646...).
  */
 export function pieces(s: string): Piece[] {
   const out: Piece[] = [];
@@ -230,15 +231,17 @@ export function pieces(s: string): Piece[] {
   for (let i = 0; i < s.length; i++) {
     const c = s[i];
     const rest = s.slice(i);
-    const vector = /^(_|vec)\{([^{}]+)\}/.exec(rest);
-    if (vector) { flush(); out.push({ kind: "run", text: vector[2], sup: false, ...(vector[1] === "_" ? { under: true } : { arrow: true }) }); i += vector[0].length - 1; continue; }
+    const vector = /^(_|vec|dot)\{([^{}]+)\}/.exec(rest);
+    if (vector) { flush(); out.push({ kind: "run", text: vector[2], sup: false, ...(vector[1] === "_" ? { under: true } : vector[1] === "dot" ? { dot: true } : { arrow: true }) }); i += vector[0].length - 1; continue; }
     const column = /^\[([^[\];]+);([^[\];]+)\]/.exec(rest);
     if (column) { flush(); out.push({ kind: "column", top: column[1].trim(), bottom: column[2].trim() }); i += column[0].length - 1; continue; }
     if (c === "{") {
-      const end = s.indexOf("}", i);
+      // The matching brace, so a fraction may hold a braced power: {4/x^{2}}.
+      let end = -1;
+      for (let j = i + 1, depth = 1; j < s.length; j++) { if (s[j] === "{") depth++; else if (s[j] === "}" && --depth === 0) { end = j; break; } }
       const inner = end > i ? s.slice(i + 1, end) : "";
       const slash = inner.indexOf("/");
-      if (end > i && slash > 0 && slash < inner.length - 1) { flush(); out.push({ kind: "fraction", num: inner.slice(0, slash).trim(), den: inner.slice(slash + 1).trim() }); i = end; continue; }
+      if (end > i && slash > 0 && slash < inner.length - 1) { flush(); out.push({ kind: "fraction", num: fractionPart(inner.slice(0, slash)), den: fractionPart(inner.slice(slash + 1)) }); i = end; continue; }
     }
     if (c === "^") {
       let power = "";
@@ -251,6 +254,9 @@ export function pieces(s: string): Piece[] {
   flush();
   return out;
 }
+
+/** A fraction's numerator or denominator is one line: squares and cubes print as ² and ³ there. */
+const fractionPart = (s: string) => s.trim().replace(/\^\{?2\}?(?![\d])/g, "²").replace(/\^\{?3\}?(?![\d])/g, "³");
 
 const handWidth = (s: string, size: number) => Array.from(s).reduce((n, c) => n + handAdvance(c), 0) * size;
 const noteWidth = (s: string, size: number, bold = false) => Array.from(s).reduce((n, c) => n + interAdvance(c, bold ? "bold" : "regular"), 0) * size;
@@ -271,6 +277,7 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
     // Each run is held to its measured width, so a power or fraction after it lands where it was laid out.
     if (p.kind === "run") {
       out += `<text x="${n(cursor)}" y="${n(p.sup ? y - size * 0.4 : y)}" font-size="${n(p.sup ? size * 0.7 : size)}" fill="${fill}" xml:space="preserve"${p.text.trim().length > 1 ? ` textLength="${n(w)}" lengthAdjust="spacing"` : ""}>${esc(p.text)}</text>`;
+      if (p.dot) out += `<circle cx="${n(cursor + w / 2)}" cy="${n(y - size * 0.92)}" r="${n(size * 0.085)}" fill="${fill}"/>`;
       if (p.under) out += `<path d="M${n(cursor + 0.5)} ${n(y + size * 0.2)}H${n(cursor + w - 0.5)}" stroke="${fill}" stroke-width="0.8" fill="none"/>`;
       if (p.arrow) {
         const top = y - size * 0.95, end = cursor + w - 0.5;

@@ -338,6 +338,19 @@ describe("worked-solution drawings on printed grids", () => {
   });
 });
 
+describe("worked-solution recurring decimals and fraction powers", () => {
+  it("puts a dot over each recurring digit", () => {
+    expect(pieces("0.2dot{4}dot{6}")).toEqual([{ kind: "run", text: "0.2", sup: false }, { kind: "run", text: "4", sup: false, dot: true }, { kind: "run", text: "6", sup: false, dot: true }]);
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "answer", value: "0.dot{3}", mark: { code: "B1", note: "cao" } }];
+    expect(layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg).toMatch(/<circle [^>]*r="[\d.]+"/);
+  });
+  it("reads a braced power inside a stacked fraction", () => {
+    expect(pieces("x = {4/x^{2}} + 1")).toEqual([{ kind: "run", text: "x = ", sup: false }, { kind: "fraction", num: "4", den: "x²" }, { kind: "run", text: " + 1", sup: false }]);
+    expect(pieces("{a^3/2}")).toEqual([{ kind: "fraction", num: "a³", den: "2" }]);
+  });
+});
+
 describe("worked-solution vectors", () => {
   it("reads underlined vectors, arrows over and column vectors", () => {
     expect(pieces("2_{a} + vec{AB}")).toEqual([{ kind: "run", text: "2", sup: false }, { kind: "run", text: "a", sup: false, under: true }, { kind: "run", text: " + ", sup: false }, { kind: "run", text: "AB", sup: false, arrow: true }]);
