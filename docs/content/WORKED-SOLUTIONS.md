@@ -74,7 +74,9 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   cylinders, cones, spheres, pyramids, frustums), `carry` (a value from
   an earlier part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (shapes on any
   shown surface) and `answer` (centred on its line; `"align": "left"` for written words on a
-  full-width line).
+  full-width line; `"markAt": "after"` puts its mark level with the answer, after the end of a short
+  line or at the right end of a full-width one, so a mark on a later line keeps off the dotted line
+  above it).
 - Printed grids: `grids` lists calibrated grids, each `{ id, on, x: [{at, value}, {at, value}], y: [...] }`
   where `at` is a printed gridline's position in points and `value` the number it shows. A `draw`
   step with `"grid": id` then gives every position in that grid's units, so "draw y = 2x + 1" is
@@ -93,7 +95,10 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   stays inline). `sqrt{...}` is a square root drawn as a radical with an overbar over its contents,
   and `√` before a number, a letter run, a braced group or a bracketed group does the same:
   `√36`, `3√x`, `√(x^2 + 4)` (the overbar replaces the brackets), `√({1.1/1.05^{3}})` (the root
-  grows to cover the fraction, and its line takes a fraction's room).
+  grows to cover the fraction, and its line takes a fraction's room). `64^{1/3}` and `64^{-2/3}` are
+  fractional powers drawn as a small raised stacked fraction (inside a fraction they stay raised
+  text); `∛64`, `∜81` and `root{n}{...}` are roots with a small index. A whole number followed by a
+  fraction of whole numbers (`4{3/4}`) is a mixed number and gets a small gap.
 - Guidance is words with light typesetting: `^2` and `-` as in the working, and `{1/2}` a stacked
   fraction (Tim, 17 Nov 2026: fractions in guidance are maths, never words such as "minus a half").
   A line holding a fraction takes extra room above and below.
