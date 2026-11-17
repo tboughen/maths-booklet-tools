@@ -335,6 +335,8 @@ export const LETTERS = {
   colGap: 6,
   /** Between rows, so pupils can circle an option without touching the one below. */
   rowGap: 4,
+  /** Narrower than this (options beside a diagram), options that do not fit one row take one column. */
+  narrow: 60,
 } as const;
 /**
  * How many equal columns lettered options take: all in one row when each fits a slot of that
@@ -343,7 +345,9 @@ export const LETTERS = {
 export function letterColumns(widths: number[], w: number): number {
   const L = LETTERS;
   const fits = (k: number) => Math.max(...widths) <= (w - (k - 1) * L.colGap) / k;
-  return fits(widths.length) ? widths.length : fits(2) ? 2 : 1;
+  // In a narrow space (options beside a diagram) a 2 by 2 block crowds the letters together, so
+  // they go one under another, each with room to circle.
+  return fits(widths.length) ? widths.length : w >= LETTERS.narrow && fits(2) ? 2 : 1;
 }
 /** An option's printed width on one line, its letter ring included. */
 export const letterOptionWidth = (o: string, maths: boolean) => 2 * LETTERS.r + LETTERS.gap + lineWidth(wrap(o, S.body, 1e6, "regular", maths)[0] ?? [], S.body);
@@ -549,15 +553,16 @@ function ratioFoot(l: Leaf): number | null {
     return null;
   }
 }
-/** The baseline of an item's last line of text, from the item's top (mm): text and answer lines only. */
+/** The baseline of an item's text, from the item's top (mm): an answer line or one line of text only. */
 function lastBaseline(l: Leaf, f: Frag): number | null {
   if (l.type === "answerLine") return f.h - 2.6;
-  if (l.type !== "text") return null;
+  // Only a one-line text drops to the bottom row ("Gradient = 3"): a longer passage beside a table reads from the top.
+  if (l.type !== "text" || f.h > (f.first !== undefined ? fractionLine(S.body) : lineBox(S.body)) + 0.01) return null;
   return f.first !== undefined ? f.h - fractionLine(S.body) + f.first : f.h - lineBox(S.body) + baseline(S.body);
 }
 /**
- * Where the two items of a row sit: both at the top, except text or an answer line beside a ratio
- * table, whose last line is level with the table's bottom row, because the answer comes from that
+ * Where the two items of a row sit: both at the top, except an answer line or one line of text beside a ratio
+ * table, which is level with the table's bottom row, because the answer comes from that
  * row ("Gradient =", booklet standard N5, Tim 17 November 2026).
  */
 export function besideTops(a: Leaf, b: Leaf, fa: Frag, fb: Frag): { h: number; tops: [number, number] } {

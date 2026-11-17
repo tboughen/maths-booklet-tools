@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { writeWorksheetDocx } from "./docx";
 import { renderResource, validate, type Resource } from "./index";
-import { LETTERS } from "./render";
+import { LETTERS, letterColumns } from "./render";
 import { createRatioTable, ratioBottomBaselineMm } from "../../ratio-table-core/src/interchange";
 
 // Tim's marking of the A7.03 booklet pilot, 17 November 2026 (booklet standard 0.2, section 4b).
@@ -122,5 +122,32 @@ describe("beside a ratio table (N5)", () => {
     const first = xml.slice(cellStart, at).match(/<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="(\d+)" w:lineRule="exact"\/>/);
     expect(first).toBeTruthy();
     expect(Number(first![1]) / 56.693).toBeCloseTo(p.textTop - p.tableTop, 0);
+  });
+});
+
+describe("after the A7.03 rebuild (17 Nov 2026)", () => {
+  const ratio = { type: "diagram", diagram: { tool: "ratio-table", spec: { columns: ["x →", "y ↑"], table: [["2", "8"], ["1", "[4]"]], steps: ["÷ 2"] } } };
+
+  it("puts options in a narrow space one under another, not in a crowded 2 by 2 block", () => {
+    const page = renderResource(sheet([ratio, { type: "choice", mode: "letters", options: ["1", "2", "4", "8"], beside: true }])).pages[0];
+    const r = rings(page);
+    expect(r).toHaveLength(4);
+    // Here there is room for one row; never a 2 by 2 block beside a diagram.
+    expect(new Set(r.map((o) => o.y)).size).toBe(1);
+    // In a narrow space (a half-width booklet card beside a grid) they go one under another.
+    const four = [8.8, 8.8, 8.8, 8.8];
+    expect(letterColumns(four, 32)).toBe(1);
+    expect(letterColumns(four, 40)).toBe(1);
+    expect(letterColumns(four, 60)).toBe(4);
+    // Longer options on a wider card still take two columns.
+    expect(letterColumns([20, 20, 20, 20], 70)).toBe(2);
+  });
+
+  it("keeps a longer passage beside a ratio table at the top", () => {
+    const text = "Leah says, “I divided 4 by 4 to get 1 right, so the gradient is 12.” Explain her mistake.";
+    const page = renderResource(sheet([ratio, { type: "text", text, beside: true }])).pages[0];
+    const table = page.match(/<g transform="translate\([\d.-]+,([\d.-]+)\)"><svg[^>]*aria-label="Ratio table"/)!;
+    const passage = page.match(/<g transform="translate\([\d.-]+,([\d.-]+)\)"><text[^>]*>Leah/)!;
+    expect(Number(passage[1])).toBe(Number(table[1]));
   });
 });
