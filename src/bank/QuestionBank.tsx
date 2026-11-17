@@ -22,7 +22,7 @@ import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
 import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
-import { createDetailLoader, fetchCatalogueIndex, type BankIndex } from "./catalogueLoader";
+import { createDetailLoader, fetchCatalogueIndex, type BankIndex, type DetailLoader } from "./catalogueLoader";
 import { withPerformance } from "./performance";
 import { PerformanceBadge } from "./PerformanceBadge";
 import "./question-bank.css";
@@ -52,6 +52,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [details,setDetails]=useState<Record<string,BankQuestion>>({});
   const [detailError,setDetailError]=useState("");
   const loader=useMemo(()=>catalogue?createDetailLoader(catalogue):undefined,[catalogue]);
+  // For pictures in the Paper builder: the same files, without redrawing the whole page as each one arrives.
+  const loadViews=useCallback<DetailLoader["load"]>(questions=>loader?loader.load(questions):Promise.reject(new Error("The question bank is still loading.")),[loader]);
   const loadDetails=useCallback(async<Q extends BankListQuestion>(questions:Q[])=>{if(!loader)throw new Error("The question bank is still loading.");const full=await loader.load(questions);setDetails(previous=>full.every(q=>previous[q.id])?previous:{...previous,...Object.fromEntries(full.map(q=>[q.id,q]))});return full;},[loader]);
   const [loadError,setLoadError]=useState("");
   const [reload,setReload]=useState(0);
@@ -120,6 +122,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const overall=useMemo(()=>catalogue?catalogueCoverage(catalogue,{...emptyRoute,revision:"include"}):undefined,[catalogue]);
   const entries=useMemo(()=>coverage?draftEntries(coverage,draft):[],[coverage,draft]);
   // Questions already in the paper that the hidden Year 11 revision papers now leave out.
+  // Questions taken off this paper by hand that would otherwise be on it.
+  const removed=useMemo(()=>coverage&&draft.excluded.length?draftEntries(coverage,{...draft,excluded:[]}).length-entries.length:0,[coverage,draft,entries]);
   const revisionDropped=useMemo(()=>catalogue&&route.revision==="hide"?draftEntries(catalogueCoverage(catalogue,{...filters,revision:"include"}),draft).length-entries.length:0,[catalogue,route.revision,filters,draft,entries]);
   const included=useMemo(()=>new Set(entries.map(e=>e.key)),[entries]);
   const topicsMode=route.bankView==="topics";
@@ -301,6 +305,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     </div>;
   };
 
+  // The Paper builder shows it as a panel with a picture of each question; the Question bank as a bar.
+  const yourPaper=(panel=false)=><PaperSummary draft={draft} entries={entries} revisionHidden={revisionDropped} onIncludeRevision={()=>go({...route,revision:"include"})} onUntick={code=>dispatchDraft({type:"code",code,checked:false})} onClear={()=>dispatchDraft({type:"clear"})} onReview={()=>setReviewOpen(true)} panel={panel?{loadDetails:loadViews,removed,onRemove:key=>dispatchDraft({type:"exclude",key}),onRestore:()=>dispatchDraft({type:"restore"})}:undefined}/>;
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
       {!topicsMode&&<><div className="qb-toolbar">
@@ -326,7 +332,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       </div>
             </>}
       {notice&&<div className="qb-notice" role="status">{notice}<button aria-label="Dismiss message" onClick={()=>setNotice("")}><X size={16}/></button></div>}
-      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<div className="page-heading"><div><h1 tabIndex={-1}>Paper builder</h1><p>Tick Sparx codes, review your questions and download a paper with its mark scheme.</p></div></div>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
+      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<div className="page-heading"><div><h1 tabIndex={-1}>Paper builder</h1><p>Tick Sparx codes, review your questions and download a paper with its mark scheme.</p></div></div>}<div className="qb-paper-columns">{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}{topicsMode&&yourPaper(true)}</div></div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
         {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>dispatchDraft({type:"add",questions:results})}>Add all matching questions</button><button className="qb-text-button" onClick={()=>dispatchDraft({type:"clear"})}>Clear paper</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${listed?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={route.tier}/>}<small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small>{q.revisionUse&&<small className="qb-revision-tag">Year 11 revision: {q.revisionUse}</small>}</button></div>)}</aside>}
         <section className="qb-question-card" aria-label="Question viewer">
           <div className="qb-source">
@@ -361,7 +367,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           </footer>
         </section>
       </div>}
-      {!display&&(topicsMode||hasDraftIntent(draft))&&<PaperSummary draft={draft} entries={entries} revisionHidden={revisionDropped} onIncludeRevision={()=>go({...route,revision:"include"})} onUntick={code=>dispatchDraft({type:"code",code,checked:false})} onClear={()=>dispatchDraft({type:"clear"})} onReview={()=>setReviewOpen(true)}/>}
+      {!display&&!topicsMode&&hasDraftIntent(draft)&&yourPaper()}
     </main>
     {display&&<button className="qb-exit-display qb-button" onClick={leaveDisplay}><X size={18}/> Exit Display <kbd>Esc</kbd></button>}
     <PaperReviewDialog loadDetails={loadDetails} open={reviewOpen} active={active} entries={entries} version={catalogue?.version||""} showPerformance={showPerformance} onShowPerformance={setShowPerformance} catalogue={catalogue} tier={route.tier} excluded={draft.excluded.length} partsOnly={!!draft.partsOnly} onPartsOnly={value=>dispatchDraft({type:"partsOnly",value})} onClose={()=>setReviewOpen(false)} onRemove={key=>dispatchDraft({type:"exclude",key})} onMove={(key,direction)=>dispatchDraft({type:"move",key,direction,visible:entries.map(e=>e.key)})} onRestore={()=>dispatchDraft({type:"restore"})}/>

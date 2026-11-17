@@ -172,8 +172,6 @@ body { background: #f2f5f8; }
   .qb-display { height: 100dvh; overflow: auto; }
   .site-app:has(> .site-page:not([hidden]) .qb-topics-mode) { height: 100dvh; min-height: 0; }
   .qb-app.qb-topics-mode { height: 100%; overflow: hidden; }
-  .qb-topics-mode .qb-topics-host { overflow: auto; }
-  .qb-topics-mode .qb-topic-builder { flex: 0 0 auto; }
 }
 /* One row with icons needs about 1,055 px. Narrower than that the six links drop their icons, which fits
    down to about 900 px; below that they fold onto a second line beside the logo. */

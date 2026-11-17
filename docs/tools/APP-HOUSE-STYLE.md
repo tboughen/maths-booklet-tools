@@ -265,6 +265,23 @@ bank.
 - Tests: `e2e/question-bank-panes.spec.ts`, with the helpers `paneSwitch`, `pane` and `showOnly`
   in `e2e/question-bank-panes.ts` for any test that shows an answer.
 
-## Decided, and built in later steps
+## Paper builder: your paper beside the codes (in the site)
 
-- **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.
+The Paper builder has two parts side by side (`src/bank/TopicPaperBuilder.tsx`,
+`src/bank/PaperSummary.tsx`, styles in `src/bank/paper-builder.css`, which loads with the page and
+stays out of the first-load stylesheet).
+
+- **The codes, on the left.** One row of filters with no labels above them (each option says what
+  it is, and the name is in the tooltip and for screen readers), one line of counts, and the table
+  of Sparx codes with 32 px rows. A ticked row is blue.
+- **Your paper, on the right.** The counts and the ticked codes at the top, then one row for each
+  question with a picture of the top of the question, its paper, tier, calculator, the codes that
+  matched and its marks. The cross removes that one question, and "Restore removed" brings back
+  everything removed. Clear paper and Review paper stay at the bottom.
+- The picture keeps one scale, so the question can be read. A narrower panel shows less of its
+  width. Pictures load only when their row comes near the screen.
+- An upright window, or one under 1,000 px wide, puts your paper under the codes. On a phone the
+  codes scroll as one page and your paper, with its Review button, stays in view.
+- The order of the questions, the page layout and the downloads stay in Review paper.
+- The Question bank keeps the short "Your paper" bar under the question.
+- Tests: `e2e/paper-builder.spec.ts`.

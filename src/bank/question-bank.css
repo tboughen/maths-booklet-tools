@@ -263,28 +263,6 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-display-notes .qb-erratum { margin: 0; max-width: none; color: #684000; font-size: 18px; line-height: 1.4; }
 @media (max-width: 760px) { .qb-display-notes { padding: 56px 16px 12px; } }
 
-/* Topic building shares the catalogue and draft with the classroom viewer. */
-.qb-topics-host > .page-heading { margin-bottom: 0; }
-.qb-topics-host:not([hidden]) { display: flex; flex-direction: column; gap: 12px; min-height: 0; flex: 1 1 auto; }
-.qb-topic-builder { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; }
-.qb-coverage-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; flex: 0 0 auto; }
-.qb-coverage-cards p { margin: 0; padding: 12px 16px; border: 1px solid #cfd9e4; border-radius: 5px; background: white; }
-.qb-coverage-cards strong, .qb-coverage-cards span { display: block; }
-.qb-coverage-cards span { color: #536579; font-size: 12px; margin-top: 4px; }
-.qb-topic-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; flex: 0 0 auto; }
-.qb-topic-controls label { display: grid; gap: 4px; font-size: 13px; color: #536579; }
-.qb-topic-controls label:first-child { flex: 1 1 240px; }
-.qb-topic-controls input { min-height: 40px; width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #aebdcc; border-radius: 4px; background: white; }
-.qb-topic-builder > p { margin: 0; flex: 0 0 auto; }
-.qb-topic-table-scroll { flex: 1 1 auto; min-height: 110px; overflow: auto; border: 1px solid #cfd9e4; border-radius: 5px; background: white; }
-.qb-topic-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
-.qb-topic-table caption { text-align: left; padding: 10px 12px; color: #536579; font-size: 12px; }
-.qb-topic-table th { position: sticky; top: 0; background: #eaf0f7; z-index: 1; }
-.qb-topic-table th, .qb-topic-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8ef; }
-.qb-topic-table th button { border: 0; padding: 4px 0; background: transparent; color: #253e59; font-weight: 600; white-space: nowrap; }
-.qb-topic-table td:nth-child(n+4) { font-variant-numeric: tabular-nums; text-align: right; }
-.qb-topic-table small { display: block; color: #65798f; font-size: 11px; }
-.qb-topic-table .qb-topic-chosen { background: #edf8f3; }
 .qb-paper-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto; padding: 10px 14px; background: white; border: 1px solid #cfd9e4; border-radius: 5px; }
 .qb-paper-summary p { margin: 4px 0 0; }
 .qb-code-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 72px; overflow: auto; }
@@ -310,13 +288,6 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-paper-export-controls .qb-dialog-actions, .qb-paper-export-controls .qb-export-ready { margin-top: 8px; }
 .qb-paper-export-controls .qb-small { margin-top: 8px; }
 @media (max-width: 760px) {
-  .qb-coverage-cards { gap: 6px; }
-  .qb-coverage-cards p { padding: 8px; font-size: 13px; }
-  .qb-coverage-cards span { font-size: 11px; }
-  .qb-topic-controls { gap: 8px; }
-  .qb-topic-controls label:first-child { flex-basis: 100%; }
-  .qb-topic-table th, .qb-topic-table td { padding: 6px 8px; }
-  .qb-topic-table th:nth-child(n+6), .qb-topic-table td:nth-child(n+6) { display: none; }
   .qb-paper-summary { align-items: start; flex-direction: column; padding: 8px; }
   .qb-summary-actions { width: 100%; justify-content: flex-end; }
   .qb-paper-review-row { flex-direction: column; }
