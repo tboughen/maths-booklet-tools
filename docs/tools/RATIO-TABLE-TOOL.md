@@ -101,8 +101,10 @@ copies:
   their own table. The answers copy prints the whole table in the answer colour. Editor:
   **Answers copy only** in the table settings; the preview is blank until "Teacher preview: show hidden answers" is on.
 
-Only `true` is ever saved. Blank (`""`), hidden and answer-line cells keep their own meanings
-inside either setting. The answer-leak check treats a hidden heading, and every value of an
+Only `true` is ever saved. With a hidden heading, blank (`""`), hidden and answer-line cells
+keep their own meanings. In an answers-only table the pupil sees nothing at all, so its answer
+lines print on the answers copy only. Worked solutions draw the pupil copy, so an answers-only
+table or a hidden heading prints blank there; use them in worksheets and booklets. The answer-leak check treats a hidden heading, and every value of an
 answers-only table, as a hidden answer.
 
 ## Direct editing and controls
