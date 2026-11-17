@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { lessonLabels, questionLetter, validateBooklet, type Booklet } from "./booklet";
-import { renderBooklet } from "./booklet-render";
-import { writeBookletDocx } from "./booklet-docx";
+import { lessonNotesFileName, planNotes, renderBooklet, renderLessonNotes } from "./booklet-render";
+import { writeBookletDocx, writeLessonNotesDocx } from "./booklet-docx";
 import { plainWidth } from "./text";
 import { SIZE } from "./style";
 
@@ -121,5 +121,47 @@ describe("lesson title and key idea (N2, N3)", () => {
   it("holds up to 20 sections in a lesson", () => {
     expect(() => booklet(Array.from({ length: 20 }, () => section("practice", 1)))).not.toThrow();
     expect(() => booklet(Array.from({ length: 21 }, () => section("practice", 1)))).toThrow();
+  });
+});
+
+describe("teaching notes as a file of their own (Tim, 17 Nov 2026)", () => {
+  const notes = "Purpose: gradient as up for every 1 right.\n\n- Misconception: right over up.\n- Fade the ratio table by cycle 3.";
+  const docxOptions = { fonts: { regular: new Uint8Array(8), semiBold: new Uint8Array(8), italic: new Uint8Array(8) }, picture: (s: string) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) };
+
+  it("leaves both booklet copies as they are and prints the notes on their own pages", () => {
+    const b = booklet([section("practice", 2)], { teacherNotes: notes });
+    const plain = booklet([section("practice", 2)]);
+    for (const view of ["pupil", "answers"] as const) {
+      expect(renderBooklet(b, { view }).pages).toEqual(renderBooklet(plain, { view }).pages);
+      expect(renderBooklet(b, { view }).pages.join("")).not.toContain("Teaching notes");
+    }
+    const r = renderLessonNotes(b, 0);
+    expect(r.issues).toEqual([]);
+    expect(r.pages).toHaveLength(1);
+    expect(r.pages[0]).toContain("Teaching notes · Lesson 1");
+    expect(r.pages[0]).toContain("Misconception");
+    expect(r.pages[0]).toContain(">•<");
+    expect(r.pages[0]).toContain(">Page 1<");
+    expect(lessonNotesFileName(b, 0)).toBe("A7_Straight line graphs_Lesson 1_Teaching notes_A4.pdf");
+  });
+
+  it("runs long notes on to another page with a running header, and gives a lesson with none no pages", () => {
+    const long = Array.from({ length: 80 }, (_, i) => `- Note ${i + 1}: check the pupils can say what the gradient means.`).join("\n");
+    const pages = planNotes({ ...booklet([section("practice", 1)]).document.lessons[0], teacherNotes: long }, 2);
+    expect(pages.length).toBeGreaterThan(1);
+    expect(pages[1].lines[0]).toMatchObject({ kind: "running", text: "Teaching notes · Lesson 2 (continued)" });
+    expect(renderLessonNotes(booklet([section("practice", 1)]), 0).pages).toEqual([]);
+    expect(renderLessonNotes(booklet([section("practice", 1)], { teacherNotes: "See " + "x".repeat(150) }), 0).issues[0].message).toMatch(/too long for the line/);
+  });
+
+  it("flags a character the font lacks, and writes the same pages to Word", async () => {
+    expect(renderLessonNotes(booklet([section("practice", 1)], { teacherNotes: "A third ⅓" }), 0).issues[0].message).toMatch(/teaching notes/);
+    const b = booklet([section("practice", 2)], { teacherNotes: notes });
+    const word = await writeLessonNotesDocx(b, 0, docxOptions);
+    expect(word.pages).toBe(1);
+    const xml = strFromU8(unzipSync(word.bytes)["word/document.xml"]);
+    expect(xml).toContain("Teaching notes · Lesson 1");
+    expect(xml).toContain("Misconception");
+    await expect(writeLessonNotesDocx(booklet([section("practice", 1)]), 0, docxOptions)).rejects.toThrow(/no teaching notes/);
   });
 });

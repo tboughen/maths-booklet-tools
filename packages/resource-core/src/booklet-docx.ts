@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, renderBooklet, type BookletIssue, type PlannedLessonPage } from "./booklet-render";
+import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -228,6 +228,28 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
   return out.join("");
 }
 
+/** A teaching-notes page of the answers copy, line for line as the SVG page places it. */
+function notesPage(p: NotesPage, st: HouseStyle): string {
+  const out: string[] = [];
+  let cursor = A4.top;
+  for (const l of p.lines) {
+    const space = l.y - cursor;
+    if (space > 0.005) out.push(gap(space));
+    if (l.kind === "running") {
+      out.push(continuedHead(l.text, st));
+      cursor = l.y + CONTINUED_HEAD;
+      continue;
+    }
+    if (l.kind === "title") out.push(textPara(l.text, l.size, { color: st.navy, bold: true }));
+    else if (l.kind === "subtitle") out.push(textPara(fitLine(l.text, l.size, W), l.size, { color: st.muted }));
+    else if (l.bullet)
+      out.push(para(run("•", { color: st.ink, sizeMm: l.size }) + tab() + runs(l.text, { color: st.ink, sizeMm: l.size }), { line: lh(l.size), left: l.indent, hanging: l.indent - 1.2, tabs: [{ pos: l.indent }], right: -WORD_WRAP_SLACK_MM }));
+    else out.push(textPara(l.text, l.size, { color: st.ink, left: l.indent || undefined }));
+    cursor = l.y + lh(l.size);
+  }
+  return out.join("");
+}
+
 // ---------------------------------------------------------------- cover and introduction
 
 function cover(doc: Booklet["document"], contents: { label: string; title: string; page: number }[], st: HouseStyle): string {
@@ -452,6 +474,37 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
     parts,
   });
   return { bytes, issues, pages: pages.length };
+}
+
+/** A lesson's teaching notes as a Word file: the same pages as renderLessonNotes, numbered from 1. */
+export async function writeLessonNotesDocx(saved: Booklet, lesson: number, options: DocxOptions): Promise<RenderedBookletDocx> {
+  const booklet = typesetForPrint(saved);
+  const st = styles.mathsdock;
+  const doc = booklet.document;
+  const rendered = renderLessonNotes(booklet, lesson);
+  const ctx: Ctx = { st, view: "answers", diagrams: 0, issues: [], where: { lesson: lesson + 1 }, media: [], rels: [], pictures: [], maths: doc.notation === "maths" };
+  const pages = planNotes(doc.lessons[lesson], lesson + 1).map((np) => notesPage(np, st));
+  if (!pages.length) throw Error(`Lesson ${lesson + 1} has no teaching notes to print.`);
+  const body = pages.map((xml, i) => pageOpen(i === 0) + xml).join("");
+  const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
+  const parts: ExtraPart[] = [{ name: "footer1.xml", id: "rIdFooter1", relType: "footer", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml", xml: footerPart(label, st, false) }];
+  const P = A4.page;
+  const sect =
+    `<w:sectPr><w:footerReference w:type="default" r:id="rIdFooter1"/><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
+    `<w:pgMar w:top="${tw(A4.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(P.height - A4.bottom - WORD_FOOT_MM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(FOOTER_DISTANCE)}" w:gutter="0"/>` +
+    `<w:pgNumType w:start="1"/><w:cols w:space="0"/><w:docGrid w:linePitch="360"/></w:sectPr>`;
+  const bytes = await writePackage({
+    body: body + LAST_PARAGRAPH + sect,
+    ctx,
+    options,
+    title: `${doc.title} lesson ${lesson + 1} teaching notes`,
+    subject: [doc.code, doc.group].filter(Boolean).join(" "),
+    keywords: ["MathsDock booklet", "teaching notes", doc.code, doc.group].filter(Boolean).join("; "),
+    description: "Made by MathsDock from the booklet source: the lesson's teaching notes.",
+    pages: pages.length,
+    parts,
+  });
+  return { bytes, issues: rendered.issues, pages: pages.length };
 }
 
 /** The booklet's Word file name: the PDF's name ending .docx. */

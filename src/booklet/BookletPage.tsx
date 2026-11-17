@@ -10,7 +10,9 @@ import {
   A4,
   bookletFileName,
   lessonFileName,
+  lessonNotesFileName,
   lessonPagesOf,
+  renderLessonNotes,
   issuePlace,
   singleLessonBooklet,
   renderBooklet,
@@ -212,6 +214,20 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (r.issues.length) throw Error("Fix the layout checks before downloading.");
     downloadBlob(new Blob([r.bytes as BlobPart], { type: DOCX_TYPE }), pdfName(b, view, lesson).replace(/\.pdf$/, ".docx"));
   }
+  /** A lesson's teaching notes as their own PDF or Word file; the booklet copies never print them. */
+  async function downloadNotes(lesson: number, format: "pdf" | "docx") {
+    const name = lessonNotesFileName(b, lesson);
+    if (format === "pdf") {
+      const r = renderLessonNotes(b, lesson);
+      if (r.issues.length) throw Error(r.issues[0].message);
+      downloadBlob(await pagesPdf(r.pages, `${d.title} teaching notes`, "Page"), name);
+      return;
+    }
+    const [{ writeLessonNotesDocx }, kit] = await Promise.all([import("../../packages/resource-core/src/booklet-docx"), wordKit()]);
+    const r = await writeLessonNotesDocx(b, lesson, { fonts: kit.fonts, picture: kit.picture, version: "MathsDock booklet renderer, Word output 1" });
+    if (r.issues.length) throw Error(r.issues[0].message);
+    downloadBlob(new Blob([r.bytes as BlobPart], { type: DOCX_TYPE }), name.replace(/\.pdf$/, ".docx"));
+  }
   const editableName = () => bookletFileName(b).replace(/_A4\.pdf$/, ".json");
   const showPage = (page: number) => pagesRef.current?.querySelector(`#bk-page-${page}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -264,7 +280,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
         <Field label="Objective" value={lesson.objective} max={200} multiline disabled={blocked} onCommit={(v) => setLesson((l) => void (l.objective = v))} />
         <Field label="Key idea" value={lesson.keyIdea} max={500} multiline disabled={blocked} onCommit={(v) => setLesson((l) => void (l.keyIdea = v))} />
         <details className="bk-notes">
-          <summary>Teacher notes (not printed)</summary>
+          <summary>Teacher notes (their own file, never in the booklet)</summary>
           <label className="ws-field">
             <span>Lesson plan, misconceptions and fading</span>
             <textarea
@@ -276,6 +292,15 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               onBlur={(e) => e.target.value !== lesson.teacherNotes && setLesson((l) => void (l.teacherNotes = e.target.value))}
             />
           </label>
+          <p className="ws-hint">Start a line with "- " for a bullet; a blank line leaves a gap.</p>
+          <div className="bk-notes-actions">
+            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "pdf"), `Lesson ${li + 1} teaching notes PDF download started.`)}>
+              <Download size={15} aria-hidden="true" /> Notes PDF
+            </button>
+            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "docx"), `Lesson ${li + 1} teaching notes Word file download started.`)}>
+              <Download size={15} aria-hidden="true" /> Notes Word
+            </button>
+          </div>
         </details>
         {lesson.sections.map((section, si) => {
           const labels = lessonLabels(lesson)[si];

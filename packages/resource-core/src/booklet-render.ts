@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { at, card, countSpaces, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
+import { esc, lineWidth, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
 import type { FontStyle } from "./metrics";
 import { lessonLabels, sectionTitle, type Booklet, type Intro, type Lesson, type QuestionLabel, type Section } from "./booklet";
 
@@ -203,6 +203,80 @@ function footer(doc: Booklet["document"], page: number, st: HouseStyle) {
     textSvg(parseRuns(label), A4.marginX, A4.footerBase, A4.small, st.muted) +
     textSvg([{ text: `Page ${page}`, style: "regular" }], A4.marginX + W, A4.footerBase, A4.small, st.muted, "end")
   );
+}
+
+/** One printed line of a lesson's teaching notes, placed on a notes page. */
+export interface NotesLine {
+  kind: "title" | "subtitle" | "running" | "text";
+  /** The line's runs as wrapped, or its plain text for headings. */
+  text: string;
+  y: number;
+  size: number;
+  /** Left indent of the text (mm), and a bullet drawn in the indent. */
+  indent: number;
+  bullet: boolean;
+  /** A word too long for the line: it runs past the margin, so the notes need a shorter word. */
+  tooWide?: boolean;
+}
+export interface NotesPage {
+  /** 1-based lesson whose notes these are. */
+  lesson: number;
+  lines: NotesLine[];
+}
+/** Notes text at body size, one item a line: "- " starts a bullet, a blank line leaves a gap. */
+export const NOTES = { bulletIndent: 5, gap: 2, titleGap: 3 } as const;
+
+/**
+ * The teaching notes of one lesson laid out on A4 pages (B21,
+ * D5) printed as a file of their own: "Teaching notes" with the lesson number and title, then the notes line by line. A lesson's
+ * notes start on a new page; lines never shrink, and a long note runs on to another page.
+ */
+export function planNotes(lesson: Lesson, lessonNo: number): NotesPage[] {
+  const notes = lesson.teacherNotes.trim();
+  if (!notes) return [];
+  const pages: NotesPage[] = [];
+  let lines: NotesLine[] = [];
+  let y = A4.top;
+  const fresh = () => {
+    pages.push({ lesson: lessonNo, lines });
+    lines = [{ kind: "running", text: `Teaching notes · Lesson ${lessonNo} (continued)`, y: A4.top, size: A4.small, indent: 0, bullet: false }];
+    y = A4.top + CONTINUED_HEAD;
+  };
+  lines.push({ kind: "title", text: `Teaching notes · Lesson ${lessonNo}`, y, size: A4.lessonTitle, indent: 0, bullet: false });
+  y += lh(A4.lessonTitle);
+  lines.push({ kind: "subtitle", text: lesson.title, y, size: A4.small, indent: 0, bullet: false });
+  y += lh(A4.small) + NOTES.titleGap;
+  for (const raw of notes.split("\n")) {
+    const line = raw.trimEnd();
+    if (!line.trim()) {
+      y += NOTES.gap;
+      continue;
+    }
+    const bullet = /^\s*[-•]\s+/.test(line);
+    const textSrc = bullet ? line.replace(/^\s*[-•]\s+/, "") : line;
+    const indent = bullet ? NOTES.bulletIndent : 0;
+    wrap(textSrc, S.body, W - indent).forEach((runs, k) => {
+      if (y + lh(S.body) > A4.bottom) fresh();
+      const tooWide = lineWidth(runs, S.body) > W - indent + 0.01;
+      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
+      y += lh(S.body);
+    });
+  }
+  pages.push({ lesson: lessonNo, lines });
+  return pages;
+}
+
+/** A notes page as SVG content (no footer). */
+function notesSvg(p: NotesPage, st: HouseStyle): string {
+  return p.lines
+    .map((l) => {
+      const x = A4.marginX + l.indent;
+      if (l.kind === "title") return textSvg(parseRuns(l.text, "bold"), x, l.y + base(l.size), l.size, st.navy);
+      if (l.kind === "subtitle") return textSvg(parseRuns(fitLine(l.text, l.size, W)), x, l.y + base(l.size), l.size, st.muted);
+      if (l.kind === "running") return textSvg(parseRuns(l.text), x, l.y + base(l.size), l.size, st.muted) + hline(A4.marginX, A4.marginX + W, l.y + CONTINUED_RULE, st);
+      return (l.bullet ? textSvg([{ text: "•", style: "regular" }], A4.marginX + 1.2, l.y + base(l.size), l.size, st.ink) : "") + textSvg(parseRuns(l.text), x, l.y + base(l.size), l.size, st.ink);
+    })
+    .join("");
 }
 
 function page(body: string, label: string, opts: BookletRenderOptions) {
@@ -547,6 +621,28 @@ export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet
     numbering: { lessonOffset: lesson, pageOffset: full.lessonPages[lesson] - 2 },
   };
 }
+
+/**
+ * A lesson's teaching notes as a file of their own (Tim, 17 November 2026): the booklet's pupil
+ * and answers copies stay exactly as they are, and the notes print on A4 pages numbered from 1,
+ * with the booklet's footer. Empty notes give no pages.
+ */
+export function renderLessonNotes(saved: Booklet, lesson: number, options: Pick<BookletRenderOptions, "style" | "fontCss"> = {}): { pages: string[]; issues: BookletIssue[] } {
+  const booklet = typesetForPrint(saved);
+  const doc = booklet.document;
+  const st = styles[options.style ?? "mathsdock"];
+  const issues: BookletIssue[] = [];
+  for (const c of missingCharacters({ text: doc.lessons[lesson].teacherNotes })) issues.push({ lesson: lesson + 1, message: missingCharacterMessage(`Lesson ${lesson + 1}'s teaching notes`, c) });
+  const planned = planNotes(doc.lessons[lesson], lesson + 1);
+  planned.forEach((np, k) => {
+    for (const l of np.lines) if (l.tooWide) issues.push({ lesson: lesson + 1, page: k + 1, message: `Lesson ${lesson + 1}'s teaching notes have a word too long for the line: "${l.text.slice(0, 40)}". Break it up or shorten it.` });
+  });
+  const pages = planned.map((np, k) => page(notesSvg(np, st) + footer(doc, k + 1, st), `${doc.title}, teaching notes for lesson ${lesson + 1}, page ${k + 1}`, options));
+  return { pages, issues };
+}
+
+/** File name of a lesson's teaching notes: [code]_[title]_Lesson N_Teaching notes_A4.pdf. */
+export const lessonNotesFileName = (booklet: Booklet, lesson: number) => lessonFileName(booklet, lesson).replace(/_A4\.pdf$/, "_Teaching notes_A4.pdf");
 
 /** File name for one lesson printed on its own. */
 export function lessonFileName(booklet: Booklet, lesson: number, view: View = "pupil"): string {
