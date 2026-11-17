@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, Eye, EyeOff, FileDown, List, Maximize2, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, FileDown, List, Maximize2, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
 import { WorkedSurface } from "./WorkedSurface";
-import { addedHeight, loadWorked, workedImageBlob, workedPlan, type WorkedShown } from "./worked";
-import type { SurfaceOverlay } from "../../packages/worked-core/src/index";
+import { loadWorked, workedImageBlob, workedPlan, type WorkedShown } from "./worked";
 import { ZoomControls, ZoomOverview } from "./ZoomControls";
-import { useStageZoom } from "./useStageZoom";
-import { stepZoom } from "./zoom";
+import { STACK_GAP, usePane } from "./usePane";
+import { MarkSchemeIcon, QuestionBankIcon, WorkedSolutionIcon } from "../site/MathsDockIcons";
 import { AnnotationBar } from "./AnnotationBar";
 import { annotationReducer, readAnnotationPreferences, saveAnnotationPreferences, withTool, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
 import type { AnnotationSettings } from "./AnnotationLayer";
@@ -15,7 +14,6 @@ import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
 import { assetUrl, downloadBlob, preloadQuestion, questionImage, stackImage } from "./pdf";
 import { catalogueCoverage } from "./coverage";
-import { questionResource } from "./resources";
 import { addedNote, servedParts } from "./cuts";
 import { draftEntries, draftReducer, hasDraftIntent } from "./paper-builder";
 import { loadPaperDraft, paperSummary, savePaperDraft } from "./paper-storage";
@@ -23,7 +21,7 @@ import { forgetWork, noteWork } from "../site/recentWork";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
-import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type BankView, type RoomLayout, type ViewRole } from "./model";
+import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
 import { createDetailLoader, fetchCatalogueIndex, type BankIndex } from "./catalogueLoader";
 import { withPerformance } from "./performance";
 import { PerformanceBadge } from "./PerformanceBadge";
@@ -34,10 +32,15 @@ import { formatCount } from "./format";
 type WebContext = {registerTool: (tool: {name:string;description:string;inputSchema:object;annotations:{readOnlyHint:boolean};execute:(input:unknown)=>unknown},options:{signal:AbortSignal})=>void|Promise<void>};
 /** The bank page's path and query for a route. */
 const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery(route);
-/** What one step of the viewer shows: a question page, or a part stacked under its stem and the parts it needs. */
-interface Slide {items: {pdf: string; view: BankView; worked?: boolean; overlay?: SurfaceOverlay}[]; width: number; height: number; label: string; repeatedContext?: string}
-/** The gap between stacked cuts, in points. */
-const STACK_GAP = 12;
+/** Every pane at fit. */
+const FIT: Record<ViewRole, number> = {question: 1, scheme: 1, "worked-solution": 1};
+/** The three panes, in the order they sit on screen. Each has a switch. */
+const PANES = [{role: "question", name: "Question", Icon: QuestionBankIcon}, {role: "scheme", name: "Mark scheme", Icon: MarkSchemeIcon}, {role: "worked-solution", name: "Worked solution", Icon: WorkedSolutionIcon}] as const;
+const paneName = (role: ViewRole) => PANES.find(pane => pane.role === role)!.name;
+/** Which panes are on for a question, the one last used, and the view each answer pane is on. */
+type Showing = {id: string; on: readonly ViewRole[]; active: ViewRole; view: {scheme: number; "worked-solution": number}};
+/** A question opens with only itself showing, so answers are never shown by accident. */
+const QUESTION_ONLY: Showing = {id: "", on: ["question"], active: "question", view: {scheme: 0, "worked-solution": 0}};
 /** What the teacher has chosen for the paper, to tell a real change from a re-save. */
 const paperChoiceOf = (draft: { codes: unknown; manual: unknown; excluded: unknown }) => JSON.stringify([draft.codes, draft.manual, draft.excluded]);
 const roomPreference = ():RoomLayout => {try {const v=localStorage.getItem("qb-room");return v==="single"||v==="two"?v:"auto";}catch{return "auto";}};
@@ -55,8 +58,9 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [route,setRoute]=useState<BankRoute>(()=>readRoute(location.search));
   const [search,setSearch]=useState(route.code);
   const [notice,setNotice]=useState("");
-  const [mode,setMode]=useState<{id:string;role:ViewRole;view:number}>({id:"",role:"question",view:0});
-  const [zoom,setZoom]=useState(1);
+  const [mode,setMode]=useState(QUESTION_ONLY);
+  // Each pane (question, mark scheme, worked solution) keeps its own zoom.
+  const [zooms,setZooms]=useState(FIT);
   const [fit,setFit]=useState<"page"|"width">("page");
   const [room,setRoom]=useState<RoomLayout>(roomPreference);
   const [overlay,setOverlay]=useState<Overlay>(overlayPreference);
@@ -87,11 +91,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [wholeImage,setWholeImage]=useState(false);
   // With a topic open, a question cut into parts shows only its matching parts unless the teacher asks for the whole question.
   const [partsView,setPartsView]=useState(true);
-  const [stageSize,setStageSize]=useState({width:900,height:500});
-  const stage=useRef<HTMLDivElement>(null);
   const searchInput=useRef<HTMLInputElement>(null);
-  // The question view a teacher had zoomed into before showing its mark scheme or worked solution.
-  const questionView=useRef<{id:string;zoom:number;scroll:{left:number;top:number}}|undefined>(undefined);
   const app=useRef<HTMLDivElement>(null);
   // A route read from a link may carry viewError (the link named a view that does not exist); it is
   // shown once as the notice and never kept on the route, so later route changes do not repeat it.
@@ -99,7 +99,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const address=bankAddress(next);
     if(activePage.current && location.pathname+location.search!==address) history[replace?"replaceState":"pushState"]({},"",address);
     if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
-    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice(viewError??"");
+    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode(QUESTION_ONLY);setZooms(FIT);setNotice(viewError??"");
   },[]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
@@ -109,11 +109,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version){const reconciled="The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.";setNotice(previous=>previous?`${previous} ${reconciled}`:reconciled);}}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
-  useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
+  useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);if(next.question!==route.question)setMode(QUESTION_ONLY);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZooms(FIT);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
   // The Filters panel and question options menu close when a teacher clicks, taps or tabs anywhere else, or presses Escape.
   useEffect(()=>{const menus=()=>Array.from(app.current?.querySelectorAll<HTMLDetailsElement>("details.qb-filters[open], details.qb-more[open]")??[]);const outside=(event:Event)=>{for(const menu of menus())if(!menu.contains(event.target as Node))menu.open=false;};const escape=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;const menu=menus().find(m=>m.contains(document.activeElement));if(!menu)return;event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector("summary")?.focus();};document.addEventListener("pointerdown",outside);document.addEventListener("focusin",outside);document.addEventListener("keydown",escape,true);return()=>{document.removeEventListener("pointerdown",outside);document.removeEventListener("focusin",outside);document.removeEventListener("keydown",escape,true);};},[]);
-  useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
 
   const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection,crossover:route.crossover,revision:route.revision}),[route.tier,route.calculator,route.collection,route.crossover,route.revision]);
@@ -133,15 +132,18 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const question=listed?details[listed.id]:undefined;
   const following=results[questionIndex+1] as BankListQuestion|undefined;
   useEffect(()=>{if(!listed||topicsMode)return;let current=true;setDetailError("");loadDetails(following&&active?[listed,following]:[listed]).catch(error=>{if(current)setDetailError(error instanceof Error?error.message:"This question could not be loaded.");});return()=>{current=false;};},[listed,following,topicsMode,active,loadDetails,reload]);
-  const role=mode.id===question?.id?mode.role:"question";
-  const resource=question?questionResource(question,role):undefined;
+  const showing=mode.id===question?.id?mode:QUESTION_ONLY;
+  const on=showing.on;
+  // The pane the footer, the keys and the image buttons act on: the one last switched on or last used.
+  const role=on.includes(showing.active)?showing.active:on[0];
   const topic=catalogue?.topics.find(t=>t.code===route.code);
   const match=question?matchingParts(question,route.code):undefined;
   const served=useMemo(()=>question&&route.code&&match?servedParts(question,match.labels):undefined,[question,route.code,match]);
-  const partMode=role!=="scheme"&&!!served&&partsView;
+  // Only the matching parts, where a topic is open and the question is cut into parts (never for a mark scheme).
+  const partsOn=!!served&&partsView;
   // Keyed on what it shows, not on `served`, which is rebuilt on every render.
-  const planKey=question&&role==="worked-solution"&&question.workedSolution?`${question.id}|${question.revision}|${question.workedSolution.revision}|${partMode&&served?served.cuts.map(c=>c.cut.id).join(","):"whole"}`:"";
-  const planInputs=useRef({question,partMode,served});planInputs.current={question,partMode,served};
+  const planKey=question&&on.includes("worked-solution")&&question.workedSolution?`${question.id}|${question.revision}|${question.workedSolution.revision}|${partsOn&&served?served.cuts.map(c=>c.cut.id).join(","):"whole"}`:"";
+  const planInputs=useRef({question,partMode:partsOn,served});planInputs.current={question,partMode:partsOn,served};
   const solutionPlan=useMemo(()=>{const {question:q,partMode:parts,served:s}=planInputs.current;return planKey&&q?workedPlan(q,parts?s:undefined):undefined;},[planKey]);
   const [worked,setWorked]=useState<{plan:unknown;shown?:WorkedShown;error?:string}>();
   const [workedRetry,setWorkedRetry]=useState(0);
@@ -160,40 +162,32 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   useEffect(()=>{setStepsShown(0);},[planKey]);
   const upTo=stepMode?(stepsShown?shownSteps[stepsShown-1]:0):undefined;
   const chooseMarks=(on:boolean)=>{setWorkedMarks(on);try{localStorage.setItem("qb-worked-marks",on?"on":"off");}catch{/* Kept for this visit only. */}};
-  const views=useMemo<Slide[]>(()=>{
-    if(role==="worked-solution"){
-      const items=workedShown?.shown?.items;
-      if(!items?.length)return [];
-      return [{items:items.map(item=>({...item,worked:true})),width:Math.max(...items.map(i=>i.view.width)),height:items.reduce((n,i)=>n+i.view.height+addedHeight(i.overlay),0)+STACK_GAP*(items.length-1),label:partMode&&served?`Worked solution · ${served.title}`:"Worked solution"}];
-    }
-    if(partMode&&served){const items=served.cuts.flatMap(s=>s.cut.views.map(view=>({pdf:s.cut.pdf,view})));return [{items,width:Math.max(...items.map(i=>i.view.width)),height:items.reduce((n,i)=>n+i.view.height,0)+STACK_GAP*(items.length-1),label:served.title}];}
-    return (resource?.views||[]).map(view=>({items:[{pdf:resource!.pdf,view}],width:view.width,height:view.height,label:view.label,repeatedContext:view.repeatedContext}));
-  },[partMode,served,resource,role,workedShown]);
-  const viewIndex=Math.min(Math.max(0,role!=="question"?mode.view:route.view),Math.max(0,views.length-1));
-  const view=views[viewIndex];
+  // One pane for each role; the ones that are on sit side by side.
+  const moveNow=useRef<(direction:number)=>void>(()=>undefined);
+  const swipe=useCallback((direction:1|-1)=>moveNow.current(direction),[]);
+  const zoomSetters=useMemo(()=>{const set=(target:ViewRole)=>(value:number)=>setZooms(previous=>previous[target]===value?previous:{...previous,[target]:value});return{question:set("question"),scheme:set("scheme"),"worked-solution":set("worked-solution")};},[]);
+  const paneOptions={question,served,partsView,fit,room,onSwipe:swipe,enabled:!!question&&!topicsMode,drawing:annotating&&annotatePrefs.tool!=="hand",layout:`${!!catalogue}|${display}|${listOpen}|${route.bankView}|${on.join()}`};
+  const questionPane=usePane({...paneOptions,role:"question",shown:on.includes("question"),wanted:route.view,zoom:zooms.question,setZoom:zoomSetters.question});
+  const schemePane=usePane({...paneOptions,role:"scheme",shown:on.includes("scheme"),wanted:showing.view.scheme,zoom:zooms.scheme,setZoom:zoomSetters.scheme});
+  const workedPane=usePane({...paneOptions,role:"worked-solution",shown:on.includes("worked-solution"),worked:workedShown?.shown,wanted:showing.view["worked-solution"],zoom:zooms["worked-solution"],setZoom:zoomSetters["worked-solution"]});
+  const panes={question:questionPane,scheme:schemePane,"worked-solution":workedPane};
+  const forgetScheme=schemePane.forgetPlace,forgetWorked=workedPane.forgetPlace;
+  const forget=useMemo(()=>({scheme:forgetScheme,"worked-solution":forgetWorked}),[forgetScheme,forgetWorked]);
+  const many=on.length>1;
+  const {partMode,views,viewIndex,view,two,visibleViews,zoom,panBy,zoomStep,zoomFit}=panes[role];
+  // Ink on any pane that is on screen.
+  const visibleKeys=on.flatMap(shown=>panes[shown].visibleKeys);
   const suggestions=catalogue?.topics.filter(t=>search.trim()?`${t.code} ${t.title}`.toLowerCase().includes(search.trim().toLowerCase()):catalogue.pilotCodes.includes(t.code)).slice(0,30)||[];
-  const availablePair=views.slice(viewIndex,viewIndex+2);
-  const pairScale=availablePair.length===2?Math.min((stageSize.width-48)/availablePair.reduce((n,v)=>n+v.width,0),(stageSize.height-32)/Math.max(...availablePair.map(v=>v.height))):0;
-  const two=availablePair.length===2&&(room==="two"||(room==="auto"&&stageSize.width>=1500&&pairScale>=1.3));
-  const visibleViews=two?availablePair:view?[view]:[];
-  const widthScale=visibleViews.length?(stageSize.width-32-(two?16:0))/visibleViews.reduce((n,v)=>n+v.width,0):1;
-  const fitScale=visibleViews.length?Math.min(widthScale,(stageSize.height-32)/Math.max(...visibleViews.map(v=>v.height))):1;
-  const scale=Math.max(.01,(fit==="width"?widthScale:fitScale)*zoom);
   const reason=catalogue?emptyReason(catalogue,route):null;
   const previous=!!listed&&(questionIndex>0||viewIndex>0);
   const next=!!listed&&(questionIndex<results.length-1||viewIndex+visibleViews.length<views.length);
 
   const move=useCallback((direction:number)=>{
     if(!listed)return;const newView=viewIndex+direction*(two?2:1);
-    if(question&&newView>=0&&newView<views.length){if(role!=="question")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",bankAddress(updated));window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
+    if(question&&newView>=0&&newView<views.length){if(role!=="question")setMode({...showing,id:question.id,view:{...showing.view,[role]:newView}});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",bankAddress(updated));window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
     else{const target=results[questionIndex+direction];if(target)go({...route,question:target.id,view:direction<0?Math.max(0,(target.questionViewCount??1)-1):0});}
-  },[listed,question,viewIndex,two,views.length,role,route,results,questionIndex,go]);
-  const pannable=visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0)+32>stageSize.width+1||Math.max(0,...visibleViews.map(v=>v.height*scale))+32>stageSize.height+1;
-  const {requestZoom,restoreScroll,panBy}=useStageZoom({stage,zoom,scale,setZoom,onSwipe:move,layoutKey:`${question?.id}|${role}|${viewIndex}|${two}|${partMode}`,enabled:!!question&&!topicsMode,drawing:annotating&&annotatePrefs.tool!=="hand"});
-  const zoomStep=useCallback((direction:1|-1)=>requestZoom(stepZoom(zoom,direction)),[requestZoom,zoom]);
-  const zoomFit=useCallback(()=>requestZoom(1),[requestZoom]);
-  const inkKey=useCallback((item:{pdf:string;view:{page:number}})=>question?`${question.id}|${question.revision}|${role}|${item.pdf}|${item.view.page}`:"",[question,role]);
-  const visibleKeys=visibleViews.flatMap(v=>v.items).map(inkKey).filter(Boolean);
+  },[listed,question,viewIndex,two,views.length,role,showing,route,results,questionIndex,go]);
+  moveNow.current=move;
   const visibleKeysRef=useRef(visibleKeys);visibleKeysRef.current=visibleKeys;
   const inkRef=useRef(ink);inkRef.current=ink;
   const commitInk=useCallback((key:string,strokes:Stroke[])=>{undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"set",key,strokes});},[]);
@@ -204,19 +198,21 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const clearAllInk=()=>{for(const [key,layer] of Object.entries(ink))if(layer.strokes.length)undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"clearAll"});};
   const viewHasInk=visibleKeys.some(key=>layerOf(ink,key).strokes.length>0);
   const penSize=SIZES.find(size=>size.value===annotatePrefs.penSize)!.pen,highlighterSize=SIZES.find(size=>size.value===annotatePrefs.highlighterSize)!.highlighter;
-  const stageCursor=annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?highlighterSize:penSize,scale):undefined;
+  const stageCursor=(scale:number)=>annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?highlighterSize:penSize,scale):undefined;
   const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize,highlighterSize,straight:annotatePrefs.straight}),[annotatePrefs,penSize,highlighterSize]);
   const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>withTool(p,tool));setAnnotating(true);},[]);
-  // Answers open at fit; going back to the question restores the zoom and position the teacher left.
-  const switchRole=useCallback((next:ViewRole)=>{
-    if(!question)return;
-    if(role==="question"&&stage.current)questionView.current={id:question.id,zoom,scroll:{left:stage.current.scrollLeft,top:stage.current.scrollTop}};
-    setMode({id:question.id,role:next,view:0});
-    const saved=questionView.current;
-    if(next==="question"&&saved?.id===question.id){setZoom(saved.zoom);restoreScroll(saved.scroll);}else setZoom(1);
-  },[question,role,zoom,restoreScroll]);
-  const reveal=useCallback(()=>switchRole(role==="scheme"?"question":"scheme"),[switchRole,role]);
-  const revealSolution=()=>{if(question?.workedSolution)switchRole(role==="worked-solution"?"question":"worked-solution");};
+  // A switch turns its pane on or off. One pane always stays on, and an answer opens at fit.
+  const toggle=useCallback((target:ViewRole)=>{
+    if(!question||(target==="worked-solution"&&!question.workedSolution))return;
+    const shown=on.includes(target),rest=on.filter(other=>other!==target);
+    if(shown&&!rest.length&&target==="question")return;
+    const next:readonly ViewRole[]=shown?(rest.length?rest:QUESTION_ONLY.on):PANES.map(pane=>pane.role).filter(other=>other===target||on.includes(other));
+    setMode({id:question.id,on:next,active:!shown?target:next.includes(role)?role:next[0],view:shown||target==="question"?showing.view:{...showing.view,[target]:0}});
+    if(!shown&&target!=="question"){zoomSetters[target](1);forget[target]();}
+  },[question,on,role,showing,zoomSetters,forget]);
+  // The pane a teacher last touched is the one the footer and the keys act on.
+  const activate=useCallback((target:ViewRole)=>setMode(previous=>previous.id===question?.id&&previous.active!==target&&previous.on.includes(target)?{...previous,active:target}:previous),[question]);
+  const reveal=useCallback(()=>toggle("scheme"),[toggle]);
   const leaveDisplay=useCallback(()=>{setDisplay(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>undefined);},[]);
   useEffect(()=>{
     if(!active||topicsMode)return;
@@ -254,13 +250,13 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   },[active,topicsMode,move,reveal,leaveDisplay,reviewOpen,panBy,zoomStep,zoomFit,chooseTool,undoInk,redoInk]);
   useEffect(()=>{const q=!topicsMode&&active&&following?details[following.id]:undefined;if(q)void preloadQuestion(q).catch(()=>undefined);},[following,details,topicsMode,active]);
 
-  const actions=useRef({catalogue,route,listed,role,viewIndex,go});actions.current={catalogue,route,listed,role,viewIndex,go};
+  const actions=useRef({catalogue,route,listed,role,on,viewIndex,go});actions.current={catalogue,route,listed,role,on,viewIndex,go};
   useEffect(()=>{
     if(!active)return;
     const context=(document as Document&{modelContext?:WebContext}).modelContext;if(!context?.registerTool)return;
     const lifecycle=new AbortController();
     const register=(tool:Parameters<WebContext["registerTool"]>[0])=>{try{void Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>undefined);}catch{/* Optional browser capability. */}};
-    register({name:"question_bank_read_state",description:"Read the visible topic, question, view and whether its mark scheme or authored worked solution is visible.",inputSchema:{type:"object",properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>{const a=actions.current;return{code:a.route.code,question:a.listed?.id,role:a.role,view:a.viewIndex+1,version:a.catalogue?.version};}});
+    register({name:"question_bank_read_state",description:"Read the visible topic, question and view, and which of the question, its mark scheme and its authored worked solution are showing (role is the one last used).",inputSchema:{type:"object",properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>{const a=actions.current;return{code:a.route.code,question:a.listed?.id,role:a.role,showing:a.on,view:a.viewIndex+1,version:a.catalogue?.version};}});
     register({name:"question_bank_open_topic",description:"Open a current Sparx topic in the visible viewer, hide its answers and reset the view.",inputSchema:{type:"object",properties:{code:{type:"string"}},required:["code"],additionalProperties:false},annotations:{readOnlyHint:false},execute:(input)=>{const a=actions.current;const raw=(input as{code?:unknown})?.code;if(typeof raw!=="string")throw new Error("A Sparx code is required.");const code=a.catalogue?.aliases[normalizeCode(raw)]||normalizeCode(raw);if(!a.catalogue?.topics.some(t=>t.code===code))throw new Error("Unknown Sparx code.");flushSync(()=>a.go({...emptyRoute,code}));return{code,questions:filterQuestions(a.catalogue,{...emptyRoute,code}).length};}});
     return()=>lifecycle.abort();
   },[active]);
@@ -271,21 +267,39 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   function startExport(){if(!hasDraftIntent(draft))dispatchDraft({type:"add",questions:results});setReviewOpen(true);}
   async function imageExport(copy:boolean){if(!question||!view)return;setImageBusy(true);try{const pending=role==="worked-solution"&&solutionPlan?workedImageBlob(question,wholeImage?workedPlan(question,undefined):solutionPlan,{marks:workedMarks,upTo:wholeImage?undefined:upTo},`${question.source} · Worked solution${!wholeImage&&partMode&&served?` · ${served.title}`:""}${!wholeImage&&stepMode?` · step ${stepsShown} of ${shownSteps.length}`:""}${workedMarks?"":" · pupil copy"}`):partMode&&!wholeImage?stackImage(view.items,`${question.source} · ${view.label}`):questionImage(question,role,view.items[0].view,wholeImage);if(copy&&navigator.clipboard?.write&&typeof ClipboardItem!=="undefined"){try{await navigator.clipboard.write([new ClipboardItem({"image/png":pending})]);setNotice("Image copied. Paste it into Word or PowerPoint.");return;}catch{/* Download fallback. */}}downloadBlob(await pending,`${question.id}-${role}-${wholeImage?"whole":partMode&&served?`part-${served.parts.join("-")}`:viewIndex+1}.png`);setNotice(copy?"Clipboard access was unavailable. The image was downloaded instead.":"Image downloaded with its source reference.");}catch(error){setNotice(error instanceof Error?error.message:"The image could not be exported.");}finally{setImageBusy(false);}}
   const countText=`${formatCount(results.length)} ${results.length===1?"question":"questions"}`;
-  const rangeText=view?`View ${viewIndex+1}${two?`–${viewIndex+2}`:""} of ${views.length}`:"";
-  const displayNotes=display?[...(question?.sourceErrata||[]).map(item=>item.note),...(role==="scheme"&&question?.schemeSourceNote?[question.schemeSourceNote]:[])]:[];
+  const rangeText=view?`${many?`${paneName(role)} · `:""}View ${viewIndex+1}${two?`–${viewIndex+2}`:""} of ${views.length}`:"";
+  const displayNotes=display?[...(question?.sourceErrata||[]).map(item=>item.note),...(on.includes("scheme")&&question?.schemeSourceNote?[question.schemeSourceNote]:[])]:[];
+  // The line under the source names the question's view while the question is on screen.
+  const infoPane=on.includes("question")?questionPane:panes[role];
 
-  const annotateButton=<button className={`qb-button qb-annotate-toggle${annotating?" qb-answer-active":""}`} aria-pressed={annotating} title="Annotate on screen · P" onClick={()=>annotating?setAnnotating(false):chooseTool(annotatePrefs.tool==="hand"?"pen":annotatePrefs.tool)}><Pencil size={16}/>Annotate{viewHasInk&&<span className="qb-ink-dot" aria-label="(this view has annotations)"/>}</button>;
+  const annotateButton=<button className="qb-button qb-annotate-toggle" aria-pressed={annotating} title="Annotate on screen · P" onClick={()=>annotating?setAnnotating(false):chooseTool(annotatePrefs.tool==="hand"?"pen":annotatePrefs.tool)}><Pencil size={16}/>Annotate{viewHasInk&&<span className="qb-ink-dot" aria-label="(this view has annotations)"/>}</button>;
   const answerControls=question&&<>
-    <button className={`qb-button${role==="scheme"?" qb-answer-active":""}`} aria-pressed={role==="scheme"} onClick={reveal}>{role==="scheme"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="scheme"?"Hide mark scheme":"Show mark scheme"}</button>
-    <div className="qb-solution-action"><button className={`qb-button${role==="worked-solution"?" qb-answer-active":""}`} aria-pressed={role==="worked-solution"} disabled={!question.workedSolution} onClick={revealSolution}>{role==="worked-solution"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="worked-solution"?"Hide worked solution":"Show worked solution"}</button>{!question.workedSolution&&<small>Not available yet</small>}</div>
-    {role==="worked-solution"&&workedShown?.shown&&<div className="qb-worked-options" role="group" aria-label="Worked solution options">
+    <div className="qb-switches" role="group" aria-label="Show">{PANES.map(({role:target,name,Icon})=>{
+      const missing=target==="worked-solution"&&!question.workedSolution;
+      const button=<button key={target} className="qb-button qb-switch" aria-pressed={on.includes(target)} disabled={missing} title={target==="scheme"?"Mark scheme · M":undefined} onClick={()=>toggle(target)}><Icon size={16}/>{name}</button>;
+      return missing?<div className="qb-solution-action" key={target}>{button}<small>Not available yet</small></div>:button;
+    })}</div>
+  </>;
+  // Mark notes and step by step sit on the worked solution's own pane, so using them never moves the page.
+  const workedOptions=workedShown?.shown&&<div className="qb-worked-options" role="group" aria-label="Worked solution options">
       <label><input type="checkbox" checked={workedMarks} onChange={e=>chooseMarks(e.target.checked)}/> Mark notes</label>
-      <button className={`qb-button${stepMode?" qb-answer-active":""}`} aria-pressed={stepMode} onClick={()=>{setStepMode(!stepMode);setStepsShown(0);}}>Step by step</button>
+      <button className="qb-button" aria-pressed={stepMode} onClick={()=>{setStepMode(!stepMode);setStepsShown(0);}}>Step by step</button>
       {stepMode&&<><button className="qb-button" aria-label="Previous step" aria-disabled={stepsShown<=0} onClick={()=>setStepsShown(n=>Math.max(0,n-1))}><ArrowLeft size={16}/></button>
         <span className="qb-step-count" aria-live="polite">Step {stepsShown} of {shownSteps.length}</span>
         <button className="qb-button" aria-label="Next step" aria-disabled={stepsShown>=shownSteps.length} onClick={()=>setStepsShown(n=>Math.min(shownSteps.length,n+1))}><ArrowRight size={16}/></button></>}
-    </div>}
-  </>;
+    </div>;
+  const tint=overlay==="off"?undefined:overlays.find(option=>option.value===overlay)?.colour;
+  /** One pane: its name when it has neighbours or options, its stage, and its overview map while zoomed in. */
+  const renderPane=(shown:ViewRole)=>{
+    const pane=panes[shown],{Icon,name}=PANES.find(item=>item.role===shown)!;
+    return <div key={shown} role="group" aria-label={name} className={`qb-pane${many&&shown===role?" qb-pane-active":""}`} tabIndex={many?0:undefined} onPointerDownCapture={()=>activate(shown)} onFocusCapture={()=>activate(shown)} onWheelCapture={event=>{if(event.ctrlKey||event.metaKey)activate(shown);}}>
+      {(many||shown==="worked-solution")&&<div className="qb-pane-header"><Icon size={16}/><span>{name}</span>{pane.views.length>1&&<small>View {pane.viewIndex+1}{pane.two?`–${pane.viewIndex+2}`:""} of {pane.views.length}</small>}{shown==="worked-solution"&&workedOptions}</div>}
+      <div ref={pane.stage} style={{backgroundColor:tint,cursor:stageCursor(pane.scale)}} className={`qb-stage${shown==="scheme"?" qb-scheme-stage":""}${question&&pane.pannable?" qb-pannable":""}`}>
+        {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:pane.visibleViews.reduce((n,v)=>n+v.width*pane.scale,0)+(pane.two?16:0),minHeight:pane.visibleViews.length?Math.max(...pane.visibleViews.map(v=>v.height*pane.scale)):0}}>{shown==="worked-solution"&&!workedShown?.shown&&(workedShown?.error?<div className="qb-empty" role="alert"><h2>Could not load the worked solution</h2><p>{workedShown.error}</p><button className="qb-button" onClick={()=>setWorkedRetry(v=>v+1)}>Try again</button></div>:<p role="status">Loading worked solution…</p>)}{pane.visibleViews.map(v=><div className="qb-view-stack" style={{gap:STACK_GAP*pane.scale}} key={v.items.map(i=>`${i.pdf}|${i.view.page}`).join("+")}>{v.items.map(item=>item.worked?<WorkedSurface key={`${question.id}|${question.revision}|${question.workedSolution?.revision||""}|${item.pdf}|${item.view.page}|${item.view.id}`} pdf={item.pdf} view={item.view} overlay={item.overlay} scale={pane.scale} retryKey={reload} colour={overlay} marks={workedMarks} upTo={upTo}/>:<PdfView key={`${question.id}|${question.revision}|${shown}|${item.pdf}|${item.view.page}`} path={item.pdf} label={pane.resource!.label} view={item.view} scale={pane.scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,pane.inkKey(item)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(pane.inkKey(item),strokes)}}/>)}</div>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="revision"?"Only Year 11 revision papers have this topic":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":reason==="revision"?"Its questions come from papers kept for the Year 11 revision programme, which are hidden. Include them only if pupils will not meet these questions later.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",revision:"hide"});else if(reason==="revision")go({...route,revision:"include",question:"",view:0});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":reason==="revision"?"Include Year 11 revision papers":"Search another topic"}</button></div>}
+      </div>
+      {question&&<ZoomOverview stage={pane.stage} active={pane.pannable&&pane.zoom>1.001} redrawKey={`${question.id}|${shown}|${pane.viewIndex}|${pane.scale}|${overlay}|${pane.partMode}`}/>}
+    </div>;
+  };
 
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -318,35 +332,32 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           <div className="qb-source">
             <div className="qb-source-copy"><div className="qb-source-heading"><strong>{question?.source||"Topic results"}</strong>{question&&<span>{question.tier==="H"?"Higher":"Foundation"} · {question.calculator?"Calculator":"Non-calculator"} · {question.marks} mark{question.marks===1?"":"s"}</span>}{question?.revisionUse&&<span className="qb-revision-tag">Year 11 revision: {question.revisionUse}</span>}</div>
               {question&&showPerformance&&<PerformanceBadge question={question} catalogue={catalogue} tier={route.tier}/>}
-              {question&&<div className="qb-view-info"><span>{role!=="question"?resource?.label:view?.label}{view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}{served&&role!=="scheme"&&<span className="qb-parts-view">{partMode?<>{served.cuts.some(c=>c.role==="context")?"Shown under its stem. ":""}{addedNote(served)} {served.marks} mark{served.marks===1?"":"s"}. </>:null}<button className="qb-text-button" aria-pressed={!partMode} onClick={()=>setPartsView(!partsView)}>{partMode?"Show whole question":`Show only ${served.title.toLowerCase()}`}</button></span>}</div>}
+              {question&&<div className="qb-view-info"><span>{infoPane.role!=="question"?infoPane.resource?.label:infoPane.view?.label}{infoPane.view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}{served&&on.some(shown=>shown!=="scheme")&&<span className="qb-parts-view">{partsOn?<>{served.cuts.some(c=>c.role==="context")?"Shown under its stem. ":""}{addedNote(served)} {served.marks} mark{served.marks===1?"":"s"}. </>:null}<button className="qb-text-button" aria-pressed={!partsOn} onClick={()=>setPartsView(!partsView)}>{partsOn?"Show whole question":`Show only ${served.title.toLowerCase()}`}</button></span>}</div>}
               {question?.sourceErrata?.map((erratum,i)=><p className="qb-erratum" key={i}>{erratum.note}</p>)}
-              {role==="scheme"&&question?.schemeSourceNote&&<p className="qb-erratum">{question.schemeSourceNote}</p>}
+              {on.includes("scheme")&&question?.schemeSourceNote&&<p className="qb-erratum">{question.schemeSourceNote}</p>}
             </div>
             {question&&<div className="qb-source-actions">
               <button className="qb-text-button" onClick={()=>selectQuestion(question.id,!isSelected(question.id))}>{isSelected(question.id)?<Check size={16}/>:<Plus size={16}/>} {isSelected(question.id)?"Selected":"Select question"}</button>
               {answerControls}
               <details className="qb-more"><summary aria-label="Question options" title="Question options"><MoreHorizontal size={20}/></summary><div className="qb-more-menu">
                 <a href={assetUrl(question.printPdf)} target="_blank" rel="noreferrer">Source question PDF</a>
-                <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${bankAddress({...route,question:question.id,view:role==="question"?viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
+                <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${bankAddress({...route,question:question.id,view:on.includes("question")?questionPane.viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
                 <button onClick={()=>{downloadBlob(new Blob([JSON.stringify({question:question.id,source:question.source,code:route.code,view:viewIndex+1,role,version:catalogue?.version,issue:"Describe the correction here."},null,2)],{type:"application/json"}),`question-feedback-${question.id}.json`);setNotice("Feedback details downloaded. Add a description and keep it with your question-bank notes.");}}>Report a problem</button>
                 {question.equivalentSource&&<p>Also appears as {question.equivalentSource}.</p>}
                 <p>← / → or Page Up / Down: navigate<br/>M: mark scheme · Escape: exit Display<br/>+ / −: zoom · 0: fit · Shift + arrows: pan<br/>Ctrl + wheel or pinch to zoom, drag to pan.<br/>Double-click or double-tap: zoom in or fit.<br/>Swipe to navigate at fit on a touch screen.</p>
               </div></details>
             </div>}
           </div>
-          {display&&<div className="qb-display-actions" role="group" aria-label="Answer views"><span>{resource?.label}</span>{answerControls}</div>}
+          {display&&<div className="qb-display-actions" role="group" aria-label="Answer views"><span>{on.map(paneName).join(" · ")}</span>{answerControls}</div>}
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
-          <div className="qb-stage-frame"><div ref={stage} style={{backgroundColor:overlay === "off" ? undefined : overlays.find(option=>option.value===overlay)?.colour,cursor:stageCursor}} className={`qb-stage${role==="scheme"?" qb-scheme-stage":""}${question&&pannable?" qb-pannable":""}`}>
-            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:visibleViews.length?Math.max(...visibleViews.map(v=>v.height*scale)):0}}>{role==="worked-solution"&&!workedShown?.shown&&(workedShown?.error?<div className="qb-empty" role="alert"><h2>Could not load the worked solution</h2><p>{workedShown.error}</p><button className="qb-button" onClick={()=>setWorkedRetry(v=>v+1)}>Try again</button></div>:<p role="status">Loading worked solution…</p>)}{visibleViews.map(v=><div className="qb-view-stack" style={{gap:STACK_GAP*scale}} key={v.items.map(i=>`${i.pdf}|${i.view.page}`).join("+")}>{v.items.map(item=>item.worked?<WorkedSurface key={`${question.id}|${question.revision}|${question.workedSolution?.revision||""}|${item.pdf}|${item.view.page}|${item.view.id}`} pdf={item.pdf} view={item.view} overlay={item.overlay} scale={scale} retryKey={reload} colour={overlay} marks={workedMarks} upTo={upTo}/>:<PdfView key={`${question.id}|${question.revision}|${role}|${item.pdf}|${item.view.page}`} path={item.pdf} label={resource!.label} view={item.view} scale={scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,inkKey(item)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(inkKey(item),strokes)}}/>)}</div>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="revision"?"Only Year 11 revision papers have this topic":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":reason==="revision"?"Its questions come from papers kept for the Year 11 revision programme, which are hidden. Include them only if pupils will not meet these questions later.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",revision:"hide"});else if(reason==="revision")go({...route,revision:"include",question:"",view:0});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":reason==="revision"?"Include Year 11 revision papers":"Search another topic"}</button></div>}
-          </div>
-          {question&&<ZoomOverview stage={stage} active={pannable&&zoom>1.001} redrawKey={`${question.id}|${role}|${viewIndex}|${scale}|${overlay}|${partMode}`}/>}
+          <div className="qb-stage-frame"><div className="qb-panes">{on.map(renderPane)}</div>
           {question&&annotating&&<AnnotationBar preferences={annotatePrefs} onChange={setAnnotatePrefs} canUndo={visibleKeys.some(key=>layerOf(ink,key).past.length>0)} canRedo={visibleKeys.some(key=>layerOf(ink,key).future.length>0)} hasInk={viewHasInk} anyInk={hasInk(ink)} onUndo={undoInk} onRedo={redoInk} onClear={clearInk} onClearAll={clearAllInk} onClose={()=>setAnnotating(false)}/>}
           {question&&display&&<div className="qb-display-dock">{annotateButton}<ZoomControls floating zoom={zoom} onStep={zoomStep} onFit={zoomFit}/></div>}
           </div>
           <footer className="qb-footer">
           <nav className="qb-navigation" aria-label="Question navigation"><button className="qb-button" disabled={!previous} onClick={()=>move(-1)} title="Previous · Left arrow"><ArrowLeft size={18}/><span>Previous</span></button><div><strong>{listed?`Question ${formatCount(questionIndex+1)} of ${formatCount(results.length)}`:"0 questions"}</strong><span>{rangeText}</span></div><button className="qb-button" disabled={!next} onClick={()=>move(1)} title="Next · Right arrow"><span>Next</span><ArrowRight size={18}/></button></nav>
-          {question&&<div className="qb-controls"><ZoomControls zoom={zoom} onStep={zoomStep} onFit={()=>{setFit("page");zoomFit();}} fitMode={{value:fit,onChange:value=>{setFit(value);setZoom(1);}}}/><OverlayControls value={overlay} onChange={setOverlay} room={room} onRoomChange={setRoom}/><div className="qb-image-actions"><label><input type="checkbox" checked={wholeImage} onChange={e=>setWholeImage(e.target.checked)}/> Whole question</label><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(true)}><Copy size={16}/>Copy image</button><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(false)}><Download size={16}/>PNG</button></div>{annotateButton}</div>}
+          {question&&<div className="qb-controls"><ZoomControls zoom={zoom} onStep={zoomStep} onFit={()=>{if(fit==="page")zoomFit();else{setFit("page");setZooms(FIT);}}} fitMode={{value:fit,onChange:value=>{setFit(value);setZooms(FIT);}}}/><OverlayControls value={overlay} onChange={setOverlay} room={room} onRoomChange={setRoom}/><div className="qb-image-actions"><label><input type="checkbox" checked={wholeImage} onChange={e=>setWholeImage(e.target.checked)}/> Whole question</label><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(true)}><Copy size={16}/>Copy image</button><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(false)}><Download size={16}/>PNG</button></div>{annotateButton}</div>}
           </footer>
         </section>
       </div>}

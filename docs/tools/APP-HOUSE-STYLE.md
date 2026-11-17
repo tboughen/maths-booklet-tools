@@ -235,8 +235,36 @@ Card size carries meaning: a bigger card lets you do more, so a Tools card is mu
 favourite. Small words that sit straight on the page colour use `--md-ink-2`, because
 `--md-ink-3` is too pale there.
 
+## Question bank: three switches (in the site)
+
+The viewer has three switches in the question's header: **Question**, **Mark scheme** and
+**Worked solution** (`src/bank/QuestionBank.tsx`; each pane's views, fit, zoom and pan are
+`usePane` in `src/bank/usePane.ts`). A switch that is on is blue, like every pressed button in the
+bank.
+
+- Whatever is on sits side by side, always in that order, and switching one off lets the rest
+  grow. One pane always stays on: the only pane cannot be switched off, and switching off the last
+  answer brings the question back.
+- A question opens by itself. Another question, a filter or a reload shows only the question
+  again, so answers are never on screen by accident, and links never carry an answer.
+- With two or three panes on, each has a small header with its icon and name. A pane by itself
+  has none, so the page gets the room. The worked solution's header also holds its own options,
+  Mark notes and Step by step, so using them never moves the page.
+- Each pane has its own zoom and place. An answer opens afresh at fit each time it is switched on.
+  A zoomed pane keeps the same part of the page at its top left when a neighbour is switched on or
+  off, and the question comes back where it was left. The fit mode (Fit view, Fit width) is shared,
+  so choosing one puts every pane back at fit.
+- The footer (zoom, fit, Whole question, Copy image, PNG, Previous and Next) and the keys act on
+  the pane last used: the one last switched on, clicked, touched, pinched or tabbed to. Its header
+  has a blue line, and the footer names it beside the view count.
+- The browser's Back within one question keeps the panes; Back to another question shows only the
+  question. Pane headers never print.
+- M switches the mark scheme. Annotations work on every pane on screen, and undo follows the
+  order they were drawn in.
+- On a window that is upright or under 1,000 px wide the panes stack, each at the full width.
+- Tests: `e2e/question-bank-panes.spec.ts`, with the helpers `paneSwitch`, `pane` and `showOnly`
+  in `e2e/question-bank-panes.ts` for any test that shows an answer.
+
 ## Decided, and built in later steps
 
-- **Question bank.** Question, Mark scheme and Worked solution are three separate toggles. Whatever
-  is on sits side by side, and switching one off lets the rest grow.
 - **Paper builder.** The paper so far sits beside the Sparx codes, with a picture of each question.
