@@ -22,8 +22,8 @@ A bubble layout is a `diagram` item (`{type: "diagram", diagram: {tool: "bubble-
 or in a question part's items, so a question such as "Solve 2x + 6 = 0" can carry its working layout (A7.08 Q5a,
 A7.09 Q1 and Q4). Each line side and each bubble is given as text, left blank (`""`, or a step with no `line`) or
 saved as a hidden answer (`{text, hidden: true}`), which prints dark pink on the answers copy only. The worksheet
-PDF and the Word file draw the same picture at the same printed size for both copies
-(`packages/resource-core/src/bubble-method-item.test.ts`).
+page (PDF) and the Word file both draw it from the same envelope, and the pupil and answers copies are the same
+size (`packages/resource-core/src/bubble-method-item.test.ts` checks both outputs and both copies).
 
 ## Document
 

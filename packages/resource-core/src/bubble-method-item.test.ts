@@ -50,14 +50,15 @@ describe("bubble method inside a worksheet question card", () => {
         const word = await pictures(doc, view);
         for (const out of [page.pages[0], word]) {
           const shown = texts(out);
-          // Given: the first line and the first step's bubbles and line, on both copies.
-          expect(shown).toContain("−6");
+          // Given: the first line (0 = 2x + 6) and the first step's bubbles and line, on both copies.
+          expect(shown).toEqual(expect.arrayContaining(["0", "2", "x", " + 6", "−6"]));
           // A blank step prints its dashed handwriting lines and empty bubbles.
           expect(out).toContain("stroke-dasharray");
           // Hidden answers print only on the answers copy, in dark pink.
           expect(shown.includes("÷2"), view).toBe(view === "answers");
           expect(shown.includes("−3"), view).toBe(view === "answers");
-          expect(out.includes(ANSWER_COLOUR), view).toBe(view === "answers");
+          // The hidden answers' own text is pink (other cards on the sheet have pink answers too).
+          for (const answer of ["÷2", "−3", "x"]) expect(new RegExp(`fill="${ANSWER_COLOUR}"[^>]*>${answer}<`).test(out), `${answer} ${view}`).toBe(view === "answers");
         }
       }
     });
