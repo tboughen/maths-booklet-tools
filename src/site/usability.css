@@ -460,14 +460,12 @@
   flex-wrap: wrap;
   align-items: end;
   gap: 10px 16px;
-  max-width: 760px;
-  margin: 0 0 22px;
   padding: 10px 14px 12px;
   border: 1px solid var(--line, #c9ced8);
   border-radius: 8px;
 }
-.house-style legend {
-  padding: 0 4px;
+.house-style > strong {
+  flex-basis: 100%;
   font-size: 14px;
   font-weight: 700;
 }
@@ -516,6 +514,19 @@
 .house-style-menu > summary::-webkit-details-marker {
   display: none;
 }
+.house-style-menu select {
+  min-height: var(--md-control);
+  padding: 4px 8px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--md-radius-key);
+  background: var(--md-paper);
+  color: var(--md-ink);
+  font: 400 var(--md-text-sm)/1.2 var(--md-font);
+}
+/* Fingers and small windows get full-height controls, like the button that opens the menu. */
+@media (max-width: 767px), (pointer: coarse) {
+  .house-style-menu select { min-height: 44px; }
+}
 .house-style-menu > .house-style {
   position: absolute;
   top: calc(100% + 6px);
@@ -523,7 +534,6 @@
   z-index: 20;
   width: max-content;
   max-width: min(440px, calc(100vw - 32px));
-  margin: 0;
   background: white;
   box-shadow: 0 8px 24px rgba(23, 43, 77, 0.16);
 }

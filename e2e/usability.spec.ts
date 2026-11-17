@@ -429,3 +429,24 @@ test("number-line: a Scale change after the offer withdraws it, so old axis sett
     "Widen the line to fit (first tick -7, last tick 6)",
   );
 });
+
+test("the House style menu on the Diagram builder list keeps its title inside its panel", async ({ page }) => {
+  for (const width of [1920, 700, 520, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/tools");
+    await page.locator(".house-style-menu > summary").click();
+    const group = page.getByRole("group", { name: "House style for new diagrams", exact: true });
+    await expect(group).toBeVisible();
+    const panel = (await group.boundingBox())!;
+    const title = (await group.getByText("House style for new diagrams", { exact: true }).boundingBox())!;
+    expect(title.y, `the title starts inside the panel at ${width} px`).toBeGreaterThanOrEqual(panel.y + 8);
+    expect(title.x).toBeGreaterThanOrEqual(panel.x + 8);
+    expect(title.x + title.width).toBeLessThanOrEqual(panel.x + panel.width);
+    // The title has a line to itself, above the first field's own label.
+    expect(title.y + title.height).toBeLessThanOrEqual((await group.locator("label").first().boundingBox())!.y);
+    expect(panel.x, `the panel stays in the window at ${width} px`).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width).toBeLessThanOrEqual(width);
+    const field = (await group.getByRole("combobox").first().boundingBox())!;
+    expect(field.height).toBeGreaterThanOrEqual(width < 768 ? 44 : 32);
+  }
+});
