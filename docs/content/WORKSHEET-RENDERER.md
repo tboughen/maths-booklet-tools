@@ -46,7 +46,8 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
   15 November 2026): for example a small graph with its ratio table beside it. Two items a row.
   A diagram or grid paper keeps its printed width and text takes the rest; two text items share
   the row equally. Not on the first item, after a part, or with inline answer lines. Word lays
-  the row out as a borderless table of two cells. A row too wide for its card is reported.
+  the row out as a borderless table of two cells. A row too wide for its card is reported. An answer line beside a working space sits at the bottom of the row, level with the
+  space's end, as it does under a space (16 Nov 2026).
 - Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated. A sheet with
   `notation: "maths"` (default `"plain"`, so saved sheets print as before) also prints `{3/4}` in
   question text as a stacked fraction, and `2{1/2}` as a mixed number; see

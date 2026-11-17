@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, answerTexts, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, answerTexts, besideBottom, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -676,7 +676,17 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
       blocks.push(
         table(
           [lay.left, BESIDE_GAP, lay.right],
-          [row([cell(leaf(it, lay.left, 0, ctx, 0), { width: lay.left }), cell(gap(END_MM), { width: BESIDE_GAP }), cell(leaf(right, lay.right, 0, ctx, 0), { width: lay.right })], { mm: h }, true)],
+          [
+            row(
+              [
+                cell(leaf(it, lay.left, 0, ctx, 0), { width: lay.left, ...(besideBottom(it, right) ? { vAlign: "bottom" as const } : {}) }),
+                cell(gap(END_MM), { width: BESIDE_GAP }),
+                cell(leaf(right, lay.right, 0, ctx, 0), { width: lay.right, ...(besideBottom(right, it) ? { vAlign: "bottom" as const } : {}) }),
+              ],
+              { mm: h },
+              true,
+            ),
+          ],
           indent + lay.offset,
         ),
       );
