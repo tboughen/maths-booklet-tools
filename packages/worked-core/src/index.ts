@@ -548,7 +548,7 @@ function noteLine(line: string, x: number, y: number, size: number, attrs = "", 
 
 /** One escaped line of guidance, with any remaining power such as ^24 or ^-3 raised and smaller. */
 export function noteMarkup(line: string): string {
-  return esc(line).replace(/\^(−?-?\d+)/g, (_, p: string) => `<tspan dy="-3.5" font-size="7">${p.replace("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`);
+  return esc(line).replace(/\^\{([^{}]+)\}|\^(−?-?\d+)/g, (_, braced: string | undefined, digits: string | undefined) => { const p = braced ?? digits ?? ""; return `<tspan dy="-3.5" font-size="7">${p.replace("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`; });
 }
 
 /** Guidance at x with its first baseline at y, wrapped to width: a mark chip and words, an "Also scores" line, a note. */

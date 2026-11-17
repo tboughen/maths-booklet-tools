@@ -408,6 +408,7 @@ describe("guidance typesetting", () => {
   it("stacks fractions in guidance and gives their line extra room", () => {
     expect(noteText("Gradient of L is -{1/2}")).toBe("Gradient of L is −{1/2}");
     expect(noteText("6 - {1/2}x and {-1/2}")).toBe("6 − {1/2}x and {−1/2}");
+    expect(noteMarkup("f^{-1}(x)")).toBe("f<tspan dy=\"-3.5\" font-size=\"7\">−1</tspan><tspan dy=\"3.5\">\u200b</tspan>(x)");
     expect(guideWidth("is {1/2}", NOTE_SIZE)).toBeLessThan(noteWidth("is {1/2}", NOTE_SIZE));
     const raw = JSON.parse(JSON.stringify(sample()));
     raw.parts[0].steps = [{ kind: "line", lhs: "y", rhs: "6 - {1/2}x", note: "Gradient of L is -{1/2}." }];
