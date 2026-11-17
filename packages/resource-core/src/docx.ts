@@ -131,7 +131,7 @@ export const tab = (o: RunStyle = {}) => `<w:r>${rPr(o)}<w:tab/></w:r>`;
  * editor. Its parts are "normal text" in the sheet's own font (Inter), not Cambria Math, so the
  * digits match the rest of the sheet; letters are italic, as in the SVG pages.
  */
-function fraction(f: { num: string; den: string }, o: RunStyle, display = false): string {
+function fraction(f: { num: string; den: string }, o: RunStyle, display = false, bold = false): string {
   // Word sets an in-line fraction's parts smaller than the text; the parts are enlarged by the
   // same factor so they print at body size, as the layout measured them. An equation alone in its
   // paragraph is display maths, which Word prints at full size, so it is not enlarged (R25).
@@ -139,7 +139,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false)
   const part = (s: string) =>
     [...s]
       .map((c) => {
-        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic" });
+        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic", bold: bold && fracStyle(c) === "regular" });
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");
@@ -153,7 +153,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false)
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
   parseRuns(source, base, maths)
-    .map((r) => (r.frac ? fraction(r.frac, o, display) : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
+    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
     .join("");
 /**
  * Runs that fill a paragraph on their own (an answer-line cell, a table cell). When they are only
@@ -180,7 +180,7 @@ function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
   const inner = parseRuns(source, o.bold ? "bold" : "regular", true)
     .map((r) =>
       r.frac
-        ? fraction(r.frac, o).replace(/^<m:oMath>|<\/m:oMath>$/g, "")
+        ? fraction(r.frac, o, false, r.style === "bold").replace(/^<m:oMath>|<\/m:oMath>$/g, "")
         : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic" })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
     )
     .join("");

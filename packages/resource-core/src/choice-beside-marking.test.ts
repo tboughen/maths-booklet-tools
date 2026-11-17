@@ -151,3 +151,25 @@ describe("after the A7.03 rebuild (17 Nov 2026)", () => {
     expect(Number(passage[1])).toBe(Number(table[1]));
   });
 });
+
+describe("bold round a stacked fraction (16 Nov 2026)", () => {
+  it("prints **Gradient = {1/2}** with bold words and a bold fraction, and no stray marks", async () => {
+    const doc = sheet([{ type: "text", text: "**Gradient = {1/2}**" }]);
+    const r = renderResource(doc);
+    const page = r.pages[0];
+    expect(page).not.toContain("**");
+    expect(page).toMatch(/<g data-fraction="stacked"><text[^>]*font-weight="600"[^>]*>1<\/text><line[^>]*stroke-width="0.45"\/><text[^>]*font-weight="600"[^>]*>2<\/text>/);
+    expect(page).toMatch(/<tspan font-weight="600">Gradient<\/tspan>/);
+    const { bytes } = await writeWorksheetDocx(doc, options);
+    const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
+    expect(xml).not.toContain("**");
+    const num = xml.slice(xml.indexOf("<m:num>"), xml.indexOf("</m:num>"));
+    // Bold runs name the semibold font; regular runs name none.
+    expect(num).toMatch(/<w:rFonts/);
+  });
+
+  it("leaves a fraction outside the bold marks regular", () => {
+    const page = renderResource(sheet([{ type: "text", text: "**Gradient =** {1/2}" }])).pages[0];
+    expect(page).toMatch(/<g data-fraction="stacked"><text(?![^>]*font-weight)[^>]*>1<\/text>/);
+  });
+});

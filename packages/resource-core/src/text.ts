@@ -78,29 +78,44 @@ function plainRuns(source: string, base: FontStyle): Run[] {
   return runs;
 }
 
-export function parseRuns(source: string, base: FontStyle = "regular", maths = false): Run[] {
-  if (!maths) return plainRuns(source, base);
+/** **bold** text that holds a stacked fraction: the fraction prints bold too ("**Gradient = {1/2}**"). */
+const BOLD_WITH_FRACTION = /\*\*((?:(?!\*\*).)*?\{[^{}/]{1,12}\/[^{}/]{1,12}\}(?:(?!\*\*).)*?)\*\*/g;
+
+function fractionRuns(source: string, base: FontStyle, bold: boolean): Run[] {
   const runs: Run[] = [];
   let at = 0;
   for (const m of source.matchAll(FRACTION)) {
     if (m.index > at) runs.push(...plainRuns(source.slice(at, m.index), base));
-    runs.push({ text: "", style: "regular", frac: { num: m[1].trim(), den: m[2].trim() } });
+    runs.push({ text: "", style: bold ? "bold" : "regular", frac: { num: m[1].trim(), den: m[2].trim() } });
     at = m.index + m[0].length;
   }
   if (at < source.length) runs.push(...plainRuns(source.slice(at), base));
   return runs;
 }
 
+export function parseRuns(source: string, base: FontStyle = "regular", maths = false): Run[] {
+  if (!maths) return plainRuns(source, base);
+  const runs: Run[] = [];
+  let at = 0;
+  for (const m of source.matchAll(BOLD_WITH_FRACTION)) {
+    if (m.index > at) runs.push(...fractionRuns(source.slice(at, m.index), base, false));
+    runs.push(...fractionRuns(m[1], "bold", true));
+    at = m.index + m[0].length;
+  }
+  if (at < source.length) runs.push(...fractionRuns(source.slice(at), base, false));
+  return runs;
+}
+
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
 /** Letters in a fraction print in italic, as maths letters do; digits and signs stay upright. */
 export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "italic" : "regular");
-const fracPartWidth = (s: string, size: number) => [...s].reduce((w, c) => w + advance(c, fracStyle(c)), 0) * size * FRAC_SCALE;
+const fracPartWidth = (s: string, size: number, bold = false) => [...s].reduce((w, c) => w + advance(c, bold && fracStyle(c) === "regular" ? "bold" : fracStyle(c)), 0) * size * FRAC_SCALE;
 /**
  * A fraction's width allows its parts at full body size, wider than they print, because Word and
  * LibreOffice set equations with their own spacing: the layout must never under-measure a line.
  */
 export const runWidth = (r: Run, size: number) =>
-  r.frac ? (Math.max(fracPartWidth(r.frac.num, size), fracPartWidth(r.frac.den, size)) / FRAC_SCALE) + 2 * FRAC_PAD : textWidth(r.text, r.style, size);
+  r.frac ? (Math.max(fracPartWidth(r.frac.num, size, r.style === "bold"), fracPartWidth(r.frac.den, size, r.style === "bold")) / FRAC_SCALE) + 2 * FRAC_PAD : textWidth(r.text, r.style, size);
 export const lineWidth = (l: Line, size: number) => l.reduce((w, r) => w + runWidth(r, size), 0);
 export const plainWidth = (s: string, size: number, style: FontStyle = "regular") => runWidth({ text: s, style }, size);
 
@@ -173,8 +188,8 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
   const fs = size * FRAC_SCALE;
   // The bar sits on the maths axis (the height of a minus sign); the parts clear it by 0.55 mm.
   const axis = y - size * 0.27;
-  const part = (s: string, cx: number, baseline: number) =>
-    `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle" xml:space="preserve">${[...s]
+  const part = (s: string, cx: number, baseline: number, bold = false) =>
+    `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle"${bold ? ' font-weight="600"' : ""} xml:space="preserve">${[...s]
       .map((c) => (fracStyle(c) === "italic" ? `<tspan font-style="italic">${esc(c)}</tspan>` : esc(c)))
       .join("")}</text>`;
   for (const r of line) {
@@ -186,9 +201,11 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
     const w = runWidth(r, size);
     const cx = at + w / 2;
     // The bar overhangs the wider part by 0.4 mm each side.
-    const half = Math.max(fracPartWidth(r.frac.num, size), fracPartWidth(r.frac.den, size)) / 2 + 0.4;
+    const bold = r.style === "bold";
+    const half = Math.max(fracPartWidth(r.frac.num, size, bold), fracPartWidth(r.frac.den, size, bold)) / 2 + 0.4;
+    // A bold fraction ("**Gradient = {1/2}**") has bold parts and a heavier bar, to match its words.
     out.push(
-      `<g data-fraction="stacked">${part(r.frac.num, cx, axis - 0.55)}<line x1="${n(cx - half)}" y1="${n(axis)}" x2="${n(cx + half)}" y2="${n(axis)}" stroke="${fill}" stroke-width="0.3"/>${part(r.frac.den, cx, axis + 0.55 + fs * 0.728)}</g>`,
+      `<g data-fraction="stacked">${part(r.frac.num, cx, axis - 0.55, bold)}<line x1="${n(cx - half)}" y1="${n(axis)}" x2="${n(cx + half)}" y2="${n(axis)}" stroke="${fill}" stroke-width="${bold ? 0.45 : 0.3}"/>${part(r.frac.den, cx, axis + 0.55 + fs * 0.728, bold)}</g>`,
     );
     at += w;
   }
