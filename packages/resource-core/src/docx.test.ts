@@ -205,7 +205,9 @@ describe("Word output for booklets", () => {
     expect(footerTop).toBeGreaterThan(297 - mm(margin.getAttribute("w:bottom")));
     const footer = w.text("word/footer1.xml");
     expect(footer).toContain('<w:fldSimple w:instr=" PAGE ">');
-    expect(footer).toContain("A7 · Algebraic proficiency: visualising");
+    expect(footer).not.toContain("A7 · Algebraic proficiency: visualising");
+    // Only the page number, centred (booklet standard N9).
+    expect(footer).toContain('<w:jc w:val="center"/>');
     // The cover's own footer is empty.
     expect(w.text("word/footer2.xml")).not.toContain("<w:tbl>");
     expect(w.text("[Content_Types].xml")).toContain('PartName="/word/footer1.xml"');

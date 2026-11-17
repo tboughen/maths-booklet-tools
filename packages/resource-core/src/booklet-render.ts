@@ -27,6 +27,8 @@ export const A4 = {
   coverTitle: 24 * 0.3528,
   heading: 12 * 0.3528,
   small: 10 * 0.3528,
+  /** The footer's page number: bold and larger than body text so pupils find the right page. */
+  pageNumber: 14 * 0.3528,
   /** Spare page height given to each working or drawing space is capped, so one short row never gets a page of space. */
   maxExtra: 40,
 } as const;
@@ -139,6 +141,21 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle): Frag {
   };
 }
 
+/** Cycle banners: a full-width navy band, the label in white bold on the left and START or STOP on the right. */
+export const BANNER = { h: 8, gap: 2.5, pad: 3, start: "START", end: "STOP" } as const;
+export function bannerFrag(label: string, end: boolean, st: HouseStyle): Frag {
+  const tag = end ? BANNER.end : BANNER.start;
+  const y = BANNER.h / 2 + S.body * 0.36;
+  const room = W - 2 * BANNER.pad - plainWidth(tag, S.body, "bold") - 6;
+  return {
+    h: BANNER.h,
+    svg:
+      rect(0, 0, W, BANNER.h, `rx="1.4" fill="${st.navy}"`) +
+      textSvg(parseRuns(fitLine(label, S.body, room, "bold"), "bold"), BANNER.pad, y, S.body, "white") +
+      textSvg([{ text: tag, style: "bold" }], W - BANNER.pad, y, S.body, "white", "end"),
+  };
+}
+
 function sectionHead(section: Section, st: HouseStyle, continued: boolean): Frag {
   const title = sectionTitle(section) + (continued ? " (continued)" : "");
   const tw = plainWidth(title, A4.heading, "bold");
@@ -188,7 +205,8 @@ function rowsOf(section: Section, labels: QuestionLabel[], sectionNo: number, le
 type Block =
   | { kind: "head"; frag: Frag }
   | { kind: "section"; section: number; continued: boolean; frag: Frag }
-  | { kind: "row"; section: number; row: Row };
+  | { kind: "row"; section: number; row: Row }
+  | { kind: "banner"; section: number; end: boolean; frag: Frag };
 interface PlannedPage {
   lesson: number;
   continued: boolean;
@@ -196,13 +214,12 @@ interface PlannedPage {
   end: number;
 }
 
-function footer(doc: Booklet["document"], page: number, st: HouseStyle) {
-  const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
-  return (
-    hline(A4.marginX, A4.marginX + W, A4.footerRule, st) +
-    textSvg(parseRuns(label), A4.marginX, A4.footerBase, A4.small, st.muted) +
-    textSvg([{ text: `Page ${page}`, style: "regular" }], A4.marginX + W, A4.footerBase, A4.small, st.muted, "end")
-  );
+/**
+ * Footer: only the page number, bold, larger and centred, so pupils find their page at a glance.
+ * The unit name is left off (less to read): it is on the cover and in the running header.
+ */
+function footer(_doc: Booklet["document"], page: number, st: HouseStyle) {
+  return hline(A4.marginX, A4.marginX + W, A4.footerRule, st) + textSvg([{ text: `Page ${page}`, style: "bold" }], A4.marginX + W / 2, A4.footerBase + 1, A4.pageNumber, st.navy, "middle");
 }
 
 /** One printed line of a lesson's teaching notes, placed on a notes page. */
@@ -411,6 +428,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
 export type PlacedBlock =
   | { kind: "head"; y: number; h: number }
   | { kind: "section"; section: number; continued: boolean; y: number; h: number }
+  | { kind: "banner"; section: number; end: boolean; y: number; h: number }
   | { kind: "row"; section: number; cards: { index: number; number: QuestionLabel }[]; y: number; h: number; natural: number };
 /** One printed lesson page of the plan. */
 export interface PlannedLessonPage {
@@ -460,14 +478,26 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
     lesson.sections.forEach((section, si) => {
       const rows = rowsOf(section, labels[si], si + 1, L, ctx);
       const headFrag = sectionHead(section, st, false);
-      const gapBefore = pg.blocks.length ? A4.sectionGap : 0;
-      if (pg.end + gapBefore + headFrag.h + rows[0].h > A4.bottom && pg.blocks.length) fresh();
+      // A start banner stays with the heading and first row; an end banner stays with the last row.
+      const startFrag = section.startBanner.trim() ? bannerFrag(section.startBanner, false, st) : null;
+      const endFrag = section.endBanner.trim() ? bannerFrag(section.endBanner, true, st) : null;
+      const startH = startFrag ? startFrag.h + BANNER.gap : 0;
+      const endH = endFrag ? BANNER.gap + endFrag.h : 0;
+      // A cycle (a start banner) always opens a new page, so pupils find where each part begins; a lesson's own first page is the exception.
+      const onlyHead = pg.blocks.length === 1 && pg.blocks[0].block.kind === "head";
+      if (startFrag && pg.blocks.length && !onlyHead) fresh();
+      else if (pg.end + (pg.blocks.length ? A4.sectionGap : 0) + startH + headFrag.h + rows[0].h + (rows.length === 1 ? endH : 0) > A4.bottom && pg.blocks.length) fresh();
       let y = pg.end + (pg.blocks.length ? A4.sectionGap : 0);
+      if (startFrag) {
+        pg.blocks.push({ block: { kind: "banner", section: si, end: false, frag: startFrag }, y });
+        y += startH;
+      }
       pg.blocks.push({ block: { kind: "section", section: si, continued: false, frag: headFrag }, y });
       y += headFrag.h;
       rows.forEach((row, ri) => {
         if (ri > 0) y += A4.rowGap;
-        if (y + row.h > A4.bottom && ri > 0) {
+        const tail = ri === rows.length - 1 ? endH : 0;
+        if (y + row.h + tail > A4.bottom && ri > 0) {
           pg.end = y - A4.rowGap;
           fresh();
           const cont = sectionHead(section, st, true);
@@ -478,6 +508,10 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
         y += row.h;
         pg.end = y;
       });
+      if (endFrag) {
+        pg.blocks.push({ block: { kind: "banner", section: si, end: true, frag: endFrag }, y: y + BANNER.gap });
+        pg.end = y + endH;
+      }
     });
   });
 
@@ -503,6 +537,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       const yy = y + shift;
       if (block.kind === "head") return { kind: "head", y: yy, h: block.frag.h };
       if (block.kind === "section") return { kind: "section", section: block.section, continued: block.continued, y: yy, h: block.frag.h };
+      if (block.kind === "banner") return { kind: "banner", section: block.section, end: block.end, y: yy, h: block.frag.h };
       const grown = block.row.h + extra * block.row.spaces;
       shift += grown - block.row.h;
       return { kind: "row", section: block.section, cards: block.row.cards, y: yy, h: grown, natural: block.row.h };
@@ -549,6 +584,13 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
       if (block.kind === "head") {
         out.push(at(lessonHead(lesson, p.lesson + (options.numbering?.lessonOffset ?? 0), st), A4.marginX, yy));
         glyphs({ title: lesson.title, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
+        continue;
+      }
+      if (block.kind === "banner") {
+        const sec = lesson.sections[block.section];
+        const label = block.end ? sec.endBanner : sec.startBanner;
+        out.push(at(bannerFrag(label, block.end, st), A4.marginX, yy));
+        glyphs({ banner: label }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(sec)} banner`);
         continue;
       }
       if (block.kind === "section") {

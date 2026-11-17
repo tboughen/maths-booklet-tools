@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -66,8 +66,8 @@ const base = (size: number) => (lh(size) - size) / 2 + size * 0.82;
 /** Word draws a 0.3 mm bottom border with its centre about 0.2 mm below the row's edge (probe P8). */
 const BORDER_DROP = 0.2;
 /** Footer: the hairline's centre and the text baseline, as on the SVG pages. */
-const FOOT_TEXT_TOP = A4.footerBase - base(A4.small);
-const FOOT_ROW = FOOT_TEXT_TOP - A4.footerRule + lh(A4.small);
+const FOOT_TEXT_TOP = A4.footerBase + 1 - base(A4.pageNumber);
+const FOOT_ROW = FOOT_TEXT_TOP - A4.footerRule + lh(A4.pageNumber);
 /** Distance from the page's foot to the footer's last (1 pt) paragraph. */
 const FOOTER_DISTANCE = A4.page.height - (A4.footerRule + FOOT_ROW + END_MM);
 
@@ -174,6 +174,15 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean): { xm
   return { xml: out.join(""), h: h + 3.8 };
 }
 
+/** A cycle banner: one navy row, the label in white bold on the left and START or STOP on the right. */
+function banner(label: string, end: boolean, st: HouseStyle): string {
+  const o = { bold: true, color: "#ffffff", sizeMm: S.body };
+  const tag = end ? BANNER.end : BANNER.start;
+  const room = W - 2 * BANNER.pad - plainWidth(tag, S.body, "bold") - 6;
+  const text = para(runs(fitLine(label, S.body, room, "bold"), o) + tab(o) + run(tag, o), { line: lh(S.body), left: BANNER.pad, right: BANNER.pad, tabs: [{ pos: W - BANNER.pad, align: "right" }] });
+  return table([W], [row([cell(text, { width: W, shade: st.navy, vAlign: "center" })], { mm: BANNER.h - BORDER_DROP, exact: true })]);
+}
+
 /** The running header of a continued page: lesson and title, then a hairline. */
 function continuedHead(label: string, st: HouseStyle): string {
   const h = CONTINUED_RULE - BORDER_DROP;
@@ -203,6 +212,11 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       continue;
     }
     const section = lesson.sections[block.section];
+    if (block.kind === "banner") {
+      out.push(banner(block.end ? section.endBanner : section.startBanner, block.end, st));
+      cursor = block.y + block.h;
+      continue;
+    }
     if (block.kind === "section") {
       const head = sectionHead(section, st, block.continued);
       out.push(head.xml);
@@ -404,7 +418,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
 // ---------------------------------------------------------------- footer and package
 
 function footerPart(label: string, st: HouseStyle, empty: boolean): string {
-  const o = { color: st.muted, sizeMm: A4.small };
+  const o = { color: st.navy, sizeMm: A4.pageNumber, bold: true };
   const content = empty
     ? ""
     : table(
@@ -414,7 +428,7 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
             [
               cell(
                 gap(FOOT_TEXT_TOP - A4.footerRule) +
-                  para(runs(label, o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.small), tabs: [{ pos: W, align: "right" }] }),
+                  para(run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.pageNumber), align: "center" }),
                 { width: W, borders: { top: { color: st.rule, width: 0.3 } } },
               ),
             ],

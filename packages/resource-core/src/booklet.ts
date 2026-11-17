@@ -49,6 +49,10 @@ export const sectionSchema = z
     title: text(60).default(""),
     /** One short line under the heading, e.g. "Answer on your mini whiteboard." */
     instruction: text(160).default(""),
+    /** Shaded banner printed above the heading, e.g. "Part 1": marks where a teaching cycle starts (START on the right). */
+    startBanner: text(60).default(""),
+    /** Shaded banner printed after the section's last card, e.g. "End of part 1": marks where pupils stop (STOP on the right). */
+    endBanner: text(60).default(""),
     /** 2 puts cards side by side in rows (worked example | your turn, pairs of short questions). */
     columns: z.union([z.literal(1), z.literal(2)]).default(1),
     /** Question labels: continue the lesson's run of numbers (default), restart at 1, or letters A, B, C… */
