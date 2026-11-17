@@ -1,0 +1,93 @@
+{
+ "document": {
+  "angles": [],
+  "dims": [
+   {
+    "a": "l",
+    "b": "r",
+    "gap": true,
+    "id": "dia",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "1.6 m"
+    },
+    "offset": 7,
+    "side": "left"
+   },
+   {
+    "a": "b",
+    "b": "r",
+    "gap": true,
+    "id": "ht",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "1.8 m"
+    },
+    "offset": 5,
+    "side": "right"
+   }
+  ],
+  "hidden": "dashed",
+  "lines": [],
+  "names": [],
+  "notToScale": true,
+  "points": [
+   {
+    "id": "l",
+    "place": {
+     "deg": 180,
+     "end": "top",
+     "solid": "c",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "r",
+    "place": {
+     "deg": 0,
+     "end": "top",
+     "solid": "c",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "b",
+    "place": {
+     "deg": 0,
+     "end": "base",
+     "solid": "c",
+     "type": "rim"
+    },
+    "show": "none"
+   }
+  ],
+  "solids": [
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "axis": "y",
+    "h": 42,
+    "id": "c",
+    "r": 16,
+    "type": "cylinder"
+   }
+  ],
+  "view": {
+   "tilt": 14,
+   "turn": 0,
+   "type": "turned"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}

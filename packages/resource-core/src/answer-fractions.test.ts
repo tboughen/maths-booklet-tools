@@ -183,11 +183,16 @@ describe("Word fraction size when an equation is alone in its paragraph (R25)", 
     expect(partSizes(await word(sheet("maths", "2 1/2")))).toEqual([30]);
     expect(partSizes(await word(sheet("maths", "6/25 = 12/25")))).toEqual([30, 30]);
   });
-  it("centres a lone fraction in a centred table cell; a left cell is justified left", async () => {
+  it("centres a lone fraction in a table cell (tables keep their natural width, every cell centred)", async () => {
     const xml = await word(withItems("maths", [{ type: "table", columns: ["P(first)", "P(both)"], rows: [[{ text: "1/5", state: "supplied" }, { text: "1/25", state: "hidden" }]] }]));
-    expect(xml).toContain('<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr><m:oMath>');
-    expect(xml).toContain('<m:oMathPara><m:oMathParaPr><m:jc m:val="center"/></m:oMathParaPr><m:oMath>');
+    expect(xml).not.toContain('<m:jc m:val="left"/>');
+    expect(xml.match(/<m:oMathPara><m:oMathParaPr><m:jc m:val="center"\/><\/m:oMathParaPr><m:oMath>/g)).toHaveLength(2);
     expect(partSizes(xml)).toEqual([22, 22]);
+  });
+  it("justifies a lone fraction left in the first cell of a table stretched to the column", async () => {
+    const long = "Probability of the first";
+    const xml = await word(withItems("maths", [{ type: "table", columns: [long, long, long, long, long, long], rows: [[{ text: "1/5", state: "supplied" }, ...Array.from({ length: 5 }, () => ({ text: "1/25", state: "hidden" as const }))]] }]));
+    expect(xml).toContain('<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr><m:oMath>');
   });
   it("leaves plain sheets without equations", async () => {
     expect(await word(sheet("plain", "10/36"))).not.toContain("<m:f>");

@@ -1199,6 +1199,72 @@
   "pupilSvg": "544b383671f2d4108d750e3535cd5d3c41703fa430c2a9bfbe96a10e1d8a4334",
   "answerSvg": "4663fee6b4f7fa6af0116e23dcbea399c9c8a7a9eb9e881cfa18cb2fa21469a8"
  },
+ "bubble-method/default": {
+  "schemaVersion": 1,
+  "contentHash": "536cb4d55c25985ef478f89dfc896cbec398d3096a1387036d56a13852affd55",
+  "pupilSvg": "debf651862fbfd999a2d3f2158c7b0414de7f5f4a0eccaf74f8f628056202356",
+  "answerSvg": "debf651862fbfd999a2d3f2158c7b0414de7f5f4a0eccaf74f8f628056202356"
+ },
+ "bubble-method/example-inequality-worked": {
+  "schemaVersion": 1,
+  "contentHash": "2b75efc5ea68ea39d9b81ba3d7ed843a375dc8cd74002db05334616b40e2e343",
+  "pupilSvg": "b3ccdb071467c1cddcff9feadeac927ae3a8c56ab6b2c1baa25bc0a72389a0a4",
+  "answerSvg": "b3ccdb071467c1cddcff9feadeac927ae3a8c56ab6b2c1baa25bc0a72389a0a4"
+ },
+ "bubble-method/example-inequality": {
+  "schemaVersion": 1,
+  "contentHash": "8b3435065a4c950f14b86888598a87e4fe2c3aab0ca36239b6ba300f6d75ec13",
+  "pupilSvg": "88f732561077ef6a7e9ffadd0f0959aa529fa4e5bc992953db379e7cd646d532",
+  "answerSvg": "a9ba126747cb7fdb5b5e1b86ae8047c8f400ed335d6fc81aafb0cadd2b652a99"
+ },
+ "bubble-method/example-solve-equation-worked": {
+  "schemaVersion": 1,
+  "contentHash": "9abf0dbc478452a0357cb4664d2a5ddf8b746eedca5ea3d3f8febce6ef0c76dc",
+  "pupilSvg": "276f50717816ec4d954bbf313b28859b742ce309d5d5d5a424f8293f942d0f1e",
+  "answerSvg": "276f50717816ec4d954bbf313b28859b742ce309d5d5d5a424f8293f942d0f1e"
+ },
+ "bubble-method/example-solve-equation": {
+  "schemaVersion": 1,
+  "contentHash": "e14d8201de81fdfdea0b91e1306d782a1e47e0cfb2482e9723e98951bf24084c",
+  "pupilSvg": "eb8b047b6cec93f6769a7cfaea6c5f3b70ad5af1f296755845cc756600e6d127",
+  "answerSvg": "b4fff7ffe36727e42e8022b370d8e1ce331b1f697521f5b9fb5387eb1d101773"
+ },
+ "bubble-method/example-subject-formula-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e7187602779586c6e93bae91b0963405b3c5f4b656ac2a4f0ff4605331330189",
+  "pupilSvg": "62c85030b3aad530ea367abe36bfb2acfcf3c244dc4f3d9be149a92bf85404c1",
+  "answerSvg": "62c85030b3aad530ea367abe36bfb2acfcf3c244dc4f3d9be149a92bf85404c1"
+ },
+ "bubble-method/example-subject-formula": {
+  "schemaVersion": 1,
+  "contentHash": "ded038f10caa2a4c58eb4d423af07c87fc4d080f83dcb0d74f3e75f5263a9eb6",
+  "pupilSvg": "c96f8e51b42cf8af36569e722f08916801df97f48cc90b2895b7adb5d1c207c4",
+  "answerSvg": "903ef0ddcad8e2c6a707cbd3d1294945a4f4cf51ff2d540460b2e74c4305acfb"
+ },
+ "bubble-method/example-subject-one-step-worked": {
+  "schemaVersion": 1,
+  "contentHash": "0f0362755e7b43b9e712ee82c98b110872133571c8bce640a67d8a00b176cc2c",
+  "pupilSvg": "a0a879f0a362a1bf219fb53719bac665c282562d578ee54e64e2fe922d2afdb0",
+  "answerSvg": "a0a879f0a362a1bf219fb53719bac665c282562d578ee54e64e2fe922d2afdb0"
+ },
+ "bubble-method/example-subject-one-step": {
+  "schemaVersion": 1,
+  "contentHash": "b8629e7b8f66ab4eade1aee530a1fcd1d8cb36894ee66292f0641dcb293d9348",
+  "pupilSvg": "66b1be5cae000b4efd9e2e9655ec96a76b60c27c24fa975ba3b4560fa85ca7e3",
+  "answerSvg": "9c5a701658c5d8c61d4627faf7d91b8b94b443c0fc76eb5837d7f776c03b0d62"
+ },
+ "bubble-method/example-subject-two-steps-worked": {
+  "schemaVersion": 1,
+  "contentHash": "4aba7bd774f9d6611ca5816e8e2be1f0f897c6d22e35b31fca93f9119b222b76",
+  "pupilSvg": "a6e36fa762642b5c6678fd264dfc85faf114986c86c890aed6ad89d05cc38f11",
+  "answerSvg": "a6e36fa762642b5c6678fd264dfc85faf114986c86c890aed6ad89d05cc38f11"
+ },
+ "bubble-method/example-subject-two-steps": {
+  "schemaVersion": 1,
+  "contentHash": "493b93bb8686870a6ebdf00800d17e2fcbdec414f000e948b835f423838e0f90",
+  "pupilSvg": "99cc1b517dccf856ae2924136a79827411948c055f4f84fc113e94b265285a2c",
+  "answerSvg": "6ffab59cf3f1cb90d6c71b03b99910867361399b2f04446d714d04896c3c75a8"
+ },
  "probability-objects/default": {
   "schemaVersion": 1,
   "contentHash": "3f31c3111aa4801350045f7d9156e280aff8827cfccf00c9c82b85bc4e371bff",
@@ -2212,5 +2278,59 @@
   "contentHash": "168fd9ef4b4df0c82521daa549c596bdc8d1f370690579c8c6232979401e8720",
   "pupilSvg": "7bcb0641117266e8210cf142d3c165527b2125d8c5998ecaf34a08e3c6c53b54",
   "answerSvg": "7bcb0641117266e8210cf142d3c165527b2125d8c5998ecaf34a08e3c6c53b54"
+ },
+ "solids/default": {
+  "schemaVersion": 1,
+  "contentHash": "422a39b5f93dfd4f04560acbbdfdb96916ef104ca50b30cf699c2f8b6846b12b",
+  "pupilSvg": "b1d48a9f305438cb2bf534353d91e8a9a26f184cd1a48ae472f1381584071210",
+  "answerSvg": "b1d48a9f305438cb2bf534353d91e8a9a26f184cd1a48ae472f1381584071210"
+ },
+ "solids/example-cone-hemisphere": {
+  "schemaVersion": 1,
+  "contentHash": "a32b7889148eb712f4cf84b780c36c8dc1fbcadfadb286fe10efd11a9c27cb4e",
+  "pupilSvg": "f25350381bb3232ed5d0ffd44dc8cbb73d8da3d7242f46d63e76da721db676cf",
+  "answerSvg": "f25350381bb3232ed5d0ffd44dc8cbb73d8da3d7242f46d63e76da721db676cf"
+ },
+ "solids/example-cone-sculpture": {
+  "schemaVersion": 1,
+  "contentHash": "0e759b06e9007a7282859bae9b88e3bac235de3bf5d23b83ebeb6c7341f0fa14",
+  "pupilSvg": "36649a263e436fdc5ebd3a9db5071f1a36f97e8ca1f215cc62664504b845a73f",
+  "answerSvg": "36649a263e436fdc5ebd3a9db5071f1a36f97e8ca1f215cc62664504b845a73f"
+ },
+ "solids/example-cuboid-diagonal": {
+  "schemaVersion": 1,
+  "contentHash": "c7f1943d5036f62f682080f16e8264d456acfd48bc7bc81a8b69a0fe36250d8f",
+  "pupilSvg": "325c0434814eaf06e49e11836f1ee3e38c963644ccf13202e41a18e21fa23076",
+  "answerSvg": "325c0434814eaf06e49e11836f1ee3e38c963644ccf13202e41a18e21fa23076"
+ },
+ "solids/example-cylinder-tank": {
+  "schemaVersion": 1,
+  "contentHash": "5e9bf4b35c2e306b9c86841def9993cf6f14f9001fddd2ffc671a6914ce69840",
+  "pupilSvg": "ceb63461be35277702347d26783c5caf1f65134513192a60596edca1769c770d",
+  "answerSvg": "ceb63461be35277702347d26783c5caf1f65134513192a60596edca1769c770d"
+ },
+ "solids/example-square-pyramid": {
+  "schemaVersion": 1,
+  "contentHash": "7f019e0aacaea48010abb7b3d6e74161f06d8bdc5a6584f8acf502c98d218743",
+  "pupilSvg": "c4b958bfb4383ca5f4e52b34298739dfc05b2b46860624507ba6d8d3d6c08101",
+  "answerSvg": "c4b958bfb4383ca5f4e52b34298739dfc05b2b46860624507ba6d8d3d6c08101"
+ },
+ "solids/example-triangular-prism-worked": {
+  "schemaVersion": 1,
+  "contentHash": "0ea65f24b4e1261059e916da48d2010111e70e8e5622f1a2c9069a1da6dea9ee",
+  "pupilSvg": "297d59fc5545e90602814619b275e3986c56ba612ee91a0afdedf84267321bb0",
+  "answerSvg": "c0f56af9423edc5118b4b453452b7c2812c0c9578284ee4b4a86edd8a7b374bf"
+ },
+ "solids/example-triangular-prism": {
+  "schemaVersion": 1,
+  "contentHash": "7d9aaba3dbdbeed908aad9298dc0c829f347f09b73a9e89c8fa04339a166175f",
+  "pupilSvg": "d0c699579874aef5a5fff1a5564d27627821e252cc48a0cfd3a5338914ec3841",
+  "answerSvg": "d0c699579874aef5a5fff1a5564d27627821e252cc48a0cfd3a5338914ec3841"
+ },
+ "solids/hidden-answers": {
+  "schemaVersion": 1,
+  "contentHash": "01aaf16262fd9a87a525da9130ac6876cef5ccd649ce80ce21380fe731e6f4c4",
+  "pupilSvg": "a6d7e9211b13f97f6376b5be5add6c0e8ecbd29e530f40f4451847c70e28bd8a",
+  "answerSvg": "f19ba4477813b09f95d2030cb7905541fbed08b3e56ec3b89034e6b8cf36f645"
  }
 }

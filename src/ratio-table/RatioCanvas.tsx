@@ -190,7 +190,7 @@ export function RatioCanvas({
                 style={position(
                   m.tableLeft + column * m.columnWidth + 8,
                   m.tableTop + 10,
-                  134,
+                  m.cellWidth - 16,
                   80,
                 )}
               >
@@ -239,7 +239,7 @@ export function RatioCanvas({
                       style={position(
                         m.tableLeft + column * m.columnWidth + 8,
                         m.tableTop + (index + 1) * 100 + 10,
-                        134,
+                        m.cellWidth - 16,
                         80,
                       )}
                     >

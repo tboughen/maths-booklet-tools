@@ -1,0 +1,105 @@
+{
+ "document": {
+  "angles": [],
+  "dims": [
+   {
+    "a": "l",
+    "b": "r",
+    "gap": false,
+    "id": "dia",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "6 cm"
+    },
+    "offset": 0,
+    "side": "left"
+   },
+   {
+    "a": "r",
+    "b": "s",
+    "gap": true,
+    "id": "ht",
+    "kind": "arrow",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "10 cm"
+    },
+    "offset": 8,
+    "side": "right"
+   }
+  ],
+  "hidden": "dashed",
+  "lines": [],
+  "names": [],
+  "notToScale": true,
+  "points": [
+   {
+    "id": "l",
+    "place": {
+     "deg": 180,
+     "end": "base",
+     "solid": "k",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "r",
+    "place": {
+     "deg": 0,
+     "end": "base",
+     "solid": "k",
+     "type": "rim"
+    },
+    "show": "none"
+   },
+   {
+    "id": "s",
+    "place": {
+     "type": "at",
+     "x": 22,
+     "y": 44,
+     "z": 0
+    },
+    "show": "none"
+   }
+  ],
+  "solids": [
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "axis": "y",
+    "h": 44,
+    "id": "k",
+    "r": 22,
+    "top": 0,
+    "type": "cone"
+   },
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "flat": "up",
+    "id": "h",
+    "r": 22,
+    "type": "hemisphere"
+   }
+  ],
+  "view": {
+   "tilt": 10,
+   "turn": 0,
+   "type": "turned"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}

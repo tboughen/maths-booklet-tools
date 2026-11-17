@@ -29,6 +29,9 @@ export interface AxisConfig {
   /** Words and unit in brackets, such as "Distance from home (km)". Replaces the italic axis
    * letter when present, unless the axis also has a name. */
   title?: string;
+  /** y-axis only: the title prints above the top of the axis, as many Edexcel graphs print it,
+   * instead of beside it, so a titled graph stays narrow (Tim, A3 worksheets, 16 Nov 2026). */
+  titleAbove?: true;
   /** The italic letter at the arrow, such as t or v, in place of x or y. With a title, both
    * print: the letter at the arrow and the title beside the axis, as velocity–time graphs do. */
   name?: string;

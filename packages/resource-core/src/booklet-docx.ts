@@ -397,7 +397,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   // The SVG layout's own checks come first: Word output never hides a problem the pages have.
   const rendered = renderBooklet(booklet, { view, numbering });
   const plan = planBooklet(booklet, { view, numbering });
-  const ctx: Ctx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, media: [], rels: [], pictures: [], compactTables: true, maths: booklet.document.notation === "maths" };
+  const ctx: Ctx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, media: [], rels: [], pictures: [], maths: booklet.document.notation === "maths" };
 
   const pages: string[] = [];
   if (!numbering) {
