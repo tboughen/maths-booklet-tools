@@ -110,6 +110,15 @@ export function RatioInspector({
           />
           Italic maths heading
         </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={heading.hidden === true}
+            disabled={pendingInputs}
+            onChange={(event) => change({ hidden: event.target.checked || undefined }, true)}
+          />
+          Hidden heading (answers copy only)
+        </label>
       </div>
     );
   }
@@ -478,6 +487,23 @@ export function RatioInspector({
           />
           Show operation labels
         </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={document.answerOnly === true}
+            disabled={pendingInputs}
+            onChange={(event) =>
+              onAction([{ op: "set_answer_only", answerOnly: event.target.checked }])
+            }
+          />
+          Answers copy only
+        </label>
+        {document.answerOnly && (
+          <p className="panel-note">
+            The pupil copy keeps this table&apos;s space as blank paper. The
+            answers copy prints the whole table in the answer colour.
+          </p>
+        )}
         {document.mode === "simple" && (
           <p className="panel-note">
             Simple mode hides annotations and keeps your scaling steps for
