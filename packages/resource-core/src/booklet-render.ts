@@ -590,7 +590,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         const sec = lesson.sections[block.section];
         const label = block.end ? sec.endBanner : sec.startBanner;
         out.push(at(bannerFrag(label, block.end, st), A4.marginX, yy));
-        glyphs({ banner: label }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(sec)} banner`);
+        glyphs({ title: label }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(sec)} banner`);
         continue;
       }
       if (block.kind === "section") {

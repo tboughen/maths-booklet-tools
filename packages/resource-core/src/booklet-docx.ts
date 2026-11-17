@@ -180,7 +180,7 @@ function banner(label: string, end: boolean, st: HouseStyle): string {
   const tag = end ? BANNER.end : BANNER.start;
   const room = W - 2 * BANNER.pad - plainWidth(tag, S.body, "bold") - 6;
   const text = para(runs(fitLine(label, S.body, room, "bold"), o) + tab(o) + run(tag, o), { line: lh(S.body), left: BANNER.pad, right: BANNER.pad, tabs: [{ pos: W - BANNER.pad, align: "right" }] });
-  return table([W], [row([cell(text, { width: W, shade: st.navy, vAlign: "center" })], { mm: BANNER.h - BORDER_DROP, exact: true })]);
+  return table([W], [row([cell(text, { width: W, shade: st.navy, vAlign: "center" })], { mm: BANNER.h, exact: true })]);
 }
 
 /** The running header of a continued page: lesson and title, then a hairline. */
