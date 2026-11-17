@@ -443,6 +443,70 @@ describe("guidance typesetting", () => {
   });
 });
 
+describe("worked-solution fractional powers and nth roots", () => {
+  const run = (text: string, sup = false) => ({ kind: "run", text, sup });
+  it("reads a fractional power as a small stacked fraction, with its sign", () => {
+    expect(pieces("64^{1/3} = 4")).toEqual([run("64"), { kind: "power", sign: "", num: "1", den: "3" }, run(" = 4")]);
+    expect(pieces("64^{-2/3}")).toEqual([run("64"), { kind: "power", sign: "−", num: "2", den: "3" }]);
+    expect(pieces("x^{2}")).toEqual([run("x"), run("2", true)]);
+  });
+  it("reads cube and fourth roots, and root{n}{...}, with a small index", () => {
+    expect(pieces("∛64")).toEqual([{ kind: "root", body: [run("64")], index: "3" }]);
+    expect(pieces("∜(81)")).toEqual([{ kind: "root", body: [run("81")], index: "4" }]);
+    expect(pieces("root{5}{x + 1}")).toEqual([{ kind: "root", body: [run("x + 1")], index: "5" }]);
+  });
+  it("draws the power's fraction raised and the root's index, and gives the line room", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "line", lhs: "64^{-2/3}", rhs: "{1/16}" }, { kind: "line", lhs: "∛64", rhs: "4" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    expect(svg).not.toContain("2/3");
+    expect(svg).toMatch(/>−<\/text><text [^>]*text-anchor="middle">2<\/text><path [^>]*\/><text [^>]*text-anchor="middle">3<\/text>/);
+    expect(svg).toMatch(/class="wk-root"[^>]*\/><text [^>]*>3<\/text>/);
+    expect(mathsWidth("∛64")).toBeGreaterThan(mathsWidth("√64"));
+    expect(mathsWidth("root{10}{x}") - mathsWidth("root{3}{x}")).toBeGreaterThan(mathsWidth("1") * 0.5);
+    expect(pieces("x^{ 1 / 2 }")[1]).toEqual({ kind: "power", sign: "", num: "1", den: "2" });
+  });
+  it("marks a fraction straight after a whole number as a mixed number, with a small gap", () => {
+    expect(pieces("4{3/4}")).toEqual([run("4"), { kind: "fraction", num: [run("3")], den: [run("4")], mixed: true }]);
+    expect(pieces("x + {3/4}")[1]).not.toHaveProperty("mixed");
+    for (const t of ["2{x/3}", "0.5{1/2}", "Q2{1/2}"]) expect(pieces(t).find(p => p.kind === "fraction")).not.toHaveProperty("mixed");
+    expect(mathsWidth("4{3/4}")).toBeGreaterThan(mathsWidth("4") + mathsWidth("{3/4}"));
+  });
+  it("puts an answer's mark after its line, level with the answer, when asked", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].answers = [{ x: 330, y: 192, width: 60 }];
+    const chipAt = (markAt?: string) => {
+      raw.parts[0].steps = [{ kind: "answer", value: "4", mark: { code: "A1", note: "cao" }, ...(markAt ? { markAt } : {}) }];
+      const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+      const m = svg.match(/<g class="wk-mark"><rect x="([\d.]+)" y="([\d.]+)"/)!;
+      return { x: Number(m[1]), y: Number(m[2]) };
+    };
+    const above = chipAt(), after = chipAt("after");
+    expect(above.x + 20).toBeLessThan(390); // above: over the line, ending at its right end
+    expect(after.x).toBeGreaterThanOrEqual(390); // after: past the end of the line
+    expect(after.y).toBeGreaterThan(above.y + 10); // and level with the answer, not above it
+  });
+  it("keeps an after mark on a full-width line between the dotted lines, inside the cut", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].answers = [{ x: 10, y: 192, width: 465 }];
+    raw.parts[0].steps = [{ kind: "answer", value: "4", align: "left", mark: { code: "C1", note: "cao", also: "4.0" }, markAt: "after" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    const m = svg.match(/<g class="wk-mark"><rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="12"/)!;
+    const [x, y, w] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    expect(x + w).toBeLessThanOrEqual(480);
+    expect(y + 12).toBeLessThan(192); // the chip's foot clears the dotted line
+    expect(y).toBeGreaterThan(192 - 28); // and stays below the line above
+  });
+  it("keeps a root's foot clear of the fraction bar when the root is in a numerator", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "text", text: "{∛x + 1/2}" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    const foot = Number(svg.match(/class="wk-root" d="M[\d.]+ [\d.]+L[\d.]+ [\d.]+L[\d.]+ ([\d.]+)/)![1]);
+    const bar = Number(svg.match(/<path d="M[\d.]+ ([\d.]+)H[\d.]+" stroke="#111111" stroke-width="0.9" fill="none"\/>/)![1]);
+    expect(bar - foot).toBeGreaterThan(1);
+  });
+});
+
 describe("worked-solution square roots", () => {
   const run = (text: string, sup = false) => ({ kind: "run", text, sup });
   it("reads sqrt{...} and a root sign before a number, letters or a bracket", () => {
