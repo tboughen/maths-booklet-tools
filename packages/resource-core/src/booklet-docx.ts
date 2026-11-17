@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, planBooklet, renderBooklet, type BookletIssue, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -57,7 +57,7 @@ export interface RenderedBookletDocx {
   pages: number;
 }
 
-type Where = { lesson: number; section?: number; question?: number; page?: number };
+type Where = { lesson: number; section?: number; question?: number | string; page?: number };
 type Ctx = WordCtx<Where>;
 const S = SIZE;
 const W = A4.page.width - 2 * A4.marginX;
@@ -66,8 +66,8 @@ const base = (size: number) => (lh(size) - size) / 2 + size * 0.82;
 /** Word draws a 0.3 mm bottom border with its centre about 0.2 mm below the row's edge (probe P8). */
 const BORDER_DROP = 0.2;
 /** Footer: the hairline's centre and the text baseline, as on the SVG pages. */
-const FOOT_TEXT_TOP = A4.footerBase - base(A4.small);
-const FOOT_ROW = FOOT_TEXT_TOP - A4.footerRule + lh(A4.small);
+const FOOT_TEXT_TOP = A4.footerBase - base(A4.pageNumber);
+const FOOT_ROW = FOOT_TEXT_TOP - A4.footerRule + lh(A4.pageNumber);
 /** Distance from the page's foot to the footer's last (1 pt) paragraph. */
 const FOOTER_DISTANCE = A4.page.height - (A4.footerRule + FOOT_ROW + END_MM);
 
@@ -100,6 +100,27 @@ function noteBox(source: string, st: HouseStyle): { xml: string; h: number } {
   return { xml, h };
 }
 
+/** The key idea box (N3), as the SVG page draws it: "Key idea" in a left cell, each idea on its own line in a right cell. */
+function keyIdeaBox(keyIdea: string, st: HouseStyle): { xml: string; h: number } {
+  const K = KEY_IDEA;
+  const left = keyIdeaLabelWidth();
+  const tw_ = W - left - K.pad;
+  const ideas = keyIdeas(keyIdea);
+  const textH = ideas.reduce((h, idea) => h + lines(idea, S.body, tw_) * lh(S.body), 0) + K.ideaGap * (ideas.length - 1);
+  const label = cell(para(runs(K.label, { bold: true, color: st.navy }), {}), {
+    width: left,
+    shade: st.tint,
+    borders: { left: { color: st.navy, width: K.bar } },
+    margin: { top: K.pad, left: K.bar + K.pad, bottom: K.pad, right: 0 },
+  });
+  const text = cell(ideas.map((idea, i) => para(runs(idea), { after: i < ideas.length - 1 ? K.ideaGap : 0 })).join(""), {
+    width: W - left,
+    shade: st.tint,
+    margin: { top: K.pad, left: 0, bottom: K.pad, right: K.pad - WORD_WRAP_SLACK_MM },
+  });
+  return { xml: table([left, W - left], [row([label, text])]), h: textH + K.pad * 2 };
+}
+
 /** A navy tile with white bold text, `h` high: as a shaded cell's content, or nested inside a taller cell. */
 function tile(text: string, w: number, h: number, size: number, st: HouseStyle) {
   const content = para(run(text, { bold: true, color: "#ffffff", sizeMm: size }), { align: "center", line: lh(size) });
@@ -121,18 +142,15 @@ function lessonHead(lesson: Lesson, number: number, st: HouseStyle): { xml: stri
     ? cell(para(run(String(number), { bold: true, color: "#ffffff", sizeMm: A4.lessonTitle }), { align: "center", line: lh(A4.lessonTitle) }), { width: A4.lessonTile, shade: st.navy, vAlign: "center" })
     : cell(tile(String(number), A4.lessonTile, A4.lessonTile, A4.lessonTitle, st), { width: A4.lessonTile });
   const out = [table([A4.lessonTile, 3.5, W - x + WORD_WRAP_SLACK_MM], [row([number_, cell(gap(END_MM), { width: 3.5 }), title], { mm: rowH, exact: true })])];
-  let y = svgBottom + 1.4;
-  out.push(gap(y - rowH));
-  const objective = [lesson.code, lesson.objective].filter((s) => s.trim()).join(" • ");
-  if (objective) {
-    out.push(textPara(objective, A4.small, { color: st.muted }));
-    y += lines(objective, A4.small, W) * lh(A4.small);
-  }
+  // One title line (N2): the lesson's code and objective are not printed again under it.
+  // The SVG head ends below the tile, or below a longer title's full line box: the row's own height.
+  let y = Math.max(svgBottom, rowH);
+  if (y > rowH + 0.005) out.push(gap(y - rowH));
   if (lesson.keyIdea.trim()) {
-    out.push(gap(2.6));
-    const box = noteBox(`**Key idea** ${lesson.keyIdea}`, st);
+    out.push(gap(4));
+    const box = keyIdeaBox(lesson.keyIdea, st);
     out.push(box.xml);
-    y += 2.6 + box.h;
+    y += 4 + box.h;
   }
   return { xml: out.join(""), h: y };
 }
@@ -154,6 +172,15 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean): { xm
   }
   out.push(gap(0.8), ruleTable(W, 0.5, st.navy), gap(2.5));
   return { xml: out.join(""), h: h + 3.8 };
+}
+
+/** A cycle banner: one navy row, the label in white bold on the left and START or STOP on the right. */
+function banner(label: string, end: boolean, st: HouseStyle): string {
+  const o = { bold: true, color: "#ffffff", sizeMm: S.body };
+  const tag = end ? BANNER.end : BANNER.start;
+  const room = W - 2 * BANNER.pad - plainWidth(tag, S.body, "bold") - 6;
+  const text = para(runs(fitLine(label, S.body, room, "bold"), o) + tab(o) + run(tag, o), { line: lh(S.body), left: BANNER.pad, right: BANNER.pad, tabs: [{ pos: W - BANNER.pad, align: "right" }] });
+  return table([W], [row([cell(text, { width: W, shade: st.navy, vAlign: "center" })], { mm: BANNER.h, exact: true })]);
 }
 
 /** The running header of a continued page: lesson and title, then a hairline. */
@@ -185,6 +212,11 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       continue;
     }
     const section = lesson.sections[block.section];
+    if (block.kind === "banner") {
+      out.push(banner(block.end ? section.endBanner : section.startBanner, block.end, st));
+      cursor = block.y + block.h;
+      continue;
+    }
     if (block.kind === "section") {
       const head = sectionHead(section, st, block.continued);
       out.push(head.xml);
@@ -206,6 +238,28 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
     });
     out.push(table(grid, [row(cells, { mm: block.h - 2 * CARD_RULE }, true)]));
     cursor = block.y + block.h;
+  }
+  return out.join("");
+}
+
+/** A teaching-notes page of the answers copy, line for line as the SVG page places it. */
+function notesPage(p: NotesPage, st: HouseStyle): string {
+  const out: string[] = [];
+  let cursor = A4.top;
+  for (const l of p.lines) {
+    const space = l.y - cursor;
+    if (space > 0.005) out.push(gap(space));
+    if (l.kind === "running") {
+      out.push(continuedHead(l.text, st));
+      cursor = l.y + CONTINUED_HEAD;
+      continue;
+    }
+    if (l.kind === "title") out.push(textPara(l.text, l.size, { color: st.navy, bold: true }));
+    else if (l.kind === "subtitle") out.push(textPara(fitLine(l.text, l.size, W), l.size, { color: st.muted }));
+    else if (l.bullet)
+      out.push(para(run("•", { color: st.ink, sizeMm: l.size }) + tab() + runs(l.text, { color: st.ink, sizeMm: l.size }), { line: lh(l.size), left: l.indent, hanging: l.indent - 1.2, tabs: [{ pos: l.indent }], right: -WORD_WRAP_SLACK_MM }));
+    else out.push(textPara(l.text, l.size, { color: st.ink, left: l.indent || undefined }));
+    cursor = l.y + lh(l.size);
   }
   return out.join("");
 }
@@ -364,7 +418,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
 // ---------------------------------------------------------------- footer and package
 
 function footerPart(label: string, st: HouseStyle, empty: boolean): string {
-  const o = { color: st.muted, sizeMm: A4.small };
+  const o = { color: st.navy, sizeMm: A4.pageNumber, bold: true };
   const content = empty
     ? ""
     : table(
@@ -374,7 +428,7 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
             [
               cell(
                 gap(FOOT_TEXT_TOP - A4.footerRule) +
-                  para(runs(label, o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.small), tabs: [{ pos: W, align: "right" }] }),
+                  para(run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.pageNumber), align: "center" }),
                 { width: W, borders: { top: { color: st.rule, width: 0.3 } } },
               ),
             ],
@@ -434,6 +488,38 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
     parts,
   });
   return { bytes, issues, pages: pages.length };
+}
+
+/** A lesson's teaching notes as a Word file: the same pages as renderLessonNotes, numbered from 1. */
+export async function writeLessonNotesDocx(saved: Booklet, lesson: number, options: DocxOptions & { numbering?: { lessonOffset: number } }): Promise<RenderedBookletDocx> {
+  const booklet = typesetForPrint(saved);
+  const st = styles.mathsdock;
+  const doc = booklet.document;
+  const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0);
+  const rendered = renderLessonNotes(booklet, lesson, { numbering: options.numbering });
+  const ctx: Ctx = { st, view: "answers", diagrams: 0, issues: [], where: { lesson: lesson + 1 }, media: [], rels: [], pictures: [], maths: doc.notation === "maths" };
+  const pages = planNotes(doc.lessons[lesson], shown).map((np) => notesPage(np, st));
+  if (!pages.length) throw Error(`Lesson ${shown} has no teaching notes to print.`);
+  const body = pages.map((xml, i) => pageOpen(i === 0) + xml).join("");
+  const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
+  const parts: ExtraPart[] = [{ name: "footer1.xml", id: "rIdFooter1", relType: "footer", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml", xml: footerPart(label, st, false) }];
+  const P = A4.page;
+  const sect =
+    `<w:sectPr><w:footerReference w:type="default" r:id="rIdFooter1"/><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
+    `<w:pgMar w:top="${tw(A4.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(P.height - A4.bottom - WORD_FOOT_MM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(FOOTER_DISTANCE)}" w:gutter="0"/>` +
+    `<w:pgNumType w:start="1"/><w:cols w:space="0"/><w:docGrid w:linePitch="360"/></w:sectPr>`;
+  const bytes = await writePackage({
+    body: body + LAST_PARAGRAPH + sect,
+    ctx,
+    options,
+    title: `${doc.title} lesson ${shown} teaching notes`,
+    subject: [doc.code, doc.group].filter(Boolean).join(" "),
+    keywords: ["MathsDock booklet", "teaching notes", doc.code, doc.group].filter(Boolean).join("; "),
+    description: "Made by MathsDock from the booklet source: the lesson's teaching notes.",
+    pages: pages.length,
+    parts,
+  });
+  return { bytes, issues: rendered.issues, pages: pages.length };
 }
 
 /** The booklet's Word file name: the PDF's name ending .docx. */

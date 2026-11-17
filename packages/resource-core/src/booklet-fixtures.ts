@@ -50,7 +50,7 @@ export const exampleLessonSource = {
   code: "A7.03",
   objective: "Find the gradient of a straight line (positive)",
   keyIdea:
-    "The **gradient** tells us how far up a line goes for every 1 unit it goes right. **Perfect points** are points where the line passes exactly through a grid intersection.",
+    "The **gradient** tells us how far up a line goes for every 1 unit it goes right.\n**Perfect points** are points where the line passes exactly through a grid intersection.",
   teacherNotes:
     "Prerequisites: reading coordinates, scaling a ratio table down to 1. Insight: the gradient is the y ↑ movement for 1 unit of x →, found from any right-angled triangle between perfect points. Misconceptions: dividing across by up (Adam), subtracting the movements (Beatrice), reading coordinates instead of movements. Support fades: the triangle and table are given, then the table only, then nothing; the last practice questions use two points and no grid.",
   sections: [
@@ -59,6 +59,7 @@ export const exampleLessonSource = {
       title: "",
       instruction: "Answer each question.",
       columns: 2,
+      numbering: "letters",
       cards: [
         card("Coordinates", part("In the coordinate (2, 5), what is the *x* value?", answer("*x* =", "2")), part("In the coordinate (2, 5), what is the *y* value?", answer("*y* =", "5"))),
         card("Complete the ratio table", moves([["4", "8"], ["1", "[2]"]], ["[÷ 4]"])),
@@ -186,6 +187,7 @@ const plotLesson = {
       title: "",
       instruction: "",
       columns: 2,
+      numbering: "letters",
       cards: [
         card("Substitute", part("If *x* = 3, find 2*x* + 1.", answer("", "7")), part("If *x* = −1, find 2*x* + 1.", answer("", "−1"))),
         card("Substitute", part("If *x* = 0, find 3*x* − 2.", answer("", "−2")), part("If *x* = −2, find 3*x* − 2.", answer("", "−8"))),

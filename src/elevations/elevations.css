@@ -1,27 +1,24 @@
 .ev-heights {
+  justify-self: start;
   border-collapse: collapse;
-  margin: 4px 0 0;
 }
+/* Six columns, the most there can be, still fit the narrowest card (255 px). */
 .ev-heights td {
-  border: 1px solid var(--line, #dbe3ec);
-  padding: 2px;
+  border: 1px solid var(--md-line);
+  padding: 1px;
 }
 .ev-heights select {
   width: 3em;
   text-align: center;
 }
-.ev-heights select.ev-filled {
-  background: #e2efff;
+/* One more class than the settings kit's field rule, so a square with cubes on it keeps its mark. */
+.pt-panel .ev-heights select.ev-filled {
+  background: var(--md-blue-soft);
   font-weight: 600;
-}
-.ev-front {
-  margin: 2px 0 8px;
-  font-size: 12px;
-  color: var(--muted, #556270);
 }
 .ev-panel {
   display: grid;
-  gap: 4px;
-  border-top: 1px solid var(--line, #dbe3ec);
-  padding: 8px 0;
+  gap: 6px;
+  border-top: 1px solid var(--md-line);
+  padding: 8px 0 0;
 }

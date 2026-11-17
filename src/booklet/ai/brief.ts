@@ -63,14 +63,14 @@ A worksheet follows teaching: pupils use it after the teacher has modelled the m
 Follow this shape unless the lesson plan gives a reason not to:
 
 1. **Key idea**: one or two sentences that state the big idea and name the new vocabulary in **bold** ("The **gradient** tells us how far up a line goes for every 1 unit it goes right.").
-2. **check-in** (columns 2), first: 3 to 5 short retrieval questions on exactly the prerequisites this lesson needs, plus a fill-in-the-blanks sentence using the key idea's vocabulary. Not new content.
+2. **check-in** (columns 2, numbering "letters"), first: 3 to 5 short retrieval questions on exactly the prerequisites this lesson needs, plus a fill-in-the-blanks sentence using the key idea's vocabulary. Not new content.
 3. **discover** (optional, when the insight is best noticed): a small set where only one thing changes ("Draw y = x + 1, y = 2x + 1, y = 3x + 1. What do you notice?") followed by an info item, the boxed generalisation.
 4. **worked** (columns 2): a "Worked example" card beside an "Our turn" card. Same method, same representation, different numbers. The worked card shows every step with a steps item and the finished representation; where it fits, use a short numbered method (for a graph: table, coordinates, plot, join). The Our turn card is for the class to do together: it keeps the step labels only and leaves the work blank for the pupil. Use two pairs (4 cards) when the method has a second case (for example a negative gradient).
 5. **practice** titled "Your turn" (columns 2): 4 to 6 cards that mirror the worked example: the same diagram family and size, the same blank table, the same answer line. Help fades across the set: the first cards give part of the structure, the last are unaided. The first card may carry a checklist item of the method's steps for pupils to tick.
 6. **diagnostic** (columns 2, instruction "Answer on your mini whiteboard."): 4 hinge questions, each a choice item with mode "letters" and 3 or 4 options. Every wrong option comes from exactly one named misconception in the plan. Save the correct answer.
 7. **practice** titled "Practice": 6 to 10 cards that fade support: first with part of the structure given, then bare, then a changed presentation (a different scale, no grid, two points only, a context), then a reasoning item. Include at least three unaided questions for every case the lesson names (for example positive whole-number, fractional and negative gradients each get three).
 8. **mistake**: one card for each misconception in the plan, as well as its hinge question. A named pupil (vary names) shows plausible wrong working as a claim item, then parts "Explain …'s mistake." with working space and "Correct …'s working." or "Find the correct …" with an answer line.
-9. **check-in** titled "From earlier" (columns 2): 2 or 3 short questions on earlier lessons or units, not this lesson's prerequisites, so pupils keep earlier work fresh.
+9. **check-in** titled "From earlier" (columns 2, numbering "letters"): 2 or 3 short questions on earlier lessons or units, not this lesson's prerequisites, so pupils keep earlier work fresh.
 10. **challenge** (columns 1): one open or rich task that rewards noticing, with room to work, such as "Is this the only answer?" or a near case that cannot be judged by eye (two lines that look parallel but are not).
 11. **practice** titled "Exam-style questions" (columns 1), last: 2 or 3 questions in Edexcel GCSE form. Command words as papers use them (Write down, Work out, Find, Show that, Explain, "On the grid, draw the graph of …"), lettered parts, one fact per line with the question last, and the marks as the card's final text line, "(Total for Question 2 is 3 marks)". Saved answers as usual.
 
@@ -86,7 +86,8 @@ Number of cards: about 25 to 35 per lesson, which prints as 5 to 8 A4 pages. Few
 # Layout facts (A4 portrait, nothing ever shrinks)
 - A card in a 2-column section is ${HALF} mm wide inside; a 1-column card is ${FULL} mm. Diagrams keep their real size: a coordinate grid is about 10.3 mm per square plus 12 mm for its axes, so a grid in a 2-column card is at most 7 squares across (for example negativeSquares 1, positiveSquares 5), and up to 15 squares across in a 1-column card. Grids are about as tall as they are wide; keep Your turn grids to 7 or 8 squares tall so two rows fit a page.
 - Body text is 11 pt. A card taller than about 240 mm cannot fit a page: split it.
-- Keep a question's diagram, table, working space and answer lines in its card. Pages, page numbers, numbering, contents and the cover are automatic.
+- Keep a question's diagram, table, working space and answer lines in its card. Pages, page numbers, contents and the cover are automatic.
+- Question labels are automatic too, and each is used once in a lesson: lettered sections (numbering "letters") run A, B, C… and their parts print i), ii); every other numbered section continues one run of numbers 1, 2, 3… through the lesson, mini whiteboard questions included. Worked examples and Our turns are not numbered. Never write a question number or letter into a card yourself.
 - Spare height on a page goes to working and drawing spaces, so size them for the work itself (12 to 30 mm for a short calculation, 40 to 70 mm for drawing).
 
 # Items

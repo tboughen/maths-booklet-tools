@@ -66,6 +66,7 @@ import {
 import { LINK_PREFIX, parseProbabilityObjectsLink, probabilityObjectsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-objects:v1");
 /** A label on the diagram: its object and its place on the object. */
 type Address = { object: string; slot: Slot };
@@ -570,8 +571,10 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Spinners, dice and bags settings">
+          <aside className="inspector-stack md-kit" aria-label="Spinners, dice and bags settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected label">
               <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected label"}</h2>
               {selected && selectedObject && selectedValue ? (
@@ -690,9 +693,45 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
               </div>
             </section>
             <section className="panel-card pt-panel">
+              <h2>Layout</h2>
+              <div className="pt-fields">
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      commit(() => {
+                        const n = structuredClone(e);
+                        setLines(n.document, ev.target.value as LineWeight);
+                        return n;
+                      }, "change lines")
+                    }
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  Up to {MAX_OBJECTS} objects side by side: spinners with {MIN_SECTORS} to {MAX_SECTORS} sectors, dice and bags of up to {MAX_COUNTERS} counters. An
+                  empty label is a blank for pupils; a hidden label is a saved answer that only the answers copy prints. Nothing is ever worked out for you.
+                </p>
+                <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
+              </details>
+            </section>
+            </div>
+            <div>
+            <section className="panel-card pt-panel">
               <h2>Objects</h2>
               {d.objects.map((o, i) => (
-                <fieldset key={o.id} className="po-object">
+                <fieldset key={o.id} className="md-kit-group">
                   <legend>{objectName(o.id).replace(/^./, (c) => c.toUpperCase())}</legend>
                   {o.type === "spinner" && (
                     <div className="pt-fields">
@@ -853,40 +892,8 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                 ))}
               </div>
             </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
-              <div className="pt-fields">
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    disabled={blocked}
-                    onChange={(ev) =>
-                      commit(() => {
-                        const n = structuredClone(e);
-                        setLines(n.document, ev.target.value as LineWeight);
-                        return n;
-                      }, "change lines")
-                    }
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Up to {MAX_OBJECTS} objects side by side: spinners with {MIN_SECTORS} to {MAX_SECTORS} sectors, dice and bags of up to {MAX_COUNTERS} counters. An
-                  empty label is a blank for pupils; a hidden label is a saved answer that only the answers copy prints. Nothing is ever worked out for you.
-                </p>
-                <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
-              </details>
-            </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

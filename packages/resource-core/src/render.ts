@@ -5,6 +5,7 @@ import { diagramEnvelope, LAYOUTS, tableRows, type Card, type Cell, type Diagram
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
+import { ratioBottomBaselineMm } from "../../ratio-table-core/src/svg";
 
 export type View = "pupil" | "answers";
 export interface Issue {
@@ -45,7 +46,13 @@ export interface Ctx<W extends object = { side: number; column: number; question
   maths?: boolean;
   /** Collects one note per question whose flowing text holds a fraction that will not print stacked. */
   inline?: Map<string, Issue>;
+  /** Parts print i), ii)…: set while drawing a lettered booklet question, so no label mixes a letter and a number (N1). */
+  romanParts?: boolean;
 }
+
+const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
+/** A part's label: a), b)… or, in a lettered question, i), ii)… */
+export const partLabel = (k: number, roman?: boolean) => (roman ? ROMAN[k] ?? String(k + 1) : String.fromCharCode(97 + k)) + ")";
 
 const S = SIZE;
 const lineBox = (size: number) => size * S.lineHeight;
@@ -318,36 +325,66 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx)
   return { h: y - 1.2, svg: out.join("") };
 }
 
-/** Lettered options (A, B, C…) for hinge questions: one row when they fit, otherwise two columns or one. */
+/** Lettered options (A to D) for hinge questions (booklet standard N6, Tim 17 November 2026). */
+export const LETTERS = {
+  /** The letter's ring. */
+  r: 2.5,
+  /** From the ring to the option. */
+  gap: 1.8,
+  /** Between columns. */
+  colGap: 6,
+  /** Between rows, so pupils can circle an option without touching the one below. */
+  rowGap: 4,
+  /** Narrower than this (options beside a diagram), options that do not fit one row take one column. */
+  narrow: 60,
+} as const;
+/**
+ * How many equal columns lettered options take: all in one row when each fits a slot of that
+ * width, otherwise two columns, otherwise one. Equal slots spread the options across the card.
+ */
+export function letterColumns(widths: number[], w: number): number {
+  const L = LETTERS;
+  const fits = (k: number) => Math.max(...widths) <= (w - (k - 1) * L.colGap) / k;
+  // In a narrow space (options beside a diagram) a 2 by 2 block crowds the letters together, so
+  // they go one under another, each with room to circle.
+  return fits(widths.length) ? widths.length : w >= LETTERS.narrow && fits(2) ? 2 : 1;
+}
+/** An option's printed width on one line, its letter ring included. */
+export const letterOptionWidth = (o: string, maths: boolean) => 2 * LETTERS.r + LETTERS.gap + lineWidth(wrap(o, S.body, 1e6, "regular", maths)[0] ?? [], S.body);
+
+/**
+ * Lettered options in equal columns. In each row every letter and every option sits on one
+ * baseline, and a stacked fraction is centred on that line, so nothing goes up and down.
+ */
 function letters(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx, show: number | null): Frag {
   const size = S.body,
-    r = 2.5,
-    gap = 1.8;
+    { r, gap, colGap, rowGap } = LETTERS;
   const out: string[] = [];
-  const widths = item.options.map((o) => 2 * r + gap + plainWidth(o, size));
-  const perRow = widths.reduce((a, b) => a + b, 0) + (item.options.length - 1) * 6 <= w ? item.options.length : Math.max(...widths) * 2 + 6 <= w ? 2 : 1;
-  const slot = perRow === item.options.length ? 0 : (w - (perRow - 1) * 6) / perRow;
-  let x = 0,
-    y = 0,
-    rowH = 0;
-  item.options.forEach((o, i) => {
-    if (i && i % perRow === 0) {
-      x = 0;
-      y += rowH + 1.6;
-      rowH = 0;
-    }
-    const f = para(o, (slot || widths[i]) - 2 * r - gap + 0.5, ctx, { x: 2 * r + gap });
-    const cy = (f.first ?? baseline(size)) - size * 0.34;
-    const letter = String.fromCharCode(65 + i);
-    const mark = show === i;
-    out.push(`<g transform="translate(${n(x)},${n(y)})">`);
-    out.push(`<circle cx="${r}" cy="${n(cy)}" r="${r}" fill="${mark ? ctx.st.answer : "white"}" stroke="${mark ? ctx.st.answer : ctx.st.navy}" stroke-width="0.35"/>`);
-    out.push(textSvg([{ text: letter, style: "bold" }], r, cy + size * 0.34, S.body * 0.9, mark ? "white" : ctx.st.navy, "middle"));
-    out.push(f.svg, "</g>");
-    rowH = Math.max(rowH, f.h + (f.first === undefined ? 0 : FRAC_FOOT));
-    x += (slot || widths[i]) + 6;
-  });
-  return { h: y + rowH, svg: out.join("") };
+  const perRow = letterColumns(
+    item.options.map((o) => letterOptionWidth(o, !!ctx.maths)),
+    w,
+  );
+  const slot = (w - (perRow - 1) * colGap) / perRow;
+  let y = 0;
+  for (let start = 0; start < item.options.length; start += perRow) {
+    const row = item.options.slice(start, start + perRow).map((o) => para(o, slot - 2 * r - gap + 0.5, ctx, { x: 2 * r + gap }));
+    // The row's one baseline: the lowest first baseline of its options (a stacked fraction's line).
+    const line = Math.max(...row.map((f) => f.first ?? baseline(size)));
+    const cy = line - size * 0.34;
+    let rowH = 0;
+    row.forEach((f, k) => {
+      const i = start + k;
+      const drop = line - (f.first ?? baseline(size));
+      const mark = show === i;
+      out.push(`<g transform="translate(${n(k * (slot + colGap))},${n(y)})">`);
+      out.push(`<circle cx="${r}" cy="${n(cy)}" r="${r}" fill="${mark ? ctx.st.answer : "white"}" stroke="${mark ? ctx.st.answer : ctx.st.navy}" stroke-width="0.35"/>`);
+      out.push(textSvg([{ text: String.fromCharCode(65 + i), style: "bold" }], r, cy + size * 0.34, S.body * 0.9, mark ? "white" : ctx.st.navy, "middle"));
+      out.push(at(f, 0, drop), "</g>");
+      rowH = Math.max(rowH, drop + f.h + (f.first === undefined ? 0 : FRAC_FOOT));
+    });
+    y += rowH + (start + perRow < item.options.length ? rowGap : 0);
+  }
+  return { h: y, svg: out.join("") };
 }
 
 function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
@@ -425,7 +462,7 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       while (list[i + 1]?.type === "answerLine" && (list[i + 1] as typeof it).inline) group.push(list[++i] as typeof it);
       for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) frags.push(answerRow(rowLines, w, ctx, group.length === 1));
     } else if (it.type === "part") {
-      const label = `${String.fromCharCode(97 + part++)})`;
+      const label = partLabel(part++, ctx.romanParts);
       // An answer frame always takes a row of its own.
       const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline && !it.items[0].blanks ? it.items[0] : null;
       const textW = w - S.partIndent;
@@ -455,10 +492,12 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       if (lay.problem) issue(ctx, lay.problem);
       const a = leaf(it, lay.left, ctx, 0);
       const b = leaf(right, lay.right, ctx, 0);
-      const h = Math.max(a.h, b.h) + besideExtra(it, right, extra);
-      // An answer line beside a working space sits at the bottom of the space, as it does under one.
-      const top = (f: Frag, item: Leaf, other: Leaf) => (besideBottom(item, other) ? h - f.h : 0);
-      frags.push({ h, svg: at(a, lay.offset, top(a, it, right)) + at(b, lay.offset + lay.left + BESIDE_GAP, top(b, right, it)) });
+      const place = besideTops(it, right, a, b);
+      const h = place.h + besideExtra(it, right, extra);
+      // Text beside a ratio table drops to its bottom row; an answer line beside a working space
+      // sits at the bottom of the space, as it does under one.
+      const top = (f: Frag, item: Leaf, other: Leaf, k: 0 | 1) => (besideBottom(item, other) ? h - f.h : place.tops[k]);
+      frags.push({ h, svg: at(a, lay.offset, top(a, it, right, 0)) + at(b, lay.offset + lay.left + BESIDE_GAP, top(b, right, it, 1)) });
     } else frags.push(leaf(it, w, ctx, extra));
   }
   let y = 0;
@@ -509,12 +548,48 @@ export function besideLayout(a: Leaf, b: Leaf, w: number, ctx: AnyCtx): { left: 
   return { left, right, offset: total > w ? -(total - w) / 2 : 0, problem };
 }
 
-/** The height of a row of two items without spare height, as the page draws it; Word pins its row to this. */
-export function besideHeight(a: Leaf, b: Leaf, ctx: AnyCtx, w: number): number {
+/** The baseline of a ratio table's bottom row above the table's foot (mm), or null for any other item. */
+function ratioFoot(l: Leaf): number | null {
+  if (l.type !== "diagram" || l.diagram.tool !== "ratio-table") return null;
+  try {
+    return ratioBottomBaselineMm((diagramEnvelope(l.diagram) as { document: Parameters<typeof ratioBottomBaselineMm>[0] }).document);
+  } catch {
+    return null;
+  }
+}
+/** The baseline of an item's text, from the item's top (mm): an answer line or one line of text only. */
+function lastBaseline(l: Leaf, f: Frag): number | null {
+  if (l.type === "answerLine") return f.h - 2.6;
+  // Only a one-line text drops to the bottom row ("Gradient = 3"): a longer passage beside a table reads from the top.
+  if (l.type !== "text" || f.h > (f.first !== undefined ? fractionLine(S.body) : lineBox(S.body)) + 0.01) return null;
+  return f.first !== undefined ? f.h - fractionLine(S.body) + f.first : f.h - lineBox(S.body) + baseline(S.body);
+}
+/**
+ * Where the two items of a row sit: both at the top, except an answer line or one line of text beside a ratio
+ * table, which is level with the table's bottom row, because the answer comes from that
+ * row ("Gradient =", booklet standard N5, Tim 17 November 2026).
+ */
+export function besideTops(a: Leaf, b: Leaf, fa: Frag, fb: Frag): { h: number; tops: [number, number] } {
+  const level = (table: Leaf, ft: Frag, other: Leaf, fo: Frag): [number, number] | null => {
+    const foot = ratioFoot(table),
+      line = lastBaseline(other, fo);
+    if (foot === null || line === null) return null;
+    const offset = ft.h - foot - line;
+    return offset >= 0 ? [0, offset] : [-offset, 0];
+  };
+  const ab = level(a, fa, b, fb);
+  const ba = ab ? null : level(b, fb, a, fa);
+  const tops: [number, number] = ab ?? (ba ? [ba[1], ba[0]] : [0, 0]);
+  return { h: Math.max(tops[0] + fa.h, tops[1] + fb.h), tops };
+}
+/** A row of two items as the page draws it, without spare height: Word pins its row and places its cells from this. */
+export function besidePlacement(a: Leaf, b: Leaf, ctx: AnyCtx, w: number): { h: number; tops: [number, number] } {
   const lay = besideLayout(a, b, w, ctx);
   const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0, inline: undefined };
-  return Math.max(leaf(a, lay.left, quiet, 0).h, leaf(b, lay.right, quiet, 0).h);
+  return besideTops(a, b, leaf(a, lay.left, quiet, 0), leaf(b, lay.right, quiet, 0));
 }
+/** The height of a row of two items without spare height, as the page draws it; Word pins its row to this. */
+export const besideHeight = (a: Leaf, b: Leaf, ctx: AnyCtx, w: number): number => besidePlacement(a, b, ctx, w).h;
 
 /** A row of two items: both are measured without spare height, and the row takes the spare height once if either holds a space. */
 export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "space" || b.type === "space" ? extra : 0);
@@ -560,11 +635,21 @@ export function tooWideMessage(tool: string, width: number, room: number, worked
   return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
 }
 
-/** One framed question card. A null number leaves out the number tile (worked examples, notes). */
-export function card(c: Card, number: number | null, w: number, ctx: AnyCtx, extra: number, stretch: number): Frag {
+/**
+ * One framed question card. A null number leaves out the number tile (worked examples, notes). A
+ * letter (a lettered booklet question) prints in the tile and makes its parts i), ii).
+ */
+export function card(c: Card, number: number | string | null, w: number, ctx: AnyCtx, extra: number, stretch: number): Frag {
   const st = ctx.st,
     pad = S.cardPad;
-  const body = items(c.items, w - pad * 2, ctx, extra);
+  const roman = ctx.romanParts;
+  ctx.romanParts = typeof number === "string";
+  let body: Frag;
+  try {
+    body = items(c.items, w - pad * 2, ctx, extra);
+  } finally {
+    ctx.romanParts = roman;
+  }
   const top = pad + S.tile + S.itemGap;
   const h = top + body.h + pad + stretch;
   const out: string[] = [];
@@ -721,7 +806,7 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
 }
 
 /** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
-const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "before", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
+const PRINTED = new Set(["text", "title", "heading", "startBanner", "endBanner", "prefix", "suffix", "answer", "before", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
 /** The printed characters in a document part that the worksheet font does not hold, each once. */
 export function missingCharacters(value: unknown): string[] {
   const known = measuredWidths("regular");

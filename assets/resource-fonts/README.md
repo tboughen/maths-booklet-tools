@@ -1,6 +1,6 @@
 Inter 4 (Regular 400, SemiBold 600, Italic 400; optical size 14) from github.com/google/fonts (ofl/inter),
 instanced from the variable fonts with `fontTools.varLib.instancer`, subset to Latin-1 plus the maths symbols
-worksheets use (− × ÷ ² ³ ° θ π ≤ ≥ ≠ √ ½ → ↑ □ ○ ● ξ ∅ ≈ ∞, the set notation below, and typographic quotes; □ is the empty box for missing-number questions, ○ and ● the open and filled circles of inequality questions) and saved as TrueType (so the PDF writer can subset them) with
+worksheets use (− × ÷ ² ³ ° θ π ≤ ≥ ≠ √ ½ → ↑ □ ○ ● ✓ ✗ ξ ∅ ≈ ∞, the set notation below, and typographic quotes; □ is the empty box for missing-number questions, ○ and ● the open and filled circles of inequality questions) and saved as TrueType (so the PDF writer can subset them) with
 `pyftsubset --unicodes=... --layout-features=kern,liga,calt`. Inter is the MathsDock website's
 interface font. Licensed under the included SIL Open Font License.
 
@@ -20,3 +20,6 @@ Every character therefore prints as itself, and numbers at exactly the advance w
 preview and Word files alike.
 `packages/resource-core/src/metrics.ts` holds the advance widths generated from these files.
 Diagrams keep their own STIX Two fonts (`assets/graph-fonts`).
+
+The tick ✓ (U+2713) and cross ✗ (U+2717) were copied in on 17 November 2026 from the same Inter 4.001 variable fonts
+(instanced at opsz 14, wght 400 and 600, and the italic at 400), for self-check lists and marking ("Perfect points ✓").
