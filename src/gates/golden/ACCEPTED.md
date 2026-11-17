@@ -786,3 +786,31 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - geometry figures: figures-parallel-in-triangle (worked): added
 - geometry figures: figures-congruent-four: added
 - geometry figures: figures-congruent-four (worked): added
+
+## 2026-11-16: Add the bubble method diagram family (A3, A4.08-09, A6, A10)
+
+- bubble method: bm-subject-one-step: added
+- bubble method: bm-subject-one-step (worked): added
+- bubble method: bm-subject-two-steps: added
+- bubble method: bm-subject-two-steps (worked): added
+- bubble method: bm-subject-formula: added
+- bubble method: bm-subject-formula (worked): added
+- bubble method: bm-solve-equation: added
+- bubble method: bm-solve-equation (worked): added
+- bubble method: bm-inequality: added
+- bubble method: bm-inequality (worked): added
+
+## 2026-11-16: New 3D solids family: six examples redrawn from Question Bank questions, one with its mark-scheme working
+
+- 3D solids: solids-triangular-prism: added
+- 3D solids: solids-triangular-prism (worked): added
+- 3D solids: solids-cuboid-diagonal: added
+- 3D solids: solids-cuboid-diagonal (worked): added
+- 3D solids: solids-square-pyramid: added
+- 3D solids: solids-square-pyramid (worked): added
+- 3D solids: solids-cylinder-tank: added
+- 3D solids: solids-cylinder-tank (worked): added
+- 3D solids: solids-cone-hemisphere: added
+- 3D solids: solids-cone-hemisphere (worked): added
+- 3D solids: solids-cone-sculpture: added
+- 3D solids: solids-cone-sculpture (worked): added

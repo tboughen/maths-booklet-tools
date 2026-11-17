@@ -177,6 +177,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     objects: "1 to 4 objects side by side: spinners {type:\"spinner\", labels, angles?, fills?, shape?, pointer?}, dice {type:\"dice\", view?, faces?, marks?} and bags {type:\"bag\", groups:[{label, fill, count}]}.",
     lines,
   },
+  "bubble-method": {
+    example,
+    worked,
+    start: "The first line, such as \"y = 3x + 2\" or \"2x − 5 < 9\" (default 2x + 3 = 11).",
+    steps: "Up to 8 steps, each {bubble or left/right, leftUnder?, rightUnder?, line}: the bubbles, then the line they lead to (blank if left out).",
+    intentionalError: "true marks an error-spotting task, so bubbles that differ raise no warning.",
+    lines,
+  },
   "written-method": {
     example,
     worked,
@@ -269,5 +277,15 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     fills: "Grey regions through points.",
     captions: "Free text such as Triangle A.",
     settings: "notToScale, fontPt and lines.",
+  },
+  solids: {
+    example: "A starting drawing redrawn from a Question Bank question, by key.",
+    solids: "Up to 4 solids: prisms, pyramids and frustums, cylinders, cones, spheres and hemispheres, in 3D mm.",
+    points: "Up to 20 extra points: in 3D mm, along a line, or on a round solid's rim.",
+    names: "Letters beside corners and points.",
+    lines: "Extra straight lines between points, solid, dashed or dotted.",
+    dims: "Up to 12 lengths on edges or lines, beside them or on a double-headed arrow, each with a label.",
+    angles: "Up to 8 marked angles at a vertex between two points, with an arc or right-angle mark and a label.",
+    settings: "view (oblique or turned), hidden edges dashed or left out, notToScale, fontPt and lines.",
   },
 };

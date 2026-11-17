@@ -33,12 +33,16 @@ import * as area from "../../packages/area-core/src/index";
 import { printFacts as areaPrintFacts } from "../../packages/area-core/src/interchange";
 import * as figures from "../../packages/figure-core/src/index";
 import { printFacts as figuresPrintFacts } from "../../packages/figure-core/src/interchange";
+import * as solids from "../../packages/solid-core/src/index";
+import { printFacts as solidsPrintFacts } from "../../packages/solid-core/src/interchange";
 import * as ft from "../../packages/factor-tree-core/src/index";
 import { printFacts as ftPrintFacts } from "../../packages/factor-tree-core/src/interchange";
 import * as wm from "../../packages/written-method-core/src/index";
 import { printFacts as wmPrintFacts } from "../../packages/written-method-core/src/interchange";
 import * as fm from "../../packages/function-machine-core/src/index";
 import { printFacts as fmPrintFacts } from "../../packages/function-machine-core/src/interchange";
+import * as bm from "../../packages/bubble-method-core/src/index";
+import { printFacts as bmPrintFacts } from "../../packages/bubble-method-core/src/interchange";
 import * as po from "../../packages/probability-objects-core/src/index";
 import { printFacts as poPrintFacts } from "../../packages/probability-objects-core/src/interchange";
 import * as nets from "../../packages/net-core/src/index";
@@ -84,9 +88,11 @@ export type DiagramSource =
   | { kind: "angles"; envelope: angles.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "area"; envelope: area.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "figures"; envelope: figures.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "solids"; envelope: solids.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "factor-tree"; envelope: ft.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "written-method"; envelope: wm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "function-machine"; envelope: fm.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "bubble-method"; envelope: bm.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "probability-objects"; envelope: po.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "nets"; envelope: nets.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "algebra-tiles"; envelope: at.Envelope; outputView?: "pupil" | "answer" }
@@ -141,6 +147,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
     const view = source.outputView ?? "pupil", g = figures.layout(source.envelope);
     return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: figuresPrintFacts(source.envelope, view) };
   }
+  if (source.kind === "solids") {
+    const view = source.outputView ?? "pupil", g = solids.layout(source.envelope);
+    return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: solidsPrintFacts(source.envelope, view) };
+  }
   if (source.kind === "area") {
     const view = source.outputView ?? "pupil", g = area.layout(source.envelope);
     return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: areaPrintFacts(source.envelope, view) };
@@ -164,6 +174,10 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "probability-objects") {
     const view = source.outputView ?? "pupil", g = po.layout(po.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: poPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "bubble-method") {
+    const view = source.outputView ?? "pupil", g = bm.layout(bm.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: bmPrintFacts(source.envelope, view) };
   }
   if (source.kind === "function-machine") {
     const view = source.outputView ?? "pupil", g = fm.layout(fm.forView(source.envelope, view));

@@ -63,6 +63,8 @@ import { examples as areaExamples } from "../../packages/area-core/src/examples"
 import { renderSvg as areaSvg } from "../../packages/area-core/src";
 import { examples as figureExamples } from "../../packages/figure-core/src/examples";
 import { renderSvg as figureSvg } from "../../packages/figure-core/src";
+import { examples as solidExamples } from "../../packages/solid-core/src/examples";
+import { renderSvg as solidSvg } from "../../packages/solid-core/src";
 import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
 import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
 import { examples as writtenMethods } from "../../packages/written-method-core/src/examples";
@@ -71,6 +73,8 @@ import { examples as functionMachines } from "../../packages/function-machine-co
 import { examples as netExamples } from "../../packages/net-core/src/examples";
 import { renderSvg as netsSvg } from "../../packages/net-core/src";
 import { renderSvg as functionMachineSvg } from "../../packages/function-machine-core/src";
+import { examples as bubbleMethods } from "../../packages/bubble-method-core/src/examples";
+import { renderSvg as bubbleMethodSvg } from "../../packages/bubble-method-core/src";
 import { examples as probabilityObjects } from "../../packages/probability-objects-core/src/examples";
 import { renderSvg as probabilityObjectsSvg } from "../../packages/probability-objects-core/src";
 import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/examples";
@@ -365,6 +369,14 @@ export const figuresGallery = figureExamples.map((example) => ({
   render: (e: Parameters<typeof figureSvg>[0]) => figureSvg(e),
   worked: example.worked,
 }));
+export const solidsGallery = solidExamples.map((example) => ({
+  id: `solids-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: (e: Parameters<typeof solidSvg>[0]) => solidSvg(e),
+  worked: example.worked,
+}));
 export const sampleSpaceGallery = sampleSpaces.map((example) => ({
   id: `ss-${example.id}`,
   title: example.title,
@@ -411,6 +423,14 @@ export const probabilityObjectsGallery = probabilityObjects.map((example) => ({
   description: example.note,
   make: example.make,
   render: probabilityObjectsSvg,
+  worked: true,
+}));
+export const bubbleMethodGallery = bubbleMethods.map((example) => ({
+  id: `bm-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: bubbleMethodSvg,
   worked: true,
 }));
 export const algebraTilesGallery = algebraTiles.map((example) => ({

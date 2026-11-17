@@ -20,9 +20,11 @@ COPY packages/two-way-table-core packages/two-way-table-core
 COPY packages/angle-core packages/angle-core
 COPY packages/area-core packages/area-core
 COPY packages/figure-core packages/figure-core
+COPY packages/solid-core packages/solid-core
 COPY packages/factor-tree-core packages/factor-tree-core
 COPY packages/written-method-core packages/written-method-core
 COPY packages/function-machine-core packages/function-machine-core
+COPY packages/bubble-method-core packages/bubble-method-core
 COPY packages/probability-objects-core packages/probability-objects-core
 COPY packages/net-core packages/net-core
 COPY packages/algebra-tile-core packages/algebra-tile-core

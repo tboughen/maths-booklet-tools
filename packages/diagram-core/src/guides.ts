@@ -23,6 +23,7 @@ import { twoWayTableConfig } from "./guides/two-way-table";
 import { ftConfig } from "./guides/factor-tree";
 import { wmConfig } from "./guides/written-method";
 import { fmConfig } from "./guides/function-machine";
+import { bmConfig } from "./guides/bubble-method";
 import { poConfig } from "./guides/probability-objects";
 import { netsConfig } from "./guides/nets";
 import { atConfig } from "./guides/algebra-tiles";
@@ -33,6 +34,7 @@ import { elevationsConfig } from "./guides/elevations";
 import { anglesConfig } from "./guides/angles";
 import { areaConfig } from "./guides/area";
 import { figuresConfig } from "./guides/figures";
+import { solidsConfig } from "./guides/solids";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -221,6 +223,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "factor-tree": fromConfig(ftConfig),
   "written-method": fromConfig(wmConfig),
   "function-machine": fromConfig(fmConfig),
+  "bubble-method": fromConfig(bmConfig),
   "probability-objects": fromConfig(poConfig),
   nets: fromConfig(netsConfig),
   "algebra-tiles": fromConfig(atConfig),
@@ -234,6 +237,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   angles: fromConfig(anglesConfig),
   area: fromConfig(areaConfig),
   figures: fromConfig(figuresConfig),
+  solids: fromConfig(solidsConfig),
 };
 
 const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
@@ -371,6 +375,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   nets: ["nets of 3D shapes", "where does the dot end up", "opposite faces"],
   "written-method": ["column addition and subtraction", "long multiplication", "short division (bus stop)", "long division", "decimal calculations without a calculator"],
   "function-machine": ["function machines", "number machines", "inputs and outputs", "inverse operations", "forming expressions"],
+  "bubble-method": ["bubble method", "balancing", "solving linear equations", "solving inequalities", "changing the subject"],
   "probability-objects": ["spinners", "dice", "bags of counters", "probability of a single event", "equally likely outcomes", "expected outcomes"],
   "algebra-tiles": ["algebra tiles", "collecting like terms", "simplifying expressions", "like and unlike terms (a²b and ab²)", "zero pairs", "writing expressions from tiles"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
@@ -380,7 +385,8 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   angles: ["angles on a line and round a point", "vertically opposite angles", "angles in parallel lines", "polygon interior and exterior angles"],
   area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
   figures: ["circle theorems", "tangents and chords", "cyclic quadrilaterals", "similar triangles and shapes", "congruent triangles", "geometric proof", "parallel lines in triangles"],
+  solids: ["volume and surface area of prisms and cylinders", "cones, spheres, hemispheres and pyramids", "frustums", "compound solids", "3D Pythagoras and trigonometry", "angle between a line and a plane"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["back-to-back stem-and-leaf diagrams", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["back-to-back stem-and-leaf diagrams"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));

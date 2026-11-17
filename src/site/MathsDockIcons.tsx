@@ -44,6 +44,8 @@ export const AlgebraTilesIcon = icon(<><rect x="2" y="5" width="10" height="10" 
 export const FunctionMachineIcon = icon(<><path d="M2 12h4M17 12h5M20 10l2 2-2 2" /><path className="md-icon-part" d="M6 7h7l3 5-3 5H6z" /></>);
 /** Nets of 3D shapes: the cross-shaped net of a cube. */
 export const NetsIcon = icon(<><path d="M9 3h6v18H9zM3 9h18v6H3z" /><path className="md-icon-part" d="M9 9h6v6H9z" /></>);
+/** The bubble method: a line of working with two bubbles under it. */
+export const BubbleMethodIcon = icon(<><path d="M3 6h7M14 6h7M11 4.5h2M11 7.5h2" /><ellipse className="md-icon-part" cx="6.5" cy="13" rx="3.5" ry="2.5" /><ellipse className="md-icon-part" cx="17.5" cy="13" rx="3.5" ry="2.5" /><path d="M3 20h7M14 20h7" /></>);
 /** Written methods: a column calculation with its answer line. */
 export const WrittenMethodIcon = icon(<><path d="M9 4h.01M13 4h.01M17 4h.01M9 9h.01M13 9h.01M17 9h.01M4 9l2 0M5 8v2" /><path className="md-icon-part" d="M3 13h18" /><path d="M9 18h.01M13 18h.01M17 18h.01" /></>);
 /** Spinners, dice and bags: a spinner with an arrow, beside a dice face. */
@@ -64,6 +66,8 @@ export const ElevationsIcon = icon(<><path d="M3 20V8h6v6h6v6zM3 14h6M9 14v6" />
 export const AnglesIcon = icon(<><path d="M3 19h18M3 19 15 5" /><path className="md-icon-part" d="M10.5 19a7.5 7.5 0 0 0-2.6-5.7" /></>);
 /** Area and perimeter */
 export const AreaIcon = icon(<><path className="md-icon-wash" d="M4 4h9v7h7v9H4z" /></>);
+/** 3D solids */
+export const SolidsIcon = icon(<><ellipse cx="12" cy="6" rx="6" ry="2.5" /><path d="M6 6v12M18 6v12" /><path d="M6 18a6 2.5 0 0 0 12 0" /><path className="md-icon-part" d="M6 18a6 2.5 0 0 1 12 0" strokeDasharray="1.5 1.5" /></>);
 /** Geometry figures */
 export const FiguresIcon = icon(<><circle cx="12" cy="11" r="7" /><path d="M3 18h18" /><path className="md-icon-part" d="M6.5 15.5 12 18l5.5-2.5" /></>);
 /** Venn diagrams */

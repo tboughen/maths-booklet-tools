@@ -44,9 +44,9 @@ const THUMBNAIL_WIDTH = 600,
 const pinned = process.env.MATHSDOCK_PINNED_BROWSER === "1";
 
 async function download(page: Page, name: string) {
-  await page
-    .getByRole("button", { name: /^(File|Download options)$/, exact: true })
-    .click();
+  // Pictures leave from the Download menu; the editable file from File.
+  const menu = name.startsWith("Download") ? "Download" : "File";
+  await page.getByRole("button", { name: menu, exact: true }).click();
   const waiting = page.waitForEvent("download");
   await page.getByRole("menuitem", { name, exact: true }).click();
   const file = await waiting;
@@ -174,7 +174,9 @@ for (const [tool, key] of tools) {
     const folder = resolve(goldens, tool),
       sourcePath = resolve(folder, "source.json");
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto(`/tools/${tool}`);
+    // Seed storage before the tool opens: an open editor saves its own document when the page
+    // unloads, which would overwrite a source written underneath it.
+    await page.goto("/");
     let source: string;
     if (existsSync(sourcePath)) {
       source = await readFile(sourcePath, "utf8");
@@ -183,8 +185,9 @@ for (const [tool, key] of tools) {
         // The bar model stores its envelope inside a storage record.
         text: tool === "bar-model" ? JSON.stringify({ storageVersion: 1, envelope: JSON.parse(source) }) : source,
       });
-      await page.reload();
+      await page.goto(`/tools/${tool}`);
     } else {
+      await page.goto(`/tools/${tool}`);
       expect(
         updating,
         `${tool} has no golden source; run with MATHSDOCK_UPDATE_GOLDENS=1`,

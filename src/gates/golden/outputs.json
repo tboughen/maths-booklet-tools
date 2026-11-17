@@ -2,6 +2,90 @@
  "platform": "linux-x64",
  "pixelPpi": 150,
  "outputs": {
+  "3D solids: solids-cone-hemisphere": {
+   "json": "0031be803ce869d9",
+   "svg": "f25350381bb3232e",
+   "mm": "60.9x74.3",
+   "png600": "1439x1755",
+   "pixels": "38130a46d3279f27"
+  },
+  "3D solids: solids-cone-hemisphere (worked)": {
+   "json": "0031be803ce869d9",
+   "svg": "f25350381bb3232e",
+   "mm": "60.9x74.3",
+   "png600": "1439x1755",
+   "pixels": "38130a46d3279f27"
+  },
+  "3D solids: solids-cone-sculpture": {
+   "json": "4118530d46bfbb51",
+   "svg": "36649a263e436fdc",
+   "mm": "72x114.3",
+   "png600": "1701x2700",
+   "pixels": "ca19400314674626"
+  },
+  "3D solids: solids-cone-sculpture (worked)": {
+   "json": "4118530d46bfbb51",
+   "svg": "36649a263e436fdc",
+   "mm": "72x114.3",
+   "png600": "1701x2700",
+   "pixels": "ca19400314674626"
+  },
+  "3D solids: solids-cuboid-diagonal": {
+   "json": "5d11b3c7298423c7",
+   "svg": "325c0434814eaf06",
+   "mm": "66.4x62.3",
+   "png600": "1569x1472",
+   "pixels": "127bc15b42049c87"
+  },
+  "3D solids: solids-cuboid-diagonal (worked)": {
+   "json": "5d11b3c7298423c7",
+   "svg": "325c0434814eaf06",
+   "mm": "66.4x62.3",
+   "png600": "1569x1472",
+   "pixels": "127bc15b42049c87"
+  },
+  "3D solids: solids-cylinder-tank": {
+   "json": "8d555559c7fd0454",
+   "svg": "ceb63461be352777",
+   "mm": "51.8x62.6",
+   "png600": "1224x1479",
+   "pixels": "711157dd8d70c20b"
+  },
+  "3D solids: solids-cylinder-tank (worked)": {
+   "json": "8d555559c7fd0454",
+   "svg": "ceb63461be352777",
+   "mm": "51.8x62.6",
+   "png600": "1224x1479",
+   "pixels": "711157dd8d70c20b"
+  },
+  "3D solids: solids-square-pyramid": {
+   "json": "5dce0bb9bdf1644a",
+   "svg": "c4b958bfb4383ca5",
+   "mm": "82.7x80.7",
+   "png600": "1954x1906",
+   "pixels": "b107ddc440d5772d"
+  },
+  "3D solids: solids-square-pyramid (worked)": {
+   "json": "5dce0bb9bdf1644a",
+   "svg": "c4b958bfb4383ca5",
+   "mm": "82.7x80.7",
+   "png600": "1954x1906",
+   "pixels": "b107ddc440d5772d"
+  },
+  "3D solids: solids-triangular-prism": {
+   "json": "963256013142d4bb",
+   "svg": "d0c699579874aef5",
+   "mm": "83.2x49.5",
+   "png600": "1965x1169",
+   "pixels": "551ff7004b4104a6"
+  },
+  "3D solids: solids-triangular-prism (worked)": {
+   "json": "7239a00ddd7b7817",
+   "svg": "297d59fc5545e906",
+   "mm": "83.2x49.5",
+   "png600": "1965x1169",
+   "pixels": "27e7fe94697fc2e3"
+  },
   "algebra grid: algebra-common": {
    "json": "07e29282433c6a66",
    "svg": "53ff8bec4805980c",
@@ -701,6 +785,76 @@
    "mm": "139.4x43.92",
    "png600": "3293x1037",
    "pixels": "b765ced7d4ba0427"
+  },
+  "bubble method: bm-inequality": {
+   "json": "8b3435065a4c950f",
+   "svg": "88f732561077ef6a",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "ca6f366fcff9090c"
+  },
+  "bubble method: bm-inequality (worked)": {
+   "json": "2b75efc5ea68ea39",
+   "svg": "282a5b8e22412282",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "6e9fb2c5eb350550"
+  },
+  "bubble method: bm-solve-equation": {
+   "json": "e14d8201de81fdfd",
+   "svg": "eb8b047b6cec93f6",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "8ddb823157ff58cb"
+  },
+  "bubble method: bm-solve-equation (worked)": {
+   "json": "9abf0dbc478452a0",
+   "svg": "26b8b47adeb77b96",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "6aa9cba2385a5a7b"
+  },
+  "bubble method: bm-subject-formula": {
+   "json": "ded038f10caa2a4c",
+   "svg": "c96f8e51b42cf8af",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "c630bd420021782d"
+  },
+  "bubble method: bm-subject-formula (worked)": {
+   "json": "e7187602779586c6",
+   "svg": "fcc759710dd3f81f",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "8d9852d3a07e8562"
+  },
+  "bubble method: bm-subject-one-step": {
+   "json": "b8629e7b8f66ab4e",
+   "svg": "66b1be5cae000b4e",
+   "mm": "59.6x32.1",
+   "png600": "1408x758",
+   "pixels": "d92846bab511f9c0"
+  },
+  "bubble method: bm-subject-one-step (worked)": {
+   "json": "0f0362755e7b43b9",
+   "svg": "fd3b9df0d78b660f",
+   "mm": "59.6x32.1",
+   "png600": "1408x758",
+   "pixels": "0436c7fbe1f3212a"
+  },
+  "bubble method: bm-subject-two-steps": {
+   "json": "493b93bb8686870a",
+   "svg": "99cc1b517dccf856",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "4f6c7abf7ad2181f"
+  },
+  "bubble method: bm-subject-two-steps (worked)": {
+   "json": "4aba7bd774f9d661",
+   "svg": "20f80679413ee51d",
+   "mm": "59.6x54.46",
+   "png600": "1408x1286",
+   "pixels": "a17e3e3e0c1fe7ae"
   },
   "charts: chart-bar-draw": {
    "json": "2cc403a9527ddd22",

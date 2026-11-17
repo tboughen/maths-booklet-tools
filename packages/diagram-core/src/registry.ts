@@ -40,6 +40,8 @@ import * as wm from "../../written-method-core/src/index";
 import * as wmIo from "../../written-method-core/src/interchange";
 import * as fm from "../../function-machine-core/src/index";
 import * as fmIo from "../../function-machine-core/src/interchange";
+import * as bm from "../../bubble-method-core/src/index";
+import * as bmIo from "../../bubble-method-core/src/interchange";
 import * as po from "../../probability-objects-core/src/index";
 import * as poIo from "../../probability-objects-core/src/interchange";
 import * as nets from "../../net-core/src/index";
@@ -60,6 +62,8 @@ import * as area from "../../area-core/src/index";
 import * as areaIo from "../../area-core/src/interchange";
 import * as figures from "../../figure-core/src/index";
 import * as figuresIo from "../../figure-core/src/interchange";
+import * as solids from "../../solid-core/src/index";
+import * as solidsIo from "../../solid-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -76,6 +80,7 @@ export const DIAGRAM_KINDS = [
   "two-way-table",
   "factor-tree",
   "function-machine",
+  "bubble-method",
   "probability-objects",
   "nets",
   "written-method",
@@ -87,6 +92,7 @@ export const DIAGRAM_KINDS = [
   "angles",
   "area",
   "figures",
+  "solids",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -447,6 +453,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     hash: fm.hash,
     svg: (e, view) => fm.renderSvg(fm.forView(e, view, true)),
   }),
+  "bubble-method": family<bm.Envelope>({
+    kind: "bubble-method",
+    label: "bubble method working",
+    summary: "Bubble method (balancing) for equations, inequalities and changing the subject: operations in bubbles under each side; sides and bubbles blank or hidden; never solved for you.",
+    route: "/tools/bubble-method",
+    answerView: true,
+    envelopeSchema: bm.envelopeSchema,
+    createSchema: bmIo.createSchema,
+    revisionSchema: bmIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = bm.validate(raw);
+      check(bm.exportIssue(bm.forView(e, view)));
+      return e;
+    },
+    create: (input) => bmIo.create(input),
+    revise: (input) => bmIo.revise(input),
+    hash: bm.hash,
+    svg: (e, view) => bm.renderSvg(bm.forView(e, view, true)),
+  }),
   "probability-objects": family<po.Envelope>({
     kind: "probability-objects",
     label: "spinners, dice and bags diagram",
@@ -617,6 +642,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => figuresIo.revise(input),
     hash: figures.hash,
     svg: (e, view) => figures.renderSvg(e, view),
+  }),
+  solids: family<solids.Envelope>({
+    kind: "solids",
+    label: "3D solid",
+    summary: "3D solids drawn as Edexcel does, hidden edges dashed: cuboids and prisms, pyramids and frustums, cylinders, cones, spheres and hemispheres, alone or joined; named corners, lengths and angles given, letters, blanks or hidden answers.",
+    route: "/tools/solids",
+    answerView: true,
+    envelopeSchema: solids.envelopeSchema,
+    createSchema: solidsIo.createSchema,
+    revisionSchema: solidsIo.revisionSchema,
+    validate: (raw) => {
+      const e = solids.validate(raw);
+      check(solids.exportIssue(e));
+      return e;
+    },
+    create: (input) => solidsIo.create(input),
+    revise: (input) => solidsIo.revise(input),
+    hash: solids.hash,
+    svg: (e, view) => solids.renderSvg(e, view),
   }),
 };
 

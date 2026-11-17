@@ -1,0 +1,125 @@
+{
+ "document": {
+  "angles": [
+   {
+    "at": "pb1",
+    "from": "pb3",
+    "id": "eab",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "35"
+    },
+    "mark": "arc",
+    "to": "pb2"
+   },
+   {
+    "at": "pb2",
+    "from": "pb1",
+    "id": "abe",
+    "label": {
+     "answer": "",
+     "state": "blank",
+     "text": ""
+    },
+    "mark": "right",
+    "to": "pb3"
+   }
+  ],
+  "dims": [
+   {
+    "a": "p1",
+    "b": "pb1",
+    "gap": false,
+    "id": "da",
+    "kind": "beside",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "15 cm"
+    },
+    "offset": 0,
+    "side": "right"
+   },
+   {
+    "a": "pb1",
+    "b": "pb2",
+    "gap": false,
+    "id": "ab",
+    "kind": "beside",
+    "label": {
+     "answer": "",
+     "state": "value",
+     "text": "15 cm"
+    },
+    "offset": 0,
+    "side": "right"
+   }
+  ],
+  "hidden": "dashed",
+  "lines": [],
+  "names": [
+   {
+    "id": "p1",
+    "text": "D"
+   },
+   {
+    "id": "p2",
+    "text": "C"
+   },
+   {
+    "id": "p3",
+    "text": "F"
+   },
+   {
+    "id": "pb1",
+    "text": "A"
+   },
+   {
+    "id": "pb2",
+    "text": "B"
+   },
+   {
+    "id": "pb3",
+    "text": "E"
+   }
+  ],
+  "notToScale": true,
+  "points": [],
+  "solids": [
+   {
+    "at": {
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    "axis": "x",
+    "id": "p",
+    "length": 48,
+    "section": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": 30,
+      "y": 0
+     },
+     {
+      "x": 30,
+      "y": 21
+     }
+    ],
+    "type": "prism"
+   }
+  ],
+  "view": {
+   "angle": 22,
+   "scale": 0.85,
+   "type": "oblique"
+  }
+ },
+ "kind": "solids",
+ "rendererVersion": "solids-1",
+ "schemaVersion": 1
+}

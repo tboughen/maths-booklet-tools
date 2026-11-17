@@ -80,6 +80,9 @@ test("Carry on lists a diagram once it has been changed, newest first, and opens
     await page.goto(`/tools/${tool}`);
     await page.locator(".site-page:not([hidden]) .editor-card").getByRole("button", { name: "Add column", exact: true }).click();
     await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeEnabled();
+    // The record is written once the store's code has loaded; a full page load straight after the
+    // change could otherwise leave before it lands (the released build is fast enough to do so).
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("mathsdock.recentWork") ?? "")).toContain(`"${tool}"`);
   }
   await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
   const cards = carryOn(page).getByRole("link");

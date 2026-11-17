@@ -70,7 +70,8 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
   drawn by its own renderer, as the pupil sees it: algebra grid, ratio table, number line, factor
   tree, angles, area, Venn, probability or frequency tree, two-way table, sample space, chart,
   construction, cuboid, elevations, triangle, value graph, graph, bar model, function machine,
-  written method, figures: circle theorems, similar and congruent shapes), `carry` (a value from
+  written method, figures: circle theorems, similar and congruent shapes; solids: prisms,
+  cylinders, cones, spheres, pyramids, frustums), `carry` (a value from
   an earlier part), `note` (guidance; `watch` for a slip the scheme flags), `draw` (shapes on any
   shown surface) and `answer` (centred on its line; `"align": "left"` for written words on a
   full-width line).
