@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "./release-fixtures";
 
-// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools and Plans and elevations.
+// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools, Plans and elevations
+// and the other statistics tools.
 const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
@@ -97,6 +98,24 @@ test("an upright monitor sets the same cards in three columns under the diagram"
 // Statistical charts: its cards are `.panel-card`, and every chart type has a data card and settings cards.
 const chartCard = async (page: Page, heading: string) =>
   (await page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: heading, exact: true }) }).boundingBox())!;
+// What every tool on the kit shares: the heights of its buttons and fields, the width of its ticks, buttons that are
+// off and faded as well (there should be none), cards with something cut off, and the font of a card's heading.
+const kitSizes = (page: Page) =>
+  page.locator(".inspector-stack.md-kit").evaluate((el) => ({
+    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
+    fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
+    ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
+    faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
+    cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
+    heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
+  }));
+// The controls in the cards that are too small for a finger (there should be none on a phone).
+const tooSmall = (page: Page) =>
+  page.locator(".inspector-stack.md-kit").evaluate((el) =>
+    [...el.querySelectorAll<HTMLElement>(".panel-card :is(button, select, input:not([type=checkbox]), label:has(> input[type=checkbox]))")]
+      .filter((c) => c.getBoundingClientRect().height > 0 && c.getBoundingClientRect().height < 44)
+      .map((c) => c.textContent || c.getAttribute("aria-label")),
+  );
 
 test("Statistical charts uses the kit: the data in one column and its settings in the other", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -199,15 +218,7 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     // With something selected the settings were 1,597, 1,531 and 1,157 px long before the kit.
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
-    const sizes = await stack.evaluate((el) => ({
-      buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
-      fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
-      ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
-      // A button that is off is grey, not grey and faded as well.
-      faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
-      cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
-      heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
-    }));
+    const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     expect(sizes.heading, path).toContain("600 17px");
   }
@@ -239,11 +250,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(lefts.size, path).toBe(upright);
 
     await page.setViewportSize({ width: 375, height: 800 });
-    const small = await page.locator(".inspector-stack.md-kit").evaluate((el) =>
-      [...el.querySelectorAll<HTMLElement>(".panel-card :is(button, select, input:not([type=checkbox]), label:has(> input[type=checkbox]))")]
-        .filter((c) => c.getBoundingClientRect().height > 0 && c.getBoundingClientRect().height < 44)
-        .map((c) => c.textContent || c.getAttribute("aria-label")),
-    );
+    const small = await tooSmall(page);
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
@@ -284,13 +291,8 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
   });
   expect(fits).toBe(true);
   await page.setViewportSize({ width: 1920, height: 1080 });
-  const sizes = await stack.evaluate((el) => ({
-    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
-    fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
-    faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
-    cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
-  }));
-  expect(sizes).toEqual({ buttons: [32], fields: [32], faded: 0, cut: [] });
+  const sizes = await kitSizes(page);
+  expect(sizes).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
 
   // One column in a smaller window, in the same order.
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -301,11 +303,63 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
 
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
-  const small = await stack.evaluate((el) =>
-    [...el.querySelectorAll<HTMLElement>(".panel-card :is(button, select, input:not([type=checkbox]), label:has(> input[type=checkbox]))")]
-      .filter((x) => x.getBoundingClientRect().height > 0 && x.getBoundingClientRect().height < 44)
-      .map((x) => x.textContent || x.getAttribute("aria-label")),
-  );
+  const small = await tooSmall(page);
   expect(small).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+// The statistics tools that share the tree tools' settings classes. Each: its name, its address, the card a click on
+// the diagram fills, the other cards on the left and the cards on the right.
+const STATS: [string, string, string, string[], string[]][] = [
+  ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
+  ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
+  ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
+];
+
+for (const [tool, path, selected, left, right] of STATS)
+  test(`${tool} uses the kit, with everything in view`, async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(path);
+    const stack = page.locator(".inspector-stack.md-kit");
+    await expect(stack).toBeVisible();
+    await page.locator(".pt-hit").first().click();
+    const chosenCard = page.locator(`.md-kit .panel-card[aria-label="${selected}"]`);
+    const chosen = (await chosenCard.boundingBox())!;
+    const first = await chartCard(page, right[0]);
+    for (const name of left) expect((await chartCard(page, name)).x, name).toBe(chosen.x);
+    for (const name of right) expect((await chartCard(page, name)).x, name).toBe(first.x);
+    expect(first.x).toBeGreaterThanOrEqual(chosen.x + chosen.width);
+    expect(Math.abs(first.width - chosen.width)).toBeLessThanOrEqual(1);
+    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+    expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+    expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+
+    // One column in a smaller window, in the same order.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const top = (await chosenCard.boundingBox())!;
+    let below = top.y;
+    for (const name of [...left, ...right]) {
+      const next = await chartCard(page, name);
+      expect(next.x, name).toBe(top.x);
+      expect(next.y, name).toBeGreaterThan(below);
+      below = next.y;
+    }
+
+    // Finger-sized controls on a phone, and the page is no wider than the window.
+    await page.setViewportSize({ width: 375, height: 800 });
+    expect(await tooSmall(page)).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+
+test("Spinners, dice and bags: each object is a named group, and Layout stays in view however many there are", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/probability-objects");
+  const group = page.locator(".md-kit fieldset.md-kit-group");
+  expect(await group.first().evaluate((el) => [getComputedStyle(el).display, getComputedStyle(el).rowGap])).toEqual(["grid", "8px"]);
+  // The list of objects is the right column on its own, so it can grow without pushing another card away.
+  for (const name of ["Add a dice", "Add a bag", "Add a spinner"]) await page.getByRole("button", { name, exact: true }).click();
+  await expect(group).toHaveCount(4);
+  const layout = await chartCard(page, "Layout"), objects = await chartCard(page, "Objects");
+  expect(layout.x).toBeLessThan(objects.x);
+  expect(layout.y + layout.height).toBeLessThan(1080);
 });

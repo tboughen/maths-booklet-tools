@@ -307,14 +307,15 @@ stays out of the first-load stylesheet).
 - The Question bank keeps the short "Your paper" bar under the question.
 - Tests: `e2e/paper-builder.spec.ts`.
 
-## The settings kit (in Bar modelling, Statistical charts, the tree tools and Plans and elevations)
+## The settings kit
 
 One look for the buttons, fields, notes and cards in a tool's settings column, in
 `src/site/settings-kit.css`. A tool opts in: it puts the class `md-kit` on its `.inspector-stack`
 and imports the file itself, so the kit loads with the tools that use it and stays out of the
 first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`),
 Statistical charts the second (`src/charts/ChartsPage.tsx`), Probability trees, Frequency trees
-and Factor trees the next three, and Plans and elevations the sixth. The other tools move over one at a time, and each one drops
+and Factor trees the next three, Plans and elevations the sixth, and then Two-way tables, Sample
+space diagrams and Spinners, dice and bags. The other tools move over one at a time, and each one drops
 its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
@@ -376,5 +377,11 @@ its own button and field styles as it does.
   more class in its selector than the kit's rule. Six columns of heights, the most there can be,
   fit the card at the narrowest two-column window. At 1920 × 1080 the settings were 1,693 px long in a
   967 px column and are now 997 px with the usual four panels.
+- **Two-way tables, Sample space diagrams, and Spinners, dice and bags.** The selected cell or
+  label is the left column, and what is done with the diagram and its layout are the right. In
+  Spinners, dice and bags the list of objects is the right column on its own and Layout sits under
+  the selected label, so Layout stays in view however many objects there are (a whole card moved,
+  as in Plans and elevations). Each object is a `md-kit-group`. With their starting diagrams all
+  three are in view at 1920 × 1080 (Spinners, dice and bags was 1,168 px long in a 967 px column).
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
