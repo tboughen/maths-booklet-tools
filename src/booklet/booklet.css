@@ -32,3 +32,4 @@
 .bk-outline .ws-toolbar, .bk-outline .bk-section-head { flex-wrap: wrap; }
 .bk-lesson > .ws-card-moves { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .bk-small { white-space: nowrap; }
+.bk-notes-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
