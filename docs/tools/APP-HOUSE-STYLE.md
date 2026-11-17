@@ -81,6 +81,27 @@ the teacher's favourite tools, and every tool grouped by strand. There is no row
 - Clicking the tool's name no longer moves focus harmlessly, so browser tests that need a neutral
   click use `clickAway` from `e2e/tool-switcher.ts`, and move between tools with `switchTool`.
 
+**The same finder on the Diagram builder page** (Tim's choice, 17 November 2026). A click in the
+page's search box, the `/` key, typing in the box or the down arrow drops the finder down under it:
+the favourites line and every tool in the four strand columns. Tab into the box does not open it,
+so the keyboard's way through the page is not through every tool. What the finder holds is one
+component (`src/site/ToolFinder.tsx`), and its keys and the ways it closes are shared too
+(`src/site/toolFinderBehaviour.ts`), so it looks and works the same in both places.
+
+- The page's search box is the finder's search box. There is no second box, and one search cuts
+  down the finder and the pictures behind it together. The page says how many tools were found
+  once, in its own status line.
+- The arrows move through the tools and Enter opens the first tool found, as in a tool. Tab passes
+  the finder by (its links are reached with the arrows), so Tab still goes from the box to Clear
+  search and the views. A screen reader hears how to use the finder when it opens.
+- The finder always has every strand. The strand buttons choose which pictures the page shows.
+- Escape closes the finder and keeps the search and the focus, so the pictures behind are the ones
+  the search found. A click elsewhere, Tab out of it, or choosing a tool closes it too. Clear
+  search empties the box and puts the focus back in it.
+- Pictures, Compact, Topics, the strand buttons, Favourite tools and House style are unchanged.
+- Tests: `e2e/tool-switcher.spec.ts`. A test that fills the search box and then clicks a picture
+  closes the finder first (Escape).
+
 ## The editor frame
 
 On a screen window at least 768 px wide and 800 px high a diagram tool fills the window under the
