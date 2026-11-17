@@ -183,6 +183,7 @@ test("a click in the Diagram builder's search box drops the same finder down, an
 
 test("the finder on the Diagram builder works with the keyboard alone and closes without losing the search", async ({ page }) => {
   await page.goto("/tools");
+  await expect(listSearch(page)).toBeVisible();
   // The / key goes to the search box, and that opens the finder.
   await page.keyboard.press("/");
   await expect(listSearch(page)).toBeFocused();
@@ -202,16 +203,19 @@ test("the finder on the Diagram builder works with the keyboard alone and closes
   await expect(listSearch(page)).toBeFocused();
   await expect(listSearch(page)).toHaveValue("angles");
   await expect(page.locator(".overview-tool-card")).toHaveCount(5);
-  // More typing filters the pictures and leaves the finder closed. The down arrow brings it back.
-  await page.keyboard.type(" on");
-  await expect(listFinder(page)).toHaveCount(0);
+  // The down arrow brings it back, and so does more typing.
   await page.keyboard.press("ArrowDown");
   await expect(listFinder(page)).toBeVisible();
-  // Tabbing out of it, or a click elsewhere, closes it. The pictures can then be clicked.
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
+  await page.keyboard.press("Escape");
+  await page.keyboard.type(" on");
+  await expect(listFinder(page)).toBeVisible();
+  // Tabbing out of it closes it, and Tab back into the box alone does not open it.
+  await page.keyboard.press("Shift+Tab");
   await expect(listFinder(page)).toHaveCount(0);
+  await page.keyboard.press("Tab");
+  await expect(listSearch(page)).toBeFocused();
+  await expect(listFinder(page)).toHaveCount(0);
+  // A click elsewhere closes it too.
   await listSearch(page).click();
   await expect(listFinder(page)).toBeVisible();
   await page.mouse.click(1200, 700);

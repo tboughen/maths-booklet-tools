@@ -63,6 +63,7 @@ export function DiagramBuilder() {
       if (target.closest("input, textarea, select, [contenteditable='true']")) return;
       event.preventDefault();
       searchBox.current?.focus();
+      setFinder(true);
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -86,7 +87,7 @@ export function DiagramBuilder() {
   }, [finder]);
   function finderKey(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (!finder) {
-      // Closed with the search box still in focus: the down arrow brings it back.
+      // Closed, or not yet open, with the search box in focus: the down arrow opens it.
       if (event.key === "ArrowDown" && event.target === searchBox.current) {
         event.preventDefault();
         setFinder(true);
@@ -164,8 +165,9 @@ export function DiagramBuilder() {
                 value={search}
                 placeholder="Search a topic: Pythagoras, bearings, inequalities…"
                 aria-controls={finder ? finderId : undefined}
-                onChange={(event) => setSearch(event.target.value)}
-                onFocus={() => setFinder(true)}
+                // A click or typing opens the finder. Tab into the box does not, so the keyboard's
+                // way through the page is not through every tool.
+                onChange={(event) => { setSearch(event.target.value); setFinder(true); }}
                 onClick={() => setFinder(true)}
               />
               {!search && <kbd aria-hidden="true">/</kbd>}

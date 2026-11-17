@@ -82,8 +82,9 @@ the teacher's favourite tools, and every tool grouped by strand. There is no row
   click use `clickAway` from `e2e/tool-switcher.ts`, and move between tools with `switchTool`.
 
 **The same finder on the Diagram builder page** (Tim's choice, 17 November 2026). A click in the
-page's search box, the `/` key or Tab into the box drops the finder down under it: the favourites
-line and every tool in the four strand columns. What the finder holds is one component
+page's search box, the `/` key, typing in the box or the down arrow drops the finder down under it:
+the favourites line and every tool in the four strand columns. Tab into the box does not open it,
+so the keyboard's way through the page is not through every tool. What the finder holds is one component
 (`src/site/ToolFinder.tsx`, keys in `src/site/toolFinderKeys.ts`), so it looks and works the same
 in both places.
 
@@ -92,8 +93,7 @@ in both places.
   once, in its own status line.
 - The arrows move through the tools and Enter opens the first tool found, as in a tool.
 - Escape closes the finder and keeps the search and the focus, so the pictures behind are the ones
-  the search found. Typing on leaves it closed, and the down arrow or a click in the box brings it
-  back. A click elsewhere, Tab out of it, or choosing a tool closes it too.
+  the search found. A click elsewhere, Tab out of it, or choosing a tool closes it too.
 - Pictures, Compact, Topics, the strand buttons, Favourite tools and House style are unchanged.
 - Tests: `e2e/tool-switcher.spec.ts`. A test that fills the search box and then clicks a picture
   closes the finder first (Escape).
