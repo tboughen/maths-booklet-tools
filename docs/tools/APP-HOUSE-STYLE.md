@@ -307,18 +307,19 @@ stays out of the first-load stylesheet).
 - The Question bank keeps the short "Your paper" bar under the question.
 - Tests: `e2e/paper-builder.spec.ts`.
 
-## The settings kit (in Bar modelling, Statistical charts and the tree tools)
+## The settings kit (in Bar modelling, Statistical charts, the tree tools and Plans and elevations)
 
 One look for the buttons, fields, notes and cards in a tool's settings column, in
 `src/site/settings-kit.css`. A tool opts in: it puts the class `md-kit` on its `.inspector-stack`
 and imports the file itself, so the kit loads with the tools that use it and stays out of the
 first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`),
-Statistical charts the second (`src/charts/ChartsPage.tsx`), and Probability trees, Frequency trees
-and Factor trees the next three. The other tools move over one at a time, and each one drops
+Statistical charts the second (`src/charts/ChartsPage.tsx`), Probability trees, Frequency trees
+and Factor trees the next three, and Plans and elevations the sixth. The other tools move over one at a time, and each one drops
 its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
-  order and its behaviour, so saved work, links and tests are untouched.
+  behaviour and its place in its card, so saved work, links and tests are untouched. A whole card
+  may move when the two columns need it, and the tool's entry below says so.
 - Text is 13 px, with 12 px labels and notes. Buttons, fields and lists are 32 px high
   (`--md-control`), and 44 px for a finger or a window under 768 px wide, like the foot strip.
 - A card's heading keeps the shared 17 px, and fields keep the shared outline (`--field-line`).
@@ -368,5 +369,12 @@ its own button and field styles as it does.
   wins every tie. The two old rules the kit cannot simply outweigh (a row's own padding, a faded
   button that is off) are written `:where(:not(.md-kit *))`, so they stand down in a tool on the
   kit and the kit itself knows nothing of `pt-`. A tool that moves over needs no change there.
+- **Plans and elevations.** The solid and Printing are the left column and the list of panels is
+  the right, so in one column Printing now comes before the long list of panels. The grid of
+  heights stays a small grid at the left of its card (`justify-self: start`, because a card is a
+  grid and would stretch it), and a square with cubes on it keeps its blue mark (`--md-blue-soft`) with one
+  more class in its selector than the kit's rule. Six columns of heights, the most there can be,
+  fit the card at the narrowest two-column window. At 1920 × 1080 the settings were 1,693 px long in a
+  967 px column and are now 997 px with the usual four panels.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

@@ -493,7 +493,11 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       const a = leaf(it, lay.left, ctx, 0);
       const b = leaf(right, lay.right, ctx, 0);
       const place = besideTops(it, right, a, b);
-      frags.push({ h: place.h + besideExtra(it, right, extra), svg: at(a, lay.offset, place.tops[0]) + at(b, lay.offset + lay.left + BESIDE_GAP, place.tops[1]) });
+      const h = place.h + besideExtra(it, right, extra);
+      // Text beside a ratio table drops to its bottom row; an answer line beside a working space
+      // sits at the bottom of the space, as it does under one.
+      const top = (f: Frag, item: Leaf, other: Leaf, k: 0 | 1) => (besideBottom(item, other) ? h - f.h : place.tops[k]);
+      frags.push({ h, svg: at(a, lay.offset, top(a, it, right, 0)) + at(b, lay.offset + lay.left + BESIDE_GAP, top(b, right, it, 1)) });
     } else frags.push(leaf(it, w, ctx, extra));
   }
   let y = 0;
@@ -589,6 +593,8 @@ export const besideHeight = (a: Leaf, b: Leaf, ctx: AnyCtx, w: number): number =
 
 /** A row of two items: both are measured without spare height, and the row takes the spare height once if either holds a space. */
 export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "space" || b.type === "space" ? extra : 0);
+/** In a row of two, an answer line beside a space is aligned to the row's bottom, like the space's own last line. */
+export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && other.type === "space";
 
 /**
  * How many shares of spare height a list of items takes: one per working or drawing space, but

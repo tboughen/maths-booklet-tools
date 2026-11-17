@@ -4,6 +4,7 @@ import { writeWorksheetDocx } from "./docx";
 import { renderResource, validate, type Resource } from "./index";
 import { LETTERS, letterColumns } from "./render";
 import { createRatioTable, ratioBottomBaselineMm } from "../../ratio-table-core/src/interchange";
+import { ratioMetrics } from "../../ratio-table-core/src/svg";
 
 // Tim's marking of the A7.03 booklet pilot, 17 November 2026 (booklet standard 0.2, section 4b).
 // N6: multiple choice spread across the card with room to circle, letters on one line ("wibbly
@@ -102,6 +103,12 @@ describe("beside a ratio table (N5)", () => {
     const table = page.match(/<g transform="translate\([\d.-]+,([\d.-]+)\)"><svg[^>]*height="([\d.]+)"[^>]*aria-label="Ratio table"/)!;
     const line = page.match(/<g transform="translate\([\d.-]+,([\d.-]+)\)"><text x="0" y="([\d.]+)"[^>]*>(?:<tspan[^>]*>)?Gradient/)!;
     expect(Number(line[1]) + Number(line[2])).toBeCloseTo(Number(table[1]) + Number(table[2]) - foot, 2);
+  });
+
+  it("measures the bottom row the same under a taller stacked-fraction heading row", () => {
+    const tall = createRatioTable({ columns: ["x", "1/x"], table: [["2", "6"], ["1", "3"]], steps: [] }).document;
+    expect(ratioMetrics(tall).headHeight).toBeGreaterThan(ratioMetrics(createRatioTable(spec).document).headHeight);
+    expect(ratioBottomBaselineMm(tall)).toBeCloseTo(foot, 5);
   });
 
   it("keeps other rows of two at the top", () => {
