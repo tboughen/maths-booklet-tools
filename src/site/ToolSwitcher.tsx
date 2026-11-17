@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, LayoutGrid, Search } from "lucide-react";
 import { FavouriteStar } from "./FavouriteStar";
 import { bookletTools, pageHref } from "./registry";
 import { ToolFinder } from "./ToolFinder";
-import { finderKeys } from "./toolFinderKeys";
+import { finderKeys, focusLeft, useFinderDismiss } from "./toolFinderBehaviour";
 
 type Tool = (typeof bookletTools)[number];
 
@@ -26,21 +26,9 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
     if (returnFocus) trigger.current?.focus();
   };
   useEffect(() => {
-    if (!open) return;
-    box.current?.focus();
-    const shut = () => close(false);
-    const outside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) shut();
-    };
-    // Leaving the page, by a link or the browser's Back button, closes it too: the page stays
-    // mounted while hidden, and should not come back with the switcher still open.
-    window.addEventListener("pointerdown", outside);
-    window.addEventListener("popstate", shut);
-    return () => {
-      window.removeEventListener("pointerdown", outside);
-      window.removeEventListener("popstate", shut);
-    };
+    if (open) box.current?.focus();
   }, [open]);
+  useFinderDismiss(open, root, () => close(false));
 
   function keys(event: KeyboardEvent<HTMLDivElement>) {
     // Editors listen for keys on the window (arrows nudge, Delete removes, Escape deselects).
@@ -60,7 +48,7 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
       onKeyDown={open ? keys : undefined}
       onBlur={(event) => {
         // Tabbing out of the switcher closes it; a click elsewhere is handled above.
-        if (open && event.relatedTarget && !root.current?.contains(event.relatedTarget as Node)) close(false);
+        if (open && focusLeft(event, root.current)) close(false);
       }}
     >
       <a className="tool-switcher-crumb" href={pageHref("booklet-tools")}>Diagram builder</a>

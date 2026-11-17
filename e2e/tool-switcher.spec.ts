@@ -183,10 +183,13 @@ test("a click in the Diagram builder's search box drops the same finder down, an
 
 test("the finder on the Diagram builder works with the keyboard alone and closes without losing the search", async ({ page }) => {
   await page.goto("/tools");
-  await expect(listSearch(page)).toBeVisible();
-  // The / key goes to the search box, and that opens the finder.
-  await page.keyboard.press("/");
-  await expect(listSearch(page)).toBeFocused();
+  await expect(page.locator(".overview-tool-card")).toHaveCount(27);
+  // The / key goes to the search box, and that opens the finder. (The page listens for the key a moment after it is drawn.)
+  await expect(async () => {
+    await page.keyboard.press("/");
+    await expect(listSearch(page)).toBeFocused({ timeout: 500 });
+  }).toPass();
+  await expect(listSearch(page)).toHaveValue("");
   await expect(listFinder(page)).toBeVisible();
   await page.keyboard.press("ArrowDown");
   await expect(page.locator(":focus")).toHaveText("Bar modelling");
@@ -209,19 +212,35 @@ test("the finder on the Diagram builder works with the keyboard alone and closes
   await page.keyboard.press("Escape");
   await page.keyboard.type(" on");
   await expect(listFinder(page)).toBeVisible();
-  // Tabbing out of it closes it, and Tab back into the box alone does not open it.
-  await page.keyboard.press("Shift+Tab");
-  await expect(listFinder(page)).toHaveCount(0);
+  // Tab passes the finder by: Clear search, then the views, and the finder closes behind it.
   await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Clear search" })).toBeFocused();
+  await expect(listFinder(page)).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Pictures", exact: true })).toBeFocused();
+  await expect(listFinder(page)).toHaveCount(0);
+  // Tab back into the box alone does not open it.
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab");
   await expect(listSearch(page)).toBeFocused();
   await expect(listFinder(page)).toHaveCount(0);
+  // Nor does a second Escape, which empties the box in some browsers.
+  await page.keyboard.press("Escape");
+  await expect(listFinder(page)).toHaveCount(0);
   // A click elsewhere closes it too.
-  await listSearch(page).click();
+  await listSearch(page).fill("angles");
   await expect(listFinder(page)).toBeVisible();
   await page.mouse.click(1200, 700);
   await expect(listFinder(page)).toHaveCount(0);
+  // Clear search puts focus back in the box, so the keys still work.
+  await listSearch(page).click();
   await page.getByRole("button", { name: "Clear search" }).click();
+  await expect(listSearch(page)).toBeFocused();
   await expect(page.locator(".overview-tool-card")).toHaveCount(27);
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator(":focus")).toHaveText("Bar modelling");
+  await page.keyboard.press("Escape");
+  await expect(listFinder(page)).toHaveCount(0);
   // A tool chosen with the mouse opens, and the finder is closed on the way back.
   await listSearch(page).click();
   await listFinder(page).getByRole("link", { name: "Venn diagrams" }).click();
@@ -251,6 +270,8 @@ test("the finder on the Diagram builder has no serious accessibility violations 
     expect(pop.x, `${width}`).toBeGreaterThanOrEqual(0);
     expect(pop.x + pop.width, `${width}`).toBeLessThanOrEqual(width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}`).toBe(true);
+    // The hint about the keys is for a keyboard, and no empty strip is left where it was.
+    await expect(listFinder(page).locator(".tool-switcher-foot")).toBeHidden();
     await scan(`open at ${width} px`);
     await page.keyboard.press("Escape");
   }

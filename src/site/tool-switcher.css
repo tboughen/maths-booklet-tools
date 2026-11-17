@@ -58,6 +58,6 @@
   .tool-switcher-button { padding-left: 0; }
   .tool-switcher-panel { width: calc(100vw - 24px); max-height: calc(100dvh - 170px); }
   .tool-switcher-groups { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-  .tool-switcher-foot > span { display: none; }
+  .tool-switcher-foot > span, .tool-switcher-foot.is-keys-only { display: none; }
 }
 @media print { .tool-switcher-crumb, .tool-switcher-sep, .tool-switcher-star, .tool-switcher-panel, .tool-switcher-button > svg:last-child { display: none; } }

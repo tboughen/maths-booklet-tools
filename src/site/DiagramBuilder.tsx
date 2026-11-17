@@ -5,7 +5,7 @@ import { bookletTools, pageHref } from "./registry";
 import { setHousePreference, useHousePreference } from "./houseStyle";
 import { FavouriteStar } from "./FavouriteStar";
 import { ToolFinder } from "./ToolFinder";
-import { finderKeys } from "./toolFinderKeys";
+import { finderKeys, focusLeft, useFinderDismiss } from "./toolFinderBehaviour";
 import { useFavouriteToolList } from "./favouriteTools";
 import { catalogue, isNew, searchTool, strands, type StrandId } from "./toolCatalogue";
 import { HOUSE_STYLES, HOUSE_STYLE_NAMES, LINE_WEIGHTS, LINE_WEIGHT_NAMES, type HouseStyle, type LineWeight } from "../../packages/envelope-core/src/house-style";
@@ -71,20 +71,7 @@ export function DiagramBuilder() {
   useEffect(() => {
     if (peek && dialog.current && !dialog.current.open) dialog.current.showModal?.();
   }, [peek]);
-  useEffect(() => {
-    if (!finder) return;
-    const shut = () => setFinder(false);
-    const outside = (event: PointerEvent) => {
-      if (!finderRoot.current?.contains(event.target as Node)) shut();
-    };
-    // Leaving the page closes it too: the page stays mounted while hidden.
-    window.addEventListener("pointerdown", outside);
-    window.addEventListener("popstate", shut);
-    return () => {
-      window.removeEventListener("pointerdown", outside);
-      window.removeEventListener("popstate", shut);
-    };
-  }, [finder]);
+  useFinderDismiss(finder, finderRoot, () => setFinder(false));
   function finderKey(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (!finder) {
       // Closed, or not yet open, with the search box in focus: the down arrow opens it.
@@ -154,7 +141,7 @@ export function DiagramBuilder() {
             onKeyDown={finderKey}
             onBlur={(event) => {
               // Tabbing out of the finder closes it; a click elsewhere is handled above.
-              if (finder && event.relatedTarget && !finderRoot.current?.contains(event.relatedTarget as Node)) setFinder(false);
+              if (finder && focusLeft(event, finderRoot.current)) setFinder(false);
             }}
           >
             <label>
@@ -165,14 +152,17 @@ export function DiagramBuilder() {
                 value={search}
                 placeholder="Search a topic: Pythagoras, bearings, inequalities…"
                 aria-controls={finder ? finderId : undefined}
-                // A click or typing opens the finder. Tab into the box does not, so the keyboard's
-                // way through the page is not through every tool.
-                onChange={(event) => { setSearch(event.target.value); setFinder(true); }}
+                aria-describedby={finder ? `${finderId}-keys` : undefined}
+                // A click or typing opens the finder. Tab into the box does not, and an emptied box
+                // (the browser clears it on a second Escape) leaves it as it is.
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  if (event.target.value) setFinder(true);
+                }}
                 onClick={() => setFinder(true)}
               />
               {!search && <kbd aria-hidden="true">/</kbd>}
             </label>
-            {search && <button type="button" onClick={() => setSearch("")}>Clear search</button>}
             {finder && (
               <div
                 id={finderId}
@@ -185,8 +175,21 @@ export function DiagramBuilder() {
                   if ((event.target as HTMLElement).closest("a")) setFinder(false);
                 }}
               >
-                <ToolFinder id={finderId} search={search} quiet />
+                <p id={`${finderId}-keys`} className="sr-only">The tool finder is open. The down arrow moves through the tools, Enter opens the first tool found and Escape closes the finder.</p>
+                <ToolFinder id={finderId} search={search} quiet arrowsOnly />
               </div>
+            )}
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  // The button goes with the search, so focus returns to the box and the keys still work.
+                  setSearch("");
+                  searchBox.current?.focus();
+                }}
+              >
+                Clear search
+              </button>
             )}
           </div>
           <div className="tool-views" role="group" aria-label="View">
