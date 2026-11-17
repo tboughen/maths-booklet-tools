@@ -259,7 +259,7 @@ export function pieces(s: string): Piece[] {
 const fractionPart = (s: string) => s.trim().replace(/\^(?:\{2\}|2(?![0-9A-Za-z]))/g, "²").replace(/\^(?:\{3\}|3(?![0-9A-Za-z]))/g, "³");
 
 const handWidth = (s: string, size: number) => Array.from(s).reduce((n, c) => n + handAdvance(c), 0) * size;
-const noteWidth = (s: string, size: number, bold = false) => Array.from(s).reduce((n, c) => n + interAdvance(c, bold ? "bold" : "regular"), 0) * size;
+export const noteWidth = (s: string, size: number, bold = false) => Array.from(s).reduce((n, c) => n + interAdvance(c, bold ? "bold" : "regular"), 0) * size;
 const pieceWidth = (p: Piece, size: number) => p.kind === "run" ? handWidth(p.text, p.sup ? size * 0.7 : size)
   : p.kind === "fraction" ? Math.max(handWidth(p.num, size), handWidth(p.den, size)) + size * 0.4
   : Math.max(handWidth(p.top, size), handWidth(p.bottom, size)) + size * 1.1;
@@ -477,7 +477,7 @@ function wrap(s: string, width: number, size: number): string[] {
   let line = "";
   for (const word of words) {
     const next = line ? `${line} ${word}` : word;
-    if (line && noteWidth(next, size) > width) { lines.push(line); line = word; } else line = next;
+    if (line && guideWidth(next, size) > width) { lines.push(line); line = word; } else line = next;
   }
   if (line) lines.push(line);
   return lines;
@@ -507,7 +507,40 @@ const HAND = `font-family="${HAND_FAMILY}, 'Shantell Sans', cursive"`;
  */
 export function noteText(s: string): string {
   return s.replace(/\^2(?![\d.])/g, "²").replace(/\^3(?![\d.])/g, "³")
-    .replace(/(^|[\s(=×÷+,])-(?=[\d.(a-zA-Zπ√])/g, "$1−").replace(/((?:^|[\s(=])(?:\d[\d.]*[a-zA-Z]?|[a-zA-Z])|[)²³]) - (?=[\d(√π]|[a-zA-Z](?![a-zA-Z]))/g, "$1 − ");
+    .replace(/(^|[\s(=×÷+,])-(?=[\d.(a-zA-Zπ√{])/g, "$1−").replace(/((?:^|[\s(=])(?:\d[\d.]*[a-zA-Z]?|[a-zA-Z])|[)²³]) - (?=[\d(√π]|[a-zA-Z](?![a-zA-Z]))/g, "$1 − ");
+}
+
+const GUIDE_FRACTION = /\{([^{}/]+)\/([^{}/]+)\}/g;
+/** Guidance may hold stacked fractions, {1/2}: smaller figures over and under a short bar. */
+const guideFraction = (num: string, den: string, size: number) => Math.max(noteWidth(num, size), noteWidth(den, size)) + 4;
+/** The width of a line of guidance as drawn, fractions included. */
+export const guideWidth = (s: string, size: number, bold = false) => {
+  let w = 0, last = 0;
+  for (const m of s.matchAll(GUIDE_FRACTION)) { w += noteWidth(s.slice(last, m.index), size, bold) + guideFraction(m[1], m[2], size); last = m.index + m[0].length; }
+  return w + noteWidth(s.slice(last), size, bold);
+};
+/** A line of guidance holding a stacked fraction stands taller, so it takes extra room above and below. */
+const FRACTION_ROOM = 7;
+const guideTall = (s: string) => /\{[^{}/]+\/[^{}/]+\}/.test(s);
+
+/** One line of guidance at x on baseline y, as SVG text: stacked fractions placed by measure between the words. */
+function noteLine(line: string, x: number, y: number, size: number, attrs = "", lead = ""): string {
+  const text = (body: string, at: number) => `<text x="${n(at)}" y="${n(y)}" font-size="${size}" fill="${PINK}"${attrs} xml:space="preserve">${body}</text>`;
+  if (!guideTall(line)) return text(lead + noteMarkup(line), x);
+  let out = "", cursor = x, last = 0, first = true;
+  const small = n(size), bar = y - size * 0.33;
+  for (const m of line.matchAll(GUIDE_FRACTION)) {
+    const words = line.slice(last, m.index);
+    if (words || (first && lead)) out += text((first ? lead : "") + noteMarkup(words), cursor);
+    cursor += noteWidth(words, size) + (first && lead ? 4 : 0); first = false;
+    const w = guideFraction(m[1], m[2], size), mid = cursor + w / 2;
+    out += `<text x="${n(mid)}" y="${n(bar - 2)}" font-size="${small}" fill="${PINK}"${attrs} text-anchor="middle">${noteMarkup(m[1].trim())}</text>`
+      + `<path d="M${n(cursor + 1)} ${n(bar)}H${n(cursor + w - 1)}" stroke="${PINK}" stroke-width="0.75" fill="none"${attrs}/>`
+      + `<text x="${n(mid)}" y="${n(bar + size * 0.98)}" font-size="${small}" fill="${PINK}"${attrs} text-anchor="middle">${noteMarkup(m[2].trim())}</text>`;
+    cursor += w; last = m.index + m[0].length;
+  }
+  if (last < line.length) out += text(noteMarkup(line.slice(last)), cursor);
+  return out;
 }
 
 /** One escaped line of guidance, with any remaining power such as ^24 or ^-3 raised and smaller. */
@@ -519,29 +552,31 @@ export function noteMarkup(line: string): string {
 function guidance(x: number, y0: number, width: number, rawMark: WorkedMark | undefined, rawNote: string | undefined, watch: boolean, marks: boolean) {
   const mark = rawMark && { ...rawMark, note: noteText(rawMark.note), ...(rawMark.also ? { also: noteText(rawMark.also) } : {}) };
   const note = rawNote === undefined ? undefined : noteText(rawNote);
-  let y = y0, svg = "", used = 0;
-  const top = y0 - NOTE_SIZE;
+  let y = y0, svg = "", used = 0, top = y0 - NOTE_SIZE, tall = false;
+  // A line with a stacked fraction takes extra room above and below it.
+  const advance = (step: number, line: string, first: boolean) => {
+    if (guideTall(line)) { if (first && !svg) top -= FRACTION_ROOM; else y += FRACTION_ROOM; }
+    if (!first) y += step + (tall ? FRACTION_ROOM : 0);
+    tall = guideTall(line);
+  };
   if (mark) {
     const chipWidth = noteWidth(mark.code, 9, true) + 8;
     const words = wrap(mark.note, width - chipWidth - 5, NOTE_SIZE);
-    svg += chip(mark.code, x, y);
     // The words keep their place without the chip, so guidance never jumps when the switch changes.
-    words.forEach((l, i) => { used = Math.max(used, chipWidth + 5 + noteWidth(l, NOTE_SIZE)); svg += `<text x="${n(x + chipWidth + 5)}" y="${n(y + i * NOTE_LEADING)}" font-size="${NOTE_SIZE}" fill="${PINK}">${noteMarkup(l)}</text>`; });
-    y += (words.length - 1) * NOTE_LEADING;
+    words.forEach((l, i) => { advance(NOTE_LEADING, l, i === 0); used = Math.max(used, chipWidth + 5 + guideWidth(l, NOTE_SIZE)); if (i === 0) svg += chip(mark.code, x, y); svg += noteLine(l, x + chipWidth + 5, y, NOTE_SIZE); });
     // Its room is kept without the mark notes too, so the layout is the same either way.
-    if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { y += 12; used = Math.max(used, chipWidth + 5 + noteWidth(l, 9)); if (marks) svg += `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="9" font-style="italic" fill="${PINK}">${noteMarkup(l)}</text>`; }
-    if (note) y += NOTE_LEADING;
+    if (mark.also) for (const l of wrap(`Also scores: ${mark.also}`, width - chipWidth - 5, 9)) { advance(12, l, false); used = Math.max(used, chipWidth + 5 + guideWidth(l, 9)); if (marks) svg += noteLine(l, x + chipWidth + 5, y, 9, ` class="wk-mark" font-style="italic"`); }
   }
   if (note) {
     const prefix = watch ? "Watch out:" : "";
     wrap(prefix ? `${prefix} ${note}` : note, width, NOTE_SIZE).forEach((l, i) => {
-      const body = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>${noteMarkup(l.slice(prefix.length))}` : noteMarkup(l);
-      if (i) y += NOTE_LEADING;
-      used = Math.max(used, noteWidth(l, NOTE_SIZE) + (i === 0 && prefix ? 4 : 0));
-      svg += `<text x="${n(x)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}" xml:space="preserve">${body}</text>`;
+      advance(NOTE_LEADING, l, i === 0 && !mark);
+      const bold = i === 0 && prefix ? `<tspan font-weight="700">${prefix}</tspan>` : "";
+      used = Math.max(used, guideWidth(l, NOTE_SIZE) + (bold ? 4 : 0));
+      svg += noteLine(bold ? l.slice(prefix.length) : l, x, y, NOTE_SIZE, "", bold);
     });
   }
-  const bottom = y + 3;
+  const bottom = y + 3 + (tall ? FRACTION_ROOM : 0);
   return { svg, bottom, box: { x, y: top, width: Math.min(used + 2, width), height: bottom - top, what: "guidance" } satisfies Box };
 }
 
@@ -723,12 +758,13 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
           const boxes: Box[] = [{ x: left, y: base - HAND_SIZE, width: w, height: HAND_SIZE * 1.2 + lift, what: "answer" }];
           if (mark) {
             const chipWidth = noteWidth(mark.code, 9, true) + 8, also = mark.also ? `Also scores: ${mark.also}` : "";
-            const words = Math.max(noteWidth(mark.note, NOTE_SIZE), also ? noteWidth(also, 9) : 0) + chipWidth + 5;
+            const words = Math.max(guideWidth(mark.note, NOTE_SIZE), also ? guideWidth(also, 9) : 0) + chipWidth + 5;
+            const raise = (guideTall(mark.note) ? FRACTION_ROOM : 0) + (also && guideTall(also) ? FRACTION_ROOM * 2 : 0);
             // An "Also scores" line sits under the mark's words, just above the answer; its room is kept without the mark notes.
-            const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7 - (also ? 12 : 0);
-            svg += `<g ${UI}>${chip(mark.code, x, y)}<text x="${n(x + chipWidth + 5)}" y="${n(y)}" font-size="${NOTE_SIZE}" fill="${PINK}">${noteMarkup(mark.note)}</text>`
-              + (also && marks ? `<text class="wk-mark" x="${n(x + chipWidth + 5)}" y="${n(y + 11)}" font-size="9" font-style="italic" fill="${PINK}">${noteMarkup(also)}</text>` : "") + `</g>`;
-            boxes.push({ x, y: y - 10, width: words, height: also ? 24 : 13, what: "answer guidance" });
+            const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7 - (also ? 12 : 0) - raise;
+            svg += `<g ${UI}>${chip(mark.code, x, y)}${noteLine(mark.note, x + chipWidth + 5, y, NOTE_SIZE)}`
+              + (also && marks ? noteLine(also, x + chipWidth + 5, y + 11 + (raise ? FRACTION_ROOM * 2 : 0), 9, ` class="wk-mark" font-style="italic"`) : "") + `</g>`;
+            boxes.push({ x, y: y - 10 - (guideTall(mark.note) ? FRACTION_ROOM : 0), width: words, height: (also ? 24 : 13) + raise, what: "answer guidance" });
           }
           // The answer line sits below the working space, so it moves down with any room added there,
           // and room is added when guidance beside the last lines would reach its words.

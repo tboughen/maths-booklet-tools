@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { create as createGrid } from "../../algebra-grid-core/src/index";
 import { example as numberLine } from "../../number-line-core/src/examples";
-import { checkWorked, claimedMarks, diagramSvg, lastTerm, layoutWorked, mathsText, mathsWidth, noteMarkup, noteText, parseWorked, pieces, slices, type WorkedData } from "./index";
+import { checkWorked, claimedMarks, diagramSvg, guideWidth, NOTE_SIZE, noteWidth, lastTerm, layoutWorked, mathsText, mathsWidth, noteMarkup, noteText, parseWorked, pieces, slices, type WorkedData } from "./index";
 
 const surfaces = [{ id: "a-1", width: 480, height: 200 }, { id: "b-1", width: 480, height: 160 }, { id: "stem-1", width: 480, height: 300 }];
 
@@ -404,5 +404,14 @@ describe("guidance typesetting", () => {
     expect(noteText("10^2.5")).toBe("10^2.5");
     expect(noteText("Watch out - M1 - method; 2n - 1 and (x + 2) - 3")).toBe("Watch out - M1 - method; 2n − 1 and (x + 2) − 3");
     expect(noteMarkup("4.5 × 10^24 & 10^-3")).toBe("4.5 × 10<tspan dy=\"-3.5\" font-size=\"7\">24</tspan><tspan dy=\"3.5\">\u200b</tspan> &amp; 10<tspan dy=\"-3.5\" font-size=\"7\">−3</tspan><tspan dy=\"3.5\">\u200b</tspan>");
+  });
+  it("stacks fractions in guidance and gives their line extra room", () => {
+    expect(noteText("Gradient of L is -{1/2}")).toBe("Gradient of L is −{1/2}");
+    expect(guideWidth("is {1/2}", NOTE_SIZE)).toBeLessThan(noteWidth("is {1/2}", NOTE_SIZE));
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "line", lhs: "y", rhs: "6 - {1/2}x", note: "Gradient of L is -{1/2}." }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    expect(svg).not.toContain("{1/2}");
+    expect(svg).toMatch(/text-anchor="middle">1<\/text><path [^>]*\/><text [^>]*text-anchor="middle">2<\/text>/);
   });
 });
