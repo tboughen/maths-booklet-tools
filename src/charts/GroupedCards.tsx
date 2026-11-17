@@ -28,6 +28,7 @@ export function GroupedCards({
   issues,
   onChange,
   linesControl,
+  part,
 }: {
   kind: GroupedKind;
   g: GroupedSettings;
@@ -36,6 +37,8 @@ export function GroupedCards({
   issues: string[];
   onChange: (update: (s: GroupedSettings) => void) => void;
   linesControl: ReactNode;
+  /** The data card, or the cards of settings that follow it: each has its own column in a wide window. */
+  part: "data" | "rest";
 }) {
   const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
   /** A class's issue, told apart by whether it is about the second frequency. */
@@ -84,8 +87,7 @@ export function GroupedCards({
   );
   const hideWhat = kind === "histogram" ? "bar" : kind === "polygon" ? "point" : "part of the curve";
   const two = kind === "polygon" && g.polygon.second;
-  return (
-    <>
+  if (part === "data") return (
       <section className="panel-card ch-panel">
         <h2>Classes</h2>
         <div className="ch-table-wrap">
@@ -226,6 +228,9 @@ export function GroupedCards({
           </button>
         </div>
       </section>
+  );
+  return (
+    <>
       <section className="panel-card ch-panel">
         <h2>Axes and graph paper</h2>
         {axisFields("Horizontal", g.xAxis, (s) => s.xAxis)}

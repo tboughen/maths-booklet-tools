@@ -1,27 +1,33 @@
 /* The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"): one look for the buttons,
    fields, notes and cards in a tool's settings column. A tool opts in with the class `md-kit` on
    its `.inspector-stack` and imports this file itself, so it stays out of the first-load
-   stylesheet. The kit styles what is inside a card (`.site-panel`) and nothing else, so a dialog
-   or a skip link in the same column keeps its own look. Headings and field outlines keep the
-   values every tool already shares. */
-.md-kit .site-panel { min-width: 0; border-color: var(--md-line); border-radius: var(--md-radius-card); box-shadow: none; color: var(--md-ink); font: 400 var(--md-text-sm)/1.4 var(--md-font); }
-.md-kit .site-panel h3 { margin: 4px 0 0; color: var(--md-ink-2); font: 600 var(--md-text-sm)/1.3 var(--md-font); }
-.md-kit .site-panel p { margin: 0; color: var(--md-ink-2); font-size: var(--md-text-xs); line-height: 1.4; }
+   stylesheet. The kit styles what is inside a card (`.site-panel` or `.panel-card`) and nothing
+   else, so a dialog or a skip link in the same column keeps its own look. Headings and field
+   outlines keep the values every tool already shares. */
+.md-kit :is(.site-panel, .panel-card) { min-width: 0; border-color: var(--md-line); border-radius: var(--md-radius-card); box-shadow: none; color: var(--md-ink); font: 400 var(--md-text-sm)/1.4 var(--md-font); }
+/* A card that holds its settings directly stacks them with one gap. */
+.md-kit .panel-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.md-kit :is(.site-panel, .panel-card) h2 { margin: 0; color: #213c59; font: 600 17px/1.3 var(--md-font); }
+.md-kit :is(.site-panel, .panel-card) h3 { margin: 4px 0 0; color: var(--md-ink-2); font: 600 var(--md-text-sm)/1.3 var(--md-font); }
+.md-kit :is(.site-panel, .panel-card) p { margin: 0; color: var(--md-ink-2); font-size: var(--md-text-xs); line-height: 1.4; }
 /* What went wrong is never a quiet note. */
-.md-kit .site-panel p[role="alert"] { color: var(--md-red); font-size: var(--md-text-sm); font-weight: 500; }
-.md-kit .site-panel label { display: grid; gap: 3px; color: var(--md-ink-2); font-size: var(--md-text-xs); font-weight: 500; }
-.md-kit .site-panel label:has(> input:is([type="checkbox"], [type="radio"])) { display: flex; align-items: center; gap: 6px; color: var(--md-ink); font-size: var(--md-text-sm); font-weight: 400; }
+.md-kit :is(.site-panel, .panel-card) p[role="alert"] { color: var(--md-red); font-size: var(--md-text-sm); font-weight: 500; }
+.md-kit :is(.site-panel, .panel-card) label { display: grid; gap: 3px; color: var(--md-ink-2); font-size: var(--md-text-xs); font-weight: 500; }
+.md-kit :is(.site-panel, .panel-card) label:where(:has(> input:is([type="checkbox"], [type="radio"]))) { display: flex; align-items: center; gap: 6px; color: var(--md-ink); font-size: var(--md-text-sm); font-weight: 400; }
 /* The exclusion sits in :where(), so buttons, lists and text fields weigh the same and the rules below can follow. */
-.md-kit .site-panel :is(button, select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { box-sizing: border-box; min-height: var(--md-control); max-width: 100%; border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
-.md-kit .site-panel button { padding: 4px 10px; border: 1px solid var(--md-line-strong); font-weight: 500; cursor: pointer; }
-.md-kit .site-panel button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
-.md-kit .site-panel button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); cursor: default; }
-.md-kit .site-panel :is(select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { width: 100%; padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); }
-.md-kit .site-panel input:is([type="checkbox"], [type="radio"]) { flex: none; width: 16px; height: 16px; min-height: 0; margin: 0; accent-color: var(--md-blue); }
+.md-kit :is(.site-panel, .panel-card) :is(button, select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { box-sizing: border-box; min-height: var(--md-control); max-width: 100%; border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
+.md-kit :is(.site-panel, .panel-card) button { padding: 4px 10px; border: 1px solid var(--md-line-strong); font-weight: 500; cursor: pointer; }
+.md-kit :is(.site-panel, .panel-card) button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
+/* The choice that is on, in a group of choices. */
+.md-kit :is(.site-panel, .panel-card) button[aria-pressed="true"] { border-color: var(--md-blue); background: var(--md-blue-soft); color: var(--md-navy); }
+.md-kit :is(.site-panel, .panel-card) button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); cursor: default; }
+.md-kit :is(.site-panel, .panel-card) :is(select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { width: 100%; padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); }
+.md-kit :is(.site-panel, .panel-card) :is(input, select)[aria-invalid="true"] { border-color: var(--md-red); outline: 1px solid var(--md-red); }
+.md-kit :is(.site-panel, .panel-card) input:is([type="checkbox"], [type="radio"]) { flex: none; width: 16px; height: 16px; min-height: 0; margin: 0; accent-color: var(--md-blue); }
 /* Fingers and small windows get full-height controls, as in the strip under the diagram. */
 @media (max-width: 767px), (pointer: coarse) {
   .md-kit { --md-control: 44px; }
-  .md-kit .site-panel label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: var(--md-control); }
+  .md-kit :is(.site-panel, .panel-card) label:where(:has(> input:is([type="checkbox"], [type="radio"]))) { min-height: var(--md-control); }
 }
 
 /* The cards sit in two groups with no boxes of their own. A wide window gives each group a column,
