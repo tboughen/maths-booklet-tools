@@ -314,8 +314,8 @@ const pieceExtent = (p: Piece, size: number): { up: number; down: number } => {
   const body = extent(p.body, size);
   return { up: body.up + size * 0.22, down: body.down + size * 0.04 };
 };
-/** How far a numerator's baseline sits above the fraction bar: higher when a letter in it hangs below the line (p, q, y). */
-const numLift = (num: Piece[], size: number) => size * (num.some(q => q.kind === "run" && /[gjpqy]/.test(q.text) && !q.sup) ? 0.34 : 0.22);
+/** How far a numerator's baseline sits above the fraction bar: higher when a letter or bracket in it hangs below the line (p, q, y, brackets, commas). */
+const numLift = (num: Piece[], size: number) => size * (num.some(q => q.kind === "run" && /[gjpqyQ()[\],;]/.test(q.text) && !q.sup) ? 0.34 : 0.22);
 /** How far a denominator's baseline sits below the fraction bar: lower when a power or root in it reaches up. */
 const denDrop = (den: Piece[], size: number) => Math.max(size * 0.95, extent(den, size).up + size * 0.2);
 /** A root's radical sign: wider for a taller root, so its long stroke keeps the same slope. */

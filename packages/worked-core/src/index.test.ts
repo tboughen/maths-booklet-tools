@@ -421,10 +421,11 @@ describe("guidance typesetting", () => {
       raw.parts[0].steps = [{ kind: "line", lhs: "q", rhs }];
       const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
       const bar = Number(/<path d="M[\d.]+ ([\d.]+)H/.exec(svg)![1]);
-      const num = Math.max(...[...svg.matchAll(/<text[^>]* y="([\d.]+)"[^>]*>[^<]*(?:p − 7|3)</g)].map(m => Number(m[1])).filter(y => y < bar));
+      const num = Math.max(...[...svg.matchAll(/<text[^>]* y="([\d.]+)"[^>]*>[^<]*(?:p − 7|3|\))</g)].map(m => Number(m[1])).filter(y => y < bar));
       return bar - num;
     };
     expect(gap("{p - 7/6}")).toBeGreaterThan(gap("{3/6}") + 1);
+    expect(gap("{3(x - 7)/6}")).toBeGreaterThan(gap("{3/6}") + 1);
   });
   it("stacks fractions in guidance and gives their line extra room", () => {
     expect(noteText("Gradient of L is -{1/2}")).toBe("Gradient of L is −{1/2}");
