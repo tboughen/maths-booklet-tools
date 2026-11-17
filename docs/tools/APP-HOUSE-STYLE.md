@@ -285,3 +285,35 @@ stays out of the first-load stylesheet).
 - The order of the questions, the page layout and the downloads stay in Review paper.
 - The Question bank keeps the short "Your paper" bar under the question.
 - Tests: `e2e/paper-builder.spec.ts`.
+
+## The settings kit (in Bar modelling)
+
+One look for the buttons, fields, notes and cards in a tool's settings column, in
+`src/site/settings-kit.css`. A tool opts in: it puts the class `md-kit` on its `.inspector-stack`
+and imports the file itself, so the kit loads with the tools that use it and stays out of the
+first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`). The
+other tools move over one at a time, and each one drops its own button and field styles as it does.
+
+- The kit changes how the settings look, never what they do. Every control keeps its name, its
+  order and its behaviour, so saved work, links and tests are untouched.
+- Text is 13 px, with 12 px labels and notes. Buttons, fields and lists are 32 px high
+  (`--md-control`), and 44 px for a finger or a window under 768 px wide, like the foot strip.
+- A card's heading keeps the shared 17 px, and fields keep the shared outline (`--field-line`).
+- The kit styles what is inside a card (`.site-panel`) and nothing else. A dialog or a skip link
+  in the same column keeps its own look.
+- A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
+- In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
+  own width, so three short buttons take one line and not three.
+- A name with buttons that belong to it (a section, an example) has a line to itself, with its
+  buttons under it.
+- **Two columns on a wide window.** From 1,800 px wide (and landscape, at least 800 px high) the
+  settings column is about a third of the window and the cards sit in two fixed columns. The tool
+  wraps its cards in `.md-kit-cards` with one `div` for each column. The columns are fixed, not
+  balanced, so a card stays where it is when another card opens, closes or grows. Everywhere else
+  the two groups have no box of their own and the cards run in the one order.
+- Beside two columns the diagram's card is about 1,230 px wide at 1920 × 1080. The foot strip
+  under it still keeps to one row: the note shares the row, and a long hint takes two lines.
+- At 1920 × 1080 Bar modelling's settings were 3,369 px long in a 967 px column. They are now
+  1,065 px, so nearly everything is in view without scrolling.
+- The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
+- Tests: `e2e/settings-kit.spec.ts`.

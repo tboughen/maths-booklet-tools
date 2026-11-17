@@ -75,34 +75,56 @@
   gap: 8px;
   margin: 0;
 }
+/* A settings card: headings, notes, fields and lists take the full width, and buttons sit in rows
+   at their own width (the settings kit, src/site/settings-kit.css, gives them their look). */
 .bm-settings,
 .bm-draft {
-  padding: 16px;
+  padding: 12px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 6px;
+  min-width: 0;
+}
+.bm-settings > :not(button),
+.bm-draft > :not(button) {
+  flex: 1 0 100%;
   min-width: 0;
 }
 .bm-v2 .bm-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 .bm-v2 .bm-section-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 320px;
+  /* Six sections show before the list scrolls by itself. */
+  max-height: 396px;
   overflow: auto;
+  border: 1px solid var(--md-line);
+  border-radius: var(--md-radius);
 }
 .bm-v2 .bm-section-list > div {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  border-bottom: 1px solid #d6e1ec;
-  padding-bottom: 8px;
+  padding: 4px 6px 4px 8px;
+}
+.bm-v2 .bm-section-list > div + div {
+  border-top: 1px solid var(--md-line);
+}
+/* A section's name, or an example's title, has a line to itself, with its buttons under it. */
+.bm-v2 .bm-section-list label,
+.bm-v2 .bm-actions > span {
+  flex: 1 0 100%;
+}
+.bm-v2 .bm-actions > span {
+  margin-top: 2px;
+  color: var(--md-ink);
+  font-weight: 500;
 }
 .bm-v2 label:has(input[type="checkbox"]) {
   flex-direction: row;
@@ -124,12 +146,8 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.bm-v2 .inspector-stack > * {
-  min-width: 0;
-}
 .bm-v2 .bm-settings button,
 .bm-v2 .bm-draft button {
-  min-height: 44px;
   overflow-wrap: anywhere;
 }
 .bm-editor label {
@@ -179,18 +197,11 @@
   height: auto;
   max-height: 260px;
 }
-.bm-recovery {
-  padding: 12px;
-  border: 1px solid #ae511c;
-}
 .bm-editor .inspector-stack {
   min-width: 0;
 }
-.bm-settings button,
-.bm-draft button,
 .bm-side-controls button,
-.bm-bottom-controls button,
-.bm-recovery button {
+.bm-bottom-controls button {
   border: 1px solid #b7c9dd;
   border-radius: 8px;
   background: white;
@@ -200,29 +211,15 @@
   min-height: 40px;
   cursor: pointer;
 }
-.bm-settings button:hover,
-.bm-draft button:hover,
 .bm-side-controls button:hover,
 .bm-bottom-controls button:hover {
   background: #e6f0ff;
   border-color: #3478c0;
 }
-.bm-settings button:disabled,
 .bm-side-controls button:disabled,
 .bm-bottom-controls button:disabled {
   opacity: 0.5;
   cursor: default;
-}
-.bm-draft input,
-.bm-draft select,
-.bm-settings select {
-  border: 1px solid var(--line-strong, #bac6d3);
-  border-radius: 4px;
-  background: #fff;
-  padding: 7px;
-  color: #213c59;
-  font: inherit;
-  width: 100%;
 }
 /* Inspector headings and text fields match the other booklet tools. */
 .bm-v2 :is(.bm-settings, .bm-draft) h2 {
@@ -230,16 +227,6 @@
   font:
     600 17px/1.3 var(--md-font);
   color: #213c59;
-}
-.bm-v2
-  .bm-settings
-  input:not([type="checkbox"], [type="radio"], [type="file"]) {
-  border: 1px solid var(--line-strong, #bac6d3);
-  border-radius: 4px;
-  background: #fff;
-  padding: 7px;
-  color: #213c59;
-  font: inherit;
 }
 @media (max-width: 600px) {
   .bm-stage {
@@ -254,6 +241,14 @@
   .bm-editor .bm-draft {
     order: -1;
   }
+}
+/* What a details element holds is not laid out by its own flex rules, so its lines space themselves. */
+.bm-v2 details.bm-settings {
+  display: block;
+}
+.bm-v2 .bm-settings details > :not(summary),
+.bm-v2 details.bm-settings > :not(summary) {
+  margin-top: 8px;
 }
 /* "Start a new model" is a collapsed generator; the current model's inspector stays separate (U106). */
 .bm-v2 .bm-start-model > summary {
@@ -278,15 +273,7 @@
   outline: 3px solid #1d63b8;
   outline-offset: 2px;
 }
-.bm-v2 .bm-note {
-  margin: 0;
-  color: #4a5d72;
-  font-size: 14px;
-  line-height: 1.4;
-}
 .bm-v2 .bm-settings h3 {
-  margin: 4px 0 0;
-  font:
-    600 15px/1.3 var(--md-font);
-  color: #213c59;
+  padding-top: 8px;
+  border-top: 1px solid var(--md-line);
 }

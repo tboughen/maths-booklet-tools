@@ -35,6 +35,7 @@ import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { houseModel } from "./house";
 import "./bar-model.css";
+import "../site/settings-kit.css";
 import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 export type History = DocumentHistory<c.Envelope>;
@@ -801,8 +802,11 @@ export default function LessonBarModelPage({
               <p key={w}>{w}</p>
             ))}
           </Panel>
-          <div className="inspector-stack">
+          <div className="inspector-stack md-kit">
             <ReturnToDiagram />
+            {/* Two fixed columns on a wide window, so that a card never jumps across as another opens. */}
+            <div className="md-kit-cards">
+            <div>
             {(recovery !== undefined || conflict) && (
               <Panel>
                 <div
@@ -1396,7 +1400,7 @@ export default function LessonBarModelPage({
                 <summary>
                   <h2>Start a new model</h2>
                 </summary>
-                <p className="bm-note">
+                <p>
                   These settings only shape a new model. Starting one replaces
                   the current model; Undo brings it back.
                 </p>
@@ -1490,7 +1494,7 @@ export default function LessonBarModelPage({
               <Panel>
                 <div className="bm-settings">
                   <h2>Current model</h2>
-                  <p className="bm-note" role="status">
+                  <p role="status">
                     {d.bars.length} {d.bars.length === 1 ? "bar" : "bars"} ·{" "}
                     {d.bars.reduce((n, b) => n + b.parts.length, 0)}{" "}
                     {d.bars.reduce((n, b) => n + b.parts.length, 0) === 1
@@ -1796,6 +1800,8 @@ export default function LessonBarModelPage({
                 </div>
               </Panel>
             )}
+            </div>
+            <div>
             {d && (
               <Panel>
                 <div className="bm-settings">
@@ -1956,6 +1962,8 @@ export default function LessonBarModelPage({
                 ))}
               </div>
             </Panel>
+            </div>
+            </div>
           </div>
         </section>
       </main>
