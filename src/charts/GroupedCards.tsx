@@ -28,6 +28,7 @@ export function GroupedCards({
   issues,
   onChange,
   linesControl,
+  part,
 }: {
   kind: GroupedKind;
   g: GroupedSettings;
@@ -36,6 +37,8 @@ export function GroupedCards({
   issues: string[];
   onChange: (update: (s: GroupedSettings) => void) => void;
   linesControl: ReactNode;
+  /** The data card, or the cards of settings that follow it: each has its own column in a wide window. */
+  part: "data" | "rest";
 }) {
   const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
   /** A class's issue, told apart by whether it is about the second frequency. */
@@ -48,7 +51,7 @@ export function GroupedCards({
       return x.includes("axis step") || x.includes("steps on the");
     });
   const axisFields = (name: "Horizontal" | "Vertical", a: PaperAxis, set: (s: GroupedSettings) => PaperAxis) => (
-    <fieldset className="ch-fieldset">
+    <fieldset className="md-kit-group">
       <legend>{name === "Vertical" ? `Vertical axis (${yName[kind]})` : "Horizontal axis"}</legend>
       <div className="ch-fields">
         {(["min", "max", "step"] as const).map((f) => (
@@ -86,6 +89,7 @@ export function GroupedCards({
   const two = kind === "polygon" && g.polygon.second;
   return (
     <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Classes</h2>
         <div className="ch-table-wrap">
@@ -226,6 +230,9 @@ export function GroupedCards({
           </button>
         </div>
       </section>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Axes and graph paper</h2>
         {axisFields("Horizontal", g.xAxis, (s) => s.xAxis)}
@@ -366,6 +373,8 @@ export function GroupedCards({
             axis, for medians, quartiles and estimates. The value read off is never printed.
           </p>
         </section>
+      )}
+      </>
       )}
     </>
   );

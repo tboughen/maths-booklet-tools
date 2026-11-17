@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { LayoutGrid, Grid3X3, Tags, Settings2, Star, ZoomIn, X } from "lucide-react";
 import { PageHeading } from "./PageHeading";
 import { bookletTools, pageHref } from "./registry";
 import { setHousePreference, useHousePreference } from "./houseStyle";
 import { FavouriteStar } from "./FavouriteStar";
+import { ToolFinder } from "./ToolFinder";
+import { finderKeys, focusLeft, useFinderDismiss } from "./toolFinderBehaviour";
 import { useFavouriteToolList } from "./favouriteTools";
 import { catalogue, isNew, searchTool, strands, type StrandId } from "./toolCatalogue";
 import { HOUSE_STYLES, HOUSE_STYLE_NAMES, LINE_WEIGHTS, LINE_WEIGHT_NAMES, type HouseStyle, type LineWeight } from "../../packages/envelope-core/src/house-style";
@@ -45,6 +47,10 @@ export function DiagramBuilder() {
   const root = useRef<HTMLElement>(null);
   const searchBox = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  // The tool finder drops down under the search box, as it does under a tool's name.
+  const [finder, setFinder] = useState(false);
+  const finderRoot = useRef<HTMLDivElement>(null);
+  const finderId = useId();
 
   const setView = (next: View) => { setViewState(next); save(VIEW_KEY, next); };
 
@@ -57,6 +63,7 @@ export function DiagramBuilder() {
       if (target.closest("input, textarea, select, [contenteditable='true']")) return;
       event.preventDefault();
       searchBox.current?.focus();
+      setFinder(true);
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -64,6 +71,25 @@ export function DiagramBuilder() {
   useEffect(() => {
     if (peek && dialog.current && !dialog.current.open) dialog.current.showModal?.();
   }, [peek]);
+  useFinderDismiss(finder, finderRoot, () => setFinder(false));
+  function finderKey(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!finder) {
+      // Closed, or not yet open, with the search box in focus: the down arrow opens it.
+      if (event.key === "ArrowDown" && event.target === searchBox.current) {
+        event.preventDefault();
+        setFinder(true);
+      }
+      return;
+    }
+    if (event.key === "Escape") {
+      // The search stays, so the pictures behind are still the ones it found.
+      event.preventDefault();
+      setFinder(false);
+      searchBox.current?.focus();
+      return;
+    }
+    finderKeys(event, finderRoot.current, searchBox.current);
+  }
 
   const results = bookletTools.map((tool) => ({ tool, ...searchTool(tool, search) })).filter((r) => r.found);
   const shownStrands = strand === "all" ? strands : strands.filter((s) => s.id === strand);
@@ -109,13 +135,62 @@ export function DiagramBuilder() {
       <PageHeading title="Diagram builder" description="Create clear diagrams for lesson resources, then copy them into Word." />
       <div className="tool-controls">
         <div className="tool-search-row">
-          <div className="tool-search">
+          <div
+            ref={finderRoot}
+            className="tool-search"
+            onKeyDown={finderKey}
+            onBlur={(event) => {
+              // Tabbing out of the finder closes it; a click elsewhere is handled above.
+              if (finder && focusLeft(event, finderRoot.current)) setFinder(false);
+            }}
+          >
             <label>
               <span className="sr-only">Search tools</span>
-              <input ref={searchBox} type="search" value={search} placeholder="Search a topic: Pythagoras, bearings, inequalities…" onChange={(event) => setSearch(event.target.value)} />
+              <input
+                ref={searchBox}
+                type="search"
+                value={search}
+                placeholder="Search a topic: Pythagoras, bearings, inequalities…"
+                aria-controls={finder ? finderId : undefined}
+                aria-describedby={finder ? `${finderId}-keys` : undefined}
+                // A click or typing opens the finder. Tab into the box does not, and an emptied box
+                // (the browser clears it on a second Escape) leaves it as it is.
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  if (event.target.value) setFinder(true);
+                }}
+                onClick={() => setFinder(true)}
+              />
               {!search && <kbd aria-hidden="true">/</kbd>}
             </label>
-            {search && <button type="button" onClick={() => setSearch("")}>Clear search</button>}
+            {finder && (
+              <div
+                id={finderId}
+                className="tool-switcher-panel"
+                role="region"
+                aria-label="Every diagram tool"
+                // A click on the panel's own padding or headings keeps focus, and so the keys, inside it.
+                tabIndex={-1}
+                onClick={(event) => {
+                  if ((event.target as HTMLElement).closest("a")) setFinder(false);
+                }}
+              >
+                <p id={`${finderId}-keys`} className="sr-only">The tool finder is open. The down arrow moves through the tools, Enter opens the first tool found and Escape closes the finder.</p>
+                <ToolFinder id={finderId} search={search} quiet arrowsOnly />
+              </div>
+            )}
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  // The button goes with the search, so focus returns to the box and the keys still work.
+                  setSearch("");
+                  searchBox.current?.focus();
+                }}
+              >
+                Clear search
+              </button>
+            )}
           </div>
           <div className="tool-views" role="group" aria-label="View">
             {VIEWS.map((v) => (

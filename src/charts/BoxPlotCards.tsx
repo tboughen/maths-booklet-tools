@@ -13,6 +13,7 @@ export function BoxPlotCards({
   issues,
   onChange,
   linesControl,
+  part,
 }: {
   b: BoxplotSettings;
   blocked: boolean;
@@ -20,6 +21,8 @@ export function BoxPlotCards({
   issues: string[];
   onChange: (update: (s: BoxplotSettings) => void) => void;
   linesControl: ReactNode;
+  /** The data card, or the cards of settings that follow it: each has its own column in a wide window. */
+  part: "data" | "rest";
 }) {
   const bad = (row: number, phrase: string) => issues.some((x) => x.startsWith(`Box plot ${row + 1}:`) && x.includes(phrase));
   const axisBad = (field: "min" | "max" | "step") =>
@@ -31,10 +34,11 @@ export function BoxPlotCards({
     });
   return (
     <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Box plots</h2>
         {b.rows.map((r, ri) => (
-          <fieldset className="ch-fieldset" key={ri}>
+          <fieldset className="md-kit-group" key={ri}>
             <legend>Box plot {ri + 1}</legend>
             <div className="ch-fields">
               <label className="ch-wide">
@@ -91,9 +95,12 @@ export function BoxPlotCards({
           </button>
         </div>
       </section>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Scale and graph paper</h2>
-        <fieldset className="ch-fieldset">
+        <fieldset className="md-kit-group">
           <legend>Scale</legend>
           <div className="ch-fields">
             {(["min", "max", "step"] as const).map((f) => (
@@ -151,6 +158,8 @@ export function BoxPlotCards({
         </div>
         <p className="ch-note">Graph paper is true size, 2 mm squares with heavier lines every 1 cm and 2 cm. Boxes and end lines are 1 cm tall.</p>
       </section>
+      </>
+      )}
     </>
   );
 }

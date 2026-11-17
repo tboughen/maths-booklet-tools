@@ -2,8 +2,10 @@
 .diagram-builder { --db-navy: #213c59; --db-paper: #ffffff; }
 .tool-controls { display: grid; gap: 10px; margin-bottom: 8px; }
 .diagram-builder .tool-search-row { flex-wrap: wrap; margin: 0; }
+/* The tool finder drops down under the search box, as it does under a tool's name. */
+.diagram-builder .tool-search { position: relative; }
 .diagram-builder .tool-search label { position: relative; }
-.diagram-builder .tool-search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 3px; font-size: 11px; font-weight: 600; line-height: 1.4; color: var(--muted); pointer-events: none; }
+.diagram-builder .tool-search label > kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 3px; font-size: 11px; font-weight: 600; line-height: 1.4; color: var(--muted); pointer-events: none; }
 .diagram-builder .tool-search-row .house-style-menu { margin-left: auto; }
 .tool-views { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 5px; overflow: hidden; background: white; }
 .tool-views button { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 12px; border: 0; background: none; font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -86,7 +88,7 @@
   .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .is-compact .tool-grid, .tool-favourites .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tool-tile-description { display: none; }
-  .diagram-builder .tool-search kbd { display: none; }
+  .diagram-builder .tool-search label > kbd { display: none; }
   .tool-topic-grid { grid-template-columns: 1fr; }
   .tool-topic-row { grid-template-columns: 92px minmax(0, 1fr); }
   .tool-peek-body { grid-template-columns: 1fr; }

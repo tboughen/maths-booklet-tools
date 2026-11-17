@@ -99,6 +99,7 @@ import {
 import { chartEditorLink, parseChartLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
+import "../site/settings-kit.css";
 import { DraftField } from "./DraftField";
 import { GroupedCards } from "./GroupedCards";
 import { BoxPlotCards } from "./BoxPlotCards";
@@ -128,6 +129,7 @@ function ScatterCards({
   issues,
   onChange,
   linesControl,
+  part,
 }: {
   sc: ScatterSettings;
   blocked: boolean;
@@ -135,6 +137,8 @@ function ScatterCards({
   issues: string[];
   onChange: (update: (s: ScatterSettings) => void) => void;
   linesControl: React.ReactNode;
+  /** The data card, or the cards of settings that follow it: each has its own column in a wide window. */
+  part: "data" | "rest";
 }) {
   const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
   /** Marks the axis field each axis error is about. */
@@ -146,7 +150,7 @@ function ScatterCards({
       return x.includes("axis step") || x.includes("steps on the") || x.includes("Small grid squares");
     });
   const axisFields = (key: "xAxis" | "yAxis", name: string) => (
-    <fieldset className="ch-fieldset">
+    <fieldset className="md-kit-group">
       <legend>{name} axis</legend>
       <div className="ch-fields">
         {(["min", "max", "step"] as const).map((f) => (
@@ -201,6 +205,7 @@ function ScatterCards({
   const fit = sc.bestFit;
   return (
     <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Points</h2>
         <div className="ch-table-wrap">
@@ -285,6 +290,9 @@ function ScatterCards({
           </button>
         </div>
       </section>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Axes and grid</h2>
         {axisFields("xAxis", "Horizontal")}
@@ -419,6 +427,8 @@ function ScatterCards({
           axis. The value read off is never printed.
         </p>
       </section>
+      </>
+      )}
     </>
   );
 }
@@ -654,6 +664,16 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         ))}
       </select>
     </label>
+  );
+  /** The cards of a chart type that has its own: its data card, or the settings cards that follow. */
+  const variantCards = (part: "data" | "rest") => (
+    <>
+      {timeseries && <TimeSeriesCards t={ts} blocked={blocked} selected={selected} issues={g.issues} onChange={patchTimeseries} linesControl={linesControl} part={part} />}
+      {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} part={part} />}
+      {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} part={part} />}
+      {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} part={part} />}
+      {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} part={part} />}
+    </>
   );
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
@@ -1050,8 +1070,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Chart settings">
+          <aside className="inspector-stack md-kit" aria-label="Chart settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card ch-panel">
               <h2>Chart type</h2>
               <div className="ch-kinds" role="group" aria-label="Chart type">
@@ -1243,11 +1265,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
             </section>
             )}
-            {timeseries && <TimeSeriesCards t={ts} blocked={blocked} selected={selected} issues={g.issues} onChange={patchTimeseries} linesControl={linesControl} />}
-            {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} />}
-            {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} />}
-            {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} />}
-            {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} />}
+            {variantCards("data")}
+            </div>
+            <div>
+            {variantCards("rest")}
             {pie && (
               <section className="panel-card ch-panel">
                 <h2>Pie chart</h2>
@@ -1580,6 +1601,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (
