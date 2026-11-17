@@ -32,7 +32,9 @@ export function BoxPlotCards({
       if (field === "max") return x.includes("axis end");
       return x.includes("axis step") || x.includes("steps on the");
     });
-  if (part === "data") return (
+  return (
+    <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Box plots</h2>
         {b.rows.map((r, ri) => (
@@ -93,9 +95,9 @@ export function BoxPlotCards({
           </button>
         </div>
       </section>
-  );
-  return (
-    <>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Scale and graph paper</h2>
         <fieldset className="ch-fieldset">
@@ -156,6 +158,8 @@ export function BoxPlotCards({
         </div>
         <p className="ch-note">Graph paper is true size, 2 mm squares with heavier lines every 1 cm and 2 cm. Boxes and end lines are 1 cm tall.</p>
       </section>
+      </>
+      )}
     </>
   );
 }

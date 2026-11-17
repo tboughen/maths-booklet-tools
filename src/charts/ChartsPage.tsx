@@ -203,7 +203,9 @@ function ScatterCards({
     </fieldset>
   );
   const fit = sc.bestFit;
-  if (part === "data") return (
+  return (
+    <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Points</h2>
         <div className="ch-table-wrap">
@@ -288,9 +290,9 @@ function ScatterCards({
           </button>
         </div>
       </section>
-  );
-  return (
-    <>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Axes and grid</h2>
         {axisFields("xAxis", "Horizontal")}
@@ -425,6 +427,8 @@ function ScatterCards({
           axis. The value read off is never printed.
         </p>
       </section>
+      </>
+      )}
     </>
   );
 }
@@ -660,6 +664,16 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         ))}
       </select>
     </label>
+  );
+  /** The cards of a chart type that has its own: its data card, or the settings cards that follow. */
+  const variantCards = (part: "data" | "rest") => (
+    <>
+      {timeseries && <TimeSeriesCards t={ts} blocked={blocked} selected={selected} issues={g.issues} onChange={patchTimeseries} linesControl={linesControl} part={part} />}
+      {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} part={part} />}
+      {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} part={part} />}
+      {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} part={part} />}
+      {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} part={part} />}
+    </>
   );
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
@@ -1251,18 +1265,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
             </section>
             )}
-            {timeseries && <TimeSeriesCards t={ts} blocked={blocked} selected={selected} issues={g.issues} onChange={patchTimeseries} linesControl={linesControl} part="data" />}
-            {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} part="data" />}
-            {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} part="data" />}
-            {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} part="data" />}
-            {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} part="data" />}
+            {variantCards("data")}
             </div>
             <div>
-            {timeseries && <TimeSeriesCards t={ts} blocked={blocked} selected={selected} issues={g.issues} onChange={patchTimeseries} linesControl={linesControl} part="rest" />}
-            {stemleaf && <StemLeafCards s={sl} blocked={blocked} selected={selected} issues={g.issues} onChange={patchStemleaf} linesControl={linesControl} part="rest" />}
-            {boxplot && <BoxPlotCards b={bp} blocked={blocked} selected={selected} issues={g.issues} onChange={patchBoxplot} linesControl={linesControl} part="rest" />}
-            {grouped && <GroupedCards kind={grouped} g={gr} blocked={blocked} selected={selected} issues={g.issues} onChange={patchGrouped} linesControl={linesControl} part="rest" />}
-            {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} part="rest" />}
+            {variantCards("rest")}
             {pie && (
               <section className="panel-card ch-panel">
                 <h2>Pie chart</h2>

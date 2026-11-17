@@ -94,25 +94,21 @@
   text-align: left;
   font-weight: normal;
 }
-/* A table's fields keep their own widths: the kit would stretch each one across its cell. */
-.ch-panel .ch-table input:not([type="checkbox"]) {
+.ch-table input:not([type="checkbox"]) {
   width: 84px;
 }
-.ch-panel .ch-table thead select {
+.ch-table thead select {
   display: block;
   width: 84px;
   margin-top: 4px;
+}
+/* The fill list is as narrow as the value under it, so it gives its words the room. */
+.ch-panel .ch-table thead select {
   padding-inline: 4px;
+  font-size: var(--md-text-xs);
 }
 .ch-field-selected {
   outline: 2px solid var(--blue);
-}
-/* The small Hide tick under a value. */
-.ch-editor .ch-panel .ch-hide {
-  gap: 4px;
-  min-height: 0;
-  color: var(--md-ink-2);
-  font-size: var(--md-text-xs);
 }
 .ch-fields {
   display: grid;
@@ -180,13 +176,13 @@
 .ch-fields .ch-wide {
   grid-column: 1 / -1;
 }
-.ch-panel .ch-points input:not([type="checkbox"]) {
+.ch-points input:not([type="checkbox"]) {
   width: 5.5em;
 }
 .ch-points td:has(input[type="checkbox"]) {
   text-align: center;
 }
-.ch-panel .ch-classes input:not([type="checkbox"]) {
+.ch-classes input:not([type="checkbox"]) {
   width: 3.3em;
 }
 .ch-classes td.ch-class-hide {
@@ -197,10 +193,10 @@
   padding-left: 2px;
   padding-right: 2px;
 }
-.ch-panel .ch-stems input:not([type="checkbox"]) {
+.ch-stems input:not([type="checkbox"]) {
   width: 3.3em;
 }
-.ch-panel .ch-stems td.ch-leaves input {
+.ch-stems td.ch-leaves input {
   width: 9em;
 }
 .ch-stems td.ch-class-hide {
@@ -211,7 +207,7 @@
   padding-left: 2px;
   padding-right: 2px;
 }
-.ch-panel .ch-times input:not([type="checkbox"]) {
+.ch-times input:not([type="checkbox"]) {
   width: 4.2em;
 }
 .ch-times th,

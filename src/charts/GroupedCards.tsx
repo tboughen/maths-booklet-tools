@@ -87,7 +87,9 @@ export function GroupedCards({
   );
   const hideWhat = kind === "histogram" ? "bar" : kind === "polygon" ? "point" : "part of the curve";
   const two = kind === "polygon" && g.polygon.second;
-  if (part === "data") return (
+  return (
+    <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Classes</h2>
         <div className="ch-table-wrap">
@@ -228,9 +230,9 @@ export function GroupedCards({
           </button>
         </div>
       </section>
-  );
-  return (
-    <>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Axes and graph paper</h2>
         {axisFields("Horizontal", g.xAxis, (s) => s.xAxis)}
@@ -371,6 +373,8 @@ export function GroupedCards({
             axis, for medians, quartiles and estimates. The value read off is never printed.
           </p>
         </section>
+      )}
+      </>
       )}
     </>
   );

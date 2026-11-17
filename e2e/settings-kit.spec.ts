@@ -146,11 +146,14 @@ test("Statistical charts uses the kit: the data in one column and its settings i
     );
     expect(cut, kind).toEqual([]);
   }
-  // A value that cannot be used is outlined in red.
-  await page.getByRole("button", { name: "Histogram", exact: true }).click();
-  const wrong = page.locator('.ch-classes input[aria-invalid="true"]').first();
-  expect(await wrong.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe("rgb(179, 38, 30)");
-  expect((await wrong.boundingBox())!.width).toBeLessThan(60);
+  // A value that cannot be used is outlined in red, and a narrow table field stays narrow.
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  const value = page.getByLabel("Value for Car", { exact: true });
+  await value.fill("lots");
+  await value.press("Enter");
+  await expect(value).toHaveAttribute("aria-invalid", "true");
+  expect(await value.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe("rgb(179, 38, 30)");
+  expect((await value.boundingBox())!.width).toBe(84);
 });
 
 test("Statistical charts keeps one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {

@@ -26,7 +26,9 @@ export function StemLeafCards({
   const keyBad = issues.some((x) => x.startsWith("Key:"));
   const bad = (row: number, what: string) => issues.some((x) => x.startsWith(`Row ${row + 1}:`) && x.includes(what));
   const widths = WIDTH_CHOICES.includes(s.leafMm) ? WIDTH_CHOICES : [...WIDTH_CHOICES, s.leafMm].sort((a, b) => a - b);
-  if (part === "data") return (
+  return (
+    <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Stems and leaves</h2>
         <div className="ch-table-wrap">
@@ -119,9 +121,9 @@ export function StemLeafCards({
           </button>
         </div>
       </section>
-  );
-  return (
-    <>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Key and size</h2>
         <fieldset className="ch-fieldset">
@@ -167,6 +169,8 @@ export function StemLeafCards({
         </div>
         <p className="ch-note">Rows are 1 cm tall and leaves 5.5 mm apart, as in the papers.</p>
       </section>
+      </>
+      )}
     </>
   );
 }

@@ -37,7 +37,9 @@ export function TimeSeriesCards({
     });
   /** Relabel the times as they stand; groups, values, hidden flags and the number of times are kept. */
   const relabel = (label: (i: number) => string) => onChange((s) => s.points.forEach((p, i) => (p.label = label(i))));
-  if (part === "data") return (
+  return (
+    <>
+      {part === "data" && (
       <section className="panel-card ch-panel">
         <h2>Times and values</h2>
         <div className="ch-table-wrap">
@@ -159,9 +161,9 @@ export function TimeSeriesCards({
           </button>
         </div>
       </section>
-  );
-  return (
-    <>
+      )}
+      {part === "rest" && (
+      <>
       <section className="panel-card ch-panel">
         <h2>Axes and graph paper</h2>
         <fieldset className="ch-fieldset">
@@ -264,6 +266,8 @@ export function TimeSeriesCards({
           and join across it.
         </p>
       </section>
+      </>
+      )}
     </>
   );
 }
