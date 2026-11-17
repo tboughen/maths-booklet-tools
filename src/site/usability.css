@@ -516,6 +516,22 @@
 .house-style-menu > summary::-webkit-details-marker {
   display: none;
 }
+/* A fieldset's title sits across its top edge, half outside the box. In the menu's panel it is
+   the first line inside (a floated legend is laid out like any other child). */
+.house-style-menu > .house-style > legend {
+  float: left;
+  flex-basis: 100%;
+  padding: 0;
+}
+.house-style-menu select {
+  min-height: var(--md-control);
+  padding: 4px 8px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--md-radius-key);
+  background: var(--md-paper);
+  color: var(--md-ink);
+  font: 400 var(--md-text-sm)/1.2 var(--md-font);
+}
 .house-style-menu > .house-style {
   position: absolute;
   top: calc(100% + 6px);
