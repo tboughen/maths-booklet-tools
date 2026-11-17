@@ -1,4 +1,4 @@
-import { create, validate, GROUPED_DEFAULTS, type BoxRow, type StemRow, type TimePoint, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
+import { create, validate, GROUPED_DEFAULTS, blankTimePoint, type BoxRow, type StemRow, type TimePoint, type Envelope, type Fill, type GroupedSettings, type Kind } from "./index";
 
 type Data = { name: string; fill: Fill; values: string[]; hidden?: number[] };
 function chart(
@@ -47,6 +47,8 @@ function grouped(
       frequency,
       table: !worked && hide.table?.includes(i) ? "hidden" : "show",
       graph: !worked && hide.graph?.includes(i) ? "hidden" : "show",
+      frequency2: "",
+      graph2: "show",
     })),
   };
   return validate(e);
@@ -66,7 +68,7 @@ function stems(rows: [string, string][], hidden: boolean): StemRow[] {
 
 function times(labels: string[], groups: string[], values: string[], hidden: boolean): TimePoint[] {
   const show = hidden ? ("hidden" as const) : ("show" as const);
-  return labels.map((label, i) => ({ label, group: groups[i] ?? "", value: values[i] ?? "", show }));
+  return labels.map((label, i) => ({ ...blankTimePoint(), label, group: groups[i] ?? "", value: values[i] ?? "", show }));
 }
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -315,7 +317,7 @@ export const examples: {
           variable: "h",
           xAxis: { min: "0", max: "70", step: "10", stepMm: 20, title: "Height (h cm)" },
           table: "frequency",
-          polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" } },
+          polygon: { ...GROUPED_DEFAULTS.polygon, yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" } },
         },
         { graph: [0, 1, 2, 3, 4, 5] },
         worked,
@@ -431,6 +433,11 @@ export const examples: {
         slotMm: 10,
         xTitle: "Month",
         yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "Units of gas" },
+        yBreak: false,
+        join: "straight",
+        bridge: false,
+        second: false,
+        names: ["", ""],
       };
       return validate(e);
     },
@@ -449,6 +456,97 @@ export const examples: {
         slotMm: 10,
         xTitle: "Year and quarter",
         yAxis: { min: "0", max: "70", step: "10", stepMm: 10, title: "Sales (£1000s)" },
+        yBreak: false,
+        join: "straight",
+        bridge: false,
+        second: false,
+        names: ["", ""],
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "polygon-mistakes",
+    title: "June 2022 3F Q26 style: identify the mistakes in a frequency polygon",
+    note: "Lengths of string from the table. The polygon is plotted at the upper class bounds and the last point is joined to the first: two mistakes for pupils to write down.",
+    worked: false,
+    make: () =>
+      grouped(
+        "polygon",
+        [["0", "10", "15"], ["10", "20", "20"], ["20", "30", "50"], ["30", "40", "25"], ["40", "50", "5"]],
+        {
+          variable: "t",
+          xAxis: { min: "0", max: "50", step: "10", stepMm: 20, title: "Length (t cm)" },
+          table: "frequency",
+          polygon: { yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "Frequency" }, plotAt: "upper", close: true, second: false, names: ["", ""] },
+        },
+        {},
+        false,
+      ),
+  },
+  {
+    id: "polygon-compare",
+    title: "Compare two frequency polygons",
+    note: "Times taken by boys and girls on one grid with a key. The girls' polygon is saved as hidden answers for pupils to draw.",
+    worked: true,
+    make: (worked) => {
+      const e = grouped(
+        "polygon",
+        [["0", "10", "4"], ["10", "20", "9"], ["20", "30", "15"], ["30", "40", "8"], ["40", "50", "3"]],
+        {
+          variable: "t",
+          xAxis: { min: "0", max: "50", step: "10", stepMm: 20, title: "Time (t minutes)" },
+          table: "none",
+          polygon: { yAxis: { min: "0", max: "20", step: "5", stepMm: 20, title: "Frequency" }, plotAt: "midpoint", close: false, second: true, names: ["Boys", "Girls"] },
+        },
+        {},
+        worked,
+      );
+      ["2", "6", "11", "14", "7"].forEach((f, i) => {
+        const c = e.document.grouped!.classes[i];
+        c.frequency2 = f;
+        c.graph2 = worked ? "show" : "hidden";
+      });
+      return validate(e);
+    },
+  },
+  {
+    id: "timeseries-two",
+    title: "Compare two time series",
+    note: "Quarterly sales at two shops on one graph with a key.",
+    worked: false,
+    make: () => {
+      const e = create();
+      e.document.kind = "timeseries";
+      const q = ["1", "2", "3", "4"];
+      const points = times([...q, ...q], ["2024", "2024", "2024", "2024", "2025", "2025", "2025", "2025"], ["22", "30", "38", "26", "24", "33", "41", "28"], false);
+      ["15", "18", "24", "20", "17", "21", "27", "22"].forEach((v, i) => (points[i].value2 = v));
+      e.document.timeseries = { points, slotMm: 12, xTitle: "Year and quarter", yAxis: { min: "0", max: "50", step: "10", stepMm: 10, title: "Sales (£1000s)" }, yBreak: false, join: "straight", bridge: false, second: true, names: ["Shop A", "Shop B"] };
+      return validate(e);
+    },
+  },
+  {
+    id: "timeseries-misleading",
+    title: "June 2019 3F Q27: what is misleading about this time series graph?",
+    note: "Visitors to a fun park. The vertical axis starts at 6 with no zig-zag, quarter 1 is missing from each year and the points are joined with a curve. Values read from the source graph.",
+    sourceId: "1MA1_JUN_2019_3F_Q27",
+    worked: false,
+    make: () => {
+      const e = create();
+      e.document.kind = "timeseries";
+      const labels = ["2", "3", "4", "", "2", "3", "4", "", "2", "3", "4"];
+      const groups = ["2016", "2016", "2016", "", "2017", "2017", "2017", "", "2018", "2018", "2018"];
+      const values = ["", "10.1", "8", "", "8.4", "9.8", "7", "", "8", "8.9", "7"];
+      e.document.timeseries = {
+        points: times(labels, groups, values, false),
+        slotMm: 12,
+        xTitle: "Year",
+        yAxis: { min: "6", max: "11", step: "0.5", stepMm: 10, title: "Number of visitors (thousands)" },
+        yBreak: false,
+        join: "curve",
+        bridge: true,
+        second: false,
+        names: ["", ""],
       };
       return validate(e);
     },

@@ -390,6 +390,39 @@ test("time series graphs: values edit from the graph, hidden values stay answers
   await expect(page.getByRole("alert")).toHaveCount(0);
   const doc = (await saved(page)).document;
   expect(doc.timeseries.points).toHaveLength(13);
-  expect(doc.timeseries.points[1]).toEqual({ label: "Feb", group: "2023", value: "41", show: "show" });
-  expect(doc.timeseries.points[12]).toEqual({ label: "", group: "", value: "", show: "show" });
+  expect(doc.timeseries.points[1]).toEqual({ label: "Feb", labelShow: "show", group: "2023", value: "41", show: "show", value2: "", show2: "show" });
+  expect(doc.timeseries.points[12]).toEqual({ label: "", labelShow: "show", group: "", value: "", show: "show", value2: "", show2: "show" });
+});
+
+test("frequency polygon mistakes and a second polygon, and misleading time series options, undo", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "polygon-mistakes")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  await page.getByLabel("Plot points at").selectOption("lower");
+  await page.getByText("Join the last point to the first (mistake)").click();
+  await page.getByLabel("Table with the graph").selectOption("none");
+  await page.getByText("Two frequency polygons, with a key").click();
+  await page.getByLabel("First polygon name").fill("Boys");
+  await page.getByLabel("First polygon name").press("Enter");
+  await page.getByLabel("Second polygon name").fill("Girls");
+  await page.getByLabel("Second polygon name").press("Enter");
+  await page.getByLabel("Class 1 second frequency").fill("5");
+  await page.getByLabel("Class 1 second frequency").press("Enter");
+  await page.getByLabel("Class 2 second frequency").fill("9");
+  await page.getByLabel("Class 2 second frequency").press("Enter");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(art.locator("path[stroke-dasharray]")).toHaveCount(2);
+  await expect(art.locator("text", { hasText: "Girls" })).toHaveCount(1);
+  let doc = (await saved(page)).document;
+  expect(doc.grouped.polygon).toMatchObject({ plotAt: "lower", close: false, second: true, names: ["Boys", "Girls"] });
+  await page.getByRole("button", { name: "Undo" }).click();
+  doc = (await saved(page)).document;
+  expect(doc.grouped.classes[1].frequency2).toBe("");
+
+  await boot(page, examples.find((x) => x.id === "timeseries-gas")!.make(false));
+  await page.getByLabel("Join the points with").selectOption("curve");
+  await page.getByLabel("Hide the label for time 3 for pupils").check();
+  await expect(art.locator("text", { hasText: /^Mar$/ })).toHaveCount(0);
+  doc = (await saved(page)).document;
+  expect(doc.timeseries.join).toBe("curve");
+  expect(doc.timeseries.points[2].labelShow).toBe("hidden");
 });

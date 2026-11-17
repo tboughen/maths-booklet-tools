@@ -73,6 +73,7 @@ import {
   stemleafOf,
   timeseriesOf,
   blankTimePoint,
+  blankGroupedClass,
   MAX_TIMES,
   type TimeseriesSettings,
   blankStemRow,
@@ -839,9 +840,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                       );
                     }
                     const cell = point ?? d.series[t.series].values[t.category];
-                    const id = klass ? `ch-class-frequency-${t.category}` : point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
+                    const second = !!klass && t.series === 1;
+                    const id = klass ? `ch-class-frequency${second ? "2" : ""}-${t.category}` : point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
                     const hiddenHere = klass
-                      ? view === "pupil" && klass.graph === "hidden"
+                      ? view === "pupil" && (second ? klass.graph2 : klass.graph) === "hidden"
                       : view === "pupil" &&
                         cell.show === "hidden" &&
                         (point !== null || (cell as { value: string }).value.trim() !== "");
@@ -852,7 +854,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
                         aria-label={
                           klass
-                            ? `Edit class ${t.category + 1}: ${klass.lower} to ${klass.upper}, frequency ${klass.frequency}`
+                            ? `Edit class ${t.category + 1}: ${klass.lower} to ${klass.upper}, ${second ? "second frequency" : "frequency"} ${second ? klass.frequency2 : klass.frequency}`
                             : point
                             ? `Edit point ${t.category + 1}: (${point.x}, ${point.y})`
                             : `Edit ${mark}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`
@@ -963,7 +965,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     title: "Add class",
                     disabled: blocked || gr.classes.length >= MAX_CLASSES,
                     onClick: () => {
-                      patchGrouped((s) => void s.classes.push({ lower: s.classes[s.classes.length - 1]?.upper ?? "", upper: "", frequency: "", table: "show", graph: "show" }));
+                      patchGrouped((s) => void s.classes.push({ ...blankGroupedClass(), lower: s.classes[s.classes.length - 1]?.upper ?? "" }));
                       requestAnimationFrame(() => focusField(`ch-class-upper-${gr.classes.length}`));
                     },
                   }}

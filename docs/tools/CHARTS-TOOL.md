@@ -165,6 +165,11 @@ polygon", "draw the cumulative frequency graph").
 - **Table:** a ruled table above the graph in the papers' style (grey rules): the horizontal
   axis title heads the class column; the second column is Frequency or Cumulative frequency
   (0 < *t* ⩽ 40 rows from the lowest boundary).
+- **Table beside the graph:** for a shorter worksheet card, the table can sit to the right of the
+  grid, level with its top, with columns only as wide as their words. June 2019 3H Q3 at
+  1 cm = 5 drops from 121 mm to 62 mm tall and is 163 mm wide, so it suits a half-width A3
+  column but not a three-column layout. Type size and grid scale never change. If the pair is
+  wider than 18 cm the tool says so.
 - **Pupil states:** a blank frequency is no data (empty cell, nothing drawn; a cumulative graph
   needs every frequency); 0 is a value. Each class has two hide flags: **Table** leaves its cell
   for pupils to complete; **Graph** leaves its bar, point or part of the curve for pupils to draw.
@@ -186,6 +191,16 @@ polygon", "draw the cumulative frequency graph").
 - **Differences from the papers:** where a paper's grid runs on past the last number (June 2019
   2H Q11 stops numbering at 80 on a grid to 90), the tool numbers every step to the end. Older
   papers print 1.0, 2.0 on a frequency density axis; the tool prints 1, 2.
+
+### Frequency polygon mistakes and a second polygon
+
+- **Mistakes to spot** (June 2022 3F Q26 and 3H Q5 ask pupils to write down two mistakes):
+  `polygon.plotAt` is `midpoint` (correct), `lower` or `upper` (every point at that class bound),
+  and `polygon.close` joins the last point back to the first. A note names each mistake so the
+  teacher knows it is deliberate.
+- **Two polygons:** `polygon.second` draws a second, dashed polygon from each class's `frequency2`
+  (with its own `graph2` hide flag), and a key beside the graph names both (`polygon.names`). A
+  table shows one set of frequencies, so two polygons need no table.
 
 ## Box plots
 
@@ -265,6 +280,16 @@ labelled grid only.
   the Data and axes cards. + and − beside the graph add or remove the last time.
 - **Examples:** Mock Set 4 3F Q7 (read monthly gas use from a printed graph) and a quarterly
   sales construct task in the style of the papers (every value saved as a hidden answer).
+- **Two series:** `second` draws a dashed second series from each time's `value2` (hidden
+  separately with `show2`) and a key beside the graph names both (`names`).
+- **Hidden labels:** `labelShow: hidden` leaves a time's label for pupils to write; answers
+  copies print it in pink. A blank label is a missing label.
+- **Misleading graphs** (June 2019 3F Q27): a vertical axis that starts above 0 prints without a
+  zig-zag unless `yBreak` is on (the corner is then labelled 0); `join: curve` joins the points with
+  a curve; `bridge` joins across a time with no value, as when a quarter is missing. Notes name
+  each misleading feature.
+- **More examples:** two shops' quarterly sales with a key, and June 2019 3F Q27 (axis from 6,
+  quarter 1 missing, a curve).
 
 ## Line weight (U111)
 
