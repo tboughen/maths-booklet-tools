@@ -315,10 +315,10 @@ and imports the file itself, so the kit loads with the tools that use it and sta
 first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`),
 Statistical charts the second (`src/charts/ChartsPage.tsx`), Probability trees, Frequency trees
 and Factor trees the next three, Plans and elevations the sixth, then Two-way tables, Sample
-space diagrams and Spinners, dice and bags, and then Algebra tiles, Bubble method, Function
-machines and Written methods, and then Angle diagrams, Area and perimeter and Geometry
-figures, and Constructions and loci, Nets of 3D shapes and 3D solids. The other tools move over a few at a time, and each one drops
-its own button and field styles as it does.
+space diagrams and Spinners, dice and bags, then Algebra tiles, Bubble method, Function
+machines and Written methods, then Angle diagrams, Area and perimeter and Geometry figures, and
+then Constructions and loci, Nets of 3D shapes and 3D solids. The other tools move over a few at
+a time, and each one drops its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
   behaviour and its place in its card, so saved work, links and tests are untouched. A whole card
@@ -425,8 +425,11 @@ its own button and field styles as it does.
   are the left column, the list of nets is the right column on its own, and Paper is the third
   group under Shape. In 3D solids the selected object and View are the left column, and Add to
   the drawing and Printing the right. Nets and 3D solids are in view at 1920 × 1080 (they were
-  1,136 and 1,530 px long). A net is a `md-kit-group`. A list with long choices beside a short
+  1,136 and 1,530 px long). A net is a `md-kit-group`, and the point that is selected in
+  Constructions and loci is marked as the choice that is on (`aria-pressed`), where it had its
+  own colours. A list with long choices beside a short
   field takes the whole row with the class `pt-wide` (the grid of a net's paper, the kind of
-  construction, the condition of a shaded region).
+  construction, the condition of a shaded region); Geometry figures and 3D solids used their own
+  `fig-wide` for this and now use `pt-wide` too.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

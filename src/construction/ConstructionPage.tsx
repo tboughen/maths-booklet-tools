@@ -699,7 +699,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               <h2>Points</h2>
               <div className="cn-list">
                 {ownPoints.map((p) => (
-                  <button key={p.id} type="button" className={`cn-chip ${selected === p.id ? "cn-current" : ""}`} disabled={blocked} onClick={() => setSelected(p.id)}>
+                  <button key={p.id} type="button" className="cn-chip" aria-pressed={selected === p.id} disabled={blocked} onClick={() => setSelected(p.id)}>
                     {pointName(p)} ({p.x}, {p.y}){p.role === "answer" ? " · answer" : ""}
                   </button>
                 ))}

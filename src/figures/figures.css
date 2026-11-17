@@ -71,10 +71,3 @@
   width: auto;
   max-width: 9em;
 }
-.fig-wide {
-  grid-column: 1 / -1;
-}
-.fig-wide select {
-  width: 100%;
-  max-width: none;
-}

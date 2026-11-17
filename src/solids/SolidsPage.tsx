@@ -620,7 +620,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
       fields.push(
         labelled("Length (mm)", mmField("Prism length", s.length, (v) => set((x) => void ((x as typeof s).length = v)), 2, 150), "length"),
         labelled("Runs", choice("Prism direction", s.axis, AXES, AXIS_NAMES, (v) => void set((x) => void ((x as typeof s).axis = v))), "axis"),
-        <label key="section" className="fig-wide">
+        <label key="section" className="pt-wide">
           Cross-section corners (mm, across then up, anticlockwise)
           <DraftField
             label="Cross-section corners"
@@ -642,7 +642,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
       fields.push(
         ...xyz("Apex", s.apex, (v) => set((x) => void ((x as typeof s).apex = v), "move apex")),
         labelled("Cut off (frustum, 0 to 0.9)", mmField("Frustum cut", s.top, (v) => set((x) => void ((x as typeof s).top = v), "frustum"), 0, 0.9), "top"),
-        <label key="base" className="fig-wide">
+        <label key="base" className="pt-wide">
           Base corners (mm, across then back, anticlockwise)
           <DraftField
             label="Base corners"
@@ -968,7 +968,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
             <section className="panel-card pt-panel" aria-label="Selected object">
               <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
               <div className="pt-fields">
-                <label className="fig-wide">
+                <label className="pt-wide">
                   Object
                   <select aria-label="Object to edit" value={current ? keyOf(current.kind, current.id) : ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
                     <option value="">Choose an object</option>

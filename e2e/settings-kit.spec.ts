@@ -328,7 +328,7 @@ const SHARED: [string, string, string, string[], string[], Extra?][] = [
   ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
   ["Geometry figures", "/tools/figures", "Selected object", [], ["Add to the figure"], PRINT],
   // Six cards, four of them lists that grow: 2,025 px long before the kit, and still more than one screen.
-  ["Constructions and loci", "/tools/construction", "Selected point", ["Points", "Lines and marks"], ["Ruler and compass constructions", "Shaded regions", "Drawing"], { longest: 1140 }],
+  ["Constructions and loci", "/tools/construction", "Selected point", ["Points", "Lines and marks"], ["Ruler and compass constructions", "Shaded regions", "Drawing"], { longest: 1200 }],
   ["Nets", "/tools/nets", "Selected face", ["Shape"], ["Nets"], { under: ["Paper"] }],
   ["3D solids", "/tools/solids", "Selected object", ["View"], ["Add to the drawing", "Printing"], { twoLines: [SAVED] }],
 ];
@@ -345,14 +345,15 @@ for (const [tool, path, selected, left, right, { under = [], twoLines = [], long
     const chosenCard = page.locator(`.md-kit .panel-card[aria-label="${selected}"]`);
     const chosen = (await chosenCard.boundingBox())!;
     const first = await chartCard(page, right[0]);
-    for (const name of left) expect((await chartCard(page, name)).x, name).toBe(chosen.x);
+    const leftCards = await Promise.all(left.map((name) => chartCard(page, name)));
+    for (const [i, card] of leftCards.entries()) expect(card.x, left[i]).toBe(chosen.x);
     for (const name of right) expect((await chartCard(page, name)).x, name).toBe(first.x);
-    let foot = chosen.y + chosen.height;
-    for (const name of left) foot = Math.max(foot, (await chartCard(page, name)).y + (await chartCard(page, name)).height);
+    // A card of the third group starts 12 px under the last card of the left column.
+    let foot = Math.max(...[chosen, ...leftCards].map((card) => card.y + card.height));
     for (const name of under) {
       const card = await chartCard(page, name);
       expect(card.x, name).toBe(chosen.x);
-      expect(Math.abs(card.y - (foot + 12)), name).toBeLessThanOrEqual(1);
+      expect(card.y, name).toBe(foot + 12);
       foot = card.y + card.height;
     }
     expect(first.x).toBeGreaterThanOrEqual(chosen.x + chosen.width);
@@ -497,4 +498,27 @@ test("Angle diagrams, Area and perimeter and Geometry figures: short fields keep
   const bold = (await captions.getByRole("checkbox", { name: /Bold/ }).boundingBox())!;
   expect([bold.width, bold.height]).toEqual([16, 16]);
   expect((await captions.locator(".fig-row input:not([type=checkbox])").first().boundingBox())!.width).toBeLessThan(100);
+});
+
+test("Constructions and loci: a line's label shares its row, and the selected point's chip is marked", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/construction");
+  // The word "Label", its field and the Hide tick are one row, as they were before the kit.
+  const row = page.locator(".md-kit .cn-inline").first();
+  const field = (await row.locator("input:not([type=checkbox])").boundingBox())!, whole = (await row.boundingBox())!;
+  expect(whole.height).toBeLessThan(40);
+  expect(field.width).toBeGreaterThanOrEqual(100);
+  expect(field.width).toBeLessThan(whole.width);
+  // The chip of the point that is selected is the choice that is on, in the kit's blue.
+  const chips = page.locator(".md-kit .cn-chip");
+  await expect(chips.first()).toHaveAttribute("aria-pressed", "false");
+  await page.locator(".pt-hit").first().click();
+  await expect(chips.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(chips.nth(1)).toHaveAttribute("aria-pressed", "false");
+  const colours = (chip: number) => chips.nth(chip).evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).borderColor]);
+  expect(await colours(0)).not.toEqual(await colours(1));
+  // A list with long choices has the whole row, so "Perpendicular bisector of a line" is not cut short.
+  const kind = page.getByRole("combobox", { name: "Construction to add", exact: true });
+  const card = await chartCard(page, "Ruler and compass constructions");
+  expect((await kind.boundingBox())!.width).toBeGreaterThan(card.width - 40);
 });

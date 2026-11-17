@@ -48,6 +48,3 @@
   align-items: end;
   font-size: 12px;
 }
-.nets-corner-row input:not([type="checkbox"]) {
-  width: 100%;
-}
