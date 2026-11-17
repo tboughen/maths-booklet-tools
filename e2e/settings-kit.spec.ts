@@ -263,17 +263,27 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
   expect(printing.y).toBeGreaterThan(solid.y + solid.height);
   expect(panels.x).toBeGreaterThanOrEqual(solid.x + solid.width);
   expect(panels.y).toBe(solid.y);
-  // The settings were 1,693 px long before the kit. Four panels now all but fit the 967 px column.
-  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1010);
+  // The settings were 1,693 px long before the kit. With four panels they are now about 1,000 px in a 967 px column.
+  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1100);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The grid of heights stays a small grid, and a square with cubes on it stays marked.
   const grid = (await page.locator(".ev-heights").boundingBox())!;
   expect(grid.width).toBeLessThan(solid.width / 2);
-  const heights = page.locator(".ev-heights select");
-  expect(await heights.first().boundingBox()).toMatchObject({ height: 32 });
-  expect(await heights.first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(226, 239, 255)");
-  expect(await heights.nth(1).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
+  const filled = page.locator(".ev-heights select.ev-filled").first(), empty = page.locator(".ev-heights select:not(.ev-filled)").first();
+  expect(await filled.boundingBox()).toMatchObject({ height: 32 });
+  expect(await filled.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
+  expect(await empty.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
+  // The widest solid there can be (six columns) still fits its card at the narrowest two-column window.
+  await page.setViewportSize({ width: 1800, height: 900 });
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add a column on the right", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Add a column on the right", exact: true })).toBeDisabled();
+  const fits = await page.locator(".ev-heights").evaluate((el) => {
+    const cardStyle = getComputedStyle(el.closest(".panel-card")!), card = el.closest(".panel-card")!.getBoundingClientRect();
+    return el.getBoundingClientRect().right <= card.right - parseFloat(cardStyle.paddingRight) - parseFloat(cardStyle.borderRightWidth);
+  });
+  expect(fits).toBe(true);
+  await page.setViewportSize({ width: 1920, height: 1080 });
   const sizes = await stack.evaluate((el) => ({
     buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
     fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],

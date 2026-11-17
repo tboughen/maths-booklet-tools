@@ -318,7 +318,8 @@ and Factor trees the next three, and Plans and elevations the sixth. The other t
 its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
-  order and its behaviour, so saved work, links and tests are untouched.
+  behaviour and its place in its card, so saved work, links and tests are untouched. A whole card
+  may move when the two columns need it, and the tool's entry below says so.
 - Text is 13 px, with 12 px labels and notes. Buttons, fields and lists are 32 px high
   (`--md-control`), and 44 px for a finger or a window under 768 px wide, like the foot strip.
 - A card's heading keeps the shared 17 px, and fields keep the shared outline (`--field-line`).
@@ -371,8 +372,9 @@ its own button and field styles as it does.
 - **Plans and elevations.** The solid and Printing are the left column and the list of panels is
   the right, so in one column Printing now comes before the long list of panels. The grid of
   heights stays a small grid at the left of its card (`justify-self: start`, because a card is a
-  grid and would stretch it), and a square with cubes on it keeps its blue mark with one more
-  element in its selector than the kit's rule. At 1920 × 1080 the settings were 1,693 px long in a
+  grid and would stretch it), and a square with cubes on it keeps its blue mark (`--md-blue-soft`) with one
+  more class in its selector than the kit's rule. Six columns of heights, the most there can be,
+  fit the card at the narrowest two-column window. At 1920 × 1080 the settings were 1,693 px long in a
   967 px column and are now 997 px with the usual four panels.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

@@ -402,7 +402,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                     .reverse()}
                 </tbody>
               </table>
-              <p className="ev-front">Front</p>
+              <p className="pt-note">Front</p>
               <div className="pt-row">
                 <button type="button" disabled={blocked || rows >= MAX_SIDE} onClick={() => resize(1, 0)}>
                   Add a row at the back
