@@ -145,3 +145,110 @@ test("the search box fills the switcher in Bar modelling, whose own labels stack
   await expect(box).toBeFocused();
   expect((await box.boundingBox())!.width).toBeGreaterThan(800);
 });
+
+// The same finder drops down under the Diagram builder's own search box (Tim's choice, 17 November 2026).
+const listSearch = (page: Page) => page.getByRole("searchbox", { name: "Search tools" });
+const listFinder = (page: Page) => page.getByRole("region", { name: "Every diagram tool" });
+
+test("a click in the Diagram builder's search box drops the same finder down, and its search opens the first tool found", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools");
+  await expect(listFinder(page)).toHaveCount(0);
+  await listSearch(page).click();
+  await expect(listFinder(page)).toBeVisible();
+  // Every tool, in a column for each strand, in the scheme's order, with the favourites line above.
+  await expect(listFinder(page).locator(".tool-switcher-groups").getByRole("link")).toHaveCount(27);
+  await expect(listFinder(page).getByRole("heading", { level: 2 })).toHaveText(["Number and proportion", "Algebra", "Geometry and measure", "Statistics and probability"]);
+  await expect(listFinder(page).locator(".tool-switcher-favourites")).toBeVisible();
+  // It hangs from the search box, inside the window, and has no search box of its own.
+  const box = (await listSearch(page).boundingBox())!, pop = (await listFinder(page).boundingBox())!;
+  expect(pop.y).toBeGreaterThanOrEqual(box.y + box.height);
+  expect(pop.y - (box.y + box.height)).toBeLessThan(12);
+  expect(Math.abs(pop.x - box.x)).toBeLessThan(4);
+  expect(pop.x + pop.width).toBeLessThanOrEqual(1920);
+  await expect(listFinder(page).getByRole("searchbox")).toHaveCount(0);
+  // One search works the finder and the pictures behind it, and the page says the count once.
+  await page.keyboard.type("pythag");
+  await expect(listFinder(page).locator(".tool-switcher-groups").getByRole("link")).toHaveCount(1);
+  await expect(listFinder(page).locator("a.is-first")).toContainText("Triangles");
+  await expect(page.locator(".overview-tool-card")).toHaveCount(1);
+  await expect(page.getByRole("status")).toHaveText("1 tool found");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/tools\/triangle$/);
+  // Going back finds the finder closed.
+  await page.goBack();
+  await expect(shown(page).getByRole("heading", { level: 1, name: "Diagram builder" })).toBeVisible();
+  await expect(listFinder(page)).toHaveCount(0);
+});
+
+test("the finder on the Diagram builder works with the keyboard alone and closes without losing the search", async ({ page }) => {
+  await page.goto("/tools");
+  // The / key goes to the search box, and that opens the finder.
+  await page.keyboard.press("/");
+  await expect(listSearch(page)).toBeFocused();
+  await expect(listFinder(page)).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator(":focus")).toHaveText("Bar modelling");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator(":focus")).toHaveText("Ratio tables");
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowUp");
+  await expect(listSearch(page)).toBeFocused();
+  // Escape closes the finder and keeps the search, so the pictures behind are the ones it found.
+  await page.keyboard.type("angles");
+  await expect(listFinder(page).locator(".tool-switcher-groups").getByRole("link")).toHaveCount(5);
+  await page.keyboard.press("Escape");
+  await expect(listFinder(page)).toHaveCount(0);
+  await expect(listSearch(page)).toBeFocused();
+  await expect(listSearch(page)).toHaveValue("angles");
+  await expect(page.locator(".overview-tool-card")).toHaveCount(5);
+  // More typing filters the pictures and leaves the finder closed. The down arrow brings it back.
+  await page.keyboard.type(" on");
+  await expect(listFinder(page)).toHaveCount(0);
+  await page.keyboard.press("ArrowDown");
+  await expect(listFinder(page)).toBeVisible();
+  // Tabbing out of it, or a click elsewhere, closes it. The pictures can then be clicked.
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await expect(listFinder(page)).toHaveCount(0);
+  await listSearch(page).click();
+  await expect(listFinder(page)).toBeVisible();
+  await page.mouse.click(1200, 700);
+  await expect(listFinder(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await expect(page.locator(".overview-tool-card")).toHaveCount(27);
+  // A tool chosen with the mouse opens, and the finder is closed on the way back.
+  await listSearch(page).click();
+  await listFinder(page).getByRole("link", { name: "Venn diagrams" }).click();
+  await expect(page).toHaveURL(/\/tools\/venn$/);
+  await page.goBack();
+  await expect(listFinder(page)).toHaveCount(0);
+});
+
+test("the finder on the Diagram builder has no serious accessibility violations and fits a phone", async ({ page }) => {
+  const found: string[] = [];
+  const scan = async (state: string) => {
+    const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    found.push(...violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${state}: ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`));
+  };
+  await page.goto("/tools");
+  await listSearch(page).click();
+  await expect(listFinder(page)).toBeVisible();
+  await scan("open");
+  await page.keyboard.type("pythag");
+  await expect(listFinder(page).locator("a.is-first")).toHaveCount(1);
+  await scan("searching");
+  await page.keyboard.press("Escape");
+  for (const width of [375, 320]) {
+    await page.setViewportSize({ width, height: 720 });
+    await listSearch(page).click();
+    const pop = (await listFinder(page).boundingBox())!;
+    expect(pop.x, `${width}`).toBeGreaterThanOrEqual(0);
+    expect(pop.x + pop.width, `${width}`).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}`).toBe(true);
+    await scan(`open at ${width} px`);
+    await page.keyboard.press("Escape");
+  }
+  expect(found).toEqual([]);
+});
