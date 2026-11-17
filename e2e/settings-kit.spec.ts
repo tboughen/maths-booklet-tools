@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "./release-fixtures";
 
-// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools and Plans and elevations.
+// The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools, Plans and elevations
+// and the other statistics tools.
 const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
@@ -308,4 +309,63 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
   );
   expect(small).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+// The statistics tools that share the tree tools' settings classes. Each: its address, the card a click on the
+// diagram fills, and the cards on the right.
+const STATS: [string, string, string[]][] = [
+  ["/tools/two-way-table", "Selected cell", ["Totals", "Layout"]],
+  ["/tools/sample-space", "Selected cell", ["Fill the cells", "Layout"]],
+  ["/tools/probability-objects", "Selected label", ["Objects", "Layout"]],
+];
+
+test("Two-way tables, Sample space diagrams and Spinners, dice and bags use the kit, with everything in view", async ({ page }) => {
+  for (const [path, selected, right] of STATS) {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(path);
+    const stack = page.locator(".inspector-stack.md-kit");
+    await expect(stack).toBeVisible();
+    await page.locator(".pt-hit").first().click();
+    const chosen = (await page.locator(`.md-kit .panel-card[aria-label="${selected}"]`).boundingBox())!;
+    const layout = await chartCard(page, "Layout");
+    for (const name of right) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(layout.x);
+    expect(layout.x, path).toBeGreaterThanOrEqual(chosen.x + chosen.width);
+    expect(Math.abs(layout.width - chosen.width), path).toBeLessThanOrEqual(1);
+    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
+    expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
+    const sizes = await stack.evaluate((el) => ({
+      buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height))],
+      fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
+      ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
+      faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
+      cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
+    }));
+    expect(sizes, path).toEqual({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+
+    // One column in a smaller window, in the same order.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const first = (await page.locator(`.md-kit .panel-card[aria-label="${selected}"]`).boundingBox())!;
+    let below = first.y;
+    for (const name of right) {
+      const next = await chartCard(page, name);
+      expect(next.x, `${path} ${name}`).toBe(first.x);
+      expect(next.y, `${path} ${name}`).toBeGreaterThan(below);
+      below = next.y;
+    }
+
+    // Finger-sized controls on a phone, and the page is no wider than the window.
+    await page.setViewportSize({ width: 375, height: 800 });
+    const small = await stack.evaluate((el) =>
+      [...el.querySelectorAll<HTMLElement>(".panel-card :is(button, select, input:not([type=checkbox]), label:has(> input[type=checkbox]))")]
+        .filter((c) => c.getBoundingClientRect().height > 0 && c.getBoundingClientRect().height < 44)
+        .map((c) => c.textContent || c.getAttribute("aria-label")),
+    );
+    expect(small, path).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
+  }
+  // An object is a named group, like a data set in Statistical charts.
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/probability-objects");
+  const group = page.locator(".md-kit fieldset.md-kit-group").first();
+  expect(await group.evaluate((el) => [getComputedStyle(el).display, getComputedStyle(el).rowGap])).toEqual(["grid", "8px"]);
 });

@@ -49,6 +49,7 @@ import {
 import { LINK_PREFIX, parseTwoWayTableLink, twoWayTableLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:two-way-table:v1");
 type Doc = Envelope["document"];
@@ -525,8 +526,10 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               </button>
             </div>
           </Panel>
-          <aside className="inspector-stack" aria-label="Two-way table settings">
+          <aside className="inspector-stack md-kit" aria-label="Two-way table settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected cell">
               <h2>{selectedCell && selected ? `Cell: ${rowName(selected.row)}, ${columnName(selected.column)}` : "Selected cell"}</h2>
               {selectedCell && selected ? (
@@ -563,6 +566,8 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Totals</h2>
               <label className="pt-hide">
@@ -626,6 +631,8 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (
