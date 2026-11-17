@@ -368,6 +368,6 @@ describe("a table beside the graph", () => {
     e.document.grouped!.tableBeside = true;
     e.document.grouped!.xAxis.stepMm = 10;
     const t = groupedLayout(e).table!;
-    expect(renderSvg(e, "pupil")).toContain(`<rect x="${n(t.x)}" y="${n(t.y)}"`);
+    expect(renderSvg(e)).toContain(`<rect x="${n(t.x)}" y="${n(t.y)}"`);
   });
 });
