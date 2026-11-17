@@ -310,10 +310,12 @@ const extent = (ps: Piece[], size: number): { up: number; down: number } => ps.r
 const pieceExtent = (p: Piece, size: number): { up: number; down: number } => {
   if (p.kind === "run") return { up: p.sup ? size * 0.9 : p.arrow ? size * 1.05 : p.dot ? size * 1.0 : size * 0.72, down: p.under ? size * 0.25 : size * 0.2 };
   if (p.kind === "column") return { up: size * 1.45, down: size * 0.95 };
-  if (p.kind === "fraction") return { up: size * 0.54 + extent(p.num, size).up, down: denDrop(p.den, size) - size * 0.32 + extent(p.den, size).down };
+  if (p.kind === "fraction") return { up: size * 0.32 + numLift(p.num, size) + extent(p.num, size).up, down: denDrop(p.den, size) - size * 0.32 + extent(p.den, size).down };
   const body = extent(p.body, size);
   return { up: body.up + size * 0.22, down: body.down + size * 0.04 };
 };
+/** How far a numerator's baseline sits above the fraction bar: higher when a letter or bracket in it hangs below the line (p, q, y, brackets, commas). */
+const numLift = (num: Piece[], size: number) => size * (num.some(q => q.kind === "run" && /[gjpqyQ()[\],;]/.test(q.text) && !q.sup) ? 0.34 : 0.22);
 /** How far a denominator's baseline sits below the fraction bar: lower when a power or root in it reaches up. */
 const denDrop = (den: Piece[], size: number) => Math.max(size * 0.95, extent(den, size).up + size * 0.2);
 /** A root's radical sign: wider for a taller root, so its long stroke keeps the same slope. */
@@ -366,7 +368,7 @@ function row(ps: Piece[], x: number, y: number, size: number, fill: string): str
         + row(p.body, head + size * 0.04, y, size, fill);
     } else {
       const bar = y - size * 0.32, nw = rowWidth(p.num, size), dw = rowWidth(p.den, size);
-      out += row(p.num, cursor + (w - nw) / 2, bar - size * 0.22, size, fill)
+      out += row(p.num, cursor + (w - nw) / 2, bar - numLift(p.num, size), size, fill)
         + `<path d="M${n(cursor + size * 0.1)} ${n(bar)}H${n(cursor + w - size * 0.1)}" stroke="${fill}" stroke-width="0.9" fill="none"/>`
         + row(p.den, cursor + (w - dw) / 2, bar + denDrop(p.den, size), size, fill);
     }
