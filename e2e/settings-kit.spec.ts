@@ -315,7 +315,7 @@ const SHARED: [string, string, string, string[], string[]][] = [
   ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
-  ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps", "Layout"]],
+  ["Bubble method", "/tools/bubble-method", "Selected item", ["Layout"], ["Steps"]],
   ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
   ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
 ];
@@ -368,12 +368,64 @@ test("Spinners, dice and bags: each object is a named group, and Layout stays in
   expect(layout.y + layout.height).toBeLessThan(1080);
 });
 
-test("Bubble method: a tick sits beside its words, not above them", async ({ page }) => {
+test("Bubble method: a tick sits beside its words, and Layout stays in view however many steps there are", async ({ page }) => {
   // The tool once shared a class prefix with Bar modelling, whose label rule stacked every tick over its words.
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/bubble-method");
   const label = page.locator(".md-kit .panel-card label").filter({ hasText: "This working has a deliberate error" });
+  expect(await label.evaluate((el) => getComputedStyle(el).flexDirection)).toBe("row");
   const tick = (await label.locator("input").boundingBox())!, whole = (await label.boundingBox())!;
-  expect(whole.height).toBeLessThan(24);
-  expect(tick.x).toBe(whole.x);
+  expect(Math.abs(tick.y + tick.height / 2 - (whole.y + whole.height / 2))).toBeLessThanOrEqual(1);
+  // The list of steps is the right column on its own, so it can grow without pushing another card away.
+  const add = page.getByRole("button", { name: "Add a step", exact: true });
+  while (await add.isEnabled()) await add.click();
+  await expect(page.locator(".md-kit fieldset.md-kit-group")).toHaveCount(8);
+  const layout = await chartCard(page, "Layout"), steps = await chartCard(page, "Steps");
+  expect(layout.x).toBeLessThan(steps.x);
+  expect(layout.y + layout.height).toBeLessThan(1080);
+});
+
+test("Algebra tiles, Function machines and Written methods still fit one screen when they are full", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const fits = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight);
+  const fill = async (name: string) => {
+    const add = page.getByRole("button", { name, exact: true }).first();
+    while (await add.isEnabled()) await add.click();
+  };
+
+  await page.goto("/tools/algebra-tiles");
+  await fill("Add a term");
+  await page.locator(".pt-hit").first().click();
+  expect(await fits()).toBe(true);
+
+  await page.goto("/tools/function-machine");
+  await fill("Add a different machine");
+  await fill("Add a box");
+  await page.locator(".pt-hit").first().click();
+  expect(await page.locator(".md-kit fieldset.md-kit-group").count()).toBe(3);
+  expect(await fits()).toBe(true);
+
+  // Twelve digits, the most a row holds, give the longest list of small digits: one each and one to carry into.
+  await page.goto("/tools/written-method");
+  await page.locator(".pt-hit").first().click();
+  const digits = page.locator("#wm-selected-value");
+  await digits.fill("123456789.123");
+  await digits.press("Enter");
+  await page.locator(".pt-hit").first().click();
+  const small = page.locator(".md-kit .wm-mark input:not([type=checkbox])");
+  await expect(small).toHaveCount(13);
+  expect(await fits()).toBe(true);
+  // A small digit keeps its narrow field, and a field on its own row has the row to itself.
+  expect((await small.first().boundingBox())!.width).toBeLessThan(60);
+  const card = (await page.locator('.md-kit .panel-card[aria-label="Selected row"]').boundingBox())!;
+  expect((await digits.boundingBox())!.width).toBeGreaterThan(card.width - 40);
+
+  // Lists side by side share the card evenly and never overlap, at the narrowest two-column window too.
+  await page.setViewportSize({ width: 1800, height: 1000 });
+  const square = (await page.getByRole("combobox", { name: "Square size", exact: true }).boundingBox())!;
+  const lines = (await page.getByRole("combobox", { name: "Lines", exact: true }).boundingBox())!;
+  const layout = await chartCard(page, "Layout");
+  expect(square.x + square.width).toBeLessThanOrEqual(lines.x);
+  expect(lines.x + lines.width).toBeLessThanOrEqual(layout.x + layout.width);
+  expect(Math.abs(square.width - lines.width)).toBeLessThanOrEqual(1);
 });

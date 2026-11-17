@@ -386,10 +386,16 @@ its own button and field styles as it does.
   three are in view at 1920 × 1080 (Spinners, dice and bags was 1,168 px long in a 967 px column).
 - **Algebra tiles, Bubble method, Function machines and Written methods.** The selected item is
   the left column (with Tiles in Algebra tiles and Machines in Function machines), and what is
-  worked out and the layout are the right. All four are in view at 1920 × 1080 (Algebra tiles was
-  1,111 px long and Written methods 1,182 px in a 967 px column). A step, a machine and the small
-  digits of a number are each a `md-kit-group`. Bubble method's own classes now start `bub-`: they
-  started `bm-`, which is Bar modelling's prefix, and Bar modelling's label rule stacked every tick
-  above its words.
+  worked out and the layout are the right. In Bubble method the list of steps is the right column
+  on its own and Layout sits under the selected item, as in Spinners, dice and bags: eight steps
+  are longer than the screen, and Layout stays in view. The other three are in view at
+  1920 × 1080 even when they are full (16 terms, three machines of five boxes, twelve digits);
+  Algebra tiles was 1,111 px long and Written methods 1,182 px in a 967 px column. A step, a
+  machine and the small digits of a number are each a `md-kit-group`. On the kit the two columns
+  of `.pt-fields` are equal (`minmax(0, 1fr)`), so two lists side by side never overlap; in
+  Written methods a field on its own takes the whole row and a small digit keeps its narrow field.
+  Bubble method's own classes now start `bub-`: they started `bm-`, which is Bar modelling's
+  prefix, so Bar modelling's rules stacked every tick above its words and made the Show hidden
+  answers switch differ from every other tool's.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

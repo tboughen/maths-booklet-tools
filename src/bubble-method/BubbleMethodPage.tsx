@@ -597,37 +597,6 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                 </button>
               </div>
             </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Steps</h2>
-              <p className="pt-note">Each step is a pair of bubbles and the line they lead to. Nothing is worked out for you.</p>
-              {d.steps.map((s, i) => (
-                <fieldset key={i} className="md-kit-group">
-                  <legend>Step {i + 1}</legend>
-                  <div className="pt-row">
-                    <button type="button" disabled={blocked || d.steps.length >= MAX_STEPS} onClick={() => commit(() => addStep(e, i), "add step")}>
-                      Add a step after it
-                    </button>
-                    <button
-                      type="button"
-                      disabled={blocked}
-                      onClick={() => {
-                        if (commit(() => removeStep(e, i), "remove step")) setSelected(null);
-                      }}
-                    >
-                      Remove step {i + 1}
-                    </button>
-                  </div>
-                  {s.left.op.text === "" && s.right.op.text === "" && <p className="pt-note">Both bubbles are empty for pupils.</p>}
-                </fieldset>
-              ))}
-              <div className="pt-row">
-                <button type="button" disabled={blocked || d.steps.length >= MAX_STEPS} onClick={() => commit(() => addStep(e), "add step")}>
-                  Add a step
-                </button>
-              </div>
-            </section>
             <section className="panel-card pt-panel">
               <h2>Layout</h2>
               <div className="pt-fields">
@@ -658,6 +627,37 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                   your browser blocks copying.
                 </p>
               </details>
+            </section>
+            </div>
+            <div>
+            <section className="panel-card pt-panel">
+              <h2>Steps</h2>
+              <p className="pt-note">Each step is a pair of bubbles and the line they lead to. Nothing is worked out for you.</p>
+              {d.steps.map((s, i) => (
+                <fieldset key={i} className="md-kit-group">
+                  <legend>Step {i + 1}</legend>
+                  <div className="pt-row">
+                    <button type="button" disabled={blocked || d.steps.length >= MAX_STEPS} onClick={() => commit(() => addStep(e, i), "add step")}>
+                      Add a step after it
+                    </button>
+                    <button
+                      type="button"
+                      disabled={blocked}
+                      onClick={() => {
+                        if (commit(() => removeStep(e, i), "remove step")) setSelected(null);
+                      }}
+                    >
+                      Remove step {i + 1}
+                    </button>
+                  </div>
+                  {s.left.op.text === "" && s.right.op.text === "" && <p className="pt-note">Both bubbles are empty for pupils.</p>}
+                </fieldset>
+              ))}
+              <div className="pt-row">
+                <button type="button" disabled={blocked || d.steps.length >= MAX_STEPS} onClick={() => commit(() => addStep(e), "add step")}>
+                  Add a step
+                </button>
+              </div>
             </section>
             </div>
             </div>

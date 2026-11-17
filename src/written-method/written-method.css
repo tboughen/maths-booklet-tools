@@ -8,7 +8,8 @@
   gap: 2px;
   font-size: 0.85rem;
 }
-.wm-mark input:not([type="checkbox"]) {
+/* A small digit is one or two characters, so its field stays narrow on the settings kit too. */
+.wm-editor .wm-mark input:not([type="checkbox"]) {
   width: 3.5em;
 }
 .wm-cross {
@@ -20,6 +21,7 @@
 .wm-editor .pt-hit {
   border-radius: 3px;
 }
-.wm-editor .pt-fields select {
-  min-width: 11em;
+/* A field on its own takes the whole row, so the longest method name and twelve digits both fit. */
+.wm-editor .pt-fields > label:only-child {
+  grid-column: 1 / -1;
 }
