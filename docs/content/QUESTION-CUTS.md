@@ -67,9 +67,10 @@ cylinders, number-machine boxes, hatching, recurring-decimal dots) and letters w
 mask. The cutter now removes a letter only when its centre is outside the crop or inside a mask, and a
 path only when a strip or mask wholly covers it; the crop clip hides the rest.
 
-A sweep rendered every bank cut and compared it with the cutter's render of the original page: 58
-cuts in 50 questions had lost ink. They were re-cut at the same paths and sizes. Fourteen were
-whole questions, so their `revision` changed:
+A sweep rendered every bank cut and compared it with the cutter's render of the original page, both
+for missing ink and for marks drawn clearly lighter (an outline lost from a grey shape): 63 cuts in 54
+questions had lost ink. They were re-cut at the same paths and sizes. Fifteen were whole questions,
+so their `revision` changed:
 
 ```
 python3 -I scripts/bank/apply-cut-fix.py <bank-checkout> <question id> ...
