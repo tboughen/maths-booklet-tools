@@ -88,7 +88,12 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
 - Typed maths prints properly: `-` is a minus sign (a hyphen between letters stays), `*` a times
   sign, `<=` and `>=` their signs, `{a/b}` a stacked fraction, `^2` or `^{12}` a power, `_{a}` an
   underlined vector, `vec{AB}` an arrow over AB, `[3;-2]` a column vector and `dot{4}` a
-  recurring-decimal dot over the 4. A fraction may hold a square or cube: `{4/x^{2}}`.
+  recurring-decimal dot over the 4. A fraction's top and bottom are laid out as maths, so powers
+  there are raised and smaller as elsewhere: `{3 * 10^{-5}/x^{n+1}}` (a fraction inside a fraction
+  stays inline). `sqrt{...}` is a square root drawn as a radical with an overbar over its contents,
+  and `√` before a number, a letter run, a braced group or a bracketed group does the same:
+  `√36`, `3√x`, `√(x^2 + 4)` (the overbar replaces the brackets), `√({1.1/1.05^{3}})` (the root
+  grows to cover the fraction, and its line takes a fraction's room).
 - Guidance is words with light typesetting: `^2` and `-` as in the working, and `{1/2}` a stacked
   fraction (Tim, 17 Nov 2026: fractions in guidance are maths, never words such as "minus a half").
   A line holding a fraction takes extra room above and below.
