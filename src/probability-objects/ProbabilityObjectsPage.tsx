@@ -692,6 +692,40 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                 </button>
               </div>
             </section>
+            <section className="panel-card pt-panel">
+              <h2>Layout</h2>
+              <div className="pt-fields">
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      commit(() => {
+                        const n = structuredClone(e);
+                        setLines(n.document, ev.target.value as LineWeight);
+                        return n;
+                      }, "change lines")
+                    }
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  Up to {MAX_OBJECTS} objects side by side: spinners with {MIN_SECTORS} to {MAX_SECTORS} sectors, dice and bags of up to {MAX_COUNTERS} counters. An
+                  empty label is a blank for pupils; a hidden label is a saved answer that only the answers copy prints. Nothing is ever worked out for you.
+                </p>
+                <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
+              </details>
+            </section>
             </div>
             <div>
             <section className="panel-card pt-panel">
@@ -857,40 +891,6 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                   </button>
                 ))}
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
-              <div className="pt-fields">
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    disabled={blocked}
-                    onChange={(ev) =>
-                      commit(() => {
-                        const n = structuredClone(e);
-                        setLines(n.document, ev.target.value as LineWeight);
-                        return n;
-                      }, "change lines")
-                    }
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Up to {MAX_OBJECTS} objects side by side: spinners with {MIN_SECTORS} to {MAX_SECTORS} sectors, dice and bags of up to {MAX_COUNTERS} counters. An
-                  empty label is a blank for pupils; a hidden label is a saved answer that only the answers copy prints. Nothing is ever worked out for you.
-                </p>
-                <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
-              </details>
             </section>
             </div>
             </div>

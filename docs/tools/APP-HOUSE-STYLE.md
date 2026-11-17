@@ -378,8 +378,10 @@ its own button and field styles as it does.
   fit the card at the narrowest two-column window. At 1920 × 1080 the settings were 1,693 px long in a
   967 px column and are now 997 px with the usual four panels.
 - **Two-way tables, Sample space diagrams, and Spinners, dice and bags.** The selected cell or
-  label is the left column, and what is done with the diagram and its layout are the right. All
+  label is the left column, and what is done with the diagram and its layout are the right. In
+  Spinners, dice and bags the list of objects is the right column on its own and Layout sits under
+  the selected label, so Layout stays in view however many objects there are (a whole card moved,
+  as in Plans and elevations). Each object is a `md-kit-group`. With their starting diagrams all
   three are in view at 1920 × 1080 (Spinners, dice and bags was 1,168 px long in a 967 px column).
-  Each object in Spinners, dice and bags is a `md-kit-group`.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
