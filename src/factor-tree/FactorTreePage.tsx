@@ -581,7 +581,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
             <section className="panel-card pt-panel">
               <h2>Trees and answer lines</h2>
               {d.trees.map((t, i) => (
-                <fieldset key={t.id} className="ft-tree">
+                <fieldset key={t.id} className="md-kit-group">
                   <legend>{d.trees.length > 1 ? `Tree ${i + 1}` : "The tree"}</legend>
                   <label className="pt-hide">
                     <input

@@ -175,11 +175,12 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-// The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the right.
-const TREES: [string, string, string[], string[]][] = [
-  ["/tools/probability-tree", "Selected branch", ["Branches"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"]],
-  ["/tools/frequency-tree", "Selected group", ["Total and groups"], ["Work out counts", "Questions", "Layout"]],
-  ["/tools/factor-tree", "Selected number", ["Trees and answer lines"], ["Complete the trees", "Layout"]],
+// The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
+// right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
+const TREES: [string, string, string[], string[], number][] = [
+  ["/tools/probability-tree", "Selected branch", ["Branches"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 3],
+  ["/tools/frequency-tree", "Selected group", ["Total and groups"], ["Work out counts", "Questions", "Layout"], 2],
+  ["/tools/factor-tree", "Selected number", ["Trees and answer lines"], ["Complete the trees", "Layout"], 3],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -210,16 +211,22 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     expect(sizes.heading, path).toContain("600 17px");
   }
-  // A Hide tick sits under its field with a gap, in a list that is not cut off.
-  const field = (await page.goto("/tools/frequency-tree"), page.locator(".pt-branch input:not([type=checkbox])").first());
-  const tick = page.locator(".pt-branch input[type=checkbox]").first();
-  const fieldBox = (await field.boundingBox())!;
-  expect((await tick.boundingBox())!.y).toBeGreaterThanOrEqual(fieldBox.y + fieldBox.height + 3);
-  expect(await page.locator(".pt-branches").first().evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  // A Hide tick's label sits 3 px under its field, in a list that is not cut off and scrolls only from 460 px.
+  await page.goto("/tools/frequency-tree");
+  const row = page.locator(".pt-branch > span:has(> .pt-hide)").first();
+  const fieldBox = (await row.locator("input:not([type=checkbox])").boundingBox())!;
+  expect((await row.locator(".pt-hide").boundingBox())!.y).toBe(fieldBox.y + fieldBox.height + 3);
+  const list = page.locator(".pt-branches").first();
+  expect(await list.evaluate((el) => [el.scrollHeight <= el.clientHeight, getComputedStyle(el).maxHeight])).toEqual([true, "460px"]);
+  // Two paragraphs of help do not run together.
+  await page.getByText("Editing and printing help", { exact: true }).click();
+  const help = await page.locator(".md-kit details[open] > p").evaluateAll((all) => all.map((p) => p.getBoundingClientRect()).map((r) => [r.top, r.bottom]));
+  expect(help.length).toBeGreaterThanOrEqual(2);
+  expect(help[1][0] - help[0][1]).toBe(6);
 });
 
 test("the tree tools keep one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {
-  for (const [path, , left, right] of TREES) {
+  for (const [path, , left, right, upright] of TREES) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
     const first = await chartCard(page, left[0]), layout = await chartCard(page, "Layout");
@@ -229,8 +236,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     await page.setViewportSize({ width: 1080, height: 1920 });
     const lefts = new Set<number>();
     for (const name of [...left, ...right]) lefts.add(Math.round((await chartCard(page, name)).x));
-    // The browser balances the columns, and a long card is never split, so a tool with few cards may use two.
-    expect(lefts.size, path).toBeGreaterThanOrEqual(2);
+    expect(lefts.size, path).toBe(upright);
 
     await page.setViewportSize({ width: 375, height: 800 });
     const small = await page.locator(".inspector-stack.md-kit").evaluate((el) =>
@@ -240,7 +246,8 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     );
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
-    expect(await page.locator(".pt-branches").evaluateAll((all) => all.every((el) => el.scrollHeight <= el.clientHeight)), path).toBe(true);
+    const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
+    expect(lists, path).toEqual(path === "/tools/factor-tree" ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });

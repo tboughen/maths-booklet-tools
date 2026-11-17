@@ -332,6 +332,10 @@ its own button and field styles as it does.
 - A list starts its words where a text field does (4 px of its own padding, because a list has an
   inset already). Beside a label that takes two lines, a field keeps its height and sits level with
   its neighbour.
+- A button that is off is grey on the page colour at full strength, never faded as well.
+- A named group inside a card (one tree of several, one data set) is a `fieldset` with the class
+  `md-kit-group`: a thin outline, its name in the outline, and the same 8 px gap as a card.
+- Paragraphs in a help block that opens (`details`) are 6 px apart.
 - A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
 - In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
   own width, so three short buttons take one line and not three.
@@ -354,14 +358,15 @@ its own button and field styles as it does.
 - **The tree tools.** The left column is what is on the tree (the selected branch, group or
   number, then the list of them). The right column is what is done with it (fill or work out,
   questions, layout). A Hide tick sits under its field with a 3 px gap. The list of branches
-  scrolls inside its card from 460 px, but never on a phone, where it is as long as it needs to
-  be. With something selected, the settings at 1920 × 1080 were 1,597 px (Probability trees),
+  scrolls inside its card from 460 px, but not in a window under 768 px wide, where it is as long
+  as it needs to be. With something selected, the settings at 1920 × 1080 were 1,597 px (Probability trees),
   1,531 px (Frequency trees) and 1,157 px (Factor trees) long in a 967 px column. All three
   are now in view.
 - **The shared `pt-` classes.** Seventeen tools use the settings classes in
   `src/probability-tree/probability-tree.css` (`pt-panel`, `pt-row`, `pt-fields` and the rest), so
   its old button and field rules stay until the last of them is on the kit. The kit loads later and
-  wins every tie. Two lines in the kit undo what the old rules would add (a row's own padding, a
-  faded button that is off). Remove those two lines and the old `.pt-panel` rules together.
+  wins every tie. The two old rules the kit cannot simply outweigh (a row's own padding, a faded
+  button that is off) are written `:where(:not(.md-kit *))`, so they stand down in a tool on the
+  kit and the kit itself knows nothing of `pt-`. A tool that moves over needs no change there.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

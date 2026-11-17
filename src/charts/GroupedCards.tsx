@@ -51,7 +51,7 @@ export function GroupedCards({
       return x.includes("axis step") || x.includes("steps on the");
     });
   const axisFields = (name: "Horizontal" | "Vertical", a: PaperAxis, set: (s: GroupedSettings) => PaperAxis) => (
-    <fieldset className="ch-fieldset">
+    <fieldset className="md-kit-group">
       <legend>{name === "Vertical" ? `Vertical axis (${yName[kind]})` : "Horizontal axis"}</legend>
       <div className="ch-fields">
         {(["min", "max", "step"] as const).map((f) => (

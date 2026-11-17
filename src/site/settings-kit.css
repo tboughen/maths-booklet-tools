@@ -10,6 +10,8 @@
 .md-kit :is(.site-panel, .panel-card) h2 { margin: 0; color: #213c59; font: 600 17px/1.3 var(--md-font); }
 .md-kit :is(.site-panel, .panel-card) h3 { margin: 4px 0 0; color: var(--md-ink-2); font: 600 var(--md-text-sm)/1.3 var(--md-font); }
 .md-kit :is(.site-panel, .panel-card) p { margin: 0; color: var(--md-ink-2); font-size: var(--md-text-xs); line-height: 1.4; }
+/* Paragraphs in a help block that opens have no card gap between them, so they bring their own. */
+.md-kit :is(.site-panel, .panel-card) :where(details) > p { margin-top: 6px; }
 /* What went wrong is never a quiet note. */
 .md-kit :is(.site-panel, .panel-card) p[role="alert"] { color: var(--md-red); font-size: var(--md-text-sm); font-weight: 500; }
 /* Beside a label that takes two lines, a field keeps its height and sits level with its neighbour. */
@@ -19,7 +21,7 @@
 .md-kit :is(.site-panel, .panel-card) :is(button, select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { box-sizing: border-box; min-height: var(--md-control); max-width: 100%; border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
 .md-kit :is(.site-panel, .panel-card) button { padding: 4px 10px; border: 1px solid var(--md-line-strong); font-weight: 500; cursor: pointer; }
 .md-kit :is(.site-panel, .panel-card) button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
-.md-kit :is(.site-panel, .panel-card) button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); cursor: default; }
+.md-kit :is(.site-panel, .panel-card) button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); opacity: 1; cursor: default; }
 /* The choice that is on, in a group of choices. It keeps its mark while the buttons are off. */
 .md-kit :is(.site-panel, .panel-card) button[aria-pressed="true"] { border-color: var(--md-blue); background: var(--md-blue-soft); }
 .md-kit :is(.site-panel, .panel-card) :is(select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); }
@@ -29,11 +31,9 @@
 .md-kit :is(.site-panel, .panel-card) :is(select, input:where(:not([type="checkbox"], [type="radio"], [type="file"]))):where(:not(table *)) { width: 100%; }
 .md-kit :is(.site-panel, .panel-card) :is(input, select)[aria-invalid="true"] { border-color: var(--md-red); box-shadow: 0 0 0 1px var(--md-red); }
 .md-kit :is(.site-panel, .panel-card) input:is([type="checkbox"], [type="radio"]) { flex: none; width: 16px; height: 16px; min-height: 0; margin: 0; accent-color: var(--md-blue); }
-/* Tools that share the tree tools' `pt-` classes: on the kit a row needs no padding of its own and
-   a button that is off is not also faded. Both lines go when every such tool is on the kit and
-   probability-tree.css loses its settings rules. */
-.md-kit .pt-row { padding: 0; }
-.md-kit .pt-panel button:disabled { opacity: 1; cursor: default; }
+/* A named group inside a card (one tree of several, one data set): a `fieldset` with this class. */
+.md-kit .md-kit-group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; margin: 0; padding: 4px 10px 10px; border: 1px solid var(--md-line); border-radius: var(--md-radius); }
+.md-kit .md-kit-group legend { padding: 0 4px; color: var(--md-ink-2); font-weight: 600; }
 /* Fingers and small windows get full-height controls, as in the strip under the diagram. */
 @media (max-width: 767px), (pointer: coarse) {
   .md-kit { --md-control: 44px; }

@@ -150,7 +150,7 @@ function ScatterCards({
       return x.includes("axis step") || x.includes("steps on the") || x.includes("Small grid squares");
     });
   const axisFields = (key: "xAxis" | "yAxis", name: string) => (
-    <fieldset className="ch-fieldset">
+    <fieldset className="md-kit-group">
       <legend>{name} axis</legend>
       <div className="ch-fields">
         {(["min", "max", "step"] as const).map((f) => (
