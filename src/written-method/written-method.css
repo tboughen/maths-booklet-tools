@@ -21,7 +21,3 @@
 .wm-editor .pt-hit {
   border-radius: 3px;
 }
-/* A field on its own takes the whole row, so the longest method name and twelve digits both fit. */
-.wm-editor .pt-fields > label:only-child {
-  grid-column: 1 / -1;
-}

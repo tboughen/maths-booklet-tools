@@ -67,6 +67,7 @@ import { handleUndoKeys, objectKeyCommand, redoLabel as redoStepName, stepName, 
 import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./angles.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:angles:v1");
 type View = "pupil" | "answer";
@@ -692,8 +693,10 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Angle diagram settings">
+          <aside className="inspector-stack md-kit" aria-label="Angle diagram settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected angle">
               <h2>{current ? `Angle: ${slotName(current)}` : "Selected angle"}</h2>
               <div className="pt-fields">
@@ -812,6 +815,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Figure">
               <h2>Figure</h2>
               <div className="pt-fields">
@@ -1210,6 +1215,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </div>
               </details>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Printing</h2>
               <div className="pt-fields">
@@ -1286,6 +1293,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

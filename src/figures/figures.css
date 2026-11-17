@@ -63,6 +63,14 @@
 .fig-row select {
   max-width: 9em;
 }
+/* One more class than the settings kit's field rule, so short fields keep their places in a row. */
+.md-kit .pt-row.fig-row input:not([type="checkbox"]) {
+  width: 6em;
+}
+.md-kit .pt-row.fig-row select {
+  width: auto;
+  max-width: 9em;
+}
 .fig-wide {
   grid-column: 1 / -1;
 }

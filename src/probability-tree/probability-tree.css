@@ -126,9 +126,13 @@
   gap: 8px;
   font-size: 13px;
 }
-/* On the settings kit the two columns are equal, whatever the longest choice in a list. */
+/* On the settings kit the two columns are equal, whatever the longest choice in a list,
+   and a field on its own takes the whole row. */
 .md-kit .pt-fields {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.md-kit .pt-fields > label:only-child {
+  grid-column: 1 / -1;
 }
 .pt-fields label {
   display: grid;

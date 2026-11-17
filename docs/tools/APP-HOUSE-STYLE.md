@@ -316,7 +316,8 @@ first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModel
 Statistical charts the second (`src/charts/ChartsPage.tsx`), Probability trees, Frequency trees
 and Factor trees the next three, Plans and elevations the sixth, then Two-way tables, Sample
 space diagrams and Spinners, dice and bags, and then Algebra tiles, Bubble method, Function
-machines and Written methods. The other tools move over one at a time, and each one drops
+machines and Written methods, and then Angle diagrams, Area and perimeter and Geometry
+figures. The other tools move over a few at a time, and each one drops
 its own button and field styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
@@ -338,7 +339,10 @@ its own button and field styles as it does.
 - A button that is off is grey on the page colour at full strength, never faded as well.
 - A named group inside a card (one tree of several, one data set) is a `fieldset` with the class
   `md-kit-group`: a thin outline, its name in the outline, and the same 8 px gap as a card.
-- Paragraphs in a help block that opens (`details`) are 6 px apart.
+- What a part that opens (`details`) holds is spaced like the rest of a card: rows, tables and
+  buttons 8 px apart, paragraphs 6 px.
+- In the tools that share the `pt-` settings, two fields side by side (`.pt-fields`) share the row
+  evenly, and a field on its own takes the whole row.
 - A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
 - In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
   own width, so three short buttons take one line and not three.
@@ -348,9 +352,13 @@ its own button and field styles as it does.
   settings column is about a third of the window and the cards sit in two fixed columns. The tool
   wraps its cards in `.md-kit-cards` with one `div` for each column. The columns are fixed, not
   balanced, so a card stays where it is when another card opens, closes or grows. Everywhere else
-  the two groups have no box of their own and the cards run in the one order.
+  the two groups have no box of their own and the cards run in the one order. A third `div` sits
+  under the first column: it holds a card that comes last in the settings (Printing) but fits the
+  shorter column, so the cards keep their order wherever there is one column.
 - Beside two columns the diagram's card is about 1,230 px wide at 1920 × 1080. The foot strip
-  under it still keeps to one row: the note shares the row, and a long hint takes two lines.
+  under it still keeps to one row: the note shares the row, and a long hint takes two lines. The
+  message keeps at least 220 px there (280 px elsewhere), which leaves the longest hint, 116
+  characters in Geometry figures, its two lines.
 - At 1920 × 1080 Bar modelling's settings were 3,369 px long in a 967 px column. They are now
   1,065 px, so nearly everything is in view without scrolling.
 - **Statistical charts.** Every chart type has a data card and one or more cards of settings. The
@@ -393,9 +401,21 @@ its own button and field styles as it does.
   Algebra tiles was 1,111 px long and Written methods 1,182 px in a 967 px column. A step, a
   machine and the small digits of a number are each a `md-kit-group`. On the kit the two columns
   of `.pt-fields` are equal (`minmax(0, 1fr)`), so two lists side by side never overlap; in
-  Written methods a field on its own takes the whole row and a small digit keeps its narrow field.
+  Written methods a small digit keeps its narrow field.
   Bubble method's own classes now start `bub-`: they started `bm-`, which is Bar modelling's
   prefix, so Bar modelling's rules stacked every tick above its words and made the Show hidden
   answers switch differ from every other tool's.
+- **Angle diagrams, Area and perimeter and Geometry figures.** The selected angle, label or
+  object is the left column and the figure itself is the right: Figure and Point names; Shape,
+  Hole and shading and Point names; Add to the figure and Shading and captions. Printing is a
+  third group: it stays last in the settings, and on a wide window it sits under the selected
+  card. With their folded parts shut all three are in view at 1920 × 1080 (they were 1,026, 1,072
+  and 1,293 px long in a 967 px column). Area and perimeter's table of corners has five columns
+  and used to run out of its card: it now fills the card, with the numbers 18% of the table
+  each, the side taking what is left (its full name is its tooltip) and "Right angle" on two
+  lines. A short field in a row keeps its place beside its button with one more class than the
+  kit's rule (`.md-kit .pt-row.ang-ray input`). "Print every saved answer on the pupil copy"
+  keeps its name, so in a narrow column it takes two lines; the test names it as the one button
+  that may.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
