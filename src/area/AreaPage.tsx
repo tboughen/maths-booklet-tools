@@ -615,50 +615,6 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
-              <div className="pt-fields">
-                <label>
-                  Text size
-                  <select aria-label="Text size" value={d.fontPt ?? 11} disabled={blocked} onChange={(ev) => patch((n) => void (n.fontPt = Number(ev.target.value)), "change text size")}>
-                    {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
-                      <option key={v} value={v}>
-                        {v} pt
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Lines
-                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight), "change lines")}>
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.grid} onChange={(ev) => patch((n) => void (n.grid = ev.target.checked), "grid")} />
-                Centimetre squares behind the shape (true size, for counting squares)
-              </label>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
-                Print “Diagram NOT accurately drawn”
-              </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  The drawing never has to match the lengths: exam diagrams are not accurately drawn. When the sides of a rectilinear shape cannot
-                  fit together, or the two radii of a sector differ, a teacher note says so. Leave it if the error is deliberate.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
-                  your browser blocks copying, and print at 100% (actual size) so grid squares measure 1 cm.
-                </p>
-              </details>
-            </section>
             </div>
             <div>
             <section className="panel-card pt-panel" aria-label="Shape">
@@ -764,7 +720,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                             </td>
                           ))}
                           <td>
-                            <select aria-label={`Side ${k + 1}`} value={s.arcs[k]} disabled={blocked} onChange={(ev) => setPolygon((p) => void (p.arcs[k] = ev.target.value as ArcKind), "change side")}>
+                            <select aria-label={`Side ${k + 1}`} title={ARC_NAMES[s.arcs[k]]} value={s.arcs[k]} disabled={blocked} onChange={(ev) => setPolygon((p) => void (p.arcs[k] = ev.target.value as ArcKind), "change side")}>
                               {ARCS.map((a) => (
                                 <option key={a} value={a}>
                                   {ARC_NAMES[a]}
@@ -940,6 +896,52 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                     </label>
                   ))}
                 </div>
+              </details>
+            </section>
+            </div>
+            <div>
+            <section className="panel-card pt-panel">
+              <h2>Printing</h2>
+              <div className="pt-fields">
+                <label>
+                  Text size
+                  <select aria-label="Text size" value={d.fontPt ?? 11} disabled={blocked} onChange={(ev) => patch((n) => void (n.fontPt = Number(ev.target.value)), "change text size")}>
+                    {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                      <option key={v} value={v}>
+                        {v} pt
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Lines
+                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight), "change lines")}>
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={d.grid} onChange={(ev) => patch((n) => void (n.grid = ev.target.checked), "grid")} />
+                Centimetre squares behind the shape (true size, for counting squares)
+              </label>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
+                Print “Diagram NOT accurately drawn”
+              </label>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  The drawing never has to match the lengths: exam diagrams are not accurately drawn. When the sides of a rectilinear shape cannot
+                  fit together, or the two radii of a sector differ, a teacher note says so. Leave it if the error is deliberate.
+                </p>
+                <p className="pt-note">
+                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
+                  your browser blocks copying, and print at 100% (actual size) so grid squares measure 1 cm.
+                </p>
               </details>
             </section>
             </div>

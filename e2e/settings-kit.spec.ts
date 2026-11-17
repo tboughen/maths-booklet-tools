@@ -98,19 +98,18 @@ test("an upright monitor sets the same cards in three columns under the diagram"
 // Statistical charts: its cards are `.panel-card`, and every chart type has a data card and settings cards.
 const chartCard = async (page: Page, heading: string) =>
   (await page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: heading, exact: true }) }).boundingBox())!;
-// What every tool on the kit shares: the heights of its buttons and fields, the buttons whose words take a second
-// line (few, and named by the test that expects one), the width of its ticks, buttons that are off and faded as well
-// (there should be none), cards with something cut off, and the font of a card's heading.
-const kitSizes = (page: Page) =>
-  page.locator(".inspector-stack.md-kit").evaluate((el) => ({
-    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].map((b) => b.getBoundingClientRect().height).filter((h) => h <= 33))],
-    wrapped: [...el.querySelectorAll<HTMLElement>(".panel-card button")].filter((b) => b.getBoundingClientRect().height > 33).map((b) => b.textContent),
+// What every tool on the kit shares: the heights of its buttons and fields, the width of its ticks, buttons that are
+// off and faded as well (there should be none), cards with something cut off, and the font of a card's heading.
+// A test names the few buttons whose words need a second line in a narrow column; every other button is measured.
+const kitSizes = (page: Page, twoLines: string[] = []) =>
+  page.locator(".inspector-stack.md-kit").evaluate((el, twoLines) => ({
+    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].filter((b) => !twoLines.includes(b.textContent ?? "")).map((b) => b.getBoundingClientRect().height))],
     fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
     ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
     faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
     cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
     heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
-  }));
+  }), twoLines);
 // The controls in the cards that are too small for a finger (there should be none on a phone).
 const tooSmall = (page: Page) =>
   page.locator(".inspector-stack.md-kit").evaluate((el) =>
@@ -221,7 +220,7 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
     const sizes = await kitSizes(page);
-    expect(sizes, path).toMatchObject({ buttons: [32], wrapped: [], fields: [32], ticks: [16], faded: 0, cut: [] });
+    expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     expect(sizes.heading, path).toContain("600 17px");
   }
   // A Hide tick's label sits 3 px under its field, in a list that is not cut off and scrolls only from 460 px.
@@ -294,7 +293,7 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
   expect(fits).toBe(true);
   await page.setViewportSize({ width: 1920, height: 1080 });
   const sizes = await kitSizes(page);
-  expect(sizes).toMatchObject({ buttons: [32], wrapped: [], fields: [32], faded: 0, cut: [] });
+  expect(sizes).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
 
   // One column in a smaller window, in the same order.
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -311,8 +310,10 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
 });
 
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
-// diagram fills, the other cards on the left, the cards on the right and any button whose words need two lines.
-const SHARED: [string, string, string, string[], string[], string[]?][] = [
+// diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
+// settings and sit under the left column (`under`), and a button whose words need two lines in a narrow column.
+const PRINT = { under: ["Printing"], twoLines: ["Print every saved answer on the pupil copy"] };
+const SHARED: [string, string, string, string[], string[], { under: string[]; twoLines: string[] }?][] = [
   ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
   ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
@@ -320,14 +321,14 @@ const SHARED: [string, string, string, string[], string[], string[]?][] = [
   ["Bubble method", "/tools/bubble-method", "Selected item", ["Layout"], ["Steps"]],
   ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
   ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
-  ["Angle diagrams", "/tools/angles", "Selected angle", ["Printing"], ["Figure"], ["Print every saved answer on the pupil copy"]],
-  ["Area and perimeter", "/tools/area", "Selected label", ["Printing"], ["Shape", "Hole and shading"], ["Print every saved answer on the pupil copy"]],
-  ["Geometry figures", "/tools/figures", "Selected object", ["Printing"], ["Add to the figure"], ["Print every saved answer on the pupil copy"]],
+  ["Angle diagrams", "/tools/angles", "Selected angle", [], ["Figure"], PRINT],
+  ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
+  ["Geometry figures", "/tools/figures", "Selected object", [], ["Add to the figure"], PRINT],
 ];
 // What a click on the diagram selects, whatever the tool calls it.
 const HIT = ".pt-hit, .ang-hit, .area-hit, .fig-hit";
 
-for (const [tool, path, selected, left, right, wrapped = []] of SHARED)
+for (const [tool, path, selected, left, right, { under, twoLines } = { under: [], twoLines: [] }] of SHARED)
   test(`${tool} uses the kit, with everything in view`, async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(path);
@@ -339,17 +340,22 @@ for (const [tool, path, selected, left, right, wrapped = []] of SHARED)
     const first = await chartCard(page, right[0]);
     for (const name of left) expect((await chartCard(page, name)).x, name).toBe(chosen.x);
     for (const name of right) expect((await chartCard(page, name)).x, name).toBe(first.x);
+    for (const name of under) {
+      const card = await chartCard(page, name);
+      expect(card.x, name).toBe(chosen.x);
+      expect(card.y, name).toBe(chosen.y + chosen.height + 12);
+    }
     expect(first.x).toBeGreaterThanOrEqual(chosen.x + chosen.width);
     expect(Math.abs(first.width - chosen.width)).toBeLessThanOrEqual(1);
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
-    expect(await kitSizes(page)).toMatchObject({ buttons: [32], wrapped, fields: [32], ticks: [16], faded: 0, cut: [] });
+    expect(await kitSizes(page, twoLines)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
 
     // One column in a smaller window, in the same order.
     await page.setViewportSize({ width: 1440, height: 900 });
     const top = (await chosenCard.boundingBox())!;
     let below = top.y;
-    for (const name of [...left, ...right]) {
+    for (const name of [...left, ...right, ...under]) {
       const next = await chartCard(page, name);
       expect(next.x, name).toBe(top.x);
       expect(next.y, name).toBeGreaterThan(below);
@@ -437,7 +443,7 @@ test("Algebra tiles, Function machines and Written methods still fit one screen 
   expect(Math.abs(square.width - lines.width)).toBeLessThanOrEqual(1);
 });
 
-test("Angle diagrams and Area and perimeter: short fields keep their rows and the table of corners fits its card", async ({ page }) => {
+test("Angle diagrams, Area and perimeter and Geometry figures: short fields keep their rows and the table of corners fits its card", async ({ page }) => {
   // The narrowest window with two columns, so the narrowest card.
   await page.setViewportSize({ width: 1800, height: 1000 });
   await page.goto("/tools/angles");
@@ -458,15 +464,27 @@ test("Angle diagrams and Area and perimeter: short fields keep their rows and th
   await shape.locator("summary").click();
   const table = shape.locator(".area-corner-table");
   await expect(table.locator("thead th")).toHaveCount(5);
-  // All five columns are inside the card, and a number field still shows four digits.
+  // All five columns are inside the card, a number field still shows four characters and the side shows "Straight".
   expect(await shape.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
   const box = (await shape.boundingBox())!, grid = (await table.boundingBox())!;
   expect(grid.x + grid.width).toBeLessThanOrEqual(box.x + box.width);
-  expect((await table.locator("input:not([type=checkbox])").first().boundingBox())!.width).toBeGreaterThanOrEqual(40);
+  expect((await table.locator("input:not([type=checkbox])").first().boundingBox())!.width).toBeGreaterThanOrEqual(41);
   expect((await table.locator("select").first().boundingBox())!.width).toBeGreaterThanOrEqual(80);
+  // What a folded part holds is spaced like the rest of a card: the buttons sit 8 px under the table.
+  const add = (await shape.getByRole("button", { name: "Add a corner", exact: true }).boundingBox())!;
+  expect(Math.round(add.y - (grid.y + grid.height))).toBe(8);
   // A dashed height is one row: two short lists and its Remove button.
   await page.getByRole("button", { name: "Add a dashed height", exact: true }).click();
   const row = shape.locator(".area-row").first();
   const tops = await row.locator("select, button").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().bottom)));
   expect(new Set(tops).size).toBe(1);
+
+  // A caption's Bold tick stays a tick beside the caption's short fields.
+  await page.goto("/tools/figures");
+  const captions = page.locator(".md-kit .panel-card").filter({ hasText: "Shading and captions" });
+  await captions.locator("summary").click();
+  await captions.getByRole("button", { name: "Add a caption", exact: true }).click();
+  const bold = (await captions.getByRole("checkbox", { name: /Bold/ }).boundingBox())!;
+  expect([bold.width, bold.height]).toEqual([16, 16]);
+  expect((await captions.locator(".fig-row input:not([type=checkbox])").first().boundingBox())!.width).toBeLessThan(100);
 });

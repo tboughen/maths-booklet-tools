@@ -959,48 +959,6 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
-              <div className="pt-fields">
-                <label>
-                  Text size
-                  <select aria-label="Text size" value={d.fontPt ?? 11} disabled={blocked} onChange={(ev) => patch((n) => void (n.fontPt = Number(ev.target.value)), "change text size")}>
-                    {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
-                      <option key={v} value={v}>
-                        {v} pt
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Lines
-                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight), "change lines")}>
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
-                Print “Diagram NOT accurately drawn”
-              </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Points can sit anywhere, on a circle, on a line through two points, where two lines cross, along a tangent, where two tangents meet, or at the foot of a perpendicular. Points built on others
-                  move with them, so a tangent stays a tangent when you drag the point it touches.
-                </p>
-                <p className="pt-note">
-                  The drawing never has to match the sizes you print: exam diagrams are not accurately drawn. A teacher note says when a right-angle mark is far from 90° or two points share a name.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the figure; preview zoom never changes it. Download PNG (600 ppi) or PDF if your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
             </div>
             <div>
             <section className="panel-card pt-panel" aria-label="Add to the figure">
@@ -1123,6 +1081,50 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
                     Add a caption
                   </button>
                 </div>
+              </details>
+            </section>
+            </div>
+            <div>
+            <section className="panel-card pt-panel">
+              <h2>Printing</h2>
+              <div className="pt-fields">
+                <label>
+                  Text size
+                  <select aria-label="Text size" value={d.fontPt ?? 11} disabled={blocked} onChange={(ev) => patch((n) => void (n.fontPt = Number(ev.target.value)), "change text size")}>
+                    {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                      <option key={v} value={v}>
+                        {v} pt
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Lines
+                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight), "change lines")}>
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
+                Print “Diagram NOT accurately drawn”
+              </label>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  Points can sit anywhere, on a circle, on a line through two points, where two lines cross, along a tangent, where two tangents meet, or at the foot of a perpendicular. Points built on others
+                  move with them, so a tangent stays a tangent when you drag the point it touches.
+                </p>
+                <p className="pt-note">
+                  The drawing never has to match the sizes you print: exam diagrams are not accurately drawn. A teacher note says when a right-angle mark is far from 90° or two points share a name.
+                </p>
+                <p className="pt-note">
+                  Copy for Word carries the physical size shown above the figure; preview zoom never changes it. Download PNG (600 ppi) or PDF if your browser blocks copying, and print at 100% (actual size).
+                </p>
               </details>
             </section>
             </div>

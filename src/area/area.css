@@ -25,11 +25,14 @@
 .area-row {
   align-items: end;
 }
-/* One more class than the settings kit's field rule, so a short field keeps its place in its row. */
-.pt-panel .pt-row.area-row input {
-  width: 6em;
+/* One more class than the settings kit's field rule, so the two short lists of a dashed height stay
+   on one row with its Remove button. */
+.md-kit .pt-row.area-row select {
+  width: auto;
 }
-/* Five columns fit the narrowest settings card (255 px): the numbers keep four digits, the side takes what is left. */
+/* Five columns fit the narrowest settings card (255 px). The numbers take 18% of the table each
+   (four characters at the narrowest, five at 1920 px wide) and the side takes
+   what is left, which always shows "Straight" whole. */
 .area-corner-table {
   width: 100%;
   table-layout: fixed;
@@ -51,7 +54,7 @@
 }
 .area-corner-table :is(th, td):nth-child(2),
 .area-corner-table :is(th, td):nth-child(3) {
-  width: 44px;
+  width: 18%;
 }
 .area-corner-table th:last-child {
   width: 36px;
