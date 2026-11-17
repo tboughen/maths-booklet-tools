@@ -33,6 +33,7 @@
   align-items: center;
   gap: 6px;
 }
-.cn-scale {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+/* The three parts of a scale ("1 cm represents 5 km") read as one line. */
+.md-kit .pt-fields.cn-scale {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }

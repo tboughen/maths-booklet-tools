@@ -311,9 +311,12 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
 
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
-// settings and sit under the left column (`under`), and a button whose words need two lines in a narrow column.
-const PRINT = { under: ["Printing"], twoLines: ["Print every saved answer on the pupil copy"] };
-const SHARED: [string, string, string, string[], string[], { under: string[]; twoLines: string[] }?][] = [
+// settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or
+// settings too long for one screen whatever is done (`longest`, the most they may be).
+type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
+const SAVED = "Print every saved answer on the pupil copy";
+const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
+const SHARED: [string, string, string, string[], string[], Extra?][] = [
   ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
   ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
@@ -324,12 +327,16 @@ const SHARED: [string, string, string, string[], string[], { under: string[]; tw
   ["Angle diagrams", "/tools/angles", "Selected angle", [], ["Figure"], PRINT],
   ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
   ["Geometry figures", "/tools/figures", "Selected object", [], ["Add to the figure"], PRINT],
+  // Six cards, four of them lists that grow: 2,025 px long before the kit, and still more than one screen.
+  ["Constructions and loci", "/tools/construction", "Selected point", ["Points", "Lines and marks"], ["Ruler and compass constructions", "Shaded regions", "Drawing"], { longest: 1140 }],
+  ["Nets", "/tools/nets", "Selected face", ["Shape"], ["Nets"], { under: ["Paper"] }],
+  ["3D solids", "/tools/solids", "Selected object", ["View"], ["Add to the drawing", "Printing"], { twoLines: [SAVED] }],
 ];
 // What a click on the diagram selects, whatever the tool calls it.
-const HIT = ".pt-hit, .ang-hit, .area-hit, .fig-hit";
+const HIT = ".pt-hit, .ang-hit, .area-hit, .fig-hit, .nets-face";
 
-for (const [tool, path, selected, left, right, { under, twoLines } = { under: [], twoLines: [] }] of SHARED)
-  test(`${tool} uses the kit, with everything in view`, async ({ page }) => {
+for (const [tool, path, selected, left, right, { under = [], twoLines = [], longest = 0 } = {}] of SHARED)
+  test(`${tool} uses the kit${longest ? "" : ", with everything in view"}`, async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(path);
     const stack = page.locator(".inspector-stack.md-kit");
@@ -340,14 +347,17 @@ for (const [tool, path, selected, left, right, { under, twoLines } = { under: []
     const first = await chartCard(page, right[0]);
     for (const name of left) expect((await chartCard(page, name)).x, name).toBe(chosen.x);
     for (const name of right) expect((await chartCard(page, name)).x, name).toBe(first.x);
+    let foot = chosen.y + chosen.height;
+    for (const name of left) foot = Math.max(foot, (await chartCard(page, name)).y + (await chartCard(page, name)).height);
     for (const name of under) {
       const card = await chartCard(page, name);
       expect(card.x, name).toBe(chosen.x);
-      expect(card.y, name).toBe(chosen.y + chosen.height + 12);
+      expect(Math.abs(card.y - (foot + 12)), name).toBeLessThanOrEqual(1);
+      foot = card.y + card.height;
     }
     expect(first.x).toBeGreaterThanOrEqual(chosen.x + chosen.width);
     expect(Math.abs(first.width - chosen.width)).toBeLessThanOrEqual(1);
-    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+    expect(await stack.evaluate((el, longest) => el.scrollHeight <= Math.max(el.clientHeight, longest), longest)).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
     expect(await kitSizes(page, twoLines)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
 

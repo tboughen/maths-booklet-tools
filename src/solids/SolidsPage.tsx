@@ -61,6 +61,7 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "../area/area.css";
 import "../figures/figures.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:solids:v1");
 type View = "pupil" | "answer";
@@ -960,8 +961,10 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="3D solid settings">
+          <aside className="inspector-stack md-kit" aria-label="3D solid settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected object">
               <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
               <div className="pt-fields">
@@ -1018,6 +1021,8 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 Dash the hidden edges (leave them out when unticked)
               </label>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Add to the drawing">
               <h2>Add to the drawing</h2>
               <div className="pt-fields">
@@ -1095,6 +1100,8 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

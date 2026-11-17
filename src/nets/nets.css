@@ -36,12 +36,6 @@
   stroke: #2b6cb040;
   stroke-width: 0.15;
 }
-.nets-net {
-  border: 1px solid var(--line, #c9d3dd);
-  border-radius: 6px;
-  margin: 0 0 8px;
-  padding: 6px 10px;
-}
 .nets-corners {
   display: grid;
   gap: 6px;
