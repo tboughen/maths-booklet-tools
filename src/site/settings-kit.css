@@ -31,4 +31,7 @@
   .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) { grid-template-columns: minmax(0, 1fr) clamp(600px, 33vw, 700px); }
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  /* The diagram's card is narrower beside two columns, and the strip under it still keeps to one
+     row: the note shares the row, and a long hint takes two lines. */
+  .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) .editor-foot-note { flex-basis: 0; }
 }

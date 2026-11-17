@@ -168,9 +168,10 @@ const tall = (page: Page) =>
     const box = (s: string) => shown.querySelector(s)!.getBoundingClientRect();
     const card = box(".editor-card"), stage = box(".editor-card > .editor-stage"), foot = box(".editor-card > .editor-foot"), bar = box(".editor-toolbar");
     const settings = shown.querySelector(".inspector-stack")!, area = settings.getBoundingClientRect(), workspace = shown.querySelector(".workspace")!;
-    // In two tools the cards sit inside groups that have no box of their own. The jump back to
-    // the diagram is out of sight until the keyboard reaches it.
-    const cards = [...settings.querySelectorAll(":scope > *, :scope > :is(.graph-control-group, .ratio-settings) > *")].filter((el) => el.getClientRects().length && !el.matches(".editor-diagram-link"));
+    // In some tools the cards sit inside groups that have no box of their own (the settings kit
+    // has two, one inside the other). The jump back to the diagram is out of sight until the
+    // keyboard reaches it.
+    const cards = [...settings.querySelectorAll(":scope > *, :scope > :is(.graph-control-group, .ratio-settings) > *, :scope > .md-kit-cards > * > *")].filter((el) => el.getClientRects().length && !el.matches(".editor-diagram-link"));
     return {
       page: [document.documentElement.scrollWidth, document.documentElement.scrollHeight],
       card: { top: card.top, bottom: card.bottom, width: card.width, height: card.height },

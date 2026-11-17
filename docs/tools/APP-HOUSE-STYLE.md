@@ -311,6 +311,8 @@ other tools move over one at a time, and each one drops its own button and field
   wraps its cards in `.md-kit-cards` with one `div` for each column. The columns are fixed, not
   balanced, so a card stays where it is when another card opens, closes or grows. Everywhere else
   the two groups have no box of their own and the cards run in the one order.
+- Beside two columns the diagram's card is about 1,230 px wide at 1920 × 1080. The foot strip
+  under it still keeps to one row: the note shares the row, and a long hint takes two lines.
 - At 1920 × 1080 Bar modelling's settings were 3,369 px long in a 967 px column. They are now
   1,065 px, so nearly everything is in view without scrolling.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
