@@ -8782,6 +8782,9 @@
                     "down",
                     "none"
                   ]
+                },
+                "hidden": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -8965,6 +8968,9 @@
               "normal",
               "bold"
             ]
+          },
+          "answerOnly": {
+            "type": "boolean"
           }
         },
         "required": [

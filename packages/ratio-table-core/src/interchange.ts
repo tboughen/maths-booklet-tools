@@ -79,9 +79,14 @@ type RatioSpec = z.infer<typeof ratioSpecSchema>;
 type SpecRow = NonNullable<RatioSpec["rows"]>[number];
 const compactError = (message: string) =>
   new RatioError("invalid_ratio_table", message);
-/** A compact heading: "x →", "y ↑", "y ↓" or plain text; a single letter prints italic. */
+/**
+ * A compact heading: "x →", "y ↑", "y ↓" or plain text; a single letter prints italic. In square
+ * brackets ("[x →]") it is hidden: blank on the pupil copy, answer colour on the answers copy.
+ */
 export function compactHeading(value: string): RatioDocument["headings"][number] {
-  const v = value.trim(),
+  const trimmed = value.trim(),
+    hidden = /^\[.*\]$/.test(trimmed),
+    v = hidden ? trimmed.slice(1, -1).trim() : trimmed,
     end = v.slice(-1),
     direction = end === "→" ? "right" : end === "↑" ? "up" : end === "↓" ? "down" : "none";
   const text = headingPowers((direction === "none" ? v : v.slice(0, -1)).trim());
@@ -89,6 +94,7 @@ export function compactHeading(value: string): RatioDocument["headings"][number]
     text,
     italic: letterHeading(text),
     direction,
+    ...(hidden ? { hidden: true } : {}),
   });
 }
 /** A compact cell: "3", "-1/2", "2 1/2", "" (empty), "_" (answer line), "[3]" or "[3]_" (hidden answer). */
@@ -191,6 +197,7 @@ export function createRatioTable(input: unknown): RatioEnvelope {
     showArrows: spec.showArrows ?? true,
     showOperations: spec.showOperations ?? true,
     ...(spec.lines === "bold" ? { lines: "bold" as const } : {}),
+    ...(spec.answerOnly ? { answerOnly: true as const } : {}),
   });
 }
 export function emptyRatioTable(): RatioEnvelope {
@@ -250,6 +257,9 @@ export const ratioOperationSchema = z.discriminatedUnion("op", [
     .strict(),
   z
     .object({ op: z.literal("set_lines"), lines: z.enum(LINE_WEIGHTS) })
+    .strict(),
+  z
+    .object({ op: z.literal("set_answer_only"), answerOnly: z.boolean() })
     .strict(),
   z
     .object({
@@ -369,6 +379,10 @@ export function applyRatioOperations(
       case "set_lines":
         if (op.lines === "bold") document.lines = "bold";
         else delete document.lines;
+        break;
+      case "set_answer_only":
+        if (op.answerOnly) document.answerOnly = true;
+        else delete document.answerOnly;
         break;
       case "set_annotation_visibility": {
         if (op.mode !== undefined) document.mode = op.mode;
@@ -558,7 +572,13 @@ export function describeRatio(envelope: RatioEnvelope, view: "pupil" | "answer" 
         `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "hidden" ? (view === "answer" ? `hidden answer ${c.value}` : c.line ? "answer line" : "empty") : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
     )
     .join("; ");
-  return `Ratio table, headings ${d.headings.map((h) => spokenHeading(h.text) + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
+  // An answers-only table is blank paper on the pupil copy, so that copy says only that.
+  if (d.answerOnly && view === "pupil") return "Blank space for a ratio table that prints on the answers copy only.";
+  const heading = (h: RatioDocument["headings"][number]) =>
+    h.hidden && view === "pupil"
+      ? "blank"
+      : `${h.hidden ? "hidden heading " : ""}${spokenHeading(h.text)}${h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →"}`;
+  return `${d.answerOnly ? "Answers copy only. " : ""}Ratio table, headings ${d.headings.map(heading).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
 }
 export function encodeRatio(envelope: RatioEnvelope): string {
   return toBase64Url(canonicalRatio(envelope));

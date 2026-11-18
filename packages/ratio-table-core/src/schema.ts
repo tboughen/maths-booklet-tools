@@ -49,6 +49,14 @@ export const headingSchema = z
       .regex(HEADING_PATTERN, "Use letters, digits, spaces, brackets, _ / % £ ° -, or a power such as x^2 or 1/x^2."),
     italic: z.boolean(),
     direction: z.enum(["right", "up", "down", "none"]),
+    /**
+     * A hidden heading (faded tables, booklet rule N8): blank on the pupil copy, with no arrow, and
+     * printed with its arrow in the answer colour on the answers copy. Only true is saved.
+     */
+    hidden: z
+      .boolean()
+      .transform((v) => (v ? (true as const) : undefined))
+      .optional(),
   })
   .strict();
 /** Typed powers become the saved form: "x²" is "x^2", "x³" is "x^3". */
@@ -93,6 +101,15 @@ export const documentSchema = z
       .enum(LINE_WEIGHTS)
       .transform((v) => (v === "bold" ? v : undefined))
       .optional(),
+    /**
+     * An answers-only table (faded tables, booklet rule N8): the pupil copy keeps the table's space
+     * as blank paper, with no cross, headings, cells or arrows; the answers copy prints the whole
+     * table in the answer colour. Only true is saved.
+     */
+    answerOnly: z
+      .boolean()
+      .transform((v) => (v ? (true as const) : undefined))
+      .optional(),
   })
   .strict();
 export type RatioDocument = z.infer<typeof documentSchema>;
@@ -127,17 +144,19 @@ export const ratioSpecSchema = z
     showArrows: z.boolean().optional(),
     showOperations: z.boolean().optional(),
     lines: z.enum(LINE_WEIGHTS).optional(),
+    /** The whole table prints on the answers copy only; the pupil copy keeps its space blank. */
+    answerOnly: z.boolean().optional(),
     /**
      * Compact form, for booklets and worksheets with many tables. Use instead of headings, rows
      * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↑"; a gradient is always y ↑, with -4 for a line going down);
-     * units such as "Time (min) ↑" widen the column; a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
+     * units such as "Time (min) ↑" widen the column; a single letter prints italic; "[x →]" is a hidden heading, blank on the pupil copy and printed in the answer colour on the answers copy. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
      * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
      * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"
      * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy; "left: × 2" or
      * "right: [÷ 2]" prints it on one side only (two columns). Any step turns on
      * the curved arrows unless mode says otherwise.
      */
-    columns: z.array(z.string().min(1).max(HEADING_MAX + 2)).min(1).max(3).optional(),
+    columns: z.array(z.string().min(1).max(HEADING_MAX + 4)).min(1).max(3).optional(),
     table: z.array(z.array(z.string().max(40)).min(1).max(3)).min(1).max(6).optional(),
     steps: z.array(z.string().max(40)).max(5).optional(),
   })

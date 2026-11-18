@@ -319,9 +319,14 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
       centre = left + m.cellWidth / 2 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
-    body += headingMarkup(heading, textX, top + m.headHeight / 2);
+    let markup = headingMarkup(heading, textX, top + m.headHeight / 2);
     if (heading.direction !== "none")
-      body += arrow(textX + width / 2 + 22, top + m.headHeight / 2, heading.direction);
+      markup += arrow(textX + width / 2 + 22, top + m.headHeight / 2, heading.direction);
+    // A hidden heading is blank on the pupil copy (no text, no arrow) and prints in the answer
+    // colour on the answers copy. The column keeps the same width either way.
+    if (!heading.hidden) body += markup;
+    else if (view === "answer")
+      body += `<g class="ratio-hidden-heading" stroke="${RATIO_ANSWER_COLOUR}">${markup.replaceAll(INK, RATIO_ANSWER_COLOUR)}</g>`;
   });
   document.rows.forEach((row, i) =>
     row.cells.forEach((cell, column) => {
@@ -360,5 +365,10 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
         }
       }
     }
-  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Ratio table"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width="${m.width}" height="${m.height}" fill="white"/><g font-family="STIX Two Text" fill="none" stroke="#202020">${body.replaceAll("<text ", '<text stroke="none" ')}</g></svg>`, document.lines);
+  // An answers-only table: the pupil copy is blank paper of exactly the same size; the answers
+  // copy prints the whole table (cross, headings, cells and arrows) in the answer colour.
+  const answerOnly = document.answerOnly === true,
+    ink = answerOnly ? RATIO_ANSWER_COLOUR : INK;
+  if (answerOnly) body = view === "answer" ? body.replaceAll(INK, RATIO_ANSWER_COLOUR) : "";
+  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Ratio table"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width="${m.width}" height="${m.height}" fill="white"/>${body ? `<g${answerOnly ? ' class="ratio-answer-only"' : ""} font-family="STIX Two Text" fill="none" stroke="${ink}">${body.replaceAll("<text ", '<text stroke="none" ')}</g>` : ""}</svg>`, document.lines);
 }

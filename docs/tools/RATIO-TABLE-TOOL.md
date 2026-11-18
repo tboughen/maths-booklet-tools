@@ -83,6 +83,30 @@ and the unused side takes no room. A hidden step leaves pupils a 13 mm answer li
 size, room to write the sign and factor (Tim, A7 marking, 16 November 2026). Rows are numbered
 `row-1`, `row-2` for revisions.
 
+### Faded tables: hidden headings and answers-only tables (17 Nov 2026)
+
+Booklet lessons fade the ratio table from cycle to cycle (booklet rule N8, Tim, 17 November
+2026): first the full empty table, then only the cross with pupils writing the headings, then
+no table at all. Two settings print those steps, and both keep the table's exact size in both
+copies:
+
+- **Hidden heading** (`hidden: true` on a heading; compact `"[x →]"`, the whole heading with
+  its arrow in square brackets). The pupil copy prints neither the heading nor its arrow; the
+  cross and every cell stay. The answers copy prints the heading and its arrow in the answer
+  colour. The column keeps the width the heading needs. Editor: **Hidden heading (answers copy
+  only)** under each heading.
+- **Answers-only table** (`answerOnly: true` on the document or the spec; revision
+  `set_answer_only {answerOnly}`). The pupil copy is blank paper of exactly the table's size,
+  with no cross, headings, cells, arrows or operations, so the space stays for pupils to draw
+  their own table. The answers copy prints the whole table in the answer colour. Editor:
+  **Answers copy only** in the table settings; the preview is blank until "Teacher preview: show hidden answers" is on.
+
+Only `true` is ever saved. With a hidden heading, blank (`""`), hidden and answer-line cells
+keep their own meanings. In an answers-only table the pupil sees nothing at all, so its answer
+lines print on the answers copy only. Worked solutions draw the pupil copy, so an answers-only
+table or a hidden heading prints blank there; use them in worksheets and booklets. The answer-leak check treats a hidden heading, and every value of an
+answers-only table, as a hidden answer.
+
 ## Direct editing and controls
 
 A new table, and Reset, open on a small scaffold: 3 → 12 given and 5 → an answer

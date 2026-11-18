@@ -28,8 +28,10 @@ function speakCell(cell: RatioCell, view: "pupil" | "answer"): string {
   }
 }
 
-function speakHeading(heading: RatioDocument["headings"][number]): string {
-  const text = spokenHeading(heading.text);
+function speakHeading(heading: RatioDocument["headings"][number], view: "pupil" | "answer"): string {
+  // A hidden heading is read as pupils see it: blank, without its arrow.
+  if (heading.hidden && view === "pupil") return "blank heading, answer hidden";
+  const text = (heading.hidden ? "hidden heading " : "") + spokenHeading(heading.text);
   switch (heading.direction) {
     case "right": return `${text} (arrow right)`;
     case "up": return `${text} (arrow up)`;
@@ -41,6 +43,7 @@ function speakHeading(heading: RatioDocument["headings"][number]): string {
 
 export function speakRatio(envelope: RatioEnvelope, view: "pupil" | "answer" = "pupil"): string {
   const d = envelope.document;
+  if (d.answerOnly && view === "pupil") return "Blank space: this ratio table prints on the answers copy only.";
   const rows = d.rows.map((row, i) => `Row ${i + 1}: ${row.cells.map((cell) => speakCell(cell, view)).join(", ")}`).join(". ");
   const rowNumber = (id: string) => d.rows.findIndex((row) => row.id === id) + 1;
   const operations = d.mode === "annotated" && d.showOperations
@@ -51,5 +54,5 @@ export function speakRatio(envelope: RatioEnvelope, view: "pupil" | "answer" = "
   const notes = d.mode === "simple"
     ? "Scaling annotations hidden."
     : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.`;
-  return `Ratio table with headings ${d.headings.map(speakHeading).join(" and ")}. ${rows}. ${notes}${operations}`;
+  return `${d.answerOnly ? "Answers copy only. " : ""}Ratio table with headings ${d.headings.map((h) => speakHeading(h, view)).join(" and ")}. ${rows}. ${notes}${operations}`;
 }
