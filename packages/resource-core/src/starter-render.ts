@@ -80,6 +80,9 @@ export function slotContent(template: StarterTemplate, slot: number, icon: Start
   return { box, band, numberTop: box.y + band + S.padTop, numberLine, x: box.x + S.padX, w: box.w - 2 * S.padX, top, height: bottom - top };
 }
 
+/** Leaves out each diagram's own white background, so the grey extension tint shows behind it. */
+export const withoutDiagramBackground = (svg: string) => svg.replace(/(<svg[^>]*\sviewBox="0 0 ([\d.]+) ([\d.]+)"[^>]*>)<rect width="\2" height="\3" fill="white"\/>/g, "$1");
+
 /** Plain line icons on a 24-unit grid, drawn in black so they survive any printer. */
 const ICON_PATHS: Record<Exclude<StarterIcon, "none">, string> = {
   pencil: "M4 20l1-5L16 4l4 4L9 19z M14 6l4 4",
@@ -231,7 +234,7 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
       if (spare < -0.05) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} needs ${n(-spare)} mm more height. Shorten the question or make its diagram smaller; text is never shrunk.` });
       if (card.stage) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} has a stage band ("${card.stage}"), which starters do not print. Remove it.` });
       // On the grey extension column a diagram's own white background would print as a white box.
-      const svg = isExtensionSlot(doc.template, qi) ? body.svg.replace(/(<svg[^>]*\sviewBox="0 0 ([\d.]+) ([\d.]+)"[^>]*>)<rect width="\2" height="\3" fill="white"\/>/g, "$1") : body.svg;
+      const svg = isExtensionSlot(doc.template, qi) ? withoutDiagramBackground(body.svg) : body.svg;
       out.push(at({ h: body.h, svg }, place.x, place.top));
       if (icon !== "none") out.push(iconSvg(icon, place.box.x + place.box.w - S.padX - S.icon + 0.5, place.box.y + place.box.h - S.padBottom - S.icon));
     });
@@ -249,4 +252,18 @@ const safe = (s: string) => s.replace(/[^A-Za-z0-9.-]+/g, "-").replace(/^-+|-+$/
 export function starterFileName(run: StarterRun, view: View = "pupil", starter?: number, ext = "pdf"): string {
   const one = starter ? `_${starter}` : "";
   return `${safe(run.document.title)}_Silent-starters${one}${view === "answers" ? "_Answers" : ""}.${ext}`;
+}
+
+/** The header on its own, 196 × 12 mm, for Word (which places it as a picture above the slot table). */
+export function starterHeaderSvg(run: StarterRun, number: number, issues: StarterIssue[] = []): string {
+  const S = STARTER;
+  const w = S.card.width - 2 * S.margin;
+  const doc = typesetForPrint(run).document;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${S.header}mm" viewBox="${S.margin} ${S.margin} ${w} ${S.header}" font-family="Inter, sans-serif" role="img" aria-label="${esc(`Silent starter ${number} of ${doc.starters.length}${doc.topic ? `: ${doc.topic}` : ""}`)}">${header(doc, number, issues)}</svg>`;
+}
+
+/** A slot's icon on its own, for Word. */
+export function starterIconSvg(icon: Exclude<StarterIcon, "none">): string {
+  const s = STARTER.icon;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${s + 1}mm" height="${s + 1}mm" viewBox="-0.5 -0.5 ${s + 1} ${s + 1}" role="img" aria-label="${icon} icon">${iconSvg(icon, 0, 0).replace('stroke-width="0.45"', 'stroke-width="0.9"')}</svg>`;
 }

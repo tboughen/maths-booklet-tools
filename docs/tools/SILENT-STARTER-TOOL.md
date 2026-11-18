@@ -7,7 +7,8 @@ of question in every starter, and only its numbers or difficulty move a little f
 the next (Tim, 18 November 2026). Design page with mock-ups:
 https://claude.ai/artifact/Fp4FYqJk7zQaxxUEoxS5ZZ
 
-Code: `packages/resource-core/src/starter.ts` (the file format) and `starter-render.ts` (layout).
+Code: `packages/resource-core/src/starter.ts` (the file format), `starter-render.ts` (layout and
+PDF pages) and `starter-docx.ts` (Word).
 
 ## Decisions
 
@@ -53,8 +54,18 @@ answer lines, tables, choices, spaces and any MathsDock diagram).
   tool, for example, can draw a shape at any size while its labels stay at full size.
 - File names: `[title]_Silent-starters.pdf`, `..._Answers.pdf`; one starter adds `_[n]`.
 
+## Word
+
+`writeStarterDocx` writes one A4 portrait page per starter (or one starter with `only`), with two
+copies of the card and a dashed cut line, at the PDF's sizes. The header (title, run tracker, topic,
+logo) is a picture so it prints exactly as on the PDF; each slot is a table cell with exact row
+height, holding the number, instruction and items as editable Word text, native equations for
+stacked fractions, tables and diagram pictures. Icons are small pictures in the slot corner. The
+PDF layout's problems are reported with the Word file. The service helper is `starterDocx` in
+`services/graph-mcp/worksheet-docx.ts`.
+
 ## Still to build
 
-Word output; the page (run grid of slots by starters, cell editor, copy along a row, undo); the
+The page (run grid of slots by starters, cell editor, copy along a row, undo); the
 board view and slides; a connector tool to draft a run; optional AI suggestions for a row's
 numbers. Each is its own small pull request.

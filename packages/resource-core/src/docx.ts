@@ -308,7 +308,8 @@ function paper(item: Extract<Leaf, { type: "paper" }>, w: number, indent: number
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" font-family="Inter" role="img" aria-label="${alt}">${paperSvg(item, ctx.st)}</svg>`;
   return drawing({ svg, widthMm, heightMm }, w, indent, ctx);
 }
-function drawing(drawn: { svg: string; widthMm: number; heightMm: number }, w: number, indent: number, ctx: WordCtx): string {
+/** An SVG as a picture at its printed size (outlined SVG with a PNG fallback), centred in `w`. */
+export function drawing(drawn: { svg: string; widthMm: number; heightMm: number }, w: number, indent: number, ctx: WordCtx): string {
   const id = ctx.pictures.length + 1;
   const png = `rIdImg${id}p`,
     vector = `rIdImg${id}s`;
@@ -335,7 +336,7 @@ const grows = (ctx: WordCtx, ...sources: string[]) => !!ctx.maths && sources.som
 
 type Block = string;
 /** Joins blocks with exact gaps; adjacent tables are always separated by a paragraph. */
-const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
+export const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
 
 function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: WordCtx, lone = false): { grid: number[]; cells: string[] } {
   const grid: number[] = [];
@@ -631,7 +632,8 @@ function leaf(item: Leaf, w: number, indent: number, ctx: WordCtx, extra: number
   }
 }
 
-function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: number): Block[] {
+/** A card's items as Word blocks, `w` wide (silent starters place them in their own slot cells). */
+export function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: number): Block[] {
   const blocks: Block[] = [];
   let part = 0;
   for (let i = 0; i < list.length; i++) {
