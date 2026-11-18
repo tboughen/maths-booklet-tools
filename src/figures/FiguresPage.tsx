@@ -927,7 +927,7 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
             <section className="panel-card pt-panel" aria-label="Selected object">
               <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
               <div className="pt-fields">
-                <label className="fig-wide">
+                <label className="pt-wide">
                   Object
                   <select aria-label="Object to edit" value={current ? keyOf(current.kind, current.id) : ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
                     <option value="">Choose an object</option>
