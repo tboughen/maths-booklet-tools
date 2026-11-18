@@ -537,5 +537,13 @@ styles as it does.
   three states of a cell stay apart (a refused change is red in any of them). The cells of a table row stand on one
   line however many lines their names take, and beside a box of several lines a field keeps
   to the top.
+- **Assessment follow-up.** The page keeps to the shared page margins (its heading starts
+  where every other page's does) and its cards take the width of the window, with Class
+  settings in a 316 px column on the right as in the builders. `md-kit` is on `af-workspace`,
+  so the kit styles what is inside the cards; the page's own buttons (the bar at the top and
+  "Generate class pack") stay a size up, at 38 px. "Generate class pack" follows step 2, the
+  second of the two steps it needs, and "Download class PDF", "Try example" and "Reset and
+  clear data" stay in the bar at the top. A button that is off is plain, not faded. The box
+  that marks are pasted into keeps a font whose columns line up. Test: `e2e/assessment.spec.ts`.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

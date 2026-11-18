@@ -11,6 +11,7 @@ import { assessmentQuestion, generateClass } from "./select";
 import { exportClass } from "./export";
 import { layoutPack } from "./layout";
 import { Preview } from "./Preview";
+import "../site/settings-kit.css";
 import "./assessment.css";
 
 interface TableInputProps { title: string; value: string; onChange: (value: string) => void; onRows: (rows: string[][]) => void; disabled: boolean; headersOptional?: boolean; template?: { download: () => void; disabled: boolean } }
@@ -98,8 +99,8 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
   return <main className="af-page" id={active ? "main-content" : undefined} tabIndex={-1}>
     <PageHeading title="Assessment follow-up" description="Turn question-level assessment results into personalised practice for each pupil." />
     <p className="af-intro">Paste marks only, one student per row. Students will be labelled S001, S002, etc.</p>
-    <div className="af-toolbar"><button className={blob ? undefined : "af-primary"} disabled={busy || !pupils.length || !items.length || !!importError} onClick={() => void generate()}><FileSpreadsheet size={18} />Generate class pack</button><button className={blob ? "af-primary" : undefined} disabled={!blob || busy} onClick={() => blob && downloadBlob(blob, "mathsdock-assessment-follow-up.pdf")}><Download size={18} />Download class PDF</button><button disabled={!catalogue || busy} onClick={example}>Try example</button><button onClick={reset}><RotateCcw size={18} />Reset and clear data</button>{busy && <button onClick={() => { invalidate(); setStatus("Generation cancelled."); }}><X size={18} />Cancel</button>}</div>
-    <div className="af-workspace"><div className="af-main">
+    <div className="af-toolbar"><button className={blob ? "af-primary" : undefined} disabled={!blob || busy} onClick={() => blob && downloadBlob(blob, "mathsdock-assessment-follow-up.pdf")}><Download size={18} />Download class PDF</button><button disabled={!catalogue || busy} onClick={example}>Try example</button><button onClick={reset}><RotateCcw size={18} />Reset and clear data</button></div>
+    <div className="af-workspace md-kit"><div className="af-main">
       <Panel className="af-panel"><h2>1. Choose assessment</h2><label><span className="sr-only">Choose assessment</span><select aria-label="Choose assessment" disabled={!catalogue || busy} value={paper} onChange={e => choosePaper(e.target.value)}><option value="" disabled>Choose an assessment…</option><option value="custom">Custom assessment</option>{(["HPPs", "Mini mocks", "Exam papers", "Mock papers"] as const).flatMap(group => ([settings.tier, settings.tier === "H" ? "F" : "H"] as const).map(tier => <optgroup key={`${group}-${tier}`} label={`${group} — ${tier === "H" ? "Higher" : "Foundation"}`}>{presets.filter(p => p.group === group && p.tier === tier).map(p => <option key={p.id} value={p.id}>{p.name} — {p.marks} marks</option>)}</optgroup>))}</select></label>
         <label className="af-check"><input type="checkbox" checked={partScores} disabled={busy} onChange={e => { setPartScores(e.target.checked); if (paper) choosePaper(paper, e.target.checked); else invalidate(); }} />Separate scores for 1a, 1b, etc.</label>
         <p className="af-help">Untick for whole-question totals.</p>
@@ -123,6 +124,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
       {(loadError || importError || error) && <p className="af-error" role="alert">{loadError || importError || error}</p>}
       {invalidScores > 0 && <p className="af-error" role="alert">{range([invalidScores], "invalid score")} treated as missing. Check import notices.</p>}
       {warnings.length > 0 && <details className="af-notices"><summary>{warnings.length} import notices — check details</summary><ul>{warnings.slice(0, 100).map((warning, i) => <li key={i}>{warning}</li>)}</ul></details>}
+      <div className="af-actions"><button className={blob ? undefined : "af-primary"} disabled={busy || !pupils.length || !items.length || !!importError} onClick={() => void generate()}><FileSpreadsheet size={18} />Generate class pack</button>{busy && <button onClick={() => { invalidate(); setStatus("Generation cancelled."); }}><X size={18} />Cancel</button>}</div>
       <p role="status" aria-live="polite">{status}</p>
       {needsRegeneration && !blob && !busy && <p className="af-import-summary" role="status">Changes made — generate again</p>}
       {blob && plan && <Panel className="af-panel"><h2>3. Class pack</h2><div className="af-pack-summary" aria-label="Class pack summary"><strong>{range([plan.packs.length], "student")}</strong><strong>{range(plan.packs.map(p => p.entries.length), "question")} each</strong><strong>{range(plan.packs.map(p => p.entries.reduce((n, e) => n + e.question.marks, 0)), "mark")} each</strong></div><p className="af-help">{range(pageCounts, "A4 page")} each · {totalPages} pages total · Answers included</p>{emptyPacks > 0 && <p className="af-error" role="alert">{range([emptyPacks], "student")} with no suitable questions. Check Student details.</p>}
