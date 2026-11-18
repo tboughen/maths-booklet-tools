@@ -173,9 +173,10 @@ body { background: #f2f5f8; }
   .site-app:has(> .site-page:not([hidden]) .qb-topics-mode) { height: 100dvh; min-height: 0; }
   .qb-app.qb-topics-mode { height: 100%; overflow: hidden; }
 }
-/* One row with icons needs about 1,055 px. Narrower than that the six links drop their icons, which fits
-   down to about 900 px; below that they fold onto a second line beside the logo. */
-@media (min-width: 621px) and (max-width: 1060px) {
+/* One row of the seven links with their icons needs about 1,185 px. Narrower than that they drop their icons,
+   which fits down to about 1,000 px (so an upright 1,080 px monitor has one row and no sideways scroll); below
+   that they fold onto a second line beside the logo. */
+@media (min-width: 621px) and (max-width: 1200px) {
   .site-brand { align-self: flex-start; min-height: var(--md-bar-height); }
   .site-sections { flex-wrap: wrap; min-width: 0; }
   .site-sections a { padding-inline: 8px; }

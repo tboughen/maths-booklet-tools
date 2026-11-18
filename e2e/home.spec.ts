@@ -1,5 +1,5 @@
 // Home, the start page (docs/tools/APP-HOUSE-STYLE.md): one search box, the work to carry on
-// with, the six pages as a row called Tools, and favourite diagram tools as much smaller cards.
+// with, the seven pages as a row called Tools, and favourite diagram tools as much smaller cards.
 import { test, expect, type Page } from "./release-fixtures";
 
 const home = (page: Page) => page.getByRole("main", { name: "Home", exact: true });
@@ -7,7 +7,7 @@ const search = (page: Page) => home(page).getByRole("searchbox", { name: "Search
 const results = (page: Page) => home(page).getByRole("list", { name: "Search results", exact: true }).getByRole("link");
 const carryOn = (page: Page) => home(page).getByRole("region", { name: /^Carry on/ });
 
-test("a first visit shows the search, six Tools cards in one row and how to add favourites", async ({ page }) => {
+test("a first visit shows the search, seven Tools cards in one row and how to add favourites", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/");
   await expect(home(page).getByRole("heading", { level: 1, name: "What do you need today?", exact: true })).toBeVisible();
@@ -15,7 +15,7 @@ test("a first visit shows the search, six Tools cards in one row and how to add 
   // Nothing has been changed on this device yet, so there is nothing to carry on with.
   await expect(carryOn(page)).toHaveCount(0);
   const tools = home(page).getByRole("region", { name: "Tools", exact: true }).getByRole("link");
-  await expect(tools).toHaveCount(6);
+  await expect(tools).toHaveCount(7);
   const boxes = await tools.evaluateAll((cards) => cards.map((card) => { const b = card.getBoundingClientRect(); return { top: Math.round(b.top), height: Math.round(b.height) }; }));
   expect(new Set(boxes.map((b) => b.top)).size, "one row").toBe(1);
   expect(new Set(boxes.map((b) => b.height)).size, "equal heights").toBe(1);
@@ -23,11 +23,11 @@ test("a first visit shows the search, six Tools cards in one row and how to add 
   expect(await page.evaluate(() => document.documentElement.scrollHeight), "fits a 1920 x 1080 window").toBeLessThanOrEqual(1080);
 });
 
-for (const [width, height, columns] of [[1080, 1920, 3], [600, 900, 2], [390, 844, 1]] as const)
+for (const [width, height, columns] of [[1080, 1920, 4], [600, 900, 2], [390, 844, 1]] as const)
   test(`at ${width} px wide the Tools cards sit ${columns} to a row and nothing spills sideways`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto("/");
-    await expect(home(page).locator(".home-tool")).toHaveCount(6);
+    await expect(home(page).locator(".home-tool")).toHaveCount(7);
     const tops = await home(page).locator(".home-tool").evaluateAll((cards) => cards.map((card) => Math.round(card.getBoundingClientRect().top)));
     expect(tops.filter((top) => top === tops[0])).toHaveLength(columns);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
