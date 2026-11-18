@@ -57,6 +57,7 @@ import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from ".
 import { printPng, downloadImage, copyWord, downloadEditable, downloadBoth } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
+import "../site/settings-kit.css";
 import { downloadName } from "../export/filenames";
 
 
@@ -434,6 +435,22 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   }
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
+  // The help closes the last card: Print size while editing, Region shading while shading.
+  const help = (
+    <details>
+      <summary>Editing and printing help</summary>
+      <p>
+        Use commas, semicolons or new lines between members. Use 1/2 for a
+        stacked fraction. Blank, hidden content, an answer line and zero are
+        different states. No automatic solving.
+      </p>
+      <p>
+        Enter applies; Escape cancels. Save an editable file to keep a
+        portable copy. Copy for Word carries the physical size shown above the
+        diagram. Download PNG (600 ppi) if your browser blocks copying.
+      </p>
+    </details>
+  );
   return (
     <div className="app-shell booklet-editor vn-editor">
       <main
@@ -698,9 +715,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Venn diagram settings">
+          <aside className="inspector-stack md-kit" aria-label="Venn diagram settings">
             <ReturnToDiagram />
-            <section className="panel-card vn-layout-tools">
+            <div className="md-kit-cards">
+            <div>
+            <section className="panel-card">
               <h2>Diagram tools</h2>
               <div className="vn-structure">
                 <div
@@ -791,7 +810,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             </section>
             {/* U20: stacked cards, no tabs. Edit mode shows the diagram and its contents; Shade shows shading. */}
             {mode === "edit" && (
-              <section className="panel-card vn-inspector" aria-labelledby="vn-card-diagram">
+              <section className="panel-card" aria-labelledby="vn-card-diagram">
                 <h2 id="vn-card-diagram">Diagram</h2>
                 <label>
                   Outline
@@ -835,7 +854,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 )}
                 <details>
                   <summary>Labels and definitions</summary>
-                  <p className="vn-note">
+                  <p>
                     Click a label on the diagram or choose it here.
                   </p>
                   {d.labels.slice(0, d.sets + 1).map((l, i) => (
@@ -882,77 +901,19 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                       {panelName(i)} definition: {text || "Add text"}
                     </button>
                   ))}
-                  <p className="vn-note">
+                  <p>
                     Definitions describe your sets; they do not fill or
                     calculate regions. Geometry is schematic.
                   </p>
                 </details>
-                <details>
-                  <summary>Print size</summary>
-                  <label>
-                    Print width
-                    <select
-                      aria-label="Print width"
-                      disabled={blocked}
-                      value={d.widthCm}
-                      onChange={(ev) =>
-                        patch((n) => {
-                          n.widthCm = Number(ev.target.value);
-                        })
-                      }
-                    >
-                      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
-                        <option key={v} value={v}>
-                          {v} cm
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Text size
-                    <select
-                      aria-label="Text size"
-                      value={d.fontPt}
-                      disabled={blocked}
-                      onChange={(ev) =>
-                        patch((n) => {
-                          n.fontPt = Number(ev.target.value);
-                        })
-                      }
-                    >
-                      {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
-                        <option key={v} value={v}>
-                          {v} pt
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Lines
-                    <select
-                      aria-label="Lines"
-                      value={d.lines ?? "normal"}
-                      disabled={blocked}
-                      onChange={(ev) =>
-                        patch((n) => {
-                          setLines(n, ev.target.value as LineWeight);
-                        })
-                      }
-                    >
-                      {LINE_WEIGHTS.map((v) => (
-                        <option key={v} value={v}>
-                          {LINE_WEIGHT_NAMES[v]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </details>
               </section>
             )}
+            </div>
+            <div>
             {mode === "edit" && (
-              <section className="panel-card vn-inspector" aria-labelledby="vn-card-contents">
+              <section className="panel-card" aria-labelledby="vn-card-contents">
                 <h2 id="vn-card-contents">Region contents</h2>
-                <p className="vn-note">
+                <p>
                   Click the diagram or choose a region. Lists, frequencies,
                   fractions, algebra and pupil blanks stay editable.
                 </p>
@@ -983,7 +944,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               </section>
             )}
             {mode === "shade" && (
-              <section className="panel-card vn-inspector" aria-labelledby="vn-shading-heading">
+              <section className="panel-card" aria-labelledby="vn-shading-heading">
                 <h2 id="vn-shading-heading">Region shading</h2>
                 <label>
                   Shading style
@@ -1006,7 +967,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 >
                   Shade a set expression
                 </button>
-                <p className="vn-note">
+                <p>
                   Use stable set IDs:{" "}
                   {d.labels
                     .slice(1, d.sets + 1)
@@ -1046,25 +1007,78 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     </button>
                   ))}
                 </div>
+                {help}
               </section>
             )}
-
-            <section className="panel-card vn-inspector">
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="vn-note">
-                  Use commas, semicolons or new lines between members. Use 1/2
-                  for a stacked fraction. Blank, hidden content, an answer line
-                  and zero are different states. No automatic solving.
-                </p>
-                <p className="vn-note">
-                  Enter applies; Escape cancels. Save an editable file to keep a
-                  portable copy. Copy for Word carries the physical size shown
-                  above the diagram. Download PNG (600 ppi) if your browser
-                  blocks copying.
-                </p>
-              </details>
-            </section>
+            </div>
+            <div>
+            {mode === "edit" && (
+              <section className="panel-card" aria-labelledby="vn-card-print">
+                <h2 id="vn-card-print">Print size</h2>
+                <div className="vn-pair">
+                  <label>
+                    Print width
+                    <select
+                      aria-label="Print width"
+                      disabled={blocked}
+                      value={d.widthCm}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.widthCm = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
+                        <option key={v} value={v}>
+                          {v} cm
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Text size
+                    <select
+                      aria-label="Text size"
+                      value={d.fontPt}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.fontPt = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                        <option key={v} value={v}>
+                          {v} pt
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                  <label>
+                    Lines
+                    <select
+                      aria-label="Lines"
+                      value={d.lines ?? "normal"}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          setLines(n, ev.target.value as LineWeight);
+                        })
+                      }
+                    >
+                      {LINE_WEIGHTS.map((v) => (
+                        <option key={v} value={v}>
+                          {LINE_WEIGHT_NAMES[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                {help}
+              </section>
+            )}
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

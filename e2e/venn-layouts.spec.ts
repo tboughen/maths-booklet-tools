@@ -704,7 +704,8 @@ for (const width of [320, 375, 768, 1440])
     });
   });
 for (const width of [320, 1440])
-  test(`structure and inspector controls use the shared 14 px label at ${width}px`, async ({
+  // The settings kit sets these (docs/tools/APP-HOUSE-STYLE.md): 13 px on a control, 12 px for a note.
+  test(`structure and inspector controls use the settings kit's text sizes at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -724,10 +725,8 @@ for (const width of [320, 1440])
       const size = await control.evaluate((el) =>
         parseFloat(getComputedStyle(el).fontSize),
       );
-      expect(
-        size,
-        await control.evaluate((el) => el.outerHTML.slice(0, 80)),
-      ).toBeGreaterThanOrEqual(14);
+      const html = await control.evaluate((el) => el.outerHTML.slice(0, 80));
+      expect(size, html).toBe(html.startsWith("<p") ? 12 : 13);
     }
     expect(
       await page.evaluate(
