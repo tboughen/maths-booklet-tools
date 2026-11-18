@@ -571,6 +571,80 @@ test("Cuboids uses the kit: the shape on the left, labels, shading and printing 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("Triangles uses the kit: what is selected on the left with the label box over it, the worked version, a new triangle and the print size on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/triangle");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const more = page.locator(".md-kit .panel-card.tr-more");
+  const [selected, worked, start, print, tools] = [await chartCard(page, "Selected object"), await chartCard(page, "Worked version"), await chartCard(page, "Start a new triangle"), await chartCard(page, "Print size"), (await more.boundingBox())!];
+  expect(worked.y).toBe(selected.y);
+  expect(worked.x).toBeGreaterThanOrEqual(selected.x + selected.width);
+  expect(Math.abs(worked.width - selected.width)).toBeLessThanOrEqual(1);
+  expect([start.x, print.x]).toEqual([worked.x, worked.x]);
+  expect(start.y).toBeGreaterThan(worked.y + worked.height);
+  expect(print.y).toBeGreaterThan(start.y + start.height);
+  // More tools and the help come last in the settings and sit under what is selected.
+  expect(tools.x).toBe(selected.x);
+  expect(tools.y).toBeGreaterThan(selected.y + selected.height);
+  // The settings were 1,093 px long in a 967 px column before the kit.
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+  // A button with a row to itself is as wide as its words, on one line.
+  const use = (await page.getByRole("button", { name: "Use worked version", exact: true }).boundingBox())!;
+  expect(use.height).toBe(32);
+  expect(use.width).toBeLessThan(worked.width / 2 + 40);
+
+  // A selected triangle with every part open: the kit's sizes throughout, nothing cut, and still all in view.
+  await page.getByLabel("Selected object", { exact: true }).selectOption("t:T1");
+  for (const name of ["Shape locks", "Precise vertex position", "Captions and diagram notes"])
+    await page.locator(".md-kit summary").filter({ hasText: name }).click();
+  // Half a column is too narrow for the longest names, so those buttons take two lines, and a button beside one is as tall.
+  const twoLines = ["Reflect horizontally", "Reflect vertically", "Make right angle", "Make equal sides at apex", "Make equilateral", "Release shape locks", "Add perpendicular height from selected vertex"];
+  expect(await kitSizes(page, twoLines)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  const pair = async (names: string[]) => Promise.all(names.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
+  for (const row of [["Reflect horizontally", "Reflect vertically"], ["Make right angle", "Make equal sides at apex"], ["Make equilateral", "Release shape locks"]]) {
+    const [left, right] = await pair(row);
+    expect(left).toBe(right);
+    expect(left).toBeLessThan(44);
+  }
+  // The name of a part that opens is a row as tall as a control.
+  expect(await page.locator(".md-kit summary").evaluateAll((all) => [...new Set(all.map((s) => Math.round(s.getBoundingClientRect().height)))])).toEqual([32]);
+
+  // A click on a label opens the box that edits it at the top of the left column, over what is selected. It is a
+  // card like the others, and its choices are as tall as a control.
+  await page.locator('.tr-hit[aria-label="Edit side ab"]').click();
+  const box = page.locator(".md-kit .tr-floating");
+  await expect(box).toBeVisible();
+  const edit = (await box.boundingBox())!;
+  expect([edit.x, edit.y]).toEqual([selected.x, selected.y]);
+  expect(Math.abs(edit.width - selected.width)).toBeLessThanOrEqual(1);
+  expect((await chartCard(page, "Selected object")).y).toBeGreaterThan(edit.y + edit.height);
+  expect(await box.locator(".tr-option").evaluateAll((all) => [...new Set(all.map((o) => o.getBoundingClientRect().height))])).toEqual([32]);
+  expect(await box.locator(":is(button, select, input:not([type=radio], [type=checkbox]))").evaluateAll((all) => [...new Set(all.map((c) => c.getBoundingClientRect().height))])).toEqual([32]);
+  // The button that carries the step on is the filled one.
+  const apply = box.getByRole("button", { name: "Apply label", exact: true });
+  expect(await apply.evaluate((el) => [getComputedStyle(el).color, getComputedStyle(el).backgroundColor === getComputedStyle(el).borderTopColor])).toEqual(["rgb(255, 255, 255)", true]);
+  await box.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await expect(box).toBeHidden();
+  // Under the diagram, outside the settings, the button that confirms a step keeps the tool's filled look.
+  await page.getByRole("button", { name: "Split triangle", exact: true }).click();
+  expect(await page.getByRole("button", { name: "Apply split", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(15, 98, 254)");
+  await page.getByRole("button", { name: "Cancel preview", exact: true }).click();
+
+  // One column in a smaller window, in the order the cards are read.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = [await chartCard(page, "Selected object"), await chartCard(page, "Worked version"), await chartCard(page, "Start a new triangle"), await chartCard(page, "Print size"), (await more.boundingBox())!];
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+
+  // Finger-sized controls on a phone, More tools open too, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.locator(".md-kit summary").filter({ hasText: "More tools" }).click();
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
 // settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or
