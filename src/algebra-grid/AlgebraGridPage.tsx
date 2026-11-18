@@ -46,6 +46,7 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
+import "../site/settings-kit.css";
 import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
@@ -856,9 +857,11 @@ export default function AlgebraGridPage({
               </section>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Algebra grid settings">
+          <aside className="inspector-stack md-kit" aria-label="Algebra grid settings">
             <ReturnToDiagram />
-            <section className="panel-card ag-panel">
+            <div className="md-kit-cards">
+            <div>
+            <section className="panel-card">
               <h2>Teaching resource</h2>
               <label>
                 Task
@@ -983,11 +986,13 @@ export default function AlgebraGridPage({
                   Use worked version
                 </button>
               </div>
-              <p className="ag-note">
+              <p>
                 Calculations use saved entries, including hidden answers.
               </p>
             </section>
-            <section className="panel-card ag-panel">
+            </div>
+            <div>
+            <section className="panel-card">
               <h2>Print size</h2>
               <div className="ag-presets">
                 {[
@@ -1009,7 +1014,7 @@ export default function AlgebraGridPage({
                 ))}
               </div>
               {numeric("Cell size (mm)", "size", d.cellMm)}
-              <p className="ag-note">
+              <p>
                 Product cells stay at the chosen size (12–18 mm). Applying a
                 cell size resets individual column width overrides.
               </p>
@@ -1026,12 +1031,12 @@ export default function AlgebraGridPage({
                 />
                 Automatically compact filled headings
               </label>
-              <p className="ag-note">
+              <p>
                 Blank or hidden headings keep full writing space. Product cells
                 keep their chosen size. A custom first-column width is
                 respected.
               </p>
-              <p className="ag-note">
+              <p>
                 Printed headings: {g.headingWidth} mm column width ·{" "}
                 {g.headingHeight} mm row height.
               </p>
@@ -1102,37 +1107,38 @@ export default function AlgebraGridPage({
                   </div>
                 ))}
               </details>
-              <p className="ag-note">
+              <p>
                 Print at actual size. A3 reduced to A4 makes a 15 mm cell about
                 10.6 mm. Paper choice and preview zoom never resize cells.
               </p>
+              <details>
+                <summary>Notation and help</summary>
+                <p>
+                  Enter integer terms in x, for example x^2, -12x and +24. Powers
+                  0–6 are supported. There are up to six terms on each edge; extra
+                  rows and columns begin blank.
+                </p>
+                <p>
+                  Multiplying numbers uses the same grid for the grid method:
+                  enter plain numbers such as 20, 3 or 0.4. The worked version
+                  splits each number by place value, so 23 × 47 needs two columns
+                  and two rows of products.
+                </p>
+                <p>
+                  Factorising uses trial and improvement. Check that the whole
+                  expression matches. Automatic worked copies support monic
+                  integer quadratics in a 3 × 3 grid, and a common factor in one
+                  product row.
+                </p>
+                <p>
+                  Clear removes a value. Hide retains an answer in editable files
+                  and links; it leaves a blank in pupil artwork. Exports always
+                  use pupil visibility.
+                </p>
+              </details>
             </section>
-
-            <details className="panel-card ag-panel">
-              <summary>Notation and help</summary>
-              <p>
-                Enter integer terms in x, for example x^2, -12x and +24. Powers
-                0–6 are supported. There are up to six terms on each edge; extra
-                rows and columns begin blank.
-              </p>
-              <p>
-                Multiplying numbers uses the same grid for the grid method:
-                enter plain numbers such as 20, 3 or 0.4. The worked version
-                splits each number by place value, so 23 × 47 needs two columns
-                and two rows of products.
-              </p>
-              <p>
-                Factorising uses trial and improvement. Check that the whole
-                expression matches. Automatic worked copies support monic
-                integer quadratics in a 3 × 3 grid, and a common factor in one
-                product row.
-              </p>
-              <p>
-                Clear removes a value. Hide retains an answer in editable files
-                and links; it leaves a blank in pupil artwork. Exports always
-                use pupil visibility.
-              </p>
-            </details>
+            </div>
+            </div>
           </aside>
         </section>
         {questionEditor && field?.key === "expression" && (

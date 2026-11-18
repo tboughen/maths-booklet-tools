@@ -11,29 +11,24 @@
   align-content: start;
   min-width: 0;
 }
-.ag-panel {
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-.ag-panel h2 {
-  font-size: 16px;
-  margin: 0;
-}
-.ag-editor label,
+/* The settings column is on the settings kit (src/site/settings-kit.css), which gives its cards,
+   headings, labels, fields, buttons and notes their look. The rules here are for the diagram's
+   own controls and the box that opens on a cell: each stands down inside the kit with
+   `:where(:not(.md-kit *))`, so the look never depends on which stylesheet loads last. */
+.ag-editor label:where(:not(.md-kit *)),
 .ag-floating label {
   display: grid;
   gap: 5px;
   font-size: 13px;
   line-height: 1.5;
 }
-.ag-editor label:has(input[type="checkbox"]),
+.ag-editor label:has(input[type="checkbox"]):where(:not(.md-kit *)),
 .ag-floating label:has(input[type="checkbox"]) {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.ag-editor :is(input:not([type="checkbox"]), select),
+.ag-editor :is(input:not([type="checkbox"]), select):where(:not(.md-kit *)),
 .ag-floating input:not([type="checkbox"]) {
   width: 100%;
   min-width: 0;
@@ -46,7 +41,7 @@
   font: inherit;
   font-size: 13px;
 }
-.ag-editor button:not([class]),
+.ag-editor button:not([class]):where(:not(.md-kit *)),
 .ag-floating button {
   padding: 8px 11px;
   border: 1px solid var(--line-strong);
@@ -57,12 +52,12 @@
   cursor: pointer;
   font-size: 13px;
 }
-.ag-editor button:disabled,
+.ag-editor button:disabled:where(:not(.md-kit *)),
 .ag-floating button:disabled {
   cursor: default;
   opacity: 0.5;
 }
-.ag-editor button[aria-pressed="true"] {
+.ag-editor button[aria-pressed="true"]:where(:not(.md-kit *)) {
   background: var(--blue-soft);
   border-color: var(--blue);
 }
@@ -155,7 +150,8 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-.ag-actions > button {
+/* In the box on a cell the two buttons share the row. In the settings a button keeps its own width. */
+.ag-floating .ag-actions > button {
   flex: 1 1 auto;
 }
 .ag-presets {
@@ -167,25 +163,6 @@
   display: block;
   margin-top: 4px;
   color: var(--muted);
-}
-.ag-note {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.55;
-  margin: 0;
-}
-.ag-panel details > summary,
-details.ag-panel > summary {
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 650;
-}
-.ag-panel details[open] {
-  display: grid;
-  gap: 12px;
-}
-.ag-panel details label {
-  margin-top: 10px;
 }
 .ag-message,
 .ag-warning {
@@ -206,10 +183,6 @@ details.ag-panel > summary {
 }
 .ag-setting-actions {
   margin-top: 8px;
-}
-.ag-setting-actions p {
-  color: #963918;
-  font-size: 13px;
 }
 .ag-floating {
   position: fixed;

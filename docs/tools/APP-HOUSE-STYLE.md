@@ -340,7 +340,9 @@ a time, and each one drops its own button and field styles as it does.
 - A named group inside a card (one tree of several, one data set) is a `fieldset` with the class
   `md-kit-group`: a thin outline, its name in the outline, and the same 8 px gap as a card.
 - What a part that opens (`details`) holds is spaced like the rest of a card: rows, tables and
-  buttons 8 px apart, paragraphs 6 px.
+  buttons 8 px apart, paragraphs 6 px. Its name (`summary`) is 13 px at weight 500 with a
+  pointer, so it reads as something to press; the rule weighs nothing (`:where`), so a tool's own
+  summary keeps its look.
 - In the tools that share the `pt-` settings, two fields side by side (`.pt-fields`) share the row
   evenly, and a field on its own takes the whole row. So does a field with the class `pt-wide`.
 - A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
@@ -434,5 +436,15 @@ a time, and each one drops its own button and field styles as it does.
   field takes the whole row with the class `pt-wide` (the grid of a net's paper, the kind of
   construction, the condition of a shaded region); Geometry figures and 3D solids used their own
   `fig-wide` for this and now use `pt-wide` too.
+- **Expanding and factorising.** The first tool on the kit that has its own settings classes
+  (`ag-`) and not the shared `pt-` ones. Teaching resource is the left column and Print size the
+  right. "Notation and help" was a card of its own that opened; it is now the last thing in the
+  Print size card, as the help is in the other tools. The three sizes (Compact, Default, Larger)
+  stay two-line choices with their millimetres underneath. The four buttons under the task keep
+  their own width; they used to stretch across the card. The tool's stylesheet no longer styles
+  the settings: its rules for labels, fields and buttons are for the diagram's own controls and
+  the box that opens on a cell, and each is written `:where(:not(.md-kit *))`, so the kit's look
+  never depends on which stylesheet loads last. At 1920 × 1080 the settings were 1,337 px long in a 967 px column
+  and are now all in view.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

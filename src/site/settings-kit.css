@@ -13,6 +13,8 @@
 /* Paragraphs in a help block that opens have no card gap between them, so they bring their own. */
 .md-kit :is(.site-panel, .panel-card) :where(details) > :where(:not(summary)) { margin-top: 8px; }
 .md-kit :is(.site-panel, .panel-card) :where(details) > p { margin-top: 6px; }
+/* The name of a part that opens reads as something to press. It weighs nothing, so a tool's own summary keeps its look. */
+.md-kit :where(.site-panel, .panel-card) :where(summary) { color: var(--md-ink); font-weight: 500; cursor: pointer; }
 /* What went wrong is never a quiet note. */
 .md-kit :is(.site-panel, .panel-card) p[role="alert"] { color: var(--md-red); font-size: var(--md-text-sm); font-weight: 500; }
 /* Beside a label that takes two lines, a field keeps its height and sits level with its neighbour. */

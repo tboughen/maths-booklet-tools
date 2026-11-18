@@ -309,6 +309,58 @@ test("Plans and elevations uses the kit: the solid on the left with printing und
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("Expanding and factorising uses the kit: the task on the left, the print size on the right, all in view", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/expanding-factorising");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const task = await chartCard(page, "Teaching resource"), size = await chartCard(page, "Print size");
+  expect(size.y).toBe(task.y);
+  expect(size.x).toBeGreaterThanOrEqual(task.x + task.width);
+  expect(Math.abs(size.width - task.width)).toBeLessThanOrEqual(1);
+  // The settings were 1,337 px long in a 967 px column before the kit. Now they are all in view.
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // The three sizes are choices with their millimetres on a second line, and the one that is on is marked.
+  const sizes = page.locator(".md-kit .ag-presets button");
+  const names = (await sizes.allTextContents()) as string[];
+  expect(names).toEqual(["Compact12 mm", "Default15 mm", "Larger18 mm"]);
+  expect(await kitSizes(page, names)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  await expect(sizes.nth(1)).toHaveAttribute("aria-pressed", "true");
+  expect(await sizes.nth(1).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
+  expect(await sizes.nth(0).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
+  // A button in a row keeps its own width.
+  expect((await page.getByRole("button", { name: "Fill products", exact: true }).boundingBox())!.width).toBeLessThan(task.width / 2);
+
+  // The buttons that apply a typed setting come under its field, at the kit's height.
+  const cell = page.getByLabel("Cell size (mm)", { exact: true });
+  await cell.fill("16");
+  const field = (await cell.boundingBox())!, apply = (await page.getByRole("button", { name: "Apply setting", exact: true }).boundingBox())!;
+  expect(apply.height).toBe(32);
+  expect(Math.abs(apply.y - (field.y + field.height) - 8)).toBeLessThanOrEqual(1);
+  await page.getByRole("button", { name: "Cancel setting", exact: true }).click();
+
+  // The help is the last thing in the Print size card, and its paragraphs keep a space between them.
+  const help = page.locator(".md-kit .panel-card details").filter({ hasText: "Notation and help" });
+  expect(await help.locator("summary").evaluate((el) => [getComputedStyle(el).cursor, getComputedStyle(el).fontWeight])).toEqual(["pointer", "500"]);
+  await help.locator("summary").click();
+  expect(await help.locator("p").evaluateAll((all) => all.map((p) => getComputedStyle(p).marginTop))).toEqual(["6px", "6px", "6px", "6px"]);
+  const open = await chartCard(page, "Print size");
+  expect((await help.boundingBox())!.y + (await help.boundingBox())!.height).toBeLessThanOrEqual(open.y + open.height);
+
+  // One column in a smaller window, in the same order.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const [a, b] = [await chartCard(page, "Teaching resource"), await chartCard(page, "Print size")];
+  expect(b.x).toBe(a.x);
+  expect(b.y).toBeGreaterThan(a.y + a.height);
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
 // settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or
