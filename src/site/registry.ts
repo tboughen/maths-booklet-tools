@@ -6,7 +6,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FiguresIcon, WrittenMethodIcon, FunctionMachineIcon, BubbleMethodIcon, AlgebraTilesIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, ProbabilityObjectsIcon, SampleSpaceIcon, SolidsIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon } from "./MathsDockIcons";
+import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FiguresIcon, WrittenMethodIcon, FunctionMachineIcon, BubbleMethodIcon, AlgebraTilesIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, ProbabilityObjectsIcon, SampleSpaceIcon, SolidsIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon, StarterBuilderIcon } from "./MathsDockIcons";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -66,6 +66,7 @@ export const bookletTools = [
 export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
 export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
+export const StarterPage = lazyPage(() => import("../starter/StarterPage"));
 export const BookletPage = lazyPage(() => import("../booklet/BookletPage"));
 /** Home is a page like the rest: its code loads when it is the page opened, not with every tool. */
 export const HomePage = lazyPage(() => import("./Home"));
@@ -86,6 +87,7 @@ export const siteSections = [
   { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: AssessmentIcon, description: "Turn question-level assessment results into personalised practice for each pupil." },
   { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: DiagramBuilderIcon, description: "Create graphs, ratio tables and diagrams for your teaching resources." },
   { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: WorksheetBuilderIcon, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs." },
+  { id: "starters", name: "Starter builder", href: pageHref("starters"), icon: StarterBuilderIcon, description: "Make a run of six silent starters whose questions keep their type while the numbers change, and print two A5 copies on each A4 sheet." },
   { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookletBuilderIcon, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson." },
 ] as const;
 export type SectionId = PageId | "paper-builder";
@@ -104,6 +106,7 @@ export function pageName(id: PageId): string {
   if (id === "question-bank") return "Question bank";
   if (id === "assessment-follow-up") return "Assessment follow-up";
   if (id === "worksheets") return "Worksheet builder";
+  if (id === "starters") return "Starter builder";
   if (id === "booklets") return "Booklet builder";
   if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
@@ -114,6 +117,7 @@ export function preloadPage(id: PageId) {
   if (id === "question-bank") return QuestionBank.preload();
   if (id === "assessment-follow-up") return AssessmentPage.preload();
   if (id === "worksheets") return WorksheetPage.preload();
+  if (id === "starters") return StarterPage.preload();
   if (id === "booklets") return BookletPage.preload();
   if (id === "booklet-tools") return DiagramBuilderPage.preload();
   return bookletTools.find((tool) => tool.id === id)?.component.preload();

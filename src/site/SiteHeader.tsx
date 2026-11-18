@@ -6,7 +6,7 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
   const [open, setOpen] = useState(false);
   const header = useRef<HTMLElement>(null);
   const button = useRef<HTMLButtonElement>(null);
-  const booklet = page !== "question-bank" && page !== "home" && page !== "assessment-follow-up" && page !== "worksheets" && page !== "booklets" && page !== "not-found";
+  const booklet = page !== "question-bank" && page !== "home" && page !== "assessment-follow-up" && page !== "worksheets" && page !== "starters" && page !== "booklets" && page !== "not-found";
   useEffect(() => {
     if (!open) return;
     function dismiss(event: PointerEvent) {

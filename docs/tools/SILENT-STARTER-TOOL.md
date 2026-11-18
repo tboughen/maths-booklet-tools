@@ -64,8 +64,23 @@ stacked fractions, tables and diagram pictures. Icons are small pictures in the 
 PDF layout's problems are reported with the Word file. The service helper is `starterDocx` in
 `services/graph-mcp/worksheet-docx.ts`.
 
+## The Starter builder page
+
+`/starters` (`src/starter/StarterPage.tsx`, a seventh page in the top bar after Worksheet builder).
+Above the card is the run grid: one row per question slot, one column per starter, each cell the
+question's instruction and first text. Choosing a starter previews its A5 card at print size
+(Actual size and Calibrate as on every page) and opens its questions in the side panel, edited
+with the worksheet field editors. Per question: **Copy to every starter** (the same question in
+that slot of every starter, ready for the numbers to change) and **Copy from starter n-1**. Per
+starter: move earlier or later, add a copy after it (up to six), remove. Run settings: name,
+year, topic, template (a template with fewer slots drops the last slots; Undo brings them back),
+maths printing, logo (PNG or JPEG kept in the file) and each slot's type name and icon. Every
+change is one undo step; the run autosaves on the device like the worksheet. Downloads: Word
+(the main button: every starter, two copies on each A4 sheet), Word for one starter, the answers
+Word, and the same three as PDF; a download is refused while a question does not fit. Steps are
+in `src/starter/edit.ts`; browser checks in `e2e/starters.spec.ts` (`--project=starters`).
+
 ## Still to build
 
-The page (run grid of slots by starters, cell editor, copy along a row, undo); the
-board view and slides; a connector tool to draft a run; optional AI suggestions for a row's
+The board view and slides; a connector tool to draft a run; optional AI suggestions for a row's
 numbers. Each is its own small pull request.
