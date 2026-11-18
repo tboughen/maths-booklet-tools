@@ -180,9 +180,15 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
     const content = gap(D.padTop - D.edge) + label + textPara(lesson.didYouKnow.trim(), D.size, {});
     out.push(gap(D.gap));
     out.push(
-      table([W - D.edge], [row([cell(content, { width: W - D.edge, borders: { top: edge, left: edge, bottom: edge, right: edge }, margin: { top: 0, left: D.padX - D.edge, bottom: 0, right: D.padX - D.edge - WORD_WRAP_SLACK_MM } })], { mm: b.h - 2 * D.edge, exact: true })]),
+      table(
+        [W - D.edge],
+        [
+          row([cell(content, { width: W - D.edge, borders: { top: edge, left: edge, bottom: edge, right: edge }, margin: { top: 0, left: D.padX - D.edge, bottom: 0, right: D.padX - D.edge - WORD_WRAP_SLACK_MM } })], { mm: b.h - 2 * D.edge, exact: true }),
+          // The drop line is the same table's second row: two tables touching would merge in Word.
+          row([cell(gap(END_MM), { width: W - D.edge, shade: st.tint })], { mm: D.drop, exact: true }),
+        ],
+      ),
     );
-    out.push(ruleTable(W, D.drop, st.tint));
     y += D.gap + b.total;
   }
   return { xml: out.join(""), h: y };
