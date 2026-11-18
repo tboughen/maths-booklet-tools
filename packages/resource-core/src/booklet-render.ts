@@ -738,7 +738,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
       const yy = block.y;
       if (block.kind === "head") {
         out.push(at(lessonHead(doc, lesson, shownLesson, st), A4.marginX, yy));
-        glyphs({ title: lesson.title, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
+        glyphs({ title: lesson.title, keyIdea: lesson.keyIdea, didYouKnow: lesson.didYouKnow }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
         continue;
       }
       if (block.kind === "banner") {

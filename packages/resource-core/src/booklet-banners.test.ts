@@ -151,6 +151,8 @@ describe("booklet Did you know bubble", () => {
     expect(pages[1]).toContain("Doctors use frequency polygons");
     for (const p of [pages[0], ...pages.slice(2)]) expect(p).not.toContain("Doctors use");
     expect(renderBooklet(booklet(cycles)).pages[1]).not.toContain(">Did<");
+    // A character the font lacks is reported, as in the key idea.
+    expect(renderBooklet(booklet(cycles, { didYouKnow: "Ω test" })).issues.length).toBeGreaterThan(0);
   });
 
   it("hugs a short fact and stays within the text width for a long one", () => {
