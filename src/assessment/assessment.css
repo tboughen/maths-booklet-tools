@@ -5,12 +5,13 @@
 .af-page { padding: 10px 20px 22px; }
 /* The buttons of the page itself (the bar at the top, and the one that makes the pack) are a size up from a
    card's: a bigger button does more. */
-.af-page button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 8px 12px; background: white; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 4px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
-.af-page button:hover:not(:disabled) { background: var(--blue-soft); }
+.af-page button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 8px 12px; background: var(--md-paper); color: var(--md-ink); border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.af-page button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
 .af-page button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); opacity: 1; cursor: default; }
-.af-page .af-primary:not(:disabled), .af-page .md-kit .site-panel .af-primary:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue); color: #fff; font-weight: 600; }
-.af-toolbar, .af-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.af-main > .af-actions { margin: 0; }
+/* The filled button stays filled under the pointer, in the bar, after step 2 and in a card. */
+.af-page .af-primary:not(:disabled), .af-page .af-primary:hover:not(:disabled), .af-page .md-kit .site-panel .af-primary:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue); color: #fff; font-weight: 600; }
+.af-toolbar, .af-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.af-toolbar { margin: 12px 0; }
 .af-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: 18px; align-items: start; }
 .af-main, .af-inspector { display: grid; gap: 16px; min-width: 0; }
 .af-main > p { margin: 0; }
@@ -19,9 +20,11 @@
 .af-panel { padding: 18px; }
 .af-page .md-kit .af-panel h2 { margin: 0 0 2px; }
 .af-page fieldset { padding: 0; border: 0; margin: 0; min-width: 0; }
-.af-page legend { font-weight: 600; font-size: 14px; }
+.af-page legend { margin-bottom: 6px; padding: 0; font-weight: 600; font-size: 14px; }
 /* The box that marks are pasted into is a field, in a font whose columns line up. */
 .af-page textarea { box-sizing: border-box; width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); background: var(--md-paper); color: var(--md-ink); font: 12px/1.4 ui-monospace, monospace; resize: vertical; }
+/* The field that takes a spreadsheet is drawn as a field too. */
+.af-page .md-kit .site-panel input[type=file] { box-sizing: border-box; width: 100%; min-width: 0; min-height: var(--md-control); padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); background: var(--md-paper); color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
 .af-help, .af-intro { color: var(--md-ink-2); font-size: var(--md-text-xs); font-weight: 400; line-height: 1.4; }
 .af-intro { font-size: var(--md-text-sm); }
 .af-input-alternatives { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
@@ -30,7 +33,8 @@
 .af-data-help { padding: 0 8px; color: var(--muted); }
 .af-error { padding: 12px; color: var(--red); background: var(--red-soft); border-radius: 4px; }
 .af-notices, .af-page details { font-size: 13px; line-height: 1.6; }
-.af-page summary { cursor: pointer; padding: 6px 0; }
+/* The name of a part that opens is as tall as a control. */
+.af-page summary { box-sizing: border-box; min-height: var(--md-control); padding-block: calc((var(--md-control) - 1.6em) / 2); cursor: pointer; }
 .af-table { overflow-x: auto; max-width: 100%; }
 .af-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .af-table th, .af-table td { padding: 9px; text-align: left; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
@@ -47,6 +51,6 @@
 .af-preview-download { display: flex; justify-content: center; }
 .af-topic-exclusions { display: grid; gap: 6px; max-height: 300px; overflow-y: auto; padding: 0 4px; }
 @media (max-width: 850px) { .af-workspace { grid-template-columns: minmax(0,1fr); } .af-inspector { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media (max-width: 550px) { .af-page { padding: 12px; } .af-inspector { grid-template-columns: minmax(0,1fr); } .af-panel { padding: 12px; } .af-toolbar button { flex: 1 1 140px; } }
+@media (max-width: 550px) { .af-page { padding: 12px; } .af-inspector { grid-template-columns: minmax(0,1fr); } .af-panel { padding: 12px; } :is(.af-toolbar, .af-main > .af-actions) button { flex: 1 1 140px; } }
 /* Under a finger the page's own buttons are as tall as a card's. */
 @media (max-width: 767px), (pointer: coarse) { .af-page button { min-height: 44px; } }
