@@ -597,37 +597,6 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                 </button>
               </div>
             </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
-              <div className="pt-fields">
-                <label>
-                  Lines
-                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}>
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="pt-hide" title="For a spot-the-mistake task: bubbles that differ raise no teacher note.">
-                <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
-                This working has a deliberate error
-              </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a side of a line or a bubble to edit it. Enter applies; Escape restores. Up to {MAX_STEPS} steps. A + or − bubble
-                  sits under the last term of the line above and any other bubble under the whole side; choose a term to move it. Bubbles
-                  that differ add a teacher note; nothing is corrected for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown under the working; preview zoom never changes it. Download PNG (600 ppi) if
-                  your browser blocks copying.
-                </p>
-              </details>
-            </section>
             </div>
             <div>
             <section className="panel-card pt-panel">
@@ -658,6 +627,39 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                   Add a step
                 </button>
               </div>
+            </section>
+            </div>
+            <div>
+            <section className="panel-card pt-panel">
+              <h2>Layout</h2>
+              <div className="pt-fields">
+                <label>
+                  Lines
+                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}>
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="pt-hide" title="For a spot-the-mistake task: bubbles that differ raise no teacher note.">
+                <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
+                This working has a deliberate error
+              </label>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  Click a side of a line or a bubble to edit it. Enter applies; Escape restores. Up to {MAX_STEPS} steps. A + or − bubble
+                  sits under the last term of the line above and any other bubble under the whole side; choose a term to move it. Bubbles
+                  that differ add a teacher note; nothing is corrected for you.
+                </p>
+                <p className="pt-note">
+                  Copy for Word carries the physical size shown under the working; preview zoom never changes it. Download PNG (600 ppi) if
+                  your browser blocks copying.
+                </p>
+              </details>
             </section>
             </div>
             </div>

@@ -420,64 +420,6 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 </button>
               </div>
             </section>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
-              <div className="pt-fields">
-                <label>
-                  Cube edge on the grids
-                  <select aria-label="Cube edge on the grids" value={d.unitCm} disabled={blocked} onChange={(ev) => patch((n) => void (n.unitCm = Number(ev.target.value) as Doc["unitCm"]))}>
-                    <option value={0.5}>0.5 cm</option>
-                    <option value={1}>1 cm</option>
-                    <option value={2}>2 cm</option>
-                  </select>
-                </label>
-                <label>
-                  Widest row (cm)
-                  <select aria-label="Widest row of panels" value={d.maxWidthCm} disabled={blocked} onChange={(ev) => patch((n) => void (n.maxWidthCm = Number(ev.target.value)))}>
-                    {Array.from({ length: 20 }, (_, k) => k + 8).map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.arrows} onChange={(ev) => patch((n) => void (n.arrows = ev.target.checked))} />
-                Front and Side arrows on the isometric drawing
-              </label>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.isoDots} onChange={(ev) => patch((n) => void (n.isoDots = ev.target.checked))} />
-                Isometric dots behind the drawing
-              </label>
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const p of n.panels) {
-                        if (p.state === "answer") p.state = "drawn";
-                        p.label.show = "show";
-                      }
-                    }, "show all")
-                  }
-                >
-                  Show every answer on the pupil copy
-                </button>
-              </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Plans and elevations follow the exam convention: the outline, with a line wherever the solid steps in height or depth. A blank
-                  isometric panel is plain space for pupils to sketch the solid, as in the papers.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or
-                  PDF if your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
             </div>
             <div>
             <section className="panel-card pt-panel" aria-label="Panels">
@@ -570,6 +512,66 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   </button>
                 ))}
               </div>
+            </section>
+            </div>
+            <div>
+            <section className="panel-card pt-panel">
+              <h2>Printing</h2>
+              <div className="pt-fields">
+                <label>
+                  Cube edge on the grids
+                  <select aria-label="Cube edge on the grids" value={d.unitCm} disabled={blocked} onChange={(ev) => patch((n) => void (n.unitCm = Number(ev.target.value) as Doc["unitCm"]))}>
+                    <option value={0.5}>0.5 cm</option>
+                    <option value={1}>1 cm</option>
+                    <option value={2}>2 cm</option>
+                  </select>
+                </label>
+                <label>
+                  Widest row (cm)
+                  <select aria-label="Widest row of panels" value={d.maxWidthCm} disabled={blocked} onChange={(ev) => patch((n) => void (n.maxWidthCm = Number(ev.target.value)))}>
+                    {Array.from({ length: 20 }, (_, k) => k + 8).map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={d.arrows} onChange={(ev) => patch((n) => void (n.arrows = ev.target.checked))} />
+                Front and Side arrows on the isometric drawing
+              </label>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={d.isoDots} onChange={(ev) => patch((n) => void (n.isoDots = ev.target.checked))} />
+                Isometric dots behind the drawing
+              </label>
+              <div className="pt-row">
+                <button
+                  type="button"
+                  disabled={blocked || !hasHidden(e)}
+                  onClick={() =>
+                    patch((n) => {
+                      for (const p of n.panels) {
+                        if (p.state === "answer") p.state = "drawn";
+                        p.label.show = "show";
+                      }
+                    }, "show all")
+                  }
+                >
+                  Show every answer on the pupil copy
+                </button>
+              </div>
+              <details>
+                <summary>Editing and printing help</summary>
+                <p className="pt-note">
+                  Plans and elevations follow the exam convention: the outline, with a line wherever the solid steps in height or depth. A blank
+                  isometric panel is plain space for pupils to sketch the solid, as in the papers.
+                </p>
+                <p className="pt-note">
+                  Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or
+                  PDF if your browser blocks copying, and print at 100% (actual size).
+                </p>
+              </details>
             </section>
             </div>
             </div>
