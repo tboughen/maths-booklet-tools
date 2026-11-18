@@ -174,7 +174,7 @@ body { background: #f2f5f8; }
   .qb-app.qb-topics-mode { height: 100%; overflow: hidden; }
 }
 /* One row of the seven links with their icons needs about 1,185 px. Narrower than that they drop their icons,
-   which fits down to about 1,000 px (so an upright 1,080 px monitor has one row and no sideways scroll); below
+   which fits down to about 1,010 px (so an upright 1,080 px monitor has one row and no sideways scroll); below
    that they fold onto a second line beside the logo. */
 @media (min-width: 621px) and (max-width: 1200px) {
   .site-brand { align-self: flex-start; min-height: var(--md-bar-height); }

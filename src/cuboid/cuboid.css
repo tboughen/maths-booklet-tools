@@ -207,6 +207,8 @@
 .cb-view-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
 }
 .cb-view-row > label {
   flex: 1 1 128px;
@@ -287,7 +289,9 @@
 }
 /* Two columns in a wide window (the settings kit's own breakpoint). The cards are children of one group, in the
    order they are read, so a click that brings a card to the top never rebuilds it. The card on top takes the left
-   column, the others stack in the right, and the cuboid picker, when there is more than one, runs across both. */
+   column, the others stack in the right, and the cuboid picker, when there is more than one, runs across both.
+   Every rule hangs off the kit's own two-column wrapper, so none applies where the kit is not in two columns. The
+   rows count the three cards on the right (the last row takes up a taller left card): a fourth needs a row added. */
 @media screen and (min-width: 1800px) and (min-height: 800px) and (min-aspect-ratio: 1 / 1) {
   .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div {
     grid-column: 1 / -1;
@@ -298,16 +302,16 @@
   .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div:has(> .cb-pick) {
     grid-template-rows: auto auto auto auto 1fr;
   }
-  .cb-cards > div > .panel-card {
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .panel-card {
     grid-column: 2;
   }
-  .cb-cards > div > .cb-pick {
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .cb-pick {
     grid-area: 1 / 1 / auto / -1;
   }
-  .cb-cards > div > .panel-card:first-child:not(.cb-pick) {
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .panel-card:first-child:not(.cb-pick) {
     grid-area: 1 / 1 / span 4;
   }
-  .cb-cards > div > .cb-pick + .panel-card {
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .cb-pick + .panel-card {
     grid-area: 2 / 1 / span 4;
   }
 }

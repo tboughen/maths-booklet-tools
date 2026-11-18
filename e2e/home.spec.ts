@@ -23,7 +23,7 @@ test("a first visit shows the search, seven Tools cards in one row and how to ad
   expect(await page.evaluate(() => document.documentElement.scrollHeight), "fits a 1920 x 1080 window").toBeLessThanOrEqual(1080);
 });
 
-for (const [width, height, columns] of [[1080, 1920, 4], [600, 900, 2], [390, 844, 1]] as const)
+for (const [width, height, columns] of [[1440, 900, 7], [1080, 1920, 4], [800, 900, 3], [600, 900, 2], [390, 844, 1]] as const)
   test(`at ${width} px wide the Tools cards sit ${columns} to a row and nothing spills sideways`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto("/");

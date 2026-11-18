@@ -50,11 +50,17 @@
 .home-favourite b { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 6px 8px 7px; font-size: var(--md-text-xs); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .home-favourite b svg { flex: none; color: var(--md-ink-2); }
 
-/* A portrait monitor and smaller windows: four Tools cards to a row (four and three for the seven
-   pages), then two, then one. */
+/* Seven cards to a row need about 1,400 px, with a little less padding below 1,600 px. A portrait monitor and
+   smaller windows have four to a row (four and three), then three, two and one. */
 @media (max-width: 1599px) {
+  .home-tool { padding-inline: 14px; }
+}
+@media (max-width: 1399px) {
   .home-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .home-tool { min-height: 0; }
+  .home-tool { min-height: 0; padding-inline: 20px; }
+}
+@media (max-width: 999px) {
+  .home-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 767px) {
   .site-home { gap: 22px; padding: 20px 12px 28px; }

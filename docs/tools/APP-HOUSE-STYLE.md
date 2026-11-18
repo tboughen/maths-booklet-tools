@@ -56,8 +56,8 @@ and the maths actions that general icon sets lack.
 
 One navy bar, 44 px high, on every page: the logo, then the seven pages. The current page is white
 with a white underline. Up to 1,200 px wide the links lose their icons (seven names with icons
-need about 1,185 px, and an upright monitor is 1,080 px wide), below about 900 px they fold onto
-a second line, and on a phone they sit behind the Menu button. A page added to the bar needs
+need about 1,185 px, and an upright monitor is 1,080 px wide), below about 1,010 px they fold
+onto a second line, and on a phone they sit behind the Menu button. A page added to the bar needs
 this width checked again: `editor-frame.spec.ts` fails if a 1,080 px window scrolls sideways.
 
 ## Moving between tools (in the site)
@@ -250,7 +250,8 @@ the page opened, like every other page, so a tool's first load does not carry it
   changes its codes or questions, not when a newer catalogue reconciles it, and drops it when
   the paper is cleared.
 - **Tools.** One card for each of the seven pages: a large icon, the name and what it does. Seven
-  to a row from 1,600 px wide, then four (four and three), two and one.
+  to a row from 1,400 px wide, then four (four and three), three, two and one, in rows of equal
+  height.
 - **Favourites.** The teacher's starred diagram tools as small picture cards. Stars are added in
   the Diagram builder and the tool switcher.
 
@@ -475,7 +476,7 @@ styles as it does.
   the other tools show what is selected, and Shape goes to the right. With more than one cuboid,
   the list that picks one runs across both columns, over the cards. The cards share one parent
   and are placed by `cuboid.css` (the card on top takes the left column), so a card is never
-  rebuilt when it changes column and keeps its open parts, what is being typed and the focus.
+  rebuilt when it changes column and keeps its open parts and anything typed in it.
   The list of units and the list of views each share a row with the tick or button that goes
   with them, and the two lists of the Labels card share a row. The tool's own card, label, field
   and button rules are gone, with `cb-settings`, `cb-action`, `cb-quick-cubes` and `cb-note` in

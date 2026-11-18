@@ -714,17 +714,10 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
             {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top: the top of the
                 left column where there are two, which is where the other tools show what is selected. The cards
                 stay children of one group, so none is rebuilt as the order changes; cuboid.css sets the columns. */}
-            {((cards: Record<SettingsCard | "pick" | "print", ReactNode>) => (
-              <div className="md-kit-cards cb-cards">
-                <div>
-                  {cards.pick}
-                  {cardOrder(focus).map((key) => cards[key])}
-                  {cards.print}
-                </div>
-              </div>
-                        ))({
-                pick: d.shapes.length > 1 && (
-                  <section key="pick" className="panel-card cb-pick" aria-label="Cuboids">
+            <div className="md-kit-cards cb-cards">
+              <div>
+                {d.shapes.length > 1 && (
+                  <section className="panel-card cb-pick" aria-label="Cuboids">
                     <label>
                       Selected cuboid{" "}
                       <select
@@ -741,44 +734,9 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                       </select>
                     </label>
                   </section>
-                ),
-                print: (
-                  <section key="print" className="panel-card" aria-label="Print settings">
-                    <details>
-                      <summary>Print settings</summary>
-                      <p>
-                        {m
-                          ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
-                          : "Review the resource settings."}
-                      </p>
-                      {field("Print width (cm)", d.widthCm, (v) =>
-                        commit({ ...e, document: { ...d, widthCm: Number(v) } }),
-                      )}
-                      <label>
-                        Lines
-                        <select
-                          aria-label="Lines"
-                          value={d.lines ?? "normal"}
-                          onChange={(ev) => {
-                            const next = { ...d };
-                            setLines(next, ev.target.value as LineWeight);
-                            commit({ ...e, document: next });
-                          }}
-                        >
-                          {LINE_WEIGHTS.map((v) => (
-                            <option key={v} value={v}>
-                              {LINE_WEIGHT_NAMES[v]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <p>
-                        Width before trimming. Images keep their scale and trim unused
-                        outer space. Preview zoom does not change printing.
-                      </p>
-                    </details>
-                  </section>
-                ),
+                )}
+                {((cards: Record<SettingsCard, ReactNode>) =>
+                  cardOrder(focus).map((key) => cards[key]))({
                 shape: (
                   <section key="shape" className="panel-card" aria-labelledby="cb-card-shape">
                     <h2 id="cb-card-shape">{"Shape"}</h2>
@@ -826,7 +784,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         }),
                       )}
                     </div>
-                    <div className="cb-units-row cb-view-row">
+                    <div className="cb-view-row">
                       <label>
                         View{" "}
                         <select
@@ -1170,7 +1128,44 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     )}
                   </section>
                 ),
-            })}
+                })}
+                <section className="panel-card" aria-label="Print settings">
+                  <details>
+                    <summary>Print settings</summary>
+                    <p>
+                      {m
+                        ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
+                        : "Review the resource settings."}
+                    </p>
+                    {field("Print width (cm)", d.widthCm, (v) =>
+                      commit({ ...e, document: { ...d, widthCm: Number(v) } }),
+                    )}
+                    <label>
+                      Lines
+                      <select
+                        aria-label="Lines"
+                        value={d.lines ?? "normal"}
+                        onChange={(ev) => {
+                          const next = { ...d };
+                          setLines(next, ev.target.value as LineWeight);
+                          commit({ ...e, document: next });
+                        }}
+                      >
+                        {LINE_WEIGHTS.map((v) => (
+                          <option key={v} value={v}>
+                            {LINE_WEIGHT_NAMES[v]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <p>
+                      Width before trimming. Images keep their scale and trim unused
+                      outer space. Preview zoom does not change printing.
+                    </p>
+                  </details>
+                </section>
+              </div>
+            </div>
           </aside>
         </section>
       </main>
