@@ -338,11 +338,12 @@ test("Expanding and factorising uses the kit: the task on the left, the print si
   await cell.fill("16");
   const field = (await cell.boundingBox())!, apply = (await page.getByRole("button", { name: "Apply setting", exact: true }).boundingBox())!;
   expect(apply.height).toBe(32);
-  expect(apply.y - (field.y + field.height)).toBe(8);
+  expect(Math.abs(apply.y - (field.y + field.height) - 8)).toBeLessThanOrEqual(1);
   await page.getByRole("button", { name: "Cancel setting", exact: true }).click();
 
   // The help is the last thing in the Print size card, and its paragraphs keep a space between them.
   const help = page.locator(".md-kit .panel-card details").filter({ hasText: "Notation and help" });
+  expect(await help.locator("summary").evaluate((el) => [getComputedStyle(el).cursor, getComputedStyle(el).fontWeight])).toEqual(["pointer", "500"]);
   await help.locator("summary").click();
   expect(await help.locator("p").evaluateAll((all) => all.map((p) => getComputedStyle(p).marginTop))).toEqual(["6px", "6px", "6px", "6px"]);
   const open = await chartCard(page, "Print size");

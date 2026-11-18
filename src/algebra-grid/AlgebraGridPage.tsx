@@ -861,7 +861,7 @@ export default function AlgebraGridPage({
             <ReturnToDiagram />
             <div className="md-kit-cards">
             <div>
-            <section className="panel-card ag-panel">
+            <section className="panel-card">
               <h2>Teaching resource</h2>
               <label>
                 Task
@@ -986,13 +986,13 @@ export default function AlgebraGridPage({
                   Use worked version
                 </button>
               </div>
-              <p className="ag-note">
+              <p>
                 Calculations use saved entries, including hidden answers.
               </p>
             </section>
             </div>
             <div>
-            <section className="panel-card ag-panel">
+            <section className="panel-card">
               <h2>Print size</h2>
               <div className="ag-presets">
                 {[
@@ -1014,7 +1014,7 @@ export default function AlgebraGridPage({
                 ))}
               </div>
               {numeric("Cell size (mm)", "size", d.cellMm)}
-              <p className="ag-note">
+              <p>
                 Product cells stay at the chosen size (12–18 mm). Applying a
                 cell size resets individual column width overrides.
               </p>
@@ -1031,12 +1031,12 @@ export default function AlgebraGridPage({
                 />
                 Automatically compact filled headings
               </label>
-              <p className="ag-note">
+              <p>
                 Blank or hidden headings keep full writing space. Product cells
                 keep their chosen size. A custom first-column width is
                 respected.
               </p>
-              <p className="ag-note">
+              <p>
                 Printed headings: {g.headingWidth} mm column width ·{" "}
                 {g.headingHeight} mm row height.
               </p>
@@ -1107,7 +1107,7 @@ export default function AlgebraGridPage({
                   </div>
                 ))}
               </details>
-              <p className="ag-note">
+              <p>
                 Print at actual size. A3 reduced to A4 makes a 15 mm cell about
                 10.6 mm. Paper choice and preview zoom never resize cells.
               </p>
