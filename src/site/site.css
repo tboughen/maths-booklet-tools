@@ -67,7 +67,7 @@ body { background: #f2f5f8; }
 .booklet-editor .panel-heading h2, .booklet-editor .selection-panel h2, .booklet-editor .word-help-dialog h2 { font: 600 17px/1.3 var(--md-font); color: #213c59; }
 .booklet-editor .eyebrow { color: var(--muted); font-size: 10px; letter-spacing: .08em; }
 .booklet-editor .editor-toolbar { min-height: 58px; padding: 8px 12px; gap: 4px; background: white; border-color: #e2e8ef; flex-wrap: wrap; }
-.booklet-editor :is(.tool-button,.icon-button,.visibility-button,.secondary-panel-button,.primary-panel-button,.danger-button,.panel-button,.scale-options button,.segmented,.segmented button,.coordinate-input input,.equation-fields input,.ratio-settings input,.ratio-settings select,.word-help-done,.word-help-dismiss,.ratio-examples button) { border-radius: 4px; }
+.booklet-editor :is(.tool-button,.icon-button,.visibility-button,.secondary-panel-button,.primary-panel-button,.danger-button,.panel-button,.scale-options button,.segmented,.segmented button,.coordinate-input input,.equation-fields input,.word-help-done,.word-help-dismiss,.ratio-examples button) { border-radius: 4px; }
 .booklet-editor :is(.coordinate-input input,.equation-fields input,.visibility-button,.secondary-panel-button,.scale-options button) { border-color: var(--line-strong); background: white; }
 /* Editor text boxes and dropdowns: --line-strong is only 1.7:1, too faint to find the field. Direct-edit fields on the Ratio tables canvas keep their own blue edge. */
 .booklet-editor :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"],[type="color"],[type="hidden"]),select,textarea):not(.ratio-edit-layer *) { border-color: var(--field-line); }
