@@ -1,0 +1,280 @@
+/* The Graph tool's settings, on the settings kit (site/settings-kit.css; docs/tools/APP-HOUSE-STYLE.md, "The settings
+   kit"). The kit gives the cards, buttons and fields their look. These rules lay out what is inside a card and keep
+   the few looks the kit has no word for. Where a rule answers one of the kit's it has one more class, so it holds
+   whichever file loads last. The file loads with the Graph tool, not with the first page. */
+
+/* A card's parts are spaced by the card's own gap; a part with parts of its own uses the same gap. */
+.graph-editor .md-kit .panel-card :is(.object-name-fields, .line-style-field, .endpoint-section, .exam-axes-row, .axis-scale-row, .quick-input-panel, .gradient-triangle-fields) {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.graph-editor .md-kit .panel-card .quick-input-panel {
+  padding-top: 0;
+  border-top: 0;
+}
+.graph-editor .md-kit .panel-card :is(.check-row, .field-error, .field-warning) {
+  margin: 0;
+}
+.graph-editor .md-kit .panel-card .panel-heading {
+  margin: 0;
+}
+
+/* The small line over a card's name. */
+.graph-editor .md-kit .panel-card .eyebrow {
+  margin: 0 0 1px;
+  color: var(--md-ink-3);
+  font: 600 10px/1.3 var(--md-font);
+  letter-spacing: 0.08em;
+}
+
+/* A field with its name over it and its hint under it. The name is written as the kit writes a label. */
+.graph-editor .md-kit .panel-card .graph-draft-field {
+  display: grid;
+  gap: 3px;
+}
+.graph-editor .md-kit .panel-card :is(.coordinate-input, .transform-field, .exam-axis-select) {
+  display: grid;
+  gap: 3px;
+}
+.graph-editor .md-kit .panel-card :is(.line-style-field, .exam-axes-row) > span,
+.graph-editor .md-kit .panel-card .axis-scale-row > strong {
+  color: var(--md-ink-2);
+  font: 500 var(--md-text-xs)/1.4 var(--md-font);
+}
+/* A point's two fields, or two points each with a name before its fields ("Centre", "At", "A", "B"). */
+.graph-editor .md-kit .panel-card .coordinate-fields {
+  display: grid;
+  grid-template-columns: 39px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
+}
+.graph-editor .md-kit .panel-card .coordinate-fields--point {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.graph-editor .md-kit .panel-card .coordinate-fields > strong {
+  padding-bottom: calc((var(--md-control) - 1.4em) / 2);
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  font-weight: 500;
+}
+/* The line a selected segment lies on. */
+.graph-editor .md-kit .panel-card .selected-equation {
+  padding: 6px 10px;
+  border-radius: var(--md-radius);
+  background: var(--md-page);
+  color: var(--md-ink);
+  font: italic 14px Georgia, serif;
+  text-align: center;
+}
+
+/* y = mx + c, as fields in a row. */
+.graph-editor .md-kit .panel-card .equation-fields {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  align-items: center;
+  gap: 6px;
+}
+.graph-editor .md-kit .panel-card .equation-fields--vertical {
+  grid-template-columns: auto 1fr;
+  max-width: 150px;
+}
+.graph-editor .md-kit .panel-card .equation-fields label {
+  position: relative;
+  gap: 2px;
+}
+.graph-editor .md-kit .panel-card .equation-fields input {
+  text-align: center;
+}
+.graph-editor .md-kit .panel-card .equation-fields label small {
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  text-align: center;
+}
+
+/* A group of choices is a row of the kit's buttons, the one that is on with the kit's mark. */
+.graph-editor .md-kit .panel-card .segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  background: none;
+}
+.graph-editor .md-kit .panel-card .segmented--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+/* Three choices share one row. */
+.graph-editor .md-kit .panel-card .segmented:has(> :nth-child(3):last-child) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.graph-editor .md-kit .panel-card .segmented button {
+  padding-inline: 6px;
+}
+.graph-editor .md-kit .panel-card :is(.segmented, .scale-options) button.active,
+.graph-editor .md-kit .panel-card .visibility-button.active {
+  border-color: var(--md-blue);
+  background: var(--md-blue-soft);
+}
+/* An axis scale says two things, on two lines. */
+.graph-editor .md-kit .panel-card .scale-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.graph-editor .md-kit .panel-card .scale-options button {
+  display: grid;
+  align-content: center;
+  padding: 4px;
+}
+.graph-editor .md-kit .panel-card .scale-options button span {
+  font-weight: 500;
+  line-height: 1.3;
+}
+.graph-editor .md-kit .panel-card .scale-options button small {
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  line-height: 1.3;
+}
+
+/* A button that does one thing keeps its icon, at the left. The drawing tools fill the card's width, as a list to
+   choose from; in a card for one object a button is as wide as its words. */
+.graph-editor .md-kit .panel-card :is(.secondary-panel-button, .primary-panel-button, .danger-button, .visibility-button, .text-action) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  justify-self: start;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+  padding: 4px 10px;
+}
+.graph-editor .md-kit .graph-tools .secondary-panel-button {
+  justify-self: stretch;
+}
+.graph-editor .md-kit .panel-card .danger-button:not(:disabled) {
+  color: var(--md-red);
+}
+/* The one button that adds the line is the filled one. */
+.graph-editor .md-kit .panel-card .primary-panel-button:not(:disabled) {
+  border-color: var(--md-blue);
+  background: var(--md-blue);
+  color: #fff;
+  font-weight: 600;
+}
+/* Select, Point and Segment share one row in the narrowest column. */
+.graph-editor .md-kit .panel-card .tool-group {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.graph-editor .md-kit .panel-card .tool-button {
+  gap: 6px;
+  padding-inline: 8px;
+}
+
+/* A named group inside a card, as the kit draws one (`md-kit-group`). */
+.graph-editor .md-kit .panel-card :is(.transform-fields, .exam-axis, .gradient-triangle-fields) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 10px 10px;
+  border: 1px solid var(--md-line);
+  border-radius: var(--md-radius);
+}
+.graph-editor .md-kit .panel-card :is(.transform-fields, .exam-axis, .gradient-triangle-fields) legend {
+  padding: 0 4px;
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  font-weight: 600;
+}
+/* A field and the button that uses it share a row, level at the foot. */
+.graph-editor .md-kit .panel-card .transform-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* The name of a part that opens is as tall as a control, and what it opens follows at the card's gap. */
+.graph-editor .md-kit .panel-card summary {
+  min-height: 0;
+  padding-block: calc((var(--md-control) - 1.4em) / 2);
+}
+.graph-editor .md-kit .panel-card .graph-axis-ranges {
+  margin-block: 8px 0;
+}
+
+/* The list of objects: its name opens it, as a card's heading with the count beside it, and each object is a row. */
+.graph-editor .md-kit .panel-card .objects-toggle,
+.graph-editor .md-kit .panel-card .objects-toggle:hover:not(:disabled) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+}
+.graph-editor .md-kit .panel-card .objects-toggle > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.graph-editor .md-kit .panel-card .objects-toggle strong {
+  color: #213c59;
+  font: 600 17px/1.3 var(--md-font);
+}
+.graph-editor .md-kit .panel-card .count-badge {
+  min-width: 28px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--md-page);
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  font-weight: 600;
+}
+.graph-editor .md-kit .panel-card .objects-list {
+  display: grid;
+  gap: 4px;
+  max-height: 280px;
+  padding-top: 8px;
+  overflow-y: auto;
+  border-top: 1px solid var(--md-line);
+}
+.graph-editor .md-kit .panel-card .objects-list button {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  border-color: transparent;
+  text-align: left;
+}
+.graph-editor .md-kit .panel-card .objects-list button.selected {
+  border-color: var(--md-blue);
+}
+.graph-editor .md-kit .panel-card :is(.list-icon, .off-grid) {
+  display: grid;
+  place-items: center;
+}
+.graph-editor .md-kit .panel-card .off-grid {
+  color: #a46e22;
+}
+.graph-editor .md-kit .panel-card .list-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.graph-editor .md-kit .panel-card .list-copy strong {
+  font-weight: 500;
+  line-height: 1.3;
+}
+.graph-editor .md-kit .panel-card .list-copy small {
+  overflow: hidden;
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -510,5 +510,15 @@ styles as it does.
   same classes edit a value on the diagram. They also stop at the page name and its list of
   tools, which this tool alone drew as a boxed button with a navy star. "Add point or segment" takes two lines in the narrow column and its
   neighbour matches it.
+- **Graph tool.** What is selected is the left column, with a short hint holding its place
+  when nothing is, and the list of objects under it; Drawing tools, Axis scale and Print
+  settings are the right. The list is a third group, last in the settings, so one column
+  keeps the order it always had. Every card for one object fits the window at 1920 x 1080
+  beside the tools that made it. The tool's settings rules moved out of the first-load
+  stylesheets into `src/graph-settings.css`, which loads with the tool: it lays out what is
+  inside a card and leaves the look to the kit. A group of choices (`segmented`,
+  `scale-options`) is a row of the kit's buttons with the kit's mark; an axis scale keeps its
+  two lines; the drawing tools use `aria-pressed`, not the toolbar's `tool-button--active`;
+  the list of objects opens from a row that reads as the card's heading.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

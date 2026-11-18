@@ -28,6 +28,8 @@ import { ObjectInspector } from "./components/ObjectInspector";
 import { ObjectsPanel } from "./components/ObjectsPanel";
 import { GraphTools } from "./components/GraphTools";
 import { EditorToolbar } from "./site/EditorToolbar";
+import "./site/settings-kit.css";
+import "./graph-settings.css";
 import { GraphExchange } from "./components/GraphExchange";
 import {
   adjustAxis,
@@ -699,8 +701,7 @@ export default function App({ active = true }: { active?: boolean }) {
               hint={
                 <EditorHint tool="graph">
                   Choose a tool, then click or drag on the grid. Click a line,
-                  segment or cross to change it. Blue handles are editing guides
-                  and are never copied.
+                  segment or cross to change it. Blue handles are never copied.
                 </EditorHint>
               }
             />
@@ -708,10 +709,14 @@ export default function App({ active = true }: { active?: boolean }) {
 
           <aside
             ref={inspector}
-            className="inspector-stack"
+            className="inspector-stack md-kit"
             aria-label="Graph settings"
           >
             <ReturnToDiagram />
+            {/* On a wide screen: what is selected on the left with the list of objects under it, and the drawing
+                tools, the axes and printing on the right (settings-kit.css). The list comes last, as it always has. */}
+            <div className="md-kit-cards">
+            <div>
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
             {equationOpen ? (
@@ -758,7 +763,14 @@ export default function App({ active = true }: { active?: boolean }) {
                   commit({ ...document, objects: [...document.objects, ...added], selectedObjectId: added[0].id });
                 }}
               />
-            ) : null}
+            ) : (
+              <section className="panel-card graph-selected-empty" aria-label="Selected object">
+                <h2>Selected object</h2>
+                <p>Click a point, line or shape on the graph to edit it here, or choose a drawing tool.</p>
+              </section>
+            )}
+            </div>
+            <div>
             <fieldset className="graph-control-group" disabled={blocked}>
               <GraphTools
                 tool={tool}
@@ -815,6 +827,8 @@ export default function App({ active = true }: { active?: boolean }) {
                 </button>
               </details>
             </section>
+            </div>
+            <div>
             <fieldset className="graph-control-group" disabled={blocked}>
               <ObjectsPanel
                 document={document}
@@ -829,6 +843,8 @@ export default function App({ active = true }: { active?: boolean }) {
                 }}
               />
             </fieldset>
+            </div>
+            </div>
           </aside>
         </section>
       </main>

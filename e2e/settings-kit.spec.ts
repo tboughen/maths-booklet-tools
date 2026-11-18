@@ -757,6 +757,95 @@ test("Table of values uses the kit: the card for what is selected on the left, t
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("Graph tool uses the kit: what is selected on the left with the list of objects under it, the drawing tools, the axes and printing on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/graph");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const first = page.locator(".md-kit .panel-card").first();
+  const objects = page.locator(".md-kit .panel-card.objects-panel");
+  const printing = page.locator(".md-kit .panel-card").filter({ hasText: "Print settings" });
+  await expect(first).toHaveAccessibleName("Selected object");
+  const [empty, tools, axes, print, list] = [(await first.boundingBox())!, await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
+  expect(tools.y).toBe(empty.y);
+  expect(tools.x).toBeGreaterThanOrEqual(empty.x + empty.width);
+  expect(Math.abs(tools.width - empty.width)).toBeLessThanOrEqual(1);
+  expect([axes.x, print.x]).toEqual([tools.x, tools.x]);
+  expect(axes.y).toBeGreaterThan(tools.y + tools.height);
+  expect(print.y).toBeGreaterThan(axes.y + axes.height);
+  expect(list.x).toBe(empty.x);
+  expect(list.y).toBeGreaterThan(empty.y + empty.height);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // The three drawing tools share a row, and the one that is on has the kit's mark.
+  const row = await Promise.all(["Select", "Point", "Segment"].map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!));
+  expect(new Set(row.map((button) => button.y)).size).toBe(1);
+  expect(await page.getByRole("button", { name: "Select", exact: true }).evaluate((el) => [el.getAttribute("aria-pressed"), getComputedStyle(el).backgroundColor])).toEqual(["true", "rgb(230, 239, 255)"]);
+
+  // The kit's sizes: every button and field that shows is 32 px, but for the axis scales, which say two things on
+  // two lines. Nothing is cut off, and the settings fit the window.
+  const fits = async (what: string) => {
+    const sizes = await stack.evaluate((el) => {
+      const shown = (all: NodeListOf<HTMLElement>) => [...all].filter((c) => c.getBoundingClientRect().height > 0);
+      return {
+        buttons: [...new Set(shown(el.querySelectorAll(".panel-card button")).filter((b) => !b.closest(".scale-options, .objects-list")).map((b) => Math.round(b.getBoundingClientRect().height)))],
+        scales: [...new Set(shown(el.querySelectorAll(".scale-options button")).map((b) => Math.round(b.getBoundingClientRect().height)))],
+        fields: [...new Set(shown(el.querySelectorAll(".panel-card :is(select, input:not([type=checkbox]))")).map((b) => Math.round(b.getBoundingClientRect().height)))],
+        cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1 || c.scrollHeight > c.clientHeight + 1).length,
+        inView: el.scrollHeight <= el.clientHeight,
+      };
+    });
+    expect(sizes, what).toMatchObject({ buttons: [32], scales: [42], cut: 0, inView: true });
+    expect(sizes.fields.every((height) => height === 32), `${what}: ${sizes.fields}`).toBe(true);
+  };
+  await fits("nothing selected");
+
+  // Each thing that can be added opens its card top left, where the hint was, and still fits.
+  for (const [add, heading] of [["Add shape", "Shape"], ["Shade a region", "Shaded region"], ["Graph through points", "Graph through points"], ["Equation curve", "Equation curve"], ["Add circle", "Circle"], ["Reading lines", "Reading lines"]]) {
+    await page.getByRole("button", { name: add, exact: true }).click();
+    await expect(first.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+    const [open, under] = [(await first.boundingBox())!, (await objects.boundingBox())!];
+    expect([open.x, open.y], add).toEqual([empty.x, empty.y]);
+    expect(under.y, add).toBeGreaterThan(open.y + open.height);
+    await fits(add);
+  }
+  // The button that deletes is red, and a field shares its row with the button that uses it, level at the foot.
+  expect(await first.getByRole("button", { name: "Delete reading lines", exact: true }).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(179, 38, 30)");
+
+  // The form for a line by its equation: the button that adds the line is the filled one.
+  await page.getByRole("button", { name: "Line by equation", exact: true }).click();
+  await expect(first.getByRole("heading", { name: "Line by equation", exact: true })).toBeVisible();
+  expect(await first.getByRole("button", { name: "Add line", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(15, 98, 254)");
+  await fits("Line by equation");
+  await first.getByRole("button", { name: "Add line", exact: true }).click();
+  await expect(first.getByRole("heading", { name: "Straight line", exact: true })).toBeVisible();
+  await fits("Straight line");
+
+  // The list of objects opens under what is selected: one row for each, the selected one marked.
+  await objects.getByRole("button", { name: "Objects" }).click();
+  const rows = objects.locator(".objects-list button");
+  await expect(rows).toHaveCount(7);
+  expect(await rows.evaluateAll((all) => all.map((row) => [row.getAttribute("aria-pressed"), getComputedStyle(row).backgroundColor].join(" ")).filter((mark) => mark.startsWith("true")))).toEqual(["true rgb(230, 239, 255)"]);
+  expect(await objects.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+
+  // One column in a smaller window, in the order the cards have always had.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = [(await first.boundingBox())!, await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+
+  // Three columns under the diagram on an upright monitor.
+  await page.setViewportSize({ width: 1080, height: 1920 });
+  const upright = [(await first.boundingBox())!, await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
+  expect(new Set(upright.map((c) => c.x)).size).toBe(3);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
 // settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or

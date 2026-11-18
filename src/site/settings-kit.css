@@ -57,6 +57,6 @@
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div:nth-child(3) { grid-area: 2 / 1; }
   /* The diagram's card is narrower beside two columns, and the strip under it still keeps to one
      row: the note shares the row, and the message gives the hint 60 px of its room, so the longest
-     hint (116 characters) still takes two lines. */
+     hint (122 characters, the Graph tool's) still takes two lines. */
   .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) .editor-foot-note { flex-basis: 0; grid-template-columns: minmax(220px, 1fr) auto; }
 }
