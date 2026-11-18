@@ -156,6 +156,14 @@ describe("silent starter layout", () => {
     expect(r.issues[0].message).toMatch(/^Starter 1: the topic is wider than the header/);
   });
 
+  it("files a topic character the font lacks under the whole run (starter 0), as it prints on every card", () => {
+    const run = clone(year9Run);
+    run.document.topic = "Fractions \u{1F600}";
+    const topic = renderStarterRun(validateStarterRun(run)).issues.filter((i) => /topic/i.test(i.message) && !/wider/.test(i.message));
+    expect(topic.length).toBeGreaterThan(0);
+    expect(topic.every((i) => i.starter === 0)).toBe(true);
+  });
+
   it("reports a fraction in an instruction and a stage band, which starters cannot print", () => {
     const run = clone(year9Run);
     run.document.starters[0].cards[0].title = "Find {1/2} of:";

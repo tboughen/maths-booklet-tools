@@ -24,6 +24,8 @@ export const AssessmentIcon = icon(<><rect x="3" y="4" width="11" height="16" rx
 export const DiagramBuilderIcon = icon(<><path d="M3 20V8l12 12z" /><circle className="md-icon-part md-icon-wash" cx="16.5" cy="8" r="4.5" /></>);
 /** Worksheet builder */
 export const WorksheetBuilderIcon = icon(<><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M12 5v14M5 9h4M5 12h4M15 9h4" /><path className="md-icon-part" d="M15 15h4" /></>);
+/** Starter builder: two A5 cards on an A4 sheet, cut along the dashed line. */
+export const StarterBuilderIcon = icon(<><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M8 6h5M8 15h5" /><path className="md-icon-part" d="M3 12h2.5M8 12h2.5M13.5 12h2.5M18.5 12h2.5" /></>);
 /** Booklet builder */
 export const BookletBuilderIcon = icon(<><rect x="8" y="3" width="12" height="15" rx="2" /><path d="M4 7v12a2 2 0 0 0 2 2h10" /><path className="md-icon-part" d="M11.5 8h5M11.5 11.5h3" /></>);
 
