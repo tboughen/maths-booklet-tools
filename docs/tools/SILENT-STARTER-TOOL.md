@@ -1,0 +1,57 @@
+# Silent starter tool
+
+A silent starter is the short printed task pupils do as they come into the lesson. It is cut out
+and stuck in their books, so they can look back at earlier ones. The tool makes a **run of six**
+starters at once. Each question slot keeps its type for the whole run: question 3 is the same kind
+of question in every starter, and only its numbers or difficulty move a little from one starter to
+the next (Tim, 18 November 2026). Design page with mock-ups:
+https://claude.ai/artifact/Fp4FYqJk7zQaxxUEoxS5ZZ
+
+Code: `packages/resource-core/src/starter.ts` (the file format) and `starter-render.ts` (layout).
+
+## Decisions
+
+- **Print comes first.** Each starter is an A5 landscape card (210 × 148 mm). The print sheet is A4
+  portrait with two copies of the same card and a dashed cut line, so one cut gives two pupils a
+  half-page each. Text is the house 11 pt and is never shrunk; maths uses the worksheet typesetting
+  and stacked fractions.
+- **The board comes second.** The board view shows the same card filling the height of a
+  1920 × 1080 screen, with a side strip for the starter number, the topic, a timer and the pink
+  answers switch. It is not re-laid for 16:9, so pupils see exactly what is on their sheet.
+- **Templates.** `four`: four questions two by two, numbered in reading order (Years 7 and 8).
+  `six`: six questions in three columns, numbered down the columns (1 2 | 3 4 | 5 6) for Key
+  Stage 4. `core-extension`: the same six with the third column marked as extension by a 1.3 mm
+  bar, a black "EXTENSION" band and a light grey tint (option C, chosen by Tim). Questions 5 and 6
+  are always the extension column.
+- **Year 7 and 8 question types.** Each slot has a type name (not printed) and an icon printed in
+  its corner: pencil, speech bubbles, book and puzzle piece, as on Tim's Year 8 starters. Tim will
+  name the four types later; fill them in `YEAR_7_8_SLOTS` in `starter.ts` when he does.
+- **Logo.** A run may hold a small PNG or JPEG logo, printed at the right of the header. It is kept
+  inside the saved file and never committed to the repository (the app repository is public).
+  The pelican logo was not found on 18 November 2026, so none is set by default.
+
+## The file
+
+`kind: "starter-run"` in the shared resource schema (`tool: "resource"`, `schemaVersion: 1`):
+title and group (for the editor and file names), the printed topic, the template, `notation`
+(`maths` by default), one slot per question (`name`, `icon`), one to six starters, each holding
+one question card per slot, and an optional logo. A card's title is the question's instruction,
+printed in bold after its green number; its items are the worksheet and booklet items (text,
+answer lines, tables, choices, spaces and any MathsDock diagram).
+
+## Layout
+
+- 7 mm margins (a cutting allowance), a 12 mm header ("Silent starter", "On your sheet", the run
+  tracker with today's number boxed, the topic and the logo), then the slots.
+- Slots are 98 × 61 mm (four) or 65 × 61 mm (six). Spare height goes to working spaces, as on
+  worksheets. A question that does not fit is reported with its starter and question number.
+- MathsDock diagrams print at their true size, so a starter needs small ones. A diagram wider
+  than its slot is reported ("Draw it smaller in its tool"); nothing is scaled down. The area
+  tool, for example, can draw a shape at any size while its labels stay at full size.
+- File names: `[title]_Silent-starters.pdf`, `..._Answers.pdf`; one starter adds `_[n]`.
+
+## Still to build
+
+Word output; the page (run grid of slots by starters, cell editor, copy along a row, undo); the
+board view and slides; a connector tool to draft a run; optional AI suggestions for a row's
+numbers. Each is its own small pull request.
