@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { year8Run, year9Run } from "./starter-fixtures";
-import { defaultSlots, renderStarterRun, starterFileName, validateStarterRun, YEAR_7_8_SLOTS, STARTER, type StarterRun } from "./index";
+import { defaultSlots, renderStarterRun, slotBoxes, starterFileName, validateStarterRun, YEAR_7_8_SLOTS, STARTER, type StarterRun } from "./index";
 
 const clone = (r: StarterRun) => structuredClone(r);
 const count = (svg: string, needle: string) => svg.split(needle).length - 1;
@@ -34,6 +34,11 @@ describe("starter run file", () => {
     expect(validateStarterRun(run).document.logo).toBe(PNG);
     run.document.logo = "data:image/svg+xml;base64,PHN2Zy8+";
     expect(() => validateStarterRun(run)).toThrow(/PNG or JPEG/);
+    // A damaged or cut-off upload is caught when the file is read, not when the PDF is made.
+    for (const broken of ["data:image/png;base64,AAAA", PNG.slice(0, 60), "data:image/jpeg;base64," + PNG.split(",")[1]]) {
+      run.document.logo = broken;
+      expect(() => validateStarterRun(run)).toThrow(/damaged/);
+    }
   });
 
   it("starts Year 7 and 8 runs with the four icons and type names left for Tim", () => {
@@ -135,4 +140,36 @@ describe("silent starter layout", () => {
     expect(starterFileName(run, "answers", 3, "docx")).toBe("Year-9-fractions-perimeter-and-expanding_Silent-starters_3_Answers.docx");
   });
 
+
+  it("numbers six slots down the columns and four in reading order", () => {
+    const six = slotBoxes("six").map((b) => [Math.round(b.x), Math.round(b.y)]);
+    expect(six).toEqual([[7, 19], [7, 80], [72, 19], [72, 80], [138, 19], [138, 80]]);
+    const four = slotBoxes("four").map((b) => [Math.round(b.x), Math.round(b.y)]);
+    expect(four).toEqual([[7, 19], [105, 19], [7, 80], [105, 80]]);
+  });
+
+  it("reports a topic too long for the header instead of cutting it silently", () => {
+    const run = clone(year9Run);
+    run.document.topic = "Fractions, perimeter, area, brackets and simplifying";
+    const r = renderStarterRun(validateStarterRun(run));
+    expect(r.issues).toHaveLength(6);
+    expect(r.issues[0].message).toMatch(/^Starter 1: the topic is wider than the header/);
+  });
+
+  it("reports a fraction in an instruction and a stage band, which starters cannot print", () => {
+    const run = clone(year9Run);
+    run.document.starters[0].cards[0].title = "Find {1/2} of:";
+    run.document.starters[0].cards[1].stage = "Stage A";
+    const messages = renderStarterRun(validateStarterRun(run)).issues.map((i) => i.message);
+    expect(messages.some((m) => /question 1: the instruction holds a fraction/.test(m))).toBe(true);
+    expect(messages.some((m) => /question 2 has a stage band \("Stage A"\)/.test(m))).toBe(true);
+  });
+
+  it("lets the grey extension tint show behind a diagram, and keeps diagram backgrounds elsewhere", () => {
+    const svg = renderStarterRun(validateStarterRun(clone(year9Run))).cards[0];
+    expect(svg).not.toMatch(/aria-label="Area and perimeter diagram[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
+    const plain = clone(year9Run);
+    plain.document.template = "six";
+    expect(renderStarterRun(validateStarterRun(plain)).cards[0]).toMatch(/aria-label="Area and perimeter diagram[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
+  });
 });

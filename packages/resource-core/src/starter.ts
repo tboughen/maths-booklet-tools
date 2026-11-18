@@ -46,11 +46,29 @@ export const starterSchema = z
   })
   .strict();
 
+/** The logo's bytes start and end as a whole PNG (signature, IEND) or JPEG (FFD8FF, FFD9) does, so a damaged upload is caught when saved, not at export. */
+function imageIsWhole(url: string): boolean {
+  const m = url.match(/^data:image\/(png|jpeg);base64,(.*)$/);
+  if (!m) return true; // the format message above covers it
+  let bin: string;
+  try {
+    bin = atob(m[2]);
+  } catch {
+    return false;
+  }
+  const bytes = (s: string) => [...s].map((c) => c.charCodeAt(0));
+  const head = bytes(bin.slice(0, 8)),
+    tail = bytes(bin.slice(-12));
+  if (m[1] === "png") return head.join() === "137,80,78,71,13,10,26,10" && bin.slice(-8, -4) === "IEND";
+  return head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff && tail[10] === 0xff && tail[11] === 0xd9;
+}
+
 /** A logo the teacher adds: a small PNG or JPEG kept inside the saved file, never in the repository. */
 const logoSchema = z
   .string()
   .max(400_000)
   .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/, "Use a PNG or JPEG image.")
+  .refine(imageIsWhole, "The logo image is damaged or not the type it says. Add it again as a PNG or JPEG file.")
   .describe("A small PNG or JPEG data URL printed in the header's right corner.");
 
 export const starterRunSchema = z

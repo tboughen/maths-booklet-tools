@@ -2,7 +2,7 @@ import { typesetForPrint } from "./typeset";
 import { FAMILIES, type DiagramKind } from "../../diagram-core/src/registry";
 import { at, countSpaces, items, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type StyleId } from "./style";
-import { esc, n, parseRuns, plainWidth, textSvg } from "./text";
+import { esc, lineWidth, n, parseRuns, plainWidth, textSvg } from "./text";
 import { fitLine } from "./booklet-render";
 import { isExtensionSlot, type StarterIcon, type StarterRun, type StarterTemplate } from "./starter";
 
@@ -26,7 +26,8 @@ export const STARTER = {
   /** The bar before the extension column (option C). */
   extensionRule: 1.3,
   extensionBand: 5.5,
-  padX: 2.5,
+  /** Wide enough that a diagram at its full allowed width stays clear of the 1.3 mm extension bar. */
+  padX: 3.5,
   padTop: 2.2,
   padBottom: 2,
   icon: 8,
@@ -97,7 +98,7 @@ function iconSvg(icon: StarterIcon, x: number, y: number): string {
   );
 }
 
-function header(doc: StarterRun["document"], number: number): string {
+function header(doc: StarterRun["document"], number: number, issues: StarterIssue[]): string {
   const S = STARTER,
     C = S.colours;
   const x0 = S.margin,
@@ -135,6 +136,7 @@ function header(doc: StarterRun["document"], number: number): string {
   }
   if (doc.topic.trim()) {
     const topic = fitLine(doc.topic, body, Math.max(0, topicRight - x), "bold");
+    if (topic !== doc.topic) issues.push({ starter: number, message: `Starter ${number}: the topic is wider than the header has room for, so it is cut short. Shorten the topic.` });
     out.push(textSvg([{ text: topic, style: "bold" }], topicRight, mid + body * 0.36, body, "#000", "end"));
   }
   out.push(`<rect x="${n(x0)}" y="${n(S.margin + S.header - S.headerRule)}" width="${n(right - x0)}" height="${S.headerRule}" fill="#000"/>`);
@@ -202,7 +204,7 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
   const cards: string[] = [];
   const sheets: string[] = [];
   doc.starters.forEach((starter, si) => {
-    const out: string[] = [grid(doc.template), header(doc, si + 1)];
+    const out: string[] = [grid(doc.template), header(doc, si + 1, issues)];
     starter.cards.forEach((card, qi) => {
       ctx.where = { starter: si + 1, question: qi + 1 };
       for (const c of missingCharacters(card)) issues.push({ ...ctx.where, message: missingCharacterMessage(`Starter ${si + 1}, question ${qi + 1}`, c) });
@@ -216,7 +218,9 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
       const tx = place.x + plainWidth(label, S.numberSize, "bold") + 2;
       if (card.title.trim()) {
         const room = place.x + place.w - tx;
-        if (plainWidth(card.title, SIZE.body, "bold") > room) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction is wider than its slot. Shorten it or move words into the question.` });
+        const runs = parseRuns(card.title, "bold", ctx.maths);
+        if (runs.some((r) => r.frac)) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction holds a fraction, which would not fit on the number line. Put the fraction in the question.` });
+        if (lineWidth(runs, SIZE.body) > room) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction is wider than its slot. Shorten it or move words into the question.` });
         out.push(textSvg(parseRuns(card.title, "bold", ctx.maths), tx, numberBase, SIZE.body, "#000"));
       }
       // Spare height goes to working spaces, as on worksheets.
@@ -225,7 +229,10 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
       const spaces = countSpaces(card.items);
       const body = items(card.items, place.w, ctx, spare > 0 && spaces ? spare / spaces : 0);
       if (spare < -0.05) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} needs ${n(-spare)} mm more height. Shorten the question or make its diagram smaller; text is never shrunk.` });
-      out.push(at(body, place.x, place.top));
+      if (card.stage) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} has a stage band ("${card.stage}"), which starters do not print. Remove it.` });
+      // On the grey extension column a diagram's own white background would print as a white box.
+      const svg = isExtensionSlot(doc.template, qi) ? body.svg.replace(/(<svg[^>]*\sviewBox="0 0 ([\d.]+) ([\d.]+)"[^>]*>)<rect width="\2" height="\3" fill="white"\/>/g, "$1") : body.svg;
+      out.push(at({ h: body.h, svg }, place.x, place.top));
       if (icon !== "none") out.push(iconSvg(icon, place.box.x + place.box.w - S.padX - S.icon + 0.5, place.box.y + place.box.h - S.padBottom - S.icon));
     });
     const name = `${doc.title}, silent starter ${si + 1} of ${doc.starters.length}${view === "answers" ? ", answers" : ""}`;
