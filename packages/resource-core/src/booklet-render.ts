@@ -86,25 +86,149 @@ export function fitLine(s: string, size: number, width: number, style: FontStyle
   return t.trimEnd() + "…";
 }
 
-function lessonHead(lesson: Lesson, number: number, st: HouseStyle): Frag {
-  const x = A4.lessonTile + 3.5;
+/**
+ * Lesson bookends and the corner badge (BOOKLET-STANDARD N11, Tim 18 November 2026): a navy start
+ * block opens each lesson, a navy end band closes it in place of the last page's footer, and every
+ * other page carries a "Lesson N" badge in its outer top corner with one square per stage (and E for
+ * the exam-style and extension work after the last stage), the current one filled.
+ */
+export const BOOKEND = {
+  /** Top of the start block and of the corner badge. */
+  top: 5,
+  /** The start block's least height, its padding and its white lesson tile. */
+  startH: 23,
+  startPad: 4,
+  startPadY: 2,
+  tile: 17,
+  /** The corner badge, the stage squares beside it and the gap between them. */
+  badgeW: 18,
+  badgeH: 14,
+  square: 10.5,
+  squareGap: 1.6,
+  badgeGap: 7,
+  /** The end band sits in the footer's place on a lesson's last page. */
+  endTop: 283,
+  endH: 10,
+  endTile: 7,
+  label: "Lesson",
+  start: "START",
+  stop: "STOP",
+  extension: "E",
+} as const;
+/** Unlit stage squares: pale blue with a grey-blue figure, so the lit one stands out and photocopies pale. */
+export const STAGE_UNLIT = "#8aa0ba";
+/** On a lesson's later pages the content starts this far below the page top margin, under the corner badge. */
+export const BADGE_HEAD = BOOKEND.top + BOOKEND.badgeH + 2 - A4.top;
+const pt = (v: number) => v * 0.3528;
+
+/** The unit's name on the start block: the booklet title, led by its code when the title does not already start with a unit code. */
+export function unitLabel(doc: Booklet["document"]): string {
+  const title = doc.title.trim();
+  const code = doc.code.trim().replace(/\..*$/, "");
+  return !code || /^[A-Z]{1,3}\d+\b/.test(title) ? title : `${code} ${title}`;
+}
+
+/** The start block's text width, shared with Word. */
+export const startTextX = () => BOOKEND.startPad + BOOKEND.tile + 5;
+export const startTextWidth = () => W - startTextX() - BOOKEND.startPad - plainWidth(BOOKEND.start, pt(14), "bold") - 6;
+
+/** The start block's unit and title sizes, and its height, shared with Word. */
+export const START_SIZES = { unit: pt(11), title: pt(14), gap: 0.6 } as const;
+export function startBlockHeight(doc: Booklet["document"], lesson: Lesson): number {
+  const unit = unitLabel(doc);
+  const textH = (unit ? wrap(unit, START_SIZES.unit, startTextWidth(), "bold").length * lh(START_SIZES.unit) + START_SIZES.gap : 0) + wrap(lesson.title, START_SIZES.title, startTextWidth(), "bold").length * lh(START_SIZES.title);
+  return Math.max(BOOKEND.startH, textH + 2 * BOOKEND.startPadY);
+}
+
+/** The lesson's start block: tile, unit, title and START; then the key idea. */
+function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st: HouseStyle): Frag {
+  const B = BOOKEND;
   const out: string[] = [];
-  out.push(rect(0, 0, A4.lessonTile, A4.lessonTile, `rx="1.6" fill="${st.navy}"`));
-  out.push(textSvg([{ text: String(number), style: "bold" }], A4.lessonTile / 2, A4.lessonTile / 2 + A4.lessonTitle * 0.36, A4.lessonTitle, "white", "middle"));
-  const title = para(lesson.title, W - x, st, { size: A4.lessonTitle, fill: st.navy, style: "bold", x });
-  // Single-line titles sit centred on the tile; longer ones start at its top.
-  const ty = title.h <= lh(A4.lessonTitle) + 0.01 ? (A4.lessonTile - lh(A4.lessonTitle)) / 2 : -0.6;
-  out.push(at(title, 0, ty));
+  const tx = startTextX();
+  const unit = unitLabel(doc);
+  const unitF = unit ? para(unit, startTextWidth(), st, { size: START_SIZES.unit, fill: "white", style: "bold", x: tx }) : { h: 0, svg: "" };
+  const title = para(lesson.title, startTextWidth(), st, { size: START_SIZES.title, fill: "white", style: "bold", x: tx });
+  const textH = unitF.h + (unit ? START_SIZES.gap : 0) + title.h;
+  const h = startBlockHeight(doc, lesson);
+  out.push(rect(0, 0, W, h, `rx="2" fill="${st.navy}"`));
+  const ty = (h - B.tile) / 2;
+  out.push(rect(B.startPad, ty, B.tile, B.tile, `rx="1.6" fill="white"`));
+  out.push(textSvg([{ text: B.label, style: "bold" }], B.startPad + B.tile / 2, ty + 5.4, pt(10), st.navy, "middle"));
+  out.push(textSvg([{ text: String(number), style: "bold" }], B.startPad + B.tile / 2, ty + 14.6, pt(26), st.navy, "middle"));
+  const y0 = (h - textH) / 2;
+  out.push(at(unitF, 0, y0), at(title, 0, y0 + unitF.h + (unit ? START_SIZES.gap : 0)));
+  out.push(textSvg([{ text: B.start, style: "bold" }], W - B.startPad, h / 2 + pt(14) * 0.36, pt(14), "white", "end"));
   // One title line (N2): the lesson's code and objective are not printed again under it.
-  // Below the tile, or below a longer title's full line box, as Word's title row measures it.
-  let y = Math.max(A4.lessonTile, ty + title.h, title.h);
+  let y = h;
   if (lesson.keyIdea.trim()) {
-    y += 4;
+    y += 3;
     const box = keyIdeaBox(lesson.keyIdea, st);
     out.push(at(box, 0, y));
     y += box.h;
   }
   return { h: y, svg: out.join("") };
+}
+
+/** Which stage squares a lesson shows: one per START banner, then E when work follows the last STOP banner. */
+export function stageSquares(lesson: Lesson): string[] {
+  const starts = lesson.sections.filter((s) => s.startBanner.trim()).length;
+  if (!starts) return [];
+  const squares = Array.from({ length: starts }, (_, i) => String(i + 1));
+  // E only when some section is lit E: work after the last stage's own STOP banner.
+  return sectionStages(lesson).includes(BOOKEND.extension) ? [...squares, BOOKEND.extension] : squares;
+}
+
+/** The lit square for each section: its stage, E after the last stage's STOP banner, or null before the first stage. */
+export function sectionStages(lesson: Lesson): (string | null)[] {
+  const total = lesson.sections.filter((s) => s.startBanner.trim()).length;
+  let count = 0;
+  let cur: string | null = null;
+  return lesson.sections.map((s) => {
+    if (s.startBanner.trim()) cur = String(++count);
+    const here = cur;
+    if (s.endBanner.trim() && count === total) cur = BOOKEND.extension;
+    return here;
+  });
+}
+
+/** The corner badge and stage squares, in the outer corner: right on odd printed pages, left on even. */
+export function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle): string {
+  const B = BOOKEND;
+  const right = pageNo % 2 === 1;
+  const bx = right ? A4.marginX + W - B.badgeW : A4.marginX;
+  const out = [
+    rect(bx, B.top, B.badgeW, B.badgeH, `rx="1.6" fill="${st.navy}"`),
+    textSvg([{ text: B.label, style: "bold" }], bx + B.badgeW / 2, B.top + 4.6, pt(10), "white", "middle"),
+    textSvg([{ text: String(number), style: "bold" }], bx + B.badgeW / 2, B.top + 12.2, pt(24), "white", "middle"),
+  ];
+  const run = squares.length * B.square + Math.max(0, squares.length - 1) * B.squareGap;
+  let x = right ? bx - B.badgeGap - run : bx + B.badgeW + B.badgeGap;
+  const sy = B.top + (B.badgeH - B.square) / 2;
+  for (const sq of squares) {
+    const on = sq === lit;
+    out.push(rect(x, sy, B.square, B.square, `rx="1.4" fill="${on ? st.navy : st.tint}"`));
+    out.push(textSvg([{ text: sq, style: "bold" }], x + B.square / 2, sy + B.square / 2 + pt(16) * 0.36, pt(16), on ? "white" : STAGE_UNLIT, "middle"));
+    x += B.square + B.squareGap;
+  }
+  return out.join("");
+}
+
+/** The end band on a lesson's last page, in the footer's place: lesson tile, "End of lesson N", the page number and STOP. */
+export function endBand(number: number, pageNo: number, st: HouseStyle): string {
+  const B = BOOKEND;
+  const x0 = A4.marginX;
+  const y = B.endTop;
+  const size = pt(14);
+  const by = y + B.endH / 2 + size * 0.36;
+  const tile = (B.endH - B.endTile) / 2;
+  return [
+    rect(x0, y, W, B.endH, `rx="1.6" fill="${st.navy}"`),
+    rect(x0 + 3, y + tile, B.endTile, B.endTile, `rx="1" fill="white"`),
+    textSvg([{ text: String(number), style: "bold" }], x0 + 3 + B.endTile / 2, by, size, st.navy, "middle"),
+    textSvg([{ text: `End of lesson ${number}`, style: "bold" }], x0 + 3 + B.endTile + 3, by, size, "white"),
+    textSvg([{ text: `Page ${pageNo}`, style: "bold" }], x0 + W / 2, by, size, "white", "middle"),
+    textSvg([{ text: B.stop, style: "bold" }], x0 + W - 5, by, size, "white", "end"),
+  ].join("");
 }
 
 /** The key idea box's geometry, shared with Word: "Key idea" in a left cell, the ideas in a right cell, each on its own line. */
@@ -215,11 +339,11 @@ interface PlannedPage {
 }
 
 /**
- * Footer: only the page number, bold, larger and centred, so pupils find their page at a glance.
- * The unit name is left off (less to read): it is on the cover and in the running header.
+ * Footer: only the page number, bold, larger and centred, so pupils find their page at a glance,
+ * with no rule above it (N11: fewer lines). The unit name is on the cover and the lesson's start block.
  */
 function footer(_doc: Booklet["document"], page: number, st: HouseStyle) {
-  return hline(A4.marginX, A4.marginX + W, A4.footerRule, st) + textSvg([{ text: `Page ${page}`, style: "bold" }], A4.marginX + W / 2, A4.footerBase, A4.pageNumber, st.navy, "middle");
+  return textSvg([{ text: `Page ${page}`, style: "bold" }], A4.marginX + W / 2, A4.footerBase, A4.pageNumber, st.navy, "middle");
 }
 
 /** One printed line of a lesson's teaching notes, placed on a notes page. */
@@ -440,6 +564,11 @@ export interface PlannedLessonPage {
   /** Extra height given to each working or drawing space on this page. */
   extra: number;
   blocks: PlacedBlock[];
+  /** The lesson's last page: the end band takes the footer's place (N11). */
+  last: boolean;
+  /** The stage squares in the corner, and the lit one (null before the first stage). */
+  squares: string[];
+  stage: string | null;
 }
 /**
  * The booklet's page plan: which blocks go on which page, where, and how tall. The SVG pages and
@@ -451,7 +580,7 @@ export interface BookletPlan {
   introPage: number | null;
   contents: { label: string; title: string; page: number }[];
 }
-/** The continued-page running header: lesson number and title, a hairline, then the content. */
+/** The teaching notes' continued-page running header: a line of text, a hairline, then the notes. */
 export const CONTINUED_HEAD = 9;
 export const CONTINUED_RULE = 5.6;
 
@@ -461,14 +590,14 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   const st = styles[options.style ?? "mathsdock"];
   const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, maths: booklet.document.notation === "maths" };
   const contentTop = A4.top;
-  const contHead = CONTINUED_HEAD;
+  const contHead = BADGE_HEAD;
 
   // 1. Plan every lesson's pages from natural heights.
   const planned: PlannedPage[] = [];
   doc.lessons.forEach((lesson, li) => {
     const L = li + 1;
-    const head = lessonHead(lesson, L + (options.numbering?.lessonOffset ?? 0), st);
-    let pg: PlannedPage = { lesson: L, continued: false, blocks: [{ block: { kind: "head", frag: head }, y: contentTop }], end: contentTop + head.h };
+    const head = lessonHead(doc, lesson, L + (options.numbering?.lessonOffset ?? 0), st);
+    let pg: PlannedPage = { lesson: L, continued: false, blocks: [{ block: { kind: "head", frag: head }, y: BOOKEND.top }], end: BOOKEND.top + head.h };
     planned.push(pg);
     const fresh = () => {
       pg = { lesson: L, continued: true, blocks: [], end: contentTop + contHead };
@@ -542,7 +671,11 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       shift += grown - block.row.h;
       return { kind: "row", section: block.section, cards: block.row.cards, y: yy, h: grown, natural: block.row.h };
     });
-    return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks };
+    const lesson = doc.lessons[p.lesson - 1];
+    const firstSection = blocks.find((b): b is Exclude<PlacedBlock, { kind: "head" }> => b.kind !== "head");
+    const stage = firstSection ? sectionStages(lesson)[firstSection.section] : null;
+    const last = pi === planned.length - 1 || planned[pi + 1].lesson !== p.lesson;
+    return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks, last, squares: stageSquares(lesson), stage };
   });
   return { pages, lessonPages, introPage: introPageNo, contents };
 }
@@ -555,7 +688,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, maths: doc.notation === "maths" };
   const issues: BookletIssue[] = [];
   const contentTop = A4.top;
-  const contHead = CONTINUED_HEAD;
+  const contHead = BADGE_HEAD;
   const plan = planBooklet(booklet, options);
 
   // A character the font does not hold prints as a gap in the PDF and in another font in Word.
@@ -574,15 +707,15 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     const pageNo = p.pageNo;
     const lesson = doc.lessons[p.lesson - 1];
     const out: string[] = [];
-    if (p.continued) {
-      const label = fitLine(`Lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)} · ${lesson.title}`, A4.small, W);
-      out.push(textSvg(parseRuns(label), A4.marginX, contentTop + base(A4.small), A4.small, st.muted), hline(A4.marginX, A4.marginX + W, contentTop + CONTINUED_RULE, st));
-    }
+    const shownLesson = p.lesson + (options.numbering?.lessonOffset ?? 0);
+    const shownPage = pageNo + (options.numbering?.pageOffset ?? 0);
+    // Later pages: the lesson badge and stage squares in the outer top corner (N11), in place of a running header.
+    if (p.continued) out.push(cornerBadge(shownLesson, p.squares, p.stage, shownPage, st));
     const extra = p.extra;
     for (const block of p.blocks) {
       const yy = block.y;
       if (block.kind === "head") {
-        out.push(at(lessonHead(lesson, p.lesson + (options.numbering?.lessonOffset ?? 0), st), A4.marginX, yy));
+        out.push(at(lessonHead(doc, lesson, shownLesson, st), A4.marginX, yy));
         glyphs({ title: lesson.title, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
         continue;
       }
@@ -613,8 +746,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));
       });
     }
-    const shownPage = pageNo + (options.numbering?.pageOffset ?? 0);
-    pages.push(page(out.join("") + footer(doc, shownPage, st), `${doc.title}, lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
+    pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 
   // Card-level issues carry the lesson, section and question they belong to.

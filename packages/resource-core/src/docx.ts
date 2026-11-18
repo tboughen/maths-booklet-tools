@@ -200,7 +200,7 @@ export interface ParaStyle {
   right?: number;
   hanging?: number;
   align?: "left" | "center" | "right";
-  tabs?: { pos: number; align?: "left" | "right"; leader?: "underscore" | "dot" }[];
+  tabs?: { pos: number; align?: "left" | "center" | "right"; leader?: "underscore" | "dot" }[];
   borderLeft?: { color: string; width: number; space: number };
   keep?: boolean;
   /** Start a new page here (each booklet page opens with one; Word never chooses the break). */

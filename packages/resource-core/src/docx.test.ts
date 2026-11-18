@@ -177,8 +177,10 @@ describe("Word output for booklets", () => {
         expect(w.issues).toEqual([]);
         const expected = lesson === undefined ? full.pages.length : lessonPagesOf(a7Booklet, lesson, { view }).pages.length;
         expect(w.pages).toBe(expected);
-        // Every page opens with a page break of its own, so Word never chooses where pages end.
-        expect(w.document.match(/<w:pageBreakBefore\/>/g)?.length ?? 0).toBe(expected - 1);
+        // Every page opens with a page break of its own, or follows a section break (a lesson's last page is a
+        // section of its own, for its end band: N11), so Word never chooses where pages end.
+        const breaks = (w.document.match(/<w:pageBreakBefore\/>/g)?.length ?? 0) + (w.document.match(/<w:type w:val="nextPage"\/><w:pgSz/g)?.length ?? 0) - 1;
+        expect(breaks).toBe(expected - 1);
         expect(w.document).not.toContain('<w:br w:type="page"/>');
         // Numbered as in the whole booklet: a lesson file starts at the lesson's first page and has no cover.
         expect(w.document).toContain(`<w:pgNumType w:start="${lesson === undefined ? 1 : full.lessonPages[lesson]}"/>`);
@@ -191,9 +193,19 @@ describe("Word output for booklets", () => {
   it("sets A4 portrait pages with the layout's margins and a footer from the plan", async () => {
     const w = await word(a7Booklet);
     const xml = parse(w.document);
+    // One section per run of ordinary pages and one for each lesson's last page, whose footer is the end band (N11).
     const sections = [...xml.getElementsByTagNameNS(W, "sectPr")];
-    expect(sections).toHaveLength(1);
-    expect((sections[0].parentNode as Element | null)?.localName).toBe("body");
+    const lessons = a7Booklet.document.lessons.length;
+    expect(sections).toHaveLength(2 * lessons);
+    expect((sections[sections.length - 1].parentNode as Element | null)?.localName).toBe("body");
+    const endFooters = Object.keys(w.files).filter((f) => /^word\/footer-end\d+\.xml$/.test(f));
+    expect(endFooters).toHaveLength(lessons);
+    for (const f of endFooters) {
+      const band = w.text(f);
+      expect(band).toContain("End of lesson");
+      expect(band).toContain(">STOP<");
+      expect(band).toContain('<w:fldSimple w:instr=" PAGE ">');
+    }
     const size = xml.getElementsByTagNameNS(W, "pgSz")[0];
     expect([size.getAttribute("w:w"), size.getAttribute("w:h"), size.getAttribute("w:orient")]).toEqual(["11906", "16838", null]);
     const margin = xml.getElementsByTagNameNS(W, "pgMar")[0];
@@ -203,6 +215,13 @@ describe("Word output for booklets", () => {
     // The footer sits below the content area, so it never pushes a page's content.
     const footerTop = 297 - mm(margin.getAttribute("w:footer")) - 0.36 - 6.34;
     expect(footerTop).toBeGreaterThan(297 - mm(margin.getAttribute("w:bottom")));
+    // A lesson's last page: the end band's footer starts where that section's text area stops (N11).
+    for (const sec of sections.filter((x) => x.getElementsByTagNameNS(W, "footerReference")[0].getAttribute("r:id")?.startsWith("rIdEndFooter"))) {
+      const m = sec.getElementsByTagNameNS(W, "pgMar")[0];
+      const bandTop = 297 - mm(m.getAttribute("w:footer")) - 0.36 - 10;
+      expect(bandTop).toBeGreaterThanOrEqual(297 - mm(m.getAttribute("w:bottom")) - 0.01);
+      expect(297 - mm(m.getAttribute("w:bottom"))).toBeGreaterThan(281);
+    }
     const footer = w.text("word/footer1.xml");
     expect(footer).toContain('<w:fldSimple w:instr=" PAGE ">');
     expect(footer).not.toContain("A7 · Algebraic proficiency: visualising");

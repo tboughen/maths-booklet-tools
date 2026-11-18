@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BANNER, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -129,30 +129,63 @@ function tile(text: string, w: number, h: number, size: number, st: HouseStyle) 
 
 // ---------------------------------------------------------------- lesson pages
 
-/** The lesson's tile, title, objective and key idea; the same geometry as the SVG lessonHead. */
-function lessonHead(lesson: Lesson, number: number, st: HouseStyle): { xml: string; h: number } {
-  const x = A4.lessonTile + 3.5;
-  const titleH = lines(lesson.title, A4.lessonTitle, W - x, "bold") * lh(A4.lessonTitle);
-  const single = titleH <= lh(A4.lessonTitle) + 0.01;
-  // SVG: a single line sits centred on the tile; longer titles start 0.6 mm above it.
-  const svgBottom = single ? A4.lessonTile : Math.max(A4.lessonTile, titleH - 0.6);
-  const rowH = single ? A4.lessonTile : Math.max(A4.lessonTile, titleH);
-  const title = cell(textPara(lesson.title, A4.lessonTitle, { color: st.navy, bold: true, right: 0 }), { width: W - x + WORD_WRAP_SLACK_MM, vAlign: single ? "center" : "top" });
-  const number_ = single
-    ? cell(para(run(String(number), { bold: true, color: "#ffffff", sizeMm: A4.lessonTitle }), { align: "center", line: lh(A4.lessonTitle) }), { width: A4.lessonTile, shade: st.navy, vAlign: "center" })
-    : cell(tile(String(number), A4.lessonTile, A4.lessonTile, A4.lessonTitle, st), { width: A4.lessonTile });
-  const out = [table([A4.lessonTile, 3.5, W - x + WORD_WRAP_SLACK_MM], [row([number_, cell(gap(END_MM), { width: 3.5 }), title], { mm: rowH, exact: true })])];
-  // One title line (N2): the lesson's code and objective are not printed again under it.
-  // The SVG head ends below the tile, or below a longer title's full line box: the row's own height.
-  let y = Math.max(svgBottom, rowH);
-  if (y > rowH + 0.005) out.push(gap(y - rowH));
+const pt = (v: number) => v * 0.3528;
+
+/** A tile of centred lines on a shaded cell, exactly w by h: the lesson tiles and stage squares (N11). */
+function linesTile(lines: { text: string; size: number; color: string; line?: number }[], w: number, h: number, shade: string): string {
+  const content = lines.map((l) => para(run(l.text, { bold: true, color: l.color, sizeMm: l.size }), { align: "center", line: l.line ?? lh(l.size) })).join("");
+  return table([w], [row([cell(content, { width: w, shade, vAlign: "center" })], { mm: h, exact: true })]);
+}
+
+/** The lesson's start block (N11) and key idea; the same geometry as the SVG lessonHead. */
+function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st: HouseStyle): { xml: string; h: number } {
+  const B = BOOKEND;
+  const h = startBlockHeight(doc, lesson);
+  const tw_ = startTextWidth();
+  const tagW = W - startTextX() - tw_;
+  const unit = unitLabel(doc);
+  const navy = (content: string, width: number, vAlign: "top" | "center" = "center") => cell(content, { width, shade: st.navy, vAlign });
+  const tileCell = navy(linesTile([{ text: B.label, size: pt(10), color: st.navy, line: 5 }, { text: String(number), size: pt(26), color: st.navy, line: 10.5 }], B.tile, B.tile, "#ffffff"), B.tile);
+  const text =
+    (unit ? textPara(unit, START_SIZES.unit, { color: "#ffffff", bold: true, right: 0 }) + gap(START_SIZES.gap) : "") +
+    textPara(lesson.title, START_SIZES.title, { color: "#ffffff", bold: true, right: 0 });
+  const tag = para(run(B.start, { bold: true, color: "#ffffff", sizeMm: pt(14) }), { align: "right", line: lh(pt(14)), right: B.startPad });
+  const out = [
+    table(
+      [B.startPad, B.tile, 5, tw_ + WORD_WRAP_SLACK_MM, tagW - WORD_WRAP_SLACK_MM],
+      [row([navy(gap(END_MM), B.startPad), tileCell, navy(gap(END_MM), 5), navy(text, tw_ + WORD_WRAP_SLACK_MM), navy(tag, tagW - WORD_WRAP_SLACK_MM)], { mm: h, exact: true })],
+    ),
+  ];
+  let y = h;
   if (lesson.keyIdea.trim()) {
-    out.push(gap(4));
+    out.push(gap(3));
     const box = keyIdeaBox(lesson.keyIdea, st);
     out.push(box.xml);
-    y += 4 + box.h;
+    y += 3 + box.h;
   }
   return { xml: out.join(""), h: y };
+}
+
+/** The corner badge and stage squares of a later page (N11): right on odd printed pages, left on even. */
+function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle): string {
+  const B = BOOKEND;
+  const right = pageNo % 2 === 1;
+  const badge = cell(linesTile([{ text: B.label, size: pt(10), color: "#ffffff", line: 4.6 }, { text: String(number), size: pt(24), color: "#ffffff", line: 9 }], B.badgeW, B.badgeH, st.navy), { width: B.badgeW });
+  const sq: { xml: string; w: number }[] = [];
+  squares.forEach((label, i) => {
+    if (i) sq.push({ xml: cell(gap(END_MM), { width: B.squareGap }), w: B.squareGap });
+    const on = label === lit;
+    sq.push({ xml: cell(linesTile([{ text: label, size: pt(16), color: on ? "#ffffff" : STAGE_UNLIT }], B.square, B.square, on ? st.navy : st.tint), { width: B.square, vAlign: "center" }), w: B.square });
+  });
+  const run_ = sq.reduce((k, c) => k + c.w, 0);
+  const between = squares.length ? [{ xml: cell(gap(END_MM), { width: B.badgeGap }), w: B.badgeGap }] : [];
+  const used = B.badgeW + run_ + (squares.length ? B.badgeGap : 0);
+  const rest = { xml: cell(gap(END_MM), { width: W - used }), w: W - used };
+  const cells = right ? [rest, ...sq, ...between, { xml: badge, w: B.badgeW }] : [{ xml: badge, w: B.badgeW }, ...between, ...sq, rest];
+  return table(
+    cells.map((c) => c.w),
+    [row(cells.map((c) => c.xml), { mm: B.badgeH, exact: true })],
+  );
 }
 
 /** A section's heading, its instruction (on the same line when it fits) and the navy rule under it. */
@@ -192,21 +225,21 @@ function continuedHead(label: string, st: HouseStyle): string {
   );
 }
 
-function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, lessonOffset: number): string {
+function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, lessonOffset: number, pageOffset: number): string {
   const st = ctx.st;
   const lesson = doc.lessons[p.lesson - 1];
   const shownLesson = p.lesson + lessonOffset;
   const out: string[] = [];
-  let cursor = A4.top;
+  let cursor = BOOKEND.top;
   if (p.continued) {
-    out.push(continuedHead(fitLine(`Lesson ${shownLesson} · ${lesson.title}`, A4.small, W), st));
-    cursor += CONTINUED_HEAD;
+    out.push(cornerBadge(shownLesson, p.squares, p.stage, p.pageNo + pageOffset, st));
+    cursor += BOOKEND.badgeH;
   }
   for (const block of p.blocks) {
     const space = block.y - cursor;
     if (space > 0.005) out.push(gap(space));
     if (block.kind === "head") {
-      const head = lessonHead(lesson, shownLesson, st);
+      const head = lessonHead(doc, lesson, shownLesson, st);
       out.push(head.xml);
       cursor = block.y + head.h;
       continue;
@@ -429,7 +462,7 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
               cell(
                 gap(FOOT_TEXT_TOP - A4.footerRule) +
                   para(run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.pageNumber), align: "center" }),
-                { width: W, borders: { top: { color: st.rule, width: 0.3 } } },
+                { width: W },
               ),
             ],
             { mm: FOOT_ROW, exact: true },
@@ -439,7 +472,31 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${content}${gap(END_MM)}</w:ftr>`;
 }
 
-const pageOpen = (first: boolean) => para("", { line: END_MM, markMm: END_MM, pageBreakBefore: !first });
+/** The end band in the footer of a lesson's last page (N11): lesson tile, "End of lesson N", the page number and STOP. */
+function endBandFooter(number: number, st: HouseStyle): string {
+  const B = BOOKEND;
+  const size = pt(14);
+  const o = { bold: true, color: "#ffffff", sizeMm: size };
+  const navy = (content: string, width: number) => cell(content, { width, shade: st.navy, vAlign: "center" });
+  const restW = W - 3 - B.endTile - 3;
+  const text = para(run(`End of lesson ${number}`, o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>` + tab(o) + run(B.stop, o), {
+    line: lh(size),
+    tabs: [
+      { pos: W / 2 - (3 + B.endTile + 3), align: "center" },
+      { pos: restW - 5, align: "right" },
+    ],
+  });
+  const band = table([3, B.endTile, 3, restW], [row([navy(gap(END_MM), 3), navy(linesTile([{ text: String(number), size, color: st.navy }], B.endTile, B.endTile, "#ffffff"), B.endTile), navy(gap(END_MM), 3), navy(text, restW)], { mm: B.endH, exact: true })]);
+  return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${band}${gap(END_MM)}</w:ftr>`;
+}
+/** Distance from the page's foot to the end band footer's last (1 pt) paragraph, so the band's top is at BOOKEND.endTop. */
+const END_FOOTER_DISTANCE = A4.page.height - (BOOKEND.endTop + BOOKEND.endH + END_MM);
+/** On a lesson's last page the text area stops at the end band's top (2 mm below the layout's 281 mm, not WORD_FOOT_MM), so the band never overlaps it. */
+const END_BOTTOM = A4.page.height - BOOKEND.endTop;
+
+const pageOpen = (breakBefore: boolean) => para("", { line: END_MM, markMm: END_MM, pageBreakBefore: breakBefore });
+/** The space from the page's top margin (the corner badge's top) to the cover's and introduction's own top. */
+const COVER_DROP = A4.top - BOOKEND.top;
 
 /** The Word file for one view of a booklet, or of one lesson printed on its own. */
 export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptions): Promise<RenderedBookletDocx> {
@@ -453,25 +510,52 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   const plan = planBooklet(booklet, { view, numbering });
   const ctx: Ctx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, media: [], rels: [], pictures: [], maths: booklet.document.notation === "maths" };
 
-  const pages: string[] = [];
+  // Each page with the footer it prints: none (cover), the page number, or a lesson's end band (N11).
+  const pages: { xml: string; footer: string }[] = [];
   if (!numbering) {
-    pages.push(cover(doc, plan.contents, st));
-    if (doc.intro) pages.push(introPage(doc, doc.intro, st));
+    pages.push({ xml: gap(COVER_DROP) + cover(doc, plan.contents, st), footer: "page" });
+    if (doc.intro) pages.push({ xml: gap(COVER_DROP) + introPage(doc, doc.intro, st), footer: "page" });
   }
-  for (const p of plan.pages) pages.push(lessonPage(doc, p, ctx, numbering?.lessonOffset ?? 0));
-  const body = pages.map((xml, i) => pageOpen(i === 0) + xml).join("");
+  const lessonOffset = numbering?.lessonOffset ?? 0;
+  for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : "page" });
 
   const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
-  const parts: ExtraPart[] = [{ name: "footer1.xml", id: "rIdFooter1", relType: "footer", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml", xml: footerPart(label, st, false) }];
+  const footerType = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml";
+  const parts: ExtraPart[] = [{ name: "footer1.xml", id: "rIdFooter1", relType: "footer", contentType: footerType, xml: footerPart(label, st, false) }];
   // The cover has no footer: the whole booklet's first page uses an empty one.
-  if (!numbering) parts.push({ name: "footer2.xml", id: "rIdFooter2", relType: "footer", contentType: parts[0].contentType, xml: footerPart(label, st, true) });
+  if (!numbering) parts.push({ name: "footer2.xml", id: "rIdFooter2", relType: "footer", contentType: footerType, xml: footerPart(label, st, true) });
+  const endFooters = new Map<string, string>();
+  const footerId = (kind: string) => {
+    if (kind === "page") return "rIdFooter1";
+    if (!endFooters.has(kind)) {
+      const k = endFooters.size + 1;
+      const id = `rIdEndFooter${k}`;
+      endFooters.set(kind, id);
+      parts.push({ name: `footer-end${k}.xml`, id, relType: "footer", contentType: footerType, xml: endBandFooter(Number(kind.slice(4)), st) });
+    }
+    return endFooters.get(kind)!;
+  };
   const firstPage = numbering ? plan.pages[0].pageNo + numbering.pageOffset : 1;
   const P = A4.page;
-  const sect =
-    `<w:sectPr><w:footerReference w:type="default" r:id="rIdFooter1"/>${numbering ? "" : `<w:footerReference w:type="first" r:id="rIdFooter2"/>`}` +
-    `<w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
-    `<w:pgMar w:top="${tw(A4.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(P.height - A4.bottom - WORD_FOOT_MM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(FOOTER_DISTANCE)}" w:gutter="0"/>` +
-    `<w:pgNumType w:start="${firstPage}"/><w:cols w:space="0"/>${numbering ? "" : "<w:titlePg/>"}<w:docGrid w:linePitch="360"/></w:sectPr>`;
+  // A lesson's last page is a Word section of its own, so its footer can be the end band.
+  const sectPr = (kind: string, first: boolean) =>
+    `<w:sectPr><w:footerReference w:type="default" r:id="${footerId(kind)}"/>${first && !numbering ? `<w:footerReference w:type="first" r:id="rIdFooter2"/>` : ""}` +
+    `<w:type w:val="nextPage"/><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
+    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
+    `${first ? `<w:pgNumType w:start="${firstPage}"/>` : ""}<w:cols w:space="0"/>${first && !numbering ? "<w:titlePg/>" : ""}<w:docGrid w:linePitch="360"/></w:sectPr>`;
+  let body = "";
+  let first = true;
+  pages.forEach((pg, i) => {
+    // A page that follows a section break needs no page break of its own.
+    const afterBreak = i > 0 && pages[i - 1].footer !== pg.footer;
+    body += pageOpen(i > 0 && !afterBreak) + pg.xml;
+    const next = pages[i + 1];
+    if (next && next.footer !== pg.footer) {
+      body += `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="${tw(END_MM)}" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr>${sectPr(pg.footer, first)}</w:pPr></w:p>`;
+      first = false;
+    }
+  });
+  const sect = sectPr(pages[pages.length - 1].footer, first);
 
   const issues = [...rendered.issues];
   for (const i of ctx.issues) if (!issues.some((j) => j.message === i.message && j.lesson === i.lesson && j.section === i.section && j.question === i.question)) issues.push(i);
