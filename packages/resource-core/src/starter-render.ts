@@ -80,6 +80,10 @@ export function slotContent(template: StarterTemplate, slot: number, icon: Start
   return { box, band, numberTop: box.y + band + S.padTop, numberLine, x: box.x + S.padX, w: box.w - 2 * S.padX, top, height: bottom - top };
 }
 
+/** The message for a diagram wider than its slot, naming the starter and question (PDF and Word share it). */
+export const starterTooWide = (ctx: { where: Where }) => (tool: string, width: number, room: number) =>
+  `Starter ${ctx.where.starter}, question ${ctx.where.question}: the ${FAMILIES[tool as DiagramKind]?.label ?? `${tool} diagram`} is ${n(width)} mm wide and the slot has ${n(room)} mm. Draw it smaller in its tool; diagrams and labels are never shrunk to fit.`;
+
 /** Leaves out each diagram's own white background, so the grey extension tint shows behind it. */
 export const withoutDiagramBackground = (svg: string) => svg.replace(/(<svg[^>]*\sviewBox="0 0 ([\d.]+) ([\d.]+)"[^>]*>)<rect width="\2" height="\3" fill="white"\/>/g, "$1");
 
@@ -202,7 +206,7 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
   const view = options.view ?? "pupil";
   const issues: StarterIssue[] = [];
   const ctx: Ctx<Where> = { st, view, diagrams: 0, issues, where: { starter: 1 }, maths: doc.notation === "maths" };
-  ctx.tooWide = (tool, width, room) => `Starter ${ctx.where.starter}, question ${ctx.where.question}: the ${FAMILIES[tool as DiagramKind]?.label ?? `${tool} diagram`} is ${n(width)} mm wide and the slot has ${n(room)} mm. Draw it smaller in its tool; diagrams and labels are never shrunk to fit.`;
+  ctx.tooWide = starterTooWide(ctx);
   for (const c of missingCharacters({ topic: doc.topic })) issues.push({ starter: 1, message: missingCharacterMessage("The topic", c) });
   const cards: string[] = [];
   const sheets: string[] = [];

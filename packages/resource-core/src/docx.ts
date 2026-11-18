@@ -298,7 +298,7 @@ export function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): st
     return gap(END_MM, indent);
   }
   const room = w + 2 * (S.cardPad - 0.6);
-  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: tooWideMessage(d.tool, drawn.widthMm, room, drawn.artworkWidthMm <= room + 0.01) });
+  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: ctx.tooWide?.(d.tool, drawn.widthMm, room) ?? tooWideMessage(d.tool, drawn.widthMm, room, drawn.artworkWidthMm <= room + 0.01) });
   return drawing(drawn, w, indent, ctx);
 }
 /** Grid paper: the same SVG as the page, as a picture at its printed size. */

@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { items as svgItems, countSpaces } from "./render";
 import { cell, drawing, gap, items, LAST_PARAGRAPH, para, row, run, runs, stack, table, tw, writePackage, type DocxOptions, type WordCtx } from "./docx";
-import { renderStarterRun, slotBoxes, slotContent, STARTER, starterHeaderSvg, starterIconSvg, withoutDiagramBackground, type StarterIssue } from "./starter-render";
+import { renderStarterRun, starterTooWide, slotBoxes, slotContent, STARTER, starterHeaderSvg, starterIconSvg, withoutDiagramBackground, type StarterIssue } from "./starter-render";
 import { isExtensionSlot, type StarterRun } from "./starter";
 import { SIZE, styles } from "./style";
 
@@ -29,11 +29,13 @@ const SHEET_GAP = (S.sheet.height / 2 - S.card.height) / 2;
 const exactPicture = (xml: string, height: number, align: "center" | "right" = "center") =>
   xml.replace(/w:line="240" w:lineRule="auto"/, `w:line="${tw(height)}" w:lineRule="exact"`).replace('<w:jc w:val="center"/>', align === "center" ? '<w:jc w:val="center"/>' : '<w:jc w:val="right"/>');
 
+/** The black label band across the top of slot 5, reaching both edges of the cell (past its padding). */
 function band(width: number): string {
   const size = 9 * 0.3528;
   return table(
     [width],
     [row([cell(para(run("EXTENSION", { bold: true, color: "#ffffff", sizeMm: size }), { align: "center", line: SIZE.body * SIZE.lineHeight }), { width, shade: "#000000", vAlign: "center" })], { mm: S.extensionBand, exact: true })],
+    -S.padX,
   );
 }
 
@@ -63,8 +65,9 @@ function slotCell(run_: StarterRun, starter: number, slot: number, ctx: WordCtx<
   const room = Math.max(0.36, place.height - used);
   if (icon !== "none") {
     // The icon picture has half a millimetre round it so its frame is never clipped; its line takes the picture's height.
-    parts.push(gap(Math.max(0.36, room + 1.5 - 1.2)));
-    parts.push(drawing({ svg: starterIconSvg(icon), widthMm: S.icon + 1, heightMm: S.icon + 1 }, place.w, 0, ctx).replace('<w:jc w:val="center"/>', '<w:jc w:val="right"/>'));
+    // Placed as on the PDF: frame top 1.5 mm below the question area, frame right edge 0.5 mm into the padding.
+    parts.push(gap(Math.max(0.36, room + 1.0)));
+    parts.push(drawing({ svg: starterIconSvg(icon), widthMm: S.icon + 1, heightMm: S.icon + 1 }, place.w, 0, ctx).replace('<w:jc w:val="center"/>', `<w:ind w:right="${-tw(1)}"/><w:jc w:val="right"/>`));
   } else parts.push(gap(0.36));
   return parts.join("");
 }
@@ -117,16 +120,19 @@ export async function writeStarterDocx(saved: StarterRun, options: DocxOptions &
   // The PDF layout's checks come first: Word never hides a problem the cards have.
   const issues = [...renderStarterRun(run_, { view }).issues];
   const ctx: WordCtx<Where> = { st: styles.mathsdock, view, diagrams: 0, issues: [], where: { starter: 1 }, media: [], rels: [], pictures: [], maths: doc.notation === "maths" };
+  ctx.tooWide = starterTooWide(ctx);
   const which = options.only ? [options.only - 1] : doc.starters.map((_, i) => i);
-  const pageBreak = `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val="2"/></w:rPr><w:br w:type="page"/></w:r></w:p>`;
-  const pages = which.map((i) => copy(run_, i, ctx, []) + cutGap() + copy(run_, i, ctx, []));
-  for (const i of ctx.issues) if (!issues.some((j) => j.message === i.message)) issues.push(i);
+  // Each page after the first starts at its first header, so nothing on it sits lower than on page 1.
+  const breakBefore = (xml: string) => xml.replace("<w:pPr>", "<w:pPr><w:pageBreakBefore/>");
+  const pages = which.map((i, k) => (k ? breakBefore(copy(run_, i, ctx, [])) : copy(run_, i, ctx, [])) + cutGap() + copy(run_, i, ctx, []));
+  const key = (i: StarterIssue) => `${i.starter}|${i.question ?? ""}|${i.message}`;
+  for (const i of ctx.issues) if (!issues.some((j) => key(j) === key(i))) issues.push(i);
   const P = S.sheet;
   const sect =
     `<w:sectPr><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
     `<w:pgMar w:top="${tw(SHEET_GAP + S.margin)}" w:right="${tw(S.margin)}" w:bottom="${tw(3)}" w:left="${tw(S.margin)}" w:header="0" w:footer="0" w:gutter="0"/><w:cols w:space="0"/><w:docGrid w:linePitch="360"/></w:sectPr>`;
   const bytes = await writePackage({
-    body: `${pages.join(pageBreak)}${LAST_PARAGRAPH}${sect}`,
+    body: `${pages.join("")}${LAST_PARAGRAPH}${sect}`,
     ctx,
     options,
     title: `${doc.title}, silent starters${view === "answers" ? " (answers)" : ""}`,

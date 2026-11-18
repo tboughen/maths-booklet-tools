@@ -21,7 +21,7 @@ describe("Word output for silent starters", () => {
     expect(issues).toEqual([]);
     expect(new DOMParser().parseFromString(document, "application/xml").getElementsByTagName("parsererror")).toHaveLength(0);
     expect(document).toContain('<w:pgSz w:w="11906" w:h="16838"/>');
-    expect(count(document, '<w:br w:type="page"/>')).toBe(5);
+    expect(count(document, "<w:pageBreakBefore/>")).toBe(5);
     expect(count(document, 'w:val="dashed"')).toBe(6);
     // Two headers per page, each a picture of the PDF header (Word names a picture twice).
     expect(count(document, 'descr="Silent starter 1 of 6: Fractions, area and expanding"')).toBe(4);
@@ -38,7 +38,7 @@ describe("Word output for silent starters", () => {
 
   it("prints one starter on its own, and the Year 8 icons as pictures in their corners", async () => {
     const { document, files } = await open(year8Run);
-    expect(count(document, '<w:br w:type="page"/>')).toBe(0);
+    expect(count(document, "<w:pageBreakBefore/>")).toBe(0);
     for (const icon of ["pencil", "talk", "book", "puzzle"]) expect(count(document, `descr="${icon} icon"`)).toBe(4); // two copies, each naming its picture twice
     const svgs = Object.keys(files).filter((f) => f.endsWith(".svg"));
     expect(svgs.length).toBeGreaterThanOrEqual(12);
@@ -65,5 +65,26 @@ describe("Word output for silent starters", () => {
     choice.answer = 3;
     expect((await open(run)).document).not.toContain("B0125B");
     expect((await open(run, "answers")).document).toContain("B0125B");
+  });
+
+  it("puts six questions into the table down the columns, as on the PDF", async () => {
+    const { document } = await open(year9Run, "pupil", 1);
+    // Word reads a table row by row, so the first copy's labels come in table order: row 1 then row 2.
+    const first = document.slice(0, document.indexOf('w:val="dashed"'));
+    const labels = [...first.matchAll(/<w:t xml:space="preserve">(\d\))<\/w:t>/g)].map((m) => m[1]);
+    expect(labels).toEqual(["1)", "3)", "5)", "2)", "4)", "6)"]);
+  });
+
+  it("names the starter and question for a diagram too wide for its slot, once, with starter advice", async () => {
+    const run = structuredClone(year9Run);
+    const diagram = run.document.starters[0].cards[4].items[0];
+    if (diagram.type !== "diagram" || !diagram.diagram.envelope) throw Error("fixture changed");
+    const env = diagram.diagram.envelope as { document: { shape: { corners: { x: number; y: number }[] } } };
+    env.document.shape.corners = env.document.shape.corners.map((c) => ({ x: c.x * 3, y: c.y }));
+    const { issues } = await open(run, "pupil", 1);
+    const wide = issues.filter((i) => /wide/.test(i.message));
+    expect(wide).toHaveLength(1);
+    expect(wide[0].message).toMatch(/^Starter 1, question 5: /);
+    expect(issues.some((i) => /column layout/.test(i.message))).toBe(false);
   });
 });
