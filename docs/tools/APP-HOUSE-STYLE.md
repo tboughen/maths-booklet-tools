@@ -318,9 +318,9 @@ and Factor trees the next three, Plans and elevations the sixth, then Two-way ta
 space diagrams and Spinners, dice and bags, then Algebra tiles, Bubble method, Function
 machines and Written methods, then Angle diagrams, Area and perimeter and Geometry figures, and
 then Constructions and loci, Nets of 3D shapes and 3D solids. The older tools, with settings
-classes of their own, follow: Expanding and factorising, then Venn diagrams and Number lines.
-The rest move over a few at a time, and each one drops its own button and field styles as it
-does.
+classes of their own, follow: Expanding and factorising, then Venn diagrams and Number lines,
+then Cuboids. The rest move over a few at a time, and each one drops its own button and field
+styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
   behaviour and its place in its card, so saved work, links and tests are untouched. A whole card
@@ -468,5 +468,13 @@ does.
   kit's field and buttons. The tool's own rules for cards, labels, fields, buttons and notes are
   gone, with `nl-compact-card`, `nl-actions` and `nl-note`. A field keeps its place at the top of
   its label (`nl-field`), so three fields in a row stay level when one shows what is wrong.
+- **Cuboids.** Shape is the left column, and Labels, Shading and Print settings the right. A
+  click on a label or a face still brings its card to the top: the top of the left column, under
+  the cuboid picker, where the other tools show what is selected, and Shape goes to the right. A
+  card changes column when that happens, so the page keeps which parts are open (`part()`). The
+  list of units and the list of views each share a row with the tick or button that goes with
+  them, and the two lists of the Labels card share a row. The tool's own card, label, field and
+  button rules are gone, with `cb-settings`, `cb-action`, `cb-quick-cubes` and `cb-note` in the
+  settings; `cb-field` keeps its look in the box that opens on a label.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

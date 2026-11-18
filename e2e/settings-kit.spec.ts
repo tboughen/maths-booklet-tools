@@ -491,6 +491,67 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("Cuboids uses the kit: the shape on the left, labels, shading and printing on the right, and a selected label comes top left", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/cuboids");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const print = page.locator(".md-kit .panel-card").filter({ hasText: "Print settings" });
+  const [shape, labels, shading, printBox] = [await chartCard(page, "Shape"), await chartCard(page, "Labels"), await chartCard(page, "Shading"), (await print.boundingBox())!];
+  expect(labels.y).toBe(shape.y);
+  expect(labels.x).toBeGreaterThanOrEqual(shape.x + shape.width);
+  expect(Math.abs(labels.width - shape.width)).toBeLessThanOrEqual(1);
+  expect([shading.x, printBox.x]).toEqual([labels.x, labels.x]);
+  expect(shading.y).toBeGreaterThan(labels.y + labels.height);
+  expect(printBox.y).toBeGreaterThan(shading.y + shading.height);
+  // The settings filled the 967 px column before the kit, with every part closed.
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // A list shares its row with the tick or the button that goes with it: level with the list, on one line.
+  const [units, cube, view, cubes] = [
+    (await page.getByLabel("Units", { exact: true }).boundingBox())!,
+    (await page.locator(".md-kit label").filter({ hasText: "Cube (equal edges)" }).boundingBox())!,
+    (await page.getByLabel("View", { exact: true }).boundingBox())!,
+    (await page.getByRole("button", { name: /^Show 1 cm/ }).boundingBox())!,
+  ];
+  expect([cube.height, cubes.height]).toEqual([32, 32]);
+  expect(Math.abs(cube.y - units.y)).toBeLessThanOrEqual(1);
+  expect(cubes.y).toBe(view.y);
+  expect(Math.abs(units.width - view.width)).toBeLessThanOrEqual(1);
+  // The three ways to shade share a row on one line each, and the one that is on has the kit's mark.
+  const shades = page.locator(".md-kit .cb-shade-options button");
+  expect(await shades.evaluateAll((all) => all.map((b) => b.getBoundingClientRect().height))).toEqual([32, 32, 32]);
+  expect(await shades.first().evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).boxShadow])).toEqual(["rgb(230, 239, 255)", "none"]);
+
+  // Every part open: the kit's sizes throughout, nothing cut.
+  for (const name of ["Cube size and counts", "More shape options", "Position and advanced", "Worked values and captions", "Print settings"])
+    await page.locator(".md-kit summary").filter({ hasText: name }).click();
+  expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+
+  // A click on a label brings its card to the top left, where the other tools show what is selected. The shape goes
+  // to the right, and the parts that were open stay open.
+  await page.getByRole("button", { name: /^Edit height label/ }).click();
+  const [picked, moved] = [await chartCard(page, "Selected label: height"), await chartCard(page, "Shape")];
+  expect([picked.x, picked.y]).toEqual([shape.x, shape.y]);
+  expect([moved.x, moved.y]).toEqual([labels.x, labels.y]);
+  await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(5);
+  await page.keyboard.press("Escape");
+  expect((await chartCard(page, "Shape")).x).toBe(shape.x);
+  await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(5);
+
+  // One column in a smaller window, in the same order.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = [await chartCard(page, "Shape"), await chartCard(page, "Labels"), await chartCard(page, "Shading"), (await print.boundingBox())!];
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
 // settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or
