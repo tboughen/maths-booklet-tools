@@ -378,14 +378,6 @@
 .tr-floating .tr-options-list {
   gap: 5px;
 }
-.tr-floating .tr-option {
-  padding: 7px 8px;
-  min-height: 44px;
-}
-.tr-floating .tr-note {
-  font-size: 12px;
-  line-height: 1.45;
-}
 
 .example-gallery-group-title {
   margin: 22px 22px 0;

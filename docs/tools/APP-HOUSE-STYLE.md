@@ -481,5 +481,15 @@ styles as it does.
   with them, and the two lists of the Labels card share a row. The tool's own card, label, field
   and button rules are gone, with `cb-settings`, `cb-action`, `cb-quick-cubes` and `cb-note` in
   the settings; `cb-field` keeps its look in the box that opens on a label.
+- **Triangles.** Selected object is the left column, and Worked version, Start a new triangle
+  and Print size the right. More tools and Editing help, the two parts that stay folded, share
+  one card that comes last and sits under the left column. The box that edits a label opens at
+  the top of the left column, over what is selected; it is a card on the kit like the others,
+  its choices as tall as a control (32 px, and 44 px for a finger), and it stays a column whose
+  middle scrolls. The names of the parts that open are rows as tall as a control, and the lines
+  between them are gone. A button with a row to itself ("Use worked version") is as wide as its
+  words. The tool's own label, field and button rules now reach only the strip under the diagram
+  and the dialogs (`:where(:not(.md-kit *))`), and the unused `tr-modes` and `tr-tabs` rules are
+  gone.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
