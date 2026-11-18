@@ -50,3 +50,28 @@ test("edits an instruction, refuses a run longer than six, and downloads Word an
   const { width, height } = doc.getPage(0).getSize();
   expect([Math.round((width / 72) * 25.4), Math.round((height / 72) * 25.4)]).toEqual([210, 297]);
 });
+
+test("shows a starter big on the board with a timer, changes starter and shows answers", async ({ page }) => {
+  await boot(page);
+  await page.getByRole("button", { name: "Show this starter on the board" }).click();
+  const board = page.getByRole("dialog", { name: "Silent starter 1 on the board" });
+  await expect(board).toBeVisible();
+  await expect(board.getByRole("timer")).toHaveText("5:00");
+  await board.getByRole("button", { name: "One minute less" }).click();
+  await expect(board.getByRole("timer")).toHaveText("4:00");
+  await board.getByRole("button", { name: "Start the timer" }).click();
+  await expect(board.getByRole("timer")).not.toHaveText("4:00", { timeout: 3000 });
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: "Silent starter 2 on the board" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("Starter 2 of 6")).toBeVisible();
+  // The card is as big as the screen allows beside the strip: it nearly fills the height or the width left.
+  const box = await page.getByTestId("starter-board-card").locator(".st-board-art > svg").boundingBox();
+  const view = page.viewportSize()!;
+  expect(box!.height > view.height * 0.9 || box!.width > view.width * 0.75).toBe(true);
+  await page.keyboard.press("a");
+  await expect(page.getByRole("button", { name: "Hide answers" })).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Show this starter on the board" })).toBeFocused();
+  await expect(page.getByTestId("starter-card").locator("figcaption")).toHaveText("Starter 2 of 6");
+});
