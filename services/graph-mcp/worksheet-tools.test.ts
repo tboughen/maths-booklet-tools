@@ -224,7 +224,7 @@ type BookletReply = {
   lessons: { lesson: number; title: string; firstPage: number; pupilPdf?: { url: string }; answersPdf?: { url: string }; pupilDocx?: { url: string }; answersDocx?: { url: string } }[];
 };
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-/** A booklet Word file: its pages (one per page-opening paragraph), first page number and parts. */
+/** A booklet Word file: its pages (one per page break or section break: a lesson's last page is a section of its own, N11), first page number and parts. */
 async function bookletWord(url: string) {
   const res = await fetch(url);
   expect(res.status).toBe(200);
@@ -235,7 +235,7 @@ async function bookletWord(url: string) {
     disposition: res.headers.get("content-disposition") ?? "",
     files,
     xml,
-    pages: (xml.match(/<w:pageBreakBefore\/>/g) ?? []).length + 1,
+    pages: (xml.match(/<w:pageBreakBefore\/>/g) ?? []).length + (xml.match(/<w:type w:val="nextPage"\/>/g) ?? []).length,
     start: Number(xml.match(/<w:pgNumType w:start="(\d+)"\/>/)?.[1]),
   };
 }
