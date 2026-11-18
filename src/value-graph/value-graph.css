@@ -21,11 +21,11 @@
 .vg-editor .editor-card {
   padding: 0;
 }
-.vg-editor h2:where(:not(.md-kit *)) {
+.vg-editor h2:where(:not(.md-kit *, .tool-switcher *)) {
   font-size: 1.05rem;
   margin: 0 0 12px;
 }
-.vg-editor h3:where(:not(.md-kit *)) {
+.vg-editor h3:where(:not(.md-kit *, .tool-switcher *)) {
   font-size: 1rem;
 }
 .vg-toolbar,
@@ -56,18 +56,17 @@
 .vg-editor button:hover:not(:disabled):where(:not(.md-kit *, .tool-switcher *)) {
   background: #edf4ff;
 }
-.vg-editor button:disabled:where(:not(.md-kit *)) {
+.vg-editor button:disabled:where(:not(.md-kit *, .tool-switcher *)) {
   opacity: 0.5;
   cursor: default;
 }
-.vg-editor button[aria-pressed="true"]:where(:not(.md-kit *)),
-.vg-editor button.vg-primary:where(:not(.md-kit *)) {
+.vg-editor button[aria-pressed="true"]:where(:not(.md-kit *, .tool-switcher *)) {
   background: #174b91;
   color: white;
   border-color: #174b91;
 }
-.vg-editor input:where(:not(.md-kit *)),
-.vg-editor select:where(:not(.md-kit *)) {
+.vg-editor input:where(:not(.md-kit *, .tool-switcher *)),
+.vg-editor select:where(:not(.md-kit *, .tool-switcher *)) {
   font: inherit;
   max-width: 100%;
   min-width: 0;
@@ -84,7 +83,7 @@
   outline: 3px solid #276bb8;
   outline-offset: 2px;
 }
-.vg-editor select:where(:not(.md-kit *)) {
+.vg-editor select:where(:not(.md-kit *, .tool-switcher *)) {
   display: block;
   margin: 5px 0 12px;
   width: 100%;
@@ -94,7 +93,7 @@
   width: auto;
   margin: 0 8px;
 }
-.vg-editor p:where(:not(.md-kit *)) {
+.vg-editor p:where(:not(.md-kit *, .tool-switcher *)) {
   font-size: 0.86rem;
   line-height: 1.45;
 }
@@ -123,7 +122,7 @@
   color: #a4161a;
   line-height: 1.4;
 }
-.vg-editor .vg-check:where(:not(.md-kit *)) {
+.vg-editor .vg-check:where(:not(.md-kit *, .tool-switcher *)) {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -272,7 +271,7 @@
 }
 /* On the diagram the box that edits a value keeps its own spacing. In the settings it is a card on the settings
    kit (settings-kit.css), with the card's gap between its heading, its fields and its buttons. */
-.vg-editor .vg-context-content:where(:not(.md-kit *)) {
+.vg-editor .vg-context-content:where(:not(.md-kit *, .tool-switcher *)) {
   margin-top: 12px;
 }
 .vg-editor .md-kit .vg-context-heading {
@@ -288,12 +287,13 @@
 .vg-editor .md-kit .vg-context-body > button {
   justify-self: start;
 }
-/* The one button that carries a step on is the filled one. */
-.vg-editor .md-kit .panel-card button.vg-primary:not(:disabled) {
-  border-color: var(--md-blue);
-  background: var(--md-blue);
-  color: white;
-  font-weight: 600;
+/* Inside "Table and graph": the heading over the further tools, and the line shown while a point is being placed. */
+.vg-editor .md-kit :is(.vg-secondary-tools, .vg-placing) {
+  display: grid;
+  gap: 8px;
+}
+.vg-editor .md-kit .vg-placing > button {
+  justify-self: start;
 }
 .vg-art svg {
   width: 100%;
@@ -403,10 +403,10 @@
 .vg-downloads {
   padding: 10px 0;
 }
-.vg-editor details:where(:not(.md-kit *)) {
+.vg-editor details:where(:not(.md-kit *, .tool-switcher *)) {
   margin: 14px 0;
 }
-.vg-editor summary:where(:not(.md-kit *)) {
+.vg-editor summary:where(:not(.md-kit *, .tool-switcher *)) {
   cursor: pointer;
   margin-bottom: 10px;
 }

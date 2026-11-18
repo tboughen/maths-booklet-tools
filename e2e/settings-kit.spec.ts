@@ -680,6 +680,10 @@ test("Ratio tables uses the kit: what is selected and the tools on the left, the
   expect(Math.abs(operation.y - factor.y)).toBeLessThanOrEqual(1);
   expect(factor.x).toBeGreaterThan(operation.x + operation.width);
   expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  // Once the arrow is on the table, the button that removes it is still red.
+  await selected.getByRole("button", { name: "Add arrow", exact: true }).click();
+  await page.getByRole("button", { name: /^Row 1 → Row 2/ }).click();
+  expect(await selected.getByRole("button", { name: "Remove arrow", exact: true }).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(173, 67, 61)");
 
   // One column in a smaller window, in the order the cards are read.
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -720,7 +724,6 @@ test("Table of values uses the kit: the card for what is selected on the left, t
     const sizes = await kitSizes(page, twoLines);
     expect(sizes, tool).toMatchObject({ buttons: [32], faded: 0, cut: [] });
     expect(sizes.fields.every((height) => height === 32), `${tool}: ${sizes.fields}`).toBe(true);
-    expect(await page.getByRole("button", { name: tool, exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor), tool).toBe("rgb(230, 239, 255)");
     const gaps = await editor.locator(".vg-context-body > *").evaluateAll((all) => all.map((el) => el.getBoundingClientRect()).filter((r) => r.height > 0).map((r, i, rs) => (i ? Math.round(r.top - rs[i - 1].bottom) : 8)));
     expect(gaps.every((gap) => gap === 8), `${tool}: ${gaps}`).toBe(true);
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), tool).toBe(true);
@@ -728,8 +731,19 @@ test("Table of values uses the kit: the card for what is selected on the left, t
   const pair = await Promise.all(twoLines.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
   expect(pair[0]).toBe(pair[1]);
 
+  // Inside "Table and graph" the heading over the further tools, and the line shown while a point is placed, keep the gap.
+  await page.getByRole("button", { name: "Add point or segment", exact: true }).click();
+  await page.getByRole("button", { name: "Place point on grid", exact: true }).click();
+  expect(await page.locator(".md-kit :is(.vg-secondary-tools, .vg-placing)").evaluateAll((all) => all.map((el) => Math.round(el.children[1].getBoundingClientRect().top - el.children[0].getBoundingClientRect().bottom)))).toEqual([8, 8]);
+  await page.getByRole("button", { name: "Cancel placement", exact: true }).click();
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
+
   // The page's name is the same plain switcher as on every other tool, not a boxed button.
   expect(await page.locator(".tool-switcher-button").evaluate((el) => [getComputedStyle(el).borderTopColor, getComputedStyle(el).backgroundColor])).toEqual(["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"]);
+  // Nor does the star beside it take the tool's old navy mark when the tool is a favourite.
+  await page.locator(".tool-switcher-star").click();
+  await expect(page.locator(".tool-switcher-star")).toHaveAttribute("aria-pressed", "true");
+  expect(await page.locator(".tool-switcher-star").evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
 
   // One column in a smaller window, the open card first.
   await page.setViewportSize({ width: 1440, height: 900 });

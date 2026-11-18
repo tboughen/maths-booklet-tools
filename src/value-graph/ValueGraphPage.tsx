@@ -1910,7 +1910,7 @@ export default function ValueGraphPage({
             ) : (
               <section className="panel-card vg-selected-empty" aria-label="Selected item">
                 <p className="inspector-hint">
-                  Click a value or object to edit it, or choose a tool below.
+                  Click a value or object to edit it, or choose a tool.
                 </p>
               </section>
             )}
@@ -2016,7 +2016,7 @@ export default function ValueGraphPage({
                 </div>
               </div>
               {mode === "point" && (
-                <div>
+                <div className="vg-placing">
                   <p>Click the grid to place a point.</p>
                   <button onClick={() => setMode("select")}>
                     Cancel placement

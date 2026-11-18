@@ -790,7 +790,7 @@ export default function RatioTablePage({
                       aria-label="Ratio editing tools"
                     >
                       <button
-                        className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
+                        className="tool-button"
                         aria-pressed={tool === "edit"}
                         disabled={structureDisabled}
                         onClick={() => {
@@ -805,7 +805,7 @@ export default function RatioTablePage({
                         <span>Edit</span>
                       </button>
                       <button
-                        className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
+                        className="tool-button"
                         aria-pressed={tool === "arrow"}
                         data-ratio-select
                         disabled={structureDisabled || document.rows.length < 2}

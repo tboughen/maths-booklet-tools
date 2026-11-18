@@ -80,11 +80,6 @@
   align-items: center;
   gap: 6px;
 }
-/* The tool that is on has the kit's mark. The toolbar's own mark (styles.css) is `!important`, so this one is too. */
-.ratio-app .ratio-settings .tool-button--active {
-  background: var(--md-blue-soft) !important;
-  color: var(--md-ink);
-}
 .ratio-settings .check-row {
   margin: 0;
 }
@@ -429,7 +424,8 @@ div.ratio-label {
   background: white;
   padding: 1px 4px;
 }
-.ratio-app .ratio-danger {
+/* "Remove arrow" stays red on the kit, whose button rule would make it ink. */
+.ratio-app .md-kit .panel-card .ratio-danger:not(:disabled) {
   color: var(--red);
 }
 /* It keeps a height while nothing is selected, so the tools under it do not jump at the first click. */
