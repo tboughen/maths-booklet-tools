@@ -141,17 +141,42 @@ export function startBlockHeight(doc: Booklet["document"], lesson: Lesson): numb
   return Math.max(BOOKEND.startH, textH + 2 * BOOKEND.startPadY);
 }
 
-/** The "Did you know?" bubble (N12), shared with Word: a small tinted bubble that hugs its text, at 10 pt. */
-export const DID_YOU_KNOW = { gap: 2.5, padX: 3, padY: 1.6, size: pt(10), label: "Did you know?" } as const;
-export const didYouKnowText = (fact: string) => `**${DID_YOU_KNOW.label}** ${fact.trim()}`;
-/** The bubble's width and text lines: as wide as the text needs, never wider than the page's text width. */
-export function didYouKnowBox(fact: string): { w: number; lines: number; h: number } {
+/**
+ * The "Did you know?" box (N12, option H chosen by Tim 18 November 21:05): set out like a phone
+ * notification, distinct from the pale key idea box. A white full-width box with a thin grey-blue
+ * edge, rounded corners and a pale drop line under it; a navy lightbulb icon and "DID YOU KNOW?"
+ * in small bold navy capitals on its top line; the fact under them at 10 pt. Shared with Word.
+ */
+export const DID_YOU_KNOW = {
+  gap: 2.5,
+  padX: 3.5,
+  padTop: 1.4,
+  padBottom: 1.6,
+  labelLine: 4.4,
+  icon: 3.6,
+  iconGap: 1.4,
+  edge: 0.35,
+  edgeColour: "#9aa9c0",
+  radius: 3.5,
+  drop: 0.6,
+  size: pt(10),
+  label: "DID YOU KNOW?",
+  tracking: 0.25,
+} as const;
+/** The box's text lines and heights: `h` is the box, `total` adds the drop line under it. */
+export function didYouKnowBox(fact: string): { lines: number; h: number; total: number } {
   const D = DID_YOU_KNOW;
-  const src = didYouKnowText(fact);
-  const inner = W - 2 * D.padX;
-  const lines = wrap(src, D.size, inner).length;
-  const w = Math.min(W, (lines === 1 ? plainWidth(D.label, D.size, "bold") + plainWidth(` ${fact.trim()}`, D.size) + 0.5 : inner) + 2 * D.padX);
-  return { w, lines, h: lines * lh(D.size) + 2 * D.padY };
+  const lines = wrap(fact.trim(), D.size, W - 2 * D.padX).length;
+  const h = D.padTop + D.labelLine + lines * lh(D.size) + D.padBottom;
+  return { lines, h, total: h + D.drop };
+}
+/** The navy lightbulb icon, `s` millimetres square, as SVG content at the origin. */
+export function didYouKnowIcon(s: number, navy: string): string {
+  return (
+    `<g transform="scale(${n(s / 16)})"><rect width="16" height="16" rx="4" fill="${navy}"/>` +
+    `<path d="M8 3 a3.6 3.6 0 0 1 2.3 6.4 v1.6 h-4.6 v-1.6 A3.6 3.6 0 0 1 8 3 z" fill="white"/>` +
+    `<path d="M6.2 12.8 h3.6" stroke="white" stroke-width="1.1" stroke-linecap="round" fill="none"/></g>`
+  );
 }
 
 /** The lesson's start block: tile, unit, title and START; then the key idea. */
@@ -184,9 +209,13 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
     const D = DID_YOU_KNOW;
     const b = didYouKnowBox(lesson.didYouKnow);
     y += D.gap;
-    out.push(rect(0, y, b.w, b.h, `rx="${n(b.h / 2 > 4 ? 4 : b.h / 2)}" fill="${st.tint}"`));
-    out.push(at(para(didYouKnowText(lesson.didYouKnow), b.w - 2 * D.padX, st, { size: D.size, x: D.padX }), 0, y + D.padY));
-    y += b.h;
+    out.push(rect(0, y + D.drop, W, b.h, `rx="${D.radius}" fill="${st.tint}"`));
+    out.push(rect(D.edge / 2, y + D.edge / 2, W - D.edge, b.h - D.edge, `rx="${D.radius}" fill="white" stroke="${D.edgeColour}" stroke-width="${D.edge}"`));
+    out.push(`<g transform="translate(${n(D.padX)},${n(y + D.padTop + (D.labelLine - D.icon) / 2)})">${didYouKnowIcon(D.icon, st.navy)}</g>`);
+    const label = textSvg([{ text: D.label, style: "bold" }], D.padX + D.icon + D.iconGap, y + D.padTop + D.labelLine / 2 + D.size * 0.36, D.size, st.navy);
+    out.push(label.replace("<text ", `<text letter-spacing="${D.tracking}" `));
+    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX }), 0, y + D.padTop + D.labelLine));
+    y += b.total;
   }
   return { h: y, svg: out.join("") };
 }
