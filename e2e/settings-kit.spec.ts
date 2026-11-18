@@ -101,15 +101,19 @@ const chartCard = async (page: Page, heading: string) =>
 // What every tool on the kit shares: the heights of its buttons and fields, the width of its ticks, buttons that are
 // off and faded as well (there should be none), cards with something cut off, and the font of a card's heading.
 // A test names the few buttons whose words need a second line in a narrow column; every other button is measured.
+// Only controls that are drawn count: one inside a closed part (a shut <details>) has no box at all.
 const kitSizes = (page: Page, twoLines: string[] = []) =>
-  page.locator(".inspector-stack.md-kit").evaluate((el, twoLines) => ({
-    buttons: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card button")].filter((b) => !twoLines.includes(b.textContent ?? "")).map((b) => b.getBoundingClientRect().height))],
-    fields: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card :is(select, input:not([type=checkbox]))")].map((b) => b.getBoundingClientRect().height))],
-    ticks: [...new Set([...el.querySelectorAll<HTMLElement>(".panel-card input[type=checkbox]")].map((b) => b.getBoundingClientRect().width))],
-    faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
-    cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
-    heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
-  }), twoLines);
+  page.locator(".inspector-stack.md-kit").evaluate((el, twoLines) => {
+    const drawn = (selector: string) => [...el.querySelectorAll<HTMLElement>(selector)].filter((c) => c.getClientRects().length > 0);
+    return {
+      buttons: [...new Set(drawn(".panel-card button").filter((b) => !twoLines.includes(b.textContent ?? "")).map((b) => b.getBoundingClientRect().height))],
+      fields: [...new Set(drawn(".panel-card :is(select, input:not([type=checkbox]))").map((b) => b.getBoundingClientRect().height))],
+      ticks: [...new Set(drawn(".panel-card input[type=checkbox]").map((b) => b.getBoundingClientRect().width))],
+      faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
+      cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
+      heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
+    };
+  }, twoLines);
 // The controls in the cards that are too small for a finger (there should be none on a phone).
 const tooSmall = (page: Page) =>
   page.locator(".inspector-stack.md-kit").evaluate((el) =>
