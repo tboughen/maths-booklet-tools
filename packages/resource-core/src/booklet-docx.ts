@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTINUED_HEAD, DID_YOU_KNOW, didYouKnowBox, didYouKnowText, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -162,6 +162,15 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
     const box = keyIdeaBox(lesson.keyIdea, st);
     out.push(box.xml);
     y += 3 + box.h;
+  }
+  if (lesson.didYouKnow.trim()) {
+    // The "Did you know?" bubble (N12): a tinted cell as wide as the SVG bubble, its height exact.
+    const D = DID_YOU_KNOW;
+    const b = didYouKnowBox(lesson.didYouKnow);
+    const content = textPara(didYouKnowText(lesson.didYouKnow), D.size, {});
+    out.push(gap(D.gap));
+    out.push(table([b.w], [row([cell(content, { width: b.w, shade: st.tint, vAlign: "center", margin: { top: 0, left: D.padX, bottom: 0, right: D.padX - WORD_WRAP_SLACK_MM } })], { mm: b.h, exact: true })]));
+    y += D.gap + b.h;
   }
   return { xml: out.join(""), h: y };
 }

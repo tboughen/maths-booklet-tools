@@ -89,8 +89,8 @@ export function fitLine(s: string, size: number, width: number, style: FontStyle
 /**
  * Lesson bookends and the corner badge (BOOKLET-STANDARD N11, Tim 18 November 2026): a navy start
  * block opens each lesson, a navy end band closes it in place of the last page's footer, and every
- * other page carries a "Lesson N" badge in its outer top corner with one square per stage (and E for
- * the exam-style and extension work after the last stage), the current one filled.
+ * other page carries a "Lesson N" badge in its outer top corner with one square per stage (and C for
+ * the Challenge work after the last stage, N12), the current one filled.
  */
 export const BOOKEND = {
   /** Top of the start block and of the corner badge. */
@@ -113,7 +113,8 @@ export const BOOKEND = {
   label: "Lesson",
   start: "START",
   stop: "STOP",
-  extension: "E",
+  /** The square for the Challenge work after the last stage (N12: was E). */
+  challenge: "C",
 } as const;
 /** Unlit stage squares: pale blue with a grey-blue figure, so the lit one stands out and photocopies pale. */
 export const STAGE_UNLIT = "#8aa0ba";
@@ -138,6 +139,19 @@ export function startBlockHeight(doc: Booklet["document"], lesson: Lesson): numb
   const unit = unitLabel(doc);
   const textH = (unit ? wrap(unit, START_SIZES.unit, startTextWidth(), "bold").length * lh(START_SIZES.unit) + START_SIZES.gap : 0) + wrap(lesson.title, START_SIZES.title, startTextWidth(), "bold").length * lh(START_SIZES.title);
   return Math.max(BOOKEND.startH, textH + 2 * BOOKEND.startPadY);
+}
+
+/** The "Did you know?" bubble (N12), shared with Word: a small tinted bubble that hugs its text, at 10 pt. */
+export const DID_YOU_KNOW = { gap: 2.5, padX: 3, padY: 1.6, size: pt(10), label: "Did you know?" } as const;
+export const didYouKnowText = (fact: string) => `**${DID_YOU_KNOW.label}** ${fact.trim()}`;
+/** The bubble's width and text lines: as wide as the text needs, never wider than the page's text width. */
+export function didYouKnowBox(fact: string): { w: number; lines: number; h: number } {
+  const D = DID_YOU_KNOW;
+  const src = didYouKnowText(fact);
+  const inner = W - 2 * D.padX;
+  const lines = wrap(src, D.size, inner).length;
+  const w = Math.min(W, (lines === 1 ? plainWidth(D.label, D.size, "bold") + plainWidth(` ${fact.trim()}`, D.size) + 0.5 : inner) + 2 * D.padX);
+  return { w, lines, h: lines * lh(D.size) + 2 * D.padY };
 }
 
 /** The lesson's start block: tile, unit, title and START; then the key idea. */
@@ -166,19 +180,27 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
     out.push(at(box, 0, y));
     y += box.h;
   }
+  if (lesson.didYouKnow.trim()) {
+    const D = DID_YOU_KNOW;
+    const b = didYouKnowBox(lesson.didYouKnow);
+    y += D.gap;
+    out.push(rect(0, y, b.w, b.h, `rx="${n(b.h / 2 > 4 ? 4 : b.h / 2)}" fill="${st.tint}"`));
+    out.push(at(para(didYouKnowText(lesson.didYouKnow), b.w - 2 * D.padX, st, { size: D.size, x: D.padX }), 0, y + D.padY));
+    y += b.h;
+  }
   return { h: y, svg: out.join("") };
 }
 
-/** Which stage squares a lesson shows: one per START banner, then E when work follows the last STOP banner. */
+/** Which stage squares a lesson shows: one per START banner, then C when work follows the last STOP banner. */
 export function stageSquares(lesson: Lesson): string[] {
   const starts = lesson.sections.filter((s) => s.startBanner.trim()).length;
   if (!starts) return [];
   const squares = Array.from({ length: starts }, (_, i) => String(i + 1));
-  // E only when some section is lit E: work after the last stage's own STOP banner.
-  return sectionStages(lesson).includes(BOOKEND.extension) ? [...squares, BOOKEND.extension] : squares;
+  // C only when some section is lit C: work after the last stage's own STOP banner.
+  return sectionStages(lesson).includes(BOOKEND.challenge) ? [...squares, BOOKEND.challenge] : squares;
 }
 
-/** The lit square for each section: its stage, E after the last stage's STOP banner, or null before the first stage. */
+/** The lit square for each section: its stage, C after the last stage's STOP banner, or null before the first stage. */
 export function sectionStages(lesson: Lesson): (string | null)[] {
   const total = lesson.sections.filter((s) => s.startBanner.trim()).length;
   let count = 0;
@@ -186,7 +208,7 @@ export function sectionStages(lesson: Lesson): (string | null)[] {
   return lesson.sections.map((s) => {
     if (s.startBanner.trim()) cur = String(++count);
     const here = cur;
-    if (s.endBanner.trim() && count === total) cur = BOOKEND.extension;
+    if (s.endBanner.trim() && count === total) cur = BOOKEND.challenge;
     return here;
   });
 }
@@ -716,7 +738,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
       const yy = block.y;
       if (block.kind === "head") {
         out.push(at(lessonHead(doc, lesson, shownLesson, st), A4.marginX, yy));
-        glyphs({ title: lesson.title, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
+        glyphs({ title: lesson.title, keyIdea: lesson.keyIdea, didYouKnow: lesson.didYouKnow }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
         continue;
       }
       if (block.kind === "banner") {

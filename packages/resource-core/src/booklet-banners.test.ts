@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { A4, BADGE_HEAD, BANNER, BOOKEND, cornerBadge, planBooklet, renderBooklet, sectionStages, stageSquares, unitLabel } from "./booklet-render";
+import { A4, BADGE_HEAD, BANNER, BOOKEND, cornerBadge, didYouKnowBox, planBooklet, renderBooklet, sectionStages, stageSquares, unitLabel } from "./booklet-render";
 import { styles } from "./style";
 import { writeBookletDocx } from "./booklet-docx";
 
@@ -12,11 +12,11 @@ import { writeBookletDocx } from "./booklet-docx";
 const q = (title: string) => ({ title, items: [{ type: "text", text: "Work it out." }] });
 const section = (kind: string, cards: number, extra: Record<string, unknown> = {}) => ({ kind, columns: 2, cards: Array.from({ length: cards }, (_, i) => q(`Card ${i + 1}`)), ...extra });
 
-function booklet(sections: unknown[]): Booklet {
+function booklet(sections: unknown[], lesson: Record<string, unknown> = {}): Booklet {
   return validateBooklet({
     tool: "resource",
     schemaVersion: 1,
-    document: { kind: "booklet-a4", title: "Presentation of data", code: "SP8", lessons: [{ title: "Construct and interpret frequency polygons", code: "SP8.04", keyIdea: "", sections }] },
+    document: { kind: "booklet-a4", title: "Presentation of data", code: "SP8", lessons: [{ title: "Construct and interpret frequency polygons", code: "SP8.04", keyIdea: "", sections, ...lesson }] },
   });
 }
 
@@ -100,11 +100,11 @@ describe("booklet lesson bookends", () => {
     for (const p of pages.slice(1, -1)) expect(p).not.toContain("End of lesson");
   });
 
-  it("shows one square per stage and E for the work after the last stage, lighting the page's stage", () => {
+  it("shows one square per stage and C for the Challenge work after the last stage, lighting the page's stage", () => {
     const b = booklet(withExam);
-    expect(stageSquares(b.document.lessons[0])).toEqual(["1", "2", "E"]);
+    expect(stageSquares(b.document.lessons[0])).toEqual(["1", "2", "C"]);
     expect(stageSquares(booklet(cycles).document.lessons[0])).toEqual(["1", "2"]);
-    expect(sectionStages(b.document.lessons[0])).toEqual([null, "1", "1", "2", "2", "E"]);
+    expect(sectionStages(b.document.lessons[0])).toEqual([null, "1", "1", "2", "2", "C"]);
     const plan = planBooklet(b);
     expect(plan.pages[0].continued).toBe(false);
     const lit = plan.pages.slice(1).map((p) => p.stage);
@@ -113,7 +113,7 @@ describe("booklet lesson bookends", () => {
     expect(plan.pages.filter((p) => p.last)).toHaveLength(1);
   });
 
-  it("adds E only for work after the last stage's own STOP, and shows no squares without stages", () => {
+  it("adds C only for work after the last stage's own STOP, and shows no squares without stages", () => {
     const noStop = [section("check-in", 2), section("worked", 2, { startBanner: "Stage 1" }), section("diagnostic", 2, { endBanner: "End of stage 1" }), section("worked", 2, { startBanner: "Stage 2" }), exam];
     expect(stageSquares(booklet(noStop).document.lessons[0])).toEqual(["1", "2"]);
     expect(stageSquares(booklet([section("check-in", 2), exam]).document.lessons[0])).toEqual([]);
@@ -123,18 +123,54 @@ describe("booklet lesson bookends", () => {
     const { bytes } = await writeBookletDocx(booklet(withExam), { view: "pupil", fonts: { regular: new Uint8Array(8), semiBold: new Uint8Array(8), italic: new Uint8Array(8) }, picture: (s) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) });
     const body = strFromU8(unzipSync(bytes)["word/document.xml"]);
     expect(body.match(/>Lesson</g)?.length).toBe(planBooklet(booklet(withExam)).pages.length);
-    expect(body).toContain(">E<");
+    expect(body).toContain(">C<");
+    expect(body).not.toContain(">E<");
     expect(body).toContain(`w:fill="${styles.mathsdock.navy.slice(1).toUpperCase()}"`);
   });
 
   it("puts the corner badge on the outer side: right on odd pages, left on even", () => {
-    const right = cornerBadge(6, ["1", "2", "3", "E"], "2", 3, styles.mathsdock);
-    const left = cornerBadge(6, ["1", "2", "3", "E"], "2", 4, styles.mathsdock);
+    const right = cornerBadge(6, ["1", "2", "3", "C"], "2", 3, styles.mathsdock);
+    const left = cornerBadge(6, ["1", "2", "3", "C"], "2", 4, styles.mathsdock);
     const badgeX = (svg: string) => Number(svg.match(/<rect x="([\d.]+)"/)?.[1]);
     expect(badgeX(right)).toBeCloseTo(A4.page.width - A4.marginX - BOOKEND.badgeW, 1);
     expect(badgeX(left)).toBeCloseTo(A4.marginX, 1);
     // Four squares, one lit navy; the badge sits clear of the content below it.
     expect(right.match(new RegExp(`width="${BOOKEND.square}"`, "g"))).toHaveLength(4);
     expect(BOOKEND.top + BOOKEND.badgeH).toBeLessThan(A4.top + BADGE_HEAD);
+  });
+});
+
+// Did you know (BOOKLET-STANDARD N12, Tim 18 November 2026 12:22).
+describe("booklet Did you know bubble", () => {
+  const fact = "Doctors use frequency polygons to compare how fast children grow.";
+
+  it("prints a small bubble on the lesson's first side only, under the start block", () => {
+    const pages = renderBooklet(booklet(cycles, { didYouKnow: fact })).pages;
+    // pages[0] is the cover; the lesson opens on pages[1].
+    expect(pages[1]).toContain(">Did<");
+    expect(pages[1]).toContain("Doctors use frequency polygons");
+    for (const p of [pages[0], ...pages.slice(2)]) expect(p).not.toContain("Doctors use");
+    expect(renderBooklet(booklet(cycles)).pages[1]).not.toContain(">Did<");
+    // A character the font lacks is reported, as in the key idea.
+    expect(renderBooklet(booklet(cycles, { didYouKnow: "Ω test" })).issues.length).toBeGreaterThan(0);
+  });
+
+  it("hugs a short fact and stays within the text width for a long one", () => {
+    const short = didYouKnowBox("Bees use hexagons.");
+    const long = didYouKnowBox("x ".repeat(78));
+    expect(short.lines).toBe(1);
+    expect(short.w).toBeLessThan(100);
+    expect(long.w).toBeLessThanOrEqual(A4.page.width - 2 * A4.marginX + 1e-6);
+  });
+
+  it("costs page 1 only the bubble's height, and Word draws it too", async () => {
+    const plain = planBooklet(booklet(cycles)).pages[0];
+    const withFact = planBooklet(booklet(cycles, { didYouKnow: fact })).pages[0];
+    const head = (p: typeof plain) => p.blocks.find((b) => b.kind === "head")?.h ?? 0;
+    expect(head(withFact) - head(plain)).toBeCloseTo(2.5 + didYouKnowBox(fact).h, 3);
+    const { bytes } = await writeBookletDocx(booklet(cycles, { didYouKnow: fact }), { view: "pupil", fonts: { regular: new Uint8Array(8), semiBold: new Uint8Array(8), italic: new Uint8Array(8) }, picture: (s) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) });
+    const body = strFromU8(unzipSync(bytes)["word/document.xml"]);
+    expect(body).toContain("Did you know?");
+    expect(body).toContain("Doctors use frequency polygons");
   });
 });
