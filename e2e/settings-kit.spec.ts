@@ -406,23 +406,24 @@ test("Venn diagrams uses the kit: the diagram and its print size on the left, th
   expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
   await page.getByLabel("Number of sets", { exact: true }).selectOption("2");
 
-  // The help closes the last card: Print size while editing, Region shading while shading.
+  // The help closes the right column's card, Region contents or Region shading, and stays open from one to the other.
   const help = page.locator(".md-kit .panel-card details").filter({ hasText: "Editing and printing help" });
   await help.locator("summary").click();
   expect(await help.locator("p").evaluateAll((all) => all.map((p) => getComputedStyle(p).marginTop))).toEqual(["6px", "6px"]);
-  const open = await chartCard(page, "Print size");
+  const open = await chartCard(page, "Region contents");
   expect((await help.boundingBox())!.y + (await help.boundingBox())!.height).toBeLessThanOrEqual(open.y + open.height);
   await page.getByRole("button", { name: "Shade", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Print size", exact: true })).toHaveCount(0);
   const shading = await chartCard(page, "Region shading");
   expect([shading.x, shading.y]).toEqual([regions.x, regions.y]);
-  await expect(page.locator(".md-kit .panel-card").filter({ hasText: "Region shading" }).locator("details")).toContainText("Editing and printing help");
+  await expect(page.locator(".md-kit .panel-card").filter({ hasText: "Region shading" }).locator("details[open]")).toContainText("Editing and printing help");
   expect(await kitSizes(page, names)).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(help).toHaveAttribute("open", "");
 
-  // One column in a smaller window, with the print size last.
+  // One column in a smaller window, in the order the Tab key takes them at any size.
   await page.setViewportSize({ width: 1440, height: 900 });
-  const column = [await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Region contents"), await chartCard(page, "Print size")];
+  const column = [await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Print size"), await chartCard(page, "Region contents")];
   expect(new Set(column.map((c) => c.x)).size).toBe(1);
   expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
 
@@ -455,6 +456,15 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   await expect(point).toHaveAttribute("aria-pressed", "true");
   expect(await point.evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color])).toEqual(["rgb(230, 239, 255)", "rgb(20, 38, 61)"]);
   await point.click();
+
+  // A field that shows what is wrong under it stays level with the fields beside it.
+  const step = page.getByLabel("Tick step", { exact: true });
+  await step.fill("0");
+  await step.press("Enter");
+  await expect(page.locator(".md-kit .nl-scale-fields [role=alert]")).toBeVisible();
+  expect((await step.boundingBox())!.y).toBe((await page.getByLabel("First tick", { exact: true }).boundingBox())!.y);
+  await step.press("Escape");
+  await expect(page.locator(".md-kit .nl-scale-fields [role=alert]")).toHaveCount(0);
 
   // A second scale with eleven ticks is the long card. It has the right column to itself, so it is still all in view.
   await page.getByRole("button", { name: "Add a second scale", exact: true }).click();

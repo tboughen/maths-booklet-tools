@@ -448,16 +448,17 @@ does.
   the box that opens on a cell, and each is written `:where(:not(.md-kit *))`, so the kit's look
   never depends on which stylesheet loads last. At 1920 × 1080 the settings were 1,337 px long in a 967 px column
   and are now all in view.
-- **Venn diagrams.** Diagram tools, Diagram and Print size are the left column (Print size is the
-  third group, so it comes last where there is one column) and Region contents, or Region shading
-  in Shade mode, is the right. Print size was a part that opened inside the Diagram card and is
-  now a card, as in the other tools. The help was a card of its own and now closes the last card:
-  Print size while editing, Region shading while shading. Edit and Shade sit beside the number of
+- **Venn diagrams.** Diagram tools, Diagram and Print size are the left column and Region
+  contents, or Region shading in Shade mode, is the right, so the Tab key meets the cards in the
+  order they are seen. Print size was a part that opened inside the Diagram card and is now a
+  card after it, as in the other tools. The help was a card of its own and now closes the right
+  column's card; it stays open when the mode changes. Edit and Shade sit beside the number of
   sets; the three arrangements are two-line choices in one row, a picture over its name. A row for
   a region, a label or a definition is one line, its name on the left and what it holds on the
-  right (they were two lines). The `vn-layout-tools` and `vn-inspector` classes and their rules
-  are gone, with the tool's rules in `refinement.css`. At 1920 × 1080 the settings were 1,060 px
-  long in a 967 px column and are now all in view, even with three sets and the labels open.
+  right (they were two lines). The `vn-layout-tools`, `vn-inspector` and `vn-check` classes and
+  their rules are gone, with the tool's rules in `refinement.css`; `vn-view-note` stays as a name
+  for tests only. At 1920 × 1080 the settings were 1,060 px long in a 967 px column and are now
+  all in view, even with three sets and the labels open.
 - **Number lines.** The selected item, Draw and Scale are the left column, with More settings
   under them as the third group, and Second scale has the right column to itself, because it is
   the card that grows (a label for every tick). The names of the parts that open (More settings
@@ -465,6 +466,7 @@ does.
   are how a teacher finds a setting. The way of drawing that is on is marked as the kit marks a
   choice; it was a filled dark blue button. The typed inequality (`NotationPanel`) takes the
   kit's field and buttons. The tool's own rules for cards, labels, fields, buttons and notes are
-  gone, with `nl-compact-card`, `nl-actions` and `nl-note`.
+  gone, with `nl-compact-card`, `nl-actions` and `nl-note`. A field keeps its place at the top of
+  its label (`nl-field`), so three fields in a row stay level when one shows what is wrong.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

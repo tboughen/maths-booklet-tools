@@ -127,6 +127,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     history = documentHistory.history;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
+    [helpOpen, setHelpOpen] = useState(false),
     [message, setMessage] = useState(startup.message);
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
@@ -435,9 +436,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   }
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
-  // The help closes the last card: Print size while editing, Region shading while shading.
+  // The help closes the last card, Region contents or Region shading. It is one of two elements as
+  // the mode changes, so the page remembers whether it is open.
   const help = (
-    <details>
+    <details open={helpOpen} onToggle={(ev) => setHelpOpen(ev.currentTarget.open)}>
       <summary>Editing and printing help</summary>
       <p>
         Use commas, semicolons or new lines between members. Use 1/2 for a
@@ -875,7 +877,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                       </button>
                     </div>
                   ))}
-                  <label className="vn-check">
+                  <label>
                     <input
                       type="checkbox"
                       checked={d.showDefinitions}
@@ -906,6 +908,70 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     calculate regions. Geometry is schematic.
                   </p>
                 </details>
+              </section>
+            )}
+            {mode === "edit" && (
+              <section className="panel-card" aria-labelledby="vn-card-print">
+                <h2 id="vn-card-print">Print size</h2>
+                <div className="vn-pair">
+                  <label>
+                    Print width
+                    <select
+                      aria-label="Print width"
+                      disabled={blocked}
+                      value={d.widthCm}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.widthCm = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
+                        <option key={v} value={v}>
+                          {v} cm
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Text size
+                    <select
+                      aria-label="Text size"
+                      value={d.fontPt}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.fontPt = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                        <option key={v} value={v}>
+                          {v} pt
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                  <label>
+                    Lines
+                    <select
+                      aria-label="Lines"
+                      value={d.lines ?? "normal"}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          setLines(n, ev.target.value as LineWeight);
+                        })
+                      }
+                    >
+                      {LINE_WEIGHTS.map((v) => (
+                        <option key={v} value={v}>
+                          {LINE_WEIGHT_NAMES[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
               </section>
             )}
             </div>
@@ -941,6 +1007,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     </button>
                   ))}
                 </div>
+                {help}
               </section>
             )}
             {mode === "shade" && (
@@ -1007,73 +1074,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     </button>
                   ))}
                 </div>
-                {help}
-              </section>
-            )}
-            </div>
-            <div>
-            {mode === "edit" && (
-              <section className="panel-card" aria-labelledby="vn-card-print">
-                <h2 id="vn-card-print">Print size</h2>
-                <div className="vn-pair">
-                  <label>
-                    Print width
-                    <select
-                      aria-label="Print width"
-                      disabled={blocked}
-                      value={d.widthCm}
-                      onChange={(ev) =>
-                        patch((n) => {
-                          n.widthCm = Number(ev.target.value);
-                        })
-                      }
-                    >
-                      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
-                        <option key={v} value={v}>
-                          {v} cm
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Text size
-                    <select
-                      aria-label="Text size"
-                      value={d.fontPt}
-                      disabled={blocked}
-                      onChange={(ev) =>
-                        patch((n) => {
-                          n.fontPt = Number(ev.target.value);
-                        })
-                      }
-                    >
-                      {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
-                        <option key={v} value={v}>
-                          {v} pt
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                  <label>
-                    Lines
-                    <select
-                      aria-label="Lines"
-                      value={d.lines ?? "normal"}
-                      disabled={blocked}
-                      onChange={(ev) =>
-                        patch((n) => {
-                          setLines(n, ev.target.value as LineWeight);
-                        })
-                      }
-                    >
-                      {LINE_WEIGHTS.map((v) => (
-                        <option key={v} value={v}>
-                          {LINE_WEIGHT_NAMES[v]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
                 {help}
               </section>
             )}
