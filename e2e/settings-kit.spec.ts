@@ -518,7 +518,8 @@ test("Cuboids uses the kit: the shape on the left, labels, shading and printing 
   expect([cube.height, cubes.height]).toEqual([32, 32]);
   expect(Math.abs(cube.y - units.y)).toBeLessThanOrEqual(1);
   expect(cubes.y).toBe(view.y);
-  expect(Math.abs(units.width - view.width)).toBeLessThanOrEqual(1);
+  // The list of views keeps room for its longest choice, "Separate layers".
+  expect(view.width).toBeGreaterThanOrEqual(128);
   // The three ways to shade share a row on one line each, and the one that is on has the kit's mark.
   const shades = page.locator(".md-kit .cb-shade-options button");
   expect(await shades.evaluateAll((all) => all.map((b) => b.getBoundingClientRect().height))).toEqual([32, 32, 32]);
@@ -529,16 +530,34 @@ test("Cuboids uses the kit: the shape on the left, labels, shading and printing 
     await page.locator(".md-kit summary").filter({ hasText: name }).click();
   expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
 
-  // A click on a label brings its card to the top left, where the other tools show what is selected. The shape goes
-  // to the right, and the parts that were open stay open.
+  // A click on a label brings its card to the top left, where the other tools show what is selected, and the shape
+  // goes to the right. The cards are placed, not rebuilt, so the parts that were open stay open.
+  await page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: "Shape", exact: true }) }).evaluate((card) => card.setAttribute("data-kept", ""));
   await page.getByRole("button", { name: /^Edit height label/ }).click();
+  const topHeading = page.locator(".md-kit .panel-card h2").first();
+  await expect(topHeading).toHaveText("Selected label: height");
   const [picked, moved] = [await chartCard(page, "Selected label: height"), await chartCard(page, "Shape")];
   expect([picked.x, picked.y]).toEqual([shape.x, shape.y]);
   expect([moved.x, moved.y]).toEqual([labels.x, labels.y]);
+  expect(Math.abs(picked.width - moved.width)).toBeLessThanOrEqual(1);
   await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(5);
   await page.keyboard.press("Escape");
+  await expect(topHeading).toHaveText("Shape");
   expect((await chartCard(page, "Shape")).x).toBe(shape.x);
+  await expect(page.locator(".md-kit .panel-card[data-kept]")).toHaveCount(1);
   await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(5);
+  for (const name of ["Cube size and counts", "More shape options", "Position and advanced", "Worked values and captions", "Print settings"])
+    await page.locator(".md-kit summary").filter({ hasText: name }).click();
+
+  // With a second cuboid, the list that picks one runs across both columns, over the cards.
+  await page.getByRole("button", { name: "Add cuboid", exact: true }).click();
+  const pick = (await page.locator(".md-kit .panel-card").filter({ hasText: "Selected cuboid" }).boundingBox())!;
+  const [under, beside] = [await chartCard(page, "Shape"), await chartCard(page, "Labels")];
+  expect([pick.x, pick.y]).toEqual([shape.x, shape.y]);
+  expect(Math.abs(pick.x + pick.width - (beside.x + beside.width))).toBeLessThanOrEqual(1);
+  expect([under.x, beside.y]).toEqual([shape.x, under.y]);
+  expect(under.y).toBeGreaterThan(pick.y + pick.height);
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
 
   // One column in a smaller window, in the same order.
   await page.setViewportSize({ width: 1440, height: 900 });

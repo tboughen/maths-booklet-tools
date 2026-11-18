@@ -91,7 +91,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
     { history, setHistory } = documentHistory;
   const [message, setMessage] = useState(startup.error),
-    [openParts, setOpenParts] = useState<Record<string, boolean>>({}),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [recoverySaved, setRecoverySaved] = useState(false);
   const [selected, setSelected] = useState(startup.e.document.shapes[0].id),
@@ -391,14 +390,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   } catch (err) {
     cubes = err instanceof Error ? err.message : String(err);
   }
-  // A card changes column when it is brought to the top, so the page remembers which of its parts are open.
-  const part = (name: string) => ({
-    open: !!openParts[name],
-    onToggle: (ev: React.SyntheticEvent<HTMLDetailsElement>) => {
-      const open = ev.currentTarget.open;
-      setOpenParts((parts) => (!!parts[name] === open ? parts : { ...parts, [name]: open }));
-    },
-  });
   const check = (
     label: string,
     value: boolean,
@@ -721,77 +712,72 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           >
             <ReturnToDiagram />
             {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top: the top of the
-                left column where there are two, which is where the other tools show what is selected. */}
-            {((cards: Record<SettingsCard | "pick" | "print", ReactNode>) => {
-              const [top, ...rest] = cardOrder(focus);
-              return (
-                <div className="md-kit-cards">
-                  <div>
-                    {cards.pick}
-                    {cards[top]}
-                  </div>
-                  <div>
-                    {rest.map((key) => cards[key])}
-                    {cards.print}
-                  </div>
+                left column where there are two, which is where the other tools show what is selected. The cards
+                stay children of one group, so none is rebuilt as the order changes; cuboid.css sets the columns. */}
+            {((cards: Record<SettingsCard | "pick" | "print", ReactNode>) => (
+              <div className="md-kit-cards cb-cards">
+                <div>
+                  {cards.pick}
+                  {cardOrder(focus).map((key) => cards[key])}
+                  {cards.print}
                 </div>
-              );
-            })({
+              </div>
+                        ))({
                 pick: d.shapes.length > 1 && (
-              <section className="panel-card" aria-label="Cuboids">
-                  <label>
-                    Selected cuboid{" "}
-                    <select
-                      aria-label="Selected cuboid"
-                      disabled={blocked}
-                      value={s.id}
-                      onChange={(ev) => selectShape(ev.target.value)}
-                    >
-                      {d.shapes.map((shape, i) => (
-                        <option key={shape.id} value={shape.id}>
-                          {shape.title || `Cuboid ${i + 1}`}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-              </section>
-            ),
+                  <section key="pick" className="panel-card cb-pick" aria-label="Cuboids">
+                    <label>
+                      Selected cuboid{" "}
+                      <select
+                        aria-label="Selected cuboid"
+                        disabled={blocked}
+                        value={s.id}
+                        onChange={(ev) => selectShape(ev.target.value)}
+                      >
+                        {d.shapes.map((shape, i) => (
+                          <option key={shape.id} value={shape.id}>
+                            {shape.title || `Cuboid ${i + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </section>
+                ),
                 print: (
-            <section className="panel-card" aria-label="Print settings">
-              <details>
-                <summary>Print settings</summary>
-                <p>
-                  {m
-                    ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
-                    : "Review the resource settings."}
-                </p>
-                {field("Print width (cm)", d.widthCm, (v) =>
-                  commit({ ...e, document: { ...d, widthCm: Number(v) } }),
-                )}
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    onChange={(ev) => {
-                      const next = { ...d };
-                      setLines(next, ev.target.value as LineWeight);
-                      commit({ ...e, document: next });
-                    }}
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p>
-                  Width before trimming. Images keep their scale and trim unused
-                  outer space. Preview zoom does not change printing.
-                </p>
-              </details>
-            </section>
+                  <section key="print" className="panel-card" aria-label="Print settings">
+                    <details>
+                      <summary>Print settings</summary>
+                      <p>
+                        {m
+                          ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
+                          : "Review the resource settings."}
+                      </p>
+                      {field("Print width (cm)", d.widthCm, (v) =>
+                        commit({ ...e, document: { ...d, widthCm: Number(v) } }),
+                      )}
+                      <label>
+                        Lines
+                        <select
+                          aria-label="Lines"
+                          value={d.lines ?? "normal"}
+                          onChange={(ev) => {
+                            const next = { ...d };
+                            setLines(next, ev.target.value as LineWeight);
+                            commit({ ...e, document: next });
+                          }}
+                        >
+                          {LINE_WEIGHTS.map((v) => (
+                            <option key={v} value={v}>
+                              {LINE_WEIGHT_NAMES[v]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <p>
+                        Width before trimming. Images keep their scale and trim unused
+                        outer space. Preview zoom does not change printing.
+                      </p>
+                    </details>
+                  </section>
                 ),
                 shape: (
                   <section key="shape" className="panel-card" aria-labelledby="cb-card-shape">
@@ -839,6 +825,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                             : {}),
                         }),
                       )}
+                    </div>
+                    <div className="cb-units-row cb-view-row">
                       <label>
                         View{" "}
                         <select
@@ -855,7 +843,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         </select>
                       </label>
                       <button
-                                                disabled={blocked}
+                        disabled={blocked}
                         onClick={() =>
                           safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
                         }
@@ -864,7 +852,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                       </button>
                     </div>
                     {
-                      <details {...part("cubes")}>
+                      <details>
                         <summary>Cube size and counts</summary>
                         {field("Cube side length", cubeSideInUnit(s), (v) =>
                           changeShape((x) => setCubeSide(x, v)),
@@ -879,7 +867,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                           )}
                       </details>
                     }
-                    <details {...part("shape")}>
+                    <details>
                       <summary>More shape options</summary>
                       {field("Cuboid title", s.title, (v) => patch({ title: v }))}
                       <label>
@@ -998,7 +986,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     </div>
                     {l.mode === "text" &&
                       field("Label text", l.text, (v) => patchLabel({ text: v }))}
-                    <details {...part("position")}>
+                    <details>
                       <summary>Position and advanced</summary>
                       {s.view === "layers" && labelKey === "height" ? (
                         <p>
@@ -1020,7 +1008,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         (v) => setShowHidden(v),
                       )}
                     </details>
-                    <details {...part("worked")}>
+                    <details>
                       <summary>Worked values and captions</summary>
                       {check("Show worked volume", s.workedVolume, (v) =>
                         patch({ workedVolume: v }),
