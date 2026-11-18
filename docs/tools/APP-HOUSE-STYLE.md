@@ -523,5 +523,17 @@ styles as it does.
   `tool-button--active` in its settings any more, so its rules are gone. The hint under the
   diagram is 122 characters, the longest that still keeps the strip to one row beside two
   columns of settings.
+- **Worksheet, Booklet and Starter builders.** The sheet is the content, so the settings stay
+  in ONE narrow column beside it at every width: the pages put `md-kit` on the stack and do
+  not wrap the cards in `md-kit-cards`. (The kit's wide settings track is for a tool page,
+  `site-page--tool`, so a builder keeps its own.) The three share `src/worksheet/worksheet.css`.
+  The kit gives the cards, fields, buttons, ticks and notes their look, and the builders' own
+  text sizes are gone. What the builders keep, each with one more class than the kit: a box of
+  several lines (`textarea`) drawn as a field; the short number field; the arrows that move a
+  question, as 32 px squares; the filled button that makes the sheet; a button written as a
+  link; a problem note in red; and a table cell's pink outline for a hidden answer and grey
+  for a blank, so the three states of a cell stay apart. The cells of a table row stand on one
+  line however many lines their names take, and beside a box of several lines a field keeps
+  to the top.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

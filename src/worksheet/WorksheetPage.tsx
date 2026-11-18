@@ -12,6 +12,7 @@ import { BesideToggle, Field, LeafEditor, NumberField, WorkingField, type Leaf }
 import { downloadEditable, downloadPdf, editableName } from "./export";
 import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, removeItem, setLayout, withBeside, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
+import "../site/settings-kit.css";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
 import { usePrintSize } from "../site/usePrintSize";
@@ -338,7 +339,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
               ))}
             </div>
           </Panel>
-          <aside className="inspector-stack" aria-label="Worksheet settings">
+          <aside className="inspector-stack md-kit" aria-label="Worksheet settings">
             <AiPanel
               current={r}
               disabled={busy || recovery !== null || pending !== null}

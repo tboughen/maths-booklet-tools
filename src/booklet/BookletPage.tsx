@@ -35,6 +35,7 @@ import { DOCX_TYPE, wordKit } from "../export/word";
 import { BookletAiPanel } from "./ai/BookletAiPanel";
 import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
+import "../site/settings-kit.css";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
@@ -595,7 +596,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               ))}
             </div>
           </Panel>
-          <aside className="inspector-stack bk-outline" aria-label="Booklet settings">
+          <aside className="inspector-stack md-kit bk-outline" aria-label="Booklet settings">
             <BookletAiPanel
               current={b}
               focusLesson={focus}
