@@ -36,7 +36,7 @@ export const STARTER = {
 } as const;
 
 export interface StarterIssue {
-  /** 1-based starter in the run. */
+  /** 1-based starter in the run, or 0 for the whole run (a problem with the topic, printed on every card). */
   starter: number;
   /** 1-based question (slot), when the issue belongs to one. */
   question?: number;
@@ -207,7 +207,7 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
   const issues: StarterIssue[] = [];
   const ctx: Ctx<Where> = { st, view, diagrams: 0, issues, where: { starter: 1 }, maths: doc.notation === "maths" };
   ctx.tooWide = starterTooWide(ctx);
-  for (const c of missingCharacters({ topic: doc.topic })) issues.push({ starter: 1, message: missingCharacterMessage("The topic", c) });
+  for (const c of missingCharacters({ text: doc.topic })) issues.push({ starter: 0, message: missingCharacterMessage("The topic", c) }); // starter 0: the whole run (the topic prints on every card)
   const cards: string[] = [];
   const sheets: string[] = [];
   doc.starters.forEach((starter, si) => {

@@ -95,7 +95,7 @@ export function readSection(where: { pathname: string; search: string } = locati
   const page = readPage(where);
   return page === "question-bank" && new URLSearchParams(where.search).get("bankView") === "topics" ? "paper-builder" : page;
 }
-/** One of the six pages, by id. */
+/** One of the site pages, by id. */
 export const siteSection = (id: (typeof siteSections)[number]["id"]) => siteSections.find((s) => s.id === id)!;
 export function sectionName(section: SectionId): string {
   return section === "paper-builder" ? "Paper builder" : pageName(section);

@@ -74,7 +74,9 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
   const current = Math.min(selected, d.starters.length - 1);
   const blocked = busy || recovery !== null || pending !== null;
   const shown = useMemo(() => renderStarterRun(run, { view: answers ? "answers" : "pupil" }), [run, answers]);
-  const issues = shown.issues;
+  // Downloads follow the pupil copy's checks (the answers copy is checked again when it is made).
+  const pupil = useMemo(() => (answers ? renderStarterRun(run, { view: "pupil" }) : shown), [run, answers, shown]);
+  const issues = pupil.issues;
 
   function commit(next: StarterRun | string): boolean {
     if (recovery !== null) return false;
@@ -152,7 +154,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
   }
 
   const n = current + 1;
-  const mine = issues.filter((i) => i.starter === n);
+  const mine = issues.filter((i) => i.starter === n || i.starter === 0);
   const checks: { ok: boolean; text: string }[] = [
     {
       ok: issues.length === 0,
@@ -269,7 +271,11 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved starter data">
                 <p>The saved starter run on this device is protected. Download it before starting again.</p>
-                <button className="tool-button" onClick={() => void act(() => downloadBlob(new Blob([recovery], { type: "application/json" }), "starters-recovered.json"), "Saved data downloaded.")}>
+                <button className="tool-button" onClick={() => {
+                    // Not through act(): the page is blocked while recovery shows, and this download is the way out.
+                    downloadBlob(new Blob([recovery], { type: "application/json" }), "starters-recovered.json");
+                    setMessage("Saved data downloaded.");
+                  }}>
                   Download saved data
                 </button>
                 <button
@@ -303,7 +309,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
                       <th key={s} scope="col">
                         <button className="st-pick" aria-pressed={s === current} onClick={() => setSelected(s)}>
                           Starter {s + 1}
-                          {issues.some((i) => i.starter === s + 1) ? <span className="st-flag" title="A question does not fit"> !</span> : null}
+                          {issues.some((i) => i.starter === s + 1 || i.starter === 0) ? <span className="st-flag" title="A question does not fit"> !</span> : null}
                         </button>
                       </th>
                     ))}

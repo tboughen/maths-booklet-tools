@@ -557,7 +557,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved booklet data">
                 <p>The saved booklet on this device is protected. Download it before starting again.</p>
-                <button className="tool-button" onClick={() => void run(() => downloadBlob(new Blob([recovery], { type: "application/json" }), "booklet-recovered.json"), "Saved data downloaded.")}>
+                <button className="tool-button" onClick={() => {
+                    // Not through run(): the page is blocked while recovery shows, and this download is the way out.
+                    downloadBlob(new Blob([recovery], { type: "application/json" }), "booklet-recovered.json");
+                    setMessage("Saved data downloaded.");
+                  }}>
                   Download saved data
                 </button>
                 <button
