@@ -67,6 +67,10 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
   const [menu, setMenu] = useState(false);
   const [board, setBoard] = useState(false);
   const boardButton = useRef<HTMLButtonElement>(null);
+  // Leaving the page closes the board; coming back never reopens it.
+  useEffect(() => {
+    if (!active) setBoard(false);
+  }, [active]);
   const boardWasOpen = useRef(false);
   // Closing the board returns focus to its button, once the board (and full screen) has gone.
   useEffect(() => {

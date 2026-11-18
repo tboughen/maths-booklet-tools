@@ -70,8 +70,19 @@ test("shows a starter big on the board with a timer, changes starter and shows a
   expect(box!.height > view.height * 0.9 || box!.width > view.width * 0.75).toBe(true);
   await page.keyboard.press("a");
   await expect(page.getByRole("button", { name: "Hide answers" })).toHaveAttribute("aria-pressed", "true");
+  // A new starter opens with its answers hidden.
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("button", { name: "Show answers" })).toHaveAttribute("aria-pressed", "false");
+  // Keys keep working after the focused Next button disables itself on the last starter, and Tab stays on the board.
+  const next = page.getByRole("button", { name: "Next starter" });
+  for (let i = 0; i < 3; i++) await next.click();
+  await expect(next).toBeDisabled();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("dialog", { name: "Silent starter 5 on the board" })).toBeVisible();
+  for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
+  expect(await page.evaluate(() => !!document.activeElement?.closest(".st-board"))).toBe(true);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Show this starter on the board" })).toBeFocused();
-  await expect(page.getByTestId("starter-card").locator("figcaption")).toHaveText("Starter 2 of 6");
+  await expect(page.getByTestId("starter-card").locator("figcaption")).toHaveText("Starter 5 of 6");
 });

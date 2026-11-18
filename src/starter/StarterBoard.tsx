@@ -30,20 +30,8 @@ export function StarterBoard({ run, starter, onStarter, onClose }: { run: Starte
   useEffect(() => {
     if (left === 0) setRunning(false);
   }, [left]);
-  useEffect(() => {
-    const el = root.current;
-    el?.focus();
-    // Full screen where the browser allows it; the view works the same in the window.
-    el?.requestFullscreen?.().catch(() => undefined);
-    const exit = () => {
-      if (!document.fullscreenElement) el?.focus();
-    };
-    document.addEventListener("fullscreenchange", exit);
-    return () => {
-      document.removeEventListener("fullscreenchange", exit);
-      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
-    };
-  }, []);
+  // A new starter always opens with its answers hidden, so pupils never see the next one's answers.
+  useEffect(() => setAnswers(false), [starter]);
 
   const go = (by: number) => onStarter(Math.min(count - 1, Math.max(0, starter + by)));
   const setMinutes = (m: number) => {
@@ -52,19 +40,58 @@ export function StarterBoard({ run, starter, onStarter, onClose }: { run: Starte
     setLeft(s);
     setRunning(false);
   };
-  const key = (e: React.KeyboardEvent) => {
-    if ((e.target as HTMLElement).closest("button") && (e.key === " " || e.key === "Enter")) return;
-    if (e.key === "Escape") onClose();
-    else if (e.key === "ArrowRight") go(1);
-    else if (e.key === "ArrowLeft") go(-1);
-    else if (e.key === " ") setRunning((r) => left > 0 && !r);
-    else if (e.key.toLowerCase() === "a") setAnswers((a) => !a);
-    else return;
-    e.preventDefault();
-  };
+  // The latest handlers, for the listeners below (registered once).
+  const latest = useRef({ go, onClose, left });
+  latest.current = { go, onClose, left };
+
+  useEffect(() => {
+    const el = root.current;
+    el?.focus();
+    // Full screen where the browser allows it; the view works the same in the window. The browser
+    // keeps Escape for leaving full screen, so leaving full screen closes the board too.
+    let full = false;
+    el?.requestFullscreen?.().then(
+      () => void (full = true),
+      () => undefined,
+    );
+    const change = () => {
+      if (full && !document.fullscreenElement) latest.current.onClose();
+    };
+    // Keys are read on the document, not the board, so they still work when a button that had
+    // focus becomes disabled (focus falls to the page body). Tab stays inside the board.
+    const key = (e: KeyboardEvent) => {
+      if (!el) return;
+      if (e.key === "Tab") {
+        const stops = [...el.querySelectorAll<HTMLElement>("button:not(:disabled)")];
+        if (!stops.length) return;
+        const at = stops.indexOf(document.activeElement as HTMLElement);
+        const next = e.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : at === -1 || at === stops.length - 1 ? 0 : at + 1;
+        stops[next].focus();
+        e.preventDefault();
+        return;
+      }
+      if ((e.target as HTMLElement).closest?.("button") && (e.key === " " || e.key === "Enter")) return;
+      const { go, onClose, left } = latest.current;
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === " ") setRunning((r) => left > 0 && !r);
+      else if (e.key.toLowerCase() === "a" && !e.ctrlKey && !e.metaKey && !e.altKey) setAnswers((a) => !a);
+      else return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    document.addEventListener("fullscreenchange", change);
+    document.addEventListener("keydown", key, true);
+    return () => {
+      document.removeEventListener("fullscreenchange", change);
+      document.removeEventListener("keydown", key, true);
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    };
+  }, []);
 
   return (
-    <div ref={root} className="st-board" role="dialog" aria-modal="true" aria-label={`Silent starter ${starter + 1} on the board`} tabIndex={-1} onKeyDown={key}>
+    <div ref={root} className="st-board" role="dialog" aria-modal="true" aria-label={`Silent starter ${starter + 1} on the board`} tabIndex={-1}>
       <div className="st-board-card" data-testid="starter-board-card">
         <div className="st-board-art" dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
         {answers && <span className="st-board-answers-tag">Answers</span>}
