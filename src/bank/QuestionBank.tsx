@@ -265,7 +265,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     return()=>lifecycle.abort();
   },[active]);
 
-  function submitSearch(e:FormEvent){e.preventDefault();const code=normalizeCode(search),alias=catalogue?.aliases[code]||code;const exact=catalogue?.topics.find(t=>t.title.toLowerCase()===search.trim().toLowerCase());const candidate=exact?.code||(/^U\d+$/.test(alias)?alias:suggestions[0]?.code);if(candidate)go({...route,code:candidate,question:"",view:0});else setNotice("Choose a topic from the list or enter a Sparx code.");}
+  function submitSearch(e:FormEvent){e.preventDefault();if(!search.trim()){go({...route,code:"",question:"",view:0});return;}const code=normalizeCode(search),alias=catalogue?.aliases[code]||code;const exact=catalogue?.topics.find(t=>t.title.toLowerCase()===search.trim().toLowerCase());const candidate=exact?.code||(/^U\d+$/.test(alias)?alias:suggestions[0]?.code);if(candidate)go({...route,code:candidate,question:"",view:0});else setNotice("Choose a topic from the list or enter a Sparx code.");}
   function isSelected(id:string){const q=catalogue?.questions.find(q=>q.id===id);return !!q&&included.has(questionIdentity(q));}
   function selectQuestion(id:string,checked:boolean){const q=catalogue?.questions.find(q=>q.id===id);if(q)dispatchDraft({type:"question",question:q,checked});}
   function startExport(){if(!hasDraftIntent(draft))dispatchDraft({type:"add",questions:results});setReviewOpen(true);}

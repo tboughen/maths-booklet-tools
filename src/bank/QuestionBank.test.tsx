@@ -76,3 +76,15 @@ describe("question bank: a link's invalid view", () => {
     expect(notice).toHaveTextContent("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");
   });
 });
+
+describe("question bank: clearing the search", () => {
+  it("shows every question when the search box is emptied and Enter is pressed", async () => {
+    mocks.index = {...index(), pilotCodes: ["U1"]};
+    await loaded("?code=U1&tier=F");
+    const box = screen.getByRole("combobox", {name: "Sparx code or topic"});
+    fireEvent.change(box, {target: {value: "  "}});
+    await act(async () => fireEvent.submit(box.closest("form")!));
+    expect(location.search, "no topic is chosen; other filters stay").toBe("?tier=F");
+    expect(box).toHaveValue("");
+  });
+});
