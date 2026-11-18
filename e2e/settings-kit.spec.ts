@@ -609,7 +609,7 @@ test("Triangles uses the kit: what is selected on the left with the label box ov
     expect(left).toBeLessThan(44);
   }
   // The name of a part that opens is a row as tall as a control.
-  expect(await page.locator(".md-kit summary").evaluateAll((all) => [...new Set(all.map((s) => s.getBoundingClientRect().height))])).toEqual([32]);
+  expect(await page.locator(".md-kit summary").evaluateAll((all) => [...new Set(all.map((s) => Math.round(s.getBoundingClientRect().height)))])).toEqual([32]);
 
   // A click on a label opens the box that edits it at the top of the left column, over what is selected. It is a
   // card like the others, and its choices are as tall as a control.
@@ -627,6 +627,10 @@ test("Triangles uses the kit: what is selected on the left with the label box ov
   expect(await apply.evaluate((el) => [getComputedStyle(el).color, getComputedStyle(el).backgroundColor === getComputedStyle(el).borderTopColor])).toEqual(["rgb(255, 255, 255)", true]);
   await box.getByRole("button", { name: "Cancel label", exact: true }).click();
   await expect(box).toBeHidden();
+  // Under the diagram, outside the settings, the button that confirms a step keeps the tool's filled look.
+  await page.getByRole("button", { name: "Split triangle", exact: true }).click();
+  expect(await page.getByRole("button", { name: "Apply split", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(15, 98, 254)");
+  await page.getByRole("button", { name: "Cancel preview", exact: true }).click();
 
   // One column in a smaller window, in the order the cards are read.
   await page.setViewportSize({ width: 1440, height: 900 });

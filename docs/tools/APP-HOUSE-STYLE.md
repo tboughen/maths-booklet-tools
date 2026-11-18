@@ -490,6 +490,8 @@ styles as it does.
   between them are gone. A button with a row to itself ("Use worked version") is as wide as its
   words. The tool's own label, field and button rules now reach only the strip under the diagram
   and the dialogs (`:where(:not(.md-kit *))`), and the unused `tr-modes` and `tr-tabs` rules are
-  gone.
+  gone. The kit has no filled button and no look for a `role="status"` error yet, so
+  `tr-primary` and `tr-error` carry them in the settings; they belong in the kit once a second
+  tool needs them.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
