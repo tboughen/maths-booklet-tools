@@ -64,7 +64,8 @@
   align-items: center;
   font-size: 12px;
 }
-/* On the settings kit (`.md-kit`) the card's gap spaces a row and a button that is off is not faded. */
+/* A row outside the settings (under a diagram) brings its own space above. In a card of the
+   settings kit (`.md-kit`) the card's gap spaces the rows. */
 .pt-row:where(:not(.md-kit *)) {
   padding: 8px 0 0;
 }
@@ -78,38 +79,6 @@
 .pt-error {
   color: #a3142f;
 }
-.pt-kinds {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-.pt-table-wrap {
-  overflow-x: auto;
-}
-.pt-table {
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.pt-table th,
-.pt-table td {
-  padding: 3px;
-  vertical-align: top;
-  text-align: left;
-  font-weight: normal;
-}
-.pt-table input:not([type="checkbox"]) {
-  width: 84px;
-}
-.pt-table thead select {
-  display: block;
-  width: 84px;
-  margin-top: 4px;
-  font-size: 12px;
-}
-.pt-table input[aria-invalid="true"] {
-  border-color: #a3142f;
-  outline: 1px solid #a3142f;
-}
 .pt-field-selected {
   outline: 2px solid var(--blue);
 }
@@ -120,19 +89,16 @@
   font-size: 11px;
   color: var(--muted, #50617a);
 }
+/* Two fields share a row evenly, whatever the longest choice in a list, and a field on its own
+   takes the whole row. The settings kit (src/site/settings-kit.css) gives the fields their look. */
 .pt-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   font-size: 13px;
 }
-/* On the settings kit the two columns are equal, whatever the longest choice in a list,
-   and a field on its own takes the whole row. */
-.md-kit .pt-fields {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.md-kit .pt-fields > label:only-child,
-.md-kit .pt-fields > .pt-wide {
+.pt-fields > label:only-child,
+.pt-fields > .pt-wide {
   grid-column: 1 / -1;
 }
 .pt-fields label {
@@ -144,10 +110,9 @@
   width: 100%;
   min-width: 0;
 }
-.pt-fields .pt-check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* A field in a card may be narrower than its words, so it shares a row and never pushes its card wider. */
+.pt-panel :is(select, input:not([type="checkbox"])) {
+  min-width: 0;
 }
 .pt-note {
   font-size: 12px;
@@ -170,21 +135,6 @@
 .pt-editor select {
   font: inherit;
 }
-.pt-panel select,
-.pt-panel input:not([type="checkbox"]) {
-  background: white;
-  padding: 6px 7px;
-  border: 1px solid var(--line-strong, #becbd8);
-  border-radius: 4px;
-  max-width: 100%;
-  min-width: 0;
-  color: var(--ink, #213c59);
-}
-.pt-panel h2 {
-  font-size: 16px;
-  margin: 0 0 10px;
-}
-.pt-panel button,
 .pt-recovery button {
   border: 1px solid var(--line-strong, #becbd8);
   border-radius: 5px;
@@ -194,17 +144,7 @@
   color: var(--ink, #213c59);
   cursor: pointer;
 }
-.pt-panel:where(:not(.md-kit *)) button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.pt-kinds button[aria-pressed="true"] {
-  background: #e2efff;
-  border-color: #386ba5;
-  color: var(--ink, #213c59);
-}
-.pt-hide input,
-.pt-check input {
+.pt-hide input {
   accent-color: #2465ad;
 }
 .pt-branches {

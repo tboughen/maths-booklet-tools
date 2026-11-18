@@ -260,7 +260,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
   }
 });
 
-test("Plans and elevations uses the kit: the solid and printing on the left, the panels on the right", async ({ page }) => {
+test("Plans and elevations uses the kit: the solid on the left with printing under it, the panels on the right", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/elevations");
   const stack = page.locator(".inspector-stack.md-kit");
@@ -297,7 +297,7 @@ test("Plans and elevations uses the kit: the solid and printing on the left, the
 
   // One column in a smaller window, in the same order.
   await page.setViewportSize({ width: 1440, height: 900 });
-  const [a, b, c] = [(await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!, await chartCard(page, "Printing"), await chartCard(page, "Panels")];
+  const [a, b, c] = [(await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!, await chartCard(page, "Panels"), await chartCard(page, "Printing")];
   expect([b.x, c.x]).toEqual([a.x, a.x]);
   expect(b.y).toBeGreaterThan(a.y);
   expect(c.y).toBeGreaterThan(b.y);
@@ -319,9 +319,9 @@ const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
   ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
   ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
-  ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", ["Layout"], ["Objects"]],
+  ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", [], ["Objects"], { under: ["Layout"] }],
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
-  ["Bubble method", "/tools/bubble-method", "Selected item", ["Layout"], ["Steps"]],
+  ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps"], { under: ["Layout"] }],
   ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
   ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
   ["Angle diagrams", "/tools/angles", "Selected angle", [], ["Figure"], PRINT],
