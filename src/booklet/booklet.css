@@ -11,8 +11,9 @@
 .bk-keyword { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: 4px; align-items: end; }
 .bk-objectives { display: grid; gap: 4px; margin: 0; padding: 6px 8px; border: 1px solid #d5dbe3; border-radius: 6px; max-height: 260px; overflow: auto; }
 .bk-objectives legend { font-size: var(--md-text-xs); color: var(--md-ink-2); padding: 0 4px; }
-.bk-objective { align-items: flex-start; }
-.bk-objective input { margin-top: 3px; }
+/* An objective can run to three lines, and its tick stays on the first. */
+.ws-editor .md-kit .panel-card .bk-objective { align-items: flex-start; }
+.ws-editor .md-kit .panel-card .bk-objective input { margin-top: 1px; }
 .ws-editor .md-kit .panel-card .bk-estimate { color: var(--md-ink); }
 .bk-progress { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .bk-progress li { display: flex; align-items: center; gap: 6px; }
@@ -30,4 +31,4 @@
 .bk-outline .ws-line-edit { grid-template-columns: repeat(auto-fit, minmax(min(100%, 96px), 1fr)); }
 .bk-outline .ws-toolbar, .bk-outline .bk-section-head { flex-wrap: wrap; }
 .bk-lesson > .ws-card-moves { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.bk-notes-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.bk-notes-actions { display: flex; flex-wrap: wrap; gap: 6px; }

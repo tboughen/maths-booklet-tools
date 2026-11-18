@@ -470,7 +470,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
                           ))}
                         </div>
                       ) : (
-                        <div key={k}>
+                        <div key={k} className="ws-item">
                           <LeafEditor item={item} set={(next) => setItem([k], next)} label="" disabled={blocked} />
                           <BesideToggle list={card.items} index={k} disabled={blocked} set={(on) => setItem([k], withBeside(item, on))} />
                         </div>

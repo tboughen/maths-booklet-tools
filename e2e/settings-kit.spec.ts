@@ -1153,5 +1153,39 @@ test("the Worksheet builder keeps its own marks on the kit: the filled Make butt
   // A number that is a few digits long keeps a short field.
   await stack.getByLabel("Score box").first().check();
   expect((await stack.getByLabel("Side 1 score out of").boundingBox())!.width).toBeLessThan(100);
+
+  // On a phone the open table, its lists and the number field are finger-sized and stay on the page.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(shows).toBeVisible();
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test("the Booklet builder's list of objectives: a tick stays on the first line of a long objective, and Tick all reads as a link that a finger can press", async ({ page }) => {
+  const long = "Construct and interpret comparative bar charts for two sets of data, and say which set is larger in each category and overall";
+  const scheme = { schemaVersion: 1, kind: "scheme-of-work", name: "Department scheme", units: [{ code: "SP2", title: "Presentation of data", years: [8], objectives: [{ code: "SP2.06", level: "C", text: long }, { code: "SP2.07", level: "C", text: "Read a pie chart" }] }] };
+  const object = `bank/assets/sha256/${"a".repeat(64)}.json`;
+  await page.route("**/bank/schemes.json", (route) => route.fulfill({ json: { schemaVersion: 1, school: object } }));
+  await page.route(`**/${object}`, (route) => route.fulfill({ json: scheme }));
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/booklets");
+  const ai = page.getByRole("region", { name: "Make with AI" });
+  await expect(ai.getByLabel("Choose from").locator('option[value="school"]')).toBeAttached();
+  await ai.getByLabel("Choose from").selectOption("school");
+  await ai.getByRole("combobox", { name: "Unit", exact: true }).selectOption("SP2");
+  const all = ai.getByRole("button", { name: "Tick all", exact: true });
+  await expect(all).toBeVisible();
+  expect(await all.evaluate((b) => [getComputedStyle(b).borderTopWidth, getComputedStyle(b).backgroundColor, getComputedStyle(b).textDecorationLine])).toEqual(["0px", "rgba(0, 0, 0, 0)", "underline"]);
+  expect((await all.boundingBox())!.height).toBeLessThan(32);
+  const objective = ai.locator("label.bk-objective").first();
+  const [label, tick] = [(await objective.boundingBox())!, (await objective.locator("input").boundingBox())!];
+  expect(label.height).toBeGreaterThan(40);
+  expect(tick.y - label.y).toBeLessThanOrEqual(3);
+  expect(await ai.evaluate((card) => card.scrollWidth <= card.clientWidth + 1)).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(all).toBeVisible();
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 

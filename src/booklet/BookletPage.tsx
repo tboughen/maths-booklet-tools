@@ -388,7 +388,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                         <div key={i} className="ws-part">
                           <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                           {item.items.map((leaf, j) => (
-                            <div key={j}>
+                            <div key={j} className="ws-item">
                               <LeafEditor item={leaf} set={(next) => setItem([i, j], next)} label="" disabled={blocked} />
                               <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
                             </div>
@@ -407,7 +407,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                           />
                         </div>
                       ) : (
-                        <div key={i}>
+                        <div key={i} className="ws-item">
                           <LeafEditor item={item} set={(next) => setItem([i], next)} label="" disabled={blocked} />
                           <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                         </div>
@@ -641,7 +641,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                     <ListField label="What do I need to remember?" value={d.intro.remember} max={120} maxItems={8} disabled={blocked} onCommit={(v) => patch((x) => void (x.intro!.remember = v))} />
                     <ListField label="What will I learn?" value={d.intro.learn} max={120} maxItems={8} disabled={blocked} onCommit={(v) => patch((x) => void (x.intro!.learn = v))} />
                     <ListField label="How does this progress?" value={d.intro.next} max={120} maxItems={8} disabled={blocked} onCommit={(v) => patch((x) => void (x.intro!.next = v))} />
-                    <h3 className="bk-sub">Key words</h3>
+                    <h3>Key words</h3>
                     {d.intro.keywords.map((k, i) => (
                       <div key={i} className="bk-keyword">
                         <Field label={`Word ${i + 1}`} value={k.word} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.intro!.keywords[i].word = v))} />

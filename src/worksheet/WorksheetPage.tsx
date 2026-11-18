@@ -443,7 +443,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                 <div key={i} className="ws-part">
                                   <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                                   {item.items.map((leaf, j) => (
-                                    <div key={j}>
+                                    <div key={j} className="ws-item">
                                       {leafEditor(leaf, (next) => setItem([i, j], next), "")}
                                       <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
                                     </div>
@@ -462,7 +462,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                   />
                                 </div>
                               ) : (
-                                <div key={i}>
+                                <div key={i} className="ws-item">
                                   {leafEditor(item, (next) => setItem([i], next), "")}
                                   <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                                   {item.type === "paper" && (
