@@ -20,10 +20,6 @@
   .booklet-editor:not(.ws-editor) .inspector-stack {
     grid-template-columns: minmax(0, 1fr);
   }
-  .booklet-editor:not(.ws-editor) .selection-panel,
-  .booklet-editor:not(.ws-editor) .equation-panel {
-    grid-row: auto;
-  }
   .booklet-editor:not(.ws-editor) .inspector-stack > .editor-diagram-link {
     grid-column: auto;
   }

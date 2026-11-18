@@ -519,6 +519,9 @@ styles as it does.
   inside a card and leaves the look to the kit. A group of choices (`segmented`,
   `scale-options`) is a row of the kit's buttons with the kit's mark; an axis scale keeps its
   two lines; the drawing tools use `aria-pressed`, not the toolbar's `tool-button--active`;
-  the list of objects opens from a row that reads as the card's heading.
+  the list of objects opens from a row that reads as the card's heading. No page uses
+  `tool-button--active` in its settings any more, so its rules are gone. The hint under the
+  diagram is 122 characters, the longest that still keeps the strip to one row beside two
+  columns of settings.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

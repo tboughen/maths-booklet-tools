@@ -248,11 +248,11 @@
   gap: 8px;
   width: 100%;
   padding: 4px 8px;
-  border-color: transparent;
   text-align: left;
 }
-.graph-editor .md-kit .panel-card .objects-list button.selected {
-  border-color: var(--md-blue);
+/* A row has no outline until it is the selected one, under the pointer or not. */
+.graph-editor .md-kit .panel-card .objects-list button:not(.selected) {
+  border-color: transparent;
 }
 .graph-editor .md-kit .panel-card :is(.list-icon, .off-grid) {
   display: grid;

@@ -764,9 +764,9 @@ export default function App({ active = true }: { active?: boolean }) {
                 }}
               />
             ) : (
-              <section className="panel-card graph-selected-empty" aria-label="Selected object">
+              <section className="panel-card" aria-label="Selected object">
                 <h2>Selected object</h2>
-                <p>Click a point, line or shape on the graph to edit it here, or choose a drawing tool.</p>
+                <p>Click a point, line or shape on the graph to edit it here.</p>
               </section>
             )}
             </div>

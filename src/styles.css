@@ -89,7 +89,6 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .tool-button { padding: 0 16px; }
 .icon-button { width: var(--control-lg); flex: 0 0 var(--control-lg); padding: 0; }
 .tool-button:hover:not(:disabled), .icon-button:hover:not(:disabled) { background: #f0ede7; }
-.tool-button--active { color: var(--blue); border-color: #b9cce4; background: var(--blue-soft) !important; }
 .equation-tool { margin-left: 3px; color: #4c5259; }
 .reset-button { padding-inline: 12px; color: #7d4b47; white-space: nowrap; }
 .reset-button:hover:not(:disabled) { background: var(--red-soft); color: var(--red); }
@@ -252,8 +251,6 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   .workspace { grid-template-columns: 1fr; }
   .editor-toolbar { flex-wrap: wrap; }
   .inspector-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .selection-panel, .equation-panel { grid-row: span 2; }
-  .objects-panel { align-self: start; }
   .graph-stage { min-height: 520px; }
   .graph-canvas { max-height: 610px; }
 }
@@ -274,7 +271,6 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   .graph-stage { min-height: 390px; padding: 8px; }
   .graph-canvas { min-height: 360px; max-height: 520px; }
   .inspector-stack { grid-template-columns: 1fr; }
-  .selection-panel, .equation-panel { grid-row: auto; }
 }
 
 @media (max-width: 460px) {
@@ -316,13 +312,10 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   body { background: #20211f; }
   .site-header, .editor-toolbar { background: rgba(42,43,40,.93); border-color: var(--line); }
   .brand-mark { background: #f1efe9; color: #242522; }
-  .header-menu-button, .privacy-note, .coordinate-input input, .equation-fields input, .visibility-button, .secondary-panel-button, .scale-options button { border-color: var(--line); background: #30312e; }
+  .header-menu-button, .privacy-note { border-color: var(--line); background: #30312e; }
   .graph-stage { background: #242522; }
   .tools-popover, .export-menu, .graph-exchange-menu, .toast, .word-help-dialog { color: #efeee8; }
   .graph-exchange-menu button:hover { background: #3c3d39; }
-  .segmented, .count-badge, .selected-equation { background: #363733; }
-  .segmented button.active { background: #484a45; }
-  .danger-button { background: #342725; border-color: #65413e; }
   .toast--success { background: #26332b; border-color: #45664f; }
   .toast--error { background: #392826; border-color: #6f4541; }
   .word-help-dismiss:hover, .word-help-done:hover { background: #3c3d39; }
