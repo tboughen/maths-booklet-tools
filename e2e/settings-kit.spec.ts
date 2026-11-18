@@ -599,7 +599,15 @@ test("Triangles uses the kit: what is selected on the left with the label box ov
   await page.getByLabel("Selected object", { exact: true }).selectOption("t:T1");
   for (const name of ["Shape locks", "Precise vertex position", "Captions and diagram notes"])
     await page.locator(".md-kit summary").filter({ hasText: name }).click();
-  expect(await kitSizes(page, ["Reflect horizontally", "Add perpendicular height from selected vertex"])).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  // Half a column is too narrow for the longest names, so those buttons take two lines, and a button beside one is as tall.
+  const twoLines = ["Reflect horizontally", "Reflect vertically", "Make right angle", "Make equal sides at apex", "Make equilateral", "Release shape locks", "Add perpendicular height from selected vertex"];
+  expect(await kitSizes(page, twoLines)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  const pair = async (names: string[]) => Promise.all(names.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
+  for (const row of [["Reflect horizontally", "Reflect vertically"], ["Make right angle", "Make equal sides at apex"], ["Make equilateral", "Release shape locks"]]) {
+    const [left, right] = await pair(row);
+    expect(left).toBe(right);
+    expect(left).toBeLessThan(44);
+  }
   // The name of a part that opens is a row as tall as a control.
   expect(await page.locator(".md-kit summary").evaluateAll((all) => [...new Set(all.map((s) => s.getBoundingClientRect().height))])).toEqual([32]);
 

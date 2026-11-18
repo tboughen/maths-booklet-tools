@@ -148,11 +148,12 @@
   color: white;
   font-weight: 600;
 }
+/* Two buttons to a row. Where one needs a second line for its words, the other is as tall. */
 .tr-two {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  align-items: start;
+  align-items: stretch;
 }
 .tr-two button {
   width: 100%;
