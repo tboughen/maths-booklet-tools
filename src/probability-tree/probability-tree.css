@@ -108,9 +108,9 @@
 .pt-fields input,
 .pt-fields select {
   width: 100%;
+  min-width: 0;
 }
-/* A field may be narrower than its words, so it shares a row and never pushes its card wider. */
-.pt-fields :is(input, select),
+/* A field in a card may be narrower than its words, so it shares a row and never pushes its card wider. */
 .pt-panel :is(select, input:not([type="checkbox"])) {
   min-width: 0;
 }

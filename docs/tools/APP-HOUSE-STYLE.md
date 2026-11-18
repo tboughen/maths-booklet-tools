@@ -354,7 +354,8 @@ a time, and each one drops its own button and field styles as it does.
   balanced, so a card stays where it is when another card opens, closes or grows. Everywhere else
   the two groups have no box of their own and the cards run in the one order. A third `div` sits
   under the first column: it holds a card that comes last in the settings (Printing) but fits the
-  shorter column, so the cards keep their order wherever there is one column.
+  shorter column, so the cards keep their order wherever there is one column. On a wide window
+  the keyboard reaches that card last too, after the right column.
 - Beside two columns the diagram's card is about 1,230 px wide at 1920 × 1080. The foot strip
   under it still keeps to one row: the note shares the row, and a long hint takes two lines. The
   message keeps at least 220 px there (280 px elsewhere), which leaves the longest hint, 116
@@ -375,9 +376,10 @@ a time, and each one drops its own button and field styles as it does.
   are now in view.
 - **The shared `pt-` classes.** Seventeen tools use the settings classes in
   `src/probability-tree/probability-tree.css` (`pt-panel`, `pt-row`, `pt-fields` and the rest).
-  All seventeen are on the kit, so that file no longer gives a button, a field or a card heading
-  its look: the kit does. What stays there is layout (a row, two fields sharing a row, a field
-  that may be narrower than its words). A row or a pair of fields can also sit outside the
+  All seventeen are on the kit, so inside a card that file no longer gives a button, a field or a
+  heading its look: the kit does. What stays there is layout (a row, two fields sharing a row, a
+  field that may be narrower than its words) and the buttons of the "Protect saved data" card
+  (`.pt-recovery`), which sits outside the kit. A row or a pair of fields can also sit outside the
   settings, under a diagram (Two-way tables, Sample space diagrams), so a row keeps its own space
   above with `:where(:not(.md-kit *))` and the kit itself knows nothing of `pt-`.
 - **Plans and elevations.** The solid is the left column, the list of panels is the right, and
@@ -400,7 +402,7 @@ a time, and each one drops its own button and field styles as it does.
   are longer than the screen, and Layout stays in view. The other three are in view at
   1920 × 1080 even when they are full (16 terms, three machines of five boxes, twelve digits);
   Algebra tiles was 1,111 px long and Written methods 1,182 px in a 967 px column. A step, a
-  machine and the small digits of a number are each a `md-kit-group`. On the kit the two columns
+  machine and the small digits of a number are each a `md-kit-group`. The two columns
   of `.pt-fields` are equal (`minmax(0, 1fr)`), so two lists side by side never overlap; in
   Written methods a small digit keeps its narrow field.
   Bubble method's own classes now start `bub-`: they started `bm-`, which is Bar modelling's
