@@ -52,39 +52,48 @@
   font-size: 12px;
   border-top: 1px solid var(--line);
 }
+/* The settings are on the settings kit (settings-kit.css), which gives a card its heading, labels, fields, buttons
+   and notes. This group, switched off during recovery, is also the kit's pair of columns (`md-kit-cards`). */
 .ratio-settings {
   border: 0;
   padding: 0;
   margin: 0;
-  display: grid;
-  gap: 14px;
   min-width: 0;
 }
 .ratio-settings .panel-heading {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 9px;
+  gap: 8px;
 }
-.ratio-settings input:not([type="checkbox"]),
-.ratio-settings select {
-  width: 100%;
-  min-width: 0;
-  min-height: 40px;
-  padding: 8px 9px;
-  border: 1px solid var(--line-strong);
-  border-radius: 7px;
-  background: white;
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.3;
+.ratio-settings .panel-heading svg {
+  flex: none;
+  color: var(--md-navy);
 }
+/* The three tools sit in a row, each with its icon, and take a second row in a narrow card. */
+.ratio-settings .tool-group {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ratio-settings .tool-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* The tool that is on has the kit's mark. The toolbar's own mark (styles.css) is `!important`, so this one is too. */
+.ratio-app .ratio-settings .tool-button--active {
+  background: var(--md-blue-soft) !important;
+  color: var(--md-ink);
+}
+.ratio-settings .check-row {
+  margin: 0;
+}
+/* The cards are the stack's own rows now. A row is as tall as its card's contents: the card for what is selected
+   has a least height, and without this a full stack would squeeze it to that and let its fields spill out. */
 .ratio-app .inspector-stack {
   display: grid;
   grid-template-columns: 1fr;
-}
-.ratio-settings select {
-  font-size: 12px;
+  grid-auto-rows: max-content;
 }
 .ratio-row-headings {
   display: grid;
@@ -155,22 +164,20 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  min-height: 40px;
-  margin-top: 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: 7px;
-  background: white;
-  font-size: 12px;
 }
 .ratio-examples,
 .ratio-headings {
   margin-top: 14px;
   font-size: 12px;
 }
-.ratio-app summary {
+.ratio-app summary:where(:not(.md-kit *)) {
   cursor: pointer;
   padding: 8px 0;
   color: var(--blue);
+}
+/* The name of a part that opens is a row as tall as a control. */
+.ratio-settings summary {
+  padding-block: calc((var(--md-control) - 1.4em) / 2);
 }
 .ratio-examples button {
   display: block;
@@ -183,24 +190,19 @@
   text-align: left;
   font-size: 12px;
 }
-.ratio-label {
+/* "Factor" is a name over a field that has a label of its own, so it is set as the kit sets a label. */
+div.ratio-label {
   display: grid;
-  gap: 7px;
-  font-size: 12px;
-  margin-top: 12px;
+  align-content: end;
+  gap: 3px;
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  font-weight: 500;
 }
 .ratio-heading-controls {
-  margin: 10px 0;
   display: grid;
-  gap: 7px;
-}
-.ratio-heading-controls > label:not(.check-row) {
-  display: grid;
-  gap: 5px;
-}
-.ratio-heading-controls .check-row {
-  margin: 0;
-  font-size: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
 }
 .ratio-message,
 .ratio-recovery {
@@ -223,16 +225,9 @@
   margin-top: 6px;
   background: white;
 }
-.ratio-warnings {
+.ratio-app .md-kit .panel-card.ratio-warnings {
   border-color: #d7bd82;
   background: #fff9ec;
-}
-.ratio-warnings h2 {
-  font-size: 14px;
-}
-.ratio-warnings p {
-  font-size: 12px;
-  line-height: 1.5;
 }
 .ratio-dialog {
   width: min(580px, 100%);
@@ -437,8 +432,14 @@
 .ratio-app .ratio-danger {
   color: var(--red);
 }
+/* It keeps a height while nothing is selected, so the tools under it do not jump at the first click. */
 .ratio-selection-panel {
   min-height: 140px;
+  align-content: start;
+}
+/* Two fields in a row stay level when one shows what is wrong under it. */
+.ratio-settings .ratio-step-fields > * {
+  align-content: start;
 }
 .ratio-scroll-hint {
   margin: 0 0 8px;

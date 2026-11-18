@@ -60,6 +60,7 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
+import "../site/settings-kit.css";
 import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
@@ -1887,11 +1888,14 @@ export default function ValueGraphPage({
             )}
           </Panel>
           <aside
-            className="inspector-stack"
+            className="inspector-stack md-kit"
             aria-label="Table and graph settings"
           >
             <ReturnToDiagram />
-            {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. */}
+            {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. In a wide
+                window it has the left column, and the tools that open it the right. */}
+            <div className="md-kit-cards">
+            <div>
             {selection && !localSelection ? (
               <InspectorEditor
                 title={contextTitle}
@@ -1899,7 +1903,9 @@ export default function ValueGraphPage({
                 blocked={blocked}
                 onClose={close}
               >
-                <div key={JSON.stringify(selection)}>{contextContent()}</div>
+                <div key={JSON.stringify(selection)} className="vg-context-body">
+                  {contextContent()}
+                </div>
               </InspectorEditor>
             ) : (
               <section className="panel-card vg-selected-empty" aria-label="Selected item">
@@ -1908,7 +1914,9 @@ export default function ValueGraphPage({
                 </p>
               </section>
             )}
-            <section className="panel-card specialist-tools vg-workflow">
+            </div>
+            <div>
+            <section className="panel-card vg-workflow">
               <h2>Table and graph</h2>
               <div className="specialist-actions">
                 <button
@@ -2016,6 +2024,8 @@ export default function ValueGraphPage({
                 </div>
               )}
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {active && pending && (

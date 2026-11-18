@@ -58,6 +58,7 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
+import "../site/settings-kit.css";
 import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
@@ -762,9 +763,11 @@ export default function RatioTablePage({
               </p>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Ratio-table settings">
+          <aside className="inspector-stack md-kit" aria-label="Ratio-table settings">
             <ReturnToDiagram />
-            <fieldset disabled={!!recovery} className="ratio-settings">
+            {/* The group that is switched off during recovery is also the kit's pair of columns: the inspector
+                puts what is selected and the tools in the first, and the table's settings in the second. */}
+            <fieldset disabled={!!recovery} className="ratio-settings md-kit-cards">
               <RatioInspector
                 document={document}
                 selection={selection}
@@ -779,7 +782,7 @@ export default function RatioTablePage({
                 onAction={(ops) => attempt(() => operations(ops))}
                 onFill={fill}
                 tools={
-                  <section className="panel-card specialist-tools">
+                  <section className="panel-card">
                     <h2>Table tools</h2>
                     <div
                       className="tool-group"
@@ -840,24 +843,28 @@ export default function RatioTablePage({
                     </p>
                   </section>
                 }
+                after={
+                  <>
+                  {notesIssue && (
+                    <section className="panel-card ratio-warnings" role="alert">
+                      <h2>Fix the worked notes</h2>
+                      <p>{notesIssue}</p>
+                      <p>The answers copy cannot be downloaded until they fit. Change them from File, Worked notes.</p>
+                    </section>
+                  )}
+                  {warnings.length > 0 && (
+                    <section className="panel-card ratio-warnings">
+                      <h2>Check the maths</h2>
+                      {warnings.map((w) => (
+                        <p key={w}>{w}</p>
+                      ))}
+                      <p>These notes stay out of the printed diagram.</p>
+                    </section>
+                  )}
+                  </>
+                }
               />
             </fieldset>
-            {notesIssue && (
-              <section className="panel-card ratio-warnings" role="alert">
-                <h2>Fix the worked notes</h2>
-                <p>{notesIssue}</p>
-                <p>The answers copy cannot be downloaded until they fit. Change them from File, Worked notes.</p>
-              </section>
-            )}
-            {warnings.length > 0 && (
-              <section className="panel-card ratio-warnings">
-                <h2>Check the maths</h2>
-                {warnings.map((w) => (
-                  <p key={w}>{w}</p>
-                ))}
-                <p>These notes stay out of the printed diagram.</p>
-              </section>
-            )}
             <p className="panel-note">
               Word exports are images. Save an editable table to change it later
               in this website.

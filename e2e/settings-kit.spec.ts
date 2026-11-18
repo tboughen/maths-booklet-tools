@@ -645,6 +645,104 @@ test("Triangles uses the kit: what is selected on the left with the label box ov
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("Ratio tables uses the kit: what is selected and the tools on the left, the table's settings on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/ratio-table");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const selected = page.locator(".md-kit .panel-card.ratio-selection-panel");
+  const [picked, tools, settings] = [(await selected.boundingBox())!, await chartCard(page, "Table tools"), await chartCard(page, "Table settings")];
+  expect(settings.y).toBe(picked.y);
+  expect(settings.x).toBeGreaterThanOrEqual(picked.x + picked.width);
+  expect(Math.abs(settings.width - picked.width)).toBeLessThanOrEqual(1);
+  expect(tools.x).toBe(picked.x);
+  expect(tools.y).toBeGreaterThan(picked.y + picked.height);
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // The tool that is on has the kit's mark, and each tool keeps its icon beside its name.
+  const edit = page.getByRole("button", { name: "Edit", exact: true });
+  await expect(edit).toHaveAttribute("aria-pressed", "true");
+  expect(await edit.evaluate((el) => [getComputedStyle(el).backgroundColor, el.getBoundingClientRect().height, el.querySelector("svg") !== null])).toEqual(["rgb(230, 239, 255)", 32, true]);
+
+  // Both headings open, and the list of scaling steps: the kit's sizes throughout, nothing cut, all in view.
+  await page.getByRole("button", { name: "Edit headings", exact: true }).click();
+  await expect(selected.getByRole("heading", { name: "Edit headings", exact: true })).toBeVisible();
+  await page.locator(".md-kit summary").filter({ hasText: "Scaling steps" }).click();
+  expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  expect(await page.locator(".md-kit summary").evaluateAll((all) => all.map((s) => Math.round(s.getBoundingClientRect().height)))).toEqual([32]);
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+
+  // A scaling arrow: its operation and its factor share a row and are level.
+  await page.getByRole("button", { name: /^Row 1 → Row 2/ }).click();
+  await expect(selected.getByRole("heading", { name: "Scaling arrow", exact: true })).toBeVisible();
+  const [operation, factor] = [(await page.getByLabel("Row 1 scaling operation", { exact: true }).boundingBox())!, (await page.getByLabel("Row 1 scaling factor", { exact: true }).boundingBox())!];
+  expect(Math.abs(operation.y - factor.y)).toBeLessThanOrEqual(1);
+  expect(factor.x).toBeGreaterThan(operation.x + operation.width);
+  expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+
+  // One column in a smaller window, in the order the cards are read.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = [(await selected.boundingBox())!, await chartCard(page, "Table tools"), await chartCard(page, "Table settings")];
+  // The settings are longer than the window here, and scroll: no card is squeezed so that its fields spill out.
+  expect(await page.locator(".md-kit .panel-card").evaluateAll((all) => all.filter((card) => card.scrollHeight > card.clientHeight + 1).length)).toBe(0);
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("Table of values uses the kit: the card for what is selected on the left, the tools that open it on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/value-table-graph");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const hint = page.locator(".md-kit .panel-card.vg-selected-empty");
+  const [empty, tools] = [(await hint.boundingBox())!, await chartCard(page, "Table and graph")];
+  expect(tools.y).toBe(empty.y);
+  expect(tools.x).toBeGreaterThanOrEqual(empty.x + empty.width);
+  expect(Math.abs(tools.width - empty.width)).toBeLessThanOrEqual(1);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // Each tool opens its card in the left column: the kit's sizes, a gap between one control and the next, nothing
+  // cut and all in view. Two buttons share a row where one needs two lines, and are the same height.
+  const twoLines = ["Add point or segment", "Graph options"];
+  for (const [tool, heading] of [["Table settings", "Table"], ["Plot table values", "Plot"], ["Draw curve", "Curve"], ["Add point or segment", "Add"], ["Graph options", "Graph"], ["Select object", "Objects"], ["Layout", "Layout"]]) {
+    await page.getByRole("button", { name: tool, exact: true }).click();
+    const editor = page.locator(".md-kit .panel-card.vg-inspector-editor");
+    await expect(editor.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+    const [open, beside] = [(await editor.boundingBox())!, await chartCard(page, "Table and graph")];
+    expect([open.x, open.y], tool).toEqual([empty.x, empty.y]);
+    expect(beside.x, tool).toBe(tools.x);
+    const sizes = await kitSizes(page, twoLines);
+    expect(sizes, tool).toMatchObject({ buttons: [32], faded: 0, cut: [] });
+    expect(sizes.fields.every((height) => height === 32), `${tool}: ${sizes.fields}`).toBe(true);
+    expect(await page.getByRole("button", { name: tool, exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor), tool).toBe("rgb(230, 239, 255)");
+    const gaps = await editor.locator(".vg-context-body > *").evaluateAll((all) => all.map((el) => el.getBoundingClientRect()).filter((r) => r.height > 0).map((r, i, rs) => (i ? Math.round(r.top - rs[i - 1].bottom) : 8)));
+    expect(gaps.every((gap) => gap === 8), `${tool}: ${gaps}`).toBe(true);
+    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), tool).toBe(true);
+  }
+  const pair = await Promise.all(twoLines.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
+  expect(pair[0]).toBe(pair[1]);
+
+  // The page's name is the same plain switcher as on every other tool, not a boxed button.
+  expect(await page.locator(".tool-switcher-button").evaluate((el) => [getComputedStyle(el).borderTopColor, getComputedStyle(el).backgroundColor])).toEqual(["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"]);
+
+  // One column in a smaller window, the open card first.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = [(await page.locator(".md-kit .panel-card.vg-inspector-editor").boundingBox())!, await chartCard(page, "Table and graph")];
+  expect(column[1].x).toBe(column[0].x);
+  expect(column[1].y).toBeGreaterThan(column[0].y + column[0].height);
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
 // settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or

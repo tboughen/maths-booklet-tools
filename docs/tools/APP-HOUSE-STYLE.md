@@ -493,5 +493,18 @@ styles as it does.
   gone. The kit has no filled button and no look for a `role="status"` error yet, so
   `tr-primary` and `tr-error` carry them in the settings; they belong in the kit once a second
   tool needs them.
+- **Ratio tables.** What is selected and Table tools are the left column, and Table settings
+  the right, with any warning card under it. The group that is switched off during recovery
+  (`fieldset.ratio-settings`) is itself the kit's pair of columns, and `RatioInspector` puts
+  its cards in the two groups. The three tools keep their icons and sit in a row, the one that
+  is on with the kit's mark; the two headings keep their small icons. The tool's own field,
+  button, label and summary rules are gone from the settings.
+- **Table of values (Plotting quadratics).** The card that edits what is selected is the left
+  column, with a short hint holding its place when nothing is selected, and Table and graph,
+  the tools that open it, the right. The tool's own heading, button, field, tick and summary
+  rules now stop at the settings (`:where(:not(.md-kit *))`), because the same classes edit a
+  value on the diagram. They also stop at the page name, which was drawn as a boxed button on
+  this tool alone. "Add point or segment" takes two lines in the narrow column and its
+  neighbour matches it.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
