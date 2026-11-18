@@ -11,16 +11,10 @@
   align-content: start;
   min-width: 0;
 }
-.ag-panel {
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-.ag-panel h2 {
-  font-size: 16px;
-  margin: 0;
-}
-.ag-editor label,
+/* The settings column is on the settings kit (src/site/settings-kit.css), which gives its cards,
+   headings, labels, fields, buttons and notes their look. The rules here are for the diagram's
+   own controls and the box that opens on a cell. */
+.ag-editor label:where(:not(.md-kit *)),
 .ag-floating label {
   display: grid;
   gap: 5px;
@@ -155,7 +149,8 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-.ag-actions > button {
+/* In the box on a cell the two buttons share the row. In the settings a button keeps its own width. */
+.ag-floating .ag-actions > button {
   flex: 1 1 auto;
 }
 .ag-presets {
@@ -167,25 +162,6 @@
   display: block;
   margin-top: 4px;
   color: var(--muted);
-}
-.ag-note {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.55;
-  margin: 0;
-}
-.ag-panel details > summary,
-details.ag-panel > summary {
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 650;
-}
-.ag-panel details[open] {
-  display: grid;
-  gap: 12px;
-}
-.ag-panel details label {
-  margin-top: 10px;
 }
 .ag-message,
 .ag-warning {

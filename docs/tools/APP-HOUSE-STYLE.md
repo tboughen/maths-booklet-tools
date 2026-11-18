@@ -434,5 +434,15 @@ a time, and each one drops its own button and field styles as it does.
   field takes the whole row with the class `pt-wide` (the grid of a net's paper, the kind of
   construction, the condition of a shaded region); Geometry figures and 3D solids used their own
   `fig-wide` for this and now use `pt-wide` too.
+- **Expanding and factorising.** The first tool on the kit that has its own settings classes
+  (`ag-`) and not the shared `pt-` ones. Teaching resource is the left column and Print size the
+  right. "Notation and help" was a card of its own that opened; it is now the last thing in the
+  Print size card, as the help is in the other tools. The three sizes (Compact, Default, Larger)
+  stay two-line choices with their millimetres underneath. The four buttons under the task keep
+  their own width; they used to stretch across the card. The tool's stylesheet no longer styles
+  the cards, headings, notes or help in the settings: its remaining rules are for the diagram's
+  own controls and the box that opens on a cell, and its label rule is written
+  `:where(:not(.md-kit *))`. At 1920 × 1080 the settings were 1,337 px long in a 967 px column
+  and are now all in view.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.
