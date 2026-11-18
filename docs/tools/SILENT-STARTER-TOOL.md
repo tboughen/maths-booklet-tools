@@ -80,7 +80,16 @@ change is one undo step; the run autosaves on the device like the worksheet. Dow
 Word, and the same three as PDF; a download is refused while a question does not fit. Steps are
 in `src/starter/edit.ts`; browser checks in `e2e/starters.spec.ts` (`--project=starters`).
 
+## Board view
+
+**Board** on the Starter builder toolbar (`src/starter/StarterBoard.tsx`, Tim 18 Nov: "same card,
+big"): the selected starter's card as large as the screen allows, full screen where the browser
+lets it, with a navy strip on the right: a countdown timer (5 minutes to start, 1 to 30, start,
+pause, reset; it stops at 0:00 and turns red), "Starter n of N" with previous and next, and the
+pink answers switch (teacher only; a pink Answers tag sits over the card's corner while it is on).
+Keys: left and right arrows change starter, space starts or pauses, A shows answers, Escape
+closes and returns to the Board button. The board never changes the run.
+
 ## Still to build
 
-The board view and slides; a connector tool to draft a run; optional AI suggestions for a row's
-numbers. Each is its own small pull request.
+A connector tool to draft a run; optional AI suggestions for a row's numbers.

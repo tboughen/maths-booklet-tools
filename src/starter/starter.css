@@ -18,3 +18,21 @@
 .st-editor .ws-pages:not(.ws-actual) .ws-art { max-width: 860px; }
 .st-editor .ws-card-moves { flex-wrap: wrap; align-items: center; }
 .st-editor .ws-card-moves .ws-small { white-space: nowrap; }
+/* Board view: the card as big as the screen allows, with the timer strip on the right. */
+.st-board { position: fixed; inset: 0; z-index: 1000; display: flex; background: #fff; outline: none; }
+.st-board-card { position: relative; flex: 1 1 auto; min-width: 0; display: grid; place-items: center; padding: 1.5vh 1.5vw; }
+.st-board-art { width: min(100%, calc((100vh - 3vh) * 210 / 148)); }
+.st-board-art svg { display: block; width: 100%; height: auto; }
+.st-board-answers-tag { position: absolute; top: 1.5vh; left: 1.5vw; padding: 4px 10px; border-radius: 4px; background: #b0125b; color: #fff; font-weight: 700; font-size: 1rem; }
+.st-board-strip { flex: 0 0 clamp(170px, 14vw, 260px); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 12px; background: #173c65; color: #fff; }
+.st-board-strip button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 6px 10px; border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 8px; background: transparent; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.st-board-strip button:disabled { opacity: 0.4; cursor: default; }
+.st-board-strip button:focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; }
+.st-board-close { align-self: flex-end; }
+.st-board-timer { font-size: clamp(2.5rem, 4.5vw, 4.5rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 8px; }
+.st-board-timer[data-done] { color: #ff8a8a; }
+.st-board-row { display: flex; gap: 8px; align-items: center; }
+.st-board-minutes { min-width: 4em; text-align: center; }
+.st-board-place { margin-top: auto; font-size: 1.15rem; font-weight: 600; text-align: center; }
+.st-board-answers { width: 100%; }
+.st-board-strip .st-board-answers[aria-pressed="true"] { background: #b0125b; border-color: #b0125b; }

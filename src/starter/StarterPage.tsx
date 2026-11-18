@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronDown, Copy, Download, ImagePlus, LoaderCircle, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, Copy, Download, ImagePlus, LoaderCircle, Monitor, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
@@ -11,6 +11,7 @@ import { year9Run } from "../../packages/resource-core/src/starter-fixtures";
 import { BesideToggle, Field, LeafEditor, type Leaf } from "../worksheet/fields";
 import { withBeside } from "../worksheet/edit";
 import { TEMPLATE_NAMES, addStarter, copySlotFromPrevious, copySlotToAll, moveStarter, readLogo, removeStarter, setTemplate } from "./edit";
+import { StarterBoard } from "./StarterBoard";
 import { downloadEditable, downloadStarterPdf, downloadStarterWord, editableName } from "./export";
 import "../worksheet/worksheet.css";
 import "./starter.css";
@@ -64,6 +65,22 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
   const [answers, setAnswers] = useState(false);
   const [selected, setSelected] = useState(0);
   const [menu, setMenu] = useState(false);
+  const [board, setBoard] = useState(false);
+  const boardButton = useRef<HTMLButtonElement>(null);
+  // Leaving the page closes the board; coming back never reopens it.
+  useEffect(() => {
+    if (!active) setBoard(false);
+  }, [active]);
+  const boardWasOpen = useRef(false);
+  // Closing the board returns focus to its button, once the board (and full screen) has gone.
+  useEffect(() => {
+    if (board) boardWasOpen.current = true;
+    else if (boardWasOpen.current) {
+      boardWasOpen.current = false;
+      const id = window.setTimeout(() => boardButton.current?.focus(), 0);
+      return () => window.clearTimeout(id);
+    }
+  }, [board]);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<{ run: StarterRun; title: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -180,6 +197,10 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
                 <button className="tool-button reset-button" disabled={blocked} aria-label="Open the example starter run" onClick={() => setPending({ run: year9Run, title: "Open the example starter run? It replaces the current one. You can undo it." })}>
                   <RotateCcw size={17} aria-hidden="true" />
                   <span>Example</span>
+                </button>
+                <button ref={boardButton} className="tool-button" disabled={recovery !== null || pending !== null} aria-label="Show this starter on the board" title="Show this starter big on the board, with a timer (Esc to close)" onClick={() => setBoard(true)}>
+                  <Monitor size={17} aria-hidden="true" />
+                  <span>Board</span>
                 </button>
               </div>
               <div className="editor-copy-actions">
@@ -460,6 +481,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
             </section>
           </aside>
         </section>
+        {board && active && <StarterBoard run={run} starter={current} onStarter={setSelected} onClose={() => setBoard(false)} />}
       </main>
     </div>
   );
