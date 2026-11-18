@@ -36,6 +36,7 @@ export function placeholderLesson(p: { title: string; code: string; objective: s
     code: p.code,
     objective: p.objective,
     keyIdea: p.keyIdea,
+    didYouKnow: "",
     teacherNotes: p.plan,
     sections: [{ kind: "notes", title: "Not made yet", instruction: "", startBanner: "", endBanner: "", columns: 1, numbering: "continue", cards: [{ title: "This lesson still needs making", items: [{ type: "text", text: `${reason} Choose this lesson under Ask for a change and press Rebuild lesson.` }] }] }],
   };

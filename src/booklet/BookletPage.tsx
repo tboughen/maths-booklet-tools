@@ -280,6 +280,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
         </div>
         <Field label="Objective" value={lesson.objective} max={200} multiline disabled={blocked} onCommit={(v) => setLesson((l) => void (l.objective = v))} />
         <Field label="Key idea" value={lesson.keyIdea} max={500} multiline disabled={blocked} onCommit={(v) => setLesson((l) => void (l.keyIdea = v))} />
+        <Field label="Did you know?" value={lesson.didYouKnow} max={160} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.didYouKnow = v))} />
         <details className="bk-notes">
           <summary>Teacher notes (their own file, never in the booklet)</summary>
           <label className="ws-field">

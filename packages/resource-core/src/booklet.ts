@@ -74,6 +74,8 @@ export const lessonSchema = z
       .max(500)
       .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 && c !== "\n"), "Use ordinary text without control characters; a line break starts a new line.")
       .default(""),
+    /** A one-line "Did you know?" fact on the lesson's first side (BOOKLET-STANDARD N12): where this maths is used, or a surprising fact. Printed in a small bubble under the key idea; empty prints nothing. */
+    didYouKnow: text(160).default(""),
     sections: z.array(sectionSchema).min(1).max(20),
     /** Teacher-facing plan: purpose, misconceptions, how support fades. Never printed. */
     teacherNotes: z.string().max(6000).default(""),
