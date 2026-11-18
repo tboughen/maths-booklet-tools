@@ -28,6 +28,7 @@ Code: `packages/resource-core/src/starter.ts` (the file format) and `starter-ren
   name the four types later; fill them in `YEAR_7_8_SLOTS` in `starter.ts` when he does.
 - **Logo.** A run may hold a small PNG or JPEG logo, printed at the right of the header. It is kept
   inside the saved file and never committed to the repository (the app repository is public).
+  A damaged image (wrong PNG or JPEG start or end bytes) is rejected when the file is read.
   The pelican logo was not found on 18 November 2026, so none is set by default.
 
 ## The file
@@ -44,7 +45,9 @@ answer lines, tables, choices, spaces and any MathsDock diagram).
 - 7 mm margins (a cutting allowance), a 12 mm header ("Silent starter", "On your sheet", the run
   tracker with today's number boxed, the topic and the logo), then the slots.
 - Slots are 98 × 61 mm (four) or 65 × 61 mm (six). Spare height goes to working spaces, as on
-  worksheets. A question that does not fit is reported with its starter and question number.
+  worksheets. A question that does not fit is reported with its starter and question number,
+  as are a topic too long for the header, a fraction in an instruction and a stage band.
+- On the grey extension column a diagram's own white background is left out, so the tint shows.
 - MathsDock diagrams print at their true size, so a starter needs small ones. A diagram wider
   than its slot is reported ("Draw it smaller in its tool"); nothing is scaled down. The area
   tool, for example, can draw a shape at any size while its labels stay at full size.
