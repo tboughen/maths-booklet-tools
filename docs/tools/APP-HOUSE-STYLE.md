@@ -54,9 +54,11 @@ and the maths actions that general icon sets lack.
 
 ## App bar (in the site)
 
-One navy bar, 44 px high, on every page: the logo, then the six pages. The current page is white
-with a white underline. Below about 1,055 px the links lose their icons, below about 900 px they
-fold onto a second line, and on a phone they sit behind the Menu button.
+One navy bar, 44 px high, on every page: the logo, then the seven pages. The current page is white
+with a white underline. Up to 1,200 px wide the links lose their icons (seven names with icons
+need about 1,185 px, and an upright monitor is 1,080 px wide), below about 1,010 px they fold
+onto a second line, and on a phone they sit behind the Menu button. A page added to the bar needs
+this width checked again: `editor-frame.spec.ts` fails if a 1,080 px window scrolls sideways.
 
 ## Moving between tools (in the site)
 
@@ -232,7 +234,7 @@ A tool passes its switch to `EditorToolbar` as `answers`.
 Home is the start page (`src/site/Home.tsx`, styled by `home.css`). Its code loads when Home is
 the page opened, like every other page, so a tool's first load does not carry it. From the top:
 
-- **"What do you need today?"** and one search box. It finds the six pages by name or by what
+- **"What do you need today?"** and one search box. It finds the pages by name or by what
   they do, and diagram tools by name or teaching topic (`searchHome` in `homeSearch.ts`, using
   the Diagram builder's search words). A Sparx code, a letter and three digits, is offered
   as a link to that code in the Question bank; Home cannot tell whether the code has questions. `/` moves to the box, Down moves into what it found, Enter
@@ -247,8 +249,9 @@ the page opened, like every other page, so a tool's first load does not carry it
   what the row said before. The Question bank records the paper being built when the teacher
   changes its codes or questions, not when a newer catalogue reconciles it, and drops it when
   the paper is cleared.
-- **Tools.** One card for each of the six pages: a large icon, the name and what it does. Six to
-  a row from 1,400 px wide, then three, two and one.
+- **Tools.** One card for each of the seven pages: a large icon, the name and what it does. Seven
+  to a row from 1,400 px wide, then four (four and three), three, two and one, in rows of equal
+  height.
 - **Favourites.** The teacher's starred diagram tools as small picture cards. Stars are added in
   the Diagram builder and the tool switcher.
 
@@ -307,18 +310,24 @@ stays out of the first-load stylesheet).
 - The Question bank keeps the short "Your paper" bar under the question.
 - Tests: `e2e/paper-builder.spec.ts`.
 
-## The settings kit (in Bar modelling, Statistical charts and the tree tools)
+## The settings kit
 
 One look for the buttons, fields, notes and cards in a tool's settings column, in
 `src/site/settings-kit.css`. A tool opts in: it puts the class `md-kit` on its `.inspector-stack`
 and imports the file itself, so the kit loads with the tools that use it and stays out of the
 first-load stylesheet. Bar modelling is the first (`src/bar-model/LessonBarModelPage.tsx`),
-Statistical charts the second (`src/charts/ChartsPage.tsx`), and Probability trees, Frequency trees
-and Factor trees the next three. The other tools move over one at a time, and each one drops
-its own button and field styles as it does.
+Statistical charts the second (`src/charts/ChartsPage.tsx`), Probability trees, Frequency trees
+and Factor trees the next three, Plans and elevations the sixth, then Two-way tables, Sample
+space diagrams and Spinners, dice and bags, then Algebra tiles, Bubble method, Function
+machines and Written methods, then Angle diagrams, Area and perimeter and Geometry figures, and
+then Constructions and loci, Nets of 3D shapes and 3D solids. The older tools, with settings
+classes of their own, follow: Expanding and factorising, then Venn diagrams and Number lines,
+then Cuboids. The rest move over a few at a time, and each one drops its own button and field
+styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
-  order and its behaviour, so saved work, links and tests are untouched.
+  behaviour and its place in its card, so saved work, links and tests are untouched. A whole card
+  may move when the two columns need it, and the tool's entry below says so.
 - Text is 13 px, with 12 px labels and notes. Buttons, fields and lists are 32 px high
   (`--md-control`), and 44 px for a finger or a window under 768 px wide, like the foot strip.
 - A card's heading keeps the shared 17 px, and fields keep the shared outline (`--field-line`).
@@ -335,7 +344,12 @@ its own button and field styles as it does.
 - A button that is off is grey on the page colour at full strength, never faded as well.
 - A named group inside a card (one tree of several, one data set) is a `fieldset` with the class
   `md-kit-group`: a thin outline, its name in the outline, and the same 8 px gap as a card.
-- Paragraphs in a help block that opens (`details`) are 6 px apart.
+- What a part that opens (`details`) holds is spaced like the rest of a card: rows, tables and
+  buttons 8 px apart, paragraphs 6 px. Its name (`summary`) is 13 px at weight 500 with a
+  pointer, so it reads as something to press; the rule weighs nothing (`:where`), so a tool's own
+  summary keeps its look.
+- In the tools that share the `pt-` settings, two fields side by side (`.pt-fields`) share the row
+  evenly, and a field on its own takes the whole row. So does a field with the class `pt-wide`.
 - A message that says what went wrong (`role="alert"`) is red and 13 px, never a quiet grey note.
 - In a card, headings, notes, fields and lists take the full width. Buttons sit in rows at their
   own width, so three short buttons take one line and not three.
@@ -345,9 +359,14 @@ its own button and field styles as it does.
   settings column is about a third of the window and the cards sit in two fixed columns. The tool
   wraps its cards in `.md-kit-cards` with one `div` for each column. The columns are fixed, not
   balanced, so a card stays where it is when another card opens, closes or grows. Everywhere else
-  the two groups have no box of their own and the cards run in the one order.
+  the two groups have no box of their own and the cards run in the one order. A third `div` sits
+  under the first column: it holds a card that comes last in the settings (Printing) but fits the
+  shorter column, so the cards keep their order wherever there is one column. On a wide window
+  the keyboard reaches that card last too, after the right column.
 - Beside two columns the diagram's card is about 1,230 px wide at 1920 × 1080. The foot strip
-  under it still keeps to one row: the note shares the row, and a long hint takes two lines.
+  under it still keeps to one row: the note shares the row, and a long hint takes two lines. The
+  message keeps at least 220 px there (280 px elsewhere), which leaves the longest hint, 116
+  characters in Geometry figures, its two lines.
 - At 1920 × 1080 Bar modelling's settings were 3,369 px long in a 967 px column. They are now
   1,065 px, so nearly everything is in view without scrolling.
 - **Statistical charts.** Every chart type has a data card and one or more cards of settings. The
@@ -363,10 +382,168 @@ its own button and field styles as it does.
   1,531 px (Frequency trees) and 1,157 px (Factor trees) long in a 967 px column. All three
   are now in view.
 - **The shared `pt-` classes.** Seventeen tools use the settings classes in
-  `src/probability-tree/probability-tree.css` (`pt-panel`, `pt-row`, `pt-fields` and the rest), so
-  its old button and field rules stay until the last of them is on the kit. The kit loads later and
-  wins every tie. The two old rules the kit cannot simply outweigh (a row's own padding, a faded
-  button that is off) are written `:where(:not(.md-kit *))`, so they stand down in a tool on the
-  kit and the kit itself knows nothing of `pt-`. A tool that moves over needs no change there.
+  `src/probability-tree/probability-tree.css` (`pt-panel`, `pt-row`, `pt-fields` and the rest).
+  All seventeen are on the kit, so inside a card that file no longer gives a button, a field or a
+  heading its look: the kit does. What stays there is layout (a row, two fields sharing a row, a
+  field that may be narrower than its words) and the buttons of the "Protect saved data" card
+  (`.pt-recovery`), which sits outside the kit. A row or a pair of fields can also sit outside the
+  settings, under a diagram (Two-way tables, Sample space diagrams), so a row keeps its own space
+  above with `:where(:not(.md-kit *))` and the kit itself knows nothing of `pt-`.
+- **Plans and elevations.** The solid is the left column, the list of panels is the right, and
+  Printing is the third group under the solid, so in one column Printing still comes last. The grid of
+  heights stays a small grid at the left of its card (`justify-self: start`, because a card is a
+  grid and would stretch it), and a square with cubes on it keeps its blue mark (`--md-blue-soft`) with one
+  more class in its selector than the kit's rule. Six columns of heights, the most there can be,
+  fit the card at the narrowest two-column window. At 1920 × 1080 the settings were 1,693 px long in a
+  967 px column and are now 997 px with the usual four panels.
+- **Two-way tables, Sample space diagrams, and Spinners, dice and bags.** The selected cell or
+  label is the left column, and what is done with the diagram and its layout are the right. In
+  Spinners, dice and bags the list of objects is the right column on its own and Layout is the
+  third group under the selected label, so Layout stays in view however many objects there are and
+  still comes last in one column. Each object is a `md-kit-group`. With their starting diagrams all
+  three are in view at 1920 × 1080 (Spinners, dice and bags was 1,168 px long in a 967 px column).
+- **Algebra tiles, Bubble method, Function machines and Written methods.** The selected item is
+  the left column (with Tiles in Algebra tiles and Machines in Function machines), and what is
+  worked out and the layout are the right. In Bubble method the list of steps is the right column
+  on its own and Layout is the third group under the selected item, as in Spinners, dice and bags: eight steps
+  are longer than the screen, and Layout stays in view. The other three are in view at
+  1920 × 1080 even when they are full (16 terms, three machines of five boxes, twelve digits);
+  Algebra tiles was 1,111 px long and Written methods 1,182 px in a 967 px column. A step, a
+  machine and the small digits of a number are each a `md-kit-group`. The two columns
+  of `.pt-fields` are equal (`minmax(0, 1fr)`), so two lists side by side never overlap; in
+  Written methods a small digit keeps its narrow field.
+  Bubble method's own classes now start `bub-`: they started `bm-`, which is Bar modelling's
+  prefix, so Bar modelling's rules stacked every tick above its words and made the Show hidden
+  answers switch differ from every other tool's.
+- **Angle diagrams, Area and perimeter and Geometry figures.** The selected angle, label or
+  object is the left column and the figure itself is the right: Figure and Point names; Shape,
+  Hole and shading and Point names; Add to the figure and Shading and captions. Printing is a
+  third group: it stays last in the settings, and on a wide window it sits under the selected
+  card. With their folded parts shut all three are in view at 1920 × 1080 (they were 1,026, 1,072
+  and 1,293 px long in a 967 px column). Area and perimeter's table of corners has five columns
+  and used to run out of its card: it now fills the card, with the numbers 18% of the table
+  each, the side taking what is left (its full name is its tooltip) and "Right angle" on two
+  lines. A short field in a row keeps its place beside its button with one more class than the
+  kit's rule (`.md-kit .pt-row.ang-ray input`). "Print every saved answer on the pupil copy"
+  keeps its name, so in a narrow column it takes two lines; the test names it as the one button
+  that may.
+- **Constructions and loci, Nets of 3D shapes and 3D solids.** Constructions and loci has six
+  cards, four of them lists that grow, so it cannot fit one screen: the points and the lines are
+  the left column, and the constructions, the shaded regions and the drawing's own settings are
+  the right. Its settings were 2,025 px long in a 967 px column and are now 1,132 px. The three
+  parts of a scale ("1 cm represents 5 km") sit on one line. In Nets the selected face and Shape
+  are the left column, the list of nets is the right column on its own, and Paper is the third
+  group under Shape. In 3D solids the selected object and View are the left column, and Add to
+  the drawing and Printing the right. Nets and 3D solids are in view at 1920 × 1080 (they were
+  1,136 and 1,530 px long). A net is a `md-kit-group`, and the point that is selected in
+  Constructions and loci is marked as the choice that is on (`aria-pressed`), where it had its
+  own colours. A list with long choices beside a short
+  field takes the whole row with the class `pt-wide` (the grid of a net's paper, the kind of
+  construction, the condition of a shaded region); Geometry figures and 3D solids used their own
+  `fig-wide` for this and now use `pt-wide` too.
+- **Expanding and factorising.** The first tool on the kit that has its own settings classes
+  (`ag-`) and not the shared `pt-` ones. Teaching resource is the left column and Print size the
+  right. "Notation and help" was a card of its own that opened; it is now the last thing in the
+  Print size card, as the help is in the other tools. The three sizes (Compact, Default, Larger)
+  stay two-line choices with their millimetres underneath. The four buttons under the task keep
+  their own width; they used to stretch across the card. The tool's stylesheet no longer styles
+  the settings: its rules for labels, fields and buttons are for the diagram's own controls and
+  the box that opens on a cell, and each is written `:where(:not(.md-kit *))`, so the kit's look
+  never depends on which stylesheet loads last. At 1920 × 1080 the settings were 1,337 px long in a 967 px column
+  and are now all in view.
+- **Venn diagrams.** Diagram tools, Diagram and Print size are the left column and Region
+  contents, or Region shading in Shade mode, is the right, so the Tab key meets the cards in the
+  order they are seen. Print size was a part that opened inside the Diagram card and is now a
+  card after it, as in the other tools. The help was a card of its own and now closes the right
+  column's card; it stays open when the mode changes. Edit and Shade sit beside the number of
+  sets; the three arrangements are two-line choices in one row, a picture over its name. A row for
+  a region, a label or a definition is one line, its name on the left and what it holds on the
+  right (they were two lines). The `vn-layout-tools`, `vn-inspector` and `vn-check` classes and
+  their rules are gone, with the tool's rules in `refinement.css`; `vn-view-note` stays as a name
+  for tests only. At 1920 × 1080 the settings were 1,060 px long in a 967 px column and are now
+  all in view, even with three sets and the labels open.
+- **Number lines.** The selected item, Draw and Scale are the left column, with More settings
+  under them as the third group, and Second scale has the right column to itself, because it is
+  the card that grows (a label for every tick). The names of the parts that open (More settings
+  and the six inside it) are rows as tall as a control, 32 px and 44 px for a finger, since they
+  are how a teacher finds a setting. The way of drawing that is on is marked as the kit marks a
+  choice; it was a filled dark blue button. The typed inequality (`NotationPanel`) takes the
+  kit's field and buttons. The tool's own rules for cards, labels, fields, buttons and notes are
+  gone, with `nl-compact-card`, `nl-actions` and `nl-note`. A field keeps its place at the top of
+  its label (`nl-field`), so three fields in a row stay level when one shows what is wrong.
+- **Cuboids.** Shape is the left column, and Labels, Shading and Print settings the right. A
+  click on a label or a face still brings its card to the top: the top of the left column, where
+  the other tools show what is selected, and Shape goes to the right. With more than one cuboid,
+  the list that picks one runs across both columns, over the cards. The cards share one parent
+  and are placed by `cuboid.css` (the card on top takes the left column), so a card is never
+  rebuilt when it changes column and keeps its open parts and anything typed in it.
+  The list of units and the list of views each share a row with the tick or button that goes
+  with them, and the two lists of the Labels card share a row. The tool's own card, label, field
+  and button rules are gone, with `cb-settings`, `cb-action`, `cb-quick-cubes` and `cb-note` in
+  the settings; `cb-field` keeps its look in the box that opens on a label.
+- **Triangles.** Selected object is the left column, and Worked version, Start a new triangle
+  and Print size the right. More tools and Editing help, the two parts that stay folded, share
+  one card that comes last and sits under the left column. The box that edits a label opens at
+  the top of the left column, over what is selected; it is a card on the kit like the others,
+  its choices as tall as a control (32 px, and 44 px for a finger), and it stays a column whose
+  middle scrolls. The names of the parts that open are rows as tall as a control, and the lines
+  between them are gone. A button with a row to itself ("Use worked version") is as wide as its
+  words. The tool's own label, field and button rules now reach only the strip under the diagram
+  and the dialogs (`:where(:not(.md-kit *))`), and the unused `tr-modes` and `tr-tabs` rules are
+  gone. The kit has no filled button and no look for a `role="status"` error yet, so
+  `tr-primary` and `tr-error` carry them in the settings; they belong in the kit once a second
+  tool needs them.
+- **Ratio tables.** What is selected and Table tools are the left column, and Table settings
+  the right, with any warning card under it. The group that is switched off during recovery
+  (`fieldset.ratio-settings`) is itself the kit's pair of columns, and `RatioInspector` puts
+  its cards in the two groups. The three tools keep their icons and sit in a row, the one that
+  is on with the kit's mark (from `aria-pressed`; the toolbar's `tool-button--active` class
+  is not used in the settings); the two headings keep their small icons, and "Remove arrow"
+  stays red. The tool's own field, button, label and summary rules are gone from the
+  settings. The cards are the stack's own rows now, so the stack sizes each row to its card
+  (`grid-auto-rows: max-content`): the card for what is selected has a least height, and a
+  full stack would otherwise squeeze it to that.
+- **Table of values (Plotting quadratics).** The card that edits what is selected is the left
+  column, with a short hint holding its place when nothing is selected, and Table and graph,
+  the tools that open it, the right. The tool's own heading, button, field, tick and summary
+  rules now stop at the settings (`:where(:not(.md-kit *, .tool-switcher *))`), because the
+  same classes edit a value on the diagram. They also stop at the page name and its list of
+  tools, which this tool alone drew as a boxed button with a navy star. "Add point or segment" takes two lines in the narrow column and its
+  neighbour matches it.
+- **Graph tool.** What is selected is the left column, with a short hint holding its place
+  when nothing is, and the list of objects under it; Drawing tools, Axis scale and Print
+  settings are the right. The list is a third group, last in the settings, so one column
+  keeps the order it always had. Every card for one object fits the window at 1920 x 1080
+  beside the tools that made it. The tool's settings rules moved out of the first-load
+  stylesheets into `src/graph-settings.css`, which loads with the tool: it lays out what is
+  inside a card and leaves the look to the kit. A group of choices (`segmented`,
+  `scale-options`) is a row of the kit's buttons with the kit's mark; an axis scale keeps its
+  two lines; the drawing tools use `aria-pressed`, not the toolbar's `tool-button--active`;
+  the list of objects opens from a row that reads as the card's heading. No page uses
+  `tool-button--active` in its settings any more, so its rules are gone. The hint under the
+  diagram is 122 characters, the longest that still keeps the strip to one row beside two
+  columns of settings.
+- **Worksheet, Booklet and Starter builders.** The sheet is the content, so on a wide window
+  the settings stay in ONE narrow column beside it, and in a narrower window they go under
+  the sheet as they always did: the pages put `md-kit` on the stack and do not wrap the cards
+  in `md-kit-cards`. (The kit's wide settings track is for a tool page,
+  `site-page--tool`, so a builder keeps its own.) The three share `src/worksheet/worksheet.css`.
+  The kit gives the cards, fields, buttons, ticks and notes their look, and the builders' own
+  text sizes are gone. What the builders keep, each with one more class than the kit: a box of
+  several lines (`textarea`) drawn as a field; the short number field; the arrows that move a
+  question, as 32 px squares; the filled button that makes the sheet; a button written as a
+  link (as tall as a control under a finger); a problem note written as the kit writes an
+  alert; and a table cell's pink outline for a hidden answer and grey for a blank, so the
+  three states of a cell stay apart (a refused change is red in any of them). The cells of a table row stand on one
+  line however many lines their names take, and beside a box of several lines a field keeps
+  to the top.
+- **Assessment follow-up.** The page keeps to the shared page margins (its heading starts
+  where every other page's does) and its cards take the width of the window, with Class
+  settings in a 316 px column on the right as in the builders. `md-kit` is on `af-workspace`,
+  so the kit styles what is inside the cards; the page's own buttons (the bar at the top and
+  "Generate class pack") stay a size up, at 38 px. "Generate class pack" follows step 2, the
+  second of the two steps it needs, and "Download class PDF", "Try example" and "Reset and
+  clear data" stay in the bar at the top. A button that is off is plain, not faded. The box
+  that marks are pasted into keeps a font whose columns line up. Test: `e2e/assessment.spec.ts`.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

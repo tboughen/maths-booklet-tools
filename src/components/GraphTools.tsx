@@ -44,7 +44,7 @@ export function GraphTools({
   onFunction?: () => void;
 }) {
   return (
-    <section className="panel-card specialist-tools">
+    <section className="panel-card graph-tools">
       <h2>Drawing tools</h2>
       <div className="tool-group" role="group" aria-label="Drawing tool">
         {tools.map((item) => {
@@ -52,7 +52,7 @@ export function GraphTools({
           return (
             <button
               key={item.id}
-              className={`tool-button${tool === item.id ? " tool-button--active" : ""}`}
+              className="tool-button"
               aria-pressed={tool === item.id}
               title={item.help}
               onClick={() => onToolChange(item.id)}

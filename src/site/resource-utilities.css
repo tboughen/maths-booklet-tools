@@ -99,11 +99,6 @@
 .graph-draft-field {
   min-width: 0;
 }
-.graph-draft-field .coordinate-input {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
 .graph-draft-field input {
   width: 100%;
   min-width: 0;
@@ -138,11 +133,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-block: 10px;
-}
-.graph-editor .axis-panel summary {
-  min-height: 40px;
-  padding-top: 10px;
-  cursor: pointer;
 }
 .graph-editor .graph-stage {
   display: block;

@@ -58,6 +58,7 @@ import { examples } from "../../packages/written-method-core/src/examples";
 import { LINK_PREFIX, parseWrittenMethodLink, writtenMethodLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:written-method:v1");
 type Doc = Envelope["document"];
 /** Place-value column names for the small-digit inputs. */
@@ -495,8 +496,10 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Written method settings">
+          <aside className="inspector-stack md-kit" aria-label="Written method settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected row">
               <h2>{selected && selectedValue ? `Selected: ${rowName(selected)}` : "Selected row"}</h2>
               {selected && selectedValue ? (
@@ -559,7 +562,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                     </div>
                   )}
                   {selected !== "remainder" && !(division && selected === "n2") && (
-                    <fieldset className="wm-marks">
+                    <fieldset className="md-kit-group">
                       <legend>Small digits (carries and exchanges)</legend>
                       <div className="wm-mark-grid">
                         {columns(selected).map((p) => {
@@ -630,6 +633,8 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Method</h2>
               <div className="pt-fields">
@@ -745,6 +750,8 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

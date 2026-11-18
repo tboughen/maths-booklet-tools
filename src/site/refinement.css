@@ -133,34 +133,6 @@
   ) {
   box-shadow: 0 0 0 8px white;
 }
-.booklet-editor .vn-layout-tools {
-  display: grid;
-  gap: 12px;
-}
-.booklet-editor .vn-layout-tools h2 {
-  margin: 0;
-  font:
-    600 17px/1.3 var(--md-font);
-  color: #213c59;
-}
-.booklet-editor .vn-layout-tools .vn-structure {
-  padding: 0;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.booklet-editor .vn-layout-tools .vn-arrangements {
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-.booklet-editor .vn-layout-tools .vn-arrangements button {
-  min-height: 44px;
-}
-.booklet-editor .vn-layout-tools .vn-view-note {
-  margin: 0;
-  padding: 0;
-}
 .booklet-editor .quick-input-panel {
   margin-top: 8px;
   padding-top: 10px;

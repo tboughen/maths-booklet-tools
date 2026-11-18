@@ -54,6 +54,7 @@ import {
 import { LINK_PREFIX, parseFunctionMachineLink, functionMachineLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:function-machine:v1");
 type Doc = Envelope["document"];
 /** An item on the diagram: its machine and its place on the machine. */
@@ -473,8 +474,10 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Function machine settings">
+          <aside className="inspector-stack md-kit" aria-label="Function machine settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected item">
               <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected item"}</h2>
               {selected && selectedMachine && selectedValue ? (
@@ -563,7 +566,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
             <section className="panel-card pt-panel">
               <h2>Machines</h2>
               {d.machines.map((m, i) => (
-                <fieldset key={m.id} className="fm-machine">
+                <fieldset key={m.id} className="md-kit-group">
                   <legend>{d.machines.length > 1 ? `Machine ${i + 1}` : "The machine"}</legend>
                   <label className="pt-hide" title="A machine that runs backwards, for working out an input from an output.">
                     <input
@@ -606,6 +609,8 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Work the machines out</h2>
               <p className="pt-note">
@@ -676,6 +681,8 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

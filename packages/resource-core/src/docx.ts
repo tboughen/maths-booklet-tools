@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, answerTexts, besideBottom, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -131,7 +131,7 @@ export const tab = (o: RunStyle = {}) => `<w:r>${rPr(o)}<w:tab/></w:r>`;
  * editor. Its parts are "normal text" in the sheet's own font (Inter), not Cambria Math, so the
  * digits match the rest of the sheet; letters are italic, as in the SVG pages.
  */
-function fraction(f: { num: string; den: string }, o: RunStyle, display = false): string {
+function fraction(f: { num: string; den: string }, o: RunStyle, display = false, bold = false): string {
   // Word sets an in-line fraction's parts smaller than the text; the parts are enlarged by the
   // same factor so they print at body size, as the layout measured them. An equation alone in its
   // paragraph is display maths, which Word prints at full size, so it is not enlarged (R25).
@@ -139,7 +139,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false)
   const part = (s: string) =>
     [...s]
       .map((c) => {
-        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic" });
+        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic", bold: bold && fracStyle(c) === "regular" });
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");
@@ -153,7 +153,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false)
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
   parseRuns(source, base, maths)
-    .map((r) => (r.frac ? fraction(r.frac, o, display) : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
+    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
     .join("");
 /**
  * Runs that fill a paragraph on their own (an answer-line cell, a table cell). When they are only
@@ -180,7 +180,7 @@ function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
   const inner = parseRuns(source, o.bold ? "bold" : "regular", true)
     .map((r) =>
       r.frac
-        ? fraction(r.frac, o).replace(/^<m:oMath>|<\/m:oMath>$/g, "")
+        ? fraction(r.frac, o, false, r.style === "bold").replace(/^<m:oMath>|<\/m:oMath>$/g, "")
         : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic" })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
     )
     .join("");
@@ -200,7 +200,7 @@ export interface ParaStyle {
   right?: number;
   hanging?: number;
   align?: "left" | "center" | "right";
-  tabs?: { pos: number; align?: "left" | "right"; leader?: "underscore" | "dot" }[];
+  tabs?: { pos: number; align?: "left" | "center" | "right"; leader?: "underscore" | "dot" }[];
   borderLeft?: { color: string; width: number; space: number };
   keep?: boolean;
   /** Start a new page here (each booklet page opens with one; Word never chooses the break). */
@@ -298,7 +298,7 @@ export function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): st
     return gap(END_MM, indent);
   }
   const room = w + 2 * (S.cardPad - 0.6);
-  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: tooWideMessage(d.tool, drawn.widthMm, room, drawn.artworkWidthMm <= room + 0.01) });
+  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: ctx.tooWide?.(d.tool, drawn.widthMm, room) ?? tooWideMessage(d.tool, drawn.widthMm, room, drawn.artworkWidthMm <= room + 0.01) });
   return drawing(drawn, w, indent, ctx);
 }
 /** Grid paper: the same SVG as the page, as a picture at its printed size. */
@@ -308,7 +308,8 @@ function paper(item: Extract<Leaf, { type: "paper" }>, w: number, indent: number
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" font-family="Inter" role="img" aria-label="${alt}">${paperSvg(item, ctx.st)}</svg>`;
   return drawing({ svg, widthMm, heightMm }, w, indent, ctx);
 }
-function drawing(drawn: { svg: string; widthMm: number; heightMm: number }, w: number, indent: number, ctx: WordCtx): string {
+/** An SVG as a picture at its printed size (outlined SVG with a PNG fallback), centred in `w`. */
+export function drawing(drawn: { svg: string; widthMm: number; heightMm: number }, w: number, indent: number, ctx: WordCtx): string {
   const id = ctx.pictures.length + 1;
   const png = `rIdImg${id}p`,
     vector = `rIdImg${id}s`;
@@ -335,7 +336,7 @@ const grows = (ctx: WordCtx, ...sources: string[]) => !!ctx.maths && sources.som
 
 type Block = string;
 /** Joins blocks with exact gaps; adjacent tables are always separated by a paragraph. */
-const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
+export const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
 
 function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: WordCtx, lone = false): { grid: number[]; cells: string[] } {
   const grid: number[] = [];
@@ -515,25 +516,28 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, indent: numb
       )
       .join("");
   }
-  // Lettered options for hinge questions: one row when they fit, otherwise two columns or one.
-  const r = 2.5,
-    g = 1.8;
-  const widths = item.options.map((o) => 2 * r + g + plainWidth(o, size));
-  const perRow = widths.reduce((a, b) => a + b, 0) + (item.options.length - 1) * 6 <= w ? item.options.length : Math.max(...widths) * 2 + 6 <= w ? 2 : 1;
-  const slot = perRow === item.options.length ? 0 : (w - (perRow - 1) * 6) / perRow;
+  // Lettered options for hinge questions (N6): equal columns, as on the SVG page. A row holding a
+  // stacked fraction gives every option the fraction line height, so letters and options share
+  // one baseline across the row.
+  const { r, gap: g, colGap, rowGap } = LETTERS;
+  const perRow = letterColumns(
+    item.options.map((o) => letterOptionWidth(o, !!ctx.maths)),
+    w,
+  );
+  const slot = (w - (perRow - 1) * colGap) / perRow;
   const rows: string[] = [];
-  let grid: number[] = [];
+  const grid: number[] = [];
   for (let start = 0; start < item.options.length; start += perRow) {
     const cells: string[] = [];
-    const g2: number[] = [];
+    const tall = item.options.slice(start, start + perRow).some((o) => grows(ctx, o));
     for (let j = 0; j < perRow; j++) {
       const i = start + j;
       // Each option's text gets WORD_WRAP_SLACK_MM more than measured, as card text does: from the
       // gap before the next option, or, for the last, from the card's own slack. Without it a
       // one-word option exactly as wide as its slot wrapped below its letter (LibreOffice, 13 November 2026).
       const last = j === perRow - 1;
-      const cw = (slot || widths[i] || slot) + (last ? WORD_WRAP_SLACK_MM : 6);
-      g2.push(cw);
+      const cw = slot + (last ? WORD_WRAP_SLACK_MM : colGap);
+      if (!start) grid.push(cw);
       if (i >= item.options.length) {
         cells.push(cell(gap(END_MM), { width: cw }));
         continue;
@@ -542,15 +546,14 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, indent: numb
       const letter = run(`\u00a0${String.fromCharCode(65 + i)}\u00a0`, { bold: true, color: mark ? "#ffffff" : st.navy, border: mark ? st.answer : st.navy, shade: mark ? st.answer : undefined });
       // A row holding a fraction keeps FRAC_FOOT below it, as the layout does, so Word does not
       // clip the denominators at the foot of the cell.
-      const foot = item.options.slice(start, start + perRow).some((o) => grows(ctx, o)) ? gap(FRAC_FOOT) : "";
+      const foot = tall ? gap(FRAC_FOOT) : "";
       cells.push(
-        cell(para(letter + tab() + mt(item.options[i], ctx), { left: 2 * r + g, hanging: 2 * r + g, grow: grows(ctx, item.options[i]) }) + foot, {
+        cell(para(letter + tab() + mt(item.options[i], ctx), { left: 2 * r + g, hanging: 2 * r + g, grow: tall }) + foot, {
           width: cw,
-          margin: { top: start ? 1.6 : 0, right: last ? 0 : 6 - WORD_WRAP_SLACK_MM },
+          margin: { top: start ? rowGap : 0, right: last ? 0 : colGap - WORD_WRAP_SLACK_MM },
         }),
       );
     }
-    if (!grid.length) grid = g2;
     rows.push(row(cells));
   }
   return table(grid, rows, indent);
@@ -629,7 +632,8 @@ function leaf(item: Leaf, w: number, indent: number, ctx: WordCtx, extra: number
   }
 }
 
-function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: number): Block[] {
+/** A card's items as Word blocks, `w` wide (silent starters place them in their own slot cells). */
+export function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: number): Block[] {
   const blocks: Block[] = [];
   let part = 0;
   for (let i = 0; i < list.length; i++) {
@@ -640,7 +644,7 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
       // Rows hold as many lines as fit, as on the SVG page.
       for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) blocks.push(answerRow(rowLines, w, indent, ctx, group.length === 1));
     } else if (it.type === "part") {
-      const label = `${String.fromCharCode(97 + part++)})`;
+      const label = partLabel(part++, ctx.romanParts);
       const textW = w - S.partIndent;
       // An answer frame always takes a row of its own.
       const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline && !it.items[0].blanks ? it.items[0] : null;
@@ -672,16 +676,21 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
       // Each item is written without spare height; the row is at least the page's height, plus
       // the spare height once if either item is a space.
       const lay = besideLayout(it, right, w, ctx);
-      const h = besideHeight(it, right, ctx, w) + besideExtra(it, right, extra);
+      const place = besidePlacement(it, right, ctx, w);
+      const h = place.h + besideExtra(it, right, extra);
+      // Each cell starts where the page places its item: text beside a ratio table drops to the
+      // table's bottom row. The drop is an exact empty paragraph, not a cell margin, which Word
+      // would add to the row's minimum height.
+      const drop = (k: 0 | 1) => (place.tops[k] >= 0.36 ? gap(place.tops[k]) : "");
       blocks.push(
         table(
           [lay.left, BESIDE_GAP, lay.right],
           [
             row(
               [
-                cell(leaf(it, lay.left, 0, ctx, 0), { width: lay.left, ...(besideBottom(it, right) ? { vAlign: "bottom" as const } : {}) }),
+                cell(drop(0) + leaf(it, lay.left, 0, ctx, 0), { width: lay.left, ...(besideBottom(it, right) ? { vAlign: "bottom" as const } : {}) }),
                 cell(gap(END_MM), { width: BESIDE_GAP }),
-                cell(leaf(right, lay.right, 0, ctx, 0), { width: lay.right, ...(besideBottom(right, it) ? { vAlign: "bottom" as const } : {}) }),
+                cell(drop(1) + leaf(right, lay.right, 0, ctx, 0), { width: lay.right, ...(besideBottom(right, it) ? { vAlign: "bottom" as const } : {}) }),
               ],
               { mm: h },
               true,
@@ -696,7 +705,7 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
 }
 
 /** One framed question card: a bordered single-cell table, pinned to at least `height`. */
-function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra: number, height: number): Block {
+function wordCard(c: Card, number: number | string | null, w: number, ctx: WordCtx, extra: number, height: number): Block {
   const cw = w - CARD_RULE;
   return table([cw], [row([cardCell(c, number, w, ctx, extra)], { mm: height - 2 * CARD_RULE })]);
 }
@@ -706,7 +715,7 @@ export const CARD_RULE = 0.45;
  * The bordered cell of a question card laid out `w` wide. Its row's minimum height must be the
  * card's height less two borders (`CARD_RULE`); the cell is one border narrower than `w`.
  */
-export function cardCell(c: Card, number: number | null, w: number, ctx: WordCtx, extra: number): string {
+export function cardCell(c: Card, number: number | string | null, w: number, ctx: WordCtx, extra: number): string {
   const st = ctx.st,
     pad = S.cardPad;
   const inner = w - pad * 2;
@@ -737,7 +746,15 @@ export function cardCell(c: Card, number: number | null, w: number, ctx: WordCtx
   // The card's top and bottom padding are exact empty paragraphs, not cell margins: Word adds a
   // cell's top and bottom margins to a minimum row height (real-Word check, 11 November 2026),
   // which made every card about 5.5 mm taller than the layout.
-  const body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + endGap(pad - rule.width);
+  // A lettered booklet question's parts print i), ii) (N1).
+  const roman = ctx.romanParts;
+  ctx.romanParts = typeof number === "string";
+  let body: string;
+  try {
+    body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + endGap(pad - rule.width);
+  } finally {
+    ctx.romanParts = roman;
+  }
   // Word prints a card's top and bottom borders outside its minimum height (probe P1), and its
   // right border outside the cell, where the column cell cuts it off (probes P9 and P10). So the
   // card is one border narrower and two borders shorter, and its outside matches the SVG card.

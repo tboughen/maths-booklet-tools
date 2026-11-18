@@ -44,6 +44,7 @@ export type LinkPageId =
   | "question-bank"
   | "assessment-follow-up"
   | "worksheets"
+  | "starters"
   | "booklets";
 /** Every page the site can show, including the not-found page. */
 export type PageId = LinkPageId | "not-found";
@@ -56,6 +57,7 @@ const sitePaths: Partial<Record<LinkPageId, string>> = {
   "question-bank": "question-bank",
   "assessment-follow-up": "assessment-follow-up",
   worksheets: "worksheets",
+  starters: "starters",
   booklets: "booklets",
 };
 
@@ -85,7 +87,7 @@ export function readPage(where: LocationLike = location): PageId {
   const rest = path.slice(base.length, -1);
   if (rest === "" || rest === "index.html") return "home";
   if (rest === "tools") return "booklet-tools";
-  if (rest === "question-bank" || rest === "assessment-follow-up" || rest === "worksheets" || rest === "booklets") return rest;
+  if (rest === "question-bank" || rest === "assessment-follow-up" || rest === "worksheets" || rest === "starters" || rest === "booklets") return rest;
   if (movedPaths[rest]) return movedPaths[rest];
   const tool = /^tools\/([a-z-]+)$/.exec(rest)?.[1];
   return tool && isTool(tool) ? tool : "not-found";

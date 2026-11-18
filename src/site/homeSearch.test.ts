@@ -14,8 +14,9 @@ describe("Home search", () => {
     expect(triangles).toMatchObject({ name: "Triangles", href: "/tools/triangle", note: "Diagram tool. Matches “Pythagoras”." });
   });
 
-  it("finds the six pages by name or by what they do, before the tools", () => {
+  it("finds the site pages by name or by what they do, before the tools", () => {
     expect(names("booklet")[0]).toBe("Booklet builder");
+    expect(names("silent starter")[0]).toBe("Starter builder");
     expect(names("mark scheme")).toEqual(["Question bank", "Paper builder"]);
   });
 

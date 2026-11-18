@@ -1,41 +1,56 @@
-.af-page { max-width: 1500px; margin: 0 auto; padding: 22px; }
-.af-page button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 8px 12px; background: white; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 4px; font: inherit; font-size: 13px; cursor: pointer; }
-.af-page button:hover:not(:disabled) { background: var(--blue-soft); }
-.af-page button:disabled { opacity: .5; cursor: default; }
-.af-page .af-primary { background: var(--blue); border-color: var(--blue); color: white; }
-.af-toolbar, .af-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.af-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; align-items: start; }
+/* Assessment follow-up, on the app house style (docs/tools/APP-HOUSE-STYLE.md). The page keeps to the shared page
+   margins. Its cards are on the settings kit (site/settings-kit.css), which gives their fields, buttons, ticks and
+   notes their look; the rules here lay out what is inside a card and keep the few looks the kit has no word for.
+   Where a rule answers the kit it has one more class, so it holds whichever file loads last. */
+.af-page { padding: 10px 20px 22px; }
+/* The buttons of the page itself (the bar at the top, and the one that makes the pack) are a size up from a
+   card's: a bigger button does more. */
+.af-page button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 8px 12px; background: var(--md-paper); color: var(--md-ink); border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.af-page button:hover:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue-soft); }
+.af-page button:disabled { border-color: var(--md-line); background: var(--md-page); color: var(--md-ink-3); opacity: 1; cursor: default; }
+/* The filled button stays filled under the pointer, in the bar, after step 2 and in a card. */
+.af-page .af-primary:not(:disabled), .af-page .af-primary:hover:not(:disabled), .af-page .md-kit .site-panel .af-primary:not(:disabled) { border-color: var(--md-blue); background: var(--md-blue); color: #fff; font-weight: 600; }
+.af-toolbar, .af-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.af-toolbar { margin: 12px 0; }
+.af-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: 18px; align-items: start; }
 .af-main, .af-inspector { display: grid; gap: 16px; min-width: 0; }
+.af-main > p { margin: 0; }
+/* A card stacks what it holds with one gap, as a kit card does. */
+.af-page .md-kit .af-panel, .af-page .md-kit .af-panel fieldset { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .af-panel { padding: 18px; }
-.af-panel h2 { font-size: 17px; margin: 0 0 14px; }
-.af-page label { display: grid; gap: 6px; margin: 12px 0; font-size: 13px; font-weight: 600; }
-.af-page input:not([type=checkbox]), .af-page select, .af-page textarea { width: 100%; min-width: 0; min-height: 38px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: white; color: var(--ink); font: inherit; }
-.af-page textarea { font-family: ui-monospace, monospace; font-size: 12px; resize: vertical; }
-.af-page fieldset { padding: 0; border: 0; margin: 12px 0; min-width: 0; }
-.af-page legend { font-weight: 600; font-size: 14px; }
-.af-page .af-check { display: flex; align-items: center; gap: 8px; }
-.af-check input { width: 18px; height: 18px; flex-shrink: 0; }
-.af-help, .af-intro { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.af-page .md-kit .af-panel h2 { margin: 0 0 2px; }
+.af-page fieldset { padding: 0; border: 0; margin: 0; min-width: 0; }
+.af-page legend { margin-bottom: 6px; padding: 0; font-weight: 600; font-size: 14px; }
+/* The box that marks are pasted into is a field, in a font whose columns line up. */
+.af-page textarea { box-sizing: border-box; width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); background: var(--md-paper); color: var(--md-ink); font: 12px/1.4 ui-monospace, monospace; resize: vertical; }
+/* The field that takes a spreadsheet is drawn as a field too. */
+.af-page .md-kit .site-panel input[type=file] { box-sizing: border-box; width: 100%; min-width: 0; min-height: var(--md-control); padding: 4px 8px; border: 1px solid var(--field-line); border-radius: var(--md-radius-key); background: var(--md-paper); color: var(--md-ink); font: 400 var(--md-text-sm)/1.2 var(--md-font); }
+.af-help, .af-intro { color: var(--md-ink-2); font-size: var(--md-text-xs); font-weight: 400; line-height: 1.4; }
+.af-intro { font-size: var(--md-text-sm); }
 .af-input-alternatives { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
 .af-input-alternatives details { min-width: 0; max-width: 100%; }
-.af-input-alternatives summary { color: var(--blue); padding: 8px 0; }
+.af-input-alternatives summary { color: var(--blue); }
 .af-data-help { padding: 0 8px; color: var(--muted); }
 .af-error { padding: 12px; color: var(--red); background: var(--red-soft); border-radius: 4px; }
 .af-notices, .af-page details { font-size: 13px; line-height: 1.6; }
-.af-page summary { cursor: pointer; padding: 6px 0; }
+/* The name of a part that opens is as tall as a control. */
+.af-page summary { box-sizing: border-box; min-height: var(--md-control); padding-block: calc((var(--md-control) - 1.6em) / 2); cursor: pointer; }
 .af-table { overflow-x: auto; max-width: 100%; }
 .af-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .af-table th, .af-table td { padding: 9px; text-align: left; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
 .af-preview { padding: 12px; background: var(--surface); text-align: center; }
 .af-preview canvas { max-width: 100%; height: auto; background: white; box-shadow: var(--shadow); }
-.af-pack-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+.af-pack-summary { display: flex; flex-wrap: wrap; gap: 12px; }
 .af-pack-summary strong { padding: 10px 12px; background: var(--blue-soft); border-radius: 4px; font-size: 15px; }
 .af-import-summary { padding: 8px 12px; background: var(--surface); border-left: 3px solid var(--green); font-size: 13px; line-height: 1.55; }
-.af-import-summary p { margin: 5px 0; }
-.af-assessment-summary { font-weight: 600; color: var(--muted); font-size: 14px; }
-.af-preview-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; margin: 12px 0; }
+/* What was read from the marks is there to be read, so it is not a quiet note. */
+.af-page .md-kit .site-panel .af-import-summary p { color: var(--md-ink); font-size: var(--md-text-sm); }
+.af-page .md-kit .site-panel .af-assessment-summary { font-size: var(--md-text-sm); font-weight: 600; }
+.af-preview-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; }
 .af-preview-controls span { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
-.af-preview-download { display: flex; justify-content: center; margin: 14px 0; }
-.af-topic-exclusions { max-height: 300px; overflow-y: auto; padding: 0 4px; }
-@media(max-width: 850px) { .af-workspace { grid-template-columns: minmax(0,1fr); } .af-inspector { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media(max-width: 550px) { .af-page { padding: 12px; } .af-inspector { grid-template-columns: minmax(0,1fr); } .af-panel { padding: 12px; } .af-toolbar button { flex: 1 1 140px; } }
+.af-preview-download { display: flex; justify-content: center; }
+.af-topic-exclusions { display: grid; gap: 6px; max-height: 300px; overflow-y: auto; padding: 0 4px; }
+@media (max-width: 850px) { .af-workspace { grid-template-columns: minmax(0,1fr); } .af-inspector { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 550px) { .af-page { padding: 12px; } .af-inspector { grid-template-columns: minmax(0,1fr); } .af-panel { padding: 12px; } :is(.af-toolbar, .af-main > .af-actions) button { flex: 1 1 140px; } }
+/* Under a finger the page's own buttons are as tall as a card's. */
+@media (max-width: 767px), (pointer: coarse) { .af-page button { min-height: 44px; } }

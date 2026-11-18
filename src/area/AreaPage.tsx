@@ -65,6 +65,7 @@ import { handleUndoKeys, objectKeyCommand, openDraft, redoLabel as redoStepName,
 import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./area.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:area:v1");
 type View = "pupil" | "answer";
@@ -503,8 +504,10 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Area and perimeter settings">
+          <aside className="inspector-stack md-kit" aria-label="Area and perimeter settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected label">
               <h2>{current ? `Label: ${slotName(current)}` : "Selected label"}</h2>
               <div className="pt-fields">
@@ -612,6 +615,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Shape">
               <h2>Shape</h2>
               <div className="pt-fields">
@@ -715,7 +720,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                             </td>
                           ))}
                           <td>
-                            <select aria-label={`Side ${k + 1}`} value={s.arcs[k]} disabled={blocked} onChange={(ev) => setPolygon((p) => void (p.arcs[k] = ev.target.value as ArcKind), "change side")}>
+                            <select aria-label={`Side ${k + 1}`} title={ARC_NAMES[s.arcs[k]]} value={s.arcs[k]} disabled={blocked} onChange={(ev) => setPolygon((p) => void (p.arcs[k] = ev.target.value as ArcKind), "change side")}>
                               {ARCS.map((a) => (
                                 <option key={a} value={a}>
                                   {ARC_NAMES[a]}
@@ -893,6 +898,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 </div>
               </details>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Printing</h2>
               <div className="pt-fields">
@@ -937,6 +944,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

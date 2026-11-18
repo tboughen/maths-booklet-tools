@@ -67,7 +67,7 @@
 .cb-editor select {
   font: inherit;
 }
-.cb-editor select {
+.cb-editor select:where(:not(.md-kit *)) {
   min-width: 0;
   max-width: 100%;
   background: white;
@@ -86,14 +86,15 @@
   align-items: center;
   gap: 5px;
 }
-.cb-field {
+/* A typed value outside the settings: the box that opens on a label. The settings kit sets the rest. */
+.cb-field:where(:not(.md-kit *)) {
   display: grid;
   gap: 5px;
   margin: 9px 0;
   font-size: 13px;
   color: var(--ink);
 }
-.cb-field input {
+.cb-field:where(:not(.md-kit *)) input {
   min-width: 0;
   width: 100%;
   padding: 8px;
@@ -105,52 +106,14 @@
 .cb-editor input[aria-invalid="true"] {
   border-color: var(--red);
 }
-.cb-inspector h2 {
-  font-size: 17px;
-  margin: 0 0 12px;
-}
-.cb-inspector label:not(.cb-field) {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 13px;
-  margin: 10px 0;
-}
-.cb-inspector label:has(select) {
-  display: grid;
-  gap: 5px;
-}
-.cb-inspector input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+/* Fields in a row stay level when one of them shows what is wrong under it. */
+.cb-editor .cb-inspector .cb-field {
+  align-content: start;
 }
 .cb-inspector .cb-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 10px;
-}
-.cb-panel-actions {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-}
-.cb-panel-actions button,
-.cb-downloads button,
-.cb-example button {
-  min-height: 38px;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  background: white;
-  padding: 8px 10px;
-  font-size: 13px;
-}
-.cb-downloads {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
-  border-bottom: 1px solid var(--line);
 }
 .cb-note,
 .cb-error {
@@ -178,25 +141,6 @@
   font-size: 13px;
   margin: 0;
 }
-.cb-example {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-}
-.cb-example h3 {
-  font-size: 14px;
-  margin: 4px 0;
-}
-.cb-example p {
-  font-size: 12px;
-  line-height: 1.5;
-  margin: 6px 0;
-}
-.cb-example a {
-  font-size: 12px;
-}
-.cb-example .cb-panel-actions {
-  margin-top: 8px;
-}
 .cb-editor button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -205,11 +149,6 @@
   padding: 24px;
   max-width: 400px;
   color: var(--red);
-}
-.cb-editor details summary {
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
 }
 .cb-editor .page-heading-actions {
   font-size: 12px;
@@ -251,65 +190,42 @@
   }
 }
 
-.cb-settings {
-  padding: 14px !important;
-}
 .cb-dimensions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
-.cb-dimensions .cb-field {
-  margin-top: 0;
-}
+/* Two rows of two: a list, and the tick or button that goes with it, level with the list and as wide as its
+   words. The list takes what is left: the units are short, and the views keep room for the longest ("Separate
+   layers"), so in a narrower column the tick's words take a second line and the button goes under its list. */
 .cb-units-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.cb-units-row label:has(select) {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(64px, 1fr) minmax(0, max-content);
+  align-items: end;
   gap: 8px;
 }
-.cb-units-row label {
-  font-size: 12px !important;
+.cb-view-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
 }
-.cb-settings details {
-  border-top: 1px solid var(--line);
-  margin-top: 12px;
-  padding-top: 12px;
+.cb-view-row > label {
+  flex: 1 1 128px;
 }
-.cb-settings summary {
-  min-height: 28px;
+.cb-units-row > label:has(> input[type="checkbox"]) {
+  min-height: var(--md-control);
 }
-.cb-settings-footer > summary {
-  color: var(--muted);
+.cb-editor .md-kit .cb-view-row button {
+  padding-inline: 8px;
 }
 .cb-shade-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
-.cb-shade-options .cb-action {
-  padding: 6px 4px;
-  font-size: 13px;
-  min-height: 44px;
-}
-.cb-action,
-.cb-quick-cubes {
-  min-height: 38px;
-  padding: 8px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: white;
-  color: var(--ink);
-  cursor: pointer;
-}
-.cb-action[aria-pressed="true"] {
-  border-color: var(--blue);
-  background: var(--blue-soft);
-  box-shadow: inset 3px 0 var(--blue);
+.cb-editor .md-kit .cb-shade-options button {
+  padding-inline: 4px;
 }
 .cb-floating {
   position: fixed;
@@ -369,5 +285,33 @@
 @media (max-width: 600px) {
   .cb-floating {
     width: calc(100vw - 24px);
+  }
+}
+/* Two columns in a wide window (the settings kit's own breakpoint). The cards are children of one group, in the
+   order they are read, so a click that brings a card to the top never rebuilds it. The card on top takes the left
+   column, the others stack in the right, and the cuboid picker, when there is more than one, runs across both.
+   Every rule hangs off the kit's own two-column wrapper, so none applies where the kit is not in two columns. The
+   rows count the three cards on the right (the last row takes up a taller left card): a fourth needs a row added. */
+@media screen and (min-width: 1800px) and (min-height: 800px) and (min-aspect-ratio: 1 / 1) {
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto 1fr;
+    align-items: start;
+  }
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div:has(> .cb-pick) {
+    grid-template-rows: auto auto auto auto 1fr;
+  }
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .panel-card {
+    grid-column: 2;
+  }
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .cb-pick {
+    grid-area: 1 / 1 / auto / -1;
+  }
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .panel-card:first-child:not(.cb-pick) {
+    grid-area: 1 / 1 / span 4;
+  }
+  .site-app .site-page--tool .cb-editor .workspace > .md-kit > .md-kit-cards.cb-cards > div > .cb-pick + .panel-card {
+    grid-area: 2 / 1 / span 4;
   }
 }

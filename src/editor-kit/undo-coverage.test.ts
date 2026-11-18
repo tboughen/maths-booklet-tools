@@ -41,6 +41,7 @@ const undoRegistry: Record<string, string> = {
   "algebra-tiles": "algebra-tiles/AlgebraTilesPage.tsx",
   "sample-space": "sample-space/SampleSpacePage.tsx",
   worksheets: "worksheet/WorksheetPage.tsx",
+  starters: "starter/StarterPage.tsx",
   booklets: "booklet/BookletPage.tsx",
 };
 /** Undo that is not a document history: the shared toolbar itself and the question viewer's ink layers. */

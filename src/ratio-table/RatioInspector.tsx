@@ -43,6 +43,7 @@ export function RatioInspector({
   onAction,
   onFill,
   tools,
+  after,
 }: {
   document: RatioDocument;
   selection: RatioSelection;
@@ -56,6 +57,8 @@ export function RatioInspector({
   onFill: (from: string) => void;
   /** The table tools card, shown after the selected item and before the table settings (U21). */
   tools?: ReactNode;
+  /** Cards that come last, under the table's settings (the warnings). */
+  after?: ReactNode;
 }) {
   function headingControls(column: number) {
     const heading = document.headings[column];
@@ -167,6 +170,7 @@ export function RatioInspector({
   }
   return (
     <>
+      <div>
       <section
         className="panel-card ratio-selection-panel"
         aria-label="Selected table item"
@@ -395,6 +399,8 @@ export function RatioInspector({
         )}
       </section>
       {tools}
+      </div>
+      <div>
       <section className="panel-card">
         <div className="panel-heading">
           <Grid3X3 size={17} />
@@ -531,6 +537,8 @@ export function RatioInspector({
           ))}
         </details>
       </section>
+      {after}
+      </div>
     </>
   );
 }

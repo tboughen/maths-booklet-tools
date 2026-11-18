@@ -41,7 +41,7 @@ describe("worked-solution maths text", () => {
     expect(mathsText("-x and two-way")).toBe("−x and two-way");
   });
   it("splits stacked fractions and powers", () => {
-    expect(pieces("x^2 + {3/4}")).toEqual([{ kind: "run", text: "x", sup: false }, { kind: "run", text: "2", sup: true }, { kind: "run", text: " + ", sup: false }, { kind: "fraction", num: "3", den: "4" }]);
+    expect(pieces("x^2 + {3/4}")).toEqual([{ kind: "run", text: "x", sup: false }, { kind: "run", text: "2", sup: true }, { kind: "run", text: " + ", sup: false }, { kind: "fraction", num: [{ kind: "run", text: "3", sup: false }], den: [{ kind: "run", text: "4", sup: false }] }]);
     expect(pieces("10^{12}")).toEqual([{ kind: "run", text: "10", sup: false }, { kind: "run", text: "12", sup: true }]);
     expect(mathsWidth("{3/4}")).toBeLessThan(mathsWidth("3/4") + 6);
   });
@@ -345,10 +345,20 @@ describe("worked-solution recurring decimals and fraction powers", () => {
     raw.parts[0].steps = [{ kind: "answer", value: "0.dot{3}", mark: { code: "B1", note: "cao" } }];
     expect(layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg).toMatch(/<circle [^>]*r="[\d.]+"/);
   });
-  it("reads a braced power inside a stacked fraction", () => {
-    expect(pieces("x = {4/x^{2}} + 1")).toEqual([{ kind: "run", text: "x = ", sup: false }, { kind: "fraction", num: "4", den: "x²" }, { kind: "run", text: " + 1", sup: false }]);
-    expect(pieces("{a^3/2}")).toEqual([{ kind: "fraction", num: "a³", den: "2" }]);
-    expect(pieces("{4/x^{2n}}")).toEqual([{ kind: "fraction", num: "4", den: "x^{2n}" }]);
+  it("lays out a stacked fraction's numerator and denominator as maths", () => {
+    const run = (text: string, sup = false) => ({ kind: "run", text, sup });
+    expect(pieces("x = {4/x^{2}} + 1")).toEqual([run("x = "), { kind: "fraction", num: [run("4")], den: [run("x"), run("2", true)] }, run(" + 1")]);
+    expect(pieces("{a^3/2}")).toEqual([{ kind: "fraction", num: [run("a"), run("3", true)], den: [run("2")] }]);
+    expect(pieces("{3 × 10^{−5}/x^{n+1}}")).toEqual([{ kind: "fraction", num: [run("3 × 10"), run("−5", true)], den: [run("x"), run("n+1", true)] }]);
+    // A fraction inside a fraction stays inline.
+    expect(pieces("{a/{1/2} + 1}")).toEqual([{ kind: "fraction", num: [run("a")], den: [run("1/2 + 1")] }]);
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "text", text: "y = {3 * 10^{-5}/x^{n+1}}" }, { kind: "answer", value: "4", mark: { code: "B1", note: "cao" } }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    // The powers are raised and smaller than the figures they belong to.
+    expect(svg).toMatch(/font-size="8.4"[^>]*>−5<\/text>/);
+    expect(svg).toMatch(/font-size="8.4"[^>]*>n\+1<\/text>/);
+    expect(mathsWidth("{3 × 10^{−5}/7}")).toBeCloseTo(mathsWidth("3 × 10^{−5}") + 12 * 0.4, 5);
   });
 });
 
@@ -405,14 +415,137 @@ describe("guidance typesetting", () => {
     expect(noteText("Watch out - M1 - method; 2n - 1 and (x + 2) - 3")).toBe("Watch out - M1 - method; 2n − 1 and (x + 2) − 3");
     expect(noteMarkup("4.5 × 10^24 & 10^-3")).toBe("4.5 × 10<tspan dy=\"-3.5\" font-size=\"7\">24</tspan><tspan dy=\"3.5\">\u200b</tspan> &amp; 10<tspan dy=\"-3.5\" font-size=\"7\">−3</tspan><tspan dy=\"3.5\">\u200b</tspan>");
   });
+  it("lifts a numerator whose letters hang below the line clear of the bar", () => {
+    const gap = (rhs: string) => {
+      const raw = JSON.parse(JSON.stringify(sample()));
+      raw.parts[0].steps = [{ kind: "line", lhs: "q", rhs }];
+      const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+      const bar = Number(/<path d="M[\d.]+ ([\d.]+)H/.exec(svg)![1]);
+      const num = Math.max(...[...svg.matchAll(/<text[^>]* y="([\d.]+)"[^>]*>[^<]*(?:p − 7|3|\))</g)].map(m => Number(m[1])).filter(y => y < bar));
+      return bar - num;
+    };
+    expect(gap("{p - 7/6}")).toBeGreaterThan(gap("{3/6}") + 1);
+    expect(gap("{3(x - 7)/6}")).toBeGreaterThan(gap("{3/6}") + 1);
+  });
   it("stacks fractions in guidance and gives their line extra room", () => {
     expect(noteText("Gradient of L is -{1/2}")).toBe("Gradient of L is −{1/2}");
     expect(noteText("6 - {1/2}x and {-1/2}")).toBe("6 − {1/2}x and {−1/2}");
+    expect(noteMarkup("f^{-1}(x)")).toBe("f<tspan dy=\"-3.5\" font-size=\"7\">−1</tspan><tspan dy=\"3.5\">\u200b</tspan>(x)");
     expect(guideWidth("is {1/2}", NOTE_SIZE)).toBeLessThan(noteWidth("is {1/2}", NOTE_SIZE));
+    // A fractional power is raised, not stacked.
+    expect(guideWidth("x^{1/2}", NOTE_SIZE)).toBe(noteWidth("x^{1/2}", NOTE_SIZE));
+    expect(noteMarkup("x^{-1/2}")).toContain(">−1/2</tspan>");
     const raw = JSON.parse(JSON.stringify(sample()));
     raw.parts[0].steps = [{ kind: "line", lhs: "y", rhs: "6 - {1/2}x", note: "Gradient of L is -{1/2}." }];
     const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
     expect(svg).not.toContain("{1/2}");
     expect(svg).toMatch(/text-anchor="middle">1<\/text><path [^>]*\/><text [^>]*text-anchor="middle">2<\/text>/);
+  });
+});
+
+describe("worked-solution fractional powers and nth roots", () => {
+  const run = (text: string, sup = false) => ({ kind: "run", text, sup });
+  it("reads a fractional power as a small stacked fraction, with its sign", () => {
+    expect(pieces("64^{1/3} = 4")).toEqual([run("64"), { kind: "power", sign: "", num: "1", den: "3" }, run(" = 4")]);
+    expect(pieces("64^{-2/3}")).toEqual([run("64"), { kind: "power", sign: "−", num: "2", den: "3" }]);
+    expect(pieces("x^{2}")).toEqual([run("x"), run("2", true)]);
+  });
+  it("reads cube and fourth roots, and root{n}{...}, with a small index", () => {
+    expect(pieces("∛64")).toEqual([{ kind: "root", body: [run("64")], index: "3" }]);
+    expect(pieces("∜(81)")).toEqual([{ kind: "root", body: [run("81")], index: "4" }]);
+    expect(pieces("root{5}{x + 1}")).toEqual([{ kind: "root", body: [run("x + 1")], index: "5" }]);
+  });
+  it("draws the power's fraction raised and the root's index, and gives the line room", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "line", lhs: "64^{-2/3}", rhs: "{1/16}" }, { kind: "line", lhs: "∛64", rhs: "4" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    expect(svg).not.toContain("2/3");
+    expect(svg).toMatch(/>−<\/text><text [^>]*text-anchor="middle">2<\/text><path [^>]*\/><text [^>]*text-anchor="middle">3<\/text>/);
+    expect(svg).toMatch(/class="wk-root"[^>]*\/><text [^>]*>3<\/text>/);
+    expect(mathsWidth("∛64")).toBeGreaterThan(mathsWidth("√64"));
+    expect(mathsWidth("root{10}{x}") - mathsWidth("root{3}{x}")).toBeGreaterThan(mathsWidth("1") * 0.5);
+    expect(pieces("x^{ 1 / 2 }")[1]).toEqual({ kind: "power", sign: "", num: "1", den: "2" });
+  });
+  it("marks a fraction straight after a whole number as a mixed number, with a small gap", () => {
+    expect(pieces("4{3/4}")).toEqual([run("4"), { kind: "fraction", num: [run("3")], den: [run("4")], mixed: true }]);
+    expect(pieces("x + {3/4}")[1]).not.toHaveProperty("mixed");
+    for (const t of ["2{x/3}", "0.5{1/2}", "Q2{1/2}"]) expect(pieces(t).find(p => p.kind === "fraction")).not.toHaveProperty("mixed");
+    expect(mathsWidth("4{3/4}")).toBeGreaterThan(mathsWidth("4") + mathsWidth("{3/4}"));
+  });
+  it("puts an answer's mark after its line, level with the answer, when asked", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].answers = [{ x: 330, y: 192, width: 60 }];
+    const chipAt = (markAt?: string) => {
+      raw.parts[0].steps = [{ kind: "answer", value: "4", mark: { code: "A1", note: "cao" }, ...(markAt ? { markAt } : {}) }];
+      const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+      const m = svg.match(/<g class="wk-mark"><rect x="([\d.]+)" y="([\d.]+)"/)!;
+      return { x: Number(m[1]), y: Number(m[2]) };
+    };
+    const above = chipAt(), after = chipAt("after");
+    expect(above.x + 20).toBeLessThan(390); // above: over the line, ending at its right end
+    expect(after.x).toBeGreaterThanOrEqual(390); // after: past the end of the line
+    expect(after.y).toBeGreaterThan(above.y + 10); // and level with the answer, not above it
+  });
+  it("keeps an after mark on a full-width line between the dotted lines, inside the cut", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].answers = [{ x: 10, y: 192, width: 465 }];
+    raw.parts[0].steps = [{ kind: "answer", value: "4", align: "left", mark: { code: "C1", note: "cao", also: "4.0" }, markAt: "after" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    const m = svg.match(/<g class="wk-mark"><rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="12"/)!;
+    const [x, y, w] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    expect(x + w).toBeLessThanOrEqual(480);
+    expect(y + 12).toBeLessThan(192); // the chip's foot clears the dotted line
+    expect(y).toBeGreaterThan(192 - 28); // and stays below the line above
+  });
+  it("keeps a root's foot clear of the fraction bar when the root is in a numerator", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "text", text: "{∛x + 1/2}" }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    const foot = Number(svg.match(/class="wk-root" d="M[\d.]+ [\d.]+L[\d.]+ [\d.]+L[\d.]+ ([\d.]+)/)![1]);
+    const bar = Number(svg.match(/<path d="M[\d.]+ ([\d.]+)H[\d.]+" stroke="#111111" stroke-width="0.9" fill="none"\/>/)![1]);
+    expect(bar - foot).toBeGreaterThan(1);
+  });
+});
+
+describe("worked-solution square roots", () => {
+  const run = (text: string, sup = false) => ({ kind: "run", text, sup });
+  it("reads sqrt{...} and a root sign before a number, letters or a bracket", () => {
+    expect(pieces("sqrt{a + b}")).toEqual([{ kind: "root", body: [run("a + b")] }]);
+    expect(pieces("3√2 + √x = √36")).toEqual([run("3"), { kind: "root", body: [run("2")] }, run(" + "), { kind: "root", body: [run("x")] }, run(" = "), { kind: "root", body: [run("36")] }]);
+    // The overbar replaces the brackets.
+    expect(pieces("√(x^2 + 4)")).toEqual([{ kind: "root", body: [run("x"), run("2", true), run(" + 4")] }]);
+    expect(pieces("√({1.1/1.05^{3}})")).toEqual([{ kind: "root", body: [{ kind: "fraction", num: [run("1.1")], den: [run("1.05"), run("3", true)] }] }]);
+    expect(pieces("√{2/3}")).toEqual([{ kind: "root", body: [{ kind: "fraction", num: [run("2")], den: [run("3")] }] }]);
+    expect(pieces("{1/√3}")).toEqual([{ kind: "fraction", num: [run("1")], den: [{ kind: "root", body: [run("3")] }] }]);
+    // A braced group that is not a fraction loses its braces under the overbar.
+    expect(pieces("√{x+1}")).toEqual([{ kind: "root", body: [run("x+1")] }]);
+    // A fraction splits at its own slash, not one inside a nested group.
+    expect(pieces("{√{a/b}/c}")).toEqual([{ kind: "fraction", num: [{ kind: "root", body: [run("a/b")] }], den: [run("c")] }]);
+    // A root sign with nothing to cover stays as typed.
+    expect(pieces("√ and √(")).toEqual([run("√ and √(")]);
+    expect(mathsWidth("√36")).toBeGreaterThan(mathsWidth("36") + 4);
+  });
+  it("draws the radical and an overbar, and gives a root over a fraction a fraction's room", () => {
+    const raw = JSON.parse(JSON.stringify(sample()));
+    raw.parts[0].steps = [{ kind: "text", text: "√36 = 6" }, { kind: "text", text: "r = √({1.1/1.05^{3}}) - 1" }, { kind: "answer", value: "4√2", mark: { code: "B1", note: "cao" } }];
+    const svg = layoutWorked(parseWorked(raw), surfaces).overlays.get("a-1")!.svg;
+    const roots = [...svg.matchAll(/<path class="wk-root" d="M([\d.]+) ([\d.]+)L([\d.]+) ([\d.]+)L([\d.]+) ([\d.]+)L([\d.]+) ([\d.]+)H([\d.]+)" stroke="#111111" stroke-width="0.9"/g)].map(m => m.slice(1).map(Number));
+    expect(roots).toHaveLength(3);
+    expect(svg).not.toContain("√");
+    for (const [, tickY, , peakY, , footY, headX, topY, end] of roots) {
+      expect(peakY).toBeLessThan(tickY); // the small tick rises
+      expect(footY).toBeGreaterThan(tickY); // then the stroke falls to the foot
+      expect(topY).toBeLessThan(peakY); // and the long stroke rises to the overbar
+      expect(end).toBeGreaterThan(headX + 6); // the overbar spans the contents
+    }
+    // The root over a fraction is taller than the plain root and reaches past the fraction's bar both ways.
+    const height = (r: number[]) => r[5] - r[7];
+    expect(height(roots[1])).toBeGreaterThan(height(roots[0]) * 1.8);
+    expect(svg).toMatch(/font-size="8.4"[^>]*>3<\/text>/);
+    const plain = JSON.parse(JSON.stringify(raw));
+    plain.parts[0].steps = [{ kind: "text", text: "√36 = 6" }, { kind: "text", text: "r = √(1.1) - 1" }, plain.parts[0].steps[2]];
+    const short = layoutWorked(parseWorked(plain), surfaces).overlays.get("a-1")!.svg;
+    const baseline = (s: string, t: string) => Number(new RegExp(`y="([\\d.]+)"[^>]*>${t}`).exec(s)?.[1]);
+    expect(baseline(svg, "r = ") - baseline(svg, "36")).toBeGreaterThan(baseline(short, "r = ") - baseline(short, "36") + 8);
   });
 });

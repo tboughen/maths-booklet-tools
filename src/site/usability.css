@@ -378,14 +378,6 @@
 .tr-floating .tr-options-list {
   gap: 5px;
 }
-.tr-floating .tr-option {
-  padding: 7px 8px;
-  min-height: 44px;
-}
-.tr-floating .tr-note {
-  font-size: 12px;
-  line-height: 1.45;
-}
 
 .example-gallery-group-title {
   margin: 22px 22px 0;
@@ -400,9 +392,6 @@
 .booklet-editor .nl-scroll {
   height: clamp(240px, calc(100dvh - 600px), 360px);
   min-height: 240px;
-}
-.booklet-editor .nl-inspector .panel-card {
-  gap: 8px;
 }
 
 /* Keep the shared row horizontal when Algebra wraps on a phone. A flex basis
@@ -427,8 +416,7 @@
     [aria-selected="true"],
     [aria-checked="true"],
     .active,
-    .selected,
-    .tool-button--active
+    .selected
   ) {
     forced-color-adjust: none;
     background-color: SelectedItem !important;
@@ -447,8 +435,7 @@
       [aria-selected="true"],
       [aria-checked="true"],
       .active,
-      .selected,
-      .tool-button--active
+      .selected
     )
     * {
     color: inherit !important;

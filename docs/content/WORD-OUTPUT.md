@@ -217,7 +217,8 @@ one lesson on its own, without the cover, numbered as in the whole booklet.
 | A row of cards is one table row that cannot split, with each card a bordered cell pinned (at least) to the row's planned height less two borders, one border narrower than its column. Side-by-side cards share the row, so they are the same height, as on the page. | The worksheet's card rules (probes P1, P9, P10), at body level. Word moves a whole row rather than cutting a card, so a fault shows as an extra page, never a cut card. |
 | Cards hold the worksheet's items (`cardCell` in `docx.ts`), with the working space each page gave out. Tables keep their natural width, every cell centred, as booklet pages do. | The PDF's own heights, so the plan holds. |
 | Lesson titles, key ideas, section headings (with the instruction on the same line when it fits) and the navy rules are exact-height paragraphs and one-row tables at the SVG positions. Text gets 1 mm more width than measured. | Only line breaks could change a block's height, and Word never needs more lines than predicted. |
-| The footer (hairline, booklet name, "Page N") is a Word footer below the content area, with Word's own page number. The cover's footer is empty; a lesson file starts its numbering at the lesson's first page. | The footer never pushes content. The cover's contents list the plan's page numbers, which match. |
+| The footer ("Page N", bold and centred, no rule) is a Word footer below the content area, with Word's own page number. The cover's footer is empty; a lesson file starts its numbering at the lesson's first page. | The footer never pushes content. The cover's contents list the plan's page numbers, which match. |
+| Lesson bookends (BOOKLET-STANDARD N11, 18 November 2026): the start block and the corner lesson badge with its stage squares are exact-height tables at the SVG positions; the top margin is the badge's top (5 mm), and the cover and introduction start with a gap down to 12 mm. A lesson's last page is a Word section of its own (a 1 pt paragraph holding the section break ends the page before, and another ends that page), whose footer is the end band: lesson tile, "End of lesson N", Word's page number and STOP, with its own footer distance so the band's top is at 283 mm. The last stage square reads C for the Challenge work (N12). A lesson's "Did you know?" fact (N12) is a tinted one-cell table of exact height and the SVG bubble's width, under the key idea; Word draws its corners square where the SVG bubble is rounded. | Word footers belong to sections, so the end band can replace the page number only on the pages of its own section. On ordinary pages the section-break paragraph sits inside the `WORD_FOOT_MM` slack; an end section's text area stops at the band's top (283 mm, its bottom margin), and the content plan leaves 2 mm there for the break paragraph. The next page needs no page break of its own. |
 | The bottom margin is `WORD_FOOT_MM` smaller than the layout's (content may reach 284 mm, not 281 mm). | A row Word draws a fraction taller never moves to the next page. |
 | Pictures, fonts and fixed bytes as for worksheets. | The same file from the connector and the website. |
 
@@ -248,7 +249,8 @@ characters the font lacks. Desktop Word has opened worksheet equations of this k
 yet a stacked-fraction booklet: that check is still outstanding.
 
 Differences from the PDF, by design: rounded corners are square; contents dot leaders are Word's
-dots; the lesson and code tiles are square.
+dots; the lesson and code tiles, the start block, the corner badge, the stage squares and the end
+band are square.
 
 Fix found on the way, for worksheets too: in a row of lettered options, an option's text exactly
 as wide as its measured slot wrapped below its letter in LibreOffice. Each option now gets

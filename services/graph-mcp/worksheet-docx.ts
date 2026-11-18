@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import { writeWorksheetDocx, type DocxFonts, type DocxPicture, type RenderedDocx } from "../../packages/resource-core/src/docx";
 import { writeBookletDocx, type RenderedBookletDocx } from "../../packages/resource-core/src/booklet-docx";
-import type { Booklet, Resource, View } from "../../packages/resource-core/src/index";
+import { writeStarterDocx, type RenderedStarterDocx } from "../../packages/resource-core/src/starter-docx";
+import type { Booklet, Resource, StarterRun, View } from "../../packages/resource-core/src/index";
 
 /** Worksheet text fonts (assets/resource-fonts) and diagram fonts (assets/graph-fonts). */
 export type DocxFontRoots = { text: string; diagrams: string };
@@ -48,4 +49,9 @@ export function bookletDocx(
   numbering?: { lessonOffset: number; pageOffset: number },
 ): Promise<RenderedBookletDocx> {
   return writeBookletDocx(booklet, { view, version, numbering, fonts: fonts(roots), picture: (svg, w, h) => wordPicture(svg, w, h, roots) });
+}
+
+/** The Word file for one view of a run of silent starters (or of one starter, 1-based `only`), with the fonts read from disk. */
+export function starterDocx(run: StarterRun, view: View, roots: DocxFontRoots, version?: string, only?: number): Promise<RenderedStarterDocx> {
+  return writeStarterDocx(run, { view, version, only, fonts: fonts(roots), picture: (svg, w, h) => wordPicture(svg, w, h, roots) });
 }

@@ -11,7 +11,10 @@
 .md-kit :is(.site-panel, .panel-card) h3 { margin: 4px 0 0; color: var(--md-ink-2); font: 600 var(--md-text-sm)/1.3 var(--md-font); }
 .md-kit :is(.site-panel, .panel-card) p { margin: 0; color: var(--md-ink-2); font-size: var(--md-text-xs); line-height: 1.4; }
 /* Paragraphs in a help block that opens have no card gap between them, so they bring their own. */
+.md-kit :is(.site-panel, .panel-card) :where(details) > :where(:not(summary)) { margin-top: 8px; }
 .md-kit :is(.site-panel, .panel-card) :where(details) > p { margin-top: 6px; }
+/* The name of a part that opens reads as something to press. It weighs nothing, so a tool's own summary keeps its look. */
+.md-kit :where(.site-panel, .panel-card) :where(summary) { color: var(--md-ink); font-weight: 500; cursor: pointer; }
 /* What went wrong is never a quiet note. */
 .md-kit :is(.site-panel, .panel-card) p[role="alert"] { color: var(--md-red); font-size: var(--md-text-sm); font-weight: 500; }
 /* Beside a label that takes two lines, a field keeps its height and sits level with its neighbour. */
@@ -47,7 +50,13 @@
   .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) { grid-template-columns: minmax(0, 1fr) clamp(600px, 33vw, 700px); }
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  /* A third group sits under the first. It holds a card that comes last in the settings (Printing)
+     but fits the shorter column, so the cards keep their order wherever there is one column. */
+  .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards:has(> div:nth-child(3)) { grid-template-rows: auto 1fr; }
+  .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div:nth-child(2):not(:last-child) { grid-area: 1 / 2 / span 2; }
+  .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div:nth-child(3) { grid-area: 2 / 1; }
   /* The diagram's card is narrower beside two columns, and the strip under it still keeps to one
-     row: the note shares the row, and a long hint takes two lines. */
-  .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) .editor-foot-note { flex-basis: 0; }
+     row: the note shares the row, and the message gives the hint 60 px of its room, so the longest
+     hint (122 characters, the Graph tool's) still takes two lines. */
+  .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) .editor-foot-note { flex-basis: 0; grid-template-columns: minmax(220px, 1fr) auto; }
 }

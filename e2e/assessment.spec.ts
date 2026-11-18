@@ -344,3 +344,61 @@ test("untaught topics are optional, preserve mark columns and invalidate generat
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("MM1_H");
   expect(await page.locator(".af-topic-exclusions input:checked").count()).toBe(0);
 });
+test("the page is on the house style: the shared margins, cards on the settings kit, and Generate after the two steps it needs", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/assessment-follow-up");
+  // The heading starts where every other page's does, and the cards take the width of the window.
+  expect((await page.getByRole("heading", { name: "Assessment follow-up", level: 1 }).boundingBox())!.x).toBeCloseTo(20, 0);
+  const [choose, marks, settings] = await Promise.all(["1. Choose assessment", "2. Paste marks", "Class settings"].map(async (name) => (await page.locator(".site-panel").filter({ has: page.getByRole("heading", { name, exact: true }) }).boundingBox())!));
+  expect(choose.x).toBeCloseTo(20, 0);
+  expect(settings.width).toBeCloseTo(316, 0);
+  expect(Math.round(settings.x + settings.width)).toBe(1900);
+  expect(marks.y).toBeGreaterThan(choose.y + choose.height);
+  // Generate comes after step 2, not above step 1, and is still the filled button.
+  await page.getByRole("button", { name: "Try example", exact: true }).click();
+  await expect(page.locator(".af-import-summary")).toContainText("columns matched");
+  const generate = page.getByRole("button", { name: "Generate class pack", exact: true });
+  await expect(generate).toBeEnabled();
+  const [after, button] = [(await page.locator(".site-panel").filter({ has: page.getByRole("heading", { name: "2. Paste marks", exact: true }) }).boundingBox())!, (await generate.boundingBox())!];
+  expect(button.y).toBeGreaterThan(after.y + after.height);
+  expect(button.y + button.height).toBeLessThan(1080);
+  expect(button.height).toBeCloseTo(38, 0);
+  const colours = () => generate.evaluate((b) => [getComputedStyle(b).backgroundColor, getComputedStyle(b).color]);
+  expect(await colours()).toEqual(["rgb(15, 98, 254)", "rgb(255, 255, 255)"]);
+  await generate.hover();
+  expect(await colours()).toEqual(["rgb(15, 98, 254)", "rgb(255, 255, 255)"]);
+  expect(await page.locator(".af-toolbar button").allTextContents()).toEqual(["Download class PDF", "Try example", "Reset and clear data"]);
+  // A button that is off is plain, not faded.
+  expect(await page.locator(".af-toolbar button").first().evaluate((b) => getComputedStyle(b).opacity)).toBe("1");
+  // In the cards: the kit's 32 px fields and buttons, 16 px ticks, and nothing cut off.
+  const sizes = await page.locator(".af-workspace").evaluate((el) => {
+    const seen = (selector: string) => [...el.querySelectorAll<HTMLElement>(selector)].filter((c) => c.getBoundingClientRect().height > 0);
+    const heights = (selector: string) => [...new Set(seen(selector).map((c) => c.getBoundingClientRect().height))];
+    return {
+      fields: heights(".site-panel :is(select, input:not([type=checkbox], [type=file]))"),
+      buttons: heights(".site-panel button"),
+      ticks: [...new Set(seen(".site-panel input[type=checkbox]").map((c) => c.getBoundingClientRect().width))],
+      cut: seen(".site-panel").filter((c) => c.scrollWidth > c.clientWidth + 1).length,
+      heading: getComputedStyle(el.querySelector(".site-panel h2")!).font,
+    };
+  });
+  expect([sizes.fields, sizes.buttons, sizes.ticks, sizes.cut]).toEqual([[32], [32], [16], 0]);
+  expect(sizes.heading).toContain("600 17px");
+
+  // On a phone every control is finger-sized, with the pack made and its parts open, and the page does not scroll
+  // sideways. The button that makes the pack takes the width of the page, as the bar's buttons do.
+  await generate.click();
+  await expect(page.getByRole("button", { name: "Download class PDF" }).first()).toBeEnabled({ timeout: 60000 });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("group", { name: "Student marks" }).getByText("Upload spreadsheet", { exact: true }).click();
+  await page.getByText("Jump to class page", { exact: true }).click();
+  await page.getByText("Student details", { exact: true }).click();
+  const small = await page.locator(".af-page").evaluate((el) =>
+    [...el.querySelectorAll<HTMLElement>("button, select, summary, input:not([type=checkbox]), label:has(> input[type=checkbox])")]
+      .filter((c) => c.getBoundingClientRect().height > 0 && c.getBoundingClientRect().height < 44)
+      .map((c) => c.textContent || c.getAttribute("aria-label") || c.getAttribute("type")),
+  );
+  expect(small).toEqual([]);
+  expect((await generate.boundingBox())!.width).toBeGreaterThan(300);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
