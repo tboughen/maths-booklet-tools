@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { A4, BADGE_HEAD, BANNER, BOOKEND, cornerBadge, didYouKnowBox, planBooklet, renderBooklet, sectionStages, stageSquares, unitLabel } from "./booklet-render";
+import { A4, BADGE_HEAD, BANNER, BOOKEND, cornerBadge, DID_YOU_KNOW, didYouKnowBox, planBooklet, renderBooklet, sectionStages, stageSquares, unitLabel } from "./booklet-render";
 import { styles } from "./style";
 import { writeBookletDocx } from "./booklet-docx";
 
@@ -144,33 +144,38 @@ describe("booklet lesson bookends", () => {
 describe("booklet Did you know bubble", () => {
   const fact = "Doctors use frequency polygons to compare how fast children grow.";
 
-  it("prints a small bubble on the lesson's first side only, under the start block", () => {
+  it("prints the notification box on the lesson's first side only, under the start block", () => {
     const pages = renderBooklet(booklet(cycles, { didYouKnow: fact })).pages;
     // pages[0] is the cover; the lesson opens on pages[1].
-    expect(pages[1]).toContain(">Did<");
+    expect(pages[1]).toContain(">DID YOU KNOW?<");
+    expect(pages[1]).toContain(`stroke="${DID_YOU_KNOW.edgeColour}"`);
     expect(pages[1]).toContain("Doctors use frequency polygons");
     for (const p of [pages[0], ...pages.slice(2)]) expect(p).not.toContain("Doctors use");
-    expect(renderBooklet(booklet(cycles)).pages[1]).not.toContain(">Did<");
+    expect(renderBooklet(booklet(cycles)).pages[1]).not.toContain("DID YOU KNOW?");
     // A character the font lacks is reported, as in the key idea.
     expect(renderBooklet(booklet(cycles, { didYouKnow: "Ω test" })).issues.length).toBeGreaterThan(0);
   });
 
-  it("hugs a short fact and stays within the text width for a long one", () => {
+  it("grows by one line for each line of the fact", () => {
     const short = didYouKnowBox("Bees use hexagons.");
     const long = didYouKnowBox("x ".repeat(78));
     expect(short.lines).toBe(1);
-    expect(short.w).toBeLessThan(100);
-    expect(long.w).toBeLessThanOrEqual(A4.page.width - 2 * A4.marginX + 1e-6);
+    expect(long.lines).toBe(2);
+    expect(long.h - short.h).toBeCloseTo(DID_YOU_KNOW.size * 1.4, 3);
+    expect(short.total - short.h).toBeCloseTo(DID_YOU_KNOW.drop, 6);
   });
 
   it("costs page 1 only the bubble's height, and Word draws it too", async () => {
     const plain = planBooklet(booklet(cycles)).pages[0];
     const withFact = planBooklet(booklet(cycles, { didYouKnow: fact })).pages[0];
     const head = (p: typeof plain) => p.blocks.find((b) => b.kind === "head")?.h ?? 0;
-    expect(head(withFact) - head(plain)).toBeCloseTo(2.5 + didYouKnowBox(fact).h, 3);
+    expect(head(withFact) - head(plain)).toBeCloseTo(DID_YOU_KNOW.gap + didYouKnowBox(fact).total, 3);
     const { bytes } = await writeBookletDocx(booklet(cycles, { didYouKnow: fact }), { view: "pupil", fonts: { regular: new Uint8Array(8), semiBold: new Uint8Array(8), italic: new Uint8Array(8) }, picture: (s) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) });
-    const body = strFromU8(unzipSync(bytes)["word/document.xml"]);
-    expect(body).toContain("Did you know?");
+    const files = unzipSync(bytes);
+    const body = strFromU8(files["word/document.xml"]);
+    expect(body).toContain(">DID YOU KNOW?<");
+    expect(body).toContain('w:color="9AA9C0"');
+    expect(body).toContain("<w:drawing>");
     expect(body).toContain("Doctors use frequency polygons");
   });
 });

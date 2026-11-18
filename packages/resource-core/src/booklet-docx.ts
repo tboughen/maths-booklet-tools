@@ -1,10 +1,11 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTINUED_HEAD, DID_YOU_KNOW, didYouKnowBox, didYouKnowText, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTINUED_HEAD, DID_YOU_KNOW, didYouKnowBox, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
   cardCell,
   cell,
+  drawing,
   END_MM,
   gap,
   LAST_PARAGRAPH,
@@ -138,7 +139,8 @@ function linesTile(lines: { text: string; size: number; color: string; line?: nu
 }
 
 /** The lesson's start block (N11) and key idea; the same geometry as the SVG lessonHead. */
-function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st: HouseStyle): { xml: string; h: number } {
+function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ctx: Ctx): { xml: string; h: number } {
+  const st = ctx.st;
   const B = BOOKEND;
   const h = startBlockHeight(doc, lesson);
   const tw_ = startTextWidth();
@@ -164,13 +166,24 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
     y += 3 + box.h;
   }
   if (lesson.didYouKnow.trim()) {
-    // The "Did you know?" bubble (N12): a tinted cell as wide as the SVG bubble, its height exact.
+    // The "Did you know?" box (N12, option H): a bordered cell of exact height, the icon as a small
+    // picture beside the label, the fact under them, and the pale drop line as a thin shaded row.
+    // Word prints top and bottom borders outside the row height (probe P1), so the row is two edges
+    // shorter and one edge narrower; Word's corners are square where the SVG's are rounded.
     const D = DID_YOU_KNOW;
     const b = didYouKnowBox(lesson.didYouKnow);
-    const content = textPara(didYouKnowText(lesson.didYouKnow), D.size, {});
+    const s = D.icon;
+    const icon = drawing({ svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}mm" height="${s}mm" viewBox="0 0 ${s} ${s}" role="img" aria-label="Lightbulb">${didYouKnowIcon(s, st.navy)}</svg>`, widthMm: s, heightMm: s }, s, 0, ctx);
+    const iconRun = icon.match(/<w:r><w:drawing>[\s\S]*?<\/w:drawing><\/w:r>/)?.[0] ?? "";
+    const label = para(iconRun + run("  ", { sizeMm: pt(6) }) + run(D.label, { bold: true, color: st.navy, sizeMm: D.size, spacingMm: D.tracking }), { line: D.labelLine });
+    const edge = { color: D.edgeColour, width: D.edge };
+    const content = gap(D.padTop - D.edge) + label + textPara(lesson.didYouKnow.trim(), D.size, {});
     out.push(gap(D.gap));
-    out.push(table([b.w], [row([cell(content, { width: b.w, shade: st.tint, vAlign: "center", margin: { top: 0, left: D.padX, bottom: 0, right: D.padX - WORD_WRAP_SLACK_MM } })], { mm: b.h, exact: true })]));
-    y += D.gap + b.h;
+    out.push(
+      table([W - D.edge], [row([cell(content, { width: W - D.edge, borders: { top: edge, left: edge, bottom: edge, right: edge }, margin: { top: 0, left: D.padX - D.edge, bottom: 0, right: D.padX - D.edge - WORD_WRAP_SLACK_MM } })], { mm: b.h - 2 * D.edge, exact: true })]),
+    );
+    out.push(ruleTable(W, D.drop, st.tint));
+    y += D.gap + b.total;
   }
   return { xml: out.join(""), h: y };
 }
@@ -248,7 +261,7 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
     const space = block.y - cursor;
     if (space > 0.005) out.push(gap(space));
     if (block.kind === "head") {
-      const head = lessonHead(doc, lesson, shownLesson, st);
+      const head = lessonHead(doc, lesson, shownLesson, ctx);
       out.push(head.xml);
       cursor = block.y + head.h;
       continue;

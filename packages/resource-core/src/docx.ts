@@ -111,6 +111,8 @@ export interface RunStyle {
   shade?: string;
   border?: string;
   underline?: boolean;
+  /** Extra space between letters, in millimetres (small capitals labels). */
+  spacingMm?: number;
 }
 function rPr(o: RunStyle): string {
   const font = o.bold ? FONT_BOLD : FONT;
@@ -118,6 +120,7 @@ function rPr(o: RunStyle): string {
   if (o.bold) p.push(`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}" w:eastAsia="${font}"/>`);
   if (o.italic) p.push("<w:i/><w:iCs/>");
   if (o.color) p.push(`<w:color w:val="${hex(o.color)}"/>`);
+  if (o.spacingMm) p.push(`<w:spacing w:val="${Math.round(o.spacingMm * 56.693)}"/>`);
   if (o.sizeMm !== undefined) p.push(`<w:sz w:val="${hp(o.sizeMm)}"/><w:szCs w:val="${hp(o.sizeMm)}"/>`);
   if (o.underline) p.push(`<w:u w:val="single" w:color="${hex(o.color ?? "#000000")}"/>`);
   if (o.border) p.push(`<w:bdr w:val="single" w:sz="${b8(0.3)}" w:space="0" w:color="${hex(o.border)}"/>`);
