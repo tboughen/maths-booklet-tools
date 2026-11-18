@@ -52,21 +52,12 @@
 .vn-selected {
   outline: 1px dashed #517a9e;
 }
-.vn-structure,
-.vn-files,
-.vn-downloads {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  padding: 10px 12px;
-  font-size: 12px;
-}
+/* Edit or Shade sits beside the number of sets, level with its field. */
 .vn-structure {
-  font-size: var(--button-label, 14px);
-  background: var(--blue-soft);
-  justify-content: space-between;
-  padding-bottom: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
 }
 .vn-editor button,
 .vn-editor input,
@@ -77,7 +68,7 @@
 .vn-floating select {
   font: inherit;
 }
-.vn-editor select,
+.vn-editor select:where(:not(.md-kit *)),
 .vn-floating select,
 .vn-floating input {
   background: white;
@@ -88,10 +79,6 @@
   min-width: 0;
   color: var(--ink, #213c59);
 }
-.vn-files button,
-.vn-downloads button,
-.vn-structure button,
-.vn-inspector button,
 .vn-recovery button,
 .vn-floating button {
   border: 1px solid var(--line-strong, #becbd8);
@@ -101,48 +88,23 @@
   min-height: 38px;
   color: var(--ink, #213c59);
 }
-.vn-structure button {
-  min-height: 44px;
-  box-shadow: 0 2px 2px #15335118;
-}
 .vn-mode-switch {
-  display: inline-flex;
-  gap: 3px;
-}
-.vn-mode-switch button[aria-pressed="true"] {
-  background: #e2efff;
-  border-color: #386ba5;
-}
-.vn-structure label {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  gap: 6px;
 }
+/* Three choices in a row, each a picture over its name. */
 .vn-arrangements {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  padding: 12px;
-  background: var(--blue-soft);
 }
-.vn-arrangements button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
+.vn-editor .md-kit .vn-arrangements button {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
   min-width: 0;
-  min-height: 54px;
-  padding: 5px;
-  border: 1px solid #becbd8;
-  border-radius: 5px;
-  background: white;
-  font-size: var(--button-label, 14px);
-  color: var(--ink);
-}
-.vn-arrangements button[aria-pressed="true"] {
-  background: #e2efff;
-  border-color: #386ba5;
+  padding: 6px 4px;
 }
 .vn-arrangements svg {
   width: 48px;
@@ -157,53 +119,43 @@
   font-size: 10px;
   text-anchor: middle;
 }
-.vn-view-note {
-  margin: 0;
-  padding: 8px 12px;
-  font-size: 14px;
-  color: var(--muted);
-  background: var(--blue-soft);
-}
-.vn-inspector h2 {
-  font-size: 17px;
-  margin: 16px 0 10px;
-}
-.vn-inspector h3 {
-  font-size: 14px;
-  margin: 14px 0 7px;
-}
-.vn-inspector label,
 .vn-floating label {
   display: grid;
   gap: 5px;
   margin: 10px 0;
   font-size: var(--button-label, 14px);
 }
-.vn-inspector .vn-check {
-  display: flex;
-  align-items: center;
+.vn-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
-.vn-inspector button[aria-pressed="true"] {
-  background: #e2efff;
-  border-color: #386ba5;
+.vn-regions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
 }
+/* A row names its part on the left and says what it holds on the right. Long contents drop to a second line. */
 .vn-label-row button,
 .vn-regions button,
 .vn-definition {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: space-between;
+  gap: 0 10px;
   width: 100%;
   text-align: left;
-  margin: 4px 0;
   overflow-wrap: anywhere;
 }
 .vn-label-row small,
 .vn-regions small {
-  display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 3px;
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  font-weight: 400;
 }
-.vn-note,
-.vn-example p {
+.vn-note {
   font-size: 12px;
   line-height: 1.5;
   color: var(--muted, #526377);
@@ -219,33 +171,6 @@
   color: #a32232;
   font-size: 13px;
   line-height: 1.4;
-}
-.vn-editor details summary {
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 8px 0;
-}
-.vn-example {
-  border-top: 1px solid var(--line);
-  padding: 5px 0 15px;
-}
-.vn-example h4 {
-  font-size: 14px;
-  margin: 12px 0 7px;
-}
-.vn-example div {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.vn-example button,
-.vn-example a {
-  font-size: 12px;
-}
-.vn-example a {
-  display: inline-block;
-  margin-top: 10px;
 }
 .vn-floating {
   position: fixed;

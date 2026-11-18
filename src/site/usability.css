@@ -401,9 +401,6 @@
   height: clamp(240px, calc(100dvh - 600px), 360px);
   min-height: 240px;
 }
-.booklet-editor .nl-inspector .panel-card {
-  gap: 8px;
-}
 
 /* Keep the shared row horizontal when Algebra wraps on a phone. A flex basis
    for readout width must never become an artificial vertical spacer. */

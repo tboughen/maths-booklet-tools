@@ -54,6 +54,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
+import "../site/settings-kit.css";
 import { nearestTick, TAP_REACH } from "./hitTest";
 import { handleUndoKeys, objectKeyCommand, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
@@ -1092,10 +1093,12 @@ export default function NumberLinePage({
             )}
           </Panel>
           <aside
-            className="inspector-stack nl-inspector"
+            className="inspector-stack nl-inspector md-kit"
             aria-label="Number line settings"
           >
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             {/* Always mounted, so the cards below stay put as the selection comes and goes (U21). */}
             <section
               className="panel-card nl-context"
@@ -1279,13 +1282,13 @@ export default function NumberLinePage({
               ) : (
                 <>
                   <h2>Selected item</h2>
-                  <p className="nl-note">Select a tick, point or line to edit it here.</p>
+                  <p>Select a tick, point or line to edit it here.</p>
                 </>
               )}
             </section>
             <section className="panel-card">
               <h2>Draw</h2>
-              <div className="nl-actions nl-draw-actions">
+              <div className="nl-draw-actions">
                 <button
                   aria-pressed={mode === "point"}
                   disabled={blocked}
@@ -1369,6 +1372,8 @@ export default function NumberLinePage({
                 {field("Tick step", d.axis.step, (v) => axis("step", v))}
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card" aria-label="Second scale">
               <h2>Second scale</h2>
               {d.secondary ? (
@@ -1423,7 +1428,7 @@ export default function NumberLinePage({
                       ) : null,
                     )}
                   </div>
-                  <p className="nl-note">
+                  <p>
                     Labels print above the line, one per tick. An answer line is left for pupils and its value shows only on the
                     teacher copy.
                   </p>
@@ -1433,7 +1438,7 @@ export default function NumberLinePage({
                 </div>
               ) : (
                 <div className="nl-settings-body">
-                  <p className="nl-note">
+                  <p>
                     Pair every tick with a second scale above the line, such as percentages or money, as a double number line
                     or a percentage bar.
                   </p>
@@ -1450,11 +1455,14 @@ export default function NumberLinePage({
                   >
                     Add a second scale
                   </button>
-                  {s && <p className="nl-note">Remove the drawn inequality or points first: a second scale uses the space above the line.</p>}
+                  {s && <p>Remove the drawn inequality or points first: a second scale uses the space above the line.</p>}
                 </div>
               )}
             </section>
-            <section className="panel-card nl-compact-card">
+            </div>
+            {/* Last in the settings, and under the first column where there are two: the second scale can be long. */}
+            <div>
+            <section className="panel-card">
               <details onToggle={keepDraftVisible}>
                 <summary>More settings</summary>
                 <div className="nl-settings-body">
@@ -1788,6 +1796,8 @@ export default function NumberLinePage({
                 </div>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         <input

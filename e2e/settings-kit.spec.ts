@@ -361,6 +361,136 @@ test("Expanding and factorising uses the kit: the task on the left, the print si
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("Venn diagrams uses the kit: the diagram and its print size on the left, the regions on the right, all in view", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/venn");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const [tools, diagram, regions, size] = [await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Region contents"), await chartCard(page, "Print size")];
+  expect(regions.y).toBe(tools.y);
+  expect(regions.x).toBeGreaterThanOrEqual(tools.x + tools.width);
+  expect(Math.abs(regions.width - tools.width)).toBeLessThanOrEqual(1);
+  expect([diagram.x, size.x]).toEqual([tools.x, tools.x]);
+  expect(diagram.y).toBeGreaterThan(tools.y + tools.height);
+  expect(size.y).toBeGreaterThan(diagram.y + diagram.height);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // Edit or Shade sits beside the number of sets, level with its field.
+  const shade = (await page.getByRole("button", { name: "Shade", exact: true }).boundingBox())!, sets = (await page.getByLabel("Number of sets", { exact: true }).boundingBox())!;
+  expect(Math.abs(shade.y + shade.height - (sets.y + sets.height))).toBeLessThanOrEqual(1);
+  expect(sets.x).toBeGreaterThan(shade.x + shade.width);
+
+  // The three arrangements are choices in one row, each a picture over its name, and the one that is on is marked.
+  const choices = page.locator(".md-kit .vn-arrangements button");
+  const names = (await choices.allTextContents()) as string[];
+  expect(names.map((n) => n.replace(/^[AB]+/, ""))).toEqual(["Overlap", "Separate", "Nested"]);
+  const rows = await choices.evaluateAll((all) => all.map((b) => b.getBoundingClientRect().y));
+  expect(new Set(rows).size).toBe(1);
+  await expect(choices.nth(0)).toHaveAttribute("aria-pressed", "true");
+  expect(await choices.nth(0).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
+  expect(await choices.nth(1).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
+
+  // A region's row is one line: its name on the left, what it holds on the right.
+  const row = page.locator(".md-kit .vn-regions button").first();
+  const [rowBox, held] = [(await row.boundingBox())!, (await row.locator("small").boundingBox())!];
+  expect(rowBox.height).toBe(32);
+  expect(held.x + held.width).toBeGreaterThan(rowBox.x + rowBox.width - 14);
+
+  // With the labels open and three sets, every control keeps the kit's size and the settings are still all in view.
+  // They were 1,060 px long in a 967 px column before the kit, with the labels closed.
+  await page.getByLabel("Number of sets", { exact: true }).selectOption("3");
+  const labels = page.locator(".md-kit .panel-card details").filter({ hasText: "Labels and definitions" });
+  expect(await labels.locator("summary").evaluate((el) => [getComputedStyle(el).cursor, getComputedStyle(el).fontWeight])).toEqual(["pointer", "500"]);
+  await labels.locator("summary").click();
+  expect(await kitSizes(page, names)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  await page.getByLabel("Number of sets", { exact: true }).selectOption("2");
+
+  // The help closes the right column's card, Region contents or Region shading, and stays open from one to the other.
+  const help = page.locator(".md-kit .panel-card details").filter({ hasText: "Editing and printing help" });
+  await help.locator("summary").click();
+  expect(await help.locator("p").evaluateAll((all) => all.map((p) => getComputedStyle(p).marginTop))).toEqual(["6px", "6px"]);
+  const open = await chartCard(page, "Region contents");
+  expect((await help.boundingBox())!.y + (await help.boundingBox())!.height).toBeLessThanOrEqual(open.y + open.height);
+  await page.getByRole("button", { name: "Shade", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Print size", exact: true })).toHaveCount(0);
+  const shading = await chartCard(page, "Region shading");
+  expect([shading.x, shading.y]).toEqual([regions.x, regions.y]);
+  await expect(page.locator(".md-kit .panel-card").filter({ hasText: "Region shading" }).locator("details[open]")).toContainText("Editing and printing help");
+  expect(await kitSizes(page, names)).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(help).toHaveAttribute("open", "");
+
+  // One column in a smaller window, in the order the Tab key takes them at any size.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = [await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Print size"), await chartCard(page, "Region contents")];
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+
+  // Finger-sized controls on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("Number lines uses the kit: drawing and the scale on the left with More settings under them, the second scale on the right", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/number-line");
+  const stack = page.locator(".inspector-stack.md-kit");
+  await expect(stack).toBeVisible();
+  const more = page.locator(".md-kit .panel-card").filter({ hasText: "More settings" });
+  const cards = async () => [await chartCard(page, "Selected item"), await chartCard(page, "Draw"), await chartCard(page, "Scale"), (await more.boundingBox())!, await chartCard(page, "Second scale")];
+  const [selected, draw, scale, moreBox, second] = await cards();
+  expect(second.y).toBe(selected.y);
+  expect(second.x).toBeGreaterThanOrEqual(selected.x + selected.width);
+  expect(Math.abs(second.width - selected.width)).toBeLessThanOrEqual(1);
+  expect([draw.x, scale.x, moreBox.x]).toEqual([selected.x, selected.x, selected.x]);
+  expect([selected.y, draw.y, scale.y, moreBox.y]).toEqual([selected.y, draw.y, scale.y, moreBox.y].sort((a, b) => a - b));
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+
+  // The three ways to draw share a row, and the one that is on is marked as the kit marks a choice.
+  const point = page.getByRole("button", { name: "Point", exact: true });
+  expect(await page.locator(".md-kit .nl-draw-actions button").evaluateAll((all) => new Set(all.map((b) => b.getBoundingClientRect().y)).size)).toBe(1);
+  await point.click();
+  await expect(point).toHaveAttribute("aria-pressed", "true");
+  expect(await point.evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color])).toEqual(["rgb(230, 239, 255)", "rgb(20, 38, 61)"]);
+  await point.click();
+
+  // A field that shows what is wrong under it stays level with the fields beside it.
+  const step = page.getByLabel("Tick step", { exact: true });
+  await step.fill("0");
+  await step.press("Enter");
+  await expect(page.locator(".md-kit .nl-scale-fields [role=alert]")).toBeVisible();
+  expect((await step.boundingBox())!.y).toBe((await page.getByLabel("First tick", { exact: true }).boundingBox())!.y);
+  await step.press("Escape");
+  await expect(page.locator(".md-kit .nl-scale-fields [role=alert]")).toHaveCount(0);
+
+  // A second scale with eleven ticks is the long card. It has the right column to itself, so it is still all in view.
+  await page.getByRole("button", { name: "Add a second scale", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Remove second scale", exact: true })).toBeVisible();
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+
+  // Every part that opens is a row as tall as a control, and what is in it keeps the kit's sizes.
+  await stack.evaluate((el) => el.querySelectorAll("details").forEach((d) => { d.open = true; }));
+  expect(await stack.evaluate((el) => [...new Set([...el.querySelectorAll("summary")].map((s) => s.getBoundingClientRect().height))])).toEqual([32]);
+  expect(await more.locator("summary").first().evaluate((el) => [getComputedStyle(el).cursor, getComputedStyle(el).fontWeight])).toEqual(["pointer", "500"]);
+  expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
+
+  // One column in a smaller window, in the same order, with More settings last.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const column = await cards();
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  const order = [column[0], column[1], column[2], column[4], column[3]].map((c) => c.y);
+  expect(order).toEqual([...order].sort((a, b) => a - b));
+
+  // Finger-sized controls and rows on a phone, and the page is no wider than the window.
+  await page.setViewportSize({ width: 375, height: 800 });
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await stack.evaluate((el) => [...new Set([...el.querySelectorAll("summary")].map((s) => s.getBoundingClientRect().height))])).toEqual([44]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 // The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
 // diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
 // settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or
