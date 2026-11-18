@@ -54,9 +54,11 @@ and the maths actions that general icon sets lack.
 
 ## App bar (in the site)
 
-One navy bar, 44 px high, on every page: the logo, then the six pages. The current page is white
-with a white underline. Below about 1,055 px the links lose their icons, below about 900 px they
-fold onto a second line, and on a phone they sit behind the Menu button.
+One navy bar, 44 px high, on every page: the logo, then the seven pages. The current page is white
+with a white underline. Up to 1,200 px wide the links lose their icons (seven names with icons
+need about 1,185 px, and an upright monitor is 1,080 px wide), below about 1,010 px they fold
+onto a second line, and on a phone they sit behind the Menu button. A page added to the bar needs
+this width checked again: `editor-frame.spec.ts` fails if a 1,080 px window scrolls sideways.
 
 ## Moving between tools (in the site)
 
@@ -232,7 +234,7 @@ A tool passes its switch to `EditorToolbar` as `answers`.
 Home is the start page (`src/site/Home.tsx`, styled by `home.css`). Its code loads when Home is
 the page opened, like every other page, so a tool's first load does not carry it. From the top:
 
-- **"What do you need today?"** and one search box. It finds the six pages by name or by what
+- **"What do you need today?"** and one search box. It finds the pages by name or by what
   they do, and diagram tools by name or teaching topic (`searchHome` in `homeSearch.ts`, using
   the Diagram builder's search words). A Sparx code, a letter and three digits, is offered
   as a link to that code in the Question bank; Home cannot tell whether the code has questions. `/` moves to the box, Down moves into what it found, Enter
@@ -247,8 +249,9 @@ the page opened, like every other page, so a tool's first load does not carry it
   what the row said before. The Question bank records the paper being built when the teacher
   changes its codes or questions, not when a newer catalogue reconciles it, and drops it when
   the paper is cleared.
-- **Tools.** One card for each of the six pages: a large icon, the name and what it does. Six to
-  a row from 1,400 px wide, then three, two and one.
+- **Tools.** One card for each of the seven pages: a large icon, the name and what it does. Seven
+  to a row from 1,400 px wide, then four (four and three), three, two and one, in rows of equal
+  height.
 - **Favourites.** The teacher's starred diagram tools as small picture cards. Stars are added in
   the Diagram builder and the tool switcher.
 
@@ -318,9 +321,9 @@ and Factor trees the next three, Plans and elevations the sixth, then Two-way ta
 space diagrams and Spinners, dice and bags, then Algebra tiles, Bubble method, Function
 machines and Written methods, then Angle diagrams, Area and perimeter and Geometry figures, and
 then Constructions and loci, Nets of 3D shapes and 3D solids. The older tools, with settings
-classes of their own, follow: Expanding and factorising, then Venn diagrams and Number lines.
-The rest move over a few at a time, and each one drops its own button and field styles as it
-does.
+classes of their own, follow: Expanding and factorising, then Venn diagrams and Number lines,
+then Cuboids. The rest move over a few at a time, and each one drops its own button and field
+styles as it does.
 
 - The kit changes how the settings look, never what they do. Every control keeps its name, its
   behaviour and its place in its card, so saved work, links and tests are untouched. A whole card
@@ -468,5 +471,15 @@ does.
   kit's field and buttons. The tool's own rules for cards, labels, fields, buttons and notes are
   gone, with `nl-compact-card`, `nl-actions` and `nl-note`. A field keeps its place at the top of
   its label (`nl-field`), so three fields in a row stay level when one shows what is wrong.
+- **Cuboids.** Shape is the left column, and Labels, Shading and Print settings the right. A
+  click on a label or a face still brings its card to the top: the top of the left column, where
+  the other tools show what is selected, and Shape goes to the right. With more than one cuboid,
+  the list that picks one runs across both columns, over the cards. The cards share one parent
+  and are placed by `cuboid.css` (the card on top takes the left column), so a card is never
+  rebuilt when it changes column and keeps its open parts and anything typed in it.
+  The list of units and the list of views each share a row with the tick or button that goes
+  with them, and the two lists of the Labels card share a row. The tool's own card, label, field
+  and button rules are gone, with `cb-settings`, `cb-action`, `cb-quick-cubes` and `cb-note` in
+  the settings; `cb-field` keeps its look in the box that opens on a label.
 - The diagram's own buttons ("+ Section", "− Section") are not settings and keep their 44 px.
 - Tests: `e2e/settings-kit.spec.ts`.

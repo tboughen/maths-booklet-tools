@@ -13,7 +13,7 @@ function icon(drawing: ReactNode): MathsDockIcon {
   };
 }
 
-// The six pages
+// The pages
 /** Question bank */
 export const QuestionBankIcon = icon(<><rect x="3" y="7" width="14" height="14" rx="2" /><path d="M7 3h12a2 2 0 0 1 2 2v12" /><path className="md-icon-part" d="M8 11.7a2.1 2.1 0 1 1 3.2 1.8c-.7.45-1.2.9-1.2 1.7" /><path className="md-icon-part" d="M10 17.6h.01" /></>);
 /** Paper builder */
