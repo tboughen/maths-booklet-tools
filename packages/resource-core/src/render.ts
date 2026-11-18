@@ -48,6 +48,8 @@ export interface Ctx<W extends object = { side: number; column: number; question
   inline?: Map<string, Issue>;
   /** Parts print i), ii)…: set while drawing a lettered booklet question, so no label mixes a letter and a number (N1). */
   romanParts?: boolean;
+  /** The message for a diagram wider than its room, when the worksheet's advice does not apply (silent starter slots). */
+  tooWide?: (tool: string, width: number, room: number) => string;
 }
 
 const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
@@ -201,7 +203,7 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   if (!(width > 0 && height > 0)) return brokenDiagram("A diagram did not report its physical size.", w, ctx);
   // A diagram may use the card's padding, but is never shrunk to fit.
   const room = w + 2 * (S.cardPad - 0.6);
-  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room, drawn.artworkWidthMm <= room + 0.01));
+  if (width > room + 0.01) issue(ctx, ctx.tooWide?.(d.tool, width, room) ?? tooWideMessage(d.tool, width, room, drawn.artworkWidthMm <= room + 0.01));
   const k = `d${++ctx.diagrams}-`;
   svg = svg
     .replace(/ id="/g, ` id="${k}`)
@@ -452,7 +454,8 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
   }
 }
 
-function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
+/** A card's items laid out in a column `w` wide, without the card frame (silent starters draw their own slots). */
+export function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
   const frags: Frag[] = [];
   let part = 0;
   for (let i = 0; i < list.length; i++) {
