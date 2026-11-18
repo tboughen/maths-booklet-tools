@@ -7,12 +7,8 @@ of question in every starter, and only its numbers or difficulty move a little f
 the next (Tim, 18 November 2026). Design page with mock-ups:
 https://claude.ai/artifact/Fp4FYqJk7zQaxxUEoxS5ZZ
 
-<<<<<<< HEAD
 Code: `packages/resource-core/src/starter.ts` (the file format), `starter-render.ts` (layout and
 PDF pages) and `starter-docx.ts` (Word).
-=======
-Code: `packages/resource-core/src/starter.ts` (the file format) and `starter-render.ts` (layout).
->>>>>>> origin/claude/project-thread-ozwhjd
 
 ## Decisions
 
@@ -58,7 +54,6 @@ answer lines, tables, choices, spaces and any MathsDock diagram).
   tool, for example, can draw a shape at any size while its labels stay at full size.
 - File names: `[title]_Silent-starters.pdf`, `..._Answers.pdf`; one starter adds `_[n]`.
 
-<<<<<<< HEAD
 ## Word
 
 `writeStarterDocx` writes one A4 portrait page per starter (or one starter with `only`), with two
@@ -72,10 +67,5 @@ PDF layout's problems are reported with the Word file. The service helper is `st
 ## Still to build
 
 The page (run grid of slots by starters, cell editor, copy along a row, undo); the
-=======
-## Still to build
-
-Word output; the page (run grid of slots by starters, cell editor, copy along a row, undo); the
->>>>>>> origin/claude/project-thread-ozwhjd
 board view and slides; a connector tool to draft a run; optional AI suggestions for a row's
 numbers. Each is its own small pull request.
