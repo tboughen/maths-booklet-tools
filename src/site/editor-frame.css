@@ -41,6 +41,6 @@
   .site-app .site-page--tool .booklet-editor .inspector-stack { display: block; flex: none; column-count: 3; column-gap: 12px; max-height: none; overflow: visible; padding: 0; isolation: isolate; }
   /* In the Graph tool the cards sit inside groups that have no box of their own. */
   .site-app .site-page--tool .booklet-editor .inspector-stack > *,
-  .site-app .site-page--tool .booklet-editor .inspector-stack > .graph-control-group > *,
+  .site-app .site-page--tool .booklet-editor .inspector-stack > .md-kit-cards > * > .graph-control-group > *,
   .site-app .site-page--tool .booklet-editor .inspector-stack > .md-kit-cards > * > * { break-inside: avoid; margin: 0 0 12px; }
 }

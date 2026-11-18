@@ -171,7 +171,7 @@ const tall = (page: Page) =>
     // In some tools the cards sit inside groups that have no box of their own (the settings kit
     // has two, one inside the other). The jump back to the diagram is out of sight until the
     // keyboard reaches it.
-    const cards = [...settings.querySelectorAll(":scope > *, :scope > :is(.graph-control-group, .ratio-settings) > *, :scope > .md-kit-cards > * > *")].filter((el) => el.getClientRects().length && !el.matches(".editor-diagram-link"));
+    const cards = [...settings.querySelectorAll(":scope > *, :scope > .md-kit-cards > * > .graph-control-group > *, :scope > .md-kit-cards > * > *")].filter((el) => el.getClientRects().length && !el.matches(".editor-diagram-link"));
     return {
       page: [document.documentElement.scrollWidth, document.documentElement.scrollHeight],
       card: { top: card.top, bottom: card.bottom, width: card.width, height: card.height },
@@ -290,5 +290,6 @@ for (const [width, height, why] of [[1920, 1080, "wide"], [900, 1600, "tall but 
     const at = await tall(page);
     expect(at.settings.left).toBeGreaterThanOrEqual(at.card.width);
     expect(at.settings.top).toBeLessThan(at.card.bottom);
-    expect(at.columns).toBe(1);
+    // Two columns of settings where the settings kit has the room for them, one elsewhere.
+    expect(at.columns).toBe(width >= 1800 ? 2 : 1);
   });

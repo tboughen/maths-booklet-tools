@@ -416,8 +416,7 @@
     [aria-selected="true"],
     [aria-checked="true"],
     .active,
-    .selected,
-    .tool-button--active
+    .selected
   ) {
     forced-color-adjust: none;
     background-color: SelectedItem !important;
@@ -436,8 +435,7 @@
       [aria-selected="true"],
       [aria-checked="true"],
       .active,
-      .selected,
-      .tool-button--active
+      .selected
     )
     * {
     color: inherit !important;
