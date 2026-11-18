@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "./release-fixtures";
+import { comparativeBarCharts } from "../packages/resource-core/src/fixtures";
 
 // The settings kit (docs/tools/APP-HOUSE-STYLE.md, "The settings kit"), on Bar modelling, Statistical charts, the tree tools, Plans and elevations
 // and the other tools that share the tree tools' settings classes.
@@ -1063,3 +1064,128 @@ test("Constructions and loci: a line's label shares its row, and the selected po
   const card = await chartCard(page, "Ruler and compass constructions");
   expect((await kind.boundingBox())!.width).toBeGreaterThan(card.width - 40);
 });
+
+// The three builders are on the kit too, in one narrow column, because the sheet beside it is the content.
+const BUILDERS: [string, string, string][] = [
+  ["/worksheets", "Worksheet settings", "details.ws-card"],
+  ["/booklets", "Booklet settings", "details.bk-lesson"],
+  ["/starters", "Starter settings", "details.ws-card"],
+];
+// What is in view in a builder's settings: the heights of its buttons and fields, its ticks, the look of a box of
+// several lines beside the look of a field, the arrows that move a question, and the columns the cards make.
+const builderSizes = (page: Page) =>
+  page.locator(".inspector-stack.md-kit").evaluate((el) => {
+    const seen = (selector: string) => [...el.querySelectorAll<HTMLElement>(selector)].filter((c) => c.getBoundingClientRect().height > 0);
+    const heights = (selector: string) => [...new Set(seen(selector).map((c) => c.getBoundingClientRect().height))];
+    const look = (c: HTMLElement) => {
+      const style = getComputedStyle(c);
+      return `${style.fontSize} ${style.fontFamily} ${style.borderTopColor} ${style.borderRadius} ${style.paddingLeft}`;
+    };
+    return {
+      buttons: heights(".panel-card button"),
+      fields: heights(".panel-card :is(select, input:not([type=checkbox], [type=file]))"),
+      ticks: [...new Set(seen(".panel-card input[type=checkbox]").map((c) => c.getBoundingClientRect().width))],
+      boxes: [...new Set(seen(".panel-card textarea").map(look))],
+      field: look(seen('.panel-card input:not([type=checkbox], [type=file], [type=number])')[0]),
+      arrows: [...new Set(seen(".panel-card .icon-button").map((c) => `${c.getBoundingClientRect().width} x ${c.getBoundingClientRect().height}`))],
+      faded: seen(".panel-card button:disabled").filter((b) => getComputedStyle(b).opacity !== "1").length,
+      cut: seen(".panel-card").filter((c) => c.scrollWidth > c.clientWidth + 1).length,
+      heading: getComputedStyle(el.querySelector(".panel-card h2")!).font,
+      columns: [...new Set(seen(".panel-card").map((c) => c.getBoundingClientRect().x))].length,
+      width: el.getBoundingClientRect().width,
+    };
+  });
+
+test("the Worksheet, Booklet and Starter builders use the kit in one narrow column beside the sheet", async ({ page }) => {
+  for (const [path, name, opens] of BUILDERS) {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(path);
+    const stack = page.locator(".inspector-stack.md-kit");
+    await expect(stack).toHaveAccessibleName(name);
+    // A question (or a lesson) is open, so its arrows, fields and boxes are measured too.
+    const first = stack.locator(opens).first();
+    if (!(await first.evaluate((d: HTMLDetailsElement) => d.open))) await first.locator(":scope > summary").click();
+    const at = await builderSizes(page);
+    expect([at.buttons, at.fields, at.ticks], path).toEqual([[32], [32], [16]]);
+    expect(at.boxes, path).toEqual([at.field]);
+    expect(at.arrows, path).toEqual(["32 x 32"]);
+    expect([at.faded, at.cut, at.columns], path).toEqual([0, 0, 1]);
+    expect(at.heading, path).toContain("600 17px");
+    // The sheet keeps the window: the settings are no wider than they were.
+    expect(at.width, path).toBeLessThanOrEqual(340);
+    expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1500);
+
+    // A phone gets finger-sized controls and nothing runs off the side.
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await tooSmall(page), path).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), path).toBe(true);
+  }
+});
+
+test("the Worksheet builder keeps its own marks on the kit: the filled Make button, a short number field, and a table cell's hidden and blank states", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.addInitScript(([k, v]) => localStorage.setItem(k, v), ["maths-booklet-tools:worksheet:v1", JSON.stringify(comparativeBarCharts)]);
+  await page.goto("/worksheets");
+  const stack = page.locator(".inspector-stack.md-kit");
+  const colours = (name: string) => stack.getByRole("button", { name, exact: true }).evaluate((b) => [getComputedStyle(b).backgroundColor, getComputedStyle(b).color]);
+  // Off until there is a key and an objective, then the one filled button in the column.
+  await expect(stack.getByRole("button", { name: "Make worksheet", exact: true })).toBeDisabled();
+  expect(await colours("Make worksheet")).not.toContain("rgb(15, 98, 254)");
+  await stack.getByLabel("Your API key").fill("sk-ant-not-a-real-key");
+  await stack.getByLabel("Learning objective").fill("Compare two bar charts");
+  await expect(stack.getByRole("button", { name: "Make worksheet", exact: true })).toBeEnabled();
+  expect(await colours("Make worksheet")).toEqual(["rgb(15, 98, 254)", "rgb(255, 255, 255)"]);
+  expect((await colours("Import a scheme…"))[0]).toBe("rgb(255, 255, 255)");
+
+  // A table cell: hidden is outlined pink, blank is grey, given is neither.
+  await stack.locator("details.ws-card", { has: page.locator(".ws-q", { hasText: /^3$/ }) }).locator(":scope > summary").click();
+  const shows = stack.getByRole("combobox", { name: "Row 1 cell 2 shows" }).first();
+  const cell = () => stack.getByLabel(/^Row 1 cell 2( \(saved answer\))?$/).first().evaluate((i) => [getComputedStyle(i).borderTopColor, getComputedStyle(i).backgroundColor]);
+  const given = await cell();
+  expect(given).not.toContain("rgb(176, 18, 91)");
+  await shows.selectOption("hidden");
+  expect(await cell()).toEqual(["rgb(176, 18, 91)", given[1]]);
+  await shows.selectOption("blank");
+  expect(await cell()).toEqual([given[0], "rgb(246, 248, 251)"]);
+  // The cells of a row share its width, and none is pushed out of the card.
+  expect(await stack.locator(".panel-card").evaluateAll((cards) => cards.filter((c) => c.scrollWidth > c.clientWidth + 1).length)).toBe(0);
+
+  // A number that is a few digits long keeps a short field.
+  await stack.getByLabel("Score box").first().check();
+  expect((await stack.getByLabel("Side 1 score out of").boundingBox())!.width).toBeLessThan(100);
+
+  // On a phone the open table, its lists and the number field are finger-sized and stay on the page.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(shows).toBeVisible();
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test("the Booklet builder's list of objectives: a tick stays on the first line of a long objective, and Tick all reads as a link that a finger can press", async ({ page }) => {
+  const long = "Construct and interpret comparative bar charts for two sets of data, and say which set is larger in each category and overall";
+  const scheme = { schemaVersion: 1, kind: "scheme-of-work", name: "Department scheme", units: [{ code: "SP2", title: "Presentation of data", years: [8], objectives: [{ code: "SP2.06", level: "C", text: long }, { code: "SP2.07", level: "C", text: "Read a pie chart" }] }] };
+  const object = `bank/assets/sha256/${"a".repeat(64)}.json`;
+  await page.route("**/bank/schemes.json", (route) => route.fulfill({ json: { schemaVersion: 1, school: object } }));
+  await page.route(`**/${object}`, (route) => route.fulfill({ json: scheme }));
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/booklets");
+  const ai = page.getByRole("region", { name: "Make with AI" });
+  await expect(ai.getByLabel("Choose from").locator('option[value="school"]')).toBeAttached();
+  await ai.getByLabel("Choose from").selectOption("school");
+  await ai.getByRole("combobox", { name: "Unit", exact: true }).selectOption("SP2");
+  const all = ai.getByRole("button", { name: "Tick all", exact: true });
+  await expect(all).toBeVisible();
+  expect(await all.evaluate((b) => [getComputedStyle(b).borderTopWidth, getComputedStyle(b).backgroundColor, getComputedStyle(b).textDecorationLine])).toEqual(["0px", "rgba(0, 0, 0, 0)", "underline"]);
+  expect((await all.boundingBox())!.height).toBeLessThan(32);
+  const objective = ai.locator("label.bk-objective").first();
+  const [label, tick] = [(await objective.boundingBox())!, (await objective.locator("input").boundingBox())!];
+  expect(label.height).toBeGreaterThan(40);
+  expect(tick.y - label.y).toBeLessThanOrEqual(3);
+  expect(await ai.evaluate((card) => card.scrollWidth <= card.clientWidth + 1)).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(all).toBeVisible();
+  expect(await tooSmall(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+

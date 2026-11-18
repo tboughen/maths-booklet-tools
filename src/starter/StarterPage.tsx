@@ -13,6 +13,7 @@ import { withBeside } from "../worksheet/edit";
 import { TEMPLATE_NAMES, addStarter, copySlotFromPrevious, copySlotToAll, moveStarter, readLogo, removeStarter, setTemplate } from "./edit";
 import { StarterBoard } from "./StarterBoard";
 import { downloadEditable, downloadStarterPdf, downloadStarterWord, editableName } from "./export";
+import "../site/settings-kit.css";
 import "../worksheet/worksheet.css";
 import "./starter.css";
 import { HistoryButtons } from "../site/HistoryButtons";
@@ -362,7 +363,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
               </figure>
             </div>
           </Panel>
-          <aside className="inspector-stack" aria-label="Starter settings">
+          <aside className="inspector-stack md-kit" aria-label="Starter settings">
             <section className="panel-card ws-checks" aria-label="Checks">
               <h2>Checks</h2>
               <ul>
@@ -404,7 +405,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
                   )}
                 </div>
                 <p className="ws-hint">The logo is kept in this run's file only, and prints in the header's right corner.</p>
-                <h3 className="st-h3">Question types</h3>
+                <h3>Question types</h3>
                 {d.slots.map((slot, i) => (
                   <div key={i} className="st-slot">
                     <Field label={`${slotLabel(i)} type (not printed)`} value={slot.name} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.slots[i].name = v))} />
@@ -469,7 +470,7 @@ export default function StarterPage({ active = true }: { active?: boolean }) {
                           ))}
                         </div>
                       ) : (
-                        <div key={k}>
+                        <div key={k} className="ws-item">
                           <LeafEditor item={item} set={(next) => setItem([k], next)} label="" disabled={blocked} />
                           <BesideToggle list={card.items} index={k} disabled={blocked} set={(on) => setItem([k], withBeside(item, on))} />
                         </div>

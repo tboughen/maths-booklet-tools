@@ -12,6 +12,7 @@ import { BesideToggle, Field, LeafEditor, NumberField, WorkingField, type Leaf }
 import { downloadEditable, downloadPdf, editableName } from "./export";
 import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, removeItem, setLayout, withBeside, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
+import "../site/settings-kit.css";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
 import { usePrintSize } from "../site/usePrintSize";
@@ -338,7 +339,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
               ))}
             </div>
           </Panel>
-          <aside className="inspector-stack" aria-label="Worksheet settings">
+          <aside className="inspector-stack md-kit" aria-label="Worksheet settings">
             <AiPanel
               current={r}
               disabled={busy || recovery !== null || pending !== null}
@@ -442,7 +443,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                 <div key={i} className="ws-part">
                                   <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                                   {item.items.map((leaf, j) => (
-                                    <div key={j}>
+                                    <div key={j} className="ws-item">
                                       {leafEditor(leaf, (next) => setItem([i, j], next), "")}
                                       <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
                                     </div>
@@ -461,7 +462,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                   />
                                 </div>
                               ) : (
-                                <div key={i}>
+                                <div key={i} className="ws-item">
                                   {leafEditor(item, (next) => setItem([i], next), "")}
                                   <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                                   {item.type === "paper" && (

@@ -12,7 +12,6 @@
 .st-current .st-cell { background: #eef4fb; }
 .st-cell:focus-visible, .st-pick:focus-visible { outline: 2px solid #1d6fd6; outline-offset: -2px; }
 .st-slot { display: grid; grid-template-columns: minmax(0, 1fr) 9em; gap: 6px; align-items: end; }
-.st-h3 { font-size: 0.9rem; margin: 8px 0 0; }
 @media (max-width: 600px) { .st-slot { grid-template-columns: 1fr; } }
 /* The card preview shows whole beside the grid at 1920 x 1080; Actual size keeps its printed width. */
 .st-editor .ws-pages:not(.ws-actual) .ws-art { max-width: 860px; }
