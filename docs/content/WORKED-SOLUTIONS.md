@@ -107,8 +107,9 @@ Code: `packages/worked-core` (schema, renderer, checks) and `src/bank/worked*.ts
 
 ## In the Question bank
 
-The worked solution is one of the viewer's three panes (`docs/tools/APP-HOUSE-STYLE.md`, "Question
-bank: three switches"). Mark notes and Step by step sit in that pane's header.
+The worked solution is one of the viewer's three panes and the second part of the Question |
+Worked solution switch, so it replaces the question rather than sitting beside it
+(`docs/tools/APP-HOUSE-STYLE.md`, "Question bank: question switch and mark scheme toggle"). Mark notes and Step by step sit in that pane's header.
 
 - **Mark notes** (on by default, remembered on this computer) shows the mark codes and "Also scores"
   lines. Off gives a pupil copy: the guidance words stay and nothing moves.

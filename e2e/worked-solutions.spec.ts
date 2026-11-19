@@ -70,10 +70,10 @@ test("worked solutions are drawn over the question, deliberately revealed and sc
   expect(requests.some(p => p.endsWith(".json"))).toBe(false);
   await paneSwitch(page, "Worked solution").click();
   await expect(paneSwitch(page, "Worked solution")).toHaveAttribute("aria-pressed", "true");
-  // It opens beside the question, and the footer follows it.
-  await expect(pane(page, "Question")).toBeVisible();
+  // Question and worked solution are one switch: the worked solution replaces the question, which it already holds.
+  await expect(paneSwitch(page, "Question")).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".qb-pane")).toHaveCount(1);
   await expect(pane(page, "Worked solution")).toBeVisible();
-  await expect(page.locator(".qb-navigation")).toContainText("Worked solution · View 1 of 1");
   await expect(ink(page)).toBeVisible();
   await expect(ink(page)).toContainText("4x + 3");
   await expect(ink(page).locator("ellipse")).toHaveCount(4);
@@ -83,24 +83,33 @@ test("worked solutions are drawn over the question, deliberately revealed and sc
   const [surface, svg] = await Promise.all([page.locator(".qb-worked-surface").boundingBox(), ink(page).boundingBox()]);
   expect(Math.abs(surface!.width - svg!.width)).toBeLessThan(1);
   expect(await page.evaluate(() => document.fonts.check('12px "MathsDock Hand"'))).toBe(true);
-  // The mark scheme joins them; each switch only turns its own pane on or off.
+  // The mark scheme is a separate toggle and sits to the right of the worked solution.
   await paneSwitch(page, "Mark scheme").click();
-  await expect(pane(page, "Mark scheme")).toBeVisible();
-  await expect(ink(page)).toBeVisible();
+  await expect(page.locator(".qb-pane-header > span")).toHaveText(["Worked solution", "Mark scheme"]);
+  await expect(page.locator(".qb-navigation")).toContainText("Mark scheme · View 1 of 1");
+  const lefts = await page.locator(".qb-pane").evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().left));
+  expect(lefts).toEqual([...lefts].sort((a, b) => a - b));
+  // Clicking the lit part turns it off, leaving the mark scheme alone.
   await paneSwitch(page, "Worked solution").click();
   await expect(paneSwitch(page, "Worked solution")).toHaveAttribute("aria-pressed", "false");
   await expect(ink(page)).toHaveCount(0);
+  await expect(page.locator(".qb-pane-header > span")).toHaveCount(0);
   await expect(pane(page, "Mark scheme")).toBeVisible();
+  // The question joins it, and choosing the worked solution swaps them while the mark scheme stays.
+  await paneSwitch(page, "Question").click();
+  await expect(page.locator(".qb-pane-header > span")).toHaveText(["Question", "Mark scheme"]);
   await paneSwitch(page, "Worked solution").click();
+  await expect(page.locator(".qb-pane-header > span")).toHaveText(["Worked solution", "Mark scheme"]);
+  await expect(paneSwitch(page, "Question")).toHaveAttribute("aria-pressed", "false");
   await expect(ink(page)).toBeVisible();
-  // Whatever the order they were switched on, the panes sit as Question, Mark scheme, Worked solution.
-  await expect(page.locator(".qb-pane-header > span")).toHaveText(["Question", "Mark scheme", "Worked solution"]);
-  const lefts = await page.locator(".qb-pane").evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().left));
-  expect(lefts).toEqual([...lefts].sort((a, b) => a - b));
   // Mark notes and step by step sit on the worked solution's own pane, also when it is the only one.
   await expect(pane(page, "Worked solution").getByRole("group", { name: "Worked solution options", exact: true })).toBeVisible();
   await showOnly(page, "Worked solution");
   await expect(pane(page, "Worked solution").getByRole("group", { name: "Worked solution options", exact: true })).toBeVisible();
+  // By itself, the lit worked solution switched off brings the question back.
+  await paneSwitch(page, "Worked solution").click();
+  await expect(paneSwitch(page, "Question")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".qb-pane")).toHaveCount(1);
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.locator(".qb-source-heading strong")).toHaveText("Synthetic next Q2");
   await expect(page.getByRole("button", { name: "Worked solution", exact: true })).toBeDisabled();
