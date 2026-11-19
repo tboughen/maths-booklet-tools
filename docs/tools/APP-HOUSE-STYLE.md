@@ -259,19 +259,28 @@ Card size carries meaning: a bigger card lets you do more, so a Tools card is mu
 favourite. Small words that sit straight on the page colour use `--md-ink-2`, because
 `--md-ink-3` is too pale there.
 
-## Question bank: three switches (in the site)
+## Question bank: question switch and mark scheme toggle (in the site)
 
-The viewer has three switches in the question's header: **Question**, **Mark scheme** and
-**Worked solution** (`src/bank/QuestionBank.tsx`; each pane's views, fit, zoom and pan are
-`usePane` in `src/bank/usePane.ts`). A switch that is on is blue, like every pressed button in the
-bank.
+The viewer's question header has two kinds of control (`src/bank/QuestionBank.tsx`; each pane's
+views, fit, zoom and pan are `usePane` in `src/bank/usePane.ts`):
 
-- Whatever is on sits side by side, always in that order, and switching one off lets the rest
-  grow. One pane always stays on: the only pane cannot be switched off, and switching off the last
-  answer brings the question back.
+- **Question | Worked solution** is one joined two-part switch. At most one part shows, because
+  the worked solution already holds the question; the part that is showing is filled navy.
+  Choosing the other part swaps them. Clicking the lit part turns it off, which leaves the mark
+  scheme by itself.
+- **Mark scheme** is a separate on/off toggle with the house switch track, set a little apart. It
+  turns the mark scheme on or off beside whichever part is showing (M does the same).
+
+That gives five views: question, worked solution, either with the mark scheme beside it, or the
+mark scheme alone.
+
+- Whatever is on sits side by side, the question or worked solution on the left and the mark
+  scheme on the right; switching one off lets the other grow. One pane always stays on: the
+  question by itself cannot be switched off, and switching off the last answer brings the
+  question back.
 - A question opens by itself. Another question, a filter or a reload shows only the question
   again, so answers are never on screen by accident, and links never carry an answer.
-- With two or three panes on, each has a small header with its icon and name. A pane by itself
+- With two panes on, each has a small header with its icon and name. A pane by itself
   has none, so the page gets the room. The worked solution's header also holds its own options,
   Mark notes and Step by step, so using them never moves the page.
 - Each pane has its own zoom and place. An answer opens afresh at fit each time it is switched on.

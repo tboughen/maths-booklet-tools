@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, FileDown, List, Maximize2, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
@@ -36,6 +36,8 @@ const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery
 const FIT: Record<ViewRole, number> = {question: 1, scheme: 1, "worked-solution": 1};
 /** The three panes, in the order they sit on screen. Each has a switch. */
 const PANES = [{role: "question", name: "Question", Icon: QuestionBankIcon}, {role: "scheme", name: "Mark scheme", Icon: MarkSchemeIcon}, {role: "worked-solution", name: "Worked solution", Icon: WorkedSolutionIcon}] as const;
+/** Panes sit left to right in this order: the question or its worked solution, then the mark scheme beside it. */
+const PANE_ORDER: readonly ViewRole[] = ["question", "worked-solution", "scheme"];
 const paneName = (role: ViewRole) => PANES.find(pane => pane.role === role)!.name;
 /** Which panes are on for a question, the one last used, and the view each answer pane is on. */
 type Showing = {id: string; on: readonly ViewRole[]; active: ViewRole; view: {scheme: number; "worked-solution": number}};
@@ -205,12 +207,14 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const stageCursor=(scale:number)=>annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?highlighterSize:penSize,scale):undefined;
   const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize,highlighterSize,straight:annotatePrefs.straight}),[annotatePrefs,penSize,highlighterSize]);
   const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>withTool(p,tool));setAnnotating(true);},[]);
-  // A switch turns its pane on or off. One pane always stays on, and an answer opens at fit.
+  // Question and worked solution are one switch: at most one shows, because the worked solution already holds the question.
+  // The mark scheme turns on and off beside whichever is showing. One pane always stays on, and an answer opens at fit.
   const toggle=useCallback((target:ViewRole)=>{
     if(!question||(target==="worked-solution"&&!question.workedSolution))return;
     const shown=on.includes(target),rest=on.filter(other=>other!==target);
     if(shown&&!rest.length&&target==="question")return;
-    const next:readonly ViewRole[]=shown?(rest.length?rest:QUESTION_ONLY.on):PANES.map(pane=>pane.role).filter(other=>other===target||on.includes(other));
+    const kept=target==="scheme"?rest:rest.filter(other=>other==="scheme");
+    const next:readonly ViewRole[]=shown?(rest.length?rest:QUESTION_ONLY.on):PANE_ORDER.filter(other=>other===target||kept.includes(other));
     setMode({id:question.id,on:next,active:!shown?target:next.includes(role)?role:next[0],view:shown||target==="question"?showing.view:{...showing.view,[target]:0}});
     if(!shown&&target!=="question"){zoomSetters[target](1);forget[target]();}
   },[question,on,role,showing,zoomSetters,forget]);
@@ -277,12 +281,17 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const infoPane=on.includes("question")?questionPane:panes[role];
 
   const annotateButton=<button className="qb-button qb-annotate-toggle" aria-pressed={annotating} title="Annotate on screen · P" onClick={()=>annotating?setAnnotating(false):chooseTool(annotatePrefs.tool==="hand"?"pen":annotatePrefs.tool)}><Pencil size={16}/>Annotate{viewHasInk&&<span className="qb-ink-dot" aria-label="(this view has annotations)"/>}</button>;
+  const paneButton=(target:ViewRole,extra?:ReactNode)=>{const {name,Icon}=PANES.find(pane=>pane.role===target)!;
+    return <button className="qb-button qb-switch" aria-pressed={on.includes(target)} disabled={target==="worked-solution"&&!question?.workedSolution} title={target==="scheme"?"Mark scheme · M":undefined} onClick={()=>toggle(target)}>{extra}<Icon size={16}/>{name}</button>;};
+  // A joined two-part switch for the question or its worked solution, then a separate on/off toggle for the mark scheme.
   const answerControls=question&&<>
-    <div className="qb-switches" role="group" aria-label="Show">{PANES.map(({role:target,name,Icon})=>{
-      const missing=target==="worked-solution"&&!question.workedSolution;
-      const button=<button key={target} className="qb-button qb-switch" aria-pressed={on.includes(target)} disabled={missing} title={target==="scheme"?"Mark scheme · M":undefined} onClick={()=>toggle(target)}><Icon size={16}/>{name}</button>;
-      return missing?<div className="qb-solution-action" key={target}>{button}<small>Not available yet</small></div>:button;
-    })}</div>
+    <div className="qb-switches" role="group" aria-label="Show">
+      <div className="qb-solution-action">
+        <div className="qb-segment" role="group" aria-label="Question or worked solution">{paneButton("question")}{paneButton("worked-solution")}</div>
+        {!question.workedSolution&&<small>Worked solution: <span>Not available yet</span></small>}
+      </div>
+      {paneButton("scheme",<span className="qb-toggle-track" aria-hidden="true"/>)}
+    </div>
   </>;
   // Mark notes and step by step sit on the worked solution's own pane, so using them never moves the page.
   const workedOptions=workedShown?.shown&&<div className="qb-worked-options" role="group" aria-label="Worked solution options">
