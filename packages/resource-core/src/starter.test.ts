@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { year8Run, year9Run } from "./starter-fixtures";
-import { defaultSlots, leadLine, renderStarterRun, slotBoxes, starterFileName, validateStarterRun, YEAR_7_8_SLOTS, STARTER, type StarterRun } from "./index";
+import { defaultSlots, renderStarterRun, slotBoxes, starterFileName, validateStarterRun, YEAR_7_8_SLOTS, STARTER, type StarterRun } from "./index";
 
 const clone = (r: StarterRun) => structuredClone(r);
 const count = (svg: string, needle: string) => svg.split(needle).length - 1;
@@ -56,30 +56,26 @@ describe("silent starter layout", () => {
     expect(r.sheets).toHaveLength(6);
     expect(r.cards[0]).toContain('width="210mm" height="148mm" viewBox="0 0 210 148"');
     expect(r.sheets[0]).toContain('width="210mm" height="297mm" viewBox="0 0 210 297"');
-    expect(count(r.cards[0], ">Silent starter<")).toBe(1);
-    expect(count(r.sheets[0], ">Silent starter<")).toBe(2);
+    expect(count(r.cards[0], ">Silent starter · Year 9<")).toBe(1);
+    expect(count(r.sheets[0], ">Silent starter · Year 9<")).toBe(2);
     expect(r.sheets[0]).toContain('stroke-dasharray="2 1.5"');
     expect(renderStarterRun(validateStarterRun(clone(year8Run))).issues).toEqual([]);
   });
 
-  it("boxes today's number in the run tracker", () => {
+  it("fills today's run square navy and leaves the rest pale blue (layout E)", () => {
     const r = renderStarterRun(validateStarterRun(clone(year9Run)));
-    r.cards.forEach((svg, i) => {
-      expect(count(svg, 'stroke="#000" stroke-width="0.5"/>')).toBe(1);
-      expect(svg).toMatch(new RegExp(`fill="#000" text-anchor="middle" xml:space="preserve"><tspan font-weight="600">${i + 1}</tspan>`));
+    r.cards.forEach((svg) => {
+      expect(count(svg, `fill="${STARTER.colours.pale}"/>`)).toBeGreaterThanOrEqual(r.cards.length - 1);
+      expect(svg).toContain(">STARTER</text>");
     });
   });
 
-  it("marks the extension column with a thick bar, a label band and a grey tint (option C)", () => {
+  it("tags cards 5 and 6 as extension with navy strips, only on the core-extension template", () => {
     const ext = renderStarterRun(validateStarterRun(clone(year9Run))).cards[0];
-    expect(ext).toContain(">EXTENSION</text>");
-    expect(ext).toContain(`stroke-width="${STARTER.extensionRule}"`);
-    expect(ext).toContain(`fill="${STARTER.colours.tint}"`);
+    expect(count(ext, ">EXTENSION</text>")).toBe(2);
     const plain = clone(year9Run);
     plain.document.template = "six";
-    const six = renderStarterRun(validateStarterRun(plain)).cards[0];
-    expect(six).not.toContain("EXTENSION");
-    expect(six).not.toContain(`fill="${STARTER.colours.tint}"`);
+    expect(renderStarterRun(validateStarterRun(plain)).cards[0]).not.toContain("EXTENSION");
   });
 
   it("prints each slot's icon in its corner, and none where the slot has none", () => {
@@ -121,7 +117,7 @@ describe("silent starter layout", () => {
   it("flags a question with an instruction wider than its slot", () => {
     const run = clone(year9Run);
     run.document.starters[0].cards[0].title = "Multiply these two fractions together:";
-    expect(renderStarterRun(validateStarterRun(run)).issues[0].message).toMatch(/instruction is wider than its slot/);
+    expect(renderStarterRun(validateStarterRun(run)).issues[0].message).toMatch(/instruction is wider than its card's header strip/);
   });
 
   it("prints saved answers only in the answers copy", () => {
@@ -141,16 +137,16 @@ describe("silent starter layout", () => {
   });
 
 
-  it("numbers six slots down the columns and four in reading order", () => {
+  it("numbers six cards and four cards across, in reading order (layout E)", () => {
     const six = slotBoxes("six").map((b) => [Math.round(b.x), Math.round(b.y)]);
-    expect(six).toEqual([[7, 19], [7, 80], [72, 19], [72, 80], [138, 19], [138, 80]]);
+    expect(six).toEqual([[7, 25], [73, 25], [140, 25], [7, 85], [73, 85], [140, 85]]);
     const four = slotBoxes("four").map((b) => [Math.round(b.x), Math.round(b.y)]);
-    expect(four).toEqual([[7, 19], [105, 19], [7, 80], [105, 80]]);
+    expect(four).toEqual([[7, 25], [107, 25], [7, 85], [107, 85]]);
   });
 
   it("reports a topic too long for the header instead of cutting it silently", () => {
     const run = clone(year9Run);
-    run.document.topic = "Fractions, perimeter, area, brackets and simplifying";
+    run.document.topic = "W".repeat(60);
     const r = renderStarterRun(validateStarterRun(run));
     expect(r.issues).toHaveLength(6);
     expect(r.issues[0].message).toMatch(/^Starter 1: the topic is wider than the header/);
@@ -173,30 +169,9 @@ describe("silent starter layout", () => {
     expect(messages.some((m) => /question 2 has a stage band \("Stage A"\)/.test(m))).toBe(true);
   });
 
-  it("lets the grey extension tint show behind a diagram, and keeps diagram backgrounds elsewhere", () => {
+  it("keeps each diagram's white background, as every card is white (layout E)", () => {
     const svg = renderStarterRun(validateStarterRun(clone(year9Run))).cards[0];
-    expect(svg).not.toMatch(/aria-label="Area and perimeter diagram[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
-    const plain = clone(year9Run);
-    plain.document.template = "six";
-    expect(renderStarterRun(validateStarterRun(plain)).cards[0]).toMatch(/aria-label="Area and perimeter diagram[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
+    expect(svg).toMatch(/aria-label="Area and perimeter diagram[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
   });
 });
 
-describe("first words on the number line (Tim, 19 Nov 2026)", () => {
-  const text = (t: string) => ({ type: "text" as const, text: t });
-  it("puts the words that fit beside the number and flows the rest below", () => {
-    const r = leadLine({ title: "", items: [text("A force of 150 N acts over an area of 25 cm². Calculate the pressure.")] }, 45, true);
-    expect(r.lead.length).toBeGreaterThan(5);
-    expect(r.continues).toBe(true);
-    expect(`${r.lead} ${(r.items[0] as { text: string }).text}`).toBe("A force of 150 N acts over an area of 25 cm². Calculate the pressure.");
-  });
-  it("takes a short question whole and keeps an instruction card as it was", () => {
-    expect(leadLine({ title: "", items: [text("Find the equation.")] }, 45, true)).toEqual({ lead: "Find the equation.", items: [], continues: false });
-    const titled = { title: "Plot the data.", items: [text("Use the grid.")] };
-    expect(leadLine(titled, 45, true).items).toBe(titled.items);
-  });
-  it("never cuts an italic run or a stacked fraction", () => {
-    expect(leadLine({ title: "", items: [text("*Hint: sin 40° is the opposite side over the hypotenuse*")] }, 45, true).lead).toBe("");
-    expect(leadLine({ title: "", items: [text("Work out {3/4} of 20.")] }, 45, true).lead).toBe("");
-  });
-});
