@@ -309,14 +309,19 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-segment > .qb-switch:last-child { margin-left: -1px; border-radius: 0 4px 4px 0; }
 .qb-segment > .qb-switch[aria-pressed=true] { position: relative; z-index: 1; border-color: var(--md-navy); background: var(--md-navy); color: #fff; }
 .qb-segment > .qb-switch:hover:not(:disabled) { position: relative; z-index: 2; }
+.qb-segment > .qb-switch:focus-visible { position: relative; z-index: 3; }
 .qb-segment > .qb-switch[aria-pressed=true]:hover:not(:disabled) { border-color: var(--md-navy); background: color-mix(in srgb, var(--md-navy) 88%, #fff); }
 .qb-segment > .qb-switch:disabled { color: #8a97a6; background: #f3f5f8; cursor: not-allowed; }
 /* The mark scheme: a separate on/off toggle with the house switch track, set apart from the pair. */
-.qb-switches > .qb-switch { margin-left: 10px; }
 .qb-toggle-track { flex: none; position: relative; box-sizing: border-box; width: 30px; height: 18px; border: 1px solid #7a8ca2; border-radius: 999px; background: #fff; transition: background-color .12s; }
 .qb-toggle-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #617186; transition: translate .12s; }
 .qb-switch[aria-pressed=true] > .qb-toggle-track { border-color: var(--md-blue); background: var(--md-blue); }
 .qb-switch[aria-pressed=true] > .qb-toggle-track::after { translate: 12px 0; background: #fff; }
+@media (forced-colors: active) {
+  .qb-toggle-track::after { background: CanvasText; }
+  .qb-switch[aria-pressed=true] > .qb-toggle-track { background: Highlight; border-color: Highlight; }
+  .qb-switch[aria-pressed=true] > .qb-toggle-track::after { background: HighlightText; }
+}
 @media (max-width: 1100px) {
   .qb-source { flex-wrap: wrap; gap: 8px; }
   .qb-source > div.qb-source-actions { flex-wrap: wrap; justify-content: flex-end; }
@@ -343,8 +348,8 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-panes:has(.qb-worked-options) .qb-pane-header { min-height: 45px; }
 /* The pane last used, which the footer and the keys act on. */
 .qb-pane-active > .qb-pane-header { box-shadow: inset 0 2px var(--md-blue); color: var(--md-ink); }
-.qb-switches { display: flex; align-items: flex-start; flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-width: 0; }
-@media (max-width: 520px) { .qb-switch { gap: 5px; padding-inline: 8px; font-size: 13px !important; } .qb-switch > svg { display: none; } .qb-switches > .qb-switch { margin-left: 4px; } }
+.qb-switches { display: flex; align-items: flex-start; flex-wrap: wrap; justify-content: flex-end; gap: 6px 16px; min-width: 0; } /* The wider column gap sets the mark scheme toggle apart; a gap, not a margin, so a wrapped row stays in line. */
+@media (max-width: 520px) { .qb-switch { gap: 5px; padding-inline: 8px; font-size: 13px !important; } .qb-switch > svg { display: none; } .qb-switches { column-gap: 8px; } }
 /* A narrow or upright window stacks the panes, so each keeps the full width. */
 @media (max-width: 1000px), (max-aspect-ratio: 1 / 1) {
   .qb-panes { flex-direction: column; }

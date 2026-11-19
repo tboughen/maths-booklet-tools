@@ -266,8 +266,8 @@ views, fit, zoom and pan are `usePane` in `src/bank/usePane.ts`):
 
 - **Question | Worked solution** is one joined two-part switch. At most one part shows, because
   the worked solution already holds the question; the part that is showing is filled navy.
-  Choosing the other part swaps them. Clicking the lit part turns it off, which leaves the mark
-  scheme by itself.
+  Choosing the other part swaps them. With the mark scheme on, clicking the lit part turns it
+  off and leaves the mark scheme by itself.
 - **Mark scheme** is a separate on/off toggle with the house switch track, set a little apart. It
   turns the mark scheme on or off beside whichever part is showing (M does the same).
 

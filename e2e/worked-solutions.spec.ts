@@ -106,6 +106,10 @@ test("worked solutions are drawn over the question, deliberately revealed and sc
   await expect(pane(page, "Worked solution").getByRole("group", { name: "Worked solution options", exact: true })).toBeVisible();
   await showOnly(page, "Worked solution");
   await expect(pane(page, "Worked solution").getByRole("group", { name: "Worked solution options", exact: true })).toBeVisible();
+  // By itself, the lit worked solution switched off brings the question back.
+  await paneSwitch(page, "Worked solution").click();
+  await expect(paneSwitch(page, "Question")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".qb-pane")).toHaveCount(1);
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.locator(".qb-source-heading strong")).toHaveText("Synthetic next Q2");
   await expect(page.getByRole("button", { name: "Worked solution", exact: true })).toBeDisabled();

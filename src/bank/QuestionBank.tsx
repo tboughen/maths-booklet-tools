@@ -34,7 +34,7 @@ type WebContext = {registerTool: (tool: {name:string;description:string;inputSch
 const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery(route);
 /** Every pane at fit. */
 const FIT: Record<ViewRole, number> = {question: 1, scheme: 1, "worked-solution": 1};
-/** The three panes, in the order they sit on screen. Each has a switch. */
+/** The three panes and their switches (the order on screen is PANE_ORDER). */
 const PANES = [{role: "question", name: "Question", Icon: QuestionBankIcon}, {role: "scheme", name: "Mark scheme", Icon: MarkSchemeIcon}, {role: "worked-solution", name: "Worked solution", Icon: WorkedSolutionIcon}] as const;
 /** Panes sit left to right in this order: the question or its worked solution, then the mark scheme beside it. */
 const PANE_ORDER: readonly ViewRole[] = ["question", "worked-solution", "scheme"];
@@ -285,7 +285,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     return <button className="qb-button qb-switch" aria-pressed={on.includes(target)} disabled={target==="worked-solution"&&!question?.workedSolution} title={target==="scheme"?"Mark scheme · M":undefined} onClick={()=>toggle(target)}>{extra}<Icon size={16}/>{name}</button>;};
   // A joined two-part switch for the question or its worked solution, then a separate on/off toggle for the mark scheme.
   const answerControls=question&&<>
-    <div className="qb-switches" role="group" aria-label="Show">
+    <div className="qb-switches">
       <div className="qb-solution-action">
         <div className="qb-segment" role="group" aria-label="Question or worked solution">{paneButton("question")}{paneButton("worked-solution")}</div>
         {!question.workedSolution&&<small>Worked solution: <span>Not available yet</span></small>}
