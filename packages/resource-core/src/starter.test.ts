@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { year8Run, year9Run } from "./starter-fixtures";
-import { defaultSlots, renderStarterRun, slotBoxes, starterFileName, validateStarterRun, YEAR_7_8_SLOTS, STARTER, type StarterRun } from "./index";
+import { defaultSlots, leadLine, renderStarterRun, slotBoxes, starterFileName, validateStarterRun, YEAR_7_8_SLOTS, STARTER, type StarterRun } from "./index";
 
 const clone = (r: StarterRun) => structuredClone(r);
 const count = (svg: string, needle: string) => svg.split(needle).length - 1;
@@ -179,5 +179,24 @@ describe("silent starter layout", () => {
     const plain = clone(year9Run);
     plain.document.template = "six";
     expect(renderStarterRun(validateStarterRun(plain)).cards[0]).toMatch(/aria-label="Area and perimeter diagram[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
+  });
+});
+
+describe("first words on the number line (Tim, 19 Nov 2026)", () => {
+  const text = (t: string) => ({ type: "text" as const, text: t });
+  it("puts the words that fit beside the number and flows the rest below", () => {
+    const r = leadLine({ title: "", items: [text("A force of 150 N acts over an area of 25 cm². Calculate the pressure.")] }, 45, true);
+    expect(r.lead.length).toBeGreaterThan(5);
+    expect(r.continues).toBe(true);
+    expect(`${r.lead} ${(r.items[0] as { text: string }).text}`).toBe("A force of 150 N acts over an area of 25 cm². Calculate the pressure.");
+  });
+  it("takes a short question whole and keeps an instruction card as it was", () => {
+    expect(leadLine({ title: "", items: [text("Find the equation.")] }, 45, true)).toEqual({ lead: "Find the equation.", items: [], continues: false });
+    const titled = { title: "Plot the data.", items: [text("Use the grid.")] };
+    expect(leadLine(titled, 45, true).items).toBe(titled.items);
+  });
+  it("never cuts an italic run or a stacked fraction", () => {
+    expect(leadLine({ title: "", items: [text("*Hint: sin 40° is the opposite side over the hypotenuse*")] }, 45, true).lead).toBe("");
+    expect(leadLine({ title: "", items: [text("Work out {3/4} of 20.")] }, 45, true).lead).toBe("");
   });
 });

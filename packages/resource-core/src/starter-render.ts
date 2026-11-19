@@ -3,6 +3,7 @@ import { FAMILIES, type DiagramKind } from "../../diagram-core/src/registry";
 import { at, countSpaces, items, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type StyleId } from "./style";
 import { esc, lineWidth, n, parseRuns, plainWidth, textSvg } from "./text";
+import type { Item } from "./schema";
 import { fitLine } from "./booklet-render";
 import { isExtensionSlot, type StarterIcon, type StarterRun, type StarterTemplate } from "./starter";
 
@@ -69,6 +70,28 @@ export function slotBoxes(template: StarterTemplate): { x: number; y: number; w:
 }
 
 /** The question area inside a slot: below the number line, above the icon. Shared with Word. */
+/**
+ * With no instruction, a question's first words print on its number line (Tim, 19 Nov 2026: no
+ * spare space against the number), so diagrams get the height. The first text item is split at a
+ * word: the words that fit beside the number go on that line and the rest flows below as before.
+ * A stacked fraction or an italic or bold run that would be cut keeps the text whole, below.
+ * When the text continues, its next line follows straight under the number line, with no item gap.
+ */
+export function leadLine(card: { title: string; items: Item[] }, room: number, maths: boolean): { lead: string; items: Item[]; continues: boolean } {
+  const first = card.items[0];
+  if (card.title.trim() || first?.type !== "text" || first.beside || /[\n{]/.test(first.text)) return { lead: "", items: card.items, continues: false };
+  const words = first.text.split(" ");
+  let k = 0;
+  for (let j = 1; j <= words.length; j++) {
+    const head = words.slice(0, j).join(" ");
+    if (lineWidth(parseRuns(head, "regular", maths), SIZE.body) > room) break;
+    if ((head.match(/\*/g) ?? []).length % 2 === 0) k = j;
+  }
+  if (!k) return { lead: "", items: card.items, continues: false };
+  const rest = words.slice(k).join(" ");
+  return { lead: words.slice(0, k).join(" "), items: rest ? [{ ...first, text: rest }, ...card.items.slice(1)] : card.items.slice(1), continues: !!rest };
+}
+
 export function slotContent(template: StarterTemplate, slot: number, icon: StarterIcon) {
   const S = STARTER;
   const box = slotBoxes(template)[slot];
@@ -223,6 +246,9 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
       const numberBase = place.numberTop + place.numberLine * 0.78;
       out.push(textSvg([{ text: label, style: "bold" }], place.x, numberBase, S.numberSize, S.colours.number));
       const tx = place.x + plainWidth(label, S.numberSize, "bold") + 2;
+      const { lead, items: list, continues } = leadLine(card, place.x + place.w - tx, !!ctx.maths);
+      const lift = continues ? SIZE.itemGap : 0;
+      if (lead) out.push(textSvg(parseRuns(lead, "regular", ctx.maths), tx, numberBase, SIZE.body, "#000"));
       if (card.title.trim()) {
         const room = place.x + place.w - tx;
         const runs = parseRuns(card.title, "bold", ctx.maths);
@@ -231,15 +257,15 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
         out.push(textSvg(parseRuns(card.title, "bold", ctx.maths), tx, numberBase, SIZE.body, "#000"));
       }
       // Spare height goes to working spaces, as on worksheets.
-      const natural: Frag = items(card.items, place.w, { ...ctx, issues: [], diagrams: 0, inline: undefined }, 0);
-      const spare = place.height - natural.h;
-      const spaces = countSpaces(card.items);
-      const body = items(card.items, place.w, ctx, spare > 0 && spaces ? spare / spaces : 0);
+      const natural: Frag = items(list, place.w, { ...ctx, issues: [], diagrams: 0, inline: undefined }, 0);
+      const spare = place.height + lift - natural.h;
+      const spaces = countSpaces(list);
+      const body = items(list, place.w, ctx, spare > 0 && spaces ? spare / spaces : 0);
       if (spare < -0.05) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} needs ${n(-spare)} mm more height. Shorten the question or make its diagram smaller; text is never shrunk.` });
       if (card.stage) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} has a stage band ("${card.stage}"), which starters do not print. Remove it.` });
       // On the grey extension column a diagram's own white background would print as a white box.
       const svg = isExtensionSlot(doc.template, qi) ? withoutDiagramBackground(body.svg) : body.svg;
-      out.push(at({ h: body.h, svg }, place.x, place.top));
+      out.push(at({ h: body.h, svg }, place.x, place.top - lift));
       if (icon !== "none") out.push(iconSvg(icon, place.box.x + place.box.w - S.padX - S.icon + 0.5, place.box.y + place.box.h - S.padBottom - S.icon));
     });
     const name = `${doc.title}, silent starter ${si + 1} of ${doc.starters.length}${view === "answers" ? ", answers" : ""}`;

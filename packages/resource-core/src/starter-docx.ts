@@ -1,7 +1,8 @@
 import { typesetForPrint } from "./typeset";
 import { items as svgItems, countSpaces } from "./render";
+import { plainWidth } from "./text";
 import { cell, drawing, gap, items, LAST_PARAGRAPH, para, row, run, runs, stack, table, tw, writePackage, type DocxOptions, type WordCtx } from "./docx";
-import { renderStarterRun, starterTooWide, slotBoxes, slotContent, STARTER, starterHeaderSvg, starterIconSvg, withoutDiagramBackground, type StarterIssue } from "./starter-render";
+import { leadLine, renderStarterRun, starterTooWide, slotBoxes, slotContent, STARTER, starterHeaderSvg, starterIconSvg, withoutDiagramBackground, type StarterIssue } from "./starter-render";
 import { isExtensionSlot, type StarterRun } from "./starter";
 import { SIZE, styles } from "./style";
 
@@ -48,21 +49,24 @@ function slotCell(run_: StarterRun, starter: number, slot: number, ctx: WordCtx<
   ctx.where = { starter: starter + 1, question: slot + 1 };
   // The same spare-height share as the SVG layout, so working spaces match the PDF.
   const quiet = { ...ctx, issues: [], diagrams: 0, inline: undefined };
-  const natural = svgItems(card.items, place.w, quiet, 0).h;
-  const spare = place.height - natural;
-  const spaces = countSpaces(card.items);
+  const labelW = plainWidth(`${slot + 1})`, S.numberSize, "bold") + 2;
+  const { lead, items: list, continues } = leadLine(card, place.w - labelW, !!ctx.maths);
+  const lift = continues ? SIZE.itemGap : 0;
+  const natural = svgItems(list, place.w, quiet, 0).h;
+  const spare = place.height + lift - natural;
+  const spaces = countSpaces(list);
   const extra = spare > 0 && spaces ? spare / spaces : 0;
   const used = natural + extra * spaces;
   const firstPicture = ctx.pictures.length;
   const label = run(`${slot + 1})`, { bold: true, color: S.colours.number, sizeMm: S.numberSize });
-  const title = card.title.trim() ? run(" ", { sizeMm: SIZE.body }) + runs(card.title, { bold: true, color: "#000000", sizeMm: SIZE.body }, "bold", ctx.maths) : "";
+  const title = card.title.trim() ? run(" ", { sizeMm: SIZE.body }) + runs(card.title, { bold: true, color: "#000000", sizeMm: SIZE.body }, "bold", ctx.maths) : lead ? run(" ", { sizeMm: SIZE.body }) + runs(lead, { color: "#000000", sizeMm: SIZE.body }, "regular", ctx.maths) : "";
   const parts: string[] = [];
   if (place.band) parts.push(band(place.box.w));
-  parts.push(gap(S.padTop), para(label + title, { line: place.numberLine }), gap(SIZE.itemGap));
-  const blocks = items(card.items, place.w, 0, ctx, extra);
+  parts.push(gap(S.padTop), para(label + title, { line: place.numberLine }), ...(lift ? [] : [gap(SIZE.itemGap)]));
+  const blocks = items(list, place.w, 0, ctx, extra);
   if (blocks.length) parts.push(stack(blocks, SIZE.itemGap));
   if (ext) for (const p of ctx.pictures.slice(firstPicture)) p.svg = withoutDiagramBackground(p.svg);
-  const room = Math.max(0.36, place.height - used);
+  const room = Math.max(0.36, place.height + lift - used);
   if (icon !== "none") {
     // The icon picture has half a millimetre round it so its frame is never clipped; its line takes the picture's height.
     // Placed as on the PDF: frame top 1.5 mm below the question area, frame right edge 0.5 mm into the padding.

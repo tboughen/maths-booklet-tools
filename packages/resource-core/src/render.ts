@@ -596,8 +596,11 @@ export const besideHeight = (a: Leaf, b: Leaf, ctx: AnyCtx, w: number): number =
 
 /** A row of two items: both are measured without spare height, and the row takes the spare height once if either holds a space. */
 export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "space" || b.type === "space" ? extra : 0);
-/** In a row of two, an answer line beside a space is aligned to the row's bottom, like the space's own last line. */
-export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && other.type === "space";
+/**
+ * In a row of two, an answer line beside a space or a diagram is aligned to the row's bottom: like
+ * the space's own last line, or under the working room beside a diagram (Tim, 19 Nov 2026). A ratio table keeps its line on its bottom row.
+ */
+export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && (other.type === "space" || (other.type === "diagram" && ratioFoot(other) === null));
 
 /**
  * How many shares of spare height a list of items takes: one per working or drawing space, but
