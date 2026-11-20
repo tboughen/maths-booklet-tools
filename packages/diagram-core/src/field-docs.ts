@@ -175,7 +175,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
   "probability-objects": {
     example,
     worked,
-    objects: "1 to 4 objects side by side: spinners {type:\"spinner\", labels, angles?, fills?, shape?, pointer?}, dice {type:\"dice\", view?, faces?, marks?} and bags {type:\"bag\", groups:[{label, fill, count}]}.",
+    objects: "1 to 4 objects side by side: spinners {type:\"spinner\", labels, angles?, fills?, shape?, pointer?}, dice {type:\"dice\", view?, faces?, marks?} and bags {type:\"bag\", groups:[{label, fill, count}], perRow? (1-10 counters in each row; automatic if left out)}.",
     lines,
   },
   "bubble-method": {
@@ -223,7 +223,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
   triangle: {
     shape: "right, scalene, isosceles or equilateral.",
     example: "A saved example triangle by key, instead of shape.",
-    widthCm: "Printed width in centimetres, 6 to 18.",
+    widthCm: "Printed width in centimetres, 5 to 18.",
     notToScale: "true prints \"Diagram not accurately drawn\" under the triangle.",
     fontPt: "Printed text size in points, 11 to 14 (default 11).",
     lines,

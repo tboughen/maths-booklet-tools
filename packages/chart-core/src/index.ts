@@ -112,7 +112,7 @@ export const envelopeSchema = z
         yTitle: plain(40),
         grid: z.enum(gridChoices),
         key: z.boolean(),
-        heightMm: z.number().int().min(40).max(140),
+        heightMm: z.number().int().min(25).max(140),
         barMm: z.number().int().min(5).max(20),
         /** Bold lines (U111) multiply the chart's black strokes by 1.5; the grid keeps its weight. Normal is never saved. */
         lines: z
@@ -194,7 +194,7 @@ export function validate(input: unknown): Envelope {
         `Use 1 to ${MAX_SERIES} data sets, each with one value of at most 12 characters per category.`,
       ), parsed.error);
     if (path.includes("heightMm"))
-      throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
+      throw withFields(Error("Choose a chart height from 25 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
     if (path.includes("timeseries"))
@@ -432,6 +432,9 @@ export function axesLayout(e: Envelope) {
   const H = d.heightMm,
     major = H / count,
     minor = major / d.axis.minor;
+  // Axis numbers are about 3 mm tall, so steps closer than 3 mm print on top of each other.
+  if (major < 3)
+    issues.push(`Axis numbers would overlap: the steps are ${formatNumber(Math.round(major * 10) / 10)} mm apart. Use a bigger axis step or a taller chart.`);
   if (d.grid === "fine" && minor < 1)
     issues.push("Small grid squares would be under 1 mm. Use fewer small squares or a taller chart.");
   const values = series.map((s, si) =>

@@ -102,6 +102,8 @@ export const bagSchema = z
     id,
     type: z.literal("bag"),
     groups: z.array(groupSchema).min(1).max(MAX_GROUPS),
+    /** Counters in each row, 1-10. Left out, the bag picks a near-square layout. */
+    perRow: z.number().int().min(1).max(10).optional(),
     caption,
   })
   .strict();
@@ -174,6 +176,7 @@ export function validate(input: unknown): Envelope {
     if (leaf === "rotation" || leaf === "pointerAngle") throw Error("Turns and pointer directions are 0° up to (not including) 360°.");
     if (leaf === "id") throw Error("Object IDs are short lower-case names such as o1.");
     if (leaf === "count") throw Error(`A group has 1 to ${MAX_COUNTERS} counters.`);
+    if (leaf === "perRow") throw Error("A bag has 1 to 10 counters in each row.");
     if (leaf === "sectors" && size) throw Error(`A spinner has ${MIN_SECTORS} to ${MAX_SECTORS} sectors.`);
     if (leaf === "faces" && size) throw Error(`A dice shows 1 to ${MAX_FACES} faces.`);
     if (leaf === "groups" && size) throw Error(`A bag has 1 to ${MAX_GROUPS} groups of counters.`);
@@ -608,7 +611,7 @@ function layoutBag(b: Bag): Drawn {
   const widest = Math.max(0, ...b.groups.map((g) => (g.label.text ? mathsWidth(g.label.text) : 0)));
   const D = Math.max(8, widest + 2.6),
     gap = 1.6;
-  const cols = Math.min(counters.length, Math.max(3, Math.ceil(Math.sqrt(counters.length * 1.6)))),
+  const cols = Math.min(counters.length, b.perRow ?? Math.max(3, Math.ceil(Math.sqrt(counters.length * 1.6)))),
     rows = Math.ceil(counters.length / cols);
   const inner = cols * D + (cols - 1) * gap,
     W = inner + 8,

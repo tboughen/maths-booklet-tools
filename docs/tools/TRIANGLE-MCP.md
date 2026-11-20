@@ -144,7 +144,7 @@ schemas; a valid internal Zod type alone does not prove client import acceptance
 
 Limits: two component triangles; three records for split including outer; six
 vertices; seven edges; nine angles; two heights (one per triangle); two captions.
-Single default width 12 cm, paired 16 cm; width 6–18 cm. Actual full artwork
+Single default width 12 cm, paired 16 cm; width 5–18 cm. Actual full artwork
 determines height; 11 pt typography by default (`fontPt` 11–14; fraction parts print at 85%, so never below 11), margins and pupil writing spaces are retained.
 
 Returns preview, envelope/hash, outlined SVG, verified 600 ppi PNG, editable JSON,

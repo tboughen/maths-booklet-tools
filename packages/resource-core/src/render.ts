@@ -818,7 +818,9 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
   }
   out.push(`<rect x="0" y="0" width="${n(W)}" height="${n(H)}" fill="none" stroke="${st.rule}" stroke-width="0.3"/>`);
   if (item.axes) {
-    const snap = (v: number, max: number) => Math.min(Math.max(Math.round(v / pitch) * pitch, 0), Math.floor(max / pitch) * pitch);
+    // On graph paper the axes sit on a bold 10 mm line, as on an exam grid.
+    const step = item.style === "graph" ? 10 : pitch;
+    const snap = (v: number, max: number) => Math.min(Math.max(Math.round(v / step) * step, 0), Math.floor(max / step) * step);
     const ox = snap(item.axes.originMm.x, W),
       oy = H - snap(item.axes.originMm.y, H);
     const a = 1.6;

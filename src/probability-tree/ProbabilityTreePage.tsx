@@ -780,7 +780,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 <label>
                   Branch length (mm)
                   <select aria-label="Branch length" value={d.branchMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.branchMm = Number(ev.target.value)))}>
-                    {[...new Set([20, 24, 28, 32, 36, 40, 45, 50, d.branchMm])].sort((a, b) => a - b).map((x) => (
+                    {[...new Set([12, 16, 20, 24, 28, 32, 36, 40, 45, 50, d.branchMm])].sort((a, b) => a - b).map((x) => (
                       <option key={x} value={x}>
                         {x}
                       </option>
@@ -790,7 +790,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 <label>
                   Path spacing (mm)
                   <select aria-label="Path spacing" value={d.gapMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.gapMm = Number(ev.target.value)))}>
-                    {[...new Set([10, 11, 12, 13, 14, 16, 18, 20, 24, d.gapMm])].sort((a, b) => a - b).map((x) => (
+                    {[...new Set([8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24, d.gapMm])].sort((a, b) => a - b).map((x) => (
                       <option key={x} value={x}>
                         {x}
                       </option>
