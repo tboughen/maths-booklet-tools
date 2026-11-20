@@ -65,6 +65,11 @@ describe("the booklet's own name for a lesson", () => {
     expect(all).toContain("End of lesson 1");
   });
 
+  it("reports a name too long for the end band instead of running into the page number", () => {
+    const r = renderBooklet(booklet({ lessonName: "Mock exam revision session" }));
+    expect(r.issues.map((i) => i.message).join(" ")).toContain("too long for the end band");
+  });
+
   it("reports a badge word too wide for the tile instead of squeezing it", () => {
     const r = renderBooklet(booklet({ lessonBadge: "Consolidate" }));
     expect(r.issues.map((i) => i.message).join(" ")).toContain('The badge word "Consolidate" is too wide');

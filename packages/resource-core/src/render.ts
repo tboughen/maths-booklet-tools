@@ -239,7 +239,8 @@ function spaceWorking(answer: string, w: number, h: number, ctx: AnyCtx): string
     out.push(at(f, 0, y));
     y += f.h;
   }
-  if (y > h + 0.01) issue(ctx, `The model working in a space needs ${n(y)} mm but the space is ${n(h)} mm high. Make the space taller or the working shorter.`);
+  // Word ends the space with a gap paragraph at least 0.36 mm high, so the working must leave that much.
+  if (y > h - 0.36 + 0.01) issue(ctx, `The model working in a space needs ${n(y + 0.36)} mm but the space is ${n(h)} mm high. Make the space taller or the working shorter.`);
   return out.join("");
 }
 

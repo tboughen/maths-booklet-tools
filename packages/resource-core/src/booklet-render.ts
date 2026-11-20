@@ -767,6 +767,14 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   const badgeWord = lessonWords(doc).badge;
   if (plainWidth(badgeWord, pt(10), "bold") > BOOKEND.tile - 2)
     issues.push({ lesson: 0, page: 1, message: `The badge word "${badgeWord}" is too wide for the lesson tile. Use a shorter word, such as "Revision".` });
+  // The end band's words run from beside its tile to just short of the centred page number.
+  {
+    const size = pt(14);
+    const room = W / 2 - plainWidth("Page 99", size, "bold") / 2 - 4 - (3 + BOOKEND.endTile + 3);
+    const endText = `${lessonWords(doc).end} ${doc.lessons.length + (options.numbering?.lessonOffset ?? 0)}`;
+    if (plainWidth(endText, size, "bold") > room)
+      issues.push({ lesson: 0, page: 1, message: `"${endText}" is too long for the end band and would run into the page number. Use a shorter name for each part.` });
+  }
 
   const pages: string[] = [];
   pages.push(page(cover(doc, plan.contents, st, issues), `${doc.title}, cover${view === "answers" ? ", answers" : ""}`, options));

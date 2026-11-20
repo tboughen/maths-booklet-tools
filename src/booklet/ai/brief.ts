@@ -161,6 +161,8 @@ function revealing(lesson: Lesson): string[] {
   };
   const visit = (item: { type: string; items?: unknown[]; diagram?: { spec?: unknown } }, path: string) => {
     if (item.type === "diagram" && item.diagram?.spec !== undefined) scan(item.diagram.spec, `${path}.diagram.spec`);
+    // A line written on the pupil copy is a worked example's own writing, never a pupil question's.
+    if (item.type === "answerLine" && (item as { given?: boolean }).given) found.push(`${path}.given`);
     if (item.type === "part") (item.items ?? []).forEach((c, i) => visit(c as never, `${path}.items.${i}`));
   };
   lesson.sections.forEach((s, si) =>
