@@ -112,6 +112,13 @@ export const bookletSchema = z
         coverNote: text(240).default(""),
         nameLine: z.boolean().default(true),
         /**
+         * What one part of the booklet is called, e.g. "Mock revision": the end band then says
+         * "End of mock revision 1" and the contents list "Mock revision 1". Empty means "Lesson".
+         */
+        lessonName: text(30).default(""),
+        /** The one word on the start tile and the corner badge above the number, e.g. "Revision". Empty uses the last word of the name. */
+        lessonBadge: text(12).default(""),
+        /**
          * plain (saved booklets from before, and the default): text prints as typed. maths: {3/4}
          * prints as a stacked fraction, and as a native equation in Word, as on worksheets.
          * Typed maths also prints as a paper prints it (typeset.ts).
@@ -134,6 +141,25 @@ export type BookletDocument = Booklet["document"];
 export type Lesson = z.infer<typeof lessonSchema>;
 export type Section = z.infer<typeof sectionSchema>;
 export type Intro = z.infer<typeof introSchema>;
+
+/** The printed words for a lesson (badge word, full name, end band phrase); "Lesson" unless the booklet names its parts. */
+export interface LessonWords {
+  /** The word above the number on the start tile and the corner badge. */
+  badge: string;
+  /** The name before the number in the contents and the teaching notes, e.g. "Mock revision". */
+  name: string;
+  /** The end band's words before the number, e.g. "End of mock revision". */
+  end: string;
+}
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** Lower-case the first letter only when the word is an ordinary word (so "SATs" stays as typed). */
+const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+export function lessonWords(doc: { lessonName?: string; lessonBadge?: string }): LessonWords {
+  const name = (doc.lessonName ?? "").trim().replace(/\s+/g, " ") || "Lesson";
+  const badge = (doc.lessonBadge ?? "").trim() || capital(name.split(" ").pop() ?? name);
+  return { badge, name, end: `End of ${lowerFirst(name)}` };
+}
+export const LESSON_WORDS: LessonWords = lessonWords({});
 
 /** Letters A to Z, then AA, AB and so on. */
 export const questionLetter = (k: number): string => (k < 26 ? String.fromCharCode(65 + k) : questionLetter(Math.floor(k / 26) - 1) + String.fromCharCode(65 + (k % 26)));

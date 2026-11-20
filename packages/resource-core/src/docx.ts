@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, SPACE_WORKING, STAGE_BAND, stageLetters, tooWideMessage, workingLines, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -392,7 +392,7 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
           at = end;
         } else {
           add(p.x - at, gap(END_MM));
-          add(p.end - p.x, ctx.view === "answers" && p.answer ? text(p.answer, { color: ctx.st.answer }, "center") : gap(END_MM), {
+          add(p.end - p.x, (ctx.view === "answers" || l.given) && p.answer ? text(p.answer, { color: l.given ? ctx.st.ink : ctx.st.answer }, "center") : gap(END_MM), {
             borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
           });
           at = p.end;
@@ -408,9 +408,9 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
       cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom" }));
     }
     grid.push(mid);
-    const shown = ctx.view === "answers" && l.answer;
+    const shown = (ctx.view === "answers" || l.given) && l.answer;
     cells.push(
-      cell(shown ? text(l.answer, { color: ctx.st.answer }) : gap(END_MM), {
+      cell(shown ? text(l.answer, { color: l.given ? ctx.st.ink : ctx.st.answer }) : gap(END_MM), {
         width: mid,
         vAlign: "bottom",
         borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
@@ -600,9 +600,21 @@ function leaf(item: Leaf, w: number, indent: number, ctx: WordCtx, extra: number
       return choice(item, w, indent, ctx);
     case "answerLine":
       return answerRow([item], w, indent, ctx);
-    case "space":
-      // Working and drawing space: one empty paragraph of exact height.
-      return gap(item.heightMm + extra, indent);
+    case "space": {
+      // Working and drawing space: one empty paragraph of exact height. On the answers copy any model
+      // working comes first, line by line at the PDF's line heights, and the gap takes the rest.
+      const h = item.heightMm + extra;
+      if (ctx.view !== "answers" || !item.answer?.trim()) return gap(h, indent);
+      const left = indent + SPACE_WORKING.x;
+      const lines = workingLines(item.answer);
+      let used = SPACE_WORKING.top;
+      const paras = lines.map((line) => {
+        const tall = grows(ctx, line);
+        used += wrap(line, S.body, w - 2 * SPACE_WORKING.x, "regular", !!ctx.maths).length * (tall ? S.body * FRAC_LINE : lineBox(S.body));
+        return para(mt(line, ctx, { color: ctx.st.answer }), { left, right: SPACE_WORKING.x - WORD_WRAP_SLACK_MM, grow: tall });
+      });
+      return gap(SPACE_WORKING.top, indent) + paras.join("") + gap(Math.max(0.36, h - used), indent);
+    }
     case "diagram":
       return picture(item.diagram, w, indent, ctx);
     case "paper":
@@ -658,7 +670,7 @@ export function items(list: Item[], w: number, indent: number, ctx: WordCtx, ext
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const post = only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0;
-        const answer = ctx.view === "answers" && only.answer ? run("\u00a0") + runs(only.answer, { color: ctx.st.answer, underline: true }) : "";
+        const answer = (ctx.view === "answers" || only.given) && only.answer ? run("\u00a0") + runs(only.answer, { color: only.given ? ctx.st.ink : ctx.st.answer, underline: true }) : "";
         const line = run("\u00a0") + answer + tab({ color: ctx.st.ink }) + (only.suffix ? run("\u00a0") + runs(only.suffix) : "");
         blocks.push(
           para(run(label) + tab() + mt(it.text, ctx) + line, {
