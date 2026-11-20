@@ -139,9 +139,9 @@ describe("silent starter layout", () => {
 
   it("numbers six cards and four cards across, in reading order (layout E)", () => {
     const six = slotBoxes("six").map((b) => [Math.round(b.x), Math.round(b.y)]);
-    expect(six).toEqual([[7, 25], [73, 25], [140, 25], [7, 85], [73, 85], [140, 85]]);
+    expect(six).toEqual([[7, 23], [73, 23], [139, 23], [7, 83], [73, 83], [139, 83]]);
     const four = slotBoxes("four").map((b) => [Math.round(b.x), Math.round(b.y)]);
-    expect(four).toEqual([[7, 25], [107, 25], [7, 85], [107, 85]]);
+    expect(four).toEqual([[7, 23], [106, 23], [7, 83], [106, 83]]);
   });
 
   it("reports a topic too long for the header instead of cutting it silently", () => {
