@@ -153,7 +153,8 @@ const runMm = (t: string) => [...visible(t)].reduce((w, c) => w + advance(c, "bo
  *   word ("… gradient of the line is" / "−2." is not allowed);
  * - a range stays together: "−1 to 1", "3 to 5";
  * - a number keeps its unit: "5 cm", "40 %";
- * - a short equation or expression stays on one line: "y = 2*x* + 1", "*x* = 3".
+ * - a short equation or expression stays on one line: "y = 2*x* + 1", "*x* = 3";
+ * - a maths letter keeps its movement arrow: "*x* →", "*y* ↑".
  * Each glued run is at most 24 printed characters, so it still fits the narrowest card.
  */
 export function keepTogether(source: string): string {
@@ -169,6 +170,8 @@ export function keepTogether(source: string): string {
     const [a, b, c] = [words[i], words[i + 1], words[i + 2]];
     if (NUMBER.test(a) && b === "to" && c !== undefined && NUMBER.test(c)) glue[i] = glue[i + 1] = true;
     if (/^[−-]?\d+([.,]\d+)?$/.test(a) && b !== undefined && UNIT.test(b)) glue[i] = true;
+    // A movement heading keeps its arrow: "*x* →", "*y* ↑" (A7.03, 17 November 2026).
+    if (/^\*[a-z]\*$/.test(a) && b !== undefined && /^[→←↑↓][.,;:?!)]*$/.test(b)) glue[i] = true;
   }
   // Short equations and expressions: operand (operator operand)+.
   for (let i = 0; i < words.length; i++) {

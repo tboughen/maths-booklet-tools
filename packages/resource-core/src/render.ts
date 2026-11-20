@@ -222,6 +222,27 @@ export function answerNeed(l: Extract<Leaf, { type: "answerLine" }>, maths: bool
   const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
   return pre + post + Math.max(ANSWER_LINE_MIN, l.answer ? widthOf(l.answer) + 2 : 0);
 }
+/** Inset of model working inside a working space (answers copy). */
+export const SPACE_WORKING = { x: 2, top: 1.5 } as const;
+/** The lines of model working in a space: one paragraph per line break, blank lines dropped. */
+export const workingLines = (answer: string) =>
+  answer
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+/** Model working in a working space on the answers copy; reported when it needs more height than the space has. */
+function spaceWorking(answer: string, w: number, h: number, ctx: AnyCtx): string {
+  const out: string[] = [];
+  let y = SPACE_WORKING.top;
+  for (const line of workingLines(answer)) {
+    const f = para(line, w - 2 * SPACE_WORKING.x, ctx, { fill: ctx.st.answer, x: SPACE_WORKING.x });
+    out.push(at(f, 0, y));
+    y += f.h;
+  }
+  if (y > h + 0.01) issue(ctx, `The model working in a space needs ${n(y)} mm but the space is ${n(h)} mm high. Make the space taller or the working shorter.`);
+  return out.join("");
+}
+
 /** The texts on an answer line that may hold a stacked fraction. */
 export const answerTexts = (l: Extract<Leaf, { type: "answerLine" }>) => [l.prefix, l.suffix, l.answer, ...(l.blanks ?? []).flatMap((b) => [b.before, b.answer])];
 
@@ -264,8 +285,8 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
     out.push(`<line x1="${n(x1)}" y1="${n(base + 0.8)}" x2="${n(x2)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`);
     if (l.suffix) out.push(textSvg(runsOf(l.suffix), x2 + 1.8, base, size, ctx.st.ink));
     // A stacked fraction answer is raised so its denominator clears the line.
-    if (ctx.view === "answers" && l.answer)
-      out.push(textSvg(runsOf(l.answer), x1 + 2, base - 0.6 - (answerHasFraction(l.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer));
+    if ((ctx.view === "answers" || l.given) && l.answer)
+      out.push(textSvg(runsOf(l.answer), x1 + 2, base - 0.6 - (answerHasFraction(l.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, l.given ? ctx.st.ink : ctx.st.answer));
   });
   return { h, svg: out.join("") };
 }
@@ -283,8 +304,8 @@ function frameSvg(l: Extract<Leaf, { type: "answerLine" }>, x0: number, base: nu
     .pieces.map((p) => {
       if (p.kind === "text") return textSvg(runsOf(p.text), x0 + p.x, base, size, ctx.st.ink);
       const line = `<line x1="${n(x0 + p.x)}" y1="${n(base + 0.8)}" x2="${n(x0 + p.end)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`;
-      if (ctx.view !== "answers" || !p.answer) return line;
-      return line + textSvg(runsOf(p.answer), x0 + (p.x + p.end) / 2, base - 0.6 - (answerHasFraction(p.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer, "middle");
+      if ((ctx.view !== "answers" && !l.given) || !p.answer) return line;
+      return line + textSvg(runsOf(p.answer), x0 + (p.x + p.end) / 2, base - 0.6 - (answerHasFraction(p.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, l.given ? ctx.st.ink : ctx.st.answer, "middle");
     })
     .join("");
 }
@@ -419,8 +440,11 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
       return choice(item, w, ctx);
     case "answerLine":
       return answerRow([item], w, ctx);
-    case "space":
-      return { h: item.heightMm + extra, svg: "" };
+    case "space": {
+      const h = item.heightMm + extra;
+      if (ctx.view !== "answers" || !item.answer?.trim()) return { h, svg: "" };
+      return { h, svg: spaceWorking(item.answer, w, h, ctx) };
+    }
     case "diagram":
       return diagram(item.diagram, w, ctx);
     case "paper": {
