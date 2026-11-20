@@ -3,6 +3,7 @@ import { FAMILIES, type DiagramKind } from "../../diagram-core/src/registry";
 import { at, countSpaces, items, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type StyleId } from "./style";
 import { esc, lineWidth, n, parseRuns, plainWidth, textSvg } from "./text";
+import type { Item } from "./schema";
 import { fitLine } from "./booklet-render";
 import { isExtensionSlot, type StarterIcon, type StarterRun, type StarterTemplate } from "./starter";
 
@@ -17,22 +18,24 @@ export const STARTER = {
   sheet: { width: 210, height: 297 },
   /** Cutting allowance all round, so a slightly crooked cut never clips a question. */
   margin: 7,
-  header: 12,
-  headerRule: 0.5,
-  title: 16 * pt,
-  trackerSize: 13 * pt,
-  numberSize: 14 * pt,
-  slotRule: 0.35,
-  /** The bar before the extension column (option C). */
-  extensionRule: 1.3,
-  extensionBand: 5.5,
-  /** Wide enough that a diagram at its full allowed width stays clear of the 1.3 mm extension bar. */
-  padX: 3.5,
-  padTop: 2.2,
+  /** Layout E (Tim, 19 Nov 2026): the booklet's corner badge and stage-style run squares. */
+  header: 13,
+  headerGap: 2.5,
+  badge: 13,
+  square: 7.5,
+  squareGap: 1.4,
+  /** Framed question cards, three across (1 2 3 over 4 5 6), with a header strip on each. */
+  cardGap: 2.5,
+  strip: 6.5,
+  radius: 1.6,
+  numberSize: 12 * pt,
+  tagSize: 7.5 * pt,
+  padX: 3,
+  padTop: 1.8,
   padBottom: 2,
   icon: 8,
   logo: 10,
-  colours: { title: "#1d6fd6", underline: "#d32f2f", tracker: "#e8711a", number: "#1e8e3e", rule: "#000000", tint: "#efefef" },
+  colours: { edge: "#9fb3d1", pale: "#dbe7f6", muted: "#4a5878" },
 } as const;
 
 export interface StarterIssue {
@@ -57,28 +60,44 @@ export interface RenderedStarters {
 
 type Where = { starter: number; question?: number };
 
-/** Each slot's box inside the question area: four go two by two in reading order; six go down the columns (1 2 | 3 4 | 5 6). */
+/** Each card's box: four go two by two and six three by two, always in reading order (1 2 3 over 4 5 6). */
 export function slotBoxes(template: StarterTemplate): { x: number; y: number; w: number; h: number }[] {
   const S = STARTER;
+  const cols = template === "four" ? 2 : 3;
   const x0 = S.margin,
-    y0 = S.margin + S.header,
+    y0 = S.margin + S.header + S.headerGap,
     W = S.card.width - 2 * S.margin,
-    H = S.card.height - 2 * S.margin - S.header;
-  if (template === "four") return [0, 1, 2, 3].map((i) => ({ x: x0 + (i % 2) * (W / 2), y: y0 + Math.floor(i / 2) * (H / 2), w: W / 2, h: H / 2 }));
-  return [0, 1, 2, 3, 4, 5].map((i) => ({ x: x0 + Math.floor(i / 2) * (W / 3), y: y0 + (i % 2) * (H / 2), w: W / 3, h: H / 2 }));
+    H = S.card.height - S.margin - y0;
+  const w = (W - (cols - 1) * S.cardGap) / cols,
+    h = (H - S.cardGap) / 2;
+  return Array.from({ length: cols * 2 }, (_, i) => ({ x: x0 + (i % cols) * (w + S.cardGap), y: y0 + Math.floor(i / cols) * (h + S.cardGap), w, h }));
 }
 
-/** The question area inside a slot: below the number line, above the icon. Shared with Word. */
+/** The question area inside a card: below its header strip, above the icon. Shared with Word. */
 export function slotContent(template: StarterTemplate, slot: number, icon: StarterIcon) {
   const S = STARTER;
   const box = slotBoxes(template)[slot];
-  const band = isExtensionSlot(template, slot) && slot === 4 ? S.extensionBand : 0;
-  const head = SIZE.body * SIZE.lineHeight;
-  const numberLine = Math.max(head, S.numberSize * 1.15);
-  const top = box.y + band + S.padTop + numberLine + SIZE.itemGap;
+  const top = box.y + S.strip + S.padTop;
   const bottom = box.y + box.h - S.padBottom - (icon === "none" ? 0 : S.icon + 1.5);
-  return { box, band, numberTop: box.y + band + S.padTop, numberLine, x: box.x + S.padX, w: box.w - 2 * S.padX, top, height: bottom - top };
+  return { box, x: box.x + S.padX, w: box.w - 2 * S.padX, top, height: bottom - top };
 }
+
+/**
+ * Where a card's instruction prints: in its header strip, or, on an extension card where it will not
+ * fit beside the EXTENSION tag, as a bold first line of the question instead (nothing is cut).
+ */
+export function cardLayout(template: StarterTemplate, slot: number, card: { title: string; items: Item[] }, maths: boolean): { stripTitle: string; items: Item[]; room: number } {
+  const S = STARTER;
+  const box = slotBoxes(template)[slot];
+  const ext = isExtensionSlot(template, slot);
+  const room = box.w - 2 * S.padX - plainWidth(String(slot + 1), S.numberSize, "bold") - 2.4 - (ext ? extensionTagWidth() - S.padX + 2 : 0);
+  const title = card.title.trim();
+  if (ext && title && lineWidth(parseRuns(title, "bold", maths), SIZE.body) > room) return { stripTitle: "", items: [{ type: "text", text: `**${title}**` }, ...card.items], room };
+  return { stripTitle: title, items: card.items, room };
+}
+
+/** The width the EXTENSION tag takes at the right of a strip. */
+export const extensionTagWidth = () => plainWidth("EXTENSION", STARTER.tagSize, "bold") + 0.4 * 8 + STARTER.padX;
 
 /** The message for a diagram wider than its slot, naming the starter and question (PDF and Word share it). */
 export const starterTooWide = (ctx: { where: Where }) => (tool: string, width: number, room: number) =>
@@ -105,79 +124,66 @@ function iconSvg(icon: StarterIcon, x: number, y: number): string {
   );
 }
 
-function header(doc: StarterRun["document"], number: number, issues: StarterIssue[]): string {
+const sq = (x: number, y: number, size: number, fill: string, stroke = "") =>
+  `<rect x="${n(x)}" y="${n(y)}" width="${n(size)}" height="${n(size)}" rx="${n(size * 0.1)}" fill="${fill}"${stroke ? ` stroke="${stroke}" stroke-width="0.35"` : ""}/>`;
+const caps = (text: string, x: number, y: number, size: number, fill: string, anchor = "start") =>
+  `<text x="${n(x)}" y="${n(y)}" font-size="${n(size)}" font-weight="700" fill="${fill}" letter-spacing="${n(size * 0.12)}"${anchor === "start" ? "" : ` text-anchor="${anchor}"`}>${text}</text>`;
+
+/** Layout E header: navy STARTER badge in the corner, run squares beside it, title and topic on the right. */
+function header(doc: StarterRun["document"], number: number, issues: StarterIssue[], navy: string): string {
   const S = STARTER,
     C = S.colours;
   const x0 = S.margin,
+    y0 = S.margin,
     right = S.card.width - S.margin;
-  const mid = S.margin + S.header / 2;
   const out: string[] = [];
-  const titleW = plainWidth("Silent starter", S.title, "bold");
-  const tb = mid + S.title * 0.36 - 0.6;
-  out.push(textSvg([{ text: "Silent starter", style: "bold" }], x0, tb, S.title, C.title));
-  out.push(`<rect x="${n(x0)}" y="${n(tb + 1.4)}" width="${n(titleW)}" height="0.7" fill="${C.underline}"/>`);
-  let x = x0 + titleW + 5;
-  const body = SIZE.body;
-  out.push(textSvg(parseRuns("On your sheet"), x, mid + body * 0.36, body, "#000"));
-  x += plainWidth("On your sheet", body) + 5;
-  // The run tracker: [ 1 2 3 4 5 6 ] with today's starter boxed, as on Tim's sheets.
-  const t = S.trackerSize,
-    cell = 5,
-    ty = mid + t * 0.36;
-  const total = doc.starters.length;
-  out.push(textSvg([{ text: "[", style: "bold" }], x, ty, t, C.tracker));
-  x += plainWidth("[", t, "bold") + 1;
-  for (let i = 1; i <= total; i++) {
-    const cx = x + cell / 2;
-    if (i === number) out.push(`<rect x="${n(x + 0.3)}" y="${n(mid - cell / 2)}" width="${n(cell - 0.6)}" height="${cell}" fill="none" stroke="#000" stroke-width="0.5"/>`);
-    out.push(textSvg([{ text: String(i), style: "bold" }], cx, ty, t, i === number ? "#000" : C.tracker, "middle"));
-    x += cell;
+  out.push(sq(x0, y0, S.badge, navy));
+  out.push(caps("STARTER", x0 + S.badge / 2, y0 + 3.9, 5.5 * pt, "#ffffff", "middle"));
+  out.push(textSvg([{ text: String(number), style: "bold" }], x0 + S.badge / 2, y0 + 10.9, 20 * pt, "#ffffff", "middle"));
+  // The run: one square per starter, today's navy, the rest pale blue, like the booklet's stage squares.
+  let x = x0 + S.badge + 5;
+  const sy = y0 + (S.badge - S.square) / 2;
+  for (let i = 1; i <= doc.starters.length; i++) {
+    const on = i === number;
+    out.push(sq(x, sy, S.square, on ? navy : C.pale));
+    out.push(textSvg([{ text: String(i), style: "bold" }], x + S.square / 2, sy + S.square * 0.68, 12 * pt, on ? "#ffffff" : navy, "middle"));
+    x += S.square + S.squareGap;
   }
-  out.push(textSvg([{ text: "]", style: "bold" }], x + 1, ty, t, C.tracker));
-  x += 1 + plainWidth("]", t, "bold") + 5;
-  let topicRight = right;
+  let textRight = right;
   if (doc.logo) {
     const L = S.logo;
-    out.push(`<image x="${n(right - L)}" y="${n(mid - L / 2)}" width="${L}" height="${L}" preserveAspectRatio="xMidYMid meet" href="${esc(doc.logo)}"/>`);
-    topicRight -= L + 3;
+    out.push(`<image x="${n(right - L)}" y="${n(y0 + (S.badge - L) / 2)}" width="${L}" height="${L}" preserveAspectRatio="xMidYMid meet" href="${esc(doc.logo)}"/>`);
+    textRight -= L + 3;
   }
+  const room = Math.max(0, textRight - x - 4);
+  const title = doc.group.trim() ? `Silent starter · ${doc.group.trim()}` : "Silent starter";
+  out.push(textSvg([{ text: fitLine(title, 12 * pt, room, "bold"), style: "bold" }], textRight, y0 + 5.4, 12 * pt, navy, "end"));
   if (doc.topic.trim()) {
-    const topic = fitLine(doc.topic, body, Math.max(0, topicRight - x), "bold");
+    const size = 10 * pt;
+    const topic = fitLine(doc.topic, size, room, "regular");
     if (topic !== doc.topic) issues.push({ starter: number, message: `Starter ${number}: the topic is wider than the header has room for, so it is cut short. Shorten the topic.` });
-    out.push(textSvg([{ text: topic, style: "bold" }], topicRight, mid + body * 0.36, body, "#000", "end"));
+    out.push(textSvg(parseRuns(topic), textRight, y0 + 10.6, size, C.muted, "end"));
   }
-  out.push(`<rect x="${n(x0)}" y="${n(S.margin + S.header - S.headerRule)}" width="${n(right - x0)}" height="${S.headerRule}" fill="#000"/>`);
   return out.join("");
 }
 
-/** The slot grid: thin rules between slots and, for core-extension, the tinted extension column (option C). */
-function grid(template: StarterTemplate): string {
-  const S = STARTER;
-  const boxes = slotBoxes(template);
-  const out: string[] = [];
-  const top = S.margin + S.header,
-    bottom = S.card.height - S.margin,
-    left = S.margin,
-    right = S.card.width - S.margin;
-  if (template === "core-extension") {
-    const col = boxes[4];
-    out.push(`<rect x="${n(col.x)}" y="${n(top)}" width="${n(right - col.x)}" height="${n(bottom - top)}" fill="${S.colours.tint}"/>`);
-    out.push(`<rect x="${n(col.x)}" y="${n(top)}" width="${n(right - col.x)}" height="${S.extensionBand}" fill="#000"/>`);
-    const size = 9 * pt;
-    out.push(`<text x="${n((col.x + right) / 2)}" y="${n(top + S.extensionBand / 2 + size * 0.36)}" font-size="${n(size)}" font-weight="600" fill="white" text-anchor="middle" letter-spacing="0.6">EXTENSION</text>`);
-  }
-  const line = (x1: number, y1: number, x2: number, y2: number, w: number = S.slotRule) => `<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}" stroke="#000" stroke-width="${w}"/>`;
-  const midY = top + (bottom - top) / 2;
-  if (template === "four") {
-    out.push(line((left + right) / 2, top, (left + right) / 2, bottom), line(left, midY, right, midY));
-  } else {
-    const third = (right - left) / 3;
-    out.push(line(left + third, top, left + third, bottom));
-    const extension = template === "core-extension";
-    out.push(line(left + 2 * third, top, left + 2 * third, bottom, extension ? S.extensionRule : S.slotRule));
-    out.push(line(left, midY, extension ? left + 2 * third : right, midY));
-    if (extension) out.push(line(left + 2 * third, midY, right, midY));
-  }
+/** One card's frame and header strip: number, instruction and, on extension cards, the EXTENSION tag. */
+function cardFrame(box: { x: number; y: number; w: number; h: number }, label: string, title: string, ext: boolean, navy: string, maths: boolean): string {
+  const S = STARTER,
+    C = S.colours,
+    r = S.radius;
+  const { x, y, w, h } = box;
+  const strip = `M${n(x)} ${n(y + S.strip)}V${n(y + r)}a${r} ${r} 0 0 1 ${r} -${r}H${n(x + w - r)}a${r} ${r} 0 0 1 ${r} ${r}V${n(y + S.strip)}Z`;
+  const ink = ext ? "#ffffff" : navy;
+  const base = y + S.strip * 0.7;
+  const out = [
+    `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" rx="${r}" fill="white"/>`,
+    `<path d="${strip}" fill="${ext ? navy : C.pale}"/>`,
+    `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" rx="${r}" fill="none" stroke="${ext ? navy : C.edge}" stroke-width="${ext ? 0.5 : 0.35}"/>`,
+    textSvg([{ text: label, style: "bold" }], x + S.padX, base, S.numberSize, ink),
+  ];
+  if (ext) out.push(caps("EXTENSION", x + w - S.padX, y + S.strip * 0.66, S.tagSize, "#ffffff", "end"));
+  if (title.trim()) out.push(textSvg(parseRuns(title, "bold", maths), x + S.padX + plainWidth(label, S.numberSize, "bold") + 2.4, base, SIZE.body, ink));
   return out.join("");
 }
 
@@ -211,35 +217,31 @@ export function renderStarterRun(saved: StarterRun, options: StarterRenderOption
   const cards: string[] = [];
   const sheets: string[] = [];
   doc.starters.forEach((starter, si) => {
-    const out: string[] = [grid(doc.template), header(doc, si + 1, issues)];
+    const out: string[] = [header(doc, si + 1, issues, st.navy)];
     starter.cards.forEach((card, qi) => {
       ctx.where = { starter: si + 1, question: qi + 1 };
       for (const c of missingCharacters(card)) issues.push({ ...ctx.where, message: missingCharacterMessage(`Starter ${si + 1}, question ${qi + 1}`, c) });
       const icon = doc.slots[qi]?.icon ?? "none";
       const place = slotContent(doc.template, qi, icon);
-      // Number and instruction on one line: a green "3)" then the card title in bold.
       const S = STARTER;
-      const label = `${qi + 1})`;
-      const numberBase = place.numberTop + place.numberLine * 0.78;
-      out.push(textSvg([{ text: label, style: "bold" }], place.x, numberBase, S.numberSize, S.colours.number));
-      const tx = place.x + plainWidth(label, S.numberSize, "bold") + 2;
-      if (card.title.trim()) {
-        const room = place.x + place.w - tx;
-        const runs = parseRuns(card.title, "bold", ctx.maths);
-        if (runs.some((r) => r.frac)) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction holds a fraction, which would not fit on the number line. Put the fraction in the question.` });
-        if (lineWidth(runs, SIZE.body) > room) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction is wider than its slot. Shorten it or move words into the question.` });
-        out.push(textSvg(parseRuns(card.title, "bold", ctx.maths), tx, numberBase, SIZE.body, "#000"));
+      const ext = isExtensionSlot(doc.template, qi);
+      const label = String(qi + 1);
+      const lay = cardLayout(doc.template, qi, card, !!ctx.maths);
+      out.push(cardFrame(place.box, label, lay.stripTitle, ext, st.navy, !!ctx.maths));
+      if (lay.stripTitle) {
+        const room = lay.room;
+        const runs = parseRuns(lay.stripTitle, "bold", ctx.maths);
+        if (runs.some((r) => r.frac)) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction holds a fraction, which would not fit in the card's header strip. Put the fraction in the question.` });
+        if (lineWidth(runs, SIZE.body) > room) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1}: the instruction is wider than its card's header strip. Shorten it or move words into the question.` });
       }
       // Spare height goes to working spaces, as on worksheets.
-      const natural: Frag = items(card.items, place.w, { ...ctx, issues: [], diagrams: 0, inline: undefined }, 0);
+      const natural: Frag = items(lay.items, place.w, { ...ctx, issues: [], diagrams: 0, inline: undefined }, 0);
       const spare = place.height - natural.h;
-      const spaces = countSpaces(card.items);
-      const body = items(card.items, place.w, ctx, spare > 0 && spaces ? spare / spaces : 0);
+      const spaces = countSpaces(lay.items);
+      const body = items(lay.items, place.w, ctx, spare > 0 && spaces ? spare / spaces : 0);
       if (spare < -0.05) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} needs ${n(-spare)} mm more height. Shorten the question or make its diagram smaller; text is never shrunk.` });
       if (card.stage) issues.push({ ...ctx.where, message: `Starter ${si + 1}, question ${qi + 1} has a stage band ("${card.stage}"), which starters do not print. Remove it.` });
-      // On the grey extension column a diagram's own white background would print as a white box.
-      const svg = isExtensionSlot(doc.template, qi) ? withoutDiagramBackground(body.svg) : body.svg;
-      out.push(at({ h: body.h, svg }, place.x, place.top));
+      out.push(at(body, place.x, place.top));
       if (icon !== "none") out.push(iconSvg(icon, place.box.x + place.box.w - S.padX - S.icon + 0.5, place.box.y + place.box.h - S.padBottom - S.icon));
     });
     const name = `${doc.title}, silent starter ${si + 1} of ${doc.starters.length}${view === "answers" ? ", answers" : ""}`;
@@ -263,7 +265,7 @@ export function starterHeaderSvg(run: StarterRun, number: number, issues: Starte
   const S = STARTER;
   const w = S.card.width - 2 * S.margin;
   const doc = typesetForPrint(run).document;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${S.header}mm" viewBox="${S.margin} ${S.margin} ${w} ${S.header}" font-family="Inter, sans-serif" role="img" aria-label="${esc(`Silent starter ${number} of ${doc.starters.length}${doc.topic ? `: ${doc.topic}` : ""}`)}">${header(doc, number, issues)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${S.header}mm" viewBox="${S.margin} ${S.margin} ${w} ${S.header}" font-family="Inter, sans-serif" role="img" aria-label="${esc(`Silent starter ${number} of ${doc.starters.length}${doc.topic ? `: ${doc.topic}` : ""}`)}">${header(doc, number, issues, styles.mathsdock.navy)}</svg>`;
 }
 
 /** A slot's icon on its own, for Word. */
