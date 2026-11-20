@@ -27,11 +27,11 @@ describe("Word output for silent starters", () => {
     expect(count(document, 'descr="Silent starter 1 of 6: Fractions, area and expanding"')).toBe(4);
   });
 
-  it("keeps the extension column's band, thick bar and tint, and the slot rows at their printed height", async () => {
+  it("tags cards 5 and 6 with navy EXTENSION strips, the rest pale blue, at their printed height", async () => {
     const { document } = await open(year9Run, "pupil", 2);
-    expect(count(document, ">EXTENSION<")).toBe(2);
-    expect(document).toContain('w:fill="EFEFEF"');
-    expect(document).toMatch(/<w:right w:val="single" w:sz="29"/);
+    expect(count(document, ">EXTENSION<")).toBe(4);
+    expect(document).toContain('w:fill="173C65"');
+    expect(document).toContain('w:fill="DBE7F6"');
     expect(count(document, 'w:hRule="exact"')).toBeGreaterThanOrEqual(4);
     expect(document).toContain("<m:f>");
   });
@@ -44,11 +44,11 @@ describe("Word output for silent starters", () => {
     expect(svgs.length).toBeGreaterThanOrEqual(12);
   });
 
-  it("drops the diagram's white background on the grey extension column only", async () => {
+  it("keeps the diagram's white background, as every card is white", async () => {
     const { files } = await open(year9Run, "pupil", 1);
     const area = Object.entries(files).filter(([f, b]) => f.endsWith(".svg") && strFromU8(b).includes("Area and perimeter diagram"));
     expect(area.length).toBe(2);
-    for (const [, b] of area) expect(strFromU8(b)).not.toMatch(/aria-label="Area and perimeter[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
+    for (const [, b] of area) expect(strFromU8(b)).toMatch(/aria-label="Area and perimeter[^"]*"><rect width="[\d.]+" height="[\d.]+" fill="white"\/>/);
   });
 
   it("reports the same problems as the PDF", async () => {
@@ -67,12 +67,12 @@ describe("Word output for silent starters", () => {
     expect((await open(run, "answers")).document).toContain("B0125B");
   });
 
-  it("puts six questions into the table down the columns, as on the PDF", async () => {
+  it("puts six questions into the table across, 1 2 3 then 4 5 6, as on the PDF", async () => {
     const { document } = await open(year9Run, "pupil", 1);
     // Word reads a table row by row, so the first copy's labels come in table order: row 1 then row 2.
     const first = document.slice(0, document.indexOf('w:val="dashed"'));
-    const labels = [...first.matchAll(/<w:t xml:space="preserve">(\d\))<\/w:t>/g)].map((m) => m[1]);
-    expect(labels).toEqual(["1)", "3)", "5)", "2)", "4)", "6)"]);
+    const labels = [...first.matchAll(/<w:t xml:space="preserve">([1-6])<\/w:t>/g)].map((m) => m[1]);
+    expect(labels).toEqual(["1", "2", "3", "4", "5", "6"]);
   });
 
   it("names the starter and question for a diagram too wide for its slot, once, with starter advice", async () => {
