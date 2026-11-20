@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { lessonWords, validateBooklet, type Booklet } from "./booklet";
-import { renderBooklet, renderLessonNotes } from "./booklet-render";
+import { BOOKLET_WIDTHS, placeRow, planBooklet, renderBooklet, renderLessonNotes } from "./booklet-render";
 import { writeBookletDocx } from "./booklet-docx";
 import { styles } from "./style";
 
@@ -149,5 +149,59 @@ describe("a maths letter keeps its movement arrow", () => {
   it("never breaks between x and →", async () => {
     const { keepTogether, typesetText } = await import("./typeset");
     expect(keepTogether(typesetText("Read the movements: x → and y ↑."))).toBe("Read the movements: *x* → and *y* ↑.");
+  });
+});
+
+describe("tall and wide cards", () => {
+  const card = (title: string, h = 10, extra: Record<string, unknown> = {}) => ({ title, items: [{ type: "text", text: "Work it out." }, { type: "space", kind: "working", heightMm: h }], ...extra });
+  const spanBooklet = (cards: unknown[]) => booklet({}, {}, [{ kind: "practice", columns: 2, cards }]);
+  const rows = (b: Booklet) =>
+    planBooklet(b).pages.flatMap((p) => p.blocks.filter((x): x is Extract<typeof x, { kind: "row" }> => x.kind === "row"));
+
+  it("groups a tall card with the cards stacked beside it, then pairs again", () => {
+    const b = spanBooklet([card("Tall", 80, { tall: 3 }), card("A"), card("B"), card("C"), card("D"), card("E")]);
+    expect(renderBooklet(b).issues).toEqual([]);
+    const r = rows(b);
+    expect(r.map((x) => [x.shape.kind, x.cards.map((c) => c.index)])).toEqual([
+      ["tall", [0, 1, 2, 3]],
+      ["pair", [4, 5]],
+    ]);
+    // Placed: the tall card left and the full row high, the stack on the right, top to bottom, filling the row.
+    const sec = b.document.lessons[0].sections[0];
+    const places = placeRow(sec, r[0], 100, () => 20);
+    expect(places[0]).toMatchObject({ x: 0, dy: 0, h: 100 });
+    expect(places.slice(1).every((p) => p.x > 0)).toBe(true);
+    expect(places[2].dy).toBeGreaterThan(places[1].dy);
+    const lastP = places[3];
+    expect(lastP.dy + lastP.h).toBeCloseTo(100, 5);
+  });
+
+  it("puts a tall card on the right when asked", () => {
+    const b = spanBooklet([card("Tall", 80, { tall: 2, tallSide: "right" }), card("A"), card("B")]);
+    const r = rows(b)[0];
+    const places = placeRow(b.document.lessons[0].sections[0], r, 60, () => 20);
+    expect(places[0].x).toBeGreaterThan(places[1].x);
+  });
+
+  it("runs a wide card across both columns in a row of its own", () => {
+    const b = spanBooklet([card("A"), card("Wide", 10, { wide: true }), card("B"), card("C")]);
+    const r = rows(b);
+    expect(r.map((x) => [x.shape.kind, x.cards.map((c) => c.index)])).toEqual([
+      ["pair", [0]],
+      ["wide", [1]],
+      ["pair", [2, 3]],
+    ]);
+    expect(placeRow(b.document.lessons[0].sections[0], r[1], 30, () => 20)[0]).toMatchObject({ x: 0, w: BOOKLET_WIDTHS.full });
+  });
+
+  it("reports a tall card with too few cards after it", () => {
+    const r = renderBooklet(spanBooklet([card("Tall", 40, { tall: 3 }), card("A")]));
+    expect(r.issues.map((i) => i.message).join(" ")).toContain("stands beside 3 cards, but only 1 follows it");
+  });
+
+  it("writes a tall card in Word as one cell merged down the stacked rows", async () => {
+    const xml = await docxXml(spanBooklet([card("Tall", 80, { tall: 3 }), card("A"), card("B"), card("C")]));
+    expect(xml).toContain('<w:vMerge w:val="restart"/>');
+    expect((xml.match(/<w:vMerge\/>/g) ?? []).length).toBe(4);
   });
 });

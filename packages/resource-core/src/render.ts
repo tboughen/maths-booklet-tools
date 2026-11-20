@@ -896,6 +896,14 @@ export function renderResource(saved: Resource, options: RenderOptions = {}): Re
     inline: new Map(),
   };
   ctx.issues.push(...missingGlyphIssues(resource));
+  // Wide and tall cards are a booklet layout; a worksheet's columns have their own widths.
+  resource.document.sides.forEach((side, si) =>
+    side.columns.forEach((col, ci) =>
+      col.cards.forEach((cd) => {
+        if (cd.wide || cd.tall) ctx.issues.push({ side: si + 1, column: ci + 1, message: `Card "${cd.title}" is set ${cd.wide ? "wide" : "tall"}, which only booklets print. Remove the setting.` });
+      }),
+    ),
+  );
   const P = S.page,
     m = S.margin;
   const colTop = m + S.headerHeight;
