@@ -307,6 +307,8 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
         rows.push(row(sides(tallCell, cardCell(section.cards[c.index], c.number, c.w, ctx, p.extra)), { mm: c.h - 2 * CARD_RULE }, true));
         if (!last) rows.push(row(sides(below(false), cell(gap(END_MM), { width: c.w - CARD_RULE })), { mm: A4.rowGap, exact: true }, true));
       });
+      // Word must not break the table between its rows: every row but the last keeps with the next.
+      for (let r = 0; r < rows.length - 1; r++) rows[r] = rows[r].replaceAll("<w:pPr>", "<w:pPr><w:keepNext/>");
       const grid = left ? [tw_, A4.columnGap + CARD_RULE, stack[0].w - CARD_RULE] : [stack[0].w - CARD_RULE, A4.columnGap + CARD_RULE, tw_];
       out.push(table(grid, rows));
       cursor = block.y + block.h;

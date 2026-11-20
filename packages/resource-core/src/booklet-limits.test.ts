@@ -203,5 +203,11 @@ describe("tall and wide cards", () => {
     const xml = await docxXml(spanBooklet([card("Tall", 80, { tall: 3 }), card("A"), card("B"), card("C")]));
     expect(xml).toContain('<w:vMerge w:val="restart"/>');
     expect((xml.match(/<w:vMerge\/>/g) ?? []).length).toBe(4);
+    expect(xml).toContain("<w:pPr><w:keepNext/>");
+  });
+
+  it("prints a tall card with only one card after it as an ordinary pair", () => {
+    const b = spanBooklet([card("Tall", 40, { tall: 2 }), card("A")]);
+    expect(rows(b).map((x) => x.shape.kind)).toEqual(["pair"]);
   });
 });

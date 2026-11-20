@@ -406,10 +406,11 @@ export function groupRows(section: Section, labels: QuestionLabel[]): { cards: {
       rows.push({ cards: [at(i)], shape: { kind: "wide" } });
       i += 1;
     } else if (c.tall) {
-      // The stacked cards end early at a wide or tall card, or at the section's end (reported).
+      // The stacked cards end early at a wide or tall card, or at the section's end (reported);
+      // with fewer than two beside it the tall card prints as an ordinary pair.
       let k = 0;
       while (k < c.tall && i + 1 + k < cards.length && !special(i + 1 + k)) k++;
-      rows.push({ cards: Array.from({ length: k + 1 }, (_, j) => at(i + j)), shape: k ? { kind: "tall", side: c.tallSide ?? "left" } : { kind: "pair" } });
+      rows.push({ cards: Array.from({ length: k + 1 }, (_, j) => at(i + j)), shape: k >= 2 ? { kind: "tall", side: c.tallSide ?? "left" } : { kind: "pair" } });
       i += k + 1;
     } else {
       const two = i + 1 < cards.length && !special(i + 1);

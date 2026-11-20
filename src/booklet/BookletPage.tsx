@@ -384,7 +384,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                       </button>
                     </div>
                     <Field label="Card title" value={card.title} max={60} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].cards[ci].title = v))} />
-                    {section.columns === 2 && (
+                    {(section.columns === 2 || card.wide || card.tall) && (
                       <label className="ws-field">
                         <span>Card shape</span>
                         <select
