@@ -384,6 +384,39 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                       </button>
                     </div>
                     <Field label="Card title" value={card.title} max={60} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].cards[ci].title = v))} />
+                    {(section.columns === 2 || card.wide || card.tall) && (
+                      <label className="ws-field">
+                        <span>Card shape</span>
+                        <select
+                          value={card.wide ? "wide" : card.tall ? `tall-${card.tallSide ?? "left"}-${card.tall}` : "half"}
+                          disabled={blocked}
+                          onChange={(e) =>
+                            setLesson((l) => {
+                              const c = l.sections[si].cards[ci];
+                              delete c.wide;
+                              delete c.tall;
+                              delete c.tallSide;
+                              const [kind, side, count] = e.target.value.split("-");
+                              if (kind === "wide") c.wide = true;
+                              if (kind === "tall") {
+                                c.tall = Number(count);
+                                if (side === "right") c.tallSide = "right";
+                              }
+                            })
+                          }
+                        >
+                          <option value="half">Half width</option>
+                          <option value="wide">Wide: across both columns</option>
+                          {(["left", "right"] as const).flatMap((side) =>
+                            [2, 3, 4, 5, 6].map((k) => (
+                              <option key={`${side}-${k}`} value={`tall-${side}-${k}`}>
+                                Tall on the {side}, beside the next {k} cards
+                              </option>
+                            )),
+                          )}
+                        </select>
+                      </label>
+                    )}
                     {card.items.map((item, i) =>
                       item.type === "part" ? (
                         <div key={i} className="ws-part">

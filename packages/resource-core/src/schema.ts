@@ -270,6 +270,15 @@ export const cardSchema = z
     /** Starts a new labelled stage band (the next letter) above this card: stages on wider layouts. */
     stage: text(40).optional(),
     working: workingSchema.optional(),
+    /** Booklets, two-column sections: the card takes the whole width, across both columns. */
+    wide: z.literal(true).optional(),
+    /**
+     * Booklets, two-column sections: the card stands tall in one column beside the next 2 to 6
+     * cards, which stack in the other column (a tall diagram beside several short questions).
+     */
+    tall: z.number().int().min(2).max(6).optional(),
+    /** The column a tall card stands in; left unless set. */
+    tallSide: z.enum(["left", "right"]).optional(),
   })
   .strict();
 

@@ -245,10 +245,13 @@ export interface CellOpts {
   shade?: string;
   margin?: Partial<Record<"top" | "left" | "bottom" | "right", number>>;
   vAlign?: "top" | "center" | "bottom";
+  /** A cell merged down rows (a booklet's tall card): restart in its first row, continue below. */
+  vMerge?: "restart" | "continue";
 }
 export function cell(content: string, o: CellOpts): string {
   const p: string[] = [`<w:tcW w:w="${tw(o.width)}" w:type="dxa"/>`];
   if (o.span && o.span > 1) p.push(`<w:gridSpan w:val="${o.span}"/>`);
+  if (o.vMerge) p.push(o.vMerge === "restart" ? `<w:vMerge w:val="restart"/>` : `<w:vMerge/>`);
   const sides = ["top", "left", "bottom", "right"] as const;
   p.push(
     `<w:tcBorders>${sides
@@ -730,7 +733,7 @@ export const CARD_RULE = 0.45;
  * The bordered cell of a question card laid out `w` wide. Its row's minimum height must be the
  * card's height less two borders (`CARD_RULE`); the cell is one border narrower than `w`.
  */
-export function cardCell(c: Card, number: number | string | null, w: number, ctx: WordCtx, extra: number): string {
+export function cardCell(c: Card, number: number | string | null, w: number, ctx: WordCtx, extra: number, merge?: "restart"): string {
   const st = ctx.st,
     pad = S.cardPad;
   const inner = w - pad * 2;
@@ -776,7 +779,9 @@ export function cardCell(c: Card, number: number | string | null, w: number, ctx
   const cw = w - rule.width;
   return cell(body, {
     width: cw,
-    borders: { top: rule, left: rule, bottom: rule, right: rule },
+    // A tall card merged down several rows takes its bottom border from its last row.
+    borders: merge ? { top: rule, left: rule, right: rule } : { top: rule, left: rule, bottom: rule, right: rule },
+    vMerge: merge,
     // The padding paragraphs give the top and bottom borders' width back.
     margin: { top: 0, left: pad, bottom: 0, right: pad - rule.width - WORD_WRAP_SLACK_MM },
   });
