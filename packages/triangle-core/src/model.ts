@@ -104,7 +104,7 @@ export const documentSchema = z
     captions: z.array(z.object({ id, label: labelSchema }).strict()).max(2),
     sharedLabels: z.array(z.object({ id, text: safeText(40) }).strict()).max(4),
     split: z.object({ point: id, from: id, to: id }).strict().nullable(),
-    widthCm: z.number().finite().min(6).max(18),
+    widthCm: z.number().finite().min(5).max(18),
     notToScale: z.boolean(),
     /** Label text size in points (U111), 11-14. Left out means the usual 11 pt; 11 is never saved. */
     fontPt: z

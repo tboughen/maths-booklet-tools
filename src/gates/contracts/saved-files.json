@@ -3580,7 +3580,7 @@
           },
           "heightMm": {
             "type": "integer",
-            "minimum": 40,
+            "minimum": 25,
             "maximum": 140
           },
           "barMm": {
@@ -8621,12 +8621,12 @@
           },
           "branchMm": {
             "type": "integer",
-            "minimum": 20,
+            "minimum": 12,
             "maximum": 50
           },
           "gapMm": {
             "type": "integer",
-            "minimum": 10,
+            "minimum": 8,
             "maximum": 24
           },
           "lines": {
@@ -10023,7 +10023,7 @@
           },
           "widthCm": {
             "type": "number",
-            "minimum": 6,
+            "minimum": 5,
             "maximum": 18
           },
           "notToScale": {
@@ -12179,6 +12179,11 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "perRow": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
                     },
                     "caption": {
                       "type": "string",

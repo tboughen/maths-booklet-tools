@@ -70,8 +70,8 @@ export const documentSchema = z
     endHeadings: z.array(plain(24)).length(2),
     questions: z.array(questionSchema).max(MAX_QUESTIONS),
     blankStyle: z.enum(["dots", "box"]),
-    branchMm: z.number().int().min(20).max(50),
-    gapMm: z.number().int().min(10).max(24),
+    branchMm: z.number().int().min(12).max(50),
+    gapMm: z.number().int().min(8).max(24),
     /** Bold lines (U111). Normal lines are the default and are never saved. */
     lines: z
       .enum(LINE_WEIGHTS)
@@ -166,8 +166,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error(`Use 2 to ${MAX_BRANCHES} branches with IDs such as b1.`), parsed.error);
     if (path.includes("questions"))
       throw withFields(Error(`Use at most ${MAX_QUESTIONS} questions with IDs such as q1.`), parsed.error);
-    if (path.includes("branchMm")) throw withFields(Error("Choose a branch length from 20 to 50 mm."), parsed.error);
-    if (path.includes("gapMm")) throw withFields(Error("Choose a path spacing from 10 to 24 mm."), parsed.error);
+    if (path.includes("branchMm")) throw withFields(Error("Choose a branch length from 12 to 50 mm."), parsed.error);
+    if (path.includes("gapMm")) throw withFields(Error("Choose a path spacing from 8 to 24 mm."), parsed.error);
     throw withFields(Error("This is not a supported probability tree file (version 1 is supported)."), parsed.error);
   }
   const e = parsed.data,
@@ -874,7 +874,7 @@ export function layout(e: Envelope) {
   if (width > 180) {
     // Every stage's branch shortens by the same amount, so say which length would fit.
     const fit = Math.floor(d.branchMm - (width - 180) / depthCount - 0.05);
-    const advice = fit >= 20 && fit < d.branchMm ? ` A branch length of ${fit} mm fits.` : " Use shorter labels or fewer stages.";
+    const advice = fit >= 12 && fit < d.branchMm ? ` A branch length of ${fit} mm fits.` : " Use shorter labels or fewer stages.";
     issues.push(`The tree is ${width} mm wide, more than 18 cm.${advice}`);
   }
   if (height > 250) issues.push("The tree is taller than 25 cm. Reduce the path spacing or the number of paths.");
@@ -896,10 +896,10 @@ function describe(p: Placed) {
   const text = p.label.show === "hidden" ? "pupil space" : `"${p.label.text.trim()}"`;
   return p.name ? `${p.name} (${text})` : text;
 }
-/** The longest branch length (20 mm at least) at which the tree fits the 18 cm width, or the tree unchanged. */
+/** The longest branch length (12 mm at least) at which the tree fits the 18 cm width, or the tree unchanged. */
 export function fitBranchLength(e: Envelope): Envelope {
   if (layout(e).width <= 180) return e;
-  for (let mm = e.document.branchMm - 1; mm >= 20; mm--) {
+  for (let mm = e.document.branchMm - 1; mm >= 12; mm--) {
     const n = { ...e, document: { ...e.document, branchMm: mm } };
     if (layout(n).width <= 180) return n;
   }
