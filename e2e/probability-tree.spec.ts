@@ -2,7 +2,7 @@ import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { canonical, layout, type Envelope } from "../packages/probability-tree-core/src";
+import { canonical, create, layout, type Envelope } from "../packages/probability-tree-core/src";
 import { examples } from "../packages/probability-tree-core/src/examples";
 import { printRasterSize, verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 import { clickResourceAction } from "./resource-actions";
@@ -19,7 +19,7 @@ async function boot(page: Page, e?: Envelope) {
 const saved = (page: Page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "null"), key);
 
 test("edits a probability from the tree, makes it a pupil space and undoes", async ({ page }) => {
-  await boot(page);
+  await boot(page, create())  // the plain tree, without the path-end working;
   const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
   await target.click();
   // The click opens the options box beside the label with the cursor in its text, selected: typing replaces it.
@@ -60,7 +60,7 @@ test("edits a probability from the tree, makes it a pupil space and undoes", asy
 });
 
 test("what pupils see: double-click, typing first, leave out, the kind switches and clearing pupil spaces, each one undo step", async ({ page }) => {
-  await boot(page);
+  await boot(page, create());
   const art = page.getByTestId("tree-resource").locator(".pt-art svg");
   const shows = async () => (await saved(page)).document.branches.map((b: { probability: { show: string } }) => b.probability.show);
   const undoName = () => page.getByRole("button", { name: "Undo" }).getAttribute("title");
@@ -146,7 +146,7 @@ test("what pupils see: double-click, typing first, leave out, the kind switches 
 });
 
 test("the Branches list grows the tree: + Branch at each point and + Stage, each one undo step", async ({ page }) => {
-  await boot(page);
+  await boot(page, create());
   const card = page.getByRole("region", { name: "Branches" });
   await card.getByRole("button", { name: "+ Branch after Red" }).click();
   expect((await saved(page)).document.branches).toHaveLength(7);
@@ -258,4 +258,27 @@ test("hover hint at once, a faint value for a left-out label, and Undo / Redo wo
   await expect(toolbar.getByRole("button", { name: "Undo", exact: true })).toContainText("Undo");
   await expect(toolbar.getByRole("button", { name: "Redo", exact: true })).toContainText("Redo");
   await expect(page.locator(".pt-branches")).not.toContainText("path end");
+});
+
+test("a new tree opens with path names, working and a pupil space for each path probability; the answer copy works it out", async ({ page }) => {
+  await boot(page);
+  const art = page.getByTestId("tree-resource").locator(".pt-art svg");
+  const d = (await saved(page)).document;
+  expect(d.endColumn).toBe("working");
+  expect(d.branches.filter((b: { endProbability: { show: string; text: string } }) => b.endProbability.show === "hidden" && !b.endProbability.text)).toHaveLength(4);
+  const html = await art.innerHTML();
+  for (const name of ["Red, Red", "Red, Blue", "Blue, Red", "Blue, Blue"]) expect(html).toContain(`>${name}<`);
+  expect(html.match(/>×</g)?.length).toBe(4);
+  expect(html.match(/>=</g)?.length).toBe(4);
+  // Pupil copy: no products anywhere.
+  expect(html).not.toContain(">64<");
+  // A renamed outcome flows into the path names.
+  await page.getByRole("textbox", { name: "Outcome for Red", exact: true }).fill("Green");
+  await page.keyboard.press("Enter");
+  await expect(art).toContainText("Green, Red");
+  expect((await saved(page)).document.branches[0].endOutcome.text).toBe("");
+  // Show answers works out each product from the current values; nothing is saved.
+  await page.getByLabel("Teacher copy: show answers").check();
+  await expect(art.locator("text", { hasText: /^64$/ })).toHaveCount(4);
+  expect((await saved(page)).document.branches.every((b: { endProbability: { text: string } }) => !b.endProbability.text)).toBe(true);
 });

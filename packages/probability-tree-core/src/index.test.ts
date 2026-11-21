@@ -14,6 +14,7 @@ import {
   fillFromBag,
   fitBranchLength,
   forView,
+  hasHidden,
   formatFraction,
   fromNested,
   labelBox,
@@ -324,3 +325,40 @@ describe("addSibling names the new branch", () => {
   });
 });
 
+
+describe("path-end working (21 Nov 2026)", () => {
+  const working = () => {
+    const e = create();
+    e.document.endColumn = "working";
+    for (const b of e.document.branches) if (!e.document.branches.some((c) => c.parent === b.id)) b.endProbability.show = "hidden";
+    return e;
+  };
+  it("prints path names, the multiplication and a pupil space; the pupil copy has no product", () => {
+    const svg = renderSvg(working());
+    expect(svg).toContain(">Red, Blue<");
+    expect(svg.match(/>×</g)).toHaveLength(4);
+    expect(svg.match(/>=</g)).toHaveLength(4);
+    expect(svg).not.toContain(">64<");
+  });
+  it("the answer copy works out an empty space from the current values and saves nothing", () => {
+    const e = working();
+    e.document.branches[2].probability.text = "1/2";
+    const svg = renderSvg(forView(e, "answer"));
+    expect(svg).toContain(">9<");
+    expect(svg).toContain(">16<");
+    expect(e.document.branches.every((b) => !b.endProbability.text)).toBe(true);
+    expect(hasHidden(e)).toBe(true);
+  });
+  it("a hidden probability on the path stays a space in the working of the pupil copy", () => {
+    const e = working();
+    e.document.branches[0].probability.show = "hidden";
+    const g = layout(e);
+    const factors = g.placed.filter((p) => p.name === "working for Red, Red" && p.kind === "probability");
+    expect(factors.map((p) => p.label.show)).toEqual(["hidden", "show"]);
+  });
+  it("a teacher's own end probability text wins over the worked product", () => {
+    const e = working();
+    e.document.branches[1].endProbability.text = "0.14";
+    expect(renderSvg(forView(e, "answer"))).toContain(">0.14<");
+  });
+});
