@@ -26,6 +26,7 @@ import {
   pruneBranch,
   readProbability,
   removeLastSibling,
+  removeBranch,
   removeStage,
   renderSvg,
   setOutcome,
@@ -70,6 +71,22 @@ describe("probability tree core", () => {
     expect(e.document.questions[0].answer).toEqual({ text: "1/6", show: "hidden" });
     // The saved document keeps pupil visibility after rendering the answer view.
     expect(e.document.branches.some((b) => b.probability.show === "hidden")).toBe(true);
+  });
+
+  it("leaves an omitted label out of both copies, keeps its text and frees its space", () => {
+    const e = create();
+    e.document.branches[0].probability = { text: "13/17", show: "omit" };
+    const saved = parseFile(canonical(e));
+    expect(saved.document.branches[0].probability).toEqual({ text: "13/17", show: "omit" });
+    for (const view of ["pupil", "answer"] as const) {
+      const svg = renderSvg(forView(saved, view, true));
+      expect(svg).not.toContain(">13<");
+      expect(svg).not.toContain(">17<");
+    }
+    expect(forView(saved, "answer").document.branches[0].probability.show).toBe("omit");
+    expect(labelBox(saved.document.branches[0].probability, "dots", "probability")).toEqual({ width: 0, height: 0 });
+    // It is still a click target, so the teacher can bring it back.
+    expect(layout(saved).targets.some((t) => t.kind === "probability" && t.id === saved.document.branches[0].id)).toBe(true);
   });
 
   it("fills a bag with and without replacement only when asked", () => {
@@ -262,5 +279,31 @@ describe("connector create", () => {
     expect(layout(fitted).issues).toEqual([]);
     const asked = createTree({ spec: { stages, settings: { endColumn: "both", branchMm: 32 } } });
     expect(asked.document.branchMm).toBe(32);
+  });
+});
+
+describe("connector revise", () => {
+  it("leaves a label out with set_label and brings it back, keeping its text", async () => {
+    const { revise } = await import("./interchange");
+    const { hash } = await import("./index");
+    const e = create();
+    const id = e.document.branches[0].id;
+    const left = await revise({ envelope: e, baseHash: await hash(e), operations: [{ op: "set_label", branchId: id, part: "probability", show: "omit" }] });
+    expect(left.document.branches[0].probability).toEqual({ text: e.document.branches[0].probability.text, show: "omit" });
+    const back = await revise({ envelope: left, baseHash: await hash(left), operations: [{ op: "set_visibility", part: "all", show: "show" }] });
+    expect(back.document.branches[0].probability.show).toBe("show");
+  });
+});
+
+describe("removeBranch", () => {
+  it("removes the chosen branch and what follows it, and keeps a point's minimum", () => {
+    const e = create();
+    const first = e.document.branches.find((b) => b.parent === null)!;
+    const r = removeBranch(e, first.id);
+    expect(r).toBe(e); // the first stage keeps two branches
+    const child = e.document.branches.find((b) => b.parent === first.id)!;
+    const after = removeBranch(e, child.id);
+    expect(after.document.branches).toHaveLength(e.document.branches.length - 1);
+    expect(after.document.branches.some((b) => b.id === child.id)).toBe(false);
   });
 });

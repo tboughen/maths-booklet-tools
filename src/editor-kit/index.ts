@@ -8,3 +8,4 @@ export * from "./useDocumentHistory";
 export * from "./documentChange";
 export * from "./drafts";
 export * from "./labels";
+export * from "./visibility";

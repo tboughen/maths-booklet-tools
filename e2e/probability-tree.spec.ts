@@ -18,21 +18,146 @@ async function boot(page: Page, e?: Envelope) {
 }
 const saved = (page: Page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "null"), key);
 
-test("edits a probability from the tree, hides it for pupils and undoes", async ({ page }) => {
+test("edits a probability from the tree, makes it a pupil space and undoes", async ({ page }) => {
   await boot(page);
-  await page.getByRole("button", { name: "Edit probability for Red, Blue" }).click();
-  const field = page.getByRole("textbox", { name: "Probability for Red, Blue" });
+  const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
+  await target.click();
+  // The click opens the options box beside the label and hides nothing; Enter moves to its text.
+  const box = page.getByRole("dialog", { name: "Probability for Red, Blue" });
+  await expect(box).toBeFocused();
+  expect((await saved(page)).document.branches[2].probability.show).toBe("show");
+  await page.keyboard.press("Enter");
+  const field = box.getByRole("textbox", { name: "Text of probability for Red, Blue" });
   await expect(field).toBeFocused();
   await field.fill("4/7");
   await field.press("Enter");
   expect((await saved(page)).document.branches[2].probability).toEqual({ text: "4/7", show: "show" });
-  await page.getByLabel("Hide probability for Red, Blue").check();
+  await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("4/7");
+  // Typing, then pressing somewhere else, keeps what was typed (one undo step).
+  await target.click();
+  await page.keyboard.press("Enter");
+  await field.fill("3/7");
+  await page.getByRole("button", { name: "Examples" }).hover();
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+  expect((await saved(page)).document.branches[2].probability.text).toBe("3/7");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await target.dblclick();
+  await expect(box.getByRole("button", { name: "Pupil space" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(1);
   await page.getByLabel("Teacher copy: show answers").check();
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
-  await expect(field).toHaveValue("5/8");
+  await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("5/8");
+});
+
+test("what pupils see: double-click, H, leave out, the kind switches and clearing pupil spaces, each one undo step", async ({ page }) => {
+  await boot(page);
+  const art = page.getByTestId("tree-resource").locator(".pt-art svg");
+  const shows = async () => (await saved(page)).document.branches.map((b: { probability: { show: string } }) => b.probability.show);
+  const undoName = () => page.getByRole("button", { name: "Undo" }).getAttribute("title");
+  // Double-click: a pupil space, the box stays open; again brings the value back.
+  const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
+  await target.dblclick();
+  expect((await shows())[2]).toBe("hidden");
+  await expect(page.getByRole("dialog", { name: "Probability for Red, Blue" })).toBeVisible();
+  await expect(target).toHaveAccessibleName("Edit probability for Red, Blue, pupil space");
+  expect(await undoName()).toContain("pupil space on 5/8");
+  await target.dblclick();
+  expect((await shows())[2]).toBe("show");
+  // H with the box focused, never while typing in a field.
+  await target.click();
+  await page.keyboard.press("h");
+  expect((await shows())[2]).toBe("hidden");
+  await page.getByRole("button", { name: "Layout" }).click();
+  await page.getByLabel("Stage 1 title").fill("H");
+  expect((await shows())[2]).toBe("hidden");
+  await page.getByLabel("Stage 1 title").press("Enter");
+  // Leave out keeps the text and prints nothing; undo brings it back.
+  await target.click();
+  const box = page.getByRole("dialog", { name: "Probability for Red, Blue" });
+  await box.getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page)).document.branches[2].probability).toEqual({ text: "5/8", show: "omit" });
+  await page.getByLabel("Teacher copy: show answers").check();
+  expect((await art.innerHTML()).match(/>5</g)?.length ?? 0).toBe(2);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  // A press elsewhere closed the box; Escape closes it and hands focus back to the label.
+  await expect(box).toHaveCount(0);
+  await target.click();
+  await expect(box).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+  await expect(target).toBeFocused();
+  // H does nothing once the box is closed.
+  await page.keyboard.press("h");
+  expect((await saved(page)).document.branches[2].probability.show).toBe("omit");
+  // The close button also hands focus back to the label.
+  await target.click();
+  await box.getByRole("button", { name: "Close options" }).click();
+  await expect(box).toHaveCount(0);
+  await expect(target).toBeFocused();
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await shows())[2]).toBe("hidden");
+  // A kind switch sets them all as one step, and shows Mixed when they differ.
+  const probabilities = page.getByRole("group", { name: "Probabilities" });
+  await expect(probabilities).toContainText("Mixed");
+  await probabilities.getByRole("button", { name: "Pupil space" }).click();
+  expect(await shows()).toEqual(Array(6).fill("hidden"));
+  expect(await undoName()).toContain("pupil space on all probabilities");
+  await expect(page.locator(".pt-hint")).toContainText("6 pupil spaces");
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect(await shows()).toEqual(Array(6).fill("show"));
+  expect(await undoName()).toContain("clear 6 pupil spaces");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(await shows()).toEqual(Array(6).fill("hidden"));
+  // The folded Layout row says what is set, and its stepper takes a typed size.
+  await expect(page.locator(".md-fold").filter({ hasText: "Layout" })).toContainText("32 mm branches · 14 mm spacing");
+  const length = page.getByRole("textbox", { name: "Branch length (mm)" });
+  await length.fill("30");
+  await length.press("Enter");
+  expect((await saved(page)).document.branchMm).toBe(30);
+  await page.getByRole("button", { name: "More branch length" }).click();
+  expect((await saved(page)).document.branchMm).toBe(32);
+  // A size out of range is refused and named; the next press replaces it.
+  await length.fill("99");
+  await length.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Type a whole number from 12 to 50." })).toBeVisible();
+  await page.getByRole("button", { name: "More branch length" }).click();
+  await expect(length).toHaveValue("36 mm");
+  await expect(page.getByRole("alert").filter({ hasText: "Type a whole number" })).toHaveCount(0);
+  // No box, highlight or marker reaches an export.
+  await target.click();
+  const svgPromise = page.waitForEvent("download");
+  await clickResourceAction(page, "Download SVG");
+  const svg = readFileSync((await (await svgPromise).path())!, "utf8");
+  expect(svg).not.toMatch(/md-options|pt-hit|pt-hidden-answer|pt-omitted|What pupils see/);
+});
+
+test("the Branches list grows the tree: + Branch at each point and + Stage, each one undo step", async ({ page }) => {
+  await boot(page);
+  const card = page.getByRole("region", { name: "Branches" });
+  await card.getByRole("button", { name: "+ Branch after Red" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(7);
+  await expect(card.getByRole("textbox", { name: /^Outcome for Red, / })).toHaveCount(3);
+  await card.getByRole("button", { name: "+ Branch at the start" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(8);
+  await card.getByRole("button", { name: "+ Stage" }).click();
+  expect((await saved(page)).document.branches.length).toBeGreaterThan(8);
+  await card.getByRole("button", { name: "Remove last stage" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(8);
+  for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(6);
+  // × removes the branch you choose; a point keeps its fewest branches, so the first stage has no ×.
+  await expect(card.getByRole("button", { name: /^Remove Red$/ })).toHaveCount(0);
+  await card.getByRole("button", { name: "Remove Red, Red" }).click();
+  await expect(card.getByRole("button", { name: "+ Branch after Red" })).toBeFocused();
+  expect((await saved(page)).document.branches.map((b: { outcome: { text: string } }) => b.outcome.text)).toEqual(["Red", "Blue", "Blue", "Red", "Blue"]);
+  await expect(card.getByRole("button", { name: "Remove Red, Blue" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(6);
 });
 
 test("grows an unequal tree, fills from a bag and calculates a given-that answer only on request", async ({ page }) => {
@@ -40,11 +165,14 @@ test("grows an unequal tree, fills from a bag and calculates a given-that answer
   await page.getByRole("button", { name: "Edit outcome for Red, Red" }).click();
   await page.getByRole("button", { name: "Add branches after this" }).click();
   expect((await saved(page)).document.branches).toHaveLength(8);
+  // The rarer groups are folded into one row each; pressing the row opens it.
+  await page.getByRole("button", { name: "Fill probabilities" }).click();
   await page.getByRole("button", { name: "Fill from bag" }).click();
   await page.getByRole("button", { name: "Use this tree" }).click();
   expect((await saved(page)).document.branches.map((b: { probability: { text: string } }) => b.probability.text)).toEqual([
     "5/8", "4/7", "3/6", "3/6", "3/7", "3/8", "5/7", "2/7",
   ]);
+  await page.getByRole("button", { name: 'Questions and "given that"' }).click();
   await page.getByRole("button", { name: "Add question" }).click();
   await page.getByText("Paths for calculating").click();
   await page.getByLabel("Blue, Red is in the event").check();
@@ -76,6 +204,7 @@ test("exports a 600 ppi PNG and an SVG at the stated physical size", async ({ pa
 
 test("work survives leaving the page and reloading", async ({ page }) => {
   await boot(page);
+  await page.getByRole("button", { name: "Layout" }).click();
   await page.getByLabel("Stage 1 title").fill("Bag A");
   await page.getByLabel("Stage 1 title").press("Enter");
   await switchTool(page, "Venn diagrams");
@@ -90,6 +219,7 @@ test("bold lines are saved, printed and undoable; normal lines are not saved (U1
   const art = page.getByTestId("tree-resource").locator("svg").first();
   const first = async () => Number((await art.innerHTML()).match(/stroke-width="([\d.]+)"/)![1]);
   const normal = await first();
+  await page.getByRole("button", { name: "Layout" }).click();
   const lines = page.getByLabel("Lines", { exact: true });
   await lines.selectOption("bold");
   await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
