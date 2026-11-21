@@ -2272,10 +2272,10 @@
   },
   "ratio table: ratio-1MA1_NOV_2017_3F_Q12": {
    "json": "be402050fe6fbd84",
-   "svg": "16f9d94398285bd1",
+   "svg": "c1ada2c1845b1b0e",
    "mm": "60.51x43",
    "png600": "1429x1016",
-   "pixels": "5463f206cc98c6af"
+   "pixels": "80abbc173ec044dc"
   },
   "ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked)": {
    "json": "2833b2975c022512",
@@ -2286,10 +2286,10 @@
   },
   "ratio table: ratio-1MA1_NOV_2021_1F_Q17": {
    "json": "74612b6338101635",
-   "svg": "d91b53ebcb0ac0e5",
+   "svg": "03693a177bc2de77",
    "mm": "86.68x33",
    "png600": "2048x780",
-   "pixels": "f189336aef937301"
+   "pixels": "16e4962608b4e58f"
   },
   "ratio table: ratio-1MA1_NOV_2021_1F_Q17 (worked)": {
    "json": "0066f4a90cf6bb5d",
@@ -2300,31 +2300,31 @@
   },
   "ratio table: ratio-fraction": {
    "json": "534293c99defe67c",
-   "svg": "d1ad753a6d7d2117",
+   "svg": "09abacd4edcac9fb",
    "mm": "55.29x33",
    "png600": "1306x780",
-   "pixels": "52a0983a18eba1eb"
+   "pixels": "b7c4b3083f4ce09b"
   },
   "ratio table: ratio-fraction (worked)": {
    "json": "534293c99defe67c",
-   "svg": "d1ad753a6d7d2117",
+   "svg": "09abacd4edcac9fb",
    "mm": "55.29x33",
    "png600": "1306x780",
-   "pixels": "52a0983a18eba1eb"
+   "pixels": "b7c4b3083f4ce09b"
   },
   "ratio table: ratio-simple": {
    "json": "dbd0b8e1c472f7ed",
-   "svg": "e020341b730f4615",
+   "svg": "4ba4be06fdc6dd27",
    "mm": "33x33",
    "png600": "780x780",
-   "pixels": "857d13d10142a099"
+   "pixels": "67e40f9d218bbaf2"
   },
   "ratio table: ratio-simple (worked)": {
    "json": "dbd0b8e1c472f7ed",
-   "svg": "e020341b730f4615",
+   "svg": "4ba4be06fdc6dd27",
    "mm": "33x33",
    "png600": "780x780",
-   "pixels": "857d13d10142a099"
+   "pixels": "67e40f9d218bbaf2"
   },
   "ratio table: ratio-worked": {
    "json": "501b6d028824888b",

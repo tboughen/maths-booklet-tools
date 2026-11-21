@@ -279,7 +279,8 @@ function headingMarkup(heading: RatioDocument["headings"][number], x: number, y:
   );
 }
 const answerLine = (x: number, y: number, width = ANSWER_LINE_WIDTH) =>
-  `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="2"/>`;
+  // Edexcel's dotted answer line: round dots 0.4 mm across, 1.1 mm apart (units are 0.1 mm), as worksheet answer lines.
+  `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5"/>`;
 function cellMarkup(cell: RatioCell, x: number, y: number, view: RatioView) {
   if (cell.kind === "number") return number(cell.value, x, y);
   if (cell.kind === "answer-line") return answerLine(x, y);

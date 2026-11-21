@@ -122,7 +122,8 @@ function rPr(o: RunStyle): string {
   if (o.color) p.push(`<w:color w:val="${hex(o.color)}"/>`);
   if (o.spacingMm) p.push(`<w:spacing w:val="${Math.round(o.spacingMm * 56.693)}"/>`);
   if (o.sizeMm !== undefined) p.push(`<w:sz w:val="${hp(o.sizeMm)}"/><w:szCs w:val="${hp(o.sizeMm)}"/>`);
-  if (o.underline) p.push(`<w:u w:val="single" w:color="${hex(o.color ?? "#000000")}"/>`);
+  // Only answers on an answer line are underlined, so the underline is Edexcel's dotted line.
+  if (o.underline) p.push(`<w:u w:val="dotted" w:color="${hex(o.color ?? "#000000")}"/>`);
   if (o.border) p.push(`<w:bdr w:val="single" w:sz="${b8(0.3)}" w:space="0" w:color="${hex(o.border)}"/>`);
   if (o.shade) p.push(`<w:shd w:val="clear" w:color="auto" w:fill="${hex(o.shade)}"/>`);
   return p.length ? `<w:rPr>${p.join("")}</w:rPr>` : "";
@@ -241,7 +242,7 @@ export const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
 export interface CellOpts {
   width: number;
   span?: number;
-  borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number }>>;
+  borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number; style?: "dotted" }>>;
   shade?: string;
   margin?: Partial<Record<"top" | "left" | "bottom" | "right", number>>;
   vAlign?: "top" | "center" | "bottom";
@@ -257,7 +258,7 @@ export function cell(content: string, o: CellOpts): string {
     `<w:tcBorders>${sides
       .map((s) => {
         const b = o.borders?.[s];
-        return b ? `<w:${s} w:val="single" w:sz="${b8(b.width)}" w:space="0" w:color="${hex(b.color)}"/>` : `<w:${s} w:val="nil"/>`;
+        return b ? `<w:${s} w:val="${b.style ?? "single"}" w:sz="${b8(b.width)}" w:space="0" w:color="${hex(b.color)}"/>` : `<w:${s} w:val="nil"/>`;
       })
       .join("")}</w:tcBorders>`,
   );
@@ -396,7 +397,7 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
         } else {
           add(p.x - at, gap(END_MM));
           add(p.end - p.x, (ctx.view === "answers" || l.given) && p.answer ? text(p.answer, { color: l.given ? ctx.st.ink : ctx.st.answer }, "center") : gap(END_MM), {
-            borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
+            borders: { bottom: { color: ctx.st.ink, width: 0.3, style: "dotted" } },
           });
           at = p.end;
         }
@@ -416,7 +417,7 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
       cell(shown ? text(l.answer, { color: l.given ? ctx.st.ink : ctx.st.answer }) : gap(END_MM), {
         width: mid,
         vAlign: "bottom",
-        borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
+        borders: { bottom: { color: ctx.st.ink, width: 0.3, style: "dotted" } },
         margin: { left: 2 },
       }),
     );
@@ -680,7 +681,7 @@ export function items(list: Item[], w: number, indent: number, ctx: WordCtx, ext
             grow: grows(ctx, it.text),
             ...head,
             before: lift,
-            tabs: [{ pos: indent + w - post, align: "left", leader: "underscore" }],
+            tabs: [{ pos: indent + w - post, align: "left", leader: "dot" }],
           }),
         );
         continue;

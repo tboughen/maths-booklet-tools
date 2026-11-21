@@ -87,17 +87,18 @@ describe("saved worksheets from before the diagram registry", () => {
   // retaken 15 Nov 2026 when flowing text began keeping a short last word, a range or a short
   // equation on one line with no-break spaces (Tim's A7 marking); with those spaces read as
   // ordinary spaces the comparativeBarCharts pages hash exactly as before.
+  // All retaken 20 Nov 2026 when answer lines became Edexcel dotted lines (Tim).
   const before: Record<string, [string, string]> = {
     // Retaken 16 Nov 2026: worksheet tables keep their natural width (cells at least 14 mm, every
     // cell centred) instead of stretching across the card (Tim); only the data tables changed.
-    "comparativeBarCharts:pupil": ["1eea9e468a720596", "49f562c3be7876a5"],
+    "comparativeBarCharts:pupil": ["b87879e72d4fb1ca", "7de24ce30ed4de82"],
     // Answers copy only: since R24 (14 November 2026) bars drawn only because their value was saved
     // hidden print with an answer-colour outline. Only those stroke colours changed.
-    "comparativeBarCharts:answers": ["4797adcdd2666d25", "cc221009c8d6c0cd"],
-    "treeDiagrams:pupil": ["308ae6071c34adf4", "f0fb6fe0dbb13b11"],
+    "comparativeBarCharts:answers": ["8c62df021891279f", "f4e0a8f2da47cb8b"],
+    "treeDiagrams:pupil": ["0ff1192fdf90a116", "feefce17fe888e53"],
     // Answers copy only: since 14 November 2026 a probability tree's revealed answers print in the
     // answer colour, as answer lines, ratio tables and graphs already did. The pupil copy is unchanged.
-    "treeDiagrams:answers": ["1ee6fe2170536a5d", "40451fa3049ba081"],
+    "treeDiagrams:answers": ["478b718982819437", "dc7735161e0d241e"],
   };
   it.each(Object.keys(before))("%s still opens and prints byte-identically", (key) => {
     const [name, view] = key.split(":") as ["comparativeBarCharts" | "treeDiagrams", "pupil" | "answers"];

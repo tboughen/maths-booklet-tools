@@ -856,3 +856,18 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-polygon-mistakes (worked): json 091792e860f25023 -> 1cf9071dd4a2ad35
 - charts: chart-polygon-plants: json 40a4d8a9be24cdea -> 662a9eac4fc732ae
 - charts: chart-polygon-plants (worked): json 9469cf223fadeb7c -> e939f4ffdb361fc7
+
+## 2026-11-21: Answer lines became Edexcel dotted lines (Tim, 20 Nov 2026)
+
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: svg 16f9d94398285bd1 -> c1ada2c1845b1b0e
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: pixels 5463f206cc98c6af -> 80abbc173ec044dc
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17: svg d91b53ebcb0ac0e5 -> 03693a177bc2de77
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17: pixels f189336aef937301 -> 16e4962608b4e58f
+- ratio table: ratio-fraction: svg d1ad753a6d7d2117 -> 09abacd4edcac9fb
+- ratio table: ratio-fraction: pixels 52a0983a18eba1eb -> b7c4b3083f4ce09b
+- ratio table: ratio-fraction (worked): svg d1ad753a6d7d2117 -> 09abacd4edcac9fb
+- ratio table: ratio-fraction (worked): pixels 52a0983a18eba1eb -> b7c4b3083f4ce09b
+- ratio table: ratio-simple: svg e020341b730f4615 -> 4ba4be06fdc6dd27
+- ratio table: ratio-simple: pixels 857d13d10142a099 -> 67e40f9d218bbaf2
+- ratio table: ratio-simple (worked): svg e020341b730f4615 -> 4ba4be06fdc6dd27
+- ratio table: ratio-simple (worked): pixels 857d13d10142a099 -> 67e40f9d218bbaf2
