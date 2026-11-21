@@ -105,6 +105,7 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
+import "../site/settings-kit.css";
 import { handleUndoKeys, objectKeyCommand, pushHistory, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
@@ -1562,10 +1563,15 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               </section>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Triangle settings">
+          <aside className="inspector-stack md-kit" aria-label="Triangle settings">
             <ReturnToDiagram />
+            {/* Two columns in a wide window: what is selected on the left, with the box that edits a label over it,
+                and the worked version, a new triangle and the print size on the right. More tools and the help
+                come last, under the left column. */}
+            <div className="md-kit-cards">
+            <div>
             <div className="tr-label-editor-slot" />
-            <section className="panel-card tr-panel specialist-tools">
+            <section className="panel-card tr-panel">
               <h2>Selected object</h2>
               <label>
                 Select an object
@@ -2186,7 +2192,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 onError={setMessage}
               />
             )}
-            <section className="panel-card specialist-tools tr-card" aria-labelledby="tr-card-worked">
+            </div>
+            <div>
+            <section className="panel-card tr-card" aria-labelledby="tr-card-worked">
               <h2 id="tr-card-worked">Worked version</h2>
               <div className="tr-section-body">
                 <p className="tr-note">
@@ -2209,7 +2217,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 )}
               </div>
             </section>
-            <section className="panel-card specialist-tools tr-card" aria-labelledby="tr-card-start">
+            <section className="panel-card tr-card" aria-labelledby="tr-card-start">
               <h2 id="tr-card-start">Start a new triangle</h2>
               <div className="tr-section-body">
                 <p className="tr-note">Start a new blank triangle:</p>
@@ -2238,7 +2246,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </section>
-            <section className="panel-card specialist-tools tr-card" aria-labelledby="tr-card-print">
+            <section className="panel-card tr-card" aria-labelledby="tr-card-print">
               <h2 id="tr-card-print">Print size</h2>
               <div className="tr-section-body">
                 <label>
@@ -2265,7 +2273,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   />
                 </label>
                 <p className="tr-note">
-                  6–18 cm. Text keeps its chosen size; preview zoom changes only
+                  5–18 cm. Text keeps its chosen size; preview zoom changes only
                   the view. Actual height follows the complete artwork and captions.
                 </p>
                 <label>
@@ -2344,6 +2352,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 )}
               </div>
             </section>
+            </div>
+            <div>
+            <section className="panel-card tr-more">
             <details className="tr-section tr-more-tools" aria-label="More tools">
               <summary>More tools</summary>
               <div className="tr-section-body">
@@ -2355,7 +2366,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     if (!blocked) {
                       commit(next);
                       setMessage(
-                        "Answer saved and hidden. Switch on Show hidden answers to see it, or use a worked version.",
+                        "Answer saved and hidden. Switch on Show answers to see it, or use a worked version.",
                       );
                     }
                   }}
@@ -2407,12 +2418,15 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   view.
                 </p>
                 <p className="tr-note">
-                  Show hidden answers is screen only. Downloads keep
+                  Show answers is screen only. Downloads keep
                   saved pupil visibility. Use worked version replaces the
                   current resource; Undo restores it.
                 </p>
               </div>
             </details>
+            </section>
+            </div>
+            </div>
           </aside>
         </section>
         {active && pending && (

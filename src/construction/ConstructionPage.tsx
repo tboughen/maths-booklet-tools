@@ -64,6 +64,7 @@ import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLa
 import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./construction.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:construction:v1");
 type Doc = Envelope["document"];
@@ -614,8 +615,10 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Construction settings">
+          <aside className="inspector-stack md-kit" aria-label="Construction settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             {selectedPoint && (
               <section className="panel-card pt-panel" aria-label="Selected point">
                 <h2>Point {pointName(selectedPoint)}</h2>
@@ -696,7 +699,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               <h2>Points</h2>
               <div className="cn-list">
                 {ownPoints.map((p) => (
-                  <button key={p.id} type="button" className={`cn-chip ${selected === p.id ? "cn-current" : ""}`} disabled={blocked} onClick={() => setSelected(p.id)}>
+                  <button key={p.id} type="button" className="cn-chip" aria-pressed={selected === p.id} disabled={blocked} onClick={() => setSelected(p.id)}>
                     {pointName(p)} ({p.x}, {p.y}){p.role === "answer" ? " · answer" : ""}
                   </button>
                 ))}
@@ -775,6 +778,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Ruler and compass constructions">
               <h2>Ruler and compass constructions</h2>
               <p className="pt-note">Each construction draws its compass arcs and is saved as an answer, so pupils see only the starting lines. Tick “Show on the pupil copy” for a worked example.</p>
@@ -797,7 +802,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 );
               })}
               <div className="pt-fields">
-                <label>
+                <label className="pt-wide">
                   Construction
                   <select aria-label="Construction to add" value={cType} disabled={blocked} onChange={(ev) => (setCType(ev.target.value as ConstructionType), setCPoints([]))}>
                     {Object.entries(CONSTRUCTIONS).map(([k, v]) => (
@@ -869,7 +874,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 </div>
               ))}
               <div className="pt-fields">
-                <label>
+                <label className="pt-wide">
                   Condition
                   <select aria-label="Shading condition" value={rule.kind} disabled={blocked} onChange={(ev) => setRule({ ...rule, kind: ev.target.value as "distance" | "closer" })}>
                     <option value="distance">Distance from a point or line</option>
@@ -1006,6 +1011,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

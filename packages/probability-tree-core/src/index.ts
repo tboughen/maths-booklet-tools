@@ -15,7 +15,8 @@ export const RENDERER_VERSION = "probability-tree-1" as const;
  * branch and sibling order is list order. A branch without children ends its
  * path, so unequal trees ("stop when you get a red") need no special case.
  * Every printed value is a label with its own visibility: "show" prints it,
- * "hidden" keeps it as a saved answer and leaves a pupil space. An empty shown
+ * "hidden" keeps it as a saved answer and leaves a pupil space, and "omit"
+ * (Leave out) keeps the text but prints nothing in either copy. An empty shown
  * label prints nothing. Nothing is calculated except by the explicit fill and
  * calculate actions below. Lengths are millimetres.
  */
@@ -34,7 +35,7 @@ const plain = (max: number) =>
       "Use ordinary text without markup.",
     );
 export const labelSchema = z
-  .object({ text: plain(24), show: z.enum(["show", "hidden"]) })
+  .object({ text: plain(24), show: z.enum(["show", "hidden", "omit"]) })
   .strict();
 export const branchSchema = z
   .object({
@@ -70,8 +71,8 @@ export const documentSchema = z
     endHeadings: z.array(plain(24)).length(2),
     questions: z.array(questionSchema).max(MAX_QUESTIONS),
     blankStyle: z.enum(["dots", "box"]),
-    branchMm: z.number().int().min(20).max(50),
-    gapMm: z.number().int().min(10).max(24),
+    branchMm: z.number().int().min(12).max(50),
+    gapMm: z.number().int().min(8).max(24),
     /** Bold lines (U111). Normal lines are the default and are never saved. */
     lines: z
       .enum(LINE_WEIGHTS)
@@ -166,8 +167,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error(`Use 2 to ${MAX_BRANCHES} branches with IDs such as b1.`), parsed.error);
     if (path.includes("questions"))
       throw withFields(Error(`Use at most ${MAX_QUESTIONS} questions with IDs such as q1.`), parsed.error);
-    if (path.includes("branchMm")) throw withFields(Error("Choose a branch length from 20 to 50 mm."), parsed.error);
-    if (path.includes("gapMm")) throw withFields(Error("Choose a path spacing from 10 to 24 mm."), parsed.error);
+    if (path.includes("branchMm")) throw withFields(Error("Choose a branch length from 12 to 50 mm."), parsed.error);
+    if (path.includes("gapMm")) throw withFields(Error("Choose a path spacing from 8 to 24 mm."), parsed.error);
     throw withFields(Error("This is not a supported probability tree file (version 1 is supported)."), parsed.error);
   }
   const e = parsed.data,
@@ -211,8 +212,10 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // A left-out label stays out of the teacher copy too.
   const reveal = (l: Label) => {
-    if (mark && l.show === "hidden" && l.text.trim()) REVEALED.add(l);
+    if (l.show !== "hidden") return;
+    if (mark && l.text.trim()) REVEALED.add(l);
     l.show = "show";
   };
   for (const b of n.document.branches) for (const l of [b.outcome, b.probability, b.endOutcome, b.endProbability]) reveal(l);
@@ -365,17 +368,21 @@ export function addSibling(e: Envelope, parent: string | null): Envelope {
 }
 /** The first stage keeps two branches; a later point may keep one. */
 export const minimumBranches = (parent: string | null) => (parent === null ? 2 : 1);
-export function removeLastSibling(e: Envelope, parent: string | null): Envelope {
-  const group = childrenOf(e.document, parent);
-  if (group.length <= minimumBranches(parent)) return e;
-  const last = group[group.length - 1];
-  const n = clone(pruneBranch(e, last.id));
-  n.document.branches = n.document.branches.filter((b) => b.id !== last.id);
+/** Removes one branch, with everything after it, if its point keeps enough branches. */
+export function removeBranch(e: Envelope, id: string): Envelope {
+  const b = e.document.branches.find((x) => x.id === id);
+  if (!b || childrenOf(e.document, b.parent).length <= minimumBranches(b.parent)) return e;
+  const n = clone(pruneBranch(e, id));
+  n.document.branches = n.document.branches.filter((x) => x.id !== id);
   for (const q of n.document.questions) {
-    q.event = q.event.filter((x) => x !== last.id);
-    q.given = q.given.filter((x) => x !== last.id);
+    q.event = q.event.filter((x) => x !== id);
+    q.given = q.given.filter((x) => x !== id);
   }
   return validate(n);
+}
+export function removeLastSibling(e: Envelope, parent: string | null): Envelope {
+  const group = childrenOf(e.document, parent);
+  return group.length ? removeBranch(e, group[group.length - 1].id) : e;
 }
 /** Adds a stage after every path that reaches the last stage. */
 export function addStage(e: Envelope): Envelope {
@@ -616,6 +623,7 @@ const expressionWidth = (parts: string[]) => parts.reduce((w, p) => w + partWidt
 export function labelBox(l: Label, blank: TreeDocument["blankStyle"], kind: "probability" | "text") {
   const text = l.text.trim();
   const parts = expressionParts(text);
+  if (l.show === "omit") return { width: 0, height: 0 };
   if (l.show === "hidden") {
     // A hidden calculation leaves a pupil space wide enough to write it, not one fraction's space.
     if (kind === "probability" && parts) return { width: Math.ceil(Math.max(24, expressionWidth(parts) * 1.25)), height: blank === "box" ? 9 : FONT * 2 + 1.5 };
@@ -648,7 +656,7 @@ type Box = { x1: number; x2: number; y1: number; y2: number };
 /** Places along a branch (0 start, 1 end) tried for its probability, the middle first. */
 const PROBABILITY_POSITIONS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.45, 0.4, 0.35, 0.3];
 /** A label prints something: text, or a pupil space for a hidden answer. */
-const drawnLabel = (l: Label) => l.show === "hidden" || !!l.text.trim();
+const drawnLabel = (l: Label) => l.show === "hidden" || (l.show === "show" && !!l.text.trim());
 function boxOf(p: Placed, blank: TreeDocument["blankStyle"]): Box {
   const b = labelBox(p.label, blank, p.kind);
   const x1 = p.align === "start" ? p.cx : p.cx - b.width / 2;
@@ -884,10 +892,13 @@ export function layout(e: Envelope) {
     if (values.some((v) => v && (v.n < 0n || v.n > v.d)))
       issues.push(`A probability after ${parent ? pathName(d, parent) : "the start"} is below 0 or above 1.`);
   }
-  for (const q of d.questions)
+  for (const q of d.questions) {
     if (q.answer.show === "show" && !q.answer.text.trim() && q.text.trim())
       notes.push(`Question ${q.text.slice(0, 20)} has no answer and no pupil space. Hide its answer to leave a space.`);
-  if (d.gapMm < 12 && d.branches.some((b) => isFractionText(b.probability.text) || b.probability.show === "hidden"))
+    else if (q.answer.show === "omit" && q.text.trim())
+      notes.push(`Question ${q.text.slice(0, 20)} has its answer left out, so pupils have nowhere to write it. Choose Pupil space to leave a space.`);
+  }
+  if (d.gapMm < 12 && d.branches.some((b) => drawnLabel(b.probability) && (isFractionText(b.probability.text) || b.probability.show === "hidden")))
     notes.push("Fractions may crowd at this path spacing. Check the preview or increase the spacing.");
 
   const width = Math.ceil((right - left + 2 * MARGIN) * 10) / 10,
@@ -895,7 +906,7 @@ export function layout(e: Envelope) {
   if (width > 180) {
     // Every stage's branch shortens by the same amount, so say which length would fit.
     const fit = Math.floor(d.branchMm - (width - 180) / depthCount - 0.05);
-    const advice = fit >= 20 && fit < d.branchMm ? ` A branch length of ${fit} mm fits.` : " Use shorter labels or fewer stages.";
+    const advice = fit >= 12 && fit < d.branchMm ? ` A branch length of ${fit} mm fits.` : " Use shorter labels or fewer stages.";
     issues.push(`The tree is ${width} mm wide, more than 18 cm.${advice}`);
   }
   if (height > 250) issues.push("The tree is taller than 25 cm. Reduce the path spacing or the number of paths.");
@@ -917,10 +928,10 @@ function describe(p: Placed) {
   const text = p.label.show === "hidden" ? "pupil space" : `"${p.label.text.trim()}"`;
   return p.name ? `${p.name} (${text})` : text;
 }
-/** The longest branch length (20 mm at least) at which the tree fits the 18 cm width, or the tree unchanged. */
+/** The longest branch length (12 mm at least) at which the tree fits the 18 cm width, or the tree unchanged. */
 export function fitBranchLength(e: Envelope): Envelope {
   if (layout(e).width <= 180) return e;
-  for (let mm = e.document.branchMm - 1; mm >= 20; mm--) {
+  for (let mm = e.document.branchMm - 1; mm >= 12; mm--) {
     const n = { ...e, document: { ...e.document, branchMm: mm } };
     if (layout(n).width <= 180) return n;
   }
@@ -953,6 +964,7 @@ function drawLabel(p: Placed, blank: TreeDocument["blankStyle"]): string {
   const l = p.label,
     b = labelBox(l, blank, p.kind);
   const left = p.align === "start" ? p.cx : p.cx - b.width / 2;
+  if (l.show === "omit") return "";
   if (l.show === "hidden") {
     if (blank === "box")
       return `<rect x="${n(left)}" y="${n(p.cy - b.height / 2)}" width="${n(b.width)}" height="${n(b.height)}" fill="none" stroke="black" stroke-width="0.25"/>`;

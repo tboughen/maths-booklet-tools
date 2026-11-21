@@ -60,6 +60,7 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "../area/area.css";
 import "./figures.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:figures:v1");
 type View = "pupil" | "answer";
@@ -919,12 +920,14 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Geometry figure settings">
+          <aside className="inspector-stack md-kit" aria-label="Geometry figure settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected object">
               <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
               <div className="pt-fields">
-                <label className="fig-wide">
+                <label className="pt-wide">
                   Object
                   <select aria-label="Object to edit" value={current ? keyOf(current.kind, current.id) : ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
                     <option value="">Choose an object</option>
@@ -956,6 +959,8 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Add to the figure">
               <h2>Add to the figure</h2>
               <div className="pt-fields">
@@ -1078,6 +1083,8 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
                 </div>
               </details>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Printing</h2>
               <div className="pt-fields">
@@ -1120,6 +1127,8 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

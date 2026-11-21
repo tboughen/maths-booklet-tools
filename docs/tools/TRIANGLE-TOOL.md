@@ -174,7 +174,7 @@ refuse invalid numerical requests. Helpers do not solve arbitrary symbolic text.
 
 ## Print and files
 
-Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt by
+Print width is 5–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt by
 default (11–14 pt, saved as `fontPt` only when not 11; never below 11 because fraction
 parts print at 85%) and independent of view zoom.
 Lines are normal or bold (U111): bold multiplies every stroke by 1.5 and is saved as
@@ -186,7 +186,7 @@ on narrow screens. Explicit zoom permits scrolling without changing export size.
 
 SVG embeds portable fonts; PNG is opaque greyscale at 600 ppi. Copy to clipboard
 uses the same PNG. Copy for Word adds the exact physical cm dimensions to HTML.
-Teacher preview: show hidden answers is a screen-only preview: pupil downloads retain saved
+Teacher preview: show answers is a screen-only preview: pupil downloads retain saved
 visibility. Open worked copy creates independent tab/storage and permits answer
 exports without changing the scaffold. A stale saved answer must be resolved
 before showing it. Native Word paste and physical monochrome printing require

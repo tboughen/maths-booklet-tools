@@ -12,7 +12,7 @@ const sparxCode = (query: string) => {
   return /^[A-Z]\d{3}$/.test(code) ? code : "";
 };
 
-/** What the search box finds: a Sparx code, the six pages, and diagram tools by name or teaching topic. */
+/** What the search box finds: a Sparx code, the pages, and diagram tools by name or teaching topic. */
 export function searchHome(query: string): Found[] {
   const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   if (!words.length) return [];

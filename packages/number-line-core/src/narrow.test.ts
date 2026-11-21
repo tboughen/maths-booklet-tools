@@ -26,7 +26,7 @@ describe("narrow number lines and number labels on arrows", () => {
     expect(renderSvg(neg)).toContain(">−2.5</text>");
     const big = create({ axis: { minimum: "12000", maximum: "13000", step: "100", labelEvery: 10, minorTicks: true, variable: "" }, widthCm: 8, markers: [{ id: "b", value: "12500", label: "12 500" }] });
     expect(renderSvg(big)).toContain(">12 500</text>");
-    for (const bad of ["123456789", " 3.4", "3.4 ", "3  4", "<b>", "x/y", "-", "...", "3-4", "12 50", "£5"])
+    for (const bad of ["1234567890123", "Even  chance", "1/0", "1/3/4", " 3.4", "3.4 ", "3  4", "<b>", "x/y", "-", "...", "3-4", "12 50", "£5"])
       expect(() => apply(rounding(6), [{ op: "add_marker", marker: { id: "a", value: "3.45", label: bad } }]), bad).toThrow();
   });
 

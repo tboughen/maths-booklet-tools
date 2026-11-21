@@ -165,6 +165,16 @@ export function ratioMetrics(document: RatioDocument) {
     scale,
   };
 }
+/**
+ * How far the bottom row's numbers sit above the foot of the printed table, in millimetres: their
+ * baseline. Text placed beside a ratio table lines up with this row, because the answer comes from
+ * it (booklet standard N5, Tim 17 November 2026).
+ */
+export function ratioBottomBaselineMm(document: RatioDocument): number {
+  const m = ratioMetrics(document);
+  const baseline = m.bodyTop + 50 + (document.rows.length - 1) * ROW_HEIGHT + FONT * 0.31;
+  return (m.height - baseline) * (m.heightCm * 10) / m.height;
+}
 function escape(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -269,7 +279,8 @@ function headingMarkup(heading: RatioDocument["headings"][number], x: number, y:
   );
 }
 const answerLine = (x: number, y: number, width = ANSWER_LINE_WIDTH) =>
-  `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="2"/>`;
+  // Edexcel's dotted answer line: round dots 0.4 mm across, 1.1 mm apart (units are 0.1 mm), as worksheet answer lines.
+  `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5"/>`;
 function cellMarkup(cell: RatioCell, x: number, y: number, view: RatioView) {
   if (cell.kind === "number") return number(cell.value, x, y);
   if (cell.kind === "answer-line") return answerLine(x, y);
@@ -309,9 +320,14 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
       centre = left + m.cellWidth / 2 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
-    body += headingMarkup(heading, textX, top + m.headHeight / 2);
+    let markup = headingMarkup(heading, textX, top + m.headHeight / 2);
     if (heading.direction !== "none")
-      body += arrow(textX + width / 2 + 22, top + m.headHeight / 2, heading.direction);
+      markup += arrow(textX + width / 2 + 22, top + m.headHeight / 2, heading.direction);
+    // A hidden heading is blank on the pupil copy (no text, no arrow) and prints in the answer
+    // colour on the answers copy. The column keeps the same width either way.
+    if (!heading.hidden) body += markup;
+    else if (view === "answer")
+      body += `<g class="ratio-hidden-heading" stroke="${RATIO_ANSWER_COLOUR}">${markup.replaceAll(INK, RATIO_ANSWER_COLOUR)}</g>`;
   });
   document.rows.forEach((row, i) =>
     row.cells.forEach((cell, column) => {
@@ -350,5 +366,10 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
         }
       }
     }
-  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Ratio table"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width="${m.width}" height="${m.height}" fill="white"/><g font-family="STIX Two Text" fill="none" stroke="#202020">${body.replaceAll("<text ", '<text stroke="none" ')}</g></svg>`, document.lines);
+  // An answers-only table: the pupil copy is blank paper of exactly the same size; the answers
+  // copy prints the whole table (cross, headings, cells and arrows) in the answer colour.
+  const answerOnly = document.answerOnly === true,
+    ink = answerOnly ? RATIO_ANSWER_COLOUR : INK;
+  if (answerOnly) body = view === "answer" ? body.replaceAll(INK, RATIO_ANSWER_COLOUR) : "";
+  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Ratio table"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width="${m.width}" height="${m.height}" fill="white"/>${body ? `<g${answerOnly ? ' class="ratio-answer-only"' : ""} font-family="STIX Two Text" fill="none" stroke="${ink}">${body.replaceAll("<text ", '<text stroke="none" ')}</g>` : ""}</svg>`, document.lines);
 }

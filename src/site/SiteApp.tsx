@@ -21,6 +21,7 @@ import {
   bookletTools,
   QuestionBank,
   WorksheetPage,
+  StarterPage,
   BookletPage,
   DiagramBuilderPage,
   HomePage,
@@ -247,6 +248,15 @@ export default function SiteApp() {
           <LazyPage onReady={pageReady}>
             <DocumentChangeContext value={workRecorder("worksheets")}>
               <WorksheetPage active={page === "worksheets"} />
+            </DocumentChangeContext>
+          </LazyPage>
+        </div>
+      )}
+      {visited.includes("starters") && (
+        <div className="site-page" hidden={page !== "starters"}>
+          <LazyPage onReady={pageReady}>
+            <DocumentChangeContext value={workRecorder("starters")}>
+              <StarterPage active={page === "starters"} />
             </DocumentChangeContext>
           </LazyPage>
         </div>

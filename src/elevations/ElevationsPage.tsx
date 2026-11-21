@@ -48,6 +48,7 @@ import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLa
 import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./elevations.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:elevations:v1");
 type Doc = Envelope["document"];
@@ -367,8 +368,10 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Plans and elevations settings">
+          <aside className="inspector-stack md-kit" aria-label="Plans and elevations settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="The solid">
               <h2>The solid ({cubeCount(d)} cubes)</h2>
               <p className="pt-note">Seen from above: each square is a stack of cubes. The front of the solid is at the bottom of this grid.</p>
@@ -399,7 +402,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                     .reverse()}
                 </tbody>
               </table>
-              <p className="ev-front">Front</p>
+              <p className="pt-note">Front</p>
               <div className="pt-row">
                 <button type="button" disabled={blocked || rows >= MAX_SIDE} onClick={() => resize(1, 0)}>
                   Add a row at the back
@@ -417,6 +420,8 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Panels">
               <h2>Panels</h2>
               <p className="pt-note">Panels print left to right in this order. An answer panel is an empty grid for pupils and is drawn on the answer copy.</p>
@@ -508,6 +513,8 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 ))}
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Printing</h2>
               <div className="pt-fields">
@@ -566,6 +573,8 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

@@ -43,6 +43,7 @@ export function RatioInspector({
   onAction,
   onFill,
   tools,
+  after,
 }: {
   document: RatioDocument;
   selection: RatioSelection;
@@ -56,6 +57,8 @@ export function RatioInspector({
   onFill: (from: string) => void;
   /** The table tools card, shown after the selected item and before the table settings (U21). */
   tools?: ReactNode;
+  /** Cards that come last, under the table's settings (the warnings). */
+  after?: ReactNode;
 }) {
   function headingControls(column: number) {
     const heading = document.headings[column];
@@ -110,6 +113,15 @@ export function RatioInspector({
           />
           Italic maths heading
         </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={heading.hidden === true}
+            disabled={pendingInputs}
+            onChange={(event) => change({ hidden: event.target.checked || undefined }, true)}
+          />
+          Hidden heading (answers copy only)
+        </label>
       </div>
     );
   }
@@ -158,6 +170,7 @@ export function RatioInspector({
   }
   return (
     <>
+      <div>
       <section
         className="panel-card ratio-selection-panel"
         aria-label="Selected table item"
@@ -386,6 +399,8 @@ export function RatioInspector({
         )}
       </section>
       {tools}
+      </div>
+      <div>
       <section className="panel-card">
         <div className="panel-heading">
           <Grid3X3 size={17} />
@@ -478,6 +493,23 @@ export function RatioInspector({
           />
           Show operation labels
         </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={document.answerOnly === true}
+            disabled={pendingInputs}
+            onChange={(event) =>
+              onAction([{ op: "set_answer_only", answerOnly: event.target.checked }])
+            }
+          />
+          Answers copy only
+        </label>
+        {document.answerOnly && (
+          <p className="panel-note">
+            The pupil copy keeps this table&apos;s space as blank paper. The
+            answers copy prints the whole table in the answer colour.
+          </p>
+        )}
         {document.mode === "simple" && (
           <p className="panel-note">
             Simple mode hides annotations and keeps your scaling steps for
@@ -505,6 +537,8 @@ export function RatioInspector({
           ))}
         </details>
       </section>
+      {after}
+      </div>
     </>
   );
 }

@@ -101,7 +101,7 @@ export function BookletAiPanel({ current, focusLesson, disabled, onBusyChange, o
   }, [unit, ticked, scheme, school, own, group, context, checkIn]);
 
   const lessonCount = brief ? brief.objectives.length + (brief.checkInLesson ? 1 : 0) : 0;
-  const tooMany = lessonCount > 12;
+  const tooMany = lessonCount > 16;
   const estimate = brief ? estimateCost(ai.settings.provider, ai.model, estimateTokens(lessonCount)) : null;
   const minutes = brief ? Math.round(1.5 + 3 + Math.ceil(Math.max(0, lessonCount - 1) / 3) * 3.5) : 0;
 
@@ -301,7 +301,7 @@ export function BookletAiPanel({ current, focusLesson, disabled, onBusyChange, o
       {brief && (
         <p className="ws-hint bk-estimate">
           {tooMany
-            ? `That is ${lessonCount} lessons; a booklet holds 12. Untick some objectives.`
+            ? `That is ${lessonCount} lessons; a booklet holds 16. Untick some objectives.`
             : `${lessonCount} lesson${lessonCount > 1 ? "s" : ""}, about ${minutes} minutes${estimate !== null ? `, roughly ${dollars(estimate)} with ${ai.model}` : ""}. Changing one lesson afterwards costs about a tenth of that.`}
         </p>
       )}

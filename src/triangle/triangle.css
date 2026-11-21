@@ -12,14 +12,10 @@
   align-content: start;
   min-width: 0;
 }
-.tr-panel {
-  padding: 14px;
-}
-.tr-panel h2 {
-  margin: 0 0 12px;
-  font-size: 16px;
-}
-.tr-editor h3 {
+/* The settings are on the settings kit (settings-kit.css), which gives a card its headings, labels, fields, buttons
+   and notes. The rules here that also reach the strip under the diagram and the dialogs leave the kit's cards
+   alone: `:where(:not(.md-kit *))`. */
+.tr-editor h3:where(:not(.md-kit *)) {
   font-size: 14px;
   margin: 12px 0 8px;
 }
@@ -92,36 +88,36 @@
   touch-action: none;
   font-size: 12px;
 }
-.tr-section {
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+/* U20: the common settings are open cards with a heading; rare ones stay folded. A part that opens is a row as
+   tall as a control, with what it holds stacked under it. */
+.tr-section,
+.tr-inner-section {
   min-width: 0;
 }
-.tr-section > summary {
-  padding: 13px 14px;
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
+.tr-section > summary,
+.tr-inner-section > summary,
+.tr-floating summary {
+  padding-block: calc((var(--md-control) - 1.4em) / 2);
 }
-/* U20: the common settings are open panel cards with a heading; rare ones stay folded. */
-.tr-card > .tr-section-body {
-  padding: 0;
-}
-.tr-section-body {
-  padding: 0 14px 14px;
+/* What a part holds is stacked with the gap a card has. */
+.tr-section-body,
+.tr-context,
+.tr-settings-body,
+.tr-inner-body,
+.tr-draft-body {
   display: grid;
-  gap: 9px;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
 }
-.tr-editor label,
-.tr-floating label {
+.tr-editor label:where(:not(.md-kit *)) {
   font-size: 12px;
   line-height: 1.45;
   display: grid;
   gap: 5px;
 }
-.tr-editor :is(input:not([type="checkbox"]):not([type="radio"]), select),
-.tr-floating :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+.tr-editor :is(input:not([type="checkbox"]):not([type="radio"]), select):where(:not(.md-kit *)) {
   min-width: 0;
   width: 100%;
   min-height: 36px;
@@ -133,15 +129,12 @@
   font: inherit;
   font-size: 13px;
 }
-.tr-editor .inspector-stack button,
-.tr-editor .tr-structure button,
-.tr-floating button {
+.tr-editor .tr-structure button {
   min-height: 36px;
   font-size: 13px;
   white-space: normal;
 }
-.tr-editor button:not([class]),
-.tr-floating button {
+.tr-editor button:not([class]):where(:not(.md-kit *)) {
   padding: 7px 9px;
   border: 1px solid var(--line-strong);
   border-radius: 4px;
@@ -149,13 +142,13 @@
   color: var(--ink);
   cursor: pointer;
 }
-.tr-editor button:disabled,
-.tr-floating button:disabled {
+.tr-editor button:disabled:where(:not(.md-kit *)) {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.tr-primary,
-.tr-floating .tr-primary {
+/* The one button that carries a step on. Under the diagram (Add triangle, Apply split) it keeps the tool's look,
+   and in the settings (Edit selected label, Apply label) it is a kit button, filled. */
+.tr-primary:where(:not(.md-kit *)) {
   background: var(--blue) !important;
   color: white !important;
   border: 1px solid var(--blue) !important;
@@ -163,44 +156,27 @@
   padding: 8px 10px;
   font-weight: 600;
 }
+.tr-editor .md-kit .panel-card .tr-primary:not(:disabled) {
+  border-color: var(--md-blue);
+  background: var(--md-blue);
+  color: white;
+  font-weight: 600;
+}
+/* Two buttons to a row. Where one needs a second line for its words, the other is as tall. */
 .tr-two {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  align-items: start;
+  align-items: stretch;
 }
 .tr-two button {
   width: 100%;
 }
-.tr-modes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 12px;
-}
-.tr-modes button {
-  flex: 1;
-  padding: 6px 4px;
-  white-space: nowrap !important;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  background: white;
-  color: var(--ink);
-}
-.tr-modes button[aria-pressed="true"] {
-  background: var(--blue-soft);
-  color: #174e90;
-  border-color: #7a9fc4;
-}
-.tr-context {
-  margin-top: 12px;
-  padding-top: 4px;
-  border-top: 1px solid var(--line);
-  display: grid;
-  gap: 8px;
-}
-.tr-context h3 {
-  margin-bottom: 0;
+/* A button with the row to itself is as wide as its words. */
+.tr-two > button:only-child {
+  grid-column: 1 / -1;
+  justify-self: start;
+  width: auto;
 }
 .tr-nudges {
   display: flex;
@@ -222,6 +198,12 @@
   color: #9b302d;
   overflow-wrap: anywhere;
   font-size: 12px;
+}
+/* What went wrong is never a quiet note (the kit's rule is for role="alert"; these are role="status"). */
+.tr-editor .md-kit .panel-card .tr-error {
+  color: var(--md-red);
+  font-size: var(--md-text-sm);
+  font-weight: 500;
 }
 .tr-banner {
   padding: 10px 14px;
@@ -325,41 +307,35 @@
   font-weight: 650;
   margin-bottom: 12px;
 }
-.tr-floating form {
-  display: grid;
-  gap: 10px;
-}
 .tr-floating .tr-options {
-  margin: 0;
+  margin-inline: 0;
   padding: 0;
   border: 0;
   min-width: 0;
 }
 .tr-floating .tr-options legend {
-  padding: 0 0 5px;
-  font-size: 12px;
-  font-weight: 650;
+  padding: 0 0 3px;
+  color: var(--md-ink-2);
+  font-size: var(--md-text-xs);
+  font-weight: 500;
 }
 .tr-options-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
+/* A choice in the box that edits a label: as tall as a control (32 px, and 44 px for a finger). */
 .tr-floating .tr-option {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 6px 9px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  min-height: var(--md-control);
+  padding: 4px 8px;
+  border: 1px solid var(--md-line-strong);
+  border-radius: var(--md-radius);
   background: white;
   cursor: pointer;
 }
 .tr-option:has(:checked) {
   border-color: #185db1;
   background: #eaf2ff;
-  color: #154b8e;
 }
 .tr-option:has(:focus-visible) {
   outline: 2px solid #185db1;
@@ -369,18 +345,8 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
-.tr-option input[type="radio"] {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: #185db1;
-  flex-shrink: 0;
-}
 .tr-floating .tr-check {
-  min-height: 44px;
-}
-.tr-floating .tr-note {
-  margin: 2px 0;
+  min-height: var(--md-control);
 }
 .tr-angle-selection {
   fill: #1764a418;
@@ -444,26 +410,10 @@
     min-height: 40px;
   }
 }
-.tr-floating .tr-check,
-.tr-context label:has(input[type="checkbox"]),
-.tr-section label:has(input[type="checkbox"]) {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.tr-floating input[type="checkbox"],
-.tr-editor input[type="checkbox"] {
+.tr-editor input[type="checkbox"]:where(:not(.md-kit *)) {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-}
-.tr-floating .tr-note {
-  font-size: 12px;
-}
-.tr-floating summary {
-  font-size: 12px;
-  cursor: pointer;
-  margin-bottom: 8px;
 }
 .tr-floating :is(button, input, select):focus-visible {
   outline: 2px solid var(--blue);
@@ -489,9 +439,6 @@
   }
   .tr-editor .inspector-stack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .tr-editor .inspector-stack > .tr-panel {
-    grid-column: 1 / -1;
   }
   .tr-source-context {
     grid-column: 1/-1;
@@ -519,47 +466,8 @@
   }
 }
 
-.tr-settings-body,
-.tr-inner-body {
-  display: grid;
-  gap: 10px;
-  padding-top: 12px;
-  min-width: 0;
-}
 .tr-settings-body > [hidden] {
   display: none;
-}
-.tr-inner-section {
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
-  min-width: 0;
-}
-.tr-inner-section > summary {
-  min-height: 32px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  align-content: center;
-}
-.tr-editor .tr-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-bottom: 1px solid var(--line);
-  margin-top: 4px;
-}
-.tr-editor .tr-tabs button {
-  min-height: 40px;
-  border: 0;
-  border-bottom: 3px solid transparent;
-  border-radius: 0;
-  background: white;
-  padding: 8px;
-  font-size: 14px;
-}
-.tr-editor .tr-tabs button[aria-selected="true"] {
-  color: var(--blue);
-  font-weight: 600;
-  border-bottom-color: var(--blue);
 }
 .tr-structure {
   display: flex;
@@ -695,27 +603,15 @@
   }
 }
 @media (pointer: coarse) {
-  .tr-editor .inspector-stack button,
+  .tr-editor .inspector-stack > button,
   .tr-editor .tr-structure button,
-  .tr-editor .tr-structure select,
-  .tr-floating button {
+  .tr-editor .tr-structure select {
     min-height: 44px;
   }
 }
-.tr-more-tools > .tr-section-body > .tr-section {
-  box-shadow: none;
-}
-.tr-editor .tr-modes button {
-  min-height: 40px;
-  font-size: 12px;
-}
-.tr-floating .tr-inner-section {
-  padding-top: 5px;
-}
-.tr-floating .tr-inner-section > summary {
-  margin: 0;
-  min-height: 30px;
-}
-.tr-floating .tr-inner-body {
-  padding-top: 7px;
+
+/* The box that edits a label is a card in the settings, over what is selected. It stays a column whose middle
+   scrolls (refinement.css), which the kit's card grid would undo. */
+.tr-editor .md-kit .tr-floating.tr-docked {
+  display: flex;
 }

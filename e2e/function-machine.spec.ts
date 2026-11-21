@@ -36,9 +36,9 @@ test("types operations on the machine, hides the output and undoes", async ({ pa
   await page.getByLabel("Hide for pupils (keep as an answer)").check();
   expect((await saved(page)).document.machines[0].end).toEqual({ text: "12", show: "hidden" });
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect(ops((await saved(page)).document)).toEqual(["", ""]);
 });

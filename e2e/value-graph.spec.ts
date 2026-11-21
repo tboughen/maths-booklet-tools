@@ -529,7 +529,7 @@ test("bold lines are saved, printed and undoable; the grid keeps its weight (U11
 test("the selected editor is the first settings card and Close returns focus to its opener (U21)", async ({ page }) => {
   await page.goto("/tools/value-table-graph");
   const stack = page.locator(".inspector-stack").filter({ visible: true }).first();
-  const cards = stack.locator(":scope > .panel-card");
+  const cards = stack.locator(".panel-card");
   await expect(cards.first()).toHaveAccessibleName("Selected item");
   const opener = page.getByRole("button", { name: "Table settings", exact: true });
   await opener.click();

@@ -65,7 +65,8 @@ test.describe("question bank panes", () => {
     await page.keyboard.press("=");
     await expect(level(page)).toHaveText("150%");
     await expect.poll(() => width("Question")).toBeCloseTo(question * 1.5, 0);
-    expect(await width("Mark scheme")).toBeCloseTo(scheme * 1.25, 0);
+    // The panes share the row, so the mark scheme may redraw while the question grows: wait for it.
+    await expect.poll(() => width("Mark scheme")).toBeCloseTo(scheme * 1.25, 0);
     let download = page.waitForEvent("download");
     await page.getByRole("button", { name: "PNG", exact: true }).click();
     expect((await download).suggestedFilename()).toContain("-question-");

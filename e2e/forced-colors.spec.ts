@@ -8,7 +8,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { toolIds } from "../src/site/routes";
 
-const PRESSED = '[aria-pressed="true"],[aria-selected="true"],[aria-checked="true"],button.active,button.selected,.tool-button--active';
+const PRESSED = '[aria-pressed="true"],[aria-selected="true"],[aria-checked="true"],button.active,button.selected';
 
 type Pair = { label: string; on: string; off: string; adjust: string };
 

@@ -3580,7 +3580,7 @@
           },
           "heightMm": {
             "type": "integer",
-            "minimum": 40,
+            "minimum": 25,
             "maximum": 140
           },
           "barMm": {
@@ -7610,7 +7610,7 @@
                 "default": 1,
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 32
+                "maximum": 100
               },
               "variable": {
                 "default": "x",
@@ -7632,6 +7632,13 @@
               },
               "minorTicks": {
                 "type": "boolean"
+              },
+              "ends": {
+                "type": "string",
+                "enum": [
+                  "arrow",
+                  "plain"
+                ]
               }
             },
             "additionalProperties": false
@@ -7740,7 +7747,7 @@
                         "pattern": "^[a-zA-Z0-9_-]{1,40}$"
                       },
                       "points": {
-                        "maxItems": 33,
+                        "maxItems": 101,
                         "type": "array",
                         "items": {
                           "type": "object",
@@ -7765,7 +7772,7 @@
                         }
                       },
                       "intervals": {
-                        "maxItems": 32,
+                        "maxItems": 100,
                         "type": "array",
                         "items": {
                           "type": "object",
@@ -7897,7 +7904,7 @@
           },
           "markers": {
             "minItems": 1,
-            "maxItems": 6,
+            "maxItems": 10,
             "type": "array",
             "items": {
               "type": "object",
@@ -7912,12 +7919,35 @@
                 },
                 "label": {
                   "type": "string",
-                  "pattern": "^(?=.{1,8}$)(?:[A-Za-z0-9]+|[−-]?[0-9]+(?: [0-9]{3})*(?:\\.[0-9]+)?)$"
+                  "pattern": "^(?=.{1,12}$)(?:[A-Za-z0-9]+|[A-Za-z][A-Za-z0-9]*(?: [A-Za-z][A-Za-z0-9]*)+|[−-]?[0-9]+(?: [0-9]{3})*(?:\\.[0-9]+)?|[−-]?[0-9]+\\/[1-9][0-9]*)$"
                 }
               },
               "required": [
                 "id",
                 "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "words": {
+            "minItems": 1,
+            "maxItems": 7,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "text": {
+                  "type": "string",
+                  "pattern": "^(?=.{1,16}$)[A-Za-z]+(?:[ '-][A-Za-z]+)*$"
+                }
+              },
+              "required": [
+                "value",
+                "text"
               ],
               "additionalProperties": false
             }
@@ -8433,7 +8463,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8454,7 +8485,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8478,7 +8510,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8499,7 +8532,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8575,7 +8609,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8621,12 +8656,12 @@
           },
           "branchMm": {
             "type": "integer",
-            "minimum": 20,
+            "minimum": 12,
             "maximum": 50
           },
           "gapMm": {
             "type": "integer",
-            "minimum": 10,
+            "minimum": 8,
             "maximum": 24
           },
           "lines": {
@@ -8782,6 +8817,9 @@
                     "down",
                     "none"
                   ]
+                },
+                "hidden": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -8965,6 +9003,9 @@
               "normal",
               "bold"
             ]
+          },
+          "answerOnly": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -10017,7 +10058,7 @@
           },
           "widthCm": {
             "type": "number",
-            "minimum": 6,
+            "minimum": 5,
             "maximum": 18
           },
           "notToScale": {
@@ -12173,6 +12214,11 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "perRow": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
                     },
                     "caption": {
                       "type": "string",

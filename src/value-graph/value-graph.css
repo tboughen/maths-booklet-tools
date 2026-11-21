@@ -21,11 +21,11 @@
 .vg-editor .editor-card {
   padding: 0;
 }
-.vg-editor h2 {
+.vg-editor h2:where(:not(.md-kit *, .tool-switcher *)) {
   font-size: 1.05rem;
   margin: 0 0 12px;
 }
-.vg-editor h3 {
+.vg-editor h3:where(:not(.md-kit *, .tool-switcher *)) {
   font-size: 1rem;
 }
 .vg-toolbar,
@@ -38,7 +38,7 @@
   flex-wrap: wrap;
   align-items: center;
 }
-.vg-editor button {
+.vg-editor button:where(:not(.md-kit *, .tool-switcher *)) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -53,21 +53,20 @@
   font: inherit;
   font-size: 0.86rem;
 }
-.vg-editor button:hover:not(:disabled) {
+.vg-editor button:hover:not(:disabled):where(:not(.md-kit *, .tool-switcher *)) {
   background: #edf4ff;
 }
-.vg-editor button:disabled {
+.vg-editor button:disabled:where(:not(.md-kit *, .tool-switcher *)) {
   opacity: 0.5;
   cursor: default;
 }
-.vg-editor button[aria-pressed="true"],
-.vg-editor button.vg-primary {
+.vg-editor button[aria-pressed="true"]:where(:not(.md-kit *, .tool-switcher *)) {
   background: #174b91;
   color: white;
   border-color: #174b91;
 }
-.vg-editor input,
-.vg-editor select {
+.vg-editor input:where(:not(.md-kit *, .tool-switcher *)),
+.vg-editor select:where(:not(.md-kit *, .tool-switcher *)) {
   font: inherit;
   max-width: 100%;
   min-width: 0;
@@ -84,7 +83,7 @@
   outline: 3px solid #276bb8;
   outline-offset: 2px;
 }
-.vg-editor select {
+.vg-editor select:where(:not(.md-kit *, .tool-switcher *)) {
   display: block;
   margin: 5px 0 12px;
   width: 100%;
@@ -94,7 +93,7 @@
   width: auto;
   margin: 0 8px;
 }
-.vg-editor p {
+.vg-editor p:where(:not(.md-kit *, .tool-switcher *)) {
   font-size: 0.86rem;
   line-height: 1.45;
 }
@@ -123,7 +122,7 @@
   color: #a4161a;
   line-height: 1.4;
 }
-.vg-editor .vg-check {
+.vg-editor .vg-check:where(:not(.md-kit *, .tool-switcher *)) {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -270,6 +269,32 @@
 .vg-context-content p {
   margin: 0;
 }
+/* On the diagram the box that edits a value keeps its own spacing. In the settings it is a card on the settings
+   kit (settings-kit.css), with the card's gap between its heading, its fields and its buttons. */
+.vg-editor .vg-context-content:where(:not(.md-kit *, .tool-switcher *)) {
+  margin-top: 12px;
+}
+.vg-editor .md-kit .vg-context-heading {
+  margin-bottom: 0;
+}
+.vg-editor .md-kit .vg-context-content {
+  gap: 8px;
+}
+.vg-editor .md-kit .vg-context-body {
+  display: grid;
+  gap: 8px;
+}
+.vg-editor .md-kit .vg-context-body > button {
+  justify-self: start;
+}
+/* Inside "Table and graph": the heading over the further tools, and the line shown while a point is being placed. */
+.vg-editor .md-kit :is(.vg-secondary-tools, .vg-placing) {
+  display: grid;
+  gap: 8px;
+}
+.vg-editor .md-kit .vg-placing > button {
+  justify-self: start;
+}
 .vg-art svg {
   width: 100%;
   height: 100%;
@@ -378,10 +403,10 @@
 .vg-downloads {
   padding: 10px 0;
 }
-.vg-editor details {
+.vg-editor details:where(:not(.md-kit *, .tool-switcher *)) {
   margin: 14px 0;
 }
-.vg-editor summary {
+.vg-editor summary:where(:not(.md-kit *, .tool-switcher *)) {
   cursor: pointer;
   margin-bottom: 10px;
 }
@@ -394,7 +419,7 @@
   font-size: 0.9rem;
 }
 /* Use the site's controls for the interface; mathematical SVG styling is separate. */
-.vg-editor button { border-radius: 4px; color: var(--ink); font-family: inherit; }
+.vg-editor button:where(:not(.md-kit *, .tool-switcher *)) { border-radius: 4px; color: var(--ink); font-family: inherit; }
 .vg-editor .editor-toolbar .icon-button { width: var(--control-lg); min-height: var(--control-lg); padding: 0; border-color: transparent; background: transparent; }
 .vg-editor .editor-toolbar .tool-button { min-height: var(--control-lg); padding: 0 12px; border-color: transparent; background: transparent; font-size: var(--button-label); font-weight: 650; }
 .vg-editor .editor-toolbar .reset-button { color: #7d4b47; }
@@ -403,8 +428,6 @@
 .vg-editor .editor-toolbar .copy-more { width: var(--control-lg); padding: 0; border-left: 1px solid #ffffff40; border-radius: 0 4px 4px 0; }
 .vg-editor .editor-toolbar :is(.copy-main, .copy-more):hover:not(:disabled) { background: var(--blue-dark); }
 .vg-editor .export-menu button { border: 0; background: white; }
-.vg-editor .panel-card h2 { margin: 0; font: 600 17px/1.3 var(--md-font); color: #213c59; }
-.vg-editor .vg-context-content { margin-top: 12px; }
 .vg-editor :is(.vg-message, .vg-recovery, .vg-warning) { margin: 10px 14px; }
 @media (max-width: 440px) {
   .vg-fields {

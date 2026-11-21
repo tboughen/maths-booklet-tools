@@ -40,17 +40,25 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
     });
   },
   "ratio-table"(doc, out) {
+    // An answers-only table prints nothing for the pupil: every value it states is hidden.
+    const only = doc.answerOnly === true;
+    walk(doc.headings, "document.headings", (h, path) => {
+      if (typeof h.text !== "string") return;
+      if (only || h.hidden === true) out.push(slot(path, "hidden", h.text));
+      return true;
+    });
     walk(doc.rows, "document.rows", (c, path) => {
       if (!/\.cells\.\d+$/.test(path)) return;
-      const states: Record<string, AnswerState> = { number: "supplied", empty: "blank", "answer-line": "answerLine" };
-      if (c.kind === "hidden") out.push(slot(path, c.line === true ? "answerLine" : "hidden", str(c.value)));
+      const states: Record<string, AnswerState> = { number: "supplied", empty: "blank", "answer-line": only ? "blank" : "answerLine" };
+      if (c.kind === "hidden") out.push(slot(path, c.line === true && !only ? "answerLine" : "hidden", str(c.value)));
+      else if (only && c.kind === "number") out.push(slot(path, "hidden", str(c.value)));
       else if (states[str(c.kind)]) out.push(slot(path, states[str(c.kind)], str(c.value)));
       return true;
     });
     walk(doc.transitions, "document.transitions", (t, path) => {
       if (typeof t.factor !== "string") return;
       // A hidden operation prints an answer line for the pupil and the label on the answers copy.
-      out.push(slot(path, t.hidden === true ? "answerLine" : "supplied", t.factor));
+      out.push(slot(path, only ? "hidden" : t.hidden === true ? "answerLine" : "supplied", t.factor));
       return true;
     });
   },

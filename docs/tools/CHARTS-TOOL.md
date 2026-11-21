@@ -32,7 +32,7 @@ worked-solutions tools; see Grouped data below).
   Mock set 8 3F Q8 vertical line chart) and one blank "draw a bar chart" scaffold.
 - **Pupil states:** each value is blank (no bar or line), a number (0 draws nothing above the
   axis but is stored as 0), or a number hidden for pupils to draw. Hidden values are saved
-  answers shown only by **Teacher copy: show hidden answers** or the worked example, in the
+  answers shown only by **Teacher copy: show answers** or the worked example, in the
   house answer colour (pink) in the editor, its downloads and the pupil-and-answers ZIP (since
   15 Nov 2026; before that the browser drew them in black).
 - **Direct editing:** clicking a bar, line or category label focuses its field in the Data
@@ -40,7 +40,7 @@ worked-solutions tools; see Grouped data below).
 - **Validation:** values and axis numbers stay as typed. Non-numbers, negative values, values
   above the axis, a step that does not divide the range, a non-zero axis start, stacked totals
   above the axis and charts wider than 18 cm are shown as specific errors and block export.
-- **Print:** 11 pt STIX text, physical millimetre layout, chart height 40–140 mm, bar width (or
+- **Print:** 11 pt STIX text, physical millimetre layout, chart height 25–140 mm, bar width (or
   line spacing) 5–20 mm. Patterns (hatching, cross-hatching, dots) print in black and white.
   Vertical line charts draw 0.6 mm black lines with a grid line through every category.
 - **Limits:** 1–12 categories, 1–4 data sets, at most 40 axis steps.
@@ -68,7 +68,7 @@ anything. The axis, grid and bar settings are kept but not used.
   middle of the sector, with no leader line. Every label is placed (drawn or not), so the pupil
   and answers copies are the same size.
 - **Editor:** the Data table adds an Angle column for the teacher (not printed). A hidden sector's
-  angle shows there only with **Teacher copy: show hidden answers**. Clicking a sector focuses its
+  angle shows there only with **Teacher copy: show answers**. Clicking a sector focuses its
   value. Labels that cannot be placed without overlapping are an error that blocks export. The Pie chart card replaces Axes and grid.
 - **Examples:** June 2018 2F Q12 (draw a pie chart, every sector hidden) and a "complete the pie
   chart" teaching example.

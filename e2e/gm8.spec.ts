@@ -25,9 +25,9 @@ test("constructions: adds a hidden perpendicular bisector, shows it only on the 
   const after = (await saved(page, cKey)).document;
   expect(after.objects.filter((o: { group?: string; role: string }) => o.group).every((o: { role: string }) => o.role === "answer")).toBe(true);
   const pupil = await art.innerHTML();
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   expect(await art.innerHTML()).not.toBe(pupil);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect(await saved(page, cKey)).toEqual(before);
 });
@@ -59,9 +59,9 @@ test("plans and elevations: edits the solid, adds a panel and undoes", async ({ 
   expect(panels.at(-1)).toMatchObject({ view: "plan", state: "answer" });
   // The pupil copy leaves answer views as empty grids; the teacher copy draws them.
   const pupil = await art.innerHTML();
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   expect(await art.innerHTML()).not.toBe(pupil);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect(await saved(page, eKey)).toEqual(JSON.parse(eCanonical(eCreate())));
 });
@@ -76,7 +76,7 @@ test("plans and elevations: refuses to remove the last cube and keeps one size o
   const e = eCreate();
   const size = page.locator(".resource-size").first();
   const pupilSize = await size.textContent();
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   expect(await size.textContent()).toBe(pupilSize);
   expect(eLayout(e, "pupil").width).toBe(eLayout(e, "answer").width);
 });

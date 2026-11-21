@@ -1,3 +1,4 @@
+import { SHORTCUTS_EVENT } from "../editor-kit/shortcuts";
 import { LINK_DESCRIPTION, SAVE_DESCRIPTION, SAVE_EDITABLE_LABEL, type DownloadAction } from "./EditorDownloadMenu";
 
 export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "description" | "menu">;
@@ -45,6 +46,12 @@ export function diagramFileMenu(items: {
     { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },
     { picker: true, ...items.open, label: "Open editable file" },
     { ...items.link, label: "Copy editable link", description: LINK_DESCRIPTION },
+    {
+      label: "Keyboard shortcuts",
+      description: "Or press ? on the page.",
+      action: () => void window.dispatchEvent(new Event(SHORTCUTS_EVENT)),
+      separator: true,
+    },
   ];
 }
 

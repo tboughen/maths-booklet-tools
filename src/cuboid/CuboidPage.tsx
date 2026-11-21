@@ -65,6 +65,7 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
+import "../site/settings-kit.css";
 import { createHistory, handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
@@ -706,34 +707,38 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
             />
           </Panel>
           <aside
-            className="inspector-stack cb-inspector"
+            className="inspector-stack cb-inspector md-kit"
             aria-label="Cuboid settings"
           >
             <ReturnToDiagram />
-            {d.shapes.length > 1 && (
-              <section className="panel-card cb-settings" aria-label="Cuboids">
-                  <label>
-                    Selected cuboid{" "}
-                    <select
-                      aria-label="Selected cuboid"
-                      disabled={blocked}
-                      value={s.id}
-                      onChange={(ev) => selectShape(ev.target.value)}
-                    >
-                      {d.shapes.map((shape, i) => (
-                        <option key={shape.id} value={shape.id}>
-                          {shape.title || `Cuboid ${i + 1}`}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-              </section>
-            )}
-            {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top. */}
-            {((cards: Record<SettingsCard, ReactNode>) =>
-              cardOrder(focus).map((key) => cards[key]))({
+            {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top: the top of the
+                left column where there are two, which is where the other tools show what is selected. The cards
+                stay children of one group, so none is rebuilt as the order changes; cuboid.css sets the columns. */}
+            <div className="md-kit-cards cb-cards">
+              <div>
+                {d.shapes.length > 1 && (
+                  <section className="panel-card cb-pick" aria-label="Cuboids">
+                    <label>
+                      Selected cuboid{" "}
+                      <select
+                        aria-label="Selected cuboid"
+                        disabled={blocked}
+                        value={s.id}
+                        onChange={(ev) => selectShape(ev.target.value)}
+                      >
+                        {d.shapes.map((shape, i) => (
+                          <option key={shape.id} value={shape.id}>
+                            {shape.title || `Cuboid ${i + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </section>
+                )}
+                {((cards: Record<SettingsCard, ReactNode>) =>
+                  cardOrder(focus).map((key) => cards[key]))({
                 shape: (
-                  <section key="shape" className="panel-card cb-settings" aria-labelledby="cb-card-shape">
+                  <section key="shape" className="panel-card" aria-labelledby="cb-card-shape">
                     <h2 id="cb-card-shape">{"Shape"}</h2>
                     <div className="cb-dimensions">
                       {axes.map((axis) =>
@@ -779,7 +784,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         }),
                       )}
                     </div>
-                    <div className="cb-units-row">
+                    <div className="cb-view-row">
                       <label>
                         View{" "}
                         <select
@@ -796,7 +801,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         </select>
                       </label>
                       <button
-                        className="cb-quick-cubes"
                         disabled={blocked}
                         onClick={() =>
                           safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
@@ -811,7 +815,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         {field("Cube side length", cubeSideInUnit(s), (v) =>
                           changeShape((x) => setCubeSide(x, v)),
                         )}
-                        <p className="cb-note">{cubes}</p>
+                        <p>{cubes}</p>
                         {check("Show cube counts", s.counts, (v) =>
                           patch({ counts: v }),
                         )}
@@ -887,15 +891,16 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         )}
                     </details>
                     {warnings(s).map((w) => (
-                      <p className="cb-note" key={w}>
+                      <p key={w}>
                         {w}
                       </p>
                     ))}
                   </section>
                 ),
                 labels: (
-                  <section key="labels" className="panel-card cb-settings" aria-labelledby="cb-card-labels">
+                  <section key="labels" className="panel-card" aria-labelledby="cb-card-labels">
                     <h2 id="cb-card-labels">{focus === "labels" ? `Selected label: ${inline}` : "Labels"}</h2>
+                    <div className="cb-grid">
                     <label>
                       Edge or face{" "}
                       <select
@@ -936,12 +941,13 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         <option value="text">Custom text</option>
                       </select>
                     </label>
+                    </div>
                     {l.mode === "text" &&
                       field("Label text", l.text, (v) => patchLabel({ text: v }))}
                     <details>
                       <summary>Position and advanced</summary>
                       {s.view === "layers" && labelKey === "height" ? (
-                        <p className="cb-note">
+                        <p>
                           Full height is fixed below the complete layers.
                         </p>
                       ) : (
@@ -969,7 +975,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         patch({ workedArea: v }),
                       )}
                       {field("Caption", s.caption, (v) => patch({ caption: v }))}
-                      <p className="cb-note">
+                      <p>
                         Calculations use the actual dimensions. Pupil blanks and
                         custom labels remain unchanged.
                       </p>
@@ -977,7 +983,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   </section>
                 ),
                 shading: (
-                  <section key="shading" className="panel-card cb-settings" aria-labelledby="cb-card-shading">
+                  <section key="shading" className="panel-card" aria-labelledby="cb-card-shading">
                     <h2 id="cb-card-shading">{focus === "shading" ? "Selected: area label" : "Shading"}</h2>
                     <div className="cb-shade-options" aria-label="Shading style">
                       {(
@@ -989,7 +995,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                       ).map(([mode, name]) => (
                         <button
                           key={mode}
-                          className="cb-action"
                           aria-pressed={a.mode === mode}
                           disabled={blocked}
                           onClick={() =>
@@ -1029,7 +1034,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                       </label>
                     )}
                     {a.mode === "faces" && (
-                      <p className="cb-note">
+                      <p>
                         Three neutral face tones, with black outlines and cube
                         grids.
                       </p>
@@ -1059,7 +1064,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                             ))}
                           </select>
                         </label>
-                        <p className="cb-note">
+                        <p>
                           An existing face, shown through the unshaded outline. Use
                           an assembled view; choose Outline or Grey faces to
                           separate layers.
@@ -1123,42 +1128,44 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     )}
                   </section>
                 ),
-            })}
-            <section className="panel-card cb-settings" aria-label="Print settings">
-              <details className="cb-settings-footer">
-                <summary>Print settings</summary>
-                <p className="cb-note">
-                  {m
-                    ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
-                    : "Review the resource settings."}
-                </p>
-                {field("Print width (cm)", d.widthCm, (v) =>
-                  commit({ ...e, document: { ...d, widthCm: Number(v) } }),
-                )}
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    onChange={(ev) => {
-                      const next = { ...d };
-                      setLines(next, ev.target.value as LineWeight);
-                      commit({ ...e, document: next });
-                    }}
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p className="cb-note">
-                  Width before trimming. Images keep their scale and trim unused
-                  outer space. Preview zoom does not change printing.
-                </p>
-              </details>
-            </section>
+                })}
+                <section className="panel-card" aria-label="Print settings">
+                  <details>
+                    <summary>Print settings</summary>
+                    <p>
+                      {m
+                        ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
+                        : "Review the resource settings."}
+                    </p>
+                    {field("Print width (cm)", d.widthCm, (v) =>
+                      commit({ ...e, document: { ...d, widthCm: Number(v) } }),
+                    )}
+                    <label>
+                      Lines
+                      <select
+                        aria-label="Lines"
+                        value={d.lines ?? "normal"}
+                        onChange={(ev) => {
+                          const next = { ...d };
+                          setLines(next, ev.target.value as LineWeight);
+                          commit({ ...e, document: next });
+                        }}
+                      >
+                        {LINE_WEIGHTS.map((v) => (
+                          <option key={v} value={v}>
+                            {LINE_WEIGHT_NAMES[v]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <p>
+                      Width before trimming. Images keep their scale and trim unused
+                      outer space. Preview zoom does not change printing.
+                    </p>
+                  </details>
+                </section>
+              </div>
+            </div>
           </aside>
         </section>
       </main>

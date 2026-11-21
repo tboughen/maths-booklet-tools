@@ -17,9 +17,9 @@ test("edits a cell from the table, hides it as an answer, shows it only in the t
   await boot(page, complete());
   // 18 (Year 7, Walk) is a hidden answer: not on the pupil copy.
   await expect(art(page).locator("text", { hasText: /^18$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^18$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
 
   await page.getByRole("button", { name: "Edit the cell for Year 8, Car" }).click();
   const field = page.getByRole("textbox", { name: "Cell for Year 8, Car" });
@@ -66,7 +66,7 @@ test("completes totals only when asked, exactly, and keeps them hidden as answer
   expect(d.rows.map((r: { cells: { text: string }[] }) => r.cells[2])).toEqual([{ text: "3/8", show: "hidden" }, { text: "5/8", show: "hidden" }]);
   expect(d.totalRow.map((c: { text: string }) => c.text)).toEqual(["5/8", "3/8", "1"]);
   // Stacked fractions on the artwork: no inline slash.
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: "/" })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.totalRow[2].text).toBe("");

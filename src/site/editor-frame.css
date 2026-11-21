@@ -39,9 +39,8 @@
   .site-app .site-page--tool .booklet-editor .workspace > .editor-card { flex: 0 0 66.667%; position: sticky; top: 0; z-index: 1; }
   /* Isolated, so that nothing in the settings can show through the card it scrolls under. */
   .site-app .site-page--tool .booklet-editor .inspector-stack { display: block; flex: none; column-count: 3; column-gap: 12px; max-height: none; overflow: visible; padding: 0; isolation: isolate; }
-  /* In two tools the cards sit inside groups that have no box of their own. */
-  .site-app .site-page--tool .booklet-editor .inspector-stack > .ratio-settings { display: contents; }
+  /* In the Graph tool the cards sit inside groups that have no box of their own. */
   .site-app .site-page--tool .booklet-editor .inspector-stack > *,
-  .site-app .site-page--tool .booklet-editor .inspector-stack > :is(.graph-control-group, .ratio-settings) > *,
+  .site-app .site-page--tool .booklet-editor .inspector-stack > .md-kit-cards > * > .graph-control-group > *,
   .site-app .site-page--tool .booklet-editor .inspector-stack > .md-kit-cards > * > * { break-inside: avoid; margin: 0 0 12px; }
 }

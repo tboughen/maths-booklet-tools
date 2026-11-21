@@ -351,7 +351,7 @@ function RegionFields({
 }
 
 interface ObjectInspectorProps {
-  object?: GraphObject;
+  object: GraphObject;
   onUpdate: (object: GraphObject) => void;
   onDelete: () => void;
   drafts: GraphDrafts;
@@ -415,19 +415,6 @@ export function ObjectInspector({
   onAdd,
   axes,
 }: ObjectInspectorProps) {
-  if (!object) {
-    return (
-      <section className="panel-card selection-panel selection-panel--empty">
-        <p className="eyebrow">EDIT OBJECT</p>
-        <h2>Nothing selected</h2>
-        <p>
-          Click a line, segment or cross to change it. Blue handles are editing
-          guides and will not be copied.
-        </p>
-      </section>
-    );
-  }
-
   if (object.kind === "point") {
     return (
       <section className="panel-card selection-panel">

@@ -155,7 +155,9 @@ const stepSchema = z.discriminatedUnion("kind", [
   /** The final answer, written on the part's answer line, box or table. */
   z.object({ kind: z.literal("answer"), value: text(90), at: z.number().int().min(0).max(5).default(0), mark: markSchema.optional(),
     /** Words on a full-width line start at its left; a value sits in the middle of its line. */
-    align: z.enum(["centre", "left"]).default("centre") }).strict(),
+    align: z.enum(["centre", "left"]).default("centre"),
+    /** Where the mark sits: just above the answer (the default), or after the end of its line, level with the answer. */
+    markAt: z.enum(["above", "after"]).default("above") }).strict(),
 ]);
 const area = z.object({ x: coordinate, y: coordinate, width: z.number().positive().max(2000), bottom: coordinate }).strict()
   .refine(a => a.bottom > a.y, { message: "The working space must end below where it starts.", path: ["bottom"] });
@@ -216,15 +218,38 @@ export function mathsText(s: string): string {
 }
 
 type Piece = { kind: "run"; text: string; sup: boolean; under?: boolean; arrow?: boolean; dot?: boolean }
-  | { kind: "fraction"; num: string; den: string }
-  | { kind: "column"; top: string; bottom: string };
+  | { kind: "fraction"; num: Piece[]; den: Piece[]; mixed?: boolean }
+  | { kind: "column"; top: string; bottom: string }
+  | { kind: "root"; body: Piece[]; index?: string }
+  | { kind: "power"; sign: string; num: string; den: string };
+
+/** The index of the bracket closing the one at i, or -1. */
+const closing = (s: string, i: number, open: string, close: string) => {
+  for (let j = i + 1, depth = 1; j < s.length; j++) { if (s[j] === open) depth++; else if (s[j] === close && --depth === 0) return j; }
+  return -1;
+};
+
+/** The first "/" outside any nested braces, or -1: {√{a/b}/c} splits after the root. */
+function topSlash(s: string): number {
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === "{") depth++;
+    else if (s[i] === "}") depth--;
+    else if (s[i] === "/" && depth === 0) return i;
+  }
+  return -1;
+}
 
 /**
  * Splits "{3/4}" stacked fractions and "^2" or "^{12}" powers out of a line, and the vector forms:
  * "_{a}" an underlined (handwritten bold) vector, "vec{AB}" an arrow over AB, "[3;-2]" a column vector,
  * and "dot{4}" a recurring-decimal dot over the 4 (0.2dot{4}dot{6} is 0.2464646...).
+ * "sqrt{...}" is a square root with an overbar, and so is "√" before a number, a letter run, a braced
+ * group or a bracketed group "(...)", whose brackets the overbar replaces. "∛" and "∜" (or "root{n}{...}")
+ * are the same with a small index. A fractional power "^{2/3}" or "^{-1/2}" is a small stacked fraction.
+ * A fraction's numerator and denominator are laid out as maths too, but flat: a fraction inside one stays inline.
  */
-export function pieces(s: string): Piece[] {
+export function pieces(s: string, flat = false): Piece[] {
   const out: Piece[] = [];
   let run = "";
   const flush = () => { if (run) out.push({ kind: "run", text: run, sup: false }); run = ""; };
@@ -235,44 +260,117 @@ export function pieces(s: string): Piece[] {
     if (vector) { flush(); out.push({ kind: "run", text: vector[2], sup: false, ...(vector[1] === "_" ? { under: true } : vector[1] === "dot" ? { dot: true } : { arrow: true }) }); i += vector[0].length - 1; continue; }
     const column = /^\[([^[\];]+);([^[\];]+)\]/.exec(rest);
     if (column) { flush(); out.push({ kind: "column", top: column[1].trim(), bottom: column[2].trim() }); i += column[0].length - 1; continue; }
+    if (rest.startsWith("sqrt{")) {
+      const end = closing(s, i + 4, "{", "}");
+      if (end > i + 5) { flush(); out.push({ kind: "root", body: pieces(s.slice(i + 5, end), flat) }); i = end; continue; }
+    }
+    const nth = /^root\{([0-9a-z]+)\}\{/.exec(rest);
+    if (nth) {
+      const open = i + nth[0].length - 1, end = closing(s, open, "{", "}");
+      if (end > open + 1) { flush(); out.push({ kind: "root", body: pieces(s.slice(open + 1, end), flat), index: nth[1] }); i = end; continue; }
+    }
+    if (c === "√" || c === "∛" || c === "∜") {
+      const index = c === "∛" ? "3" : c === "∜" ? "4" : undefined;
+      const next = s[i + 1];
+      // A bracketed group loses its brackets under the overbar; a braced group is kept whole, so {a/b} stays a fraction.
+      const end = next === "(" ? closing(s, i + 1, "(", ")") : next === "{" ? closing(s, i + 1, "{", "}") : -1;
+      // A braced fraction keeps its braces so it stacks; any other braced group loses them.
+      const body = end > i + 2 ? (next === "{" && topSlash(s.slice(i + 2, end)) > 0 ? s.slice(i + 1, end + 1) : s.slice(i + 2, end)) : undefined;
+      const atom = body === undefined ? /^(?:[0-9]+(?:\.[0-9]+)?|[A-Za-z]+)/.exec(s.slice(i + 1))?.[0] : undefined;
+      if (body !== undefined || atom) { flush(); out.push({ kind: "root", body: pieces(body ?? atom!, flat), ...(index ? { index } : {}) }); i = body !== undefined ? end : i + atom!.length; continue; }
+    }
     if (c === "{") {
       // The matching brace, so a fraction may hold a braced power: {4/x^{2}}.
-      let end = -1;
-      for (let j = i + 1, depth = 1; j < s.length; j++) { if (s[j] === "{") depth++; else if (s[j] === "}" && --depth === 0) { end = j; break; } }
+      const end = closing(s, i, "{", "}");
       const inner = end > i ? s.slice(i + 1, end) : "";
-      const slash = inner.indexOf("/");
-      if (end > i && slash > 0 && slash < inner.length - 1) { flush(); out.push({ kind: "fraction", num: fractionPart(inner.slice(0, slash)), den: fractionPart(inner.slice(slash + 1)) }); i = end; continue; }
+      const slash = topSlash(inner);
+      if (end > i && slash > 0 && slash < inner.length - 1) {
+        flush();
+        if (flat) out.push(...pieces(inner, true));
+        else {
+          // A fraction straight after a whole number is a mixed number: it gets a small gap after the whole number.
+          const last = out[out.length - 1];
+          // Only a whole number standing on its own (not 0.5 or Q2), over a fraction of whole numbers.
+          const top = inner.slice(0, slash).trim(), bottom = inner.slice(slash + 1).trim();
+          const mixed = last?.kind === "run" && !last.sup && /(?:^|[\s(=+−×÷,:])\d+$/.test(last.text) && /^\d+$/.test(top) && /^\d+$/.test(bottom);
+          out.push({ kind: "fraction", num: pieces(top, true), den: pieces(bottom, true), ...(mixed ? { mixed } : {}) });
+        }
+        i = end; continue;
+      }
     }
     if (c === "^") {
       let power = "";
       if (s[i + 1] === "{") { const end = s.indexOf("}", i + 1); if (end > i) { power = s.slice(i + 2, end); i = end; } }
       else { const m = /^[−-]?[0-9a-zA-Z]+/.exec(s.slice(i + 1)); if (m) { power = m[0]; i += m[0].length; } }
+      power = power.trim();
+      // Inside a fraction a fractional power stays inline as raised text, like a fraction inside a fraction.
+      const frac = flat ? null : /^([−-]?)\s*([^/{}\s]+)\s*\/\s*([^/{}\s]+)$/.exec(power);
+      if (frac) { flush(); out.push({ kind: "power", sign: frac[1] ? "−" : "", num: frac[2], den: frac[3] }); continue; }
       if (power) { flush(); out.push({ kind: "run", text: power, sup: true }); continue; }
     }
     run += c;
   }
   flush();
-  return out;
+  // Runs that meet (after a flat fraction is unpacked) join, so a run is always as long as it can be.
+  return out.reduce<Piece[]>((all, p) => {
+    const last = all[all.length - 1];
+    if (p.kind === "run" && last?.kind === "run" && !p.sup && !last.sup && !p.under && !last.under && !p.arrow && !last.arrow && !p.dot && !last.dot) all[all.length - 1] = { ...last, text: last.text + p.text };
+    else all.push(p);
+    return all;
+  }, []);
 }
-
-/** A fraction's numerator or denominator is one line: squares and cubes print as ² and ³ there. */
-const fractionPart = (s: string) => s.trim().replace(/\^(?:\{2\}|2(?![0-9A-Za-z]))/g, "²").replace(/\^(?:\{3\}|3(?![0-9A-Za-z]))/g, "³");
 
 const handWidth = (s: string, size: number) => Array.from(s).reduce((n, c) => n + handAdvance(c), 0) * size;
 export const noteWidth = (s: string, size: number, bold = false) => Array.from(s).reduce((n, c) => n + interAdvance(c, bold ? "bold" : "regular"), 0) * size;
-const pieceWidth = (p: Piece, size: number) => p.kind === "run" ? handWidth(p.text, p.sup ? size * 0.7 : size)
-  : p.kind === "fraction" ? Math.max(handWidth(p.num, size), handWidth(p.den, size)) + size * 0.4
-  : Math.max(handWidth(p.top, size), handWidth(p.bottom, size)) + size * 1.1;
-export const mathsWidth = (s: string, size = HAND_SIZE) => pieces(s).reduce((n, p) => n + pieceWidth(p, size), 0);
-/** Fractions and column vectors stand two lines tall, so their line takes more room. */
-const hasFraction = (s: string) => pieces(s).some(p => p.kind !== "run");
+
+/** How far a row of pieces reaches above and below its baseline. */
+const extent = (ps: Piece[], size: number): { up: number; down: number } => ps.reduce((e, p) => {
+  const x = pieceExtent(p, size);
+  return { up: Math.max(e.up, x.up), down: Math.max(e.down, x.down) };
+}, { up: size * 0.72, down: size * 0.2 });
+const pieceExtent = (p: Piece, size: number): { up: number; down: number } => {
+  if (p.kind === "run") return { up: p.sup ? size * 0.9 : p.arrow ? size * 1.05 : p.dot ? size * 1.0 : size * 0.72, down: p.under ? size * 0.25 : size * 0.2 };
+  if (p.kind === "column") return { up: size * 1.45, down: size * 0.95 };
+  if (p.kind === "power") return { up: size * 1.4, down: size * 0.2 };
+  if (p.kind === "fraction") return { up: size * 0.32 + numLift(p.num, size) + extent(p.num, size).up, down: denDrop(p.den, size) - size * 0.32 + extent(p.den, size).down };
+  const body = extent(p.body, size);
+  return { up: body.up + size * 0.22, down: body.down + size * 0.04 };
+};
+/** How far a numerator's baseline sits above the fraction bar: higher when a letter or bracket in it hangs below the line (p, q, y, brackets, commas) or a root's foot does. */
+const numLift = (num: Piece[], size: number) => size * (num.some(q => (q.kind === "run" && /[gjpqyQ()[\],;]/.test(q.text) && !q.sup) || q.kind === "root") ? 0.34 : 0.22);
+/** How far a denominator's baseline sits below the fraction bar: lower when a power or root in it reaches up. */
+const denDrop = (den: Piece[], size: number) => Math.max(size * 0.95, extent(den, size).up + size * 0.2);
+/** A root's radical sign: wider for a taller root, so its long stroke keeps the same slope. */
+const radical = (p: Extract<Piece, { kind: "root" }>, size: number) => {
+  const e = pieceExtent(p, size);
+  const one = handWidth("3", size * 0.55), iw = p.index ? handWidth(p.index, size * 0.55) : 0;
+  return { e, lead: size * 0.32 + (e.up + e.down) * 0.16 + (p.index ? one * 0.6 + Math.max(0, iw - one) : 0) };
+};
+const rowWidth = (ps: Piece[], size: number) => ps.reduce((n, p) => n + pieceWidth(p, size), 0);
+const pieceWidth = (p: Piece, size: number): number => p.kind === "run" ? handWidth(p.text, p.sup ? size * 0.7 : size)
+  : p.kind === "fraction" ? Math.max(rowWidth(p.num, size), rowWidth(p.den, size)) + size * (p.mixed ? 0.56 : 0.4)
+  : p.kind === "root" ? radical(p, size).lead + rowWidth(p.body, size) + size * 0.12
+  : p.kind === "power" ? powerWidth(p, size)
+  : Math.max(handWidth(p.top, size), handWidth(p.bottom, size)) + size * 1.5;
+/** A fractional power: its sign, then a small stacked fraction, raised like a power. */
+const POWER_SIZE = 0.58;
+const powerWidth = (p: Extract<Piece, { kind: "power" }>, size: number) => handWidth(p.sign, size * POWER_SIZE) + Math.max(handWidth(p.num, size * POWER_SIZE), handWidth(p.den, size * POWER_SIZE)) + size * 0.2;
+export const mathsWidth = (s: string, size = HAND_SIZE) => rowWidth(pieces(s), size);
+/** Fractions and column vectors stand two lines tall, so their line takes more room, and so does a root over one. */
+const tall = (p: Piece): boolean => p.kind === "fraction" || p.kind === "column" || p.kind === "power" || (p.kind === "root" && p.body.some(tall));
+const hasFraction = (s: string) => pieces(s).some(tall);
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const n = (v: number) => Number(v.toFixed(2));
 
 /** Maths text placed with its start at x on baseline y, as SVG. */
 function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): string {
+  return row(pieces(s), x, y, size, fill);
+}
+
+/** A row of pieces placed with its start at x on baseline y. */
+function row(ps: Piece[], x: number, y: number, size: number, fill: string): string {
   let cursor = x, out = "";
-  for (const p of pieces(s)) {
+  for (const p of ps) {
     const w = pieceWidth(p, size);
     // Each run is held to its measured width, so a power or fraction after it lands where it was laid out.
     if (p.kind === "run") {
@@ -285,15 +383,28 @@ function maths(s: string, x: number, y: number, size = HAND_SIZE, fill = INK): s
       }
     } else if (p.kind === "column") {
       const mid = cursor + w / 2, high = y - size * 1.45, low = y + size * 0.95, half = (high + low) / 2;
-      const l = cursor + size * 0.3, r = cursor + w - size * 0.3;
+      const l = cursor + size * 0.4, r = cursor + w - size * 0.4;
       out += `<path d="M${n(l)} ${n(high)}Q${n(l - size * 0.28)} ${n(half)} ${n(l)} ${n(low)}M${n(r)} ${n(high)}Q${n(r + size * 0.28)} ${n(half)} ${n(r)} ${n(low)}" stroke="${fill}" stroke-width="0.9" fill="none"/>`
         + `<text x="${n(mid)}" y="${n(y - size * 0.54)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.top)}</text>`
         + `<text x="${n(mid)}" y="${n(y + size * 0.63)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.bottom)}</text>`;
+    } else if (p.kind === "root") {
+      // A small tick, a short stroke down to the foot, a long stroke up, then the overbar over the contents.
+      const { e, lead } = radical(p, size), top = y - e.up, foot = y + e.down, h = foot - top;
+      const tick = cursor + size * 0.04, toe = cursor + size * 0.32 - size * 0.12 + h * 0.06, head = cursor + lead;
+      out += `<path class="wk-root" d="M${n(tick)} ${n(foot - h * 0.42)}L${n(tick + size * 0.12)} ${n(foot - h * 0.5)}L${n(toe)} ${n(foot)}L${n(head)} ${n(top)}H${n(cursor + w - size * 0.04)}" stroke="${fill}" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`
+        + (p.index ? `<text x="${n(tick + size * 0.02)}" y="${n(foot - h * 0.5 - size * 0.12)}" font-size="${n(size * 0.55)}" fill="${fill}">${esc(p.index)}</text>` : "")
+        + row(p.body, head + size * 0.04, y, size, fill);
+    } else if (p.kind === "power") {
+      const f = size * POWER_SIZE, sw = handWidth(p.sign, f), body = w - sw - size * 0.2, mid = cursor + size * 0.06 + sw + body / 2, bar = y - size * 0.78;
+      out += (p.sign ? `<text x="${n(cursor + size * 0.06)}" y="${n(bar + f * 0.3)}" font-size="${n(f)}" fill="${fill}">${p.sign}</text>` : "")
+        + `<text x="${n(mid)}" y="${n(bar - f * 0.22)}" font-size="${n(f)}" fill="${fill}" text-anchor="middle">${esc(p.num)}</text>`
+        + `<path d="M${n(mid - body / 2 - 0.5)} ${n(bar)}H${n(mid + body / 2 + 0.5)}" stroke="${fill}" stroke-width="0.7" fill="none"/>`
+        + `<text x="${n(mid)}" y="${n(bar + f * 0.88)}" font-size="${n(f)}" fill="${fill}" text-anchor="middle">${esc(p.den)}</text>`;
     } else {
-      const mid = cursor + w / 2, bar = y - size * 0.32;
-      out += `<text x="${n(mid)}" y="${n(bar - size * 0.22)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.num)}</text>`
-        + `<path d="M${n(cursor + size * 0.1)} ${n(bar)}H${n(cursor + w - size * 0.1)}" stroke="${fill}" stroke-width="0.9" fill="none"/>`
-        + `<text x="${n(mid)}" y="${n(bar + size * 0.95)}" font-size="${size}" fill="${fill}" text-anchor="middle">${esc(p.den)}</text>`;
+      const bar = y - size * 0.32, nw = rowWidth(p.num, size), dw = rowWidth(p.den, size), gap = p.mixed ? size * 0.16 : 0, fw = w - gap, x0 = cursor + gap;
+      out += row(p.num, x0 + (fw - nw) / 2, bar - numLift(p.num, size), size, fill)
+        + `<path d="M${n(x0 + size * 0.1)} ${n(bar)}H${n(x0 + fw - size * 0.1)}" stroke="${fill}" stroke-width="0.9" fill="none"/>`
+        + row(p.den, x0 + (fw - dw) / 2, bar + denDrop(p.den, size), size, fill);
     }
     cursor += w;
   }
@@ -511,7 +622,7 @@ export function noteText(s: string): string {
     .replace(/(^|[\s(=×÷+,{])-(?=[\d.(a-zA-Zπ√{])/g, "$1−").replace(/((?:^|[\s(=])(?:\d[\d.]*[a-zA-Z]?|[a-zA-Z])|[)²³]) - (?=[\d(√π{]|[a-zA-Z](?![a-zA-Z]))/g, "$1 − ");
 }
 
-const GUIDE_FRACTION = /\{([^{}/]+)\/([^{}/]+)\}/g;
+const GUIDE_FRACTION = /(?<!\^)\{([^{}/]+)\/([^{}/]+)\}/g;
 /** Guidance may hold stacked fractions, {1/2}: smaller figures over and under a short bar. */
 const guideFraction = (num: string, den: string, size: number) => Math.max(noteWidth(num, size), noteWidth(den, size)) + 4;
 /** The width of a line of guidance as drawn, fractions included. */
@@ -522,7 +633,7 @@ export const guideWidth = (s: string, size: number, bold = false) => {
 };
 /** A line of guidance holding a stacked fraction stands taller, so it takes extra room above and below. */
 const FRACTION_ROOM = 7;
-const guideTall = (s: string) => /\{[^{}/]+\/[^{}/]+\}/.test(s);
+const guideTall = (s: string) => /(?<!\^)\{[^{}/]+\/[^{}/]+\}/.test(s);
 
 /** One line of guidance at x on baseline y, as SVG text: stacked fractions placed by measure between the words. */
 function noteLine(line: string, x: number, y: number, size: number, attrs = "", prefix = ""): string {
@@ -548,7 +659,7 @@ function noteLine(line: string, x: number, y: number, size: number, attrs = "", 
 
 /** One escaped line of guidance, with any remaining power such as ^24 or ^-3 raised and smaller. */
 export function noteMarkup(line: string): string {
-  return esc(line).replace(/\^(−?-?\d+)/g, (_, p: string) => `<tspan dy="-3.5" font-size="7">${p.replace("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`);
+  return esc(line).replace(/\^\{([^{}]+)\}|\^(−?-?\d+)/g, (_, braced: string | undefined, digits: string | undefined) => { const p = braced ?? digits ?? ""; return `<tspan dy="-3.5" font-size="7">${p.replaceAll("-", "−")}</tspan><tspan dy="3.5">\u200b</tspan>`; });
 }
 
 /** Guidance at x with its first baseline at y, wrapped to width: a mark chip and words, an "Also scores" line, a note. */
@@ -765,11 +876,16 @@ export function layoutWorked(data: WorkedData, surfaces: Surface[], options: Lay
             // A fraction in the words or the Also line lifts them clear of each other and of the answer.
             const noteRoom = guideTall(mark.note) ? FRACTION_ROOM : 0, alsoRoom = also && guideTall(also) ? FRACTION_ROOM : 0;
             // An "Also scores" line sits under the mark's words, just above the answer; its room is kept without the mark notes.
-            const x = Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2), y = base - HAND_SIZE - 7 - (also ? 12 : 0) - noteRoom - alsoRoom * 2;
-            const alsoY = y + 11 + noteRoom + alsoRoom;
+            // "after" keeps a mark on a later answer line off the dotted line above it.
+            // On a full-width line it sits at the line's right end, level with the answer and clear of the
+            // dotted line below, with any Also line above it; the overlap check reports a clash with the answer.
+            const after = step.markAt === "after";
+            const x = after ? Math.min(anchor.x + anchor.width + 6, d.surface.width - words - 2) : Math.min(anchor.x + anchor.width - words, d.surface.width - words - 2);
+            const y = after ? base - 2 - noteRoom : base - HAND_SIZE - 7 - (also ? 12 : 0) - noteRoom - alsoRoom * 2;
+            const alsoY = after ? y - 12 - noteRoom - alsoRoom : y + 11 + noteRoom + alsoRoom;
             svg += `<g ${UI}>${chip(mark.code, x, y)}${noteLine(mark.note, x + chipWidth + 5, y, NOTE_SIZE)}`
               + (also && marks ? noteLine(also, x + chipWidth + 5, alsoY, 9, ` class="wk-mark" font-style="italic"`) : "") + `</g>`;
-            const boxTop = y - 10 - noteRoom, boxBottom = also ? alsoY + 3 + alsoRoom : y + 3 + noteRoom;
+            const boxTop = after && also ? alsoY - 10 - alsoRoom : y - 10 - noteRoom, boxBottom = after ? y + 3 + noteRoom : also ? alsoY + 3 + alsoRoom : y + 3 + noteRoom;
             boxes.push({ x, y: boxTop, width: words, height: boxBottom - boxTop, what: "answer guidance" });
           }
           // The answer line sits below the working space, so it moves down with any room added there,

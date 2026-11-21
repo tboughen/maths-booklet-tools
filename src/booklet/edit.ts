@@ -18,7 +18,7 @@ const mapSection = (b: Booklet, li: number, si: number, f: (s: Section) => Secti
 export const moveLesson = (b: Booklet, li: number, to: number) => withLessons(b, moveIn(b.document.lessons, li, to));
 export const removeLesson = (b: Booklet, li: number) => (b.document.lessons.length > 1 ? withLessons(b, b.document.lessons.filter((_, i) => i !== li)) : b);
 export const duplicateLesson = (b: Booklet, li: number) =>
-  b.document.lessons.length < 12 ? withLessons(b, [...b.document.lessons.slice(0, li + 1), structuredClone(b.document.lessons[li]), ...b.document.lessons.slice(li + 1)]) : b;
+  b.document.lessons.length < 16 ? withLessons(b, [...b.document.lessons.slice(0, li + 1), structuredClone(b.document.lessons[li]), ...b.document.lessons.slice(li + 1)]) : b;
 export const replaceLesson = (b: Booklet, li: number, lesson: Lesson) => mapLesson(b, li, () => lesson);
 
 export const moveSection = (b: Booklet, li: number, si: number, to: number) => mapLesson(b, li, (l) => ({ ...l, sections: moveIn(l.sections, si, to) }));

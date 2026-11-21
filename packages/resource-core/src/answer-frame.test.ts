@@ -30,7 +30,7 @@ const sheet = (items: unknown[]): Resource =>
   } as never);
 const coord = (x = "3", y = "-2", more: object = {}) => ({ type: "answerLine", prefix: "(", suffix: ")", answer: "", inline: false, blanks: [{ answer: x }, { before: ",", answer: y }], ...more });
 const lines = (svg: string) =>
-  [...svg.matchAll(/<line x1="([\d.]+)" y1="[\d.]+" x2="([\d.]+)" y2="[\d.]+" stroke="#[0-9a-f]+" stroke-width="0.3"\/>/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  [...svg.matchAll(/<line x1="([\d.]+)" y1="[\d.]+" x2="([\d.]+)" y2="[\d.]+" stroke="#[0-9a-f]+" stroke-width="0.4" stroke-linecap="round" stroke-dasharray="[^"]+"\/>/g)].map((m) => [Number(m[1]), Number(m[2])]);
 
 describe("answer frame with short blanks", () => {
   it("prints y = ____ x + ____ with two short blanks and the fixed text between them", () => {
@@ -102,7 +102,7 @@ describe("answer frame with short blanks", () => {
     const [pupil, answers] = await Promise.all([xml("pupil"), xml("answers")]);
     const row = (x: string) => x.slice(x.lastIndexOf("<w:tbl>", x.indexOf(">)</w:t>")), x.indexOf("</w:tbl>", x.indexOf(">)</w:t>")));
     const p = row(pupil), a = row(answers);
-    expect(p.match(/<w:bottom w:val="single"/g)).toHaveLength(2);
+    expect(p.match(/<w:bottom w:val="dotted"/g)).toHaveLength(2);
     expect(p).toMatch(/>\(<\/w:t>[^]*>,<\/w:t>[^]*>\)<\/w:t>/);
     expect(p).not.toMatch(/>3<\/w:t>/);
     expect(a).toMatch(/<w:jc w:val="center"\/>[^]*>3<\/w:t>/);

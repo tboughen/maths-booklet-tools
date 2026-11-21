@@ -166,7 +166,8 @@ describe("native ratio-table presentation", () => {
     ).render();
     const alpha = (x: number, y: number) => r.pixels[(y * r.width + x) * 4 + 3];
     expect(alpha(240, 165)).toBe(255); // Fraction bar in the first y cell.
-    expect(alpha(240, 281)).toBe(255); // Pupil answer line remains in the second y cell.
+    // Pupil answer line remains in the second y cell: a dotted line, so some pixel near x = 240 is fully inked.
+    expect(Math.max(...Array.from({ length: 12 }, (_, i) => alpha(234 + i, 281)))).toBe(255);
     expect(svg).toContain('data-kind="empty"></g>');
   });
 });

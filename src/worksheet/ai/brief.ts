@@ -71,6 +71,8 @@ function revealingSettings(resource: Resource): string[] {
   resource.document.sides.forEach((side, s) => side.columns.forEach((column, c) => column.cards.forEach((card, k) => {
     const visit = (item: { type: string; items?: unknown[]; diagram?: { tool: string; spec?: unknown } }, path: string) => {
       if (item.type === "diagram" && item.diagram?.spec !== undefined) scan(item.diagram.spec, `${path}.diagram.spec`);
+      // A line written on the pupil copy is a worked example's own writing, never a pupil question's.
+      if (item.type === "answerLine" && (item as { given?: boolean }).given) found.push(`${path}.given`);
       if (item.type === "part") (item.items ?? []).forEach((child, i) => visit(child as never, `${path}.items.${i}`));
     };
     card.items.forEach((item, i) => visit(item as never, `sides.${s}.columns.${c}.cards.${k}.items.${i}`));

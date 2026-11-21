@@ -11,9 +11,10 @@ The old worked solutions (one flat PDF and PNG per question, schema 1) were reti
 
 ## In the Question bank
 
-Questions open first. The **Worked solution** switch is deliberate and opens the working in a pane
-of its own beside whatever else is on (Question, Mark scheme); switching it off closes that pane
-(`docs/tools/APP-HOUSE-STYLE.md`, "Question bank: three switches"). Switching question, filters,
+Questions open first. Choosing **Worked solution** on the Question | Worked solution switch is
+deliberate and shows the working in place of the question, beside the mark scheme if that is on;
+clicking it again closes that pane
+(`docs/tools/APP-HOUSE-STYLE.md`, "Question bank: question switch and mark scheme toggle"). Switching question, filters,
 crossover identity or reloading shows only Question, and ordinary question links never encode an
 answer role. Questions with no attachment show a disabled switch and **Not available yet**.
 

@@ -17,9 +17,9 @@ test("edits a cell from the diagram, hides and circles it, shows it only in the 
   await boot(page, diceSum());
   // 12 (6 and 6) is a hidden answer: not on the pupil copy.
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
 
   await page.getByRole("button", { name: "Edit the cell for 6, 6" }).click();
   const field = page.getByRole("textbox", { name: "Cell for 6, 6" });
@@ -60,7 +60,7 @@ test("fills empty cells only when asked, exactly, and keeps them hidden as answe
 test("keeps fractions stacked and names the events beside the table", async ({ page }) => {
   await boot(page, create(["1/2", "1/4"], ["1/3"]));
   await page.getByRole("button", { name: "Fill empty cells" }).click();
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: "/" })).toHaveCount(0);
   const name = page.getByRole("textbox", { name: "Event across the top" });
   await name.fill("Spinner");

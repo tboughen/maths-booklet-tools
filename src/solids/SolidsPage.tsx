@@ -61,6 +61,7 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "../area/area.css";
 import "../figures/figures.css";
+import "../site/settings-kit.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:solids:v1");
 type View = "pupil" | "answer";
@@ -619,7 +620,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
       fields.push(
         labelled("Length (mm)", mmField("Prism length", s.length, (v) => set((x) => void ((x as typeof s).length = v)), 2, 150), "length"),
         labelled("Runs", choice("Prism direction", s.axis, AXES, AXIS_NAMES, (v) => void set((x) => void ((x as typeof s).axis = v))), "axis"),
-        <label key="section" className="fig-wide">
+        <label key="section" className="pt-wide">
           Cross-section corners (mm, across then up, anticlockwise)
           <DraftField
             label="Cross-section corners"
@@ -641,7 +642,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
       fields.push(
         ...xyz("Apex", s.apex, (v) => set((x) => void ((x as typeof s).apex = v), "move apex")),
         labelled("Cut off (frustum, 0 to 0.9)", mmField("Frustum cut", s.top, (v) => set((x) => void ((x as typeof s).top = v), "frustum"), 0, 0.9), "top"),
-        <label key="base" className="fig-wide">
+        <label key="base" className="pt-wide">
           Base corners (mm, across then back, anticlockwise)
           <DraftField
             label="Base corners"
@@ -960,12 +961,14 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="3D solid settings">
+          <aside className="inspector-stack md-kit" aria-label="3D solid settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected object">
               <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
               <div className="pt-fields">
-                <label className="fig-wide">
+                <label className="pt-wide">
                   Object
                   <select aria-label="Object to edit" value={current ? keyOf(current.kind, current.id) : ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
                     <option value="">Choose an object</option>
@@ -1018,6 +1021,8 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 Dash the hidden edges (leave them out when unticked)
               </label>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel" aria-label="Add to the drawing">
               <h2>Add to the drawing</h2>
               <div className="pt-fields">
@@ -1095,6 +1100,8 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 </p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

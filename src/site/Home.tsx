@@ -11,18 +11,19 @@ function carryOn(work: RecentWork) {
   const tool = bookletTools.find((t) => t.id === work.id);
   if (tool) return { href: pageHref(tool.id), icon: tool.icon as Icon, kind: "Diagram builder", name: tool.name, action: "Open diagram" };
   if (work.id === "worksheets") return { ...pick("worksheets"), name: "Your worksheet", action: "Open worksheet" };
+  if (work.id === "starters") return { ...pick("starters"), name: "Your silent starters", action: "Open starters" };
   if (work.id === "booklets") return { ...pick("booklets"), name: "Your booklet", action: "Open booklet" };
   if (work.id === "paper-builder") return { ...pick("paper-builder"), name: "Paper in progress", action: "Review paper" };
   return null;
 }
-const pick = (id: "worksheets" | "booklets" | "paper-builder") => {
+const pick = (id: "worksheets" | "starters" | "booklets" | "paper-builder") => {
   const s = siteSection(id);
   return { href: s.href, icon: s.icon as Icon, kind: s.name as string };
 };
 
 /**
  * Home, the start page (docs/tools/APP-HOUSE-STYLE.md): one search box, the work to carry on
- * with, the six pages as a row called Tools, and the teacher's favourite diagram tools as much
+ * with, the seven pages as a row called Tools, and the teacher's favourite diagram tools as much
  * smaller picture cards. Card size carries meaning: a bigger card lets you do more.
  */
 export default function Home() {

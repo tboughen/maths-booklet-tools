@@ -6,13 +6,13 @@ import { toolIds, type ToolId } from "./routes";
  * reads it. It holds a place and a time only, never the work itself, which each page saves on
  * its own. Kept in this browser like the work is.
  */
-export type WorkPlace = ToolId | "worksheets" | "booklets" | "paper-builder";
+export type WorkPlace = ToolId | "worksheets" | "starters" | "booklets" | "paper-builder";
 export type RecentWork = { id: WorkPlace; at: number; detail?: string };
 
 const KEY = "mathsdock.recentWork";
 /** Enough for the row and a few to spare if a place is later forgotten. */
 const LIMIT = 6;
-const places: readonly string[] = [...toolIds, "worksheets", "booklets", "paper-builder"];
+const places: readonly string[] = [...toolIds, "worksheets", "starters", "booklets", "paper-builder"];
 const isPlace = (id: unknown): id is WorkPlace => typeof id === "string" && places.includes(id);
 const listeners = new Set<() => void>();
 let current: readonly RecentWork[] | null = null;

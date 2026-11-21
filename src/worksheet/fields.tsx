@@ -196,11 +196,11 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
               blanks.map((b, i) => (
                 <div key={i} className="ws-line-edit" role="group" aria-label={`${label} blank ${i + 1}`}>
                   {(i > 0 || b.before) && <Field label={`Before blank ${i + 1}`} value={b.before} max={20} disabled={blocked} onCommit={(before) => set({ ...item, blanks: blanks.map((x, j) => (j === i ? { ...x, before } : x)) })} />}
-                  <Field label={`Blank ${i + 1} saved answer (answers PDF only)`} value={b.answer} max={40} disabled={blocked} onCommit={(answer) => set({ ...item, blanks: blanks.map((x, j) => (j === i ? { ...x, answer } : x)) })} />
+                  <Field label={`Blank ${i + 1} saved answer (${item.given ? "both copies" : "answers PDF only"})`} value={b.answer} max={40} disabled={blocked} onCommit={(answer) => set({ ...item, blanks: blanks.map((x, j) => (j === i ? { ...x, answer } : x)) })} />
                 </div>
               ))
             ) : (
-              <Field label="Saved answer (answers PDF only)" value={item.answer} max={ANSWER_MAX} disabled={blocked} onCommit={(answer) => set({ ...item, answer })} />
+              <Field label={`Saved answer (${item.given ? "both copies" : "answers PDF only"})`} value={item.answer} max={ANSWER_MAX} disabled={blocked} onCommit={(answer) => set({ ...item, answer })} />
             )}
             <Field label={blanks ? "After the last blank" : "After the line"} value={item.suffix} max={20} disabled={blocked} onCommit={(suffix) => set({ ...item, suffix })} />
             <label className="ws-field">
@@ -210,8 +210,8 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
                 disabled={blocked}
                 onChange={(e) => {
                   // An explicit, undoable change of shape. Nothing is calculated: blanks that stay keep their saved answers.
-                  const { type, beside, prefix, suffix, inline } = item;
-                  const base = { type, prefix, suffix, inline, answer: "", ...(beside ? { beside } : {}) };
+                  const { type, beside, given, prefix, suffix, inline } = item;
+                  const base = { type, prefix, suffix, inline, answer: "", ...(beside ? { beside } : {}), ...(given ? { given } : {}) };
                   const v = e.target.value;
                   // A line's saved answer moves into the first blank, and back again.
                   const carried = blanks?.[0]?.answer ?? item.answer;
@@ -229,11 +229,42 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
                 <option value="4">Four short blanks</option>
               </select>
             </label>
+            <label className="ws-check">
+              <input
+                type="checkbox"
+                checked={!!item.given}
+                disabled={blocked}
+                onChange={(e) => {
+                  const next = { ...item };
+                  if (e.target.checked) next.given = true;
+                  else delete next.given;
+                  set(next);
+                }}
+              />{" "}
+              Written on the pupil copy too (a worked example's own working)
+            </label>
           </div>
         );
       }
       case "space":
-        return <NumberField label={`${label} ${item.kind === "drawing" ? "drawing" : "working"} space (mm)`} value={item.heightMm} min={8} max={200} disabled={blocked} onCommit={(heightMm) => set({ ...item, heightMm })} />;
+        return (
+          <>
+            <NumberField label={`${label} ${item.kind === "drawing" ? "drawing" : "working"} space (mm)`} value={item.heightMm} min={8} max={200} disabled={blocked} onCommit={(heightMm) => set({ ...item, heightMm })} />
+            <Field
+              label={`${label} model working (answers PDF only)`}
+              value={item.answer ?? ""}
+              max={600}
+              multiline
+              disabled={blocked}
+              onCommit={(v) => {
+                const next = { ...item };
+                if (v.trim()) next.answer = v;
+                else delete next.answer;
+                set(next);
+              }}
+            />
+          </>
+        );
       case "diagram":
         return <p className="ws-note">{familyLabel(item.diagram.tool)}: ask the AI to change it, or change it in its own tool.</p>;
       case "paper":

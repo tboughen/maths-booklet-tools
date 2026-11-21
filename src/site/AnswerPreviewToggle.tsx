@@ -2,9 +2,9 @@ import { Eye } from "lucide-react";
 import "./answer-switch.css";
 
 /** The one wording for a screen-only preview of saved hidden answers (improvement list U5). */
-export const ANSWER_PREVIEW_LABEL = "Teacher preview: show hidden answers";
+export const ANSWER_PREVIEW_LABEL = "Teacher preview: show answers";
 /** Wording for a switch that also changes downloads (Venn, charts, probability trees; Tim, 8 Nov). */
-export const ANSWER_COPY_LABEL = "Teacher copy: show hidden answers";
+export const ANSWER_COPY_LABEL = "Teacher copy: show answers";
 
 interface AnswerSwitchProps {
   checked: boolean;
@@ -13,7 +13,7 @@ interface AnswerSwitchProps {
 }
 
 /**
- * The answers switch of the house style (docs/tools/APP-HOUSE-STYLE.md): it reads "Show hidden
+ * The answers switch of the house style (docs/tools/APP-HOUSE-STYLE.md): it reads "Show
  * answers" everywhere and turns pink while it is on, with a small pink label over the corner of
  * the diagram. Pink means teacher only. Its full name says whether downloads change too.
  */
@@ -37,7 +37,7 @@ function AnswerSwitch({
           onChange={(event) => onChange(event.target.checked)}
         />
         <span className="answer-switch-track" aria-hidden="true" />
-        Show hidden answers
+        Show answers
       </label>
       {checked && (
         <span className="answer-chip">

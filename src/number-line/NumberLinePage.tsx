@@ -44,6 +44,10 @@ import {
   secondaryText,
   labelled,
   MARKER_LABEL,
+  MARKER_LABEL_HELP,
+  MAX_MARKERS,
+  MAX_WORDS,
+  WORD_TEXT,
   type Envelope,
   type Operation,
   type Secondary,
@@ -54,6 +58,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
+import "../site/settings-kit.css";
 import { nearestTick, TAP_REACH } from "./hitTest";
 import { handleUndoKeys, objectKeyCommand, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
@@ -1092,10 +1097,12 @@ export default function NumberLinePage({
             )}
           </Panel>
           <aside
-            className="inspector-stack nl-inspector"
+            className="inspector-stack nl-inspector md-kit"
             aria-label="Number line settings"
           >
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             {/* Always mounted, so the cards below stay put as the selection comes and goes (U21). */}
             <section
               className="panel-card nl-context"
@@ -1279,13 +1286,13 @@ export default function NumberLinePage({
               ) : (
                 <>
                   <h2>Selected item</h2>
-                  <p className="nl-note">Select a tick, point or line to edit it here.</p>
+                  <p>Select a tick, point or line to edit it here.</p>
                 </>
               )}
             </section>
             <section className="panel-card">
               <h2>Draw</h2>
-              <div className="nl-actions nl-draw-actions">
+              <div className="nl-draw-actions">
                 <button
                   aria-pressed={mode === "point"}
                   disabled={blocked}
@@ -1369,6 +1376,8 @@ export default function NumberLinePage({
                 {field("Tick step", d.axis.step, (v) => axis("step", v))}
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card" aria-label="Second scale">
               <h2>Second scale</h2>
               {d.secondary ? (
@@ -1423,7 +1432,7 @@ export default function NumberLinePage({
                       ) : null,
                     )}
                   </div>
-                  <p className="nl-note">
+                  <p>
                     Labels print above the line, one per tick. An answer line is left for pupils and its value shows only on the
                     teacher copy.
                   </p>
@@ -1433,7 +1442,7 @@ export default function NumberLinePage({
                 </div>
               ) : (
                 <div className="nl-settings-body">
-                  <p className="nl-note">
+                  <p>
                     Pair every tick with a second scale above the line, such as percentages or money, as a double number line
                     or a percentage bar.
                   </p>
@@ -1450,11 +1459,14 @@ export default function NumberLinePage({
                   >
                     Add a second scale
                   </button>
-                  {s && <p className="nl-note">Remove the drawn inequality or points first: a second scale uses the space above the line.</p>}
+                  {s && <p>Remove the drawn inequality or points first: a second scale uses the space above the line.</p>}
                 </div>
               )}
             </section>
-            <section className="panel-card nl-compact-card">
+            </div>
+            {/* Last in the settings, and under the first column where there are two: the second scale can be long. */}
+            <div>
+            <section className="panel-card">
               <details onToggle={keepDraftVisible}>
                 <summary>More settings</summary>
                 <div className="nl-settings-body">
@@ -1525,6 +1537,66 @@ export default function NumberLinePage({
                         />{" "}
                         Short ticks between labels
                       </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={d.axis.ends === "plain"}
+                          onChange={(e) =>
+                            safe([
+                              {
+                                op: "set_axis",
+                                axis: { ends: e.target.checked ? "plain" : "arrow" },
+                              },
+                            ])
+                          }
+                        />{" "}
+                        Plain ends, no arrow (probability scale)
+                      </label>
+                      {field(
+                        "Words under the line (value = word; …)",
+                        (d.words ?? []).map((w) => `${w.value} = ${w.text}`).join("; "),
+                        (v) => {
+                          const words = v
+                            .split(";")
+                            .map((part) => part.trim())
+                            .filter(Boolean)
+                            .map((part) => {
+                              const [value, ...rest] = part.split("=");
+                              const text = rest.join("=").trim();
+                              if (!value?.trim() || !text)
+                                throw Error("Write each word as value = word, such as 1/2 = Even chance.");
+                              if (!WORD_TEXT.test(text))
+                                throw Error(`Use up to 16 letters for "${text}", with single spaces, such as Even chance.`);
+                              return { value: value.trim(), text };
+                            });
+                          if (words.length > MAX_WORDS)
+                            throw Error(`Use up to ${MAX_WORDS} words under the line.`);
+                          change([{ op: "set_words", words: words.length ? words : null }]);
+                        },
+                      )}
+                      <button
+                        type="button"
+                        disabled={blocked}
+                        onClick={() =>
+                          safe([
+                            {
+                              op: "set_axis",
+                              axis: { minimum: "0", maximum: "1", step: "0.1", labelEvery: 5, variable: "", numberFormat: "fraction", minorTicks: true, ends: "plain" },
+                            },
+                            {
+                              op: "set_words",
+                              words: [
+                                { value: "0", text: "Impossible" },
+                                { value: "1/2", text: "Even chance" },
+                                { value: "1", text: "Certain" },
+                              ],
+                            },
+                          ])
+                        }
+                      >
+                        Make a probability scale
+                      </button>
                     </div>
                   </details>
                   <details onToggle={keepDraftVisible}>
@@ -1546,7 +1618,7 @@ export default function NumberLinePage({
                           )}
                           {field(`Arrow ${i + 1} label`, k.label ?? "", (v) => {
                             if (v.trim() && !MARKER_LABEL.test(v.trim()))
-                              throw Error("Use up to 8 characters for an arrow label: a letter such as A or P1, or a number such as 3.47, −2.5 or 12 500.");
+                              throw Error(MARKER_LABEL_HELP);
                             change([
                               { op: "set_marker", id: k.id, label: v.trim() },
                             ]);
@@ -1562,7 +1634,7 @@ export default function NumberLinePage({
                           </button>
                         </div>
                       ))}
-                      {(d.markers?.length ?? 0) < 6 && (
+                      {(d.markers?.length ?? 0) < MAX_MARKERS && (
                         <button
                           type="button"
                           disabled={blocked}
@@ -1575,7 +1647,7 @@ export default function NumberLinePage({
                             const letters = new Set(
                               (d.markers ?? []).map((k) => k.label),
                             );
-                            const label = [..."ABCDEF"].find(
+                            const label = [..."ABCDEFGHIJ"].find(
                               (c) => !letters.has(c),
                             );
                             const add = (value: string): Operation => ({
@@ -1788,6 +1860,8 @@ export default function NumberLinePage({
                 </div>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         <input

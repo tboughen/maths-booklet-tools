@@ -64,6 +64,7 @@ import {
 import { LINK_PREFIX, parseNetsLink, netsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:nets:v1");
 type Doc = Envelope["document"];
 /** A face on the diagram: its net and its ID. */
@@ -534,8 +535,10 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                 </div>
               )}
             </Panel>
-            <aside className="inspector-stack" aria-label="Nets settings">
+            <aside className="inspector-stack md-kit" aria-label="Nets settings">
               <ReturnToDiagram />
+              <div className="md-kit-cards">
+              <div>
               <section className="panel-card pt-panel" aria-label="Selected face">
                 <h2>{selected && selectedFace ? `Selected: ${faceName(selected)}` : "Selected face"}</h2>
                 {selected && selectedNet && selectedFace ? (
@@ -752,10 +755,12 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                   Add squares to {netName(targetNet.id)} by clicking the grid
                 </label>
               </section>
+              </div>
+              <div>
               <section className="panel-card pt-panel" aria-label="Nets">
                 <h2>Nets</h2>
                 {d.nets.map((net, i) => (
-                  <fieldset key={net.id} className="nets-net">
+                  <fieldset key={net.id} className="md-kit-group">
                     <legend>{d.nets.length > 1 ? `Net ${i + 1}` : "The net"}</legend>
                     <div className="pt-fields">
                       <label>
@@ -851,10 +856,12 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                   </fieldset>
                 ))}
               </section>
+              </div>
+              <div>
               <section className="panel-card pt-panel" aria-label="Paper">
                 <h2>Paper</h2>
                 <div className="pt-fields">
-                  <label>
+                  <label className="pt-wide">
                     Grid
                     <select aria-label="Grid" value={d.grid} disabled={blocked} onChange={(ev) => patch((n) => void (n.grid = ev.target.value as Doc["grid"]), "grid")}>
                       <option value="squares">Centimetre squares</option>
@@ -889,6 +896,8 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                   <p className="pt-note">Copy for Word carries the physical size shown under the nets; preview zoom never changes it.</p>
                 </details>
               </section>
+              </div>
+              </div>
             </aside>
           </section>
           {recovery !== null && (

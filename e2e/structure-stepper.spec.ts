@@ -6,7 +6,6 @@ const tools: [string, string][] = [
   ["value-table-graph", "x values"],
   ["cuboids", "Cuboids"],
   ["charts", "Categories"],
-  ["probability-tree", "Stages"],
   ["frequency-tree", "Levels"],
 ];
 for (const [tool, name] of tools) {

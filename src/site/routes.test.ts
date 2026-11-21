@@ -20,7 +20,7 @@ describe("page addresses", () => {
     expect(pageHref("booklet-tools")).toBe("/tools");
     expect(pageHref("venn")).toBe("/tools/venn");
     expect(pageHref("question-bank")).toBe("/question-bank");
-    for (const id of [...toolIds, "home", "booklet-tools", "question-bank", "assessment-follow-up", "worksheets"] as const)
+    for (const id of [...toolIds, "home", "booklet-tools", "question-bank", "assessment-follow-up", "worksheets", "starters", "booklets"] as const)
       expect(readPage(at(pageHref(id)))).toBe(id);
     expect(readPage(at("/tools/venn/"))).toBe("venn");
     expect(readPage(at("/index.html"))).toBe("home");

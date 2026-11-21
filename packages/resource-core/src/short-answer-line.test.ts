@@ -30,7 +30,7 @@ const sheet = (line: { prefix?: string; suffix?: string; answer?: string; inline
 
 /** Lengths of the answer lines drawn on side 1 (mm). */
 const lineLengths = (doc: Resource, view: "pupil" | "answers" = "pupil") =>
-  [...renderResource(doc, { view }).pages[0].matchAll(/<line x1="([\d.]+)" y1="[\d.]+" x2="([\d.]+)" y2="[\d.]+" stroke="#[0-9a-f]+" stroke-width="0.3"\/>/g)].map((m) => Number(m[2]) - Number(m[1]));
+  [...renderResource(doc, { view }).pages[0].matchAll(/<line x1="([\d.]+)" y1="[\d.]+" x2="([\d.]+)" y2="[\d.]+" stroke="#[0-9a-f]+" stroke-width="0.4" stroke-linecap="round" stroke-dasharray="[^"]+"\/>/g)].map((m) => Number(m[2]) - Number(m[1]));
 
 describe("a lone inline answer line is short", () => {
   it("prints a line of about 30 mm after its prefix, not the full width", () => {
@@ -55,7 +55,7 @@ describe("a lone inline answer line is short", () => {
     });
     const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
     // The underlined cell (the line) is 30 mm: 1701 twentieths of a point.
-    expect(xml).toMatch(/<w:tcW w:w="1701" w:type="dxa"\/>[^]*?<w:bottom w:val="single"/);
+    expect(xml).toMatch(/<w:tcW w:w="1701" w:type="dxa"\/>[^]*?<w:bottom w:val="dotted"/);
   });
 });
 

@@ -93,6 +93,12 @@ describe("lesson checks", () => {
     expect(r.ok).toBe(false);
   });
 
+  it("refuses a pupil answer line written on the pupil copy", () => {
+    const leak = structuredClone(plot);
+    leak.sections[2].cards[0].items.push({ type: "answerLine", prefix: "", suffix: "", answer: "4", inline: false, given: true } as never);
+    expect(checkLesson({ flags: "", lesson: leak }).ok).toBe(false);
+  });
+
   it("checks a plan's shape", () => {
     expect(planJob.check({ plan: "", flags: "", title: "T", coverNote: "", intro: {}, lessons: [] }).ok).toBe(false);
   });

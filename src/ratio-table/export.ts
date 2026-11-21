@@ -23,9 +23,14 @@ import { svgPdf } from "../export/diagram-pdf";
 import { answerArt, copySizeCm } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 
-/** Whether the table has an answers copy: hidden cells, hidden operations or worked notes (U116). */
+/**
+ * Whether the table has an answers copy: hidden cells, hidden operations, hidden headings, an
+ * answers-only table or worked notes (U116).
+ */
 export const hasRatioAnswers = (envelope: RatioEnvelope) =>
   workedOf(envelope).length > 0 ||
+  envelope.document.answerOnly === true ||
+  envelope.document.headings.some((h) => h.hidden) ||
   envelope.document.rows.some((r) => r.cells.some((c) => c.kind === "hidden")) ||
   envelope.document.transitions.some((t) => t.hidden);
 /** The table's artwork for one copy; worked notes (U116) print on the answers copy only. */

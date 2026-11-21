@@ -66,6 +66,7 @@ import {
 import { LINK_PREFIX, parseProbabilityObjectsLink, probabilityObjectsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import "../site/settings-kit.css";
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-objects:v1");
 /** A label on the diagram: its object and its place on the object. */
 type Address = { object: string; slot: Slot };
@@ -570,8 +571,10 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack" aria-label="Spinners, dice and bags settings">
+          <aside className="inspector-stack md-kit" aria-label="Spinners, dice and bags settings">
             <ReturnToDiagram />
+            <div className="md-kit-cards">
+            <div>
             <section className="panel-card pt-panel" aria-label="Selected label">
               <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected label"}</h2>
               {selected && selectedObject && selectedValue ? (
@@ -689,10 +692,12 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                 </button>
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Objects</h2>
               {d.objects.map((o, i) => (
-                <fieldset key={o.id} className="po-object">
+                <fieldset key={o.id} className="md-kit-group">
                   <legend>{objectName(o.id).replace(/^./, (c) => c.toUpperCase())}</legend>
                   {o.type === "spinner" && (
                     <div className="pt-fields">
@@ -809,7 +814,31 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                   )}
                   {o.type === "bag" && (
                     <>
-                      <div className="pt-fields">{captionField(o)}</div>
+                      <div className="pt-fields">
+                        {captionField(o)}
+                        <label>
+                          Counters per row
+                          <select
+                            aria-label={`${objectName(o.id)}: Counters per row`}
+                            value={o.perRow ?? 0}
+                            disabled={blocked}
+                            onChange={(ev) =>
+                              change(o.id, "change counters per row", (x) => {
+                                const v = Number(ev.target.value);
+                                if (v) (x as typeof o).perRow = v;
+                                else delete (x as typeof o).perRow;
+                              })
+                            }
+                          >
+                            <option value={0}>Automatic</option>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
+                              <option key={v} value={v}>
+                                {v}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
                       <p className="pt-note">
                         {o.groups.map((gr) => `${gr.count} ${gr.label.text || "plain"}`).join(", ")}. Click a counter to change its group.
                       </p>
@@ -853,6 +882,8 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                 ))}
               </div>
             </section>
+            </div>
+            <div>
             <section className="panel-card pt-panel">
               <h2>Layout</h2>
               <div className="pt-fields">
@@ -887,6 +918,8 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                 <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
               </details>
             </section>
+            </div>
+            </div>
           </aside>
         </section>
         {recovery !== null && (

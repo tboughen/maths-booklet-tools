@@ -41,11 +41,19 @@
   border: 0;
   padding: 0;
   background: transparent;
-  cursor: text;
+  cursor: pointer;
   border-radius: 2px;
 }
-.pt-hit:hover {
-  outline: 1px dashed var(--blue);
+/* A soft highlight shows what a click will reach (the 21 Nov 2026 usability review). Editor only:
+   the targets are buttons over the artwork and never part of an export. */
+@media (hover: hover) {
+  .pt-hit:hover {
+    outline: 1px dashed var(--blue);
+    background: color-mix(in srgb, var(--md-blue, #1f66e0) 13%, transparent);
+  }
+  .pt-hit.pt-hidden-answer:hover {
+    background: color-mix(in srgb, #b5487a 16%, transparent);
+  }
 }
 .pt-hit:focus-visible {
   outline: 2px solid var(--blue);
@@ -64,7 +72,8 @@
   align-items: center;
   font-size: 12px;
 }
-/* On the settings kit (`.md-kit`) the card's gap spaces a row and a button that is off is not faded. */
+/* A row outside the settings (under a diagram) brings its own space above. In a card of the
+   settings kit (`.md-kit`) the card's gap spaces the rows. */
 .pt-row:where(:not(.md-kit *)) {
   padding: 8px 0 0;
 }
@@ -78,38 +87,6 @@
 .pt-error {
   color: #a3142f;
 }
-.pt-kinds {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-.pt-table-wrap {
-  overflow-x: auto;
-}
-.pt-table {
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.pt-table th,
-.pt-table td {
-  padding: 3px;
-  vertical-align: top;
-  text-align: left;
-  font-weight: normal;
-}
-.pt-table input:not([type="checkbox"]) {
-  width: 84px;
-}
-.pt-table thead select {
-  display: block;
-  width: 84px;
-  margin-top: 4px;
-  font-size: 12px;
-}
-.pt-table input[aria-invalid="true"] {
-  border-color: #a3142f;
-  outline: 1px solid #a3142f;
-}
 .pt-field-selected {
   outline: 2px solid var(--blue);
 }
@@ -120,11 +97,17 @@
   font-size: 11px;
   color: var(--muted, #50617a);
 }
+/* Two fields share a row evenly, whatever the longest choice in a list, and a field on its own
+   takes the whole row. The settings kit (src/site/settings-kit.css) gives the fields their look. */
 .pt-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   font-size: 13px;
+}
+.pt-fields > label:only-child,
+.pt-fields > .pt-wide {
+  grid-column: 1 / -1;
 }
 .pt-fields label {
   display: grid;
@@ -135,10 +118,9 @@
   width: 100%;
   min-width: 0;
 }
-.pt-fields .pt-check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* A field in a card may be narrower than its words, so it shares a row and never pushes its card wider. */
+.pt-panel :is(select, input:not([type="checkbox"])) {
+  min-width: 0;
 }
 .pt-note {
   font-size: 12px;
@@ -161,21 +143,6 @@
 .pt-editor select {
   font: inherit;
 }
-.pt-panel select,
-.pt-panel input:not([type="checkbox"]) {
-  background: white;
-  padding: 6px 7px;
-  border: 1px solid var(--line-strong, #becbd8);
-  border-radius: 4px;
-  max-width: 100%;
-  min-width: 0;
-  color: var(--ink, #213c59);
-}
-.pt-panel h2 {
-  font-size: 16px;
-  margin: 0 0 10px;
-}
-.pt-panel button,
 .pt-recovery button {
   border: 1px solid var(--line-strong, #becbd8);
   border-radius: 5px;
@@ -185,17 +152,7 @@
   color: var(--ink, #213c59);
   cursor: pointer;
 }
-.pt-panel:where(:not(.md-kit *)) button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.pt-kinds button[aria-pressed="true"] {
-  background: #e2efff;
-  border-color: #386ba5;
-  color: var(--ink, #213c59);
-}
-.pt-hide input,
-.pt-check input {
+.pt-hide input {
   accent-color: #2465ad;
 }
 .pt-branches {
@@ -213,7 +170,7 @@
   border-radius: 4px;
   padding: 2px;
 }
-/* A field with its Hide tick underneath. */
+/* A field with what pupils see of it underneath. */
 .pt-branch > span:has(> .pt-hide),
 .pt-question > span:has(> .pt-hide) {
   display: grid;
@@ -224,6 +181,17 @@
   .pt-branches {
     max-height: none;
   }
+}
+/* The reach of a small target, worked out in the page (never into a neighbour). Invisible: the outline keeps
+   the label's real size. */
+.pt-editor .pt-hit::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--pt-reach-y, 0px)) calc(-1 * var(--pt-reach-x, 0px));
+}
+/* Probabilities share the Branches row evenly, so a value and its pupil-space tag both fit. */
+.pt-editor .pt-panel[aria-label="Branches"] .pt-branch {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 .pt-branch.pt-current {
   background: #e2efff;
@@ -247,4 +215,150 @@
 }
 .pt-paths span:nth-child(-n + 3) {
   font-weight: 600;
+}
+/* A left-out label stays findable in the editor: a grey dashed outline where it would be. */
+.pt-omitted {
+  outline: 1px dashed #8a99ad;
+  background: #8a99ad14;
+}
+/* Double-click and double-tap edit, never select text or zoom the page (classroom boards). Trees only
+   for now: the other tools that share .pt-hit take this up as they adopt the options box. */
+.pt-editor .pt-hit {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* A field that is a pupil space or left out carries a small tag inside it, as in the mock-ups. */
+.pt-field-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+  container-type: inline-size;
+}
+.pt-state {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eef1f5;
+  color: var(--md-ink-2, #50617a);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.pt-state-hidden {
+  background: color-mix(in srgb, var(--md-pink, #b0125b) 11%, #fff);
+  color: var(--md-pink, #b0125b);
+}
+/* A narrow field keeps room for its value: the tag shrinks to a dot (its words stay for screen readers). */
+@container (max-width: 110px) {
+  .pt-field-wrap .pt-state {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    overflow: hidden;
+    color: transparent;
+    font-size: 1px;
+  }
+  .pt-field-wrap .pt-state-hidden {
+    background: var(--md-pink, #b0125b);
+  }
+  .pt-field-wrap .pt-state-omit {
+    background: #8a99ad;
+  }
+}
+.pt-field-wrap:has(> .pt-state) input {
+  padding-right: 84px !important;
+}
+@container (max-width: 110px) {
+  .pt-field-wrap:has(> .pt-state) input {
+    padding-right: 20px !important;
+  }
+}
+/* The live hint line at the foot of the Branches card. */
+.pt-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--md-line, #dbe3ec);
+  border-radius: var(--md-radius, 6px);
+  background: var(--md-page, #f2f5f8);
+  color: var(--md-ink-2, #50617a);
+  font-size: var(--md-text-xs, 12px);
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-link {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--md-blue, #0f62fe);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-link:hover:not(:disabled) {
+  background: none;
+}
+
+/* "+ Branch" under each point's branches and "+ Stage" under the list, as in a stage-by-stage outline. */
+.pt-add-row {
+  display: flex;
+  gap: 14px;
+  padding: 2px 2px 4px;
+  font-size: 13px;
+}
+.pt-add-stage {
+  border-top: 1px solid var(--line, #dbe3ec);
+  padding-top: 6px;
+}
+/* Finger-sized on a phone or touch screen. */
+@media (max-width: 767px), (pointer: coarse) {
+  .md-kit :is(.site-panel, .panel-card) :is(.pt-add-row, .pt-hint) button.pt-link {
+    min-height: 44px;
+  }
+}
+/* "path end" and the × that removes a branch. */
+.pt-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 32px;
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--md-muted, #5a6b7d);
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-remove:hover:not(:disabled) {
+  background: #fde8e8;
+  color: #a4161a;
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .md-kit :is(.site-panel, .panel-card) button.pt-remove {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+}
+/* Kept in place when they can't be used, so focus stays; shown greyed. */
+.md-kit :is(.site-panel, .panel-card) button.pt-link[aria-disabled="true"] {
+  color: var(--md-muted, #5a6b7d);
+  text-decoration: none;
+  cursor: default;
 }
