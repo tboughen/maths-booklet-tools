@@ -125,7 +125,8 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
   if (!maths) return plainRuns(source, base);
   // A power's letters may come italicised by typesetting (x^*n*, 5^{2*n*}): the power styles its own letters.
   // A typed ² or ³ prints raised like every other power, so all powers on a page share one size and weight.
-  source = source.replace(/²/g, "^2").replace(/³/g, "^3");
+  // Straight before a letter or digit (a title's untypeset x²y) the glyph stays: ^2y would not read as a power.
+  source = source.replace(/([²³])(?![A-Za-z\d])/g, (c) => (c === "²" ? "^2" : "^3"));
   source = source.replace(/\^\*([a-z])\*/g, "^$1").replace(/\^\{([^{}]{1,16})\}/g, (_, p: string) => `^{${p.replace(/\*/g, "")}}`);
   const runs: Run[] = [];
   let at = 0;
@@ -146,9 +147,10 @@ export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "italic
 /** A fraction part's characters, each marked raised when it belongs to a power (x^6, a², 5^n). */
 export function fracPieces(s: string): { c: string; sup: boolean }[] {
   const out: { c: string; sup: boolean }[] = [];
-  const t = s.replace(/²/g, "^2").replace(/³/g, "^3").replace(/\*/g, "");
+  const t = s.replace(/\*/g, "").replace(/([²³])(?![A-Za-z\d])/g, (c) => (c === "²" ? "^2" : "^3"));
   for (let i = 0; i < t.length; i++) {
-    const m = t[i] === "^" ? t.slice(i + 1).match(/^(\d{1,3}|[a-z])/) : null;
+    // The same powers as inline text (POWER): ^5, ^-2, ^n, never ^1000 or ^ab.
+    const m = t[i] === "^" ? t.slice(i + 1).match(/^([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z])/) : null;
     if (m) {
       for (const c of m[1]) out.push({ c, sup: true });
       i += m[1].length;

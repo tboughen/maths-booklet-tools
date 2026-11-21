@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard } from "./render";
-import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -171,13 +171,13 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
     // Word prints top and bottom borders outside the row height (probe P1), so the row is two edges
     // shorter and one edge narrower; Word's corners are square where the SVG's are rounded.
     const D = DID_YOU_KNOW;
-    const b = didYouKnowBox(lesson.didYouKnow);
+    const b = didYouKnowBox(lesson.didYouKnow, !!ctx.maths);
     const s = D.icon;
     const icon = drawing({ svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}mm" height="${s}mm" viewBox="0 0 ${s} ${s}" role="img" aria-label="Lightbulb">${didYouKnowIcon(s, st.navy)}</svg>`, widthMm: s, heightMm: s }, s, 0, ctx);
     const iconRun = icon.match(/<w:r><w:drawing>[\s\S]*?<\/w:drawing><\/w:r>/)?.[0] ?? "";
     const label = para(iconRun + run("  ", { sizeMm: pt(6) }) + run(D.label, { bold: true, color: st.navy, sizeMm: D.size, spacingMm: D.tracking }), { line: D.labelLine });
     const edge = { color: D.edgeColour, width: D.edge };
-    const content = gap(D.padTop - D.edge) + label + textPara(lesson.didYouKnow.trim(), D.size, { maths: !!ctx.maths });
+    const content = gap(D.padTop - D.edge) + label + textPara(lesson.didYouKnow.trim(), D.size, { maths: didYouKnowMaths(lesson.didYouKnow, !!ctx.maths) });
     out.push(gap(D.gap));
     out.push(
       table(

@@ -167,9 +167,14 @@ export const DID_YOU_KNOW = {
   tracking: 0.25,
 } as const;
 /** The box's text lines and heights: `h` is the box, `total` adds the drop line under it. */
-export function didYouKnowBox(fact: string): { lines: number; h: number; total: number } {
+/**
+ * A fact reads maths (powers such as 2^10) when the booklet does, unless it holds a stacked fraction:
+ * the box keeps plain line height, so a fraction stays as typed rather than crowding the lines.
+ */
+export const didYouKnowMaths = (fact: string, maths: boolean) => maths && !/\{[^{}/]{1,12}\/[^{}/]{1,12}\}/.test(fact);
+export function didYouKnowBox(fact: string, maths = false): { lines: number; h: number; total: number } {
   const D = DID_YOU_KNOW;
-  const lines = wrap(fact.trim(), D.size, W - 2 * D.padX).length;
+  const lines = wrap(fact.trim(), D.size, W - 2 * D.padX, "regular", didYouKnowMaths(fact, maths)).length;
   const h = D.padTop + D.labelLine + lines * lh(D.size) + D.padBottom;
   return { lines, h, total: h + D.drop };
 }
@@ -210,14 +215,14 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   }
   if (lesson.didYouKnow.trim()) {
     const D = DID_YOU_KNOW;
-    const b = didYouKnowBox(lesson.didYouKnow);
+    const b = didYouKnowBox(lesson.didYouKnow, doc.notation === "maths");
     y += D.gap;
     out.push(rect(0, y + D.drop, W, b.h, `rx="${D.radius}" fill="${st.tint}"`));
     out.push(rect(D.edge / 2, y + D.edge / 2, W - D.edge, b.h - D.edge, `rx="${D.radius}" fill="white" stroke="${D.edgeColour}" stroke-width="${D.edge}"`));
     out.push(`<g transform="translate(${n(D.padX)},${n(y + D.padTop + (D.labelLine - D.icon) / 2)})">${didYouKnowIcon(D.icon, st.navy)}</g>`);
     const label = textSvg([{ text: D.label, style: "bold" }], D.padX + D.icon + D.iconGap, y + D.padTop + D.labelLine / 2 + D.size * 0.36, D.size, st.navy);
     out.push(label.replace("<text ", `<text letter-spacing="${D.tracking}" `));
-    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX, maths: doc.notation === "maths" }), 0, y + D.padTop + D.labelLine));
+    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX, maths: didYouKnowMaths(lesson.didYouKnow, doc.notation === "maths") }), 0, y + D.padTop + D.labelLine));
     y += b.total;
   }
   return { h: y, svg: out.join("") };
