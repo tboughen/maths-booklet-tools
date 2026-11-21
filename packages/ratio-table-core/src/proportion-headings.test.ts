@@ -56,6 +56,7 @@ describe("proportion headings", () => {
   it("refuses a power that is not on one letter group", () => {
     expect(() => createRatioTable({ columns: ["2^x", "y"], table: [["1", "2"]] })).toThrow();
     expect(() => createRatioTable({ columns: ["(cm)^2", "y"], table: [["1", "2"]] })).toThrow();
+    expect(() => createRatioTable({ columns: ["x^10", "y"], table: [["1", "2"]] })).toThrow();
   });
 
   it("takes a unit with a power, such as Volume (cm³), and raises the 3", () => {

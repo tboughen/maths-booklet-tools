@@ -8804,7 +8804,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16,
-                  "pattern": "^(?:[A-Za-z0-9 _/%£°()-]*[A-Za-z]\\^\\d)*[A-Za-z0-9 _/%£°()-]*$"
+                  "pattern": "^(?=.)(?:[A-Za-z0-9 _/%£°()-]*[A-Za-z]\\^\\d(?!\\d))*[A-Za-z0-9 _/%£°()-]*$"
                 },
                 "italic": {
                   "type": "boolean"

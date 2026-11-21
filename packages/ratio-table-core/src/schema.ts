@@ -40,7 +40,7 @@ export const cellsSchema = z.array(cellSchema).min(1).max(3);
  * (typed ² and ³ become ^2 and ^3). The column widens to fit.
  */
 export const HEADING_MAX = 16;
-export const HEADING_PATTERN = /^(?:[A-Za-z0-9 _/%£°()-]*[A-Za-z]\^\d)*[A-Za-z0-9 _/%£°()-]*$/;
+export const HEADING_PATTERN = /^(?=.)(?:[A-Za-z0-9 _/%£°()-]*[A-Za-z]\^\d(?!\d))*[A-Za-z0-9 _/%£°()-]*$/;
 export const headingSchema = z
   .object({
     text: z
