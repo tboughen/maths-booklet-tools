@@ -6,7 +6,8 @@ import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidan
 /** MCP adapter: the same schema, maths and renderer as the browser editor. */
 export const exampleIds = examples.map((x) => x.id) as [string, ...string[]];
 const id = z.string().regex(/^b[0-9]{1,3}$/);
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out) keeps the text but prints nothing in the pupil or the answers copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 const part = z.enum(["outcome", "probability", "endOutcome", "endProbability"]);
 /** A path is a branch ID or its outcome names joined by ", " (for example "Red, Blue"). */
 const pathRef = z.string().max(120);

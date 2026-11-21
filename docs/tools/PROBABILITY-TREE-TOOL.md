@@ -12,12 +12,30 @@ Code: `packages/probability-tree-core` (schema, exact arithmetic, layout, SVG, e
 - One flat list of branches. `parent: null` is a first-stage branch; sibling order is list order and every parent is
   listed before its children. A branch with no children ends its path, so unequal trees need no special case.
 - 2 to 4 branches in the first stage and 1 to 4 at each later point (a lone branch suits "draw the missing branches" questions), up to 4 stages, 60 branches and 24 paths. A probability that would touch another branch or label (the middle branch of a three-way split) slides along its branch, then tries the other side. Shown fractions on a three-way split fit at the default 32 mm / 14 mm; three pupil spaces need gapMm 16 or branchMm 38. A label or space that still crosses a branch gives a note (not a blocking issue, so saved trees export as before).
-- Every printed value is a label `{ text, show }`. `show` prints it; `hidden` keeps it as a saved answer and leaves a
-  dotted line or box for pupils; an empty shown label prints nothing. Blank, zero and hidden stay distinct.
+- Every printed value is a label `{ text, show }`. `show` prints it; `hidden` (on screen: **Pupil space**) keeps it as a
+  saved answer and leaves a dotted line or box for pupils; `omit` (on screen: **Leave out**, added 21 Nov 2026) keeps
+  the text but prints nothing in either copy; an empty shown label prints nothing. Blank, zero, pupil space and left
+  out stay distinct. A left-out label keeps a click target in the editor (a grey dashed outline) so it can come back.
 - Probabilities are text: `a/b` prints as a stacked fraction; decimals, percentages and algebra (`x`, `1 − x`) print as typed.
 - Optional end columns (outcome, probability), stage titles, bold branches for picking out paths, and up to 8
   questions printed below the tree with answer spaces.
 - `linkLabels` (default on) makes an outcome edit apply to the same position across its stage.
+
+## Editing (the usability pilot, 21 Nov 2026)
+
+Probability trees are the pilot for the shared editing pattern agreed on 21 Nov 2026, which other tools then adopt:
+
+- **Click** a label on the tree: the options box opens beside it (`src/site/OptionsBox.tsx`) with What pupils see
+  (Show / Pupil space / Leave out), its text, and for branches Bold branch, Add branches after this (or End the path
+  here), Add a branch beside it and Remove the last branch here. Every change is live and one undo step; Escape or a
+  press elsewhere closes the box. Enter, with the box focused, moves to the text field.
+- **Double-click** a label, or press **H** with it selected (never while typing in a field), for a pupil space, and
+  again to show the value. The box stays open and shows the new state.
+- The **What pupils see** card sets every label of a kind at once (outcomes, probabilities, end columns while drawn,
+  question answers) and shows Mixed when they differ. It counts the pupil spaces and offers **Clear pupil spaces**.
+- The Branches, Outcome columns and Questions lists show "Pupil space" or "Left out" under a field instead of Hide
+  ticks. Cards keep their help behind a (?) beside the heading. Branch length and path spacing are − / + steppers.
+- Undo names each step: "pupil space on 5/8", "leave out 5/8", "pupil space on all probabilities", "clear 6 pupil spaces".
 
 ## Explicit actions only
 

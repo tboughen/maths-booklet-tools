@@ -15,7 +15,8 @@ export const RENDERER_VERSION = "probability-tree-1" as const;
  * branch and sibling order is list order. A branch without children ends its
  * path, so unequal trees ("stop when you get a red") need no special case.
  * Every printed value is a label with its own visibility: "show" prints it,
- * "hidden" keeps it as a saved answer and leaves a pupil space. An empty shown
+ * "hidden" keeps it as a saved answer and leaves a pupil space, and "omit"
+ * (Leave out) keeps the text but prints nothing in either copy. An empty shown
  * label prints nothing. Nothing is calculated except by the explicit fill and
  * calculate actions below. Lengths are millimetres.
  */
@@ -34,7 +35,7 @@ const plain = (max: number) =>
       "Use ordinary text without markup.",
     );
 export const labelSchema = z
-  .object({ text: plain(24), show: z.enum(["show", "hidden"]) })
+  .object({ text: plain(24), show: z.enum(["show", "hidden", "omit"]) })
   .strict();
 export const branchSchema = z
   .object({
@@ -211,8 +212,10 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // A left-out label stays out of the teacher copy too.
   const reveal = (l: Label) => {
-    if (mark && l.show === "hidden" && l.text.trim()) REVEALED.add(l);
+    if (l.show !== "hidden") return;
+    if (mark && l.text.trim()) REVEALED.add(l);
     l.show = "show";
   };
   for (const b of n.document.branches) for (const l of [b.outcome, b.probability, b.endOutcome, b.endProbability]) reveal(l);
@@ -599,6 +602,7 @@ export const textWidth = (text: string, font = FONT) =>
 /** Size of a printed label or of its pupil space. */
 export function labelBox(l: Label, blank: TreeDocument["blankStyle"], kind: "probability" | "text") {
   const text = l.text.trim();
+  if (l.show === "omit") return { width: 0, height: 0 };
   if (l.show === "hidden")
     return kind === "probability"
       ? { width: blank === "box" ? 10 : 11, height: blank === "box" ? 9 : FONT * 2 + 1.5 }
@@ -627,7 +631,7 @@ type Box = { x1: number; x2: number; y1: number; y2: number };
 /** Places along a branch (0 start, 1 end) tried for its probability, the middle first. */
 const PROBABILITY_POSITIONS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.45, 0.4, 0.35, 0.3];
 /** A label prints something: text, or a pupil space for a hidden answer. */
-const drawnLabel = (l: Label) => l.show === "hidden" || !!l.text.trim();
+const drawnLabel = (l: Label) => l.show === "hidden" || (l.show === "show" && !!l.text.trim());
 function boxOf(p: Placed, blank: TreeDocument["blankStyle"]): Box {
   const b = labelBox(p.label, blank, p.kind);
   const x1 = p.align === "start" ? p.cx : p.cx - b.width / 2;
@@ -922,6 +926,7 @@ function drawLabel(p: Placed, blank: TreeDocument["blankStyle"]): string {
   const l = p.label,
     b = labelBox(l, blank, p.kind);
   const left = p.align === "start" ? p.cx : p.cx - b.width / 2;
+  if (l.show === "omit") return "";
   if (l.show === "hidden") {
     if (blank === "box")
       return `<rect x="${n(left)}" y="${n(p.cy - b.height / 2)}" width="${n(b.width)}" height="${n(b.height)}" fill="none" stroke="black" stroke-width="0.25"/>`;

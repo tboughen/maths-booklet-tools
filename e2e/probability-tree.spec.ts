@@ -18,21 +18,82 @@ async function boot(page: Page, e?: Envelope) {
 }
 const saved = (page: Page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "null"), key);
 
-test("edits a probability from the tree, hides it for pupils and undoes", async ({ page }) => {
+test("edits a probability from the tree, makes it a pupil space and undoes", async ({ page }) => {
   await boot(page);
-  await page.getByRole("button", { name: "Edit probability for Red, Blue" }).click();
-  const field = page.getByRole("textbox", { name: "Probability for Red, Blue" });
+  const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
+  await target.click();
+  // The click opens the options box beside the label and hides nothing; Enter moves to its text.
+  const box = page.getByRole("dialog", { name: "Probability for Red, Blue" });
+  await expect(box).toBeFocused();
+  expect((await saved(page)).document.branches[2].probability.show).toBe("show");
+  await page.keyboard.press("Enter");
+  const field = box.getByRole("textbox", { name: "Text of probability for Red, Blue" });
   await expect(field).toBeFocused();
   await field.fill("4/7");
   await field.press("Enter");
   expect((await saved(page)).document.branches[2].probability).toEqual({ text: "4/7", show: "show" });
-  await page.getByLabel("Hide probability for Red, Blue").check();
+  await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("4/7");
+  await target.dblclick();
+  await expect(box.getByRole("button", { name: "Pupil space" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(1);
   await page.getByLabel("Teacher copy: show answers").check();
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
-  await expect(field).toHaveValue("5/8");
+  await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("5/8");
+});
+
+test("what pupils see: double-click, H, leave out, the kind switches and clearing pupil spaces, each one undo step", async ({ page }) => {
+  await boot(page);
+  const art = page.getByTestId("tree-resource").locator(".pt-art svg");
+  const shows = async () => (await saved(page)).document.branches.map((b: { probability: { show: string } }) => b.probability.show);
+  const undoName = () => page.getByRole("button", { name: "Undo" }).getAttribute("title");
+  // Double-click: a pupil space, the box stays open; again brings the value back.
+  const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
+  await target.dblclick();
+  expect((await shows())[2]).toBe("hidden");
+  await expect(page.getByRole("dialog", { name: "Probability for Red, Blue" })).toBeVisible();
+  await expect(target).toHaveAccessibleName("Edit probability for Red, Blue, pupil space");
+  expect(await undoName()).toContain("pupil space on 5/8");
+  await target.dblclick();
+  expect((await shows())[2]).toBe("show");
+  // H with the box focused, never while typing in a field.
+  await target.click();
+  await page.keyboard.press("h");
+  expect((await shows())[2]).toBe("hidden");
+  await page.getByLabel("Stage 1 title").fill("H");
+  expect((await shows())[2]).toBe("hidden");
+  await page.getByLabel("Stage 1 title").press("Enter");
+  // Leave out keeps the text and prints nothing; undo brings it back.
+  await target.click();
+  const box = page.getByRole("dialog", { name: "Probability for Red, Blue" });
+  await box.getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page)).document.branches[2].probability).toEqual({ text: "5/8", show: "omit" });
+  await page.getByLabel("Teacher copy: show answers").check();
+  expect((await art.innerHTML()).match(/>5</g)?.length ?? 0).toBe(2);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await shows())[2]).toBe("hidden");
+  // A kind switch sets them all as one step, and shows Mixed when they differ.
+  const probabilities = page.getByRole("group", { name: "Probabilities" });
+  await expect(probabilities).toContainText("Mixed");
+  await probabilities.getByRole("button", { name: "Pupil space" }).click();
+  expect(await shows()).toEqual(Array(6).fill("hidden"));
+  expect(await undoName()).toContain("pupil space on all probabilities");
+  await expect(page.getByText("6 pupil spaces")).toBeVisible();
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect(await shows()).toEqual(Array(6).fill("show"));
+  expect(await undoName()).toContain("clear 6 pupil spaces");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(await shows()).toEqual(Array(6).fill("hidden"));
+  // No box, highlight or marker reaches an export.
+  await target.click();
+  const svgPromise = page.waitForEvent("download");
+  await clickResourceAction(page, "Download SVG");
+  const svg = readFileSync((await (await svgPromise).path())!, "utf8");
+  expect(svg).not.toMatch(/md-options|pt-hit|pt-hidden-answer|pt-omitted|What pupils see/);
 });
 
 test("grows an unequal tree, fills from a bag and calculates a given-that answer only on request", async ({ page }) => {

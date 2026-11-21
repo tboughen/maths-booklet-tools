@@ -170,7 +170,9 @@
   border-radius: 4px;
   padding: 2px;
 }
-/* A field with its Hide tick underneath. */
+/* A field with what pupils see of it underneath. */
+.pt-branch > span:has(> .pt-state),
+.pt-question > span:has(> .pt-state),
 .pt-branch > span:has(> .pt-hide),
 .pt-question > span:has(> .pt-hide) {
   display: grid;
@@ -204,4 +206,33 @@
 }
 .pt-paths span:nth-child(-n + 3) {
   font-weight: 600;
+}
+/* A left-out label stays findable in the editor: a grey dashed outline where it would be. */
+.pt-omitted {
+  outline: 1px dashed #8a99ad;
+  background: #8a99ad14;
+}
+/* Double-click and double-tap edit, never select text or zoom the page (classroom boards). */
+.pt-hit {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* A finger reaches a little beyond a small label. */
+@media (pointer: coarse) {
+  .pt-hit::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+}
+.pt-state {
+  font-size: 11px;
+  color: var(--muted, #50617a);
+}
+.pt-state-hidden {
+  color: var(--md-pink, #b0125b);
+}
+.pt-spaces {
+  justify-content: space-between;
 }

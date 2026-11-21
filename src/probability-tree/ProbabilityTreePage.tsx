@@ -25,6 +25,9 @@ import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { CardHeading, NumberStepper } from "../site/CardHelp";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -43,7 +46,6 @@ import {
   fillFromBag,
   fitBranchLength,
   forView,
-  hasHidden,
   isLeaf,
   layout,
   leaves,
@@ -59,7 +61,6 @@ import {
   removeLastSibling,
   removeStage,
   renderSvg,
-  setAllShown,
   setOutcome,
   validate,
   type Branch,
@@ -70,12 +71,46 @@ import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./probability-tree.css";
 import "../site/settings-kit.css";
+import {
+  commonVisibility,
+  isTypingTarget,
+  modalOpen,
+  TARGET_TIP,
+  TARGET_TIP_SPACE,
+  togglePupilSpace,
+  visibilityStep,
+  visibilityWords,
+  type Visibility,
+} from "../editor-kit";
 import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
 type LabelKey = "outcome" | "probability" | "endOutcome" | "endProbability";
+type TargetKind = LabelKey | "answer";
+/** The kinds of label, in the order the What pupils see card lists them. */
+const KINDS: { kind: TargetKind; name: string; one: string }[] = [
+  { kind: "outcome", name: "Outcomes", one: "outcome" },
+  { kind: "probability", name: "Probabilities", one: "probability" },
+  { kind: "endOutcome", name: "End outcomes", one: "end outcome" },
+  { kind: "endProbability", name: "End probabilities", one: "end probability" },
+  { kind: "answer", name: "Question answers", one: "answer" },
+];
+const BRANCH_STEPS = [12, 16, 20, 24, 28, 32, 36, 40, 45, 50] as const;
+const GAP_STEPS = [8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24] as const;
+/** The labels of one kind that print with this tree's settings (end columns only while they are drawn). */
+function labelsOf(d: Doc, kind: TargetKind): Label[] {
+  if (kind === "answer") return d.questions.map((q) => q.answer);
+  if (kind === "endOutcome" && d.endColumn === "none") return [];
+  if (kind === "endProbability" && d.endColumn !== "both") return [];
+  const list = kind === "endOutcome" || kind === "endProbability" ? leaves(d) : d.branches;
+  return list.map((b) => b[kind]);
+}
+function labelAt(d: Doc, kind: TargetKind, id: string): Label | undefined {
+  if (kind === "answer") return d.questions.find((q) => q.id === id)?.answer;
+  return d.branches.find((b) => b.id === id)?.[kind];
+}
 
 /** A new tree starts from the house style's lines (U111). */
 function fresh() {
@@ -147,13 +182,10 @@ function DraftField({
   );
 }
 
-function HideBox({ label, value, disabled, onChange }: { label: string; value: Label; disabled: boolean; onChange: (hidden: boolean) => void }) {
-  return (
-    <label className="pt-hide" title="Hidden values are saved answers; pupils see a space.">
-      <input type="checkbox" aria-label={label} disabled={disabled} checked={value.show === "hidden"} onChange={(ev) => onChange(ev.target.checked)} />
-      Hide
-    </label>
-  );
+/** Under a field in the settings: what pupils see of it, when that is not the value. */
+function StateTag({ value }: { value: Label }) {
+  if (value.show === "show") return null;
+  return <span className={`pt-state pt-state-${value.show}`}>{value.show === "hidden" ? "Pupil space" : "Left out"}</span>;
 }
 
 export default function ProbabilityTreePage({ active = true }: { active?: boolean }) {
@@ -168,6 +200,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [bag, setBag] = useState("5, 3"),
     [replacement, setReplacementMode] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
@@ -209,6 +242,35 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
       const b = n.branches.find((x) => x.id === id);
       if (b) Object.assign(b[key], change);
     });
+  const [selKind, selId] = (selected?.split(":") ?? []) as [TargetKind | undefined, string | undefined];
+  const selectedLabel = selKind && selId ? labelAt(d, selKind, selId) : undefined;
+  function describeTarget(kind: TargetKind, id: string) {
+    if (kind === "answer") return `answer to question ${d.questions.findIndex((q) => q.id === id) + 1}`;
+    const b = d.branches.find((x) => x.id === id);
+    return `${KINDS.find((k) => k.kind === kind)!.one} for ${b ? pathName(d, b.id) : ""}`;
+  }
+  /** What pupils see of one label: one undo step, named after its value ("pupil space on 3/8"). */
+  function setVisibility(kind: TargetKind, id: string, v: Visibility) {
+    const l = labelAt(d, kind, id);
+    if (blocked || !l || l.show === v) return;
+    const n = structuredClone(e);
+    labelAt(n.document, kind, id)!.show = v;
+    commit(n, undefined, visibilityStep(v, l.text.trim() || describeTarget(kind, id)));
+  }
+  /** Every label of one kind at once: one undo step. */
+  function setKind(kind: TargetKind, v: Visibility) {
+    if (blocked) return;
+    const n = structuredClone(e);
+    for (const l of labelsOf(n.document, kind)) l.show = v;
+    commit(n, undefined, visibilityStep(v, `all ${KINDS.find((k) => k.kind === kind)!.name.toLowerCase()}`));
+  }
+  const spaceCount = KINDS.flatMap((k) => labelsOf(d, k.kind)).filter((l) => l.show === "hidden").length;
+  function clearSpaces() {
+    if (blocked || !spaceCount) return;
+    const n = structuredClone(e);
+    for (const k of KINDS) for (const l of labelsOf(n.document, k.kind)) if (l.show === "hidden") l.show = "show";
+    commit(n, undefined, `clear ${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`);
+  }
   function undo() {
     if (blocked) return;
     documentHistory.undo();
@@ -219,14 +281,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   }
   function replace(next: Envelope, title: string, explanation = "This replaces the current tree. You can undo the replacement.") {
     if (!blocked) setPending({ e: next, title, explanation });
-  }
-  function focusField(id: string) {
-    setSelected(id);
-    requestAnimationFrame(() => {
-      const field = document.getElementById(id) as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
-    });
   }
 
   // Autosave with protection for another tab's newer draft.
@@ -246,6 +300,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
       if (handleUndoKeys(event, { undo, redo })) return;
+      // H: a pupil space on the selected label, and again back to its value. Never while typing ("H" for heads).
+      if (
+        (event.key === "h" || event.key === "H") &&
+        !event.ctrlKey && !event.metaKey && !event.altKey &&
+        !isTypingTarget(event.target) && !modalOpen() &&
+        selKind && selId && selectedLabel
+      ) {
+        event.preventDefault();
+        setVisibility(selKind, selId, togglePupilSpace(selectedLabel.show));
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -313,6 +377,11 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
+  // The box closes when its label goes (a smaller tree, a new tree, or Reset).
+  const selectedDrawn = !!selected && g.targets.some((t) => `${t.kind}:${t.id}` === selected);
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), undefined, WORKED_STEP) });
   return (
@@ -411,31 +480,119 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
                   {g.targets.map((t) => {
                     const id = fieldId(t.kind, t.id);
-                    const b = d.branches.find((x) => x.id === t.id);
-                    const l = t.kind === "answer" ? d.questions.find((q) => q.id === t.id)?.answer : b?.[t.kind];
-                    const hiddenHere = view === "pupil" && l?.show === "hidden";
-                    const what =
-                      t.kind === "answer"
-                        ? `answer to question ${d.questions.findIndex((q) => q.id === t.id) + 1}`
-                        : `${{ outcome: "outcome", probability: "probability", endOutcome: "end outcome", endProbability: "end probability" }[t.kind]} for ${b ? branchName(b) : ""}`;
+                    const key = `${t.kind}:${t.id}`;
+                    const l = labelAt(d, t.kind, t.id);
+                    const state = l?.show ?? "show";
+                    const spaceHere = view === "pupil" && state === "hidden";
+                    const words = visibilityWords(state);
                     return (
                       <button
                         key={id}
                         type="button"
-                        className={`pt-hit ${selected === `${t.kind}:${t.id}` ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit ${what}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                        data-options-anchor=""
+                        className={`pt-hit ${selected === key ? "pt-selected" : ""} ${spaceHere ? "pt-hidden-answer" : ""} ${state === "omit" ? "pt-omitted" : ""}`}
+                        aria-label={`Edit ${describeTarget(t.kind, t.id)}${words ? `, ${words}` : ""}`}
+                        aria-haspopup="dialog"
+                        aria-expanded={selected === key && boxAnchor !== null}
+                        title={state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out. ${TARGET_TIP}` : TARGET_TIP}
                         disabled={blocked}
                         style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
-                        onClick={() => {
-                          setSelected(`${t.kind}:${t.id}`);
-                          focusField(id);
-                          setSelected(`${t.kind}:${t.id}`);
+                        onClick={(ev) => {
+                          setSelected(key);
+                          setBoxAnchor(ev.currentTarget);
+                        }}
+                        onDoubleClick={() => {
+                          // The first click opened the box; the box stays open and shows the new state.
+                          if (l) setVisibility(t.kind, t.id, togglePupilSpace(l.show));
                         }}
                       />
                     );
                   })}
                 </div>
+                {boxAnchor && selKind && selId && selectedLabel && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={selected ?? ""}
+                    title={describeTarget(selKind, selId).replace(/^./, (c) => c.toUpperCase())}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch
+                      name="What pupils see"
+                      caption="What pupils see"
+                      value={selectedLabel.show}
+                      disabled={blocked}
+                      onChange={(v) => setVisibility(selKind, selId, v)}
+                    />
+                    <p>
+                      {selectedLabel.show === "hidden" && !selectedLabel.text.trim()
+                        ? "No saved answer, so the answers copy will be empty too."
+                        : "Double-click the label, or press H, for a pupil space."}
+                    </p>
+                    <label>
+                      Text
+                      <DraftField
+                        label={`Text of ${describeTarget(selKind, selId)}`}
+                        value={selectedLabel.text}
+                        maxLength={24}
+                        inputMode={selKind === "probability" || selKind === "endProbability" || selKind === "answer" ? "decimal" : "text"}
+                        disabled={blocked}
+                        onCommit={(v) => {
+                          if (selKind === "outcome") commit(setOutcome(e, selId, v));
+                          else if (selKind === "answer") patch((n) => void (n.questions.find((q) => q.id === selId)!.answer.text = v));
+                          else setLabel(selId, selKind, { text: v });
+                        }}
+                      />
+                    </label>
+                    {selectedBranch && (selKind === "outcome" || selKind === "probability") && (
+                      <>
+                        <label>
+                          <input
+                            type="checkbox"
+                            disabled={blocked}
+                            checked={selectedBranch.bold}
+                            onChange={(ev) => patch((n) => void (n.branches.find((b) => b.id === selectedBranch.id)!.bold = ev.target.checked))}
+                          />
+                          Bold branch (to pick out paths)
+                        </label>
+                        <div className="md-options-actions">
+                          {isLeaf(d, selectedBranch.id) ? (
+                            <button
+                              type="button"
+                              disabled={blocked || depthOf(d, selectedBranch.id) >= MAX_DEPTH}
+                              title={depthOf(d, selectedBranch.id) >= MAX_DEPTH ? `A tree has at most ${MAX_DEPTH} stages.` : undefined}
+                              onClick={() => commit(extendBranch(e, selectedBranch.id), "This tree has too many paths for more branches.")}
+                            >
+                              Add branches after this
+                            </button>
+                          ) : (
+                            <button type="button" disabled={blocked} onClick={() => commit(pruneBranch(e, selectedBranch.id))}>
+                              End the path here
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            disabled={blocked || childrenOf(d, selectedBranch.parent).length >= MAX_CHILDREN}
+                            title={childrenOf(d, selectedBranch.parent).length >= MAX_CHILDREN ? `Each point has at most ${MAX_CHILDREN} branches.` : undefined}
+                            onClick={() => commit(addSibling(e, selectedBranch.parent), "This tree has too many paths for another branch.")}
+                          >
+                            Add a branch beside it
+                          </button>
+                          <button
+                            type="button"
+                            disabled={blocked || childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent)}
+                            title={childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent) ? "This point already has as few branches as it can." : undefined}
+                            onClick={() => {
+                              commit(removeLastSibling(e, selectedBranch.parent));
+                              setSelected(null);
+                            }}
+                          >
+                            Remove the last branch here
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </OptionsBox>
+                )}
                 <StructureStepper
                  
                   vertical
@@ -468,8 +625,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               status={message}
               hint={
                 <EditorHint tool="probability-tree">
-                  Click a label on the tree to edit it. Enter applies; Escape
-                  restores.
+                  Click a label to edit it. Double-click it, or press H, for a
+                  pupil space.
                 </EditorHint>
               }
             >
@@ -491,54 +648,19 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             <ReturnToDiagram />
             <div className="md-kit-cards">
             <div>
-            {selectedBranch && (
-              <section className="panel-card pt-panel" aria-label="Selected branch">
-                <h2>Branch: {branchName(selectedBranch)}</h2>
-                <div className="pt-row">
-                  {isLeaf(d, selectedBranch.id) ? (
-                    <button
-                      type="button"
-                      disabled={blocked || depthOf(d, selectedBranch.id) >= MAX_DEPTH}
-                      onClick={() => commit(extendBranch(e, selectedBranch.id), "This tree has too many paths for more branches.")}
-                    >
-                      Add branches after this
-                    </button>
-                  ) : (
-                    <button type="button" disabled={blocked} onClick={() => commit(pruneBranch(e, selectedBranch.id))}>
-                      End the path here
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    disabled={blocked || childrenOf(d, selectedBranch.parent).length >= MAX_CHILDREN}
-                    onClick={() => commit(addSibling(e, selectedBranch.parent), "This tree has too many paths for another branch.")}
-                  >
-                    Add a branch beside it
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent)}
-                    onClick={() => {
-                      commit(removeLastSibling(e, selectedBranch.parent));
-                      setSelected(null);
-                    }}
-                  >
-                    Remove the last branch here
-                  </button>
-                  <label className="pt-hide">
-                    <input
-                      type="checkbox"
-                      disabled={blocked}
-                      checked={selectedBranch.bold}
-                      onChange={(ev) => patch((n) => void (n.branches.find((b) => b.id === selectedBranch.id)!.bold = ev.target.checked))}
-                    />
-                    Bold branch (to pick out paths)
-                  </label>
-                </div>
-              </section>
-            )}
-            <section className="panel-card pt-panel">
-              <h2>Branches</h2>
+            <section className="panel-card pt-panel" aria-label="Branches">
+              <CardHeading
+                title="Branches"
+                help={
+                  <>
+                    <p className="pt-note">Type fractions such as 3/8, decimals or algebra such as 1 − x.</p>
+                    <p className="pt-note">
+                      Click a label on the tree for its options: what pupils see, its text, and the branch's shape. Double-click
+                      it, or press H, for a pupil space.
+                    </p>
+                  </>
+                }
+              />
               <div className="pt-branches">
                 {d.branches.map((b) => {
                   const k = depthOf(d, b.id);
@@ -559,7 +681,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           disabled={blocked}
                           onCommit={(v) => commit(setOutcome(e, b.id, v))}
                         />
-                        <HideBox label={`Hide outcome ${branchName(b)} for pupils`} value={b.outcome} disabled={blocked} onChange={(h) => setLabel(b.id, "outcome", { show: h ? "hidden" : "show" })} />
+                        <StateTag value={b.outcome} />
                       </span>
                       <span>
                         <DraftField
@@ -572,27 +694,40 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           disabled={blocked}
                           onCommit={(v) => setLabel(b.id, "probability", { text: v })}
                         />
-                        <HideBox label={`Hide probability for ${branchName(b)}`} value={b.probability} disabled={blocked} onChange={(h) => setLabel(b.id, "probability", { show: h ? "hidden" : "show" })} />
+                        <StateTag value={b.probability} />
                       </span>
                       <span className="pt-note">{isLeaf(d, b.id) ? "end" : ""}</span>
                     </div>
                   );
                 })}
               </div>
-              <p className="pt-note">
-                Type fractions such as 3/8, decimals or algebra such as 1 − x. Hide keeps a value as a saved answer and leaves a
-                space for pupils. Click a branch label on the tree to select it and change its shape.
-              </p>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.linkLabels} onChange={(ev) => patch((n) => void (n.linkLabels = ev.target.checked))} />
                 Same outcome names across each stage
               </label>
-              <div className="pt-row">
-                <button type="button" disabled={blocked} onClick={() => commit(setAllShown(e, "probabilities", "hidden"))}>
-                  Hide all probabilities
-                </button>
-                <button type="button" disabled={blocked || !hasHidden(e)} onClick={() => commit(setAllShown(e, "all", "show"))}>
-                  Show all
+            </section>
+            <section className="panel-card pt-panel">
+              <CardHeading
+                title="What pupils see"
+                help={
+                  <>
+                    <p className="pt-note">Show prints the value. Pupil space prints a space to fill in; the answers copy shows the value. Leave out prints nothing in either copy and keeps the value.</p>
+                    <p className="pt-note">Each switch sets every label of that kind. Mixed means the labels differ: change one on the tree.</p>
+                  </>
+                }
+              />
+              {KINDS.map(({ kind, name }) => {
+                const value = commonVisibility(labelsOf(d, kind).map((l) => l.show));
+                return value === null ? null : (
+                  <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />
+                );
+              })}
+              <div className="pt-row pt-spaces">
+                <span>
+                  {spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+                </span>
+                <button type="button" disabled={blocked || spaceCount === 0} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again"} onClick={clearSpaces}>
+                  Clear pupil spaces
                 </button>
               </div>
             </section>
@@ -650,12 +785,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                       <div key={b.id} className="pt-branch">
                         <span>
                           <DraftField id={fieldId("endOutcome", b.id)} label={`End outcome for ${branchName(b)}`} value={b.endOutcome.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endOutcome", { text: v })} />
-                          <HideBox label={`Hide end outcome for ${branchName(b)}`} value={b.endOutcome} disabled={blocked} onChange={(h) => setLabel(b.id, "endOutcome", { show: h ? "hidden" : "show" })} />
+                          <StateTag value={b.endOutcome} />
                         </span>
                         {d.endColumn === "both" && (
                           <span>
                             <DraftField id={fieldId("endProbability", b.id)} label={`End probability for ${branchName(b)}`} value={b.endProbability.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endProbability", { text: v })} />
-                            <HideBox label={`Hide end probability for ${branchName(b)}`} value={b.endProbability} disabled={blocked} onChange={(h) => setLabel(b.id, "endProbability", { show: h ? "hidden" : "show" })} />
+                            <StateTag value={b.endProbability} />
                           </span>
                         )}
                         <span />
@@ -671,19 +806,20 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         Calculate path probabilities
                       </button>
                     )}
-                    <button type="button" disabled={blocked} onClick={() => commit(setAllShown(e, "end", "hidden"))}>
-                      Hide the columns
-                    </button>
                   </div>
                 </>
               )}
             </section>
             <section className="panel-card pt-panel">
-              <h2>Questions and "given that"</h2>
-              <p className="pt-note">
-                Questions print below the tree with an answer space. To calculate an answer, tick the paths in the event and, for a
-                given-that question, the paths in the condition.
-              </p>
+              <CardHeading
+                title={'Questions and "given that"'}
+                help={
+                  <p className="pt-note">
+                    Questions print below the tree with an answer space. To calculate an answer, tick the paths in the event and,
+                    for a given-that question, the paths in the condition.
+                  </p>
+                }
+              />
               {d.questions.map((q, qi) => {
                 const value = questionValue(d, q);
                 return (
@@ -694,7 +830,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     </label>
                     <span>
                       <DraftField id={fieldId("answer", q.id)} label={`Answer to question ${qi + 1}`} value={q.answer.text} maxLength={24} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].answer.text = v))} />
-                      <HideBox label={`Hide answer to question ${qi + 1}`} value={q.answer} disabled={blocked} onChange={(h) => patch((n) => void (n.questions[qi].answer.show = h ? "hidden" : "show"))} />
+                      <StateTag value={q.answer} />
                     </span>
                     <details>
                       <summary>Paths for calculating</summary>
@@ -741,7 +877,21 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               </div>
             </section>
             <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+              <CardHeading
+                title="Layout"
+                help={
+                  <>
+                    <p className="pt-note">
+                      Paths can be different lengths: click a branch on the tree and choose Add branches after this, or End the
+                      path here. Nothing is calculated or filled in for you.
+                    </p>
+                    <p className="pt-note">
+                      Copy for Word carries the physical size shown under the tree; preview zoom never changes it. Download PNG
+                      (600 ppi) if your browser blocks copying.
+                    </p>
+                  </>
+                }
+              />
               <div className="pt-fields">
                 {Array.from({ length: depth }, (_, k) => (
                   <label key={k}>
@@ -777,38 +927,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     ))}
                   </select>
                 </label>
-                <label>
-                  Branch length (mm)
-                  <select aria-label="Branch length" value={d.branchMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.branchMm = Number(ev.target.value)))}>
-                    {[...new Set([12, 16, 20, 24, 28, 32, 36, 40, 45, 50, d.branchMm])].sort((a, b) => a - b).map((x) => (
-                      <option key={x} value={x}>
-                        {x}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Path spacing (mm)
-                  <select aria-label="Path spacing" value={d.gapMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.gapMm = Number(ev.target.value)))}>
-                    {[...new Set([8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24, d.gapMm])].sort((a, b) => a - b).map((x) => (
-                      <option key={x} value={x}>
-                        {x}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <NumberStepper name="Branch length" unit="mm" value={d.branchMm} steps={BRANCH_STEPS} disabled={blocked} onChange={(v) => patch((n) => void (n.branchMm = v))} />
+                <NumberStepper name="Path spacing" unit="mm" value={d.gapMm} steps={GAP_STEPS} disabled={blocked} onChange={(v) => patch((n) => void (n.gapMm = v))} />
               </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a label on the tree to edit it. Enter applies; Escape restores. Paths can be different lengths: select a
-                  branch and choose Add branches after this, or End the path here. Nothing is calculated or filled in for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the tree; preview zoom never changes it. Download PNG (600
-                  ppi) if your browser blocks copying.
-                </p>
-              </details>
             </section>
             </div>
             </div>
