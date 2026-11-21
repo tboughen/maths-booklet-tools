@@ -391,3 +391,8 @@
 .pt-quick-tip[data-below] { transform: translate(-50%, 28px); }
 .pt-quick-tip[data-below][data-edge="left"] { transform: translate(-24px, 28px); }
 .pt-quick-tip[data-below][data-edge="right"] { transform: translate(calc(-100% + 24px), 28px); }
+/* The Branches list grows with the tree: no scrolling box inside the settings column, so + Branch is never cut off. */
+.pt-editor .pt-panel[aria-label="Branches"] .pt-branches {
+  max-height: none;
+  overflow: visible;
+}

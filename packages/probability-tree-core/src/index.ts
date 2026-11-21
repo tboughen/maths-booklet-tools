@@ -363,7 +363,12 @@ export function addSibling(e: Envelope, parent: string | null): Envelope {
   const sub = new Set([last.id]);
   for (const b of d.branches) if (b.parent && sub.has(b.parent)) sub.add(b.id);
   const at = Math.max(...[...sub].map((x) => d.branches.findIndex((b) => b.id === x)));
-  d.branches.splice(at + 1, 0, newBranch(nextId(d), parent));
+  // The new branch is named, never left blank: the name a branch in the same place has elsewhere in this stage,
+  // else "Outcome N". Its probability stays empty (nothing is calculated).
+  const depth = parent === null ? 1 : depthOf(d, parent) + 1;
+  const twin = d.branches.find((b) => b.parent !== parent && depthOf(d, b.id) === depth && siblingIndex(d, b) === group.length);
+  const name = twin?.outcome.text.trim() || `Outcome ${group.length + 1}`;
+  d.branches.splice(at + 1, 0, newBranch(nextId(d), parent, name));
   return validate(n);
 }
 /** The first stage keeps two branches; a later point may keep one. */

@@ -732,9 +732,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 title="What pupils see"
                 help={
                   <>
-                    <p className="pt-note">A pupil space is a blank for pupils to fill in.</p>
-                    <p className="pt-note">Show prints the value. Pupil space prints a space to fill in; the answers copy shows the value. Leave out prints nothing in either copy and keeps the value.</p>
-                    <p className="pt-note">Each switch sets every label of that kind. Mixed means the labels differ: change one on the tree.</p>
+                    <p className="pt-note">Pupil space: a blank for pupils to fill in. Leave out: nothing prints, in either copy.</p>
+                    <p className="pt-note">Each switch sets every label of that kind.</p>
                   </>
                 }
               />
