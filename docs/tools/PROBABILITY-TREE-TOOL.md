@@ -19,6 +19,11 @@ Code: `packages/probability-tree-core` (schema, exact arithmetic, layout, SVG, e
 - Probabilities are text: `a/b` prints as a stacked fraction; decimals, percentages and algebra (`x`, `1 − x`) print as typed.
 - Optional end columns (outcome, probability), stage titles, bold branches for picking out paths, and up to 8
   questions printed below the tree with answer spaces.
+- `endColumn: "working"` (added 21 Nov 2026) prints each path's names, its multiplication (3/8 × 3/8 =) and then the
+  end probability. An empty end outcome prints the path's names and follows later edits. A path probability that is a
+  pupil space, left out or empty is a pupil space in the working too, so the working never gives away a hidden value.
+- **A new tree in the editor opens with working** and a pupil space for every end probability (Tim, 21 Nov 2026).
+  The connector's `create` default is unchanged (no end columns).
 - `linkLabels` (default on) makes an outcome edit apply to the same position across its stage.
 
 ## Editing (the usability pilot, 21 Nov 2026)
@@ -45,7 +50,9 @@ Probability trees are the pilot for the shared editing pattern agreed on 21 Nov 
 
 ## Explicit actions only
 
-Nothing is filled or calculated implicitly. Each of these is a button (or MCP operation) and is undoable:
+Nothing is filled or calculated implicitly, with one agreed exception: with working shown, an empty end-probability
+pupil space is worked out in the answer copy only (Show answers, answer downloads). It is never saved and never printed
+in the pupil copy, and a teacher's own text wins. Each of these is a button (or MCP operation) and is undoable:
 
 - **Fill from bag**: counts by branch position, with or without replacement; writes unsimplified fractions
   (5/8 then 4/7), as on examination trees. Overwriting existing probabilities asks first.

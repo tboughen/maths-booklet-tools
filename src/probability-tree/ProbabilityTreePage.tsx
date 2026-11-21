@@ -102,7 +102,7 @@ const GAP_STEPS = [8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24] as const;
 function labelsOf(d: Doc, kind: TargetKind): Label[] {
   if (kind === "answer") return d.questions.map((q) => q.answer);
   if (kind === "endOutcome" && d.endColumn === "none") return [];
-  if (kind === "endProbability" && d.endColumn !== "both") return [];
+  if (kind === "endProbability" && (d.endColumn === "none" || d.endColumn === "outcome")) return [];
   const list = kind === "endOutcome" || kind === "endProbability" ? leaves(d) : d.branches;
   return list.map((b) => b[kind]);
 }
@@ -114,6 +114,9 @@ function labelAt(d: Doc, kind: TargetKind, id: string): Label | undefined {
 /** A new tree starts from the house style's lines (U111). */
 function fresh() {
   const e = create();
+  // A new tree opens with each path's names, working and a pupil space for its probability (Tim, 21 Nov 2026).
+  e.document.endColumn = "working";
+  for (const b of leaves(e.document)) b.endProbability.show = "hidden";
   if (housePreference().lines === "bold") e.document.lines = "bold";
   return e;
 }
@@ -916,7 +919,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               tool="probability-tree"
               title="Outcome columns"
               icon={Columns3}
-              summary={{ none: "Nothing at the end of each path", outcome: "Outcome at the end of each path", both: "Outcome and probability at the end of each path" }[d.endColumn]}
+              summary={{ none: "Nothing at the end of each path", outcome: "Outcome at the end of each path", both: "Outcome and probability at the end of each path", working: "Outcome, working and probability at the end of each path" }[d.endColumn]}
             >
               <div className="pt-fields">
                 <label>
@@ -925,9 +928,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <option value="none">Nothing</option>
                     <option value="outcome">Outcome</option>
                     <option value="both">Outcome and probability</option>
+                    <option value="working">Outcome, working and probability</option>
                   </select>
                 </label>
               </div>
+              {d.endColumn === "working" && (
+                <p className="pt-note">An empty name follows the tree. An empty probability space is worked out in the answer copy only.</p>
+              )}
               {d.endColumn !== "none" && (
                 <>
                   <div className="pt-branches">
@@ -937,7 +944,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           <DraftField id={fieldId("endOutcome", b.id)} label={`End outcome for ${branchName(b)}`} value={b.endOutcome.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endOutcome", { text: v })} />
                           <StateTag value={b.endOutcome} />
                         </span>
-                        {d.endColumn === "both" && (
+                        {d.endColumn !== "outcome" && (
                           <span className="pt-field-wrap">
                             <DraftField id={fieldId("endProbability", b.id)} label={`End probability for ${branchName(b)}`} value={b.endProbability.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endProbability", { text: v })} />
                             <StateTag value={b.endProbability} />
@@ -951,7 +958,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <button type="button" disabled={blocked} onClick={() => commit(fillEnd(e, "outcome"))}>
                       Fill outcome names
                     </button>
-                    {d.endColumn === "both" && (
+                    {d.endColumn !== "outcome" && (
                       <button type="button" disabled={blocked} onClick={() => commit(fillEnd(e, "probability"))}>
                         Calculate path probabilities
                       </button>
