@@ -230,3 +230,23 @@ test("bold lines are saved, printed and undoable; normal lines are not saved (U1
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
 });
+
+test("hover hint at once, a faint value for a left-out label, and Undo / Redo words on a wide screen (21 Nov scoring)", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await boot(page);
+  const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
+  await target.hover();
+  await expect(page.getByRole("tooltip")).toHaveText("Click to edit · double-click for a pupil space");
+  await page.mouse.move(5, 5);
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await target.click();
+  await page.getByRole("dialog").getByRole("button", { name: "Leave out" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".pt-ghost")).toHaveText("5/8");
+  // On screen only: nothing of it is in the drawing.
+  expect(await page.getByTestId("tree-resource").locator("svg").evaluate((s) => s.outerHTML.includes("5/8"))).toBe(false);
+  const toolbar = page.locator(".editor-toolbar").first();
+  await expect(toolbar.getByRole("button", { name: "Undo", exact: true })).toContainText("Undo");
+  await expect(toolbar.getByRole("button", { name: "Redo", exact: true })).toContainText("Redo");
+  await expect(page.locator(".pt-branches")).not.toContainText("path end");
+});

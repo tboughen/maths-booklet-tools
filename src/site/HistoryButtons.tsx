@@ -3,7 +3,7 @@ import { Redo2, Undo2 } from "lucide-react";
 import { historyActionText } from "../editor-kit/labels";
 
 /**
- * The Undo and Redo buttons every editor shows (U8). The accessible names stay "Undo" and "Redo"; the step
+ * The Undo and Redo buttons every editor shows (U8), with their words beside the icons on a wide screen. The accessible names stay "Undo" and "Redo"; the step
  * they would reverse or restore ("add row") is in the tooltip and the screen-reader description, and only
  * while the button can act.
  */
@@ -24,7 +24,7 @@ export function HistoryButtons(props: {
     const Icon = undo ? Undo2 : Redo2;
     return (
       <button
-        className="icon-button"
+        className="icon-button history-button"
         disabled={!enabled}
         aria-label={action}
         aria-describedby={text !== action ? id : undefined}
@@ -32,6 +32,10 @@ export function HistoryButtons(props: {
         onClick={undo ? props.onUndo : props.onRedo}
       >
         <Icon size={18} aria-hidden="true" />
+        {/* The word shows where the toolbar has room (21 Nov 2026 scoring); the name is the same either way. */}
+        <span className="history-word" aria-hidden="true">
+          {action}
+        </span>
         {text !== action && (
           <span id={id} className="sr-only" data-history-step={undo ? "undo" : "redo"}>
             {text}

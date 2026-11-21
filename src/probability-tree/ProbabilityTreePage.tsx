@@ -67,6 +67,7 @@ import {
   type Branch,
   type Envelope,
   type Label,
+  FONT,
 } from "../../packages/probability-tree-core/src";
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
@@ -220,6 +221,15 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     [bag, setBag] = useState("5, 3"),
     [replacement, setReplacementMode] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+  // The hint beside a label under the pointer or keyboard, shown at once (a browser tooltip waits a second). Screen only.
+  const [tip, setTip] = useState<{ key: string; text: string; x: number; y: number } | null>(null);
+  const showTip = (key: string, state: Visibility, el: HTMLElement) =>
+    setTip({
+      key,
+      text: state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out · ${TARGET_TIP.toLowerCase()}` : TARGET_TIP,
+      x: el.offsetLeft + el.offsetWidth / 2,
+      y: el.offsetTop,
+    });
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
@@ -533,7 +543,11 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         aria-label={`Edit ${describeTarget(t.kind, t.id)}${words ? `, ${words}` : ""}`}
                         aria-haspopup="dialog"
                         aria-expanded={selected === key && boxAnchor !== null}
-                        title={state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out. ${TARGET_TIP}` : TARGET_TIP}
+                        aria-describedby={tip?.key === key ? "pt-quick-tip" : undefined}
+                        onPointerEnter={(ev) => showTip(key, state, ev.currentTarget)}
+                        onPointerLeave={() => setTip(null)}
+                        onFocus={(ev) => showTip(key, state, ev.currentTarget)}
+                        onBlur={() => setTip(null)}
                         disabled={blocked}
                         style={
                           {
@@ -553,9 +567,21 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           // The first click opened the box; the box stays open and shows the new state.
                           if (l) setVisibility(t.kind, t.id, togglePupilSpace(l.show));
                         }}
-                      />
+                      >
+                        {/* A left-out label shows its value faintly here on screen; it prints nothing. */}
+                        {state === "omit" && l?.text.trim() && (
+                          <span className="pt-ghost" aria-hidden="true" style={{ fontSize: `${((FONT * 96) / 25.4) * fitted.scale}px` }}>
+                            {l.text}
+                          </span>
+                        )}
+                      </button>
                     );
                   })}
+                  {tip && !(boxAnchor && selected === tip.key) && (
+                    <div id="pt-quick-tip" className="pt-quick-tip" role="tooltip" style={{ left: tip.x, top: tip.y }}>
+                      {tip.text}
+                    </div>
+                  )}
                 </div>
                 {boxAnchor && selKind && selId && selectedLabel && (
                   <OptionsBox
@@ -679,6 +705,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 title="What pupils see"
                 help={
                   <>
+                    <p className="pt-note">A pupil space is a blank for pupils to fill in.</p>
                     <p className="pt-note">Show prints the value. Pupil space prints a space to fill in; the answers copy shows the value. Leave out prints nothing in either copy and keeps the value.</p>
                     <p className="pt-note">Each switch sets every label of that kind. Mixed means the labels differ: change one on the tree.</p>
                   </>
@@ -739,7 +766,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         <StateTag value={b.probability} />
                       </span>
                       <span className="pt-row-end">
-                        <span className="pt-note" title={isLeaf(d, b.id) ? "This branch ends its path" : undefined}>{isLeaf(d, b.id) ? "path end" : ""}</span>
                         {group.length > minimumBranches(parent) && (
                           <button
                             type="button"
