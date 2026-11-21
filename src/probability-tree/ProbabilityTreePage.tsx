@@ -13,7 +13,6 @@ import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
-import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -642,28 +641,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     )}
                   </OptionsBox>
                 )}
-                <StructureStepper
-                 
-                  vertical
-                  name="Stages"
-                  caption="Stages"
-                  add={{
-                    label: "Add a stage after every path that reaches the last stage",
-                    title: "Add stage",
-                    disabled: blocked || depth >= MAX_DEPTH,
-                    onClick: () => {
-                      // A tree that fitted the page keeps fitting: the new stage shortens branches if it must (one undo step).
-                      const next = addStage(e);
-                      commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage.");
-                    },
-                  }}
-                  remove={{
-                    label: "Remove the last stage",
-                    title: "Remove last stage",
-                    disabled: blocked || depth <= 1,
-                    onClick: () => commit(removeStage(e)),
-                  }}
-                />
+                {/* Stages are added and removed in the Branches card: one column of tools (Tim, 21 Nov 2026). */}
               </div>
             </div>
             <EditorFoot
