@@ -16,8 +16,8 @@ runtime dependencies or newly published question-bank assets.
   clicking an already-selected Nested button does not change the document.
   Outer set / Inner set label and definition editors follow the actual geometry.
   Renaming changes only the chosen label, retaining every region and shade.
-- "Teacher copy: show hidden answers" replaces the resource-view dropdown. It is the
-  answers switch in the action bar (shown as "Show hidden answers"); while it is on, a
+- "Teacher copy: show answers" replaces the resource-view dropdown. It is the
+  answers switch in the action bar (shown as "Show answers"); while it is on, a
   pink label over the corner of the diagram says that downloads show the answers too. It controls the existing temporary output view,
   and preserves pupil visibility in autosave/editable files. It is disabled
   during pending edits/replacements/recovery/export like the previous control.

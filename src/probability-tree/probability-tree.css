@@ -41,11 +41,19 @@
   border: 0;
   padding: 0;
   background: transparent;
-  cursor: text;
+  cursor: pointer;
   border-radius: 2px;
 }
-.pt-hit:hover {
-  outline: 1px dashed var(--blue);
+/* A soft highlight shows what a click will reach (the 21 Nov 2026 usability review). Editor only:
+   the targets are buttons over the artwork and never part of an export. */
+@media (hover: hover) {
+  .pt-hit:hover {
+    outline: 1px dashed var(--blue);
+    background: color-mix(in srgb, var(--md-blue, #1f66e0) 13%, transparent);
+  }
+  .pt-hit.pt-hidden-answer:hover {
+    background: color-mix(in srgb, #b5487a 16%, transparent);
+  }
 }
 .pt-hit:focus-visible {
   outline: 2px solid var(--blue);

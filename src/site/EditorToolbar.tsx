@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { HistoryButtons } from "./HistoryButtons";
+import { ShortcutsCard } from "./ShortcutsCard";
+import "./shortcuts-card.css";
 import type { MenuKind } from "./EditorDownloadMenu";
 
 /** Starts the print-font fetch once, on the first sign of an export (U57). */
@@ -174,7 +176,7 @@ function Toolbar(props: EditorToolbarProps) {
         <button
           className="copy-main clipboard-copy"
           disabled={props.exportDisabled || props.busy}
-          title="Copy the resource as an image"
+          title="A picture for slides or the board. Paste it with Ctrl+V."
           onClick={props.onCopyClipboard}
         >
           <Copy size={17} aria-hidden="true" />
@@ -184,7 +186,7 @@ function Toolbar(props: EditorToolbarProps) {
           <button
             className="copy-main"
             disabled={props.exportDisabled || props.busy}
-            title="Copy a print-quality image at its physical size for Word"
+            title="Pastes into Word at the real print size shown under the diagram"
             onClick={props.onCopy}
           >
             {props.busy ? (
@@ -200,6 +202,7 @@ function Toolbar(props: EditorToolbarProps) {
           <MenuButton kind="file" label="File" disabled={(props.menuDisabled ?? props.exportDisabled) || props.busy} menuOpen={props.menuOpen} menuId={props.menuId} onMenuChange={props.onMenuChange} />
         </div>
       </div>
+      <ShortcutsCard active={props.active} anchor={bar} />
       {/* The live region is always mounted, so screen readers announce the notice when it appears. */}
       <div className="editor-reset-status" aria-live="polite">
         {noticeOpen && (

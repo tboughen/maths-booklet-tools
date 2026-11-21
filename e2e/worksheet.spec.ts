@@ -40,9 +40,9 @@ test("switches a table cell between given, blank and hidden answer without losin
   expect(cell && cell.type === "table" && cell.rows[0][1]).toEqual({ text: "6", state: "hidden" });
   // Pupils see an empty box; the teacher preview shows the saved answer.
   const side1 = page.getByTestId("worksheet-pages").locator(".ws-art > svg").first();
-  await page.getByLabel("Teacher preview: show hidden answers").check();
+  await page.getByLabel("Teacher preview: show answers").check();
   await expect(side1.locator('text[fill="#b0125b"]', { hasText: /^6$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher preview: show hidden answers").uncheck();
+  await page.getByLabel("Teacher preview: show answers").uncheck();
   await expect(side1.locator('text[fill="#b0125b"]')).toHaveCount(0);
   await state.selectOption("blank");
   cell = (await saved(page)).document.sides[0].columns[1].cards[0].items.find((i) => i.type === "table");
@@ -209,9 +209,9 @@ test("sets layout, score box, stage band, grid paper and hidden working from the
   await working.fill("P(both) = 0.3 × 0.3\n= 0.09");
   await working.blur();
   expect((await saved(page)).document.sides[0].columns[0].cards[1].working).toBe("P(both) = 0.3 × 0.3\n= 0.09");
-  await page.getByLabel("Teacher preview: show hidden answers").check();
+  await page.getByLabel("Teacher preview: show answers").check();
   await expect(side1).not.toContainText("P(both)");
-  await page.getByLabel("Teacher preview: show hidden answers").uncheck();
+  await page.getByLabel("Teacher preview: show answers").uncheck();
 
   // Grid paper with blank axes.
   const before = (await saved(page)).document.sides[0].columns[0].cards[1].items.length;

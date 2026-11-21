@@ -27,9 +27,9 @@ test("labels a face, marks the opposite face only when asked, hides it from pupi
   await page.getByRole("button", { name: "Mark the opposite face" }).click();
   expect((await saved(page)).document.nets[0].faces[5].mark).toEqual({ kind: "dot", show: "hidden" });
   await expect(art(page).locator("circle")).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator('circle[fill="#b0125b"]')).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.nets[0].faces[0].label.text).toBe("");
 });

@@ -32,10 +32,10 @@ test("splits a number from the tree, hides and circles a factor, and undoes", as
   // Hidden: neither the number nor its circle is on the pupil copy.
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(0);
   await expect(art(page).locator("circle")).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(1);
   await expect(art(page).locator("circle")).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect(tree((await saved(page)).document)).toEqual(["60"]);
 });
@@ -47,7 +47,7 @@ test("completes the trees only when asked and keeps the answers hidden", async (
   const t = (await saved(page)).document.trees[0];
   expect(t.product).toEqual({ text: "2 × 3^2 × 5", show: "hidden" });
   expect(t.nodes.filter((n: { circled?: boolean }) => n.circled).length).toBe(4);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("tspan")).toHaveCount(1);
   await page.getByRole("button", { name: "Undo" }).click();
   expect(tree((await saved(page)).document)).toEqual(["90"]);

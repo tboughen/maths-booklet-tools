@@ -23,9 +23,9 @@ test("labels a sector, hides it as an answer, changes its angle and undoes", asy
   await page.getByLabel("Hide for pupils (keep as an answer)").check();
   expect((await saved(page)).document.objects[0].sectors[1].label).toEqual({ text: "Red", show: "hidden" });
   await expect(art(page).locator("text", { hasText: /^Red$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^Red$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   const angle = page.getByRole("textbox", { name: "Sector angle" });
   await angle.fill("180");
   await angle.press("Enter");

@@ -28,9 +28,9 @@ test("types the tiles, collects only when asked, hides the answer and undoes", a
   await page.getByRole("button", { name: "Collect like terms" }).click();
   expect((await saved(page)).document.answer).toEqual({ text: "2a + 2b + ab²", show: "hidden" });
   await expect(art(page).locator("text", { hasText: "+ 2" })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: "+ 2" })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect(counts((await saved(page)).document)).toEqual([1, 1]);
 });

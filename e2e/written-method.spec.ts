@@ -31,9 +31,9 @@ test("types a column addition, writes a carry, hides the answer and undoes", asy
   await page.getByLabel("Hide for pupils (keep as an answer)").check();
   expect((await saved(page)).document.answer).toEqual({ text: "7464", show: "hidden" });
   await expect(art(page).locator("text", { hasText: /^6$/ })).toHaveCount(2);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^6$/ })).toHaveCount(3);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "Undo" }).click();
   const d = (await saved(page)).document;
   expect(d.numbers.map((n: { value: { text: string } }) => n.value.text)).toEqual(["", ""]);
