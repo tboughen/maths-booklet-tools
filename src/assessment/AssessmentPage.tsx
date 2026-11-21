@@ -11,6 +11,7 @@ import { assessmentQuestion, generateClass } from "./select";
 import { exportClass } from "./export";
 import { layoutPack } from "./layout";
 import { Preview } from "./Preview";
+import { AnalysisPanel } from "./AnalysisPanel";
 import "../site/settings-kit.css";
 import "./assessment.css";
 
@@ -135,6 +136,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         <details><summary>Printing help</summary><p>Answers are upside down at the end. Print at actual size; choose duplex or booklet settings in your PDF software.</p>{settings.pageLimit === 1 && <p>Use single-sided printing for one-page packs.</p>}</details>
         <details><summary>Why these questions?</summary>{plan.packs.map(pack => <div key={pack.pupil.key}><h3>{pack.pupil.identifier}</h3><ol>{pack.entries.map(entry => <li key={entry.question.id}>{entry.question.source} — follow-up to {entry.references.join(", ")} · {entry.reason}</li>)}</ol></div>)}</details>
       </Panel>}
+      {catalogue && !importError && items.length > 0 && pupils.length > 0 && <AnalysisPanel catalogue={catalogue} items={items} pupils={pupils} />}
     </div><aside className="af-inspector"><Panel className="af-panel"><h2>Class settings</h2><fieldset disabled={busy}>
       <label>Year<select aria-label="Year" value={settings.year} onChange={e => updateSettings({ year: Number(e.target.value) })}>{[7, 8, 9, 10, 11, 12, 13].map(year => <option key={year}>{year}</option>)}</select></label>
       <label>Tier<select aria-label="Tier" value={settings.tier} onChange={e => updateSettings({ tier: e.target.value as Settings["tier"] })}><option value="H">Higher</option><option value="F">Foundation</option></select></label>

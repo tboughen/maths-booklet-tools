@@ -14,7 +14,7 @@ export interface Settings extends Profile {
 }
 export const defaults: Settings = { year: 10, tier: "H", strength: "secure", pageLimit: 4, marksLimit: null, calculator: "all", common: false };
 export interface AssessmentItem { label: string; marks: number; codes: string[]; questionId?: string }
-export interface Pupil { key: string; identifier: string; scores: Record<string, number | null>; profile: Partial<Profile> }
+export interface Pupil { key: string; identifier: string; scores: Record<string, number | null>; profile: Partial<Profile>; /** Class or teaching group, when the results sheet has one. */ group?: string }
 export interface ImportResult<T> { rows: T[]; warnings: string[] }
 export interface TableSheet { name: string; rows: string[][] }
 export interface Priority { code: string; weight: number; achieved: number; references: string[]; /** National success rate (%) of the easiest failed question on this skill. */ ceiling?: number }

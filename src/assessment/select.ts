@@ -53,7 +53,7 @@ export function prioritiesFor(items: AssessmentItem[], pupil?: Pupil, catalogue?
   return [...byCode.values()].sort((a, b) => b.weight - a.weight || a.code.localeCompare(b.code)).map(({ code, weight, achieved, references, ceiling }) => ({ code, weight, achieved, references: references.sort((a, b) => questionLabel(a).localeCompare(questionLabel(b), "en", { numeric: true })), ...(ceiling !== undefined ? { ceiling } : {}) }));
 }
 /** National success rate (%) of the assessment question an item came from. */
-function sourceRate(item: AssessmentItem, catalogue?: BankCatalogue): number | undefined {
+export function sourceRate(item: AssessmentItem, catalogue?: BankCatalogue): number | undefined {
   const source = item.questionId ? catalogue?.questions.find(q => q.id === item.questionId) : undefined;
   if (!source || !catalogue) return undefined;
   return (source.performance ?? performanceFor(source, catalogue.paperQuestionCounts?.[source.paperId] ?? originalPaperCount(source.paperId)))?.percentage;
