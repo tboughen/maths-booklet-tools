@@ -55,5 +55,16 @@ describe("proportion headings", () => {
 
   it("refuses a power that is not on one letter group", () => {
     expect(() => createRatioTable({ columns: ["2^x", "y"], table: [["1", "2"]] })).toThrow();
+    expect(() => createRatioTable({ columns: ["(cm)^2", "y"], table: [["1", "2"]] })).toThrow();
+  });
+
+  it("takes a unit with a power, such as Volume (cm³), and raises the 3", () => {
+    const e = createRatioTable({ columns: ["Mass (g)", "Volume (cm³)"], table: [["9", "1"]] });
+    expect(e.document.headings[1].text).toBe("Volume (cm^3)");
+    expect(e.document.headings[1].italic).toBe(false);
+    const svg = renderRatioSvg(e.document);
+    expect(svg).toContain(">cm</text>");
+    expect(svg).toMatch(/font-size="[\d.]+">3<\/text>/);
+    expect(describeRatio(e)).toContain("Volume (cm cubed)");
   });
 });
