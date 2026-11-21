@@ -1,3 +1,6 @@
+/** Opens the keyboard shortcuts card (`ShortcutsCard`) from elsewhere, such as the File menu. */
+export const SHORTCUTS_EVENT = "mathsdock:shortcuts";
+
 /** Fields where Ctrl+Z belongs to the text, not to the document. */
 export function isTypingTarget(target: EventTarget | null): boolean {
   return target instanceof Element && target.closest("input,textarea,select,[contenteditable]:not([contenteditable='false'])") !== null;

@@ -29,9 +29,9 @@ test("types bubbles and a line, hides the line and undoes", async ({ page }) => 
   await page.getByLabel("Hide for pupils (keep as an answer)").check();
   expect((await saved(page)).document.steps[0].line.lhs).toEqual({ text: "2x", show: "hidden" });
   await expect(art(page).locator("text", { hasText: /^x$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^x$/ })).toHaveCount(2);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   await page.getByRole("button", { name: "Edit the right bubble of step 1", exact: true }).click();
   await bubble.fill("+3");
   await bubble.press("Enter");

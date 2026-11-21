@@ -22,9 +22,9 @@ const art = (page: Page) => page.getByTestId("frequency-tree-resource").locator(
 test("edits a count from the tree, shows hidden answers only in the teacher copy and undoes", async ({ page }) => {
   await boot(page);
   await expect(art(page).locator("text", { hasText: /^37$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^37$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
   await page.getByRole("button", { name: "Edit count for men", exact: true }).click();
   const field = page.getByRole("textbox", { name: "Count for men", exact: true });
   await expect(field).toBeFocused();

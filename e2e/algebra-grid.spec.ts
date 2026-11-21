@@ -512,7 +512,7 @@ test("edits blank/zero/hidden states, exports pupil visibility and preserves exa
     hidden: true,
   });
   await expect(resource(page).locator("svg text")).toHaveCount(5);
-  await page.getByLabel("Teacher preview: show hidden answers").check();
+  await page.getByLabel("Teacher preview: show answers").check();
   await expect(resource(page).locator("svg text")).toHaveCount(6);
   const svg = (
     await download(page, "Download SVG", info.outputPath("hidden-pupil.svg"))
@@ -970,7 +970,7 @@ test("hidden/blank headings keep writing space and compact again only after an e
   await expect(resource(page).locator("svg")).toHaveAttribute("height", "45mm");
   await expect(resource(page).locator("svg")).toHaveAttribute("width", "39mm");
   await page
-    .getByLabel("Teacher preview: show hidden answers", { exact: true })
+    .getByLabel("Teacher preview: show answers", { exact: true })
     .check();
   await expect(resource(page).locator("svg")).toHaveAttribute("height", "45mm");
   await edit(page, 2, 0, "");

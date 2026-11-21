@@ -1,4 +1,4 @@
-/* The answers switch (AnswerPreviewToggle, AnswerCopyToggle). It reads "Show hidden answers"
+/* The answers switch (AnswerPreviewToggle, AnswerCopyToggle). It reads "Show answers"
    everywhere and turns pink while it is on: in the app, pink means teacher only
    (docs/tools/APP-HOUSE-STYLE.md). Never part of an export. */
 /* `label` in the selectors outranks the form styles some tool pages give every label. */

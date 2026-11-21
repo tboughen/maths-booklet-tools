@@ -298,7 +298,7 @@ test("worked version replaces immediately and Undo restores the complete pupil s
 }) => {
   await boot(page, example("right-trig"));
   const original = canonical(await saved(page));
-  await page.getByLabel("Teacher preview: show hidden answers", { exact: true }).check();
+  await page.getByLabel("Teacher preview: show answers", { exact: true }).check();
   await expect(page.locator(".tr-art")).toContainText("33.6°");
   expect((await download(page, "Download SVG")).toString()).not.toContain(
     "33.6°",

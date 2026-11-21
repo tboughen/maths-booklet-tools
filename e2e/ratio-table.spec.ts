@@ -1093,7 +1093,7 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
   await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(0);
   await expect(preview).not.toHaveAttribute("aria-label", /2 over 3/);
   await page
-    .getByLabel("Teacher preview: show hidden answers", { exact: true })
+    .getByLabel("Teacher preview: show answers", { exact: true })
     .check();
   await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(1);
   for (const [name, file, shown] of [
