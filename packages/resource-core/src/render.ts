@@ -247,6 +247,15 @@ function spaceWorking(answer: string, w: number, h: number, ctx: AnyCtx): string
 /** The texts on an answer line that may hold a stacked fraction. */
 export const answerTexts = (l: Extract<Leaf, { type: "answerLine" }>) => [l.prefix, l.suffix, l.answer, ...(l.blanks ?? []).flatMap((b) => [b.before, b.answer])];
 
+/**
+ * An answer line as Edexcel prints it: a row of dots ("x = ..........") rather than a rule.
+ * Round dots 0.4 mm across, 1.1 mm apart (a 0.05 mm dash: PDF writers refuse a zero-length one), on the same baseline the solid line used.
+ */
+export const ANSWER_DOT = { width: 0.4, pitch: 1.1 } as const;
+export function answerRule(x1: number, x2: number, y: number, ink: string): string {
+  return `<line x1="${n(x1)}" y1="${n(y)}" x2="${n(x2)}" y2="${n(y)}" stroke="${ink}" stroke-width="${ANSWER_DOT.width}" stroke-linecap="round" stroke-dasharray="0.05 ${ANSWER_DOT.pitch - 0.05}"/>`;
+}
+
 /** `lone`: a single inline line with no inline neighbours, printed short (rule P3). */
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx, lone = false): Frag {
   const size = S.body;
@@ -283,7 +292,7 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
     const answerW = l.answer ? widthOf(l.answer) : 0;
     if (l.answer && answerW + 2 > x2 - x1 + 0.01)
       issue(ctx, `A saved answer is ${n(answerW + 2 - (x2 - x1))} mm wider than its answer line, so it would run past the line in the answers copy. Shorten it or give it a longer line.`);
-    out.push(`<line x1="${n(x1)}" y1="${n(base + 0.8)}" x2="${n(x2)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`);
+    out.push(answerRule(x1, x2, base + 0.8, ctx.st.ink));
     if (l.suffix) out.push(textSvg(runsOf(l.suffix), x2 + 1.8, base, size, ctx.st.ink));
     // A stacked fraction answer is raised so its denominator clears the line.
     if ((ctx.view === "answers" || l.given) && l.answer)
@@ -304,7 +313,7 @@ function frameSvg(l: Extract<Leaf, { type: "answerLine" }>, x0: number, base: nu
   return answerFrame(widthOf, l.prefix, l.blanks ?? [], l.suffix)
     .pieces.map((p) => {
       if (p.kind === "text") return textSvg(runsOf(p.text), x0 + p.x, base, size, ctx.st.ink);
-      const line = `<line x1="${n(x0 + p.x)}" y1="${n(base + 0.8)}" x2="${n(x0 + p.end)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`;
+      const line = answerRule(x0 + p.x, x0 + p.end, base + 0.8, ctx.st.ink);
       if ((ctx.view !== "answers" && !l.given) || !p.answer) return line;
       return line + textSvg(runsOf(p.answer), x0 + (p.x + p.end) / 2, base - 0.6 - (answerHasFraction(p.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, l.given ? ctx.st.ink : ctx.st.answer, "middle");
     })

@@ -879,7 +879,7 @@ export function renderSvg(e: Envelope, showAnswers = false) {
     { length: d.answerLines },
     (_, i) => {
       const y = g.answerY + (d.answerVisible && d.answer ? 11 : 0) + i * 9 - 2;
-      return `<line x1="3" x2="${g.width - 3}" y1="${y}" y2="${y}"/>`;
+      return `<line x1="3" x2="${g.width - 3}" y1="${y}" y2="${y}" stroke-width="0.4" stroke-linecap="round" stroke-dasharray="0.05 1.05"/>`;
     },
   ).join("")}</g></svg>`;
 }
