@@ -124,6 +124,8 @@ function fractionRuns(source: string, base: FontStyle, bold: boolean): Run[] {
 export function parseRuns(source: string, base: FontStyle = "regular", maths = false): Run[] {
   if (!maths) return plainRuns(source, base);
   // A power's letters may come italicised by typesetting (x^*n*, 5^{2*n*}): the power styles its own letters.
+  // A typed ² or ³ prints raised like every other power, so all powers on a page share one size and weight.
+  source = source.replace(/²/g, "^2").replace(/³/g, "^3");
   source = source.replace(/\^\*([a-z])\*/g, "^$1").replace(/\^\{([^{}]{1,16})\}/g, (_, p: string) => `^{${p.replace(/\*/g, "")}}`);
   const runs: Run[] = [];
   let at = 0;
@@ -141,7 +143,21 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
 /** Letters in a fraction print in italic, as maths letters do; digits and signs stay upright. */
 export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "italic" : "regular");
-const fracPartWidth = (s: string, size: number, bold = false) => [...s].reduce((w, c) => w + advance(c, bold && fracStyle(c) === "regular" ? "bold" : fracStyle(c)), 0) * size * FRAC_SCALE;
+/** A fraction part's characters, each marked raised when it belongs to a power (x^6, a², 5^n). */
+export function fracPieces(s: string): { c: string; sup: boolean }[] {
+  const out: { c: string; sup: boolean }[] = [];
+  const t = s.replace(/²/g, "^2").replace(/³/g, "^3").replace(/\*/g, "");
+  for (let i = 0; i < t.length; i++) {
+    const m = t[i] === "^" ? t.slice(i + 1).match(/^(\d{1,3}|[a-z])/) : null;
+    if (m) {
+      for (const c of m[1]) out.push({ c, sup: true });
+      i += m[1].length;
+    } else out.push({ c: t[i], sup: false });
+  }
+  return out;
+}
+const fracPartWidth = (s: string, size: number, bold = false) =>
+  fracPieces(s).reduce((w, { c, sup }) => w + advance(c, bold && fracStyle(c) === "regular" ? "bold" : fracStyle(c)) * (sup ? SUP_SCALE : 1), 0) * size * FRAC_SCALE;
 /**
  * A fraction's width allows its parts at full body size, wider than they print, because Word and
  * LibreOffice set equations with their own spacing: the layout must never under-measure a line.
@@ -225,10 +241,21 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
   const fs = size * FRAC_SCALE;
   // The bar sits on the maths axis (the height of a minus sign); the parts clear it by 0.55 mm.
   const axis = y - size * 0.27;
-  const part = (s: string, cx: number, baseline: number, bold = false) =>
-    `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle"${bold ? ' font-weight="600"' : ""} xml:space="preserve">${[...s]
-      .map((c) => (fracStyle(c) === "italic" ? `<tspan font-style="italic">${esc(c)}</tspan>` : esc(c)))
-      .join("")}</text>`;
+  // A power in a part is a smaller tspan moved up by dy (never an absolute y, which would split the
+  // centred text into chunks); the next character moves back down to the baseline.
+  const part = (s: string, cx: number, baseline: number, bold = false) => {
+    let raised = false;
+    const spans = fracPieces(s)
+      .map(({ c, sup }) => {
+        let attr = fracStyle(c) === "italic" && !sup ? ' font-style="italic"' : "";
+        if (sup) attr += ` font-size="${n(fs * SUP_SCALE)}"${raised ? "" : ` dy="${n(-fs * SUP_RAISE)}"`}`;
+        else if (raised) attr += ` dy="${n(fs * SUP_RAISE)}"`;
+        raised = sup;
+        return attr ? `<tspan${attr}>${esc(c)}</tspan>` : esc(c);
+      })
+      .join("");
+    return `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle"${bold ? ' font-weight="600"' : ""} xml:space="preserve">${spans}</text>`;
+  };
   for (const r of line) {
     if (!r.frac) {
       pending.push(r);

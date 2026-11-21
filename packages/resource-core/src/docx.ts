@@ -4,7 +4,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, SPACE_WORKING, STAGE_BAND, stageLetters, tooWideMessage, workingLines, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { fracPieces, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -144,9 +144,9 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
   // paragraph is display maths, which Word prints at full size, so it is not enlarged (R25).
   const size = (o.sizeMm ?? S.body) / (display ? 1 : WORD_INLINE_FRACTION);
   const part = (s: string) =>
-    [...s]
-      .map((c) => {
-        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic", bold: bold && fracStyle(c) === "regular" });
+    fracPieces(s)
+      .map(({ c, sup }) => {
+        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic" && !sup, bold: bold && fracStyle(c) === "regular", sup });
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");

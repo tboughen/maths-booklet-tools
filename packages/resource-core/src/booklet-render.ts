@@ -74,9 +74,9 @@ const S = SIZE;
 const lh = (size: number) => size * S.lineHeight;
 const base = (size: number) => (lh(size) - size) / 2 + size * 0.82;
 
-function para(src: string, width: number, st: HouseStyle, o: { size?: number; fill?: string; style?: FontStyle; x?: number } = {}): Frag {
+function para(src: string, width: number, st: HouseStyle, o: { size?: number; fill?: string; style?: FontStyle; x?: number; maths?: boolean } = {}): Frag {
   const size = o.size ?? S.body;
-  const lines = wrap(src, size, width, o.style);
+  const lines = wrap(src, size, width, o.style, o.maths);
   return { h: lines.length * lh(size), svg: lines.map((l, i) => textSvg(l, o.x ?? 0, i * lh(size) + base(size), size, o.fill ?? st.ink)).join("") };
 }
 const rect = (x: number, y: number, w: number, h: number, attrs: string) => `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" ${attrs}/>`;
@@ -217,7 +217,7 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
     out.push(`<g transform="translate(${n(D.padX)},${n(y + D.padTop + (D.labelLine - D.icon) / 2)})">${didYouKnowIcon(D.icon, st.navy)}</g>`);
     const label = textSvg([{ text: D.label, style: "bold" }], D.padX + D.icon + D.iconGap, y + D.padTop + D.labelLine / 2 + D.size * 0.36, D.size, st.navy);
     out.push(label.replace("<text ", `<text letter-spacing="${D.tracking}" `));
-    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX }), 0, y + D.padTop + D.labelLine));
+    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX, maths: doc.notation === "maths" }), 0, y + D.padTop + D.labelLine));
     y += b.total;
   }
   return { h: y, svg: out.join("") };
