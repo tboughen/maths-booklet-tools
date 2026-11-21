@@ -72,8 +72,21 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   await page.getByLabel("Teacher copy: show answers").check();
   expect((await art.innerHTML()).match(/>5</g)?.length ?? 0).toBe(2);
   await page.getByLabel("Teacher copy: show answers").uncheck();
+  // A press elsewhere closed the box; Escape closes it and hands focus back to the label.
+  await expect(box).toHaveCount(0);
+  await target.click();
+  await expect(box).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(box).toHaveCount(0);
+  await expect(target).toBeFocused();
+  // H does nothing once the box is closed.
+  await page.keyboard.press("h");
+  expect((await saved(page)).document.branches[2].probability.show).toBe("omit");
+  // The close button also hands focus back to the label.
+  await target.click();
+  await box.getByRole("button", { name: "Close options" }).click();
+  await expect(box).toHaveCount(0);
+  await expect(target).toBeFocused();
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await shows())[2]).toBe("hidden");
   // A kind switch sets them all as one step, and shows Mixed when they differ.

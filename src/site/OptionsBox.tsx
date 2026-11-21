@@ -70,10 +70,14 @@ export function OptionsBox({
   useEffect(() => {
     if (placed) box.current?.focus({ preventScroll: true });
   }, [anchorKey, placed]);
+  // Whether focus was in the box, kept as it moves: by the time React removes the box, focus has already left it.
+  const hadFocus = useRef(false);
   useEffect(() => {
-    const el = box.current;
+    const anchorNow = anchor;
     return () => {
-      if (el && el.contains(document.activeElement) && anchor?.isConnected) anchor.focus({ preventScroll: true });
+      const lost = document.activeElement === null || document.activeElement === document.body;
+      if (hadFocus.current && lost && anchorNow?.isConnected) anchorNow.focus({ preventScroll: true });
+      hadFocus.current = false;
     };
   }, [anchor]);
 
@@ -106,6 +110,8 @@ export function OptionsBox({
       role="dialog"
       aria-label={title}
       tabIndex={-1}
+      onFocus={() => (hadFocus.current = true)}
+      onBlur={(event) => (hadFocus.current = box.current?.contains(event.relatedTarget as Node | null) ?? false)}
       style={place ? { left: place.left, top: place.top } : { visibility: "hidden", left: 0, top: 0 }}
       onKeyDown={(event) => {
         if (event.key === "Enter" && event.target === box.current) {

@@ -870,7 +870,7 @@ export function layout(e: Envelope) {
   for (const q of d.questions)
     if (q.answer.show === "show" && !q.answer.text.trim() && q.text.trim())
       notes.push(`Question ${q.text.slice(0, 20)} has no answer and no pupil space. Hide its answer to leave a space.`);
-  if (d.gapMm < 12 && d.branches.some((b) => isFractionText(b.probability.text) || b.probability.show === "hidden"))
+  if (d.gapMm < 12 && d.branches.some((b) => drawnLabel(b.probability) && (isFractionText(b.probability.text) || b.probability.show === "hidden")))
     notes.push("Fractions may crowd at this path spacing. Check the preview or increase the spacing.");
 
   const width = Math.ceil((right - left + 2 * MARGIN) * 10) / 10,

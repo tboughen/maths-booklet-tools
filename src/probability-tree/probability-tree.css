@@ -212,15 +212,16 @@
   outline: 1px dashed #8a99ad;
   background: #8a99ad14;
 }
-/* Double-click and double-tap edit, never select text or zoom the page (classroom boards). */
-.pt-hit {
+/* Double-click and double-tap edit, never select text or zoom the page (classroom boards). Trees only
+   for now: the other tools that share .pt-hit take this up as they adopt the options box. */
+.pt-editor .pt-hit {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
 /* A finger reaches a little beyond a small label. */
 @media (pointer: coarse) {
-  .pt-hit::before {
+  .pt-editor .pt-hit::before {
     content: "";
     position: absolute;
     inset: -6px;

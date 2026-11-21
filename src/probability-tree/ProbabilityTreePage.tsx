@@ -35,6 +35,7 @@ import {
   addQuestion,
   addSibling,
   addStage,
+  allLabels,
   calculateQuestion,
   canonical,
   childrenOf,
@@ -264,11 +265,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     for (const l of labelsOf(n.document, kind)) l.show = v;
     commit(n, undefined, visibilityStep(v, `all ${KINDS.find((k) => k.kind === kind)!.name.toLowerCase()}`));
   }
-  const spaceCount = KINDS.flatMap((k) => labelsOf(d, k.kind)).filter((l) => l.show === "hidden").length;
+  // Every pupil space in the tree, including end columns that are switched off, so none comes back later.
+  const spaceCount = allLabels(d).filter((l) => l.show === "hidden").length;
   function clearSpaces() {
     if (blocked || !spaceCount) return;
     const n = structuredClone(e);
-    for (const k of KINDS) for (const l of labelsOf(n.document, k.kind)) if (l.show === "hidden") l.show = "show";
+    for (const l of allLabels(n.document)) if (l.show === "hidden") l.show = "show";
     commit(n, undefined, `clear ${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`);
   }
   function undo() {
@@ -303,9 +305,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
       // H: a pupil space on the selected label, and again back to its value. Never while typing ("H" for heads).
       if (
         (event.key === "h" || event.key === "H") &&
-        !event.ctrlKey && !event.metaKey && !event.altKey &&
+        !event.ctrlKey && !event.metaKey && !event.altKey && !event.repeat &&
         !isTypingTarget(event.target) && !modalOpen() &&
-        selKind && selId && selectedLabel
+        boxAnchor && selKind && selId && selectedLabel
       ) {
         event.preventDefault();
         setVisibility(selKind, selId, togglePupilSpace(selectedLabel.show));
