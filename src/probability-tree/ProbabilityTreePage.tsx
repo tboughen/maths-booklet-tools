@@ -27,7 +27,7 @@ import { EditorToolbar } from "../site/EditorToolbar";
 import { OptionsBox } from "../site/OptionsBox";
 import { VisibilitySwitch } from "../site/VisibilitySwitch";
 import { CardHeading, FoldCard, NumberStepper } from "../site/CardHelp";
-import { Columns3, MessageCircleQuestion, PaintBucket, Ruler } from "lucide-react";
+import { Columns3, MessageCircleQuestion, PaintBucket, Ruler, X } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -60,6 +60,7 @@ import {
   questionValue,
   minimumBranches,
   removeLastSibling,
+  removeBranch,
   removeStage,
   renderSvg,
   setOutcome,
@@ -738,7 +739,24 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         />
                         <StateTag value={b.probability} />
                       </span>
-                      <span className="pt-note" title={isLeaf(d, b.id) ? "This branch ends its path" : undefined}>{isLeaf(d, b.id) ? "path end" : ""}</span>
+                      <span className="pt-row-end">
+                        <span className="pt-note" title={isLeaf(d, b.id) ? "This branch ends its path" : undefined}>{isLeaf(d, b.id) ? "path end" : ""}</span>
+                        {group.length > minimumBranches(parent) && (
+                          <button
+                            type="button"
+                            className="pt-remove"
+                            aria-label={`Remove ${branchName(b)}${isLeaf(d, b.id) ? "" : " and the branches after it"}`}
+                            title={isLeaf(d, b.id) ? "Remove this branch (one undo step)" : "Remove this branch and the branches after it (one undo step)"}
+                            disabled={blocked}
+                            onClick={() => {
+                              commit(removeBranch(e, b.id));
+                              setSelected(null);
+                            }}
+                          >
+                            <X size={14} aria-hidden="true" />
+                          </button>
+                        )}
+                      </span>
                     </div>
                     );
                     out.push(...rows(b.id, k + 1));

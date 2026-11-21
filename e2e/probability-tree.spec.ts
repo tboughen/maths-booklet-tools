@@ -139,6 +139,13 @@ test("the Branches list grows the tree: + Branch at each point and + Stage, each
   expect((await saved(page)).document.branches).toHaveLength(8);
   for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.branches).toHaveLength(6);
+  // × removes the branch you choose; a point keeps its fewest branches, so the first stage has no ×.
+  await expect(card.getByRole("button", { name: /^Remove Red$/ })).toHaveCount(0);
+  await card.getByRole("button", { name: "Remove Red, Red" }).click();
+  expect((await saved(page)).document.branches.map((b: { outcome: { text: string } }) => b.outcome.text)).toEqual(["Red", "Blue", "Blue", "Red", "Blue"]);
+  await expect(card.getByRole("button", { name: "Remove Red, Blue" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(6);
 });
 
 test("grows an unequal tree, fills from a bag and calculates a given-that answer only on request", async ({ page }) => {

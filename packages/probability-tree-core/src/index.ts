@@ -368,17 +368,21 @@ export function addSibling(e: Envelope, parent: string | null): Envelope {
 }
 /** The first stage keeps two branches; a later point may keep one. */
 export const minimumBranches = (parent: string | null) => (parent === null ? 2 : 1);
-export function removeLastSibling(e: Envelope, parent: string | null): Envelope {
-  const group = childrenOf(e.document, parent);
-  if (group.length <= minimumBranches(parent)) return e;
-  const last = group[group.length - 1];
-  const n = clone(pruneBranch(e, last.id));
-  n.document.branches = n.document.branches.filter((b) => b.id !== last.id);
+/** Removes one branch, with everything after it, if its point keeps enough branches. */
+export function removeBranch(e: Envelope, id: string): Envelope {
+  const b = e.document.branches.find((x) => x.id === id);
+  if (!b || childrenOf(e.document, b.parent).length <= minimumBranches(b.parent)) return e;
+  const n = clone(pruneBranch(e, id));
+  n.document.branches = n.document.branches.filter((x) => x.id !== id);
   for (const q of n.document.questions) {
-    q.event = q.event.filter((x) => x !== last.id);
-    q.given = q.given.filter((x) => x !== last.id);
+    q.event = q.event.filter((x) => x !== id);
+    q.given = q.given.filter((x) => x !== id);
   }
   return validate(n);
+}
+export function removeLastSibling(e: Envelope, parent: string | null): Envelope {
+  const group = childrenOf(e.document, parent);
+  return group.length ? removeBranch(e, group[group.length - 1].id) : e;
 }
 /** Adds a stage after every path that reaches the last stage. */
 export function addStage(e: Envelope): Envelope {

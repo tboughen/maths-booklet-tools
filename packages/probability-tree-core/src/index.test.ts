@@ -26,6 +26,7 @@ import {
   pruneBranch,
   readProbability,
   removeLastSibling,
+  removeBranch,
   removeStage,
   renderSvg,
   setOutcome,
@@ -291,5 +292,18 @@ describe("connector revise", () => {
     expect(left.document.branches[0].probability).toEqual({ text: e.document.branches[0].probability.text, show: "omit" });
     const back = await revise({ envelope: left, baseHash: await hash(left), operations: [{ op: "set_visibility", part: "all", show: "show" }] });
     expect(back.document.branches[0].probability.show).toBe("show");
+  });
+});
+
+describe("removeBranch", () => {
+  it("removes the chosen branch and what follows it, and keeps a point's minimum", () => {
+    const e = create();
+    const first = e.document.branches.find((b) => b.parent === null)!;
+    const r = removeBranch(e, first.id);
+    expect(r).toBe(e); // the first stage keeps two branches
+    const child = e.document.branches.find((b) => b.parent === first.id)!;
+    const after = removeBranch(e, child.id);
+    expect(after.document.branches).toHaveLength(e.document.branches.length - 1);
+    expect(after.document.branches.some((b) => b.id === child.id)).toBe(false);
   });
 });

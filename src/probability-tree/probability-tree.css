@@ -323,3 +323,36 @@
     min-height: 44px;
   }
 }
+/* "path end" and the × that removes a branch. */
+.pt-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 32px;
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--md-muted, #5a6b7d);
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-remove:hover:not(:disabled) {
+  background: #fde8e8;
+  color: #a4161a;
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .md-kit :is(.site-panel, .panel-card) button.pt-remove {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+}
