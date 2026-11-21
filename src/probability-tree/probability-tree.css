@@ -396,3 +396,39 @@
   max-height: none;
   overflow: visible;
 }
+/* Teacher notes: one line until opened. */
+.pt-notes summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pt-notes[open] summary span {
+  display: none;
+}
+.pt-notes p {
+  margin: 4px 0 0 16px;
+}
+/* The how-to beside the count, at a readable size near the switches that make pupil spaces. */
+.pt-hint {
+  font-size: 13px;
+}
+.pt-hint-how {
+  color: var(--md-ink, #1d2b3a);
+}
+/* "× Remove" on a Branches row: the word makes the button's job plain. */
+.md-kit :is(.site-panel, .panel-card) button.pt-remove:has(.pt-remove-word) {
+  width: auto;
+  gap: 2px;
+  padding: 0 6px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-remove:has(.pt-remove-word) {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.pt-status:has(> .pt-notes:only-child) {
+  padding: 3px 12px;
+}

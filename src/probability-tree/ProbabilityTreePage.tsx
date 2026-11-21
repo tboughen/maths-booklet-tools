@@ -722,9 +722,17 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     {x}
                   </p>
                 ))}
-                {g.notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
+                {/* Teacher notes fold to one line, so the drawing keeps its room (scoring, 21 Nov 2026); errors stay open. */}
+                {g.notes.length > 0 && (
+                  <details className="pt-notes">
+                    <summary>
+                      {g.notes.length === 1 ? "Teacher note" : `${g.notes.length} teacher notes`}: <span>{g.notes[0]}</span>
+                    </summary>
+                    {g.notes.map((x) => (
+                      <p key={x}>Teacher note: {x}</p>
+                    ))}
+                  </details>
+                )}
               </div>
             )}
           </Panel>
@@ -750,7 +758,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               <div className="pt-hint" aria-live="polite">
                 <span>
                   {/* The count and Clear sit with the switches that make pupil spaces (scoring, 21 Nov 2026). */}
-                  {spaceCount === 0 ? "No pupil spaces yet" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+                  <span className="pt-hint-how">Double-click a label on the tree for a pupil space.</span>{" "}
+                  {spaceCount === 0 ? "None yet." : `${spaceCount} so far.`}
                 </span>
                 <button type="button" className="pt-link" aria-disabled={blocked || spaceCount === 0 || undefined} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again (one undo step)"} onClick={() => !blocked && spaceCount > 0 && clearSpaces()}>
                   Clear pupil spaces
@@ -820,6 +829,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                             }}
                           >
                             <X size={14} aria-hidden="true" />
+                            <span className="pt-remove-word" aria-hidden="true">Remove</span>
                           </button>
                         )}
                       </span>

@@ -115,7 +115,7 @@ test("what pupils see: double-click, typing first, leave out, the kind switches 
   await probabilities.getByRole("button", { name: "Pupil space" }).click();
   expect(await shows()).toEqual(Array(6).fill("hidden"));
   expect(await undoName()).toContain("pupil space on all probabilities");
-  await expect(page.locator(".pt-hint")).toContainText("6 pupil spaces");
+  await expect(page.locator(".pt-hint")).toContainText("6 so far");
   await page.getByRole("button", { name: "Clear pupil spaces" }).click();
   expect(await shows()).toEqual(Array(6).fill("show"));
   expect(await undoName()).toContain("clear 6 pupil spaces");
