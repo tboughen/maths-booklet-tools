@@ -1051,7 +1051,7 @@ for (const tool of toolIds) {
       ...(noAnswersCopy.has(tool) ? [] : [["Worked notes…", "Dark-pink guidance on the answers copy only."]]),
       ["Save editable file", "Includes hidden answers."],
       ["Open editable file", ""],
-      ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],
+      ["Copy editable link", "For colleagues: it opens the whole resource, answers included. Never send it to pupils."],
       ["Keyboard shortcuts", "Or press ? on the page."],
       ["First-time Word setup", ""],
     ]);

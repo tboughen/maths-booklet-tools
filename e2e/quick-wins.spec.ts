@@ -61,6 +61,7 @@ test("a copy message also shows for a moment just under the copy buttons", async
 
 test("a message that does not follow a copy, download or file press is not repeated", async ({ page }) => {
   const shown = page.locator(".site-page:not([hidden])");
+  await shown.getByRole("button", { name: 'Questions and "given that"' }).click();
   await shown.getByRole("button", { name: "Add question" }).click();
   await expect(page.locator(".editor-status-flash")).toHaveCount(0);
 });

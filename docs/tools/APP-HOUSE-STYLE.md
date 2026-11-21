@@ -225,6 +225,28 @@ hover (`.pt-hit` in `probability-tree.css`, shared by the tools that use the `pt
 target that is a hidden answer keeps a pink tint. Like handles and focus rings, it is never part
 of an export.
 
+### What pupils see, and the options box (pilot: probability trees, 21 Nov 2026)
+
+One vocabulary for every label on a diagram (`src/editor-kit/visibility.ts`): **Show** prints the
+value, **Pupil space** (saved as `hidden`) leaves a space and the answers copy shows the value, and
+**Leave out** (saved as `omit`) prints nothing in either copy but keeps the value. "Answer line"
+stays the builders' word for the line after a question.
+
+- A click on a label opens the small options box beside it (`src/site/OptionsBox.tsx`): the What
+  pupils see switch (`VisibilitySwitch`), the label's text and the object's own actions. It is
+  live (no Apply or Cancel), one box at a time, never over its label, inside the window, and
+  closes on Escape or a press elsewhere. This replaces the 14 Nov "no floating editors" rule for
+  small boxes; a large floating form with Apply and Cancel is still out.
+- A double-click on a label, or H with it selected (never while typing), toggles a pupil space.
+- A "What pupils see" card sets a whole kind at once, shows Mixed when labels differ, counts the
+  pupil spaces and offers "Clear pupil spaces" (never "Show all", which reads like "Show answers").
+- Card help sits behind a (?) beside the heading (`CardHeading` in `src/site/CardHelp.tsx`), and a
+  number setting with a few sensible values is a − / + stepper (`NumberStepper`).
+- Targets say what they are to a screen reader ("Edit probability for Red, Blue, pupil space"),
+  and use `touch-action: manipulation` and no text selection, so a double-tap on a board neither
+  zooms nor selects. Tools move to this pattern one group at a time; until then the U21 rule (the
+  selected object's card comes first) still applies to them.
+
 ## The answers switch
 
 A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads
