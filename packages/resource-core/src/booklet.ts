@@ -92,9 +92,26 @@ export const introSchema = z
     learn: z.array(text(120)).max(8).default([]),
     /** Where it leads next. */
     next: z.array(text(120)).max(8).default([]),
-    keywords: z.array(keyword).max(16).default([]),
+    keywords: z.array(keyword).max(24).default([]),
   })
   .strict();
+
+const retrievalItem = z.object({ question: text(160), answer: text(80) }).strict();
+
+/**
+ * The fold-over retrieval page at the back of a full unit booklet (BOOKLET-STANDARD N12, Tim 18
+ * November 2026): short questions from across the unit with an answer line each, and the answers
+ * in a strip beyond a dashed fold line. Pupils fold the strip back, answer, then unfold to check,
+ * so the answers print in BOTH copies: that is the page's purpose, not a reveal.
+ */
+export const retrievalSchema = z
+  .object({
+    title: text(60).default("Fold and test yourself"),
+    instruction: text(160).default("Fold the answers back along the dashed line. Answer each question, then unfold the page and check."),
+    items: z.array(retrievalItem).min(1).max(20),
+  })
+  .strict();
+export type Retrieval = z.infer<typeof retrievalSchema>;
 
 export const bookletSchema = z
   .object({
@@ -127,9 +144,13 @@ export const bookletSchema = z
           .enum(["plain", "maths"])
           .default("plain")
           .describe("maths (every new booklet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper (x^2 as x², a true minus, <= as ≤, sqrt as √, pi as π, letters used as maths in italic). plain: text prints as typed."),
-        /** The unit introduction page, or null for none. */
+        /** The unit introduction page, or null for none. Its key words are the unit's glossary (N12). */
         intro: introSchema.nullable().default(null),
-        lessons: z.array(lessonSchema).min(1).max(12),
+        /** The printed number of the first lesson: 0 when a unit opens with a "get ready" lesson 0 of earlier skills. */
+        firstLessonNumber: z.number().int().min(0).max(1).default(1),
+        lessons: z.array(lessonSchema).min(1).max(16),
+        /** The fold-over retrieval page printed last, or null for none (N12, full unit booklets). */
+        retrieval: retrievalSchema.nullable().default(null),
       })
       .strict()
       .describe("The booklet: cover fields, an optional unit introduction and the lessons in order."),
@@ -159,6 +180,8 @@ export function lessonWords(doc: { lessonName?: string; lessonBadge?: string }):
   const badge = (doc.lessonBadge ?? "").trim() || capital(name.split(" ").pop() ?? name);
   return { badge, name, end: `End of ${lowerFirst(name)}` };
 }
+/** What is added to a lesson's place (1, 2, 3...) to give its printed number. */
+export const lessonShift = (doc: { firstLessonNumber?: number }): number => (doc.firstLessonNumber ?? 1) - 1;
 export const LESSON_WORDS: LessonWords = lessonWords({});
 
 /** Letters A to Z, then AA, AB and so on. */

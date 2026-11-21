@@ -242,7 +242,7 @@ export const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
 export interface CellOpts {
   width: number;
   span?: number;
-  borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number; style?: "dotted" }>>;
+  borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number; style?: "dotted" | "dashed" }>>;
   shade?: string;
   margin?: Partial<Record<"top" | "left" | "bottom" | "right", number>>;
   vAlign?: "top" | "center" | "bottom";
