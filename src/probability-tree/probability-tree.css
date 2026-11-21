@@ -279,7 +279,7 @@
     padding-right: 20px !important;
   }
 }
-/* The live hint line at the foot of the Branches card. */
+/* The live hint line in the What pupils see card. */
 .pt-hint {
   display: flex;
   flex-wrap: wrap;
@@ -423,11 +423,13 @@
   padding: 0 6px 0 4px;
   font-size: 12px;
   font-weight: 600;
-}
-.md-kit :is(.site-panel, .panel-card) button.pt-remove:has(.pt-remove-word) {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
+}
+/* Every row end is as wide as a worded Remove button, so the fields line up across stages. */
+.pt-row-end {
+  min-width: 74px;
 }
 .pt-status:has(> .pt-notes:only-child) {
   padding: 3px 12px;

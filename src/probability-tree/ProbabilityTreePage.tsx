@@ -726,10 +726,11 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 {g.notes.length > 0 && (
                   <details className="pt-notes">
                     <summary>
-                      {g.notes.length === 1 ? "Teacher note" : `${g.notes.length} teacher notes`}: <span>{g.notes[0]}</span>
+                      {g.notes.length === 1 ? "Teacher note" : `${g.notes.length} teacher notes`}
+                      <span>: {g.notes[0]}</span>
                     </summary>
-                    {g.notes.map((x) => (
-                      <p key={x}>Teacher note: {x}</p>
+                    {g.notes.map((x, i) => (
+                      <p key={i}>Teacher note: {x}</p>
                     ))}
                   </details>
                 )}
