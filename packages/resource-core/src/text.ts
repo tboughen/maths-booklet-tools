@@ -25,7 +25,7 @@ export const FRACTION = /\{([^{}/]{1,12})\/([^{}/]{1,12})\}/g;
 export const SUP_SCALE = 0.7;
 export const SUP_RAISE = 0.36;
 /** A power with maths notation on: ^5, ^-2, ^n, or a braced one such as ^{2n} or ^{-1}. */
-const POWER = /\^(?:\{([^{}]{1,8})\}|([−-]?\d{1,3}|[−-]?[a-z])(?![a-z]))/g;
+const POWER = /\^(?:\{([^{}]{1,8})\}|([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z]))/g;
 /** Splits each plain run at its powers: the power becomes a raised run in the same style. */
 function powerRuns(runs: Run[]): Run[] {
   const out: Run[] = [];
@@ -38,7 +38,7 @@ function powerRuns(runs: Run[]): Run[] {
     for (const m of r.text.matchAll(POWER)) {
       if (m.index > at) out.push({ text: r.text.slice(at, m.index), style: r.style });
       // Letters in a power print in italic, as maths letters do; digits and signs stay upright.
-      for (const piece of (m[1] ?? m[2]).replace(/^-/, "−").match(/[A-Za-z]+|[^A-Za-z]+/g) ?? [])
+      for (const piece of (m[1] ?? m[2]).replace(/-/g, "−").match(/[A-Za-z]+|[^A-Za-z]+/g) ?? [])
         out.push({ text: piece, style: /[A-Za-z]/.test(piece) ? "italic" : r.style, sup: true });
       at = m.index + m[0].length;
     }

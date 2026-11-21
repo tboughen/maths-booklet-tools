@@ -28,6 +28,10 @@ describe("raised powers with maths notation", () => {
   it("is a Word superscript run", () => {
     expect(runs("x^5", {}, "regular", true)).toContain('<w:vertAlign w:val="superscript"/>');
   });
+  it("leaves a power of four or more digits as typed, and signs a braced minus", () => {
+    expect(sups("2^1000")).toEqual([]);
+    expect(sups("a^{n-1}")).toEqual(["n", "−1"]);
+  });
   it("keeps the bracket after a typed square or cube: (2a^3)^4", () => {
     expect(typesetText("(2a^3)^4")).toBe("(2*a*³)^4");
     expect(typesetText("x^(2)")).toBe("*x*²");
