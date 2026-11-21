@@ -203,6 +203,8 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
+/** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
+const ONE_COLUMN = new Set(["/tools/probability-tree"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Selected group", ["Total and groups"], ["Work out counts", "Questions", "Layout"], 2],
@@ -219,9 +221,15 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     const chosen = (await page.locator(`.md-kit .panel-card[aria-label="${selected}"]`).boundingBox())!;
     const layout = await chartCard(page, "Layout");
     for (const name of left) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(chosen.x);
-    for (const name of right) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(layout.x);
-    expect(layout.x, path).toBeGreaterThanOrEqual(chosen.x + chosen.width);
-    expect(Math.abs(layout.width - chosen.width), path).toBeLessThanOrEqual(1);
+    if (ONE_COLUMN.has(path)) {
+      // One narrow column (the usability pilot): the folded groups sit under the cards, in one card, inset by its border.
+      for (const name of right) expect(Math.abs((await chartCard(page, name)).x - chosen.x), `${path} ${name}`).toBeLessThanOrEqual(1);
+      expect(layout.y, path).toBeGreaterThan(chosen.y + chosen.height);
+    } else {
+      for (const name of right) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(layout.x);
+      expect(layout.x, path).toBeGreaterThanOrEqual(chosen.x + chosen.width);
+      expect(Math.abs(layout.width - chosen.width), path).toBeLessThanOrEqual(1);
+    }
     // With something selected the settings were 1,597, 1,531 and 1,157 px long before the kit.
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
@@ -248,12 +256,13 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
     const first = await chartCard(page, left[0]), layout = await chartCard(page, "Layout");
-    expect(layout.x, path).toBe(first.x);
+    expect(Math.abs(layout.x - first.x), path).toBeLessThanOrEqual(1);
     expect(layout.y, path).toBeGreaterThan(first.y + first.height);
 
     await page.setViewportSize({ width: 1080, height: 1920 });
     const lefts = new Set<number>();
-    for (const name of [...left, ...right]) lefts.add(Math.round((await chartCard(page, name)).x));
+    // To the nearest 4 px: folded groups sit 1 px in, inside their shared card.
+    for (const name of [...left, ...right]) lefts.add(Math.round((await chartCard(page, name)).x / 4));
     expect(lefts.size, path).toBe(upright);
 
     await page.setViewportSize({ width: 375, height: 800 });

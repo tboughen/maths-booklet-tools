@@ -48,6 +48,9 @@
 .md-kit-cards, .md-kit-cards > div { display: contents; }
 @media screen and (min-width: 1800px) and (min-height: 800px) and (min-aspect-ratio: 1 / 1) {
   .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit) { grid-template-columns: minmax(0, 1fr) clamp(600px, 33vw, 700px); }
+  /* A tool on one column (the usability pilot, from probability trees, 21 Nov 2026): one narrow column like
+     MathFigures, so the diagram gets the width. Its rarer groups fold, so the column stays short. */
+  .site-app .site-page--tool .booklet-editor .workspace:has(> .md-kit.md-kit--one) { grid-template-columns: minmax(0, 1fr) 400px; }
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
   .site-app .site-page--tool .booklet-editor .workspace > .md-kit > .md-kit-cards > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
   /* A third group sits under the first. It holds a card that comes last in the settings (Printing)

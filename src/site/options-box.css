@@ -367,3 +367,20 @@
     min-height: 44px;
   }
 }
+
+/* Folded groups that sit together form one card, one row each, as MathFigures does. */
+.md-fold-group {
+  display: grid;
+  border: 1px solid var(--md-line, #dbe3ec);
+  border-radius: var(--md-radius-card, 8px);
+  background: var(--md-paper, #fff);
+  overflow: visible;
+}
+.md-kit .md-fold-group > .panel-card.md-fold {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.md-kit .md-fold-group > .panel-card.md-fold + .panel-card.md-fold {
+  border-top: 1px solid var(--md-line, #dbe3ec);
+}

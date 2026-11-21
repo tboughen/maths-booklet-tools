@@ -646,7 +646,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                  
                   vertical
                   name="Stages"
-                  caption=""
+                  caption="Stages"
                   add={{
                     label: "Add a stage after every path that reaches the last stage",
                     title: "Add stage",
@@ -693,10 +693,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Probability tree settings">
+          <aside className="inspector-stack md-kit md-kit--one" aria-label="Probability tree settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
+            {/* One column (Tim, 21 Nov 2026): the main cards, then the rarer groups folded together in one card. */}
             <section className="panel-card pt-panel" aria-label="What pupils see">
               <CardHeading
                 title="What pupils see"
@@ -762,7 +761,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         />
                         <StateTag value={b.probability} />
                       </span>
-                      <span className="pt-note">{isLeaf(d, b.id) ? "end" : ""}</span>
+                      <span className="pt-note" title={isLeaf(d, b.id) ? "This branch ends its path" : undefined}>{isLeaf(d, b.id) ? "path end" : ""}</span>
                     </div>
                   );
                 })}
@@ -774,7 +773,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 </span>
                 {spaceCount > 0 && (
                   <button type="button" className="pt-link" aria-label="Clear pupil spaces" title="Show every value again (one undo step)" disabled={blocked} onClick={clearSpaces}>
-                    Clear
+                    Clear pupil spaces
                   </button>
                 )}
               </div>
@@ -783,8 +782,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 Same outcome names across each stage
               </label>
             </section>
-            </div>
-            <div>
+            <div className="md-fold-group">
             <FoldCard
               tool="probability-tree"
               title="Fill probabilities"
@@ -995,7 +993,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 <NumberStepper name="Path spacing" unit="mm" value={d.gapMm} steps={GAP_STEPS} min={8} max={24} disabled={blocked} onChange={(v) => patch((n) => void (n.gapMm = v))} />
               </div>
             </FoldCard>
-            </div>
             </div>
           </aside>
         </section>
