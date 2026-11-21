@@ -871,9 +871,12 @@ export function layout(e: Envelope) {
     if (values.some((v) => v && (v.n < 0n || v.n > v.d)))
       issues.push(`A probability after ${parent ? pathName(d, parent) : "the start"} is below 0 or above 1.`);
   }
-  for (const q of d.questions)
+  for (const q of d.questions) {
     if (q.answer.show === "show" && !q.answer.text.trim() && q.text.trim())
       notes.push(`Question ${q.text.slice(0, 20)} has no answer and no pupil space. Hide its answer to leave a space.`);
+    else if (q.answer.show === "omit" && q.text.trim())
+      notes.push(`Question ${q.text.slice(0, 20)} has its answer left out, so pupils have nowhere to write it. Choose Pupil space to leave a space.`);
+  }
   if (d.gapMm < 12 && d.branches.some((b) => drawnLabel(b.probability) && (isFractionText(b.probability.text) || b.probability.show === "hidden")))
     notes.push("Fractions may crowd at this path spacing. Check the preview or increase the spacing.");
 

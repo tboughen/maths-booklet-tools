@@ -59,7 +59,6 @@ import {
   pruneBranch,
   questionValue,
   minimumBranches,
-  removeLastSibling,
   removeBranch,
   removeStage,
   renderSvg,
@@ -629,13 +628,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           <button
                             type="button"
                             disabled={blocked || childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent)}
-                            title={childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent) ? "This point already has as few branches as it can." : undefined}
+                            title={childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent) ? "This point already has as few branches as it can." : "Removes this branch and the branches after it"}
                             onClick={() => {
-                              commit(removeLastSibling(e, selectedBranch.parent));
+                              commit(removeBranch(e, selectedBranch.id));
                               setSelected(null);
                             }}
                           >
-                            Remove the last branch here
+                            Remove this branch
                           </button>
                         </div>
                       </>
@@ -751,6 +750,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                             onClick={() => {
                               commit(removeBranch(e, b.id));
                               setSelected(null);
+                              // The row has gone: focus moves to this point's + Branch.
+                              requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-add-for="${parent ?? "start"}"]`)?.focus());
                             }}
                           >
                             <X size={14} aria-hidden="true" />
@@ -761,44 +762,45 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     );
                     out.push(...rows(b.id, k + 1));
                   }
-                  if (group.length > 0 && group.length < MAX_CHILDREN)
+                  if (group.length > 0) {
+                    const full = group.length >= MAX_CHILDREN;
+                    const after = parent === null ? "at the start" : `after ${branchName(d.branches.find((x) => x.id === parent)!)}`;
                     out.push(
                       <div key={`add:${parent ?? "start"}`} className="pt-add-row" style={{ paddingLeft: (k - 1) * 14 }}>
                         <button
                           type="button"
                           className="pt-link"
-                          disabled={blocked}
-                          aria-label={parent === null ? "Add a first-stage branch" : `Add a branch after ${branchName(d.branches.find((x) => x.id === parent)!)}`}
-                          title="One undo step"
-                          onClick={() => commit(addSibling(e, parent), "This tree has too many paths for another branch.")}
+                          data-add-for={parent ?? "start"}
+                          aria-label={`+ Branch ${after}`}
+                          // Kept in place when full, so focus is never dropped.
+                          aria-disabled={blocked || full || undefined}
+                          title={full ? `Each point has at most ${MAX_CHILDREN} branches.` : "One undo step"}
+                          onClick={() => !blocked && !full && commit(addSibling(e, parent), "This tree has too many paths for another branch.")}
                         >
                           + Branch{parent === null ? " at the start" : ""}
                         </button>
                       </div>,
                     );
+                  }
                   return out;
                 })(null, 1)}
               </div>
               <div className="pt-add-row pt-add-stage">
-                <button type="button" className="pt-link" aria-label="Add a stage" disabled={blocked || depth >= MAX_DEPTH} title={depth >= MAX_DEPTH ? `A tree has at most ${MAX_DEPTH} stages.` : "Add a stage after every path that reaches the last stage"} onClick={() => { const next = addStage(e); commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage."); }}>
+                <button type="button" className="pt-link" aria-disabled={blocked || depth >= MAX_DEPTH || undefined} title={depth >= MAX_DEPTH ? `A tree has at most ${MAX_DEPTH} stages.` : "Adds a stage after every path that reaches the last stage"} onClick={() => { if (blocked || depth >= MAX_DEPTH) return; const next = addStage(e); commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage."); }}>
                   + Stage
                 </button>
-                {depth > 1 && (
-                  <button type="button" className="pt-link" aria-label="Remove the last stage" disabled={blocked} title="One undo step" onClick={() => commit(removeStage(e))}>
-                    Remove last stage
-                  </button>
-                )}
+                <button type="button" className="pt-link" aria-disabled={blocked || depth <= 1 || undefined} title={depth <= 1 ? "A tree keeps at least one stage." : "One undo step"} onClick={() => !blocked && depth > 1 && commit(removeStage(e))}>
+                  Remove last stage
+                </button>
               </div>
               <div className="pt-hint" aria-live="polite">
                 <span>
                   {/* The how-to is in the foot strip and the label tooltips; here only the count (scoring, 21 Nov 2026). */}
                   {spaceCount === 0 ? "No pupil spaces yet" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
                 </span>
-                {spaceCount > 0 && (
-                  <button type="button" className="pt-link" aria-label="Clear pupil spaces" title="Show every value again (one undo step)" disabled={blocked} onClick={clearSpaces}>
-                    Clear pupil spaces
-                  </button>
-                )}
+                <button type="button" className="pt-link" aria-disabled={blocked || spaceCount === 0 || undefined} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again (one undo step)"} onClick={() => !blocked && spaceCount > 0 && clearSpaces()}>
+                  Clear pupil spaces
+                </button>
               </div>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.linkLabels} onChange={(ev) => patch((n) => void (n.linkLabels = ev.target.checked))} />

@@ -356,3 +356,9 @@
     min-height: 44px;
   }
 }
+/* Kept in place when they can't be used, so focus stays; shown greyed. */
+.md-kit :is(.site-panel, .panel-card) button.pt-link[aria-disabled="true"] {
+  color: var(--md-muted, #5a6b7d);
+  text-decoration: none;
+  cursor: default;
+}

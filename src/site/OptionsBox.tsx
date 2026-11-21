@@ -86,6 +86,8 @@ export function OptionsBox({
       const t = event.target as Element | null;
       if (!t || box.current?.contains(t) || t.closest("[data-options-anchor]")) return;
       if (modalOpen()) return;
+      // A field still being typed in commits first: a field removed with focus never gets its blur.
+      if (box.current?.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
       close.current();
     };
     const escape = (event: KeyboardEvent) => {

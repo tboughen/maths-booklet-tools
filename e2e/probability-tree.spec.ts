@@ -33,6 +33,17 @@ test("edits a probability from the tree, makes it a pupil space and undoes", asy
   await field.press("Enter");
   expect((await saved(page)).document.branches[2].probability).toEqual({ text: "4/7", show: "show" });
   await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("4/7");
+  // Typing, then pressing somewhere else, keeps what was typed (one undo step).
+  await target.click();
+  await page.keyboard.press("Enter");
+  await field.fill("3/7");
+  await page.getByRole("button", { name: "Examples" }).hover();
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+  expect((await saved(page)).document.branches[2].probability.text).toBe("3/7");
+  await page.getByRole("button", { name: "Undo" }).click();
   await target.dblclick();
   await expect(box.getByRole("button", { name: "Pupil space" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(1);
@@ -128,20 +139,21 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
 test("the Branches list grows the tree: + Branch at each point and + Stage, each one undo step", async ({ page }) => {
   await boot(page);
   const card = page.getByRole("region", { name: "Branches" });
-  await card.getByRole("button", { name: "Add a branch after Red" }).click();
+  await card.getByRole("button", { name: "+ Branch after Red" }).click();
   expect((await saved(page)).document.branches).toHaveLength(7);
   await expect(card.getByRole("textbox", { name: /^Outcome for Red, / })).toHaveCount(3);
-  await card.getByRole("button", { name: "Add a first-stage branch" }).click();
+  await card.getByRole("button", { name: "+ Branch at the start" }).click();
   expect((await saved(page)).document.branches).toHaveLength(8);
-  await card.getByRole("button", { name: "Add a stage" }).click();
+  await card.getByRole("button", { name: "+ Stage" }).click();
   expect((await saved(page)).document.branches.length).toBeGreaterThan(8);
-  await card.getByRole("button", { name: "Remove the last stage" }).click();
+  await card.getByRole("button", { name: "Remove last stage" }).click();
   expect((await saved(page)).document.branches).toHaveLength(8);
   for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.branches).toHaveLength(6);
   // × removes the branch you choose; a point keeps its fewest branches, so the first stage has no ×.
   await expect(card.getByRole("button", { name: /^Remove Red$/ })).toHaveCount(0);
   await card.getByRole("button", { name: "Remove Red, Red" }).click();
+  await expect(card.getByRole("button", { name: "+ Branch after Red" })).toBeFocused();
   expect((await saved(page)).document.branches.map((b: { outcome: { text: string } }) => b.outcome.text)).toEqual(["Red", "Blue", "Blue", "Red", "Blue"]);
   await expect(card.getByRole("button", { name: "Remove Red, Blue" })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
