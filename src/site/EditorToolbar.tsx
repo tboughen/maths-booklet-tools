@@ -176,7 +176,7 @@ function Toolbar(props: EditorToolbarProps) {
         <button
           className="copy-main clipboard-copy"
           disabled={props.exportDisabled || props.busy}
-          title="A picture for slides or the board. Paste it with Ctrl+V."
+          title="A picture for slides or the board"
           onClick={props.onCopyClipboard}
         >
           <Copy size={17} aria-hidden="true" />

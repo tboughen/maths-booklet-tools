@@ -163,6 +163,7 @@
   pointer-events: none;
   animation: editor-status-flash 2.6s ease forwards;
 }
+.editor-status-flash::after { content: attr(data-text); }
 @keyframes editor-status-flash {
   0% { opacity: 0; translate: 0 -4px; }
   8%, 85% { opacity: 1; translate: 0 0; }

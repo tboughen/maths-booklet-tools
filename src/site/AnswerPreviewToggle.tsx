@@ -13,7 +13,7 @@ interface AnswerSwitchProps {
 }
 
 /**
- * The answers switch of the house style (docs/tools/APP-HOUSE-STYLE.md): it reads "Show hidden
+ * The answers switch of the house style (docs/tools/APP-HOUSE-STYLE.md): it reads "Show
  * answers" everywhere and turns pink while it is on, with a small pink label over the corner of
  * the diagram. Pink means teacher only. Its full name says whether downloads change too.
  */

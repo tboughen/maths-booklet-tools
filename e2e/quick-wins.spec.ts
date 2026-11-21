@@ -49,9 +49,18 @@ test("a copy message also shows for a moment just under the copy buttons", async
   await expect(flash).toBeVisible();
   await expect(flash).toHaveAttribute("aria-hidden", "true");
   await expect(flash).toHaveCSS("pointer-events", "none");
+  // The words are drawn from an attribute, so the message is in the page's text only once.
+  await expect(flash).toHaveText("");
+  await expect(flash).not.toHaveAttribute("data-text", "");
   const actions = (await shown.locator(".editor-copy-actions").boundingBox())!;
   const box = (await flash.boundingBox())!;
   expect(box.y).toBeGreaterThanOrEqual(actions.y + actions.height);
   expect(box.y).toBeLessThan(actions.y + actions.height + 40);
   await expect(flash).toHaveCount(0, { timeout: 5000 });
+});
+
+test("a message that does not follow a copy, download or file press is not repeated", async ({ page }) => {
+  const shown = page.locator(".site-page:not([hidden])");
+  await shown.getByRole("button", { name: "Add question" }).click();
+  await expect(page.locator(".editor-status-flash")).toHaveCount(0);
 });

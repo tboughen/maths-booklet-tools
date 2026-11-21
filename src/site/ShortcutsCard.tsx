@@ -19,16 +19,34 @@ const rows: [keys: string[][], what: string][] = [
 export function ShortcutsCard({ active, anchor }: { active?: boolean; anchor: RefObject<HTMLElement | null> }) {
   const [open, setOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
+  // Focus goes back where it was when the card closes.
+  const returnTo = useRef<HTMLElement | null>(null);
+  const show = () => {
+    returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setOpen(true);
+  };
+  const close = () => {
+    setOpen(false);
+    const back = returnTo.current;
+    returnTo.current = null;
+    if (back?.isConnected) requestAnimationFrame(() => back.focus());
+  };
+  // A page that is switched away from closes its card, so it never covers another tool.
+  if (open && active === false) setOpen(false);
   useEffect(() => {
     if (active === false) return;
     const visible = () => Boolean(anchor.current?.getClientRects().length);
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "?" || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented) return;
       if (isTypingTarget(event.target) || modalOpen() || !visible()) return;
+      // Not over an open Download or File menu.
+      if (document.querySelector('[role="menu"]')) return;
       event.preventDefault();
-      setOpen(true);
+      show();
     };
-    const onAsk = () => visible() && setOpen(true);
+    const onAsk = () => {
+      if (visible()) show();
+    };
     window.addEventListener("keydown", onKey);
     window.addEventListener(SHORTCUTS_EVENT, onAsk);
     return () => {
@@ -49,12 +67,12 @@ export function ShortcutsCard({ active, anchor }: { active?: boolean; anchor: Re
       onKeyDown={(event) => event.stopPropagation()}
       onCancel={(event) => {
         event.preventDefault();
-        setOpen(false);
+        close();
       }}
     >
       <header>
         <h2 id="shortcuts-card-title">Keyboard shortcuts</h2>
-        <button type="button" onClick={() => setOpen(false)}>
+        <button type="button" onClick={close}>
           Close
         </button>
       </header>
