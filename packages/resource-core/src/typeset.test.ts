@@ -118,6 +118,7 @@ describe("compound units stay upright (NP17)", () => {
     expect(typesetText("an area of 4 m². Work out the pressure in N/m².")).toBe("an area of 4 m². Work out the pressure in N/m².");
     expect(typesetText("A density of 10.5 g/cm³ and 20 m/s")).toBe("A density of 10.5 g/cm³ and 20 m/s");
     expect(typesetText("x² + m = 4")).toContain("*m*");
+    expect(typesetText("40p for 100 g")).toBe("40p for 100 g");
     const doc = typesetForPrint({ document: { notation: "maths", items: [{ type: "answerLine", prefix: "Mass =", suffix: "g" }, { type: "answerLine", prefix: "", suffix: "N/m²" }] } }) as unknown as { document: { items: { suffix: string }[] } };
     expect(doc.document.items.map((i) => i.suffix)).toEqual(["g", "N/m²"]);
   });

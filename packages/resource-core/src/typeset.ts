@@ -89,6 +89,8 @@ function italicLetters(s: string): string {
     }
     // A unit with a power or a "per" (m², cm³, N/m², g/cm³) after a number, or any compound unit, is upright.
     if (UNIT_WORD.test(core) && (core.includes("/") || /^[−-]?[\d.,]+%?$/.test(prev))) return;
+    // An amount in pence (40p, 2.5p) is not maths.
+    if (/^\d+(\.\d+)?p$/.test(core)) return;
     // A question or paper label (Q3a, A4) is not maths.
     if (/^[A-Z]+\d/.test(core)) return;
     const mathsy = /\d/.test(core) || new RegExp(`[${OPERATOR}²³√π^]`).test(core) || /[a-z]\(/.test(core);
