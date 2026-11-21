@@ -15,6 +15,7 @@ import "./options-box.css";
 export function OptionsBox({
   anchor,
   anchorKey,
+  focusField = true,
   title,
   onClose,
   children,
@@ -23,6 +24,8 @@ export function OptionsBox({
   anchor: HTMLElement | null;
   /** Changes when the box moves to another label, so focus moves in again. */
   anchorKey: string;
+  /** Open with the cursor in the text field (the default). False: the box itself takes focus, as on a touch screen. */
+  focusField?: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
@@ -71,12 +74,12 @@ export function OptionsBox({
   // typing replaces the value. A box with no text field takes the focus itself.
   useEffect(() => {
     if (!placed) return;
-    const field = box.current?.querySelector<HTMLInputElement>("input:not([type=checkbox]):not([disabled])");
+    const field = focusField ? box.current?.querySelector<HTMLInputElement>("input:not([type=checkbox]):not([disabled])") : null;
     if (field) {
       field.focus({ preventScroll: true });
       field.select();
     } else box.current?.focus({ preventScroll: true });
-  }, [anchorKey, placed]);
+  }, [anchorKey, placed, focusField]);
   // Whether focus was in the box, kept as it moves: by the time React removes the box, focus has already left it.
   const hadFocus = useRef(false);
   useEffect(() => {

@@ -31,6 +31,14 @@ test("edits a probability from the tree, makes it a pupil space and undoes", asy
   await page.keyboard.press("Enter");
   expect((await saved(page)).document.branches[2].probability).toEqual({ text: "4/7", show: "show" });
   await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("4/7");
+  // Moving straight from one label to another selects the new label's text, so typing replaces it.
+  await page.getByRole("button", { name: "Edit probability for Blue", exact: true }).click();
+  await page.keyboard.type("1/2");
+  await page.keyboard.press("Enter");
+  expect((await saved(page)).document.branches.find((b: { probability: { text: string } }, i: number) => i === 3)?.probability.text).toBe("1/2");
+  // With nothing typed, Ctrl+Z in the box undoes the tree.
+  await page.keyboard.press("Control+z");
+  expect((await saved(page)).document.branches[3].probability.text).toBe("5/8");
   // Typing, then pressing somewhere else, keeps what was typed (one undo step).
   await target.click();
   await page.keyboard.type("3/7");

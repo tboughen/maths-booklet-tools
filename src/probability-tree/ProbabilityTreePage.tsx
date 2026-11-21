@@ -132,7 +132,9 @@ function DraftField({
   maxLength,
   className,
   inputMode,
+  onHistory,
 }: {
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   id?: string;
   label: string;
   value: string;
@@ -166,6 +168,8 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        // With nothing typed, Ctrl+Z / Ctrl+Y undo and redo the tree (the box opens with the cursor here).
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
@@ -413,7 +417,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   // Every target reaches at least 24 px across with a mouse and 44 px on a touch board. The extra reach is an
   // invisible margin (the button's ::before), so the outline still shows the label's real size, and it stops halfway
   // to a neighbouring label, so a press never lands on the wrong one.
-  const minTarget = useCoarsePointer() ? 44 : 24;
+  const coarse = useCoarsePointer();
+  const minTarget = coarse ? 44 : 24;
   const mmToPx = ((96 / 25.4) * fitted.scale) || 1;
   const reach = useMemo(() => {
     const need = minTarget / mmToPx;
@@ -570,7 +575,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         }
                         onClick={(ev) => {
                           // A box already open for this label takes the cursor back into its text, ready to type.
-                          if (selected === key && boxAnchor === ev.currentTarget) {
+                          if (!coarse && selected === key && boxAnchor === ev.currentTarget) {
                             const field = document.querySelector<HTMLInputElement>(".md-options-box input:not([type=checkbox]):not([disabled])");
                             field?.focus();
                             field?.select();
@@ -609,6 +614,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   <OptionsBox
                     anchor={boxAnchor}
                     anchorKey={selected ?? ""}
+                    // On a touch screen a tap would pop up the on-screen keyboard over the tree: the box takes focus
+                    // and a tap on its text field starts typing.
+                    focusField={!coarse}
                     title={describeTarget(selKind, selId).replace(/^./, (c) => c.toUpperCase())}
                     onClose={() => setBoxAnchor(null)}
                   >
@@ -627,6 +635,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <label>
                       Text
                       <DraftField
+                        key={selected}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
                         label={`Text of ${describeTarget(selKind, selId)}`}
                         value={selectedLabel.text}
                         maxLength={24}
