@@ -20,6 +20,7 @@ import {
   SECTION_TITLES,
   sectionTitle,
   lessonLabels,
+  lessonShift,
   validateBooklet,
   type Booklet,
   type Card,
@@ -244,37 +245,38 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   ];
 
   const lessonEditor = (lesson: Lesson, li: number): ReactNode => {
+    const shift = lessonShift(d);
     const setLesson = (f: (l: Lesson) => void) => patch((x) => f(x.lessons[li]));
     return (
       <details key={li} className="ws-side bk-lesson" open={focus === li} onToggle={(e) => (e.currentTarget as HTMLDetailsElement).open && setFocus(li)}>
         <summary>
-          <span className="ws-q">{li + 1}</span> {lesson.title}
+          <span className="ws-q">{li + 1 + shift}</span> {lesson.title}
           {isPlaceholder(lesson) && <em className="bk-tag"> not made yet</em>}
         </summary>
-        <div className="ws-card-moves" role="group" aria-label={`Lesson ${li + 1}`}>
-          <button className="icon-button" aria-label={`Move lesson ${li + 1} up`} disabled={blocked || li === 0} onClick={() => apply((x) => edit.moveLesson(x, li, li - 1))}>
+        <div className="ws-card-moves" role="group" aria-label={`Lesson ${li + 1 + shift}`}>
+          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} up`} disabled={blocked || li === 0} onClick={() => apply((x) => edit.moveLesson(x, li, li - 1))}>
             <ArrowUp size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Move lesson ${li + 1} down`} disabled={blocked || li === d.lessons.length - 1} onClick={() => apply((x) => edit.moveLesson(x, li, li + 1))}>
+          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} down`} disabled={blocked || li === d.lessons.length - 1} onClick={() => apply((x) => edit.moveLesson(x, li, li + 1))}>
             <ArrowDown size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Duplicate lesson ${li + 1}`} disabled={blocked || d.lessons.length >= 12} onClick={() => apply((x) => edit.duplicateLesson(x, li))}>
+          <button className="icon-button" aria-label={`Duplicate lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length >= 16} onClick={() => apply((x) => edit.duplicateLesson(x, li))}>
             <Copy size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Delete lesson ${li + 1}`} disabled={blocked || d.lessons.length < 2} onClick={() => apply((x) => edit.removeLesson(x, li))}>
+          <button className="icon-button" aria-label={`Delete lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length < 2} onClick={() => apply((x) => edit.removeLesson(x, li))}>
             <Trash2 size={16} aria-hidden="true" />
           </button>
           <button className="tool-button bk-small" disabled={recovery !== null} onClick={() => showPage(shown.lessonPages[li])}>
             Show page {shown.lessonPages[li]}
           </button>
-          <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadPdf("pupil", li), `Lesson ${li + 1} PDF download started.`)}>
+          <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadPdf("pupil", li), `Lesson ${li + 1 + shift} PDF download started.`)}>
             <Download size={15} aria-hidden="true" /> Lesson PDF
           </button>
-          <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadWord("pupil", li), `Lesson ${li + 1} Word file download started.`)}>
+          <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadWord("pupil", li), `Lesson ${li + 1 + shift} Word file download started.`)}>
             <Download size={15} aria-hidden="true" /> Lesson Word
           </button>
         </div>
-        <Field label={`Lesson ${li + 1} title`} value={lesson.title} max={80} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.title = v))} />
+        <Field label={`Lesson ${li + 1 + shift} title`} value={lesson.title} max={80} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.title = v))} />
         <div className="ws-line-edit">
           <Field label="Objective code" value={lesson.code} max={16} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.code = v))} />
         </div>
@@ -296,10 +298,10 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           </label>
           <p className="ws-hint">Start a line with "- " for a bullet; a blank line leaves a gap.</p>
           <div className="bk-notes-actions">
-            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "pdf"), `Lesson ${li + 1} teaching notes PDF download started.`)}>
+            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "pdf"), `Lesson ${li + 1 + shift} teaching notes PDF download started.`)}>
               <Download size={15} aria-hidden="true" /> Notes PDF
             </button>
-            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "docx"), `Lesson ${li + 1} teaching notes Word file download started.`)}>
+            <button className="tool-button bk-small" disabled={blocked || !lesson.teacherNotes.trim()} onClick={() => void run(() => downloadNotes(li, "docx"), `Lesson ${li + 1 + shift} teaching notes Word file download started.`)}>
               <Download size={15} aria-hidden="true" /> Notes Word
             </button>
           </div>
@@ -311,13 +313,13 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <div className="bk-section-head">
                 <strong>{sectionTitle(section)}</strong>
                 <div className="ws-card-moves" role="group" aria-label={`Section ${sectionTitle(section)}`}>
-                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1} up`} disabled={blocked || si === 0} onClick={() => apply((x) => edit.moveSection(x, li, si, si - 1))}>
+                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} up`} disabled={blocked || si === 0} onClick={() => apply((x) => edit.moveSection(x, li, si, si - 1))}>
                     <ArrowUp size={15} aria-hidden="true" />
                   </button>
-                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1} down`} disabled={blocked || si === lesson.sections.length - 1} onClick={() => apply((x) => edit.moveSection(x, li, si, si + 1))}>
+                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} down`} disabled={blocked || si === lesson.sections.length - 1} onClick={() => apply((x) => edit.moveSection(x, li, si, si + 1))}>
                     <ArrowDown size={15} aria-hidden="true" />
                   </button>
-                  <button className="icon-button" aria-label={`Delete section ${si + 1} of lesson ${li + 1}`} disabled={blocked || lesson.sections.length < 2} onClick={() => apply((x) => edit.removeSection(x, li, si))}>
+                  <button className="icon-button" aria-label={`Delete section ${si + 1} of lesson ${li + 1 + shift}`} disabled={blocked || lesson.sections.length < 2} onClick={() => apply((x) => edit.removeSection(x, li, si))}>
                     <Trash2 size={15} aria-hidden="true" />
                   </button>
                 </div>
@@ -690,7 +692,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                         </button>
                       </div>
                     ))}
-                    <button className="tool-button bk-small" disabled={blocked || d.intro.keywords.length >= 16} onClick={() => patch((x) => void x.intro!.keywords.push({ word: "Word", meaning: "Its meaning." }))}>
+                    <button className="tool-button bk-small" disabled={blocked || d.intro.keywords.length >= 24} onClick={() => patch((x) => void x.intro!.keywords.push({ word: "Word", meaning: "Its meaning." }))}>
                       <Plus size={15} aria-hidden="true" /> Add a key word
                     </button>
                   </>

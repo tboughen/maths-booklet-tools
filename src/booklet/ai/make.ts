@@ -117,7 +117,9 @@ export async function makeBooklet(o: MakeOptions, brief: BookletBrief, onProgres
       lessonBadge: "",
       notation: "maths",
       intro: plan.intro,
+      firstLessonNumber: 1,
       lessons,
+      retrieval: null,
     },
   };
   return { booklet, plan, flags, usage, failed, model };

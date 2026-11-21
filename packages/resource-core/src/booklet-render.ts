@@ -1,9 +1,9 @@
 import { typesetForPrint } from "./typeset";
-import { at, card, countSpaces, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
+import { answerRule, at, card, countSpaces, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, lessonLabels, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Section } from "./booklet";
+import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Section } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -44,6 +44,8 @@ export interface BookletIssue {
   question?: number | string;
   /** 1-based printed page. */
   page?: number;
+  /** The issue is on the fold-over retrieval page. */
+  retrieval?: boolean;
   message: string;
 }
 export interface BookletRenderOptions {
@@ -62,6 +64,8 @@ export interface RenderedBooklet {
   lessonPages: number[];
   /** The introduction's page, or null. */
   introPage: number | null;
+  /** The fold-over retrieval page (the last page), or null. */
+  retrievalPage: number | null;
 }
 
 type W = { lesson: number; section?: number; question?: number | string; page?: number };
@@ -705,6 +709,72 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
   return out.join("");
 }
 
+/**
+ * The fold-over retrieval page (N12): numbered questions on the left, each with room to write and a
+ * dotted answer line; the answers in a strip on the right beyond a dashed fold line. The answers
+ * print in both copies, because pupils fold the strip back and check themselves.
+ */
+export const RETRIEVAL = {
+  /** The answer strip's width, right of the fold line. */
+  strip: 52,
+  /** Gap each side of the fold line. */
+  gap: 4,
+  /** Room for the question number. */
+  num: 7,
+  /** Writing room under a question, down to its answer line. */
+  write: 9,
+  pad: 2.2,
+} as const;
+export const retrievalQuestionWidth = () => W - RETRIEVAL.strip - RETRIEVAL.gap - RETRIEVAL.num;
+export const retrievalAnswerWidth = () => RETRIEVAL.strip - RETRIEVAL.gap - 1;
+/** Each row's height: the question, writing room and padding, or the answer if it is taller. */
+export function retrievalRowHeights(r: Retrieval): number[] {
+  return r.items.map((it) => {
+    const q = wrap(it.question, S.body, retrievalQuestionWidth()).length * lh(S.body);
+    const a = wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body);
+    return Math.max(q + RETRIEVAL.write, a + 2) + RETRIEVAL.pad * 2;
+  });
+}
+
+function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pageNo: number, maths: boolean): string {
+  const R = RETRIEVAL;
+  const x0 = A4.marginX;
+  const out: string[] = [];
+  let y = A4.top;
+  out.push(textSvg(parseRuns(r.title, "bold"), x0, y + base(A4.lessonTitle), A4.lessonTitle, st.navy));
+  y += lh(A4.lessonTitle) + 1;
+  if (r.instruction.trim()) {
+    const f = para(r.instruction, W, st);
+    out.push(at(f, x0, y));
+    y += f.h;
+  }
+  y += 4;
+  const foldX = x0 + W - R.strip;
+  const qx = x0 + R.num;
+  out.push(textSvg(parseRuns("Questions", "bold"), x0, y + base(S.body), S.body, st.navy), textSvg(parseRuns("Answers", "bold"), foldX + R.gap, y + base(S.body), S.body, st.navy));
+  y += lh(S.body) + 1.5;
+  const top = y;
+  const heights = retrievalRowHeights(r);
+  r.items.forEach((it, i) => {
+    const h = heights[i];
+    out.push(hline(x0, x0 + W, y, st, 0.35));
+    out.push(textSvg([{ text: String(i + 1), style: "bold" }], x0, y + R.pad + base(S.body), S.body, st.navy));
+    out.push(at(para(it.question, retrievalQuestionWidth(), st), qx, y + R.pad));
+    const lineY = y + h - R.pad - 1.2;
+    out.push(answerRule(qx, foldX - R.gap, lineY, st.ink));
+    const a = para(it.answer, retrievalAnswerWidth(), st);
+    out.push(at(a, foldX + R.gap, lineY - a.h + 1.2));
+    if (maths && [it.question, it.answer].some((t) => /\{[^{}]+\/[^{}]+\}/.test(t)))
+      issues.push({ lesson: 0, retrieval: true, page: pageNo, question: i + 1, message: `Fold-over question ${i + 1} has a stacked fraction, which this page prints as typed. Write it another way, such as 3 ÷ 4.` });
+    y += h;
+  });
+  out.push(hline(x0, x0 + W, y, st, 0.35));
+  out.push(`<line x1="${n(foldX)}" y1="${n(top - lh(S.body) - 2.5)}" x2="${n(foldX)}" y2="${n(y + 6)}" stroke="${st.ink}" stroke-width="0.4" stroke-dasharray="2.4 1.6"/>`);
+  out.push(textSvg(parseRuns("Fold back along the dashed line", "italic"), foldX, y + 6 + base(A4.small) + 0.5, A4.small, st.muted, "middle"));
+  if (y + 6 + lh(A4.small) > A4.bottom) issues.push({ lesson: 0, retrieval: true, page: pageNo, message: `The fold-over page needs ${n(y + 6 + lh(A4.small) - A4.bottom)} mm more height: use fewer or shorter questions.` });
+  return out.join("");
+}
+
 /** A block placed on a page: its top and height after spare height is shared out, in millimetres. */
 export type PlacedBlock =
   | { kind: "head"; y: number; h: number }
@@ -735,6 +805,8 @@ export interface BookletPlan {
   pages: PlannedLessonPage[];
   lessonPages: number[];
   introPage: number | null;
+  /** The fold-over retrieval page after the last lesson, or null. */
+  retrievalPage: number | null;
   contents: { label: string; title: string; page: number }[];
 }
 /** The teaching notes' continued-page running header: a line of text, a hairline, then the notes. */
@@ -753,7 +825,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   const planned: PlannedPage[] = [];
   doc.lessons.forEach((lesson, li) => {
     const L = li + 1;
-    const head = lessonHead(doc, lesson, L + (options.numbering?.lessonOffset ?? 0), st);
+    const head = lessonHead(doc, lesson, L + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc), st);
     let pg: PlannedPage = { lesson: L, continued: false, blocks: [{ block: { kind: "head", frag: head }, y: BOOKEND.top }], end: BOOKEND.top + head.h };
     planned.push(pg);
     const fresh = () => {
@@ -808,9 +880,11 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   planned.forEach((p, i) => {
     if (!p.continued) lessonPages.push(first + i);
   });
+  const retrievalPageNo = doc.retrieval ? first + planned.length : null;
   const contents = [
     ...(introPageNo ? [{ label: "", title: "Unit introduction", page: introPageNo }] : []),
-    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1}`, title: l.title, page: lessonPages[i] })),
+    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1 + lessonShift(doc)}`, title: l.title, page: lessonPages[i] })),
+    ...(doc.retrieval && retrievalPageNo ? [{ label: "", title: doc.retrieval.title, page: retrievalPageNo }] : []),
   ];
 
   // 3. Give each page's spare height to its working and drawing spaces.
@@ -834,7 +908,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
     const last = pi === planned.length - 1 || planned[pi + 1].lesson !== p.lesson;
     return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks, last, squares: stageSquares(lesson), stage };
   });
-  return { pages, lessonPages, introPage: introPageNo, contents };
+  return { pages, lessonPages, introPage: introPageNo, retrievalPage: retrievalPageNo, contents };
 }
 
 export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}): RenderedBooklet {
@@ -863,7 +937,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   {
     const size = pt(14);
     const room = W / 2 - plainWidth("Page 99", size, "bold") / 2 - 4 - (3 + BOOKEND.endTile + 3);
-    const endText = `${lessonWords(doc).end} ${doc.lessons.length + (options.numbering?.lessonOffset ?? 0)}`;
+    const endText = `${lessonWords(doc).end} ${doc.lessons.length + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc)}`;
     if (plainWidth(endText, size, "bold") > room)
       issues.push({ lesson: 0, page: 1, message: `"${endText}" is too long for the end band and would run into the page number. Use a shorter name for each part.` });
   }
@@ -877,7 +951,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     const pageNo = p.pageNo;
     const lesson = doc.lessons[p.lesson - 1];
     const out: string[] = [];
-    const shownLesson = p.lesson + (options.numbering?.lessonOffset ?? 0);
+    const shownLesson = p.lesson + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc);
     const shownPage = pageNo + (options.numbering?.pageOffset ?? 0);
     // Later pages: the lesson badge and stage squares in the outer top corner (N11), in place of a running header.
     if (p.continued) out.push(cornerBadge(shownLesson, p.squares, p.stage, shownPage, st, lessonWords(doc)));
@@ -919,9 +993,15 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 
+  if (doc.retrieval && plan.retrievalPage) {
+    const pageNo = plan.retrievalPage + (options.numbering?.pageOffset ?? 0);
+    glyphs(doc.retrieval, { lesson: 0, retrieval: true, page: pageNo }, "The fold-over page");
+    pages.push(page(retrievalPage(doc.retrieval, st, issues, pageNo, doc.notation === "maths") + footer(doc, pageNo, st), `${doc.title}, ${doc.retrieval.title}`, options));
+  }
+
   // Card-level issues carry the lesson, section and question they belong to.
   for (const i of ctx.issues) issues.push({ lesson: i.lesson, section: i.section, question: i.question, page: i.page, message: i.message });
-  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage };
+  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage, retrievalPage: plan.retrievalPage };
 }
 
 function dedupe(list: BookletIssue[]): BookletIssue[] {
@@ -944,14 +1024,14 @@ export function bookletFileName(booklet: Booklet, view: View = "pupil"): string 
 
 /** Where an issue is, in teacher words. */
 export function issuePlace(i: BookletIssue): string {
-  return [i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
+  return [i.retrieval ? "fold-over page" : i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
 }
 
 /** The printed pages of one lesson (0-based index), with the full booklet's page numbers. */
 export function lessonPagesOf(booklet: Booklet, lesson: number, options: BookletRenderOptions = {}): { pages: string[]; issues: BookletIssue[] } {
   const r = renderBooklet(booklet, options);
   const start = r.lessonPages[lesson] - 1;
-  const end = lesson + 1 < r.lessonPages.length ? r.lessonPages[lesson + 1] - 1 : r.pages.length;
+  const end = lesson + 1 < r.lessonPages.length ? r.lessonPages[lesson + 1] - 1 : r.retrievalPage ? r.retrievalPage - 1 : r.pages.length;
   return { pages: r.pages.slice(start, end), issues: r.issues };
 }
 
@@ -961,7 +1041,7 @@ export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet
   const full = renderBooklet(booklet);
   const doc = booklet.document;
   return {
-    booklet: { ...booklet, document: { ...doc, intro: null, lessons: [doc.lessons[lesson]] } },
+    booklet: { ...booklet, document: { ...doc, intro: null, retrieval: null, lessons: [doc.lessons[lesson]] } },
     numbering: { lessonOffset: lesson, pageOffset: full.lessonPages[lesson] - 2 },
   };
 }
@@ -977,7 +1057,7 @@ export function renderLessonNotes(saved: Booklet, lesson: number, options: Pick<
   const st = styles[options.style ?? "mathsdock"];
   const issues: BookletIssue[] = [];
   // A lesson printed from a one-lesson booklet keeps its number in the unit, as lessonPagesOf does.
-  const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0);
+  const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc);
   for (const c of missingCharacters({ text: doc.lessons[lesson].teacherNotes })) issues.push({ lesson: lesson + 1, message: missingCharacterMessage(`Lesson ${shown}'s teaching notes`, c) });
   const planned = planNotes(doc.lessons[lesson], shown, lessonWords(doc));
   planned.forEach((np, k) => {
@@ -992,5 +1072,5 @@ export const lessonNotesFileName = (booklet: Booklet, lesson: number) => lessonF
 
 /** File name for one lesson printed on its own. */
 export function lessonFileName(booklet: Booklet, lesson: number, view: View = "pupil"): string {
-  return bookletFileName(booklet, view).replace(/_Booklet/, `_Lesson ${lesson + 1}`);
+  return bookletFileName(booklet, view).replace(/_Booklet/, `_Lesson ${lesson + 1 + lessonShift(booklet.document)}`);
 }
