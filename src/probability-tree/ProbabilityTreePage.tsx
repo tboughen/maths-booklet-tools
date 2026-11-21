@@ -67,6 +67,7 @@ import {
   type Branch,
   type Envelope,
   type Label,
+  FONT,
 } from "../../packages/probability-tree-core/src";
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
@@ -74,10 +75,7 @@ import "./probability-tree.css";
 import "../site/settings-kit.css";
 import {
   commonVisibility,
-  isTypingTarget,
-  modalOpen,
   TARGET_TIP,
-  TARGET_TIP_SPACE,
   togglePupilSpace,
   visibilityStep,
   visibilityWords,
@@ -134,7 +132,9 @@ function DraftField({
   maxLength,
   className,
   inputMode,
+  onHistory,
 }: {
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   id?: string;
   label: string;
   value: string;
@@ -168,11 +168,14 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        // With nothing typed, Ctrl+Z / Ctrl+Y undo and redo the tree (the box opens with the cursor here).
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && draft !== value) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -220,6 +223,36 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     [bag, setBag] = useState("5, 3"),
     [replacement, setReplacementMode] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+  // The hint beside a label under the pointer or keyboard, shown at once (a browser tooltip waits a second). Screen only.
+  // Pointer and keyboard keep their own, so a pointer passing by never takes the focused label's hint away.
+  type Tip = { key: string; text: string; x: number; y: number; edge: "left" | "right" | null; below: boolean };
+  const [hoverTip, setHoverTip] = useState<Tip | null>(null);
+  const [focusTip, setFocusTip] = useState<Tip | null>(null);
+  const tip = hoverTip ?? focusTip;
+  const tipFor = (key: string, state: Visibility, el: HTMLElement): Tip => {
+    const x = el.offsetLeft + el.offsetWidth / 2,
+      width = el.offsetParent instanceof HTMLElement ? el.offsetParent.offsetWidth : Infinity;
+    return {
+      key,
+      // The label's name already says "left out" or "pupil space"; the hint says what to do.
+      text: state === "hidden" ? "Click to edit · double-click to show the value" : TARGET_TIP,
+      x,
+      y: el.offsetTop,
+      // Kept inside the drawing: near an edge it lines up with the label instead of centring on it.
+      edge: x < 170 ? "left" : x > width - 170 ? "right" : null,
+      below: el.offsetTop < 36,
+    };
+  };
+  useEffect(() => {
+    if (!tip) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setHoverTip(null);
+      setFocusTip(null);
+    };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [tip]);
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
@@ -317,16 +350,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
       if (handleUndoKeys(event, { undo, redo })) return;
-      // H: a pupil space on the selected label, and again back to its value. Never while typing ("H" for heads).
-      if (
-        (event.key === "h" || event.key === "H") &&
-        !event.ctrlKey && !event.metaKey && !event.altKey && !event.repeat &&
-        !isTypingTarget(event.target) && !modalOpen() &&
-        boxAnchor && selKind && selId && selectedLabel
-      ) {
-        event.preventDefault();
-        setVisibility(selKind, selId, togglePupilSpace(selectedLabel.show));
-      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -394,7 +417,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   // Every target reaches at least 24 px across with a mouse and 44 px on a touch board. The extra reach is an
   // invisible margin (the button's ::before), so the outline still shows the label's real size, and it stops halfway
   // to a neighbouring label, so a press never lands on the wrong one.
-  const minTarget = useCoarsePointer() ? 44 : 24;
+  const coarse = useCoarsePointer();
+  const minTarget = coarse ? 44 : 24;
   const mmToPx = ((96 / 25.4) * fitted.scale) || 1;
   const reach = useMemo(() => {
     const need = minTarget / mmToPx;
@@ -533,7 +557,11 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         aria-label={`Edit ${describeTarget(t.kind, t.id)}${words ? `, ${words}` : ""}`}
                         aria-haspopup="dialog"
                         aria-expanded={selected === key && boxAnchor !== null}
-                        title={state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out. ${TARGET_TIP}` : TARGET_TIP}
+                        aria-describedby={tip?.key === key ? "pt-quick-tip" : undefined}
+                        onPointerEnter={(ev) => setHoverTip(tipFor(key, state, ev.currentTarget))}
+                        onPointerLeave={() => setHoverTip(null)}
+                        onFocus={(ev) => setFocusTip(tipFor(key, state, ev.currentTarget))}
+                        onBlur={() => setFocusTip(null)}
                         disabled={blocked}
                         style={
                           {
@@ -546,6 +574,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           } as CSSProperties
                         }
                         onClick={(ev) => {
+                          // A box already open for this label takes the cursor back into its text, ready to type.
+                          if (!coarse && selected === key && boxAnchor === ev.currentTarget) {
+                            const field = document.querySelector<HTMLInputElement>(".md-options-box input:not([type=checkbox]):not([disabled])");
+                            field?.focus();
+                            field?.select();
+                          }
                           setSelected(key);
                           setBoxAnchor(ev.currentTarget);
                         }}
@@ -553,14 +587,36 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           // The first click opened the box; the box stays open and shows the new state.
                           if (l) setVisibility(t.kind, t.id, togglePupilSpace(l.show));
                         }}
-                      />
+                      >
+                        {/* A left-out label shows its value faintly here on screen; it prints nothing. */}
+                        {state === "omit" && l?.text.trim() && (
+                          <span className="pt-ghost" aria-hidden="true" style={{ fontSize: `${((FONT * 96) / 25.4) * fitted.scale}px` }}>
+                            {l.text}
+                          </span>
+                        )}
+                      </button>
                     );
                   })}
+                  {tip && !(boxAnchor && selected === tip.key) && (
+                    <div
+                      id="pt-quick-tip"
+                      className="pt-quick-tip"
+                      role="tooltip"
+                      data-edge={tip.edge ?? undefined}
+                      data-below={tip.below || undefined}
+                      style={{ left: tip.x, top: tip.y }}
+                    >
+                      {tip.text}
+                    </div>
+                  )}
                 </div>
                 {boxAnchor && selKind && selId && selectedLabel && (
                   <OptionsBox
                     anchor={boxAnchor}
                     anchorKey={selected ?? ""}
+                    // On a touch screen a tap would pop up the on-screen keyboard over the tree: the box takes focus
+                    // and a tap on its text field starts typing.
+                    focusField={!coarse}
                     title={describeTarget(selKind, selId).replace(/^./, (c) => c.toUpperCase())}
                     onClose={() => setBoxAnchor(null)}
                   >
@@ -574,11 +630,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <p>
                       {selectedLabel.show === "hidden" && !selectedLabel.text.trim()
                         ? "No saved answer, so the answers copy will be empty too."
-                        : "Double-click the label, or press H, for a pupil space."}
+                        : "Type to change the value. Double-click the label for a pupil space."}
                     </p>
                     <label>
                       Text
                       <DraftField
+                        key={selected}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
                         label={`Text of ${describeTarget(selKind, selId)}`}
                         value={selectedLabel.text}
                         maxLength={24}
@@ -652,8 +710,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               status={message}
               hint={
                 <EditorHint tool="probability-tree">
-                  Click a label to edit it. Double-click it, or press H, for a
-                  pupil space.
+                  Click a label to type a new value. Double-click it for a pupil space.
                 </EditorHint>
               }
             >
@@ -665,9 +722,18 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     {x}
                   </p>
                 ))}
-                {g.notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
+                {/* Teacher notes fold to one line, so the drawing keeps its room (scoring, 21 Nov 2026); errors stay open. */}
+                {g.notes.length > 0 && (
+                  <details className="pt-notes">
+                    <summary>
+                      {g.notes.length === 1 ? "Teacher note" : `${g.notes.length} teacher notes`}
+                      <span>: {g.notes[0]}</span>
+                    </summary>
+                    {g.notes.map((x, i) => (
+                      <p key={i}>Teacher note: {x}</p>
+                    ))}
+                  </details>
+                )}
               </div>
             )}
           </Panel>
@@ -679,8 +745,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 title="What pupils see"
                 help={
                   <>
-                    <p className="pt-note">Show prints the value. Pupil space prints a space to fill in; the answers copy shows the value. Leave out prints nothing in either copy and keeps the value.</p>
-                    <p className="pt-note">Each switch sets every label of that kind. Mixed means the labels differ: change one on the tree.</p>
+                    <p className="pt-note">Pupil space: a blank for pupils to fill in. Leave out: nothing prints, in either copy.</p>
+                    <p className="pt-note">Each switch sets every label of that kind.</p>
                   </>
                 }
               />
@@ -690,6 +756,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />
                 );
               })}
+              <div className="pt-hint" aria-live="polite">
+                <span>
+                  {/* The count and Clear sit with the switches that make pupil spaces (scoring, 21 Nov 2026). */}
+                  <span className="pt-hint-how">Double-click a label on the tree for a pupil space.</span>{" "}
+                  {spaceCount === 0 ? "None yet." : `${spaceCount} so far.`}
+                </span>
+                <button type="button" className="pt-link" aria-disabled={blocked || spaceCount === 0 || undefined} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again (one undo step)"} onClick={() => !blocked && spaceCount > 0 && clearSpaces()}>
+                  Clear pupil spaces
+                </button>
+              </div>
             </section>
             <section className="panel-card pt-panel" aria-label="Branches">
               <CardHeading
@@ -739,7 +815,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         <StateTag value={b.probability} />
                       </span>
                       <span className="pt-row-end">
-                        <span className="pt-note" title={isLeaf(d, b.id) ? "This branch ends its path" : undefined}>{isLeaf(d, b.id) ? "path end" : ""}</span>
                         {group.length > minimumBranches(parent) && (
                           <button
                             type="button"
@@ -755,6 +830,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                             }}
                           >
                             <X size={14} aria-hidden="true" />
+                            <span className="pt-remove-word" aria-hidden="true">Remove</span>
                           </button>
                         )}
                       </span>
@@ -791,15 +867,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 </button>
                 <button type="button" className="pt-link" aria-disabled={blocked || depth <= 1 || undefined} title={depth <= 1 ? "A tree keeps at least one stage." : "One undo step"} onClick={() => !blocked && depth > 1 && commit(removeStage(e))}>
                   Remove last stage
-                </button>
-              </div>
-              <div className="pt-hint" aria-live="polite">
-                <span>
-                  {/* The how-to is in the foot strip and the label tooltips; here only the count (scoring, 21 Nov 2026). */}
-                  {spaceCount === 0 ? "No pupil spaces yet" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
-                </span>
-                <button type="button" className="pt-link" aria-disabled={blocked || spaceCount === 0 || undefined} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again (one undo step)"} onClick={() => !blocked && spaceCount > 0 && clearSpaces()}>
-                  Clear pupil spaces
                 </button>
               </div>
               <label className="pt-hide">

@@ -307,3 +307,20 @@ describe("removeBranch", () => {
     expect(after.document.branches.some((b) => b.id === child.id)).toBe(false);
   });
 });
+
+describe("addSibling names the new branch", () => {
+  it("uses the name in the same place elsewhere in the stage, else Outcome N, and leaves the probability empty", () => {
+    const e = create();
+    const first = e.document.branches.filter((b) => b.parent === null);
+    const a = addSibling(e, first[0].id);
+    const added = a.document.branches.find((b) => !e.document.branches.some((x) => x.id === b.id))!;
+    expect(added.outcome.text).toBe("Outcome 3");
+    expect(added.probability.text).toBe("");
+    const b = addSibling(a, first[1].id);
+    const added2 = b.document.branches.find((x) => !a.document.branches.some((y) => y.id === x.id))!;
+    expect(added2.outcome.text).toBe("Outcome 3");
+    const c = addSibling(e, null);
+    expect(c.document.branches.find((x) => !e.document.branches.some((y) => y.id === x.id))!.outcome.text).toBe("Outcome 3");
+  });
+});
+
