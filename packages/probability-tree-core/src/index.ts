@@ -215,6 +215,20 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const n = structuredClone(e);
   // With working shown, an empty end-probability pupil space is the product of its path, in the teacher copy only.
   for (const leaf of workedEnds(n.document)) leaf.endProbability.text = formatFraction(pathProbability(n.document, leaf.id)!, styleOf(n.document));
+  // With working shown, an end name the pupil copy left as a space prints the path's names in the answer colour,
+  // and a hidden empty end name prints nothing (it has no saved answer).
+  if (n.document.endColumn === "working")
+    for (const leaf of leaves(n.document)) {
+      const l = leaf.endOutcome;
+      if (l.text.trim()) continue;
+      if (l.show === "hidden") l.show = "omit";
+      else if (l.show === "show" && !plainPath(n.document, leaf.id)) {
+        // Names only when every outcome on the path has a value that may print here: never a left-out one.
+        const named = pathTo(n.document, leaf.id).every((p) => p.outcome.show !== "omit" && !!p.outcome.text.trim());
+        l.text = named ? pathName(n.document, leaf.id).slice(0, 24) : "";
+        l.show = named ? "hidden" : "omit";
+      }
+    }
   // A left-out label stays out of the teacher copy too.
   const reveal = (l: Label) => {
     if (l.show !== "hidden") return;
@@ -240,12 +254,18 @@ export const hasHidden = (e: Envelope) =>
 /** Path ends whose answer the teacher copy works out: working shown, an empty pupil space and a numeric path. */
 function workedEnds(d: TreeDocument): Branch[] {
   if (d.endColumn !== "working") return [];
-  return leaves(d).filter((b) => b.endProbability.show === "hidden" && !b.endProbability.text.trim() && pathProbability(d, b.id));
+  return leaves(d).filter(
+    (b) => b.endProbability.show === "hidden" && !b.endProbability.text.trim() && pathTo(d, b.id).every((p) => p.probability.show !== "omit") && pathProbability(d, b.id),
+  );
 }
+/** Every outcome on the path prints as text, so its names can print at the end without giving away a pupil space. */
+const plainPath = (d: TreeDocument, id: string) => pathTo(d, id).every((p) => p.outcome.show === "show" && !!p.outcome.text.trim());
 /** With working shown, an empty end outcome prints its path's names (Red, Red) and follows later edits. */
 export function endOutcomeLabel(d: TreeDocument, b: Branch): Label {
   const l = b.endOutcome;
-  return d.endColumn === "working" && l.show === "show" && !l.text.trim() ? { ...l, text: pathName(d, b.id).slice(0, 24) } : l;
+  if (d.endColumn !== "working" || l.show !== "show" || l.text.trim()) return l;
+  // A path through a pupil space, a left-out or an empty outcome gets a pupil space, not names that answer it.
+  return plainPath(d, b.id) ? { ...l, text: pathName(d, b.id).slice(0, 24) } : label("", "hidden");
 }
 
 /* ---------- Exact arithmetic ---------- */
@@ -803,7 +823,8 @@ export function layout(e: Envelope) {
       ? Math.max(...all.map((b) => factorsOf(b).reduce((w, f, i) => w + labelBox(f, d.blankStyle, "probability").width + (i ? opW : 0), 0)))
       : 0;
     const aX = working ? pX + workW + opW : pX;
-    const pw = Math.max(working ? 8 : textWidth(d.endHeadings[1]), ...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").width), 8);
+    // With working, the answer column is at least a pupil space wide, so the pupil and answer copies print the same size.
+    const pw = Math.max(working ? labelBox(label("", "hidden"), d.blankStyle, "probability").width : textWidth(d.endHeadings[1]), ...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").width), 8);
     const named = (b: Branch) => pathName(d, b.id);
     let tallest = 0;
     all.forEach((b, i) => {

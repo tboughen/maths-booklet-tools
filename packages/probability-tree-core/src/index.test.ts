@@ -362,3 +362,42 @@ describe("path-end working (21 Nov 2026)", () => {
     expect(renderSvg(forView(e, "answer"))).toContain(">0.14<");
   });
 });
+
+describe("path-end working keeps pupil spaces and left-out values (review, 21 Nov 2026)", () => {
+  const working = () => {
+    const e = create();
+    e.document.endColumn = "working";
+    for (const b of e.document.branches) if (!e.document.branches.some((c) => c.parent === b.id)) b.endProbability.show = "hidden";
+    return e;
+  };
+  it("a hidden outcome on the path gives a pupil space for the end name, and the names only in the answer copy", () => {
+    const e = working();
+    e.document.branches[1].outcome.show = "hidden";
+    expect(renderSvg(e)).not.toContain(">Red, Red<");
+    expect(renderSvg(forView(e, "answer", true))).toContain(">Red, Red<");
+  });
+  it("a left-out outcome never reaches either copy through the end names", () => {
+    const e = working();
+    e.document.branches[1].outcome.show = "omit";
+    expect(renderSvg(e)).not.toContain(">Red, Red<");
+    expect(renderSvg(forView(e, "answer"))).not.toContain(">Red, Red<");
+  });
+  it("a hidden empty end name stays empty in the answer copy", () => {
+    const e = working();
+    for (const b of e.document.branches) b.endOutcome.show = "hidden";
+    expect(renderSvg(forView(e, "answer"))).not.toContain(">Red, Red<");
+  });
+  it("a left-out probability on the path is not worked out in the answer copy", () => {
+    const e = working();
+    e.document.branches[0].probability.show = "omit";
+    // Only the two Blue paths are worked out.
+    expect(renderSvg(forView(e, "answer")).match(/>64</g)).toHaveLength(2);
+  });
+  it("the pupil and answer copies print at the same size", () => {
+    for (const mm of [20, 26, 32]) {
+      const e = working();
+      e.document.branchMm = mm;
+      expect(layout(forView(e, "answer")).width).toBe(layout(e).width);
+    }
+  });
+});

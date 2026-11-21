@@ -666,7 +666,7 @@ export function tooWideMessage(tool: string, width: number, room: number, worked
     : tool === "frequency-tree"
       ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
       : tool === "probability-tree"
-        ? ` Reduce the tree's settings.branchMm (each stage gets 1 mm narrower per 1 mm; the minimum is 20), drop the end probability column (settings.endColumn "outcome" or "none"), or use a wider column layout. A three-stage tree with both end columns needs a wider column.`
+        ? ` Reduce the tree's settings.branchMm (each stage gets 1 mm narrower per 1 mm; the minimum is 20), drop the working or the end probability column (settings.endColumn "both", "outcome" or "none"), or use a wider column layout. A three-stage tree with both end columns needs a wider column.`
       : tool === "construction"
         ? " Constructions print at true size: reduce the drawing's widthCm (and move points inside it), or use a wider column layout."
       : tool === "elevations"
