@@ -386,3 +386,8 @@
   white-space: nowrap;
   pointer-events: none;
 }
+.pt-quick-tip[data-edge="left"] { transform: translate(-24px, calc(-100% - 8px)); }
+.pt-quick-tip[data-edge="right"] { transform: translate(calc(-100% + 24px), calc(-100% - 8px)); }
+.pt-quick-tip[data-below] { transform: translate(-50%, 28px); }
+.pt-quick-tip[data-below][data-edge="left"] { transform: translate(-24px, 28px); }
+.pt-quick-tip[data-below][data-edge="right"] { transform: translate(calc(-100% + 24px), 28px); }

@@ -78,7 +78,6 @@ import {
   isTypingTarget,
   modalOpen,
   TARGET_TIP,
-  TARGET_TIP_SPACE,
   togglePupilSpace,
   visibilityStep,
   visibilityWords,
@@ -222,14 +221,35 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     [replacement, setReplacementMode] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   // The hint beside a label under the pointer or keyboard, shown at once (a browser tooltip waits a second). Screen only.
-  const [tip, setTip] = useState<{ key: string; text: string; x: number; y: number } | null>(null);
-  const showTip = (key: string, state: Visibility, el: HTMLElement) =>
-    setTip({
+  // Pointer and keyboard keep their own, so a pointer passing by never takes the focused label's hint away.
+  type Tip = { key: string; text: string; x: number; y: number; edge: "left" | "right" | null; below: boolean };
+  const [hoverTip, setHoverTip] = useState<Tip | null>(null);
+  const [focusTip, setFocusTip] = useState<Tip | null>(null);
+  const tip = hoverTip ?? focusTip;
+  const tipFor = (key: string, state: Visibility, el: HTMLElement): Tip => {
+    const x = el.offsetLeft + el.offsetWidth / 2,
+      width = el.offsetParent instanceof HTMLElement ? el.offsetParent.offsetWidth : Infinity;
+    return {
       key,
-      text: state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out · ${TARGET_TIP.toLowerCase()}` : TARGET_TIP,
-      x: el.offsetLeft + el.offsetWidth / 2,
+      // The label's name already says "left out" or "pupil space"; the hint says what to do.
+      text: state === "hidden" ? "Click to edit · double-click to show the value" : TARGET_TIP,
+      x,
       y: el.offsetTop,
-    });
+      // Kept inside the drawing: near an edge it lines up with the label instead of centring on it.
+      edge: x < 170 ? "left" : x > width - 170 ? "right" : null,
+      below: el.offsetTop < 36,
+    };
+  };
+  useEffect(() => {
+    if (!tip) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setHoverTip(null);
+      setFocusTip(null);
+    };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [tip]);
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
@@ -544,10 +564,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         aria-haspopup="dialog"
                         aria-expanded={selected === key && boxAnchor !== null}
                         aria-describedby={tip?.key === key ? "pt-quick-tip" : undefined}
-                        onPointerEnter={(ev) => showTip(key, state, ev.currentTarget)}
-                        onPointerLeave={() => setTip(null)}
-                        onFocus={(ev) => showTip(key, state, ev.currentTarget)}
-                        onBlur={() => setTip(null)}
+                        onPointerEnter={(ev) => setHoverTip(tipFor(key, state, ev.currentTarget))}
+                        onPointerLeave={() => setHoverTip(null)}
+                        onFocus={(ev) => setFocusTip(tipFor(key, state, ev.currentTarget))}
+                        onBlur={() => setFocusTip(null)}
                         disabled={blocked}
                         style={
                           {
@@ -578,7 +598,14 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     );
                   })}
                   {tip && !(boxAnchor && selected === tip.key) && (
-                    <div id="pt-quick-tip" className="pt-quick-tip" role="tooltip" style={{ left: tip.x, top: tip.y }}>
+                    <div
+                      id="pt-quick-tip"
+                      className="pt-quick-tip"
+                      role="tooltip"
+                      data-edge={tip.edge ?? undefined}
+                      data-below={tip.below || undefined}
+                      style={{ left: tip.x, top: tip.y }}
+                    >
                       {tip.text}
                     </div>
                   )}
