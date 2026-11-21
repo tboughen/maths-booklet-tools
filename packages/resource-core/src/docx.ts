@@ -4,7 +4,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, SPACE_WORKING, STAGE_BAND, stageLetters, tooWideMessage, workingLines, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { powerPieces, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -106,6 +106,8 @@ export const FONT_BOLD = "Inter SemiBold";
 export interface RunStyle {
   bold?: boolean;
   italic?: boolean;
+  /** A raised power (a^4): Word superscript. */
+  sup?: boolean;
   color?: string;
   sizeMm?: number;
   shade?: string;
@@ -119,6 +121,7 @@ function rPr(o: RunStyle): string {
   const p: string[] = [];
   if (o.bold) p.push(`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}" w:eastAsia="${font}"/>`);
   if (o.italic) p.push("<w:i/><w:iCs/>");
+  if (o.sup) p.push('<w:vertAlign w:val="superscript"/>');
   if (o.color) p.push(`<w:color w:val="${hex(o.color)}"/>`);
   if (o.spacingMm) p.push(`<w:spacing w:val="${Math.round(o.spacingMm * 56.693)}"/>`);
   if (o.sizeMm !== undefined) p.push(`<w:sz w:val="${hp(o.sizeMm)}"/><w:szCs w:val="${hp(o.sizeMm)}"/>`);
@@ -141,9 +144,10 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
   // paragraph is display maths, which Word prints at full size, so it is not enlarged (R25).
   const size = (o.sizeMm ?? S.body) / (display ? 1 : WORD_INLINE_FRACTION);
   const part = (s: string) =>
-    [...s]
-      .map((c) => {
-        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic", bold: bold && fracStyle(c) === "regular" });
+    powerPieces(s)
+      .flatMap((p) => [...p.text].map((c) => ({ c, sup: p.sup })))
+      .map(({ c, sup }) => {
+        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic" && !sup, bold: bold && fracStyle(c) === "regular", sup });
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");
@@ -157,7 +161,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
   parseRuns(source, base, maths)
-    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
+    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic", sup: r.sup })))
     .join("");
 /**
  * Runs that fill a paragraph on their own (an answer-line cell, a table cell). When they are only
@@ -185,7 +189,7 @@ function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
     .map((r) =>
       r.frac
         ? fraction(r.frac, o, false, r.style === "bold").replace(/^<m:oMath>|<\/m:oMath>$/g, "")
-        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic" })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
+        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic", sup: r.sup })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
     )
     .join("");
   return `<m:oMath>${boxed ? `<m:borderBox><m:e>${inner}</m:e></m:borderBox>` : inner}</m:oMath>`;

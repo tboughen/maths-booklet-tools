@@ -11,7 +11,7 @@
  * The rules are deliberately cautious. Prose stays as typed: hyphenated words, ranges (3-5),
  * point labels (A, ABC), units after a number (5 m, 3 cm), ordinals (2nd), part labels ((a)) and
  * function names (sin) stay upright. A power other than 2 or 3 keeps its caret (x^4), because
- * Inter holds no other superscript digits.
+ * Inter holds no other superscript digits; the renderers print it raised and smaller (text.ts, `sup` runs).
  */
 import { FRACTION } from "./text";
 import { advance } from "./metrics";
@@ -34,8 +34,8 @@ export function typesetSymbols(s: string): string {
       .replace(/\+\/-|\+-(?=\s|\d)/g, "±")
       .replace(/\bsqrt\s*(?=[\d(a-zπ])/g, "√")
       .replace(/(?<![A-Za-z])pi(?![A-Za-z-])/g, "π")
-      .replace(/\^\(?2\)?(?!\d)/g, "²")
-      .replace(/\^\(?3\)?(?!\d)/g, "³")
+      .replace(/\^(?:\(2\)|2)(?!\d)/g, "²")
+      .replace(/\^(?:\(3\)|3)(?!\d)/g, "³")
       // 3 x 4: a lone x between two numbers is a times sign.
       .replace(/(\d) x (?=\d)/g, "$1 × ")
       // A sign: at the start, after a space, a bracket, a slash or an operator, before a number,
