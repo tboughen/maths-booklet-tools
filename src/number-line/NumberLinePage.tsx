@@ -44,6 +44,8 @@ import {
   secondaryText,
   labelled,
   MARKER_LABEL,
+  MARKER_LABEL_HELP,
+  MAX_MARKERS,
   type Envelope,
   type Operation,
   type Secondary,
@@ -1533,6 +1535,62 @@ export default function NumberLinePage({
                         />{" "}
                         Short ticks between labels
                       </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={d.axis.ends === "plain"}
+                          onChange={(e) =>
+                            safe([
+                              {
+                                op: "set_axis",
+                                axis: { ends: e.target.checked ? "plain" : "arrow" },
+                              },
+                            ])
+                          }
+                        />{" "}
+                        Plain ends, no arrow (probability scale)
+                      </label>
+                      {field(
+                        "Words under the line (value = word; …)",
+                        (d.words ?? []).map((w) => `${w.value} = ${w.text}`).join("; "),
+                        (v) => {
+                          const words = v
+                            .split(";")
+                            .map((part) => part.trim())
+                            .filter(Boolean)
+                            .map((part) => {
+                              const [value, ...rest] = part.split("=");
+                              const text = rest.join("=").trim();
+                              if (!value?.trim() || !text)
+                                throw Error("Write each word as value = word, such as 1/2 = Even chance.");
+                              return { value: value.trim(), text };
+                            });
+                          change([{ op: "set_words", words: words.length ? words : null }]);
+                        },
+                      )}
+                      <button
+                        type="button"
+                        disabled={blocked}
+                        onClick={() =>
+                          safe([
+                            {
+                              op: "set_axis",
+                              axis: { minimum: "0", maximum: "1", step: "0.1", labelEvery: 5, variable: "", numberFormat: "fraction", minorTicks: true, ends: "plain" },
+                            },
+                            {
+                              op: "set_words",
+                              words: [
+                                { value: "0", text: "Impossible" },
+                                { value: "1/2", text: "Even chance" },
+                                { value: "1", text: "Certain" },
+                              ],
+                            },
+                          ])
+                        }
+                      >
+                        Make a probability scale
+                      </button>
                     </div>
                   </details>
                   <details onToggle={keepDraftVisible}>
@@ -1554,7 +1612,7 @@ export default function NumberLinePage({
                           )}
                           {field(`Arrow ${i + 1} label`, k.label ?? "", (v) => {
                             if (v.trim() && !MARKER_LABEL.test(v.trim()))
-                              throw Error("Use up to 8 characters for an arrow label: a letter such as A or P1, or a number such as 3.47, −2.5 or 12 500.");
+                              throw Error(MARKER_LABEL_HELP);
                             change([
                               { op: "set_marker", id: k.id, label: v.trim() },
                             ]);
@@ -1570,7 +1628,7 @@ export default function NumberLinePage({
                           </button>
                         </div>
                       ))}
-                      {(d.markers?.length ?? 0) < 6 && (
+                      {(d.markers?.length ?? 0) < MAX_MARKERS && (
                         <button
                           type="button"
                           disabled={blocked}
@@ -1583,7 +1641,7 @@ export default function NumberLinePage({
                             const letters = new Set(
                               (d.markers ?? []).map((k) => k.label),
                             );
-                            const label = [..."ABCDEF"].find(
+                            const label = [..."ABCDEFGHIJ"].find(
                               (c) => !letters.has(c),
                             );
                             const add = (value: string): Operation => ({
