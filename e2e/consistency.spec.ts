@@ -1052,9 +1052,10 @@ for (const tool of toolIds) {
       ["Save editable file", "Includes hidden answers."],
       ["Open editable file", ""],
       ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],
+      ["Keyboard shortcuts", "Or press ? on the page."],
       ["First-time Word setup", ""],
     ]);
-    await expect(menu.getByRole("separator")).toHaveCount(1);
+    await expect(menu.getByRole("separator")).toHaveCount(2);
     await menu.getByRole("menuitem", { name: "First-time Word setup", exact: true }).click();
     const help = page.getByRole("dialog", { name: "Keep full image quality in Word" });
     await expect(help).toBeVisible();
