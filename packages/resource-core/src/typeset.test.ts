@@ -112,3 +112,13 @@ describe("maths notation typesets printed text", () => {
     for (const [typed, printed] of cases) expect(typesetText(typed)).toBe(printed);
   });
 });
+
+describe("compound units stay upright (NP17)", () => {
+  it("keeps m², N/m² and g/cm³ after a number upright, and unit suffixes", () => {
+    expect(typesetText("an area of 4 m². Work out the pressure in N/m².")).toBe("an area of 4 m². Work out the pressure in N/m².");
+    expect(typesetText("A density of 10.5 g/cm³ and 20 m/s")).toBe("A density of 10.5 g/cm³ and 20 m/s");
+    expect(typesetText("x² + m = 4")).toContain("*m*");
+    const doc = typesetForPrint({ document: { notation: "maths", items: [{ type: "answerLine", prefix: "Mass =", suffix: "g" }, { type: "answerLine", prefix: "", suffix: "N/m²" }] } }) as unknown as { document: { items: { suffix: string }[] } };
+    expect(doc.document.items.map((i) => i.suffix)).toEqual(["g", "N/m²"]);
+  });
+});

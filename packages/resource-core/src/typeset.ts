@@ -21,6 +21,11 @@ const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
 /** Letter runs that stay upright inside a maths token: function names, units, ordinals and times. */
 const UPRIGHT = new Set(["sin", "cos", "tan", "log", "ln", "exp", "min", "max", "mm", "cm", "km", "kg", "mg", "ml", "cl", "mph", "st", "nd", "rd", "th", "am", "pm"]);
 
+/**
+ * Units that can carry a power or a "per": m², cm³, N/m², g/cm³, m/s, km/h, m/min (NP17 compound measures,
+ * 21 Nov 2026). Upright after a number and in answer-line suffixes ("Pressure = ...... N/m²").
+ */
+const UNIT_WORD = /^(mm|cm|m|km|g|kg|N|s|h|min|l|ml)[²³]?(\/(mm|cm|m|km|s|h|min|hour|l|ml)[²³]?)?$/;
 /** Short English words that can sit beside an operator in prose ("x = 3 or 4") and stay upright. */
 const WORDS = new Set(["an", "as", "at", "be", "by", "do", "if", "in", "is", "it", "of", "on", "or", "so", "to", "up", "we", "and", "are", "but", "can", "for", "has", "its", "not", "the", "was", "who", "why", "how", "all", "any", "one", "two", "six", "ten"]);
 
@@ -82,6 +87,8 @@ function italicLetters(s: string): string {
       out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
+    // A unit with a power or a "per" (m², cm³, N/m², g/cm³) after a number, or any compound unit, is upright.
+    if (UNIT_WORD.test(core) && (core.includes("/") || /^[−-]?[\d.,]+%?$/.test(prev))) return;
     // A question or paper label (Q3a, A4) is not maths.
     if (/^[A-Z]+\d/.test(core)) return;
     const mathsy = /\d/.test(core) || new RegExp(`[${OPERATOR}²³√π^]`).test(core) || /[a-z]\(/.test(core);
@@ -221,6 +228,8 @@ const HEADINGS = new Set(["title", "heading", "label", "word", "startBanner", "e
 function typesetValue(v: unknown, key: string, maths = true): unknown {
   if (typeof v === "string") {
     if (!maths) return FLOWING.has(key) ? keepTogether(v) : v;
+    // An answer line's unit (g, m², N/m²) is never a maths letter.
+    if (key === "suffix" && UNIT_WORD.test(typesetSymbols(v).trim())) return typesetSymbols(v);
     return BODY.has(key) ? (FLOWING.has(key) ? keepTogether(typesetText(v)) : typesetText(v)) : HEADINGS.has(key) ? typesetText(v, false) : v;
   }
   if (Array.isArray(v)) return v.map((x) => typesetValue(x, key, maths));
