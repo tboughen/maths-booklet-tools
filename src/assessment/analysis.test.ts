@@ -40,3 +40,18 @@ describe("class analysis", () => {
     expect(imported.detection.ignoredColumns).toBe(0);
   });
 });
+
+describe("part-level national rates", () => {
+  it("uses a part's own rate when performance-parts.json is loaded", async () => {
+    const { verifyPartPerformance } = await import("../bank/partPerformance");
+    const parts = verifyPartPerformance(JSON.parse(readFileSync("public/bank/performance-parts.json", "utf8")));
+    const withParts = { ...bank, partPerformance: parts };
+    const partItems = paperMappings(bank, "1MA1_JUN_2017_1H", true);
+    const item = partItems.find(i => i.label === "Q1a")!;
+    expect(sourceRate(item, withParts)).toBe(parts.questions["1MA1_JUN_2017_1H/1"].a.percentage);
+    expect(Object.keys(parts.grades.H)).toHaveLength(8);
+    // Whole-question items keep the question rate.
+    const whole = paperMappings(bank, "1MA1_JUN_2017_1H")[0];
+    expect(sourceRate(whole, withParts)).toBe(sourceRate(whole, bank));
+  });
+});

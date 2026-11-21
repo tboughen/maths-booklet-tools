@@ -3,6 +3,7 @@ import { Download, FileSpreadsheet, RotateCcw, X } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { verifyCatalogue, type BankCatalogue } from "../bank/model";
 import { withPerformance } from "../bank/performance";
+import { verifyPartPerformance } from "../bank/partPerformance";
 import { assetUrl, downloadBlob } from "../bank/pdf";
 import { importMappings, importPupils, mappingsCsv, paperMappings, parseDelimited, readSpreadsheet, resultsCsv, type Detection, type ResultOptions } from "./import";
 import { assessmentPresets } from "./presets";
@@ -42,7 +43,11 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
   const controller = useRef<AbortController | null>(null), revision = useRef(0);
   useEffect(() => {
     const fetchController = new AbortController();
-    fetch(assetUrl("bank/catalogue.json"), { signal: fetchController.signal }).then(response => { if (!response.ok) throw new Error("The question bank could not be loaded."); return response.json(); }).then(data => setCatalogue(withPerformance(verifyCatalogue(data)))).catch(() => { if (!fetchController.signal.aborted) setLoadError("The question bank could not be loaded. Reload to try again."); });
+    fetch(assetUrl("bank/catalogue.json"), { signal: fetchController.signal }).then(response => { if (!response.ok) throw new Error("The question bank could not be loaded."); return response.json(); }).then(async data => {
+      // Part-level rates are optional: without them, whole-question rates are used.
+      const parts = await fetch(assetUrl("bank/performance-parts.json"), { signal: fetchController.signal }).then(r => r.ok ? r.json() : undefined).then(json => json && verifyPartPerformance(json)).catch(() => undefined);
+      setCatalogue({ ...withPerformance(verifyCatalogue(data)), ...(parts ? { partPerformance: parts } : {}) });
+    }).catch(() => { if (!fetchController.signal.aborted) setLoadError("The question bank could not be loaded. Reload to try again."); });
     return () => { fetchController.abort(); controller.current?.abort(); };
   }, []);
   const invalidate = () => { revision.current++; controller.current?.abort(); if (blob || plan) setNeedsRegeneration(true); setPlan(undefined); setBlob(undefined); setError(""); setStatus(""); setBusy(false); };

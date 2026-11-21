@@ -32,7 +32,7 @@ export function AnalysisPanel({ catalogue, items, pupils }: { catalogue: BankCat
       </tr>)}</tbody></table></div>
     </details>
     <details><summary>Question by question</summary><div className="af-table"><table><thead><tr><th>Question</th><th>Marks</th><th>National</th>{analysis.groups.map(g => <th key={g}>{g}</th>)}</tr></thead><tbody>{analysis.questions.map(q => <tr key={q.label}><td>{q.label}</td><td>{q.marks}</td><td>{percent(q.national)}</td>{analysis.groups.map(g => <td key={g} className={tone(q.groups[g]?.gap)}>{percent(q.groups[g]?.percentage)} <span className="af-help">{signed(q.groups[g]?.gap)}</span></td>)}</tr>)}</tbody></table></div>
-      <p className="af-help">National rates are for the whole question, so a part shows its question's rate.</p></details>
+      <p className="af-help">National rates are for each part where Pearson publishes them, otherwise for the whole question.</p></details>
     <button onClick={() => downloadBlob(new Blob([analysisCsv(analysis)], { type: "text/csv;charset=utf-8" }), "mathsdock-class-analysis.csv")}><Download size={18} />Download analysis (CSV, no pupil names)</button>
   </Panel>;
 }

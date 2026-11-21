@@ -1,4 +1,5 @@
 import { compareAccessibility, type QuestionPerformance } from "./performance";
+import type { PartPerformanceData } from "./partPerformance";
 import { bankAssetPath, validateWorkedSolution, type WorkedSolution } from "../../workedSolution";
 import { paperDetailPath, type DetailKey } from "../../bankCatalogueSplit";
 
@@ -128,6 +129,8 @@ export interface BankCatalogue<Q extends BankListQuestion = BankQuestion> {
   /** Index only: each paper's detail file. */
   papers?: Record<string, string>;
   scope: {sets: number; papers: number; sourceQuestions: number; publishedQuestions: number};
+  /** In memory only: Pearson rates per part, when performance-parts.json has loaded. */
+  partPerformance?: PartPerformanceData;
   publication?: {status: "draft" | "partial" | "complete"; label: string; heading: string; description: string};
 }
 

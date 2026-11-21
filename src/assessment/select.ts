@@ -1,5 +1,6 @@
 import { questionIdentity, type BankCatalogue, type BankQuestion } from "../bank/model";
 import { originalPaperCount, performanceFor } from "../bank/performance";
+import { partRecord } from "../bank/partPerformance";
 import { layoutPack } from "./layout";
 import { questionLabel } from "./import";
 import { validateSettings, type AssessmentItem, type ClassPlan, type Pack, type Practice, type Priority, type Profile, type Pupil, type Settings } from "./types";
@@ -56,6 +57,8 @@ export function prioritiesFor(items: AssessmentItem[], pupil?: Pupil, catalogue?
 export function sourceRate(item: AssessmentItem, catalogue?: BankCatalogue): number | undefined {
   const source = item.questionId ? catalogue?.questions.find(q => q.id === item.questionId) : undefined;
   if (!source || !catalogue) return undefined;
+  const part = partRecord(catalogue.partPerformance, source.paperId, source.number, item.label, item.marks);
+  if (part) return part.percentage;
   return (source.performance ?? performanceFor(source, catalogue.paperQuestionCounts?.[source.paperId] ?? originalPaperCount(source.paperId)))?.percentage;
 }
 /** Points of national success rate a follow-up may fall below its ceiling. */
