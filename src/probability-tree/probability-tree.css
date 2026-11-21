@@ -306,3 +306,20 @@
   background: none;
 }
 
+/* "+ Branch" under each point's branches and "+ Stage" under the list, as in a stage-by-stage outline. */
+.pt-add-row {
+  display: flex;
+  gap: 14px;
+  padding: 2px 2px 4px;
+  font-size: 13px;
+}
+.pt-add-stage {
+  border-top: 1px solid var(--line, #dbe3ec);
+  padding-top: 6px;
+}
+/* Finger-sized on a phone or touch screen. */
+@media (max-width: 767px), (pointer: coarse) {
+  .md-kit :is(.site-panel, .panel-card) .pt-add-row button.pt-link {
+    min-height: 44px;
+  }
+}

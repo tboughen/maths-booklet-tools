@@ -96,7 +96,7 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   await probabilities.getByRole("button", { name: "Pupil space" }).click();
   expect(await shows()).toEqual(Array(6).fill("hidden"));
   expect(await undoName()).toContain("pupil space on all probabilities");
-  await expect(page.locator(".pt-hint")).toContainText("6 so far");
+  await expect(page.locator(".pt-hint")).toContainText("6 pupil spaces");
   await page.getByRole("button", { name: "Clear pupil spaces" }).click();
   expect(await shows()).toEqual(Array(6).fill("show"));
   expect(await undoName()).toContain("clear 6 pupil spaces");
@@ -123,6 +123,22 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   await clickResourceAction(page, "Download SVG");
   const svg = readFileSync((await (await svgPromise).path())!, "utf8");
   expect(svg).not.toMatch(/md-options|pt-hit|pt-hidden-answer|pt-omitted|What pupils see/);
+});
+
+test("the Branches list grows the tree: + Branch at each point and + Stage, each one undo step", async ({ page }) => {
+  await boot(page);
+  const card = page.getByRole("region", { name: "Branches" });
+  await card.getByRole("button", { name: "Add a branch after Red" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(7);
+  await expect(card.getByRole("textbox", { name: /^Outcome for Red, / })).toHaveCount(3);
+  await card.getByRole("button", { name: "Add a first-stage branch" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(8);
+  await card.getByRole("button", { name: "Add a stage" }).click();
+  expect((await saved(page)).document.branches.length).toBeGreaterThan(8);
+  await card.getByRole("button", { name: "Remove the last stage" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(8);
+  for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.branches).toHaveLength(6);
 });
 
 test("grows an unequal tree, fills from a bag and calculates a given-that answer only on request", async ({ page }) => {

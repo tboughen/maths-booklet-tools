@@ -7,7 +7,7 @@ import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
@@ -719,17 +719,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 help={
                   <>
                     <p className="pt-note">Type fractions such as 3/8, decimals or algebra such as 1 − x.</p>
-                    <p className="pt-note">
-                      Click a label on the tree for its options: what pupils see, its text, and the branch's shape. Double-click
-                      it, or press H, for a pupil space.
-                    </p>
+                    <p className="pt-note">+ Branch adds a branch at that point; + Stage adds a stage after every path. A label on the tree has its own options.</p>
                   </>
                 }
               />
               <div className="pt-branches">
-                {d.branches.map((b) => {
-                  const k = depthOf(d, b.id);
-                  return (
+                {(function rows(parent: string | null, k: number): ReactNode[] {
+                  const group = childrenOf(d, parent);
+                  const out: ReactNode[] = [];
+                  for (const b of group) {
+                    out.push(
                     <div
                       key={b.id}
                       className={`pt-branch ${selectedBranch?.id === b.id ? "pt-current" : ""}`}
@@ -763,13 +762,41 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                       </span>
                       <span className="pt-note" title={isLeaf(d, b.id) ? "This branch ends its path" : undefined}>{isLeaf(d, b.id) ? "path end" : ""}</span>
                     </div>
-                  );
-                })}
+                    );
+                    out.push(...rows(b.id, k + 1));
+                  }
+                  if (group.length > 0 && group.length < MAX_CHILDREN)
+                    out.push(
+                      <div key={`add:${parent ?? "start"}`} className="pt-add-row" style={{ paddingLeft: (k - 1) * 14 }}>
+                        <button
+                          type="button"
+                          className="pt-link"
+                          disabled={blocked}
+                          aria-label={parent === null ? "Add a first-stage branch" : `Add a branch after ${branchName(d.branches.find((x) => x.id === parent)!)}`}
+                          title="One undo step"
+                          onClick={() => commit(addSibling(e, parent), "This tree has too many paths for another branch.")}
+                        >
+                          + Branch{parent === null ? " at the start" : ""}
+                        </button>
+                      </div>,
+                    );
+                  return out;
+                })(null, 1)}
+              </div>
+              <div className="pt-add-row pt-add-stage">
+                <button type="button" className="pt-link" aria-label="Add a stage" disabled={blocked || depth >= MAX_DEPTH} title={depth >= MAX_DEPTH ? `A tree has at most ${MAX_DEPTH} stages.` : "Add a stage after every path that reaches the last stage"} onClick={() => { const next = addStage(e); commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage."); }}>
+                  + Stage
+                </button>
+                {depth > 1 && (
+                  <button type="button" className="pt-link" aria-label="Remove the last stage" disabled={blocked} title="One undo step" onClick={() => commit(removeStage(e))}>
+                    Remove last stage
+                  </button>
+                )}
               </div>
               <div className="pt-hint" aria-live="polite">
                 <span>
-                  Click a label to edit · double-click for a pupil space
-                  {spaceCount > 0 && ` · ${spaceCount} so far`}
+                  {/* The how-to is in the foot strip and the label tooltips; here only the count (scoring, 21 Nov 2026). */}
+                  {spaceCount === 0 ? "No pupil spaces yet" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
                 </span>
                 {spaceCount > 0 && (
                   <button type="button" className="pt-link" aria-label="Clear pupil spaces" title="Show every value again (one undo step)" disabled={blocked} onClick={clearSpaces}>
