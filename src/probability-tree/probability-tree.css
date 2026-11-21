@@ -319,7 +319,7 @@
 }
 /* Finger-sized on a phone or touch screen. */
 @media (max-width: 767px), (pointer: coarse) {
-  .md-kit :is(.site-panel, .panel-card) .pt-add-row button.pt-link {
+  .md-kit :is(.site-panel, .panel-card) :is(.pt-add-row, .pt-hint) button.pt-link {
     min-height: 44px;
   }
 }
