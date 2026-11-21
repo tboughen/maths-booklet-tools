@@ -22,21 +22,18 @@ test("edits a probability from the tree, makes it a pupil space and undoes", asy
   await boot(page);
   const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
   await target.click();
-  // The click opens the options box beside the label and hides nothing; Enter moves to its text.
+  // The click opens the options box beside the label with the cursor in its text, selected: typing replaces it.
   const box = page.getByRole("dialog", { name: "Probability for Red, Blue" });
-  await expect(box).toBeFocused();
-  expect((await saved(page)).document.branches[2].probability.show).toBe("show");
-  await page.keyboard.press("Enter");
   const field = box.getByRole("textbox", { name: "Text of probability for Red, Blue" });
   await expect(field).toBeFocused();
-  await field.fill("4/7");
-  await field.press("Enter");
+  expect((await saved(page)).document.branches[2].probability.show).toBe("show");
+  await page.keyboard.type("4/7");
+  await page.keyboard.press("Enter");
   expect((await saved(page)).document.branches[2].probability).toEqual({ text: "4/7", show: "show" });
   await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("4/7");
   // Typing, then pressing somewhere else, keeps what was typed (one undo step).
   await target.click();
-  await page.keyboard.press("Enter");
-  await field.fill("3/7");
+  await page.keyboard.type("3/7");
   await page.getByRole("button", { name: "Examples" }).hover();
   await page.mouse.down();
   await page.mouse.up();
@@ -54,7 +51,7 @@ test("edits a probability from the tree, makes it a pupil space and undoes", asy
   await expect(page.getByRole("textbox", { name: "Probability for Red, Blue", exact: true })).toHaveValue("5/8");
 });
 
-test("what pupils see: double-click, H, leave out, the kind switches and clearing pupil spaces, each one undo step", async ({ page }) => {
+test("what pupils see: double-click, typing first, leave out, the kind switches and clearing pupil spaces, each one undo step", async ({ page }) => {
   await boot(page);
   const art = page.getByTestId("tree-resource").locator(".pt-art svg");
   const shows = async () => (await saved(page)).document.branches.map((b: { probability: { show: string } }) => b.probability.show);
@@ -68,14 +65,15 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   expect(await undoName()).toContain("pupil space on 5/8");
   await target.dblclick();
   expect((await shows())[2]).toBe("show");
-  // H with the box focused, never while typing in a field.
+  // Typing comes first: the letter H types into the label's text (there is no H shortcut).
   await target.click();
-  await page.keyboard.press("h");
+  await page.keyboard.type("H");
+  await page.keyboard.press("Enter");
+  expect((await saved(page)).document.branches[2].probability).toEqual({ text: "H", show: "show" });
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect((await saved(page)).document.branches[2].probability.text).toBe("5/8");
+  await target.dblclick();
   expect((await shows())[2]).toBe("hidden");
-  await page.getByRole("button", { name: "Layout" }).click();
-  await page.getByLabel("Stage 1 title").fill("H");
-  expect((await shows())[2]).toBe("hidden");
-  await page.getByLabel("Stage 1 title").press("Enter");
   // Leave out keeps the text and prints nothing; undo brings it back.
   await target.click();
   const box = page.getByRole("dialog", { name: "Probability for Red, Blue" });
@@ -87,13 +85,15 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   // A press elsewhere closed the box; Escape closes it and hands focus back to the label.
   await expect(box).toHaveCount(0);
   await target.click();
-  await expect(box).toBeFocused();
+  await expect(box.getByRole("textbox")).toBeFocused();
+  // Escape with something typed undoes the typing; with nothing typed it closes the box.
+  await page.keyboard.type("9/9");
+  await page.keyboard.press("Escape");
+  await expect(box.getByRole("textbox")).toHaveValue("5/8");
   await page.keyboard.press("Escape");
   await expect(box).toHaveCount(0);
   await expect(target).toBeFocused();
-  // H does nothing once the box is closed.
-  await page.keyboard.press("h");
-  expect((await saved(page)).document.branches[2].probability.show).toBe("omit");
+  expect((await saved(page)).document.branches[2].probability).toEqual({ text: "5/8", show: "omit" });
   // The close button also hands focus back to the label.
   await target.click();
   await box.getByRole("button", { name: "Close options" }).click();
@@ -115,6 +115,7 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   expect(await shows()).toEqual(Array(6).fill("hidden"));
   // The folded Layout row says what is set, and its stepper takes a typed size.
   await expect(page.locator(".md-fold").filter({ hasText: "Layout" })).toContainText("32 mm branches · 14 mm spacing");
+  await page.getByRole("button", { name: "Layout" }).click();
   const length = page.getByRole("textbox", { name: "Branch length (mm)" });
   await length.fill("30");
   await length.press("Enter");
@@ -236,7 +237,7 @@ test("hover hint at once, a faint value for a left-out label, and Undo / Redo wo
   await boot(page);
   const target = page.getByRole("button", { name: "Edit probability for Red, Blue" });
   await target.hover();
-  await expect(page.getByRole("tooltip")).toHaveText("Click to edit · double-click for a pupil space");
+  await expect(page.getByRole("tooltip")).toHaveText("Click to type a new value · double-click for a pupil space");
   await page.mouse.move(5, 5);
   await expect(page.getByRole("tooltip")).toHaveCount(0);
   await target.click();

@@ -75,8 +75,6 @@ import "./probability-tree.css";
 import "../site/settings-kit.css";
 import {
   commonVisibility,
-  isTypingTarget,
-  modalOpen,
   TARGET_TIP,
   togglePupilSpace,
   visibilityStep,
@@ -172,7 +170,8 @@ function DraftField({
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && draft !== value) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -347,16 +346,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
       if (handleUndoKeys(event, { undo, redo })) return;
-      // H: a pupil space on the selected label, and again back to its value. Never while typing ("H" for heads).
-      if (
-        (event.key === "h" || event.key === "H") &&
-        !event.ctrlKey && !event.metaKey && !event.altKey && !event.repeat &&
-        !isTypingTarget(event.target) && !modalOpen() &&
-        boxAnchor && selKind && selId && selectedLabel
-      ) {
-        event.preventDefault();
-        setVisibility(selKind, selId, togglePupilSpace(selectedLabel.show));
-      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -580,6 +569,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           } as CSSProperties
                         }
                         onClick={(ev) => {
+                          // A box already open for this label takes the cursor back into its text, ready to type.
+                          if (selected === key && boxAnchor === ev.currentTarget) {
+                            const field = document.querySelector<HTMLInputElement>(".md-options-box input:not([type=checkbox]):not([disabled])");
+                            field?.focus();
+                            field?.select();
+                          }
                           setSelected(key);
                           setBoxAnchor(ev.currentTarget);
                         }}
@@ -627,7 +622,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <p>
                       {selectedLabel.show === "hidden" && !selectedLabel.text.trim()
                         ? "No saved answer, so the answers copy will be empty too."
-                        : "Double-click the label, or press H, for a pupil space."}
+                        : "Type to change the value. Double-click the label for a pupil space."}
                     </p>
                     <label>
                       Text
@@ -705,8 +700,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               status={message}
               hint={
                 <EditorHint tool="probability-tree">
-                  Click a label to edit it. Double-click it, or press H, for a
-                  pupil space.
+                  Click a label to type a new value. Double-click it for a pupil space.
                 </EditorHint>
               }
             >
@@ -743,6 +737,15 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />
                 );
               })}
+              <div className="pt-hint" aria-live="polite">
+                <span>
+                  {/* The count and Clear sit with the switches that make pupil spaces (scoring, 21 Nov 2026). */}
+                  {spaceCount === 0 ? "No pupil spaces yet" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+                </span>
+                <button type="button" className="pt-link" aria-disabled={blocked || spaceCount === 0 || undefined} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again (one undo step)"} onClick={() => !blocked && spaceCount > 0 && clearSpaces()}>
+                  Clear pupil spaces
+                </button>
+              </div>
             </section>
             <section className="panel-card pt-panel" aria-label="Branches">
               <CardHeading
@@ -843,15 +846,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 </button>
                 <button type="button" className="pt-link" aria-disabled={blocked || depth <= 1 || undefined} title={depth <= 1 ? "A tree keeps at least one stage." : "One undo step"} onClick={() => !blocked && depth > 1 && commit(removeStage(e))}>
                   Remove last stage
-                </button>
-              </div>
-              <div className="pt-hint" aria-live="polite">
-                <span>
-                  {/* The how-to is in the foot strip and the label tooltips; here only the count (scoring, 21 Nov 2026). */}
-                  {spaceCount === 0 ? "No pupil spaces yet" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
-                </span>
-                <button type="button" className="pt-link" aria-disabled={blocked || spaceCount === 0 || undefined} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again (one undo step)"} onClick={() => !blocked && spaceCount > 0 && clearSpaces()}>
-                  Clear pupil spaces
                 </button>
               </div>
               <label className="pt-hide">

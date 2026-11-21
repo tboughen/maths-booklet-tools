@@ -17,10 +17,10 @@ export const VISIBILITY_HELP: Record<Visibility, string> = {
   omit: "Nothing prints, in either copy. The value is kept.",
 };
 /** The tooltip on every click target on a diagram. */
-export const TARGET_TIP = "Click to edit · double-click for a pupil space";
+export const TARGET_TIP = "Click to type a new value · double-click for a pupil space";
 export const TARGET_TIP_SPACE = "Pupil space. Click to edit · double-click to show the value";
 
-/** Double-click and H: a pupil space, and again back to the value. A left-out label becomes a pupil space. */
+/** Double-click: a pupil space, and again back to the value. A left-out label becomes a pupil space. */
 export const togglePupilSpace = (v: Visibility): Visibility => (v === "hidden" ? "show" : "hidden");
 
 /** The one state a group of labels shares, or "mixed" when they differ (null for an empty group). */
