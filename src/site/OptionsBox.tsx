@@ -7,7 +7,7 @@ import "./options-box.css";
 /**
  * The small options box beside a clicked label (the 21 Nov 2026 usability plan): one open at a time, never over the
  * label it belongs to, kept inside the window, and live (no Apply or Cancel: each change is one undo step).
- * Escape or a press elsewhere closes it; keyboard focus moves in when it opens and back to the label when it closes.
+ * Escape or a press elsewhere closes it. It opens with the cursor in its text field, and focus goes back to the label when it closes.
  * Enter, with the box itself focused, moves to its text field. It is a screen control, never part of an export.
  *
  * Click targets that open it carry `data-options-anchor`, so pressing another one moves the box rather than closing it.
@@ -15,6 +15,7 @@ import "./options-box.css";
 export function OptionsBox({
   anchor,
   anchorKey,
+  focusField = true,
   title,
   onClose,
   children,
@@ -23,6 +24,8 @@ export function OptionsBox({
   anchor: HTMLElement | null;
   /** Changes when the box moves to another label, so focus moves in again. */
   anchorKey: string;
+  /** Open with the cursor in the text field (the default). False: the box itself takes focus, as on a touch screen. */
+  focusField?: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
@@ -67,9 +70,16 @@ export function OptionsBox({
   // Focus moves in on opening, and back to the label on closing.
   // (Once placed: a box still hidden for measuring cannot take focus.)
   const placed = place !== null;
+  // Typing comes first (Tim, 21 Nov 2026): the cursor goes straight into the box's text field, its text selected, so
+  // typing replaces the value. A box with no text field takes the focus itself.
   useEffect(() => {
-    if (placed) box.current?.focus({ preventScroll: true });
-  }, [anchorKey, placed]);
+    if (!placed) return;
+    const field = focusField ? box.current?.querySelector<HTMLInputElement>("input:not([type=checkbox]):not([disabled])") : null;
+    if (field) {
+      field.focus({ preventScroll: true });
+      field.select();
+    } else box.current?.focus({ preventScroll: true });
+  }, [anchorKey, placed, focusField]);
   // Whether focus was in the box, kept as it moves: by the time React removes the box, focus has already left it.
   const hadFocus = useRef(false);
   useEffect(() => {

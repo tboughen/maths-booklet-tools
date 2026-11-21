@@ -17,11 +17,14 @@ export type UndoCommand = "undo" | "redo";
  * The same undo keys in every editor: Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z and Ctrl+Y redo. Never while typing in a
  * field or while a dialog is open. Returns the command, or null when the key is not an undo key for the document.
  */
-export function undoCommand(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "shiftKey" | "altKey" | "target">): UndoCommand | null {
+export function undoCommand(
+  event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "shiftKey" | "altKey" | "target">,
+  options: { inField?: boolean } = {},
+): UndoCommand | null {
   if (!(event.ctrlKey || event.metaKey) || event.altKey) return null;
   const key = event.key.toLowerCase();
   if (key !== "z" && key !== "y") return null;
-  if (isTypingTarget(event.target) || modalOpen()) return null;
+  if ((!options.inField && isTypingTarget(event.target)) || modalOpen()) return null;
   return key === "y" || event.shiftKey ? "redo" : "undo";
 }
 
@@ -29,8 +32,13 @@ export function undoCommand(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "meta
  * Handle an undo key. Returns true when the event was an undo key (it is then prevented, even when `blocked`,
  * so the browser never undoes something else instead).
  */
-export function handleUndoKeys(event: KeyboardEvent, actions: { undo: () => void; redo: () => void; blocked?: boolean }): boolean {
-  const command = undoCommand(event);
+export function handleUndoKeys(
+  event: KeyboardEvent,
+  actions: { undo: () => void; redo: () => void; blocked?: boolean },
+  /** inField: a field with nothing typed in it hands the undo keys to the document (an options box's text). */
+  options: { inField?: boolean } = {},
+): boolean {
+  const command = undoCommand(event, options);
   if (!command) return false;
   event.preventDefault();
   if (!actions.blocked) actions[command]();

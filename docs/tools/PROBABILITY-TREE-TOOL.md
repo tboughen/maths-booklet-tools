@@ -27,10 +27,11 @@ Probability trees are the pilot for the shared editing pattern agreed on 21 Nov 
 
 - **Click** a label on the tree: the options box opens beside it (`src/site/OptionsBox.tsx`) with What pupils see
   (Show / Pupil space / Leave out), its text, and for branches Bold branch, Add branches after this (or End the path
-  here), Add a branch beside it and Remove the last branch here. Every change is live and one undo step; Escape or a
-  press elsewhere closes the box. Enter, with the box focused, moves to the text field.
-- **Double-click** a label, or press **H** with it selected (never while typing in a field), for a pupil space, and
-  again to show the value. The box stays open and shows the new state.
+  here), Add a branch beside it and Remove this branch. Typing comes first (Tim, 21 Nov 2026): the box opens with the
+  cursor in its text, selected, so typing replaces the value; Enter or a press elsewhere keeps it. Escape undoes the
+  typing, and with nothing typed closes the box. Every change is live and one undo step.
+- **Double-click** a label for a pupil space, and again to show the value. The box stays open and shows the new state.
+  There is no keyboard shortcut for it: H types into the text like any letter (teachers rarely use shortcuts).
 - The **What pupils see** card sets every label of a kind at once (outcomes, probabilities, end columns while drawn,
   question answers) and shows Mixed when they differ.
 - The **Branches** card lists the tree stage by stage. Under each point's branches is **+ Branch**; the list ends with
