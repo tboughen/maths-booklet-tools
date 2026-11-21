@@ -3,9 +3,10 @@ import { advance, type FontStyle } from "./metrics";
 /**
  * A run of text in one style. Markup: **bold** and *italic*; everything else prints as typed.
  * With maths notation on (a worksheet's `notation: "maths"`), {3/4} is a stacked fraction: a run
- * whose `frac` holds the numerator and denominator, printed one above the other.
+ * whose `frac` holds the numerator and denominator, printed one above the other; and a power
+ * x^5, x^-2, x^n or x^{2n} is a raised run (`sup`), printed smaller above the baseline.
  */
-export type Run = { text: string; style: FontStyle; frac?: { num: string; den: string } };
+export type Run = { text: string; style: FontStyle; frac?: { num: string; den: string }; sup?: boolean };
 export type Line = Run[];
 
 /** Stacked fractions: digits at this share of the body size, with this much side padding (mm). */
@@ -20,6 +21,31 @@ export const FRAC_LINE = 2.4;
 export const FRAC_FOOT = 1;
 /** {numerator/denominator}: one slash, no braces inside, up to 12 characters a side. */
 export const FRACTION = /\{([^{}/]{1,12})\/([^{}/]{1,12})\}/g;
+/** A raised power prints at this share of the text size, its baseline this share of the size up. */
+export const SUP_SCALE = 0.7;
+export const SUP_RAISE = 0.36;
+/** A power with maths notation on: ^5, ^-2, ^n, or a braced one such as ^{2n} or ^{-1}. */
+const POWER = /\^(?:\{([^{}]{1,8})\}|([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z]))/g;
+/** Splits each plain run at its powers: the power becomes a raised run in the same style. */
+function powerRuns(runs: Run[]): Run[] {
+  const out: Run[] = [];
+  for (const r of runs) {
+    if (r.frac || !r.text.includes("^")) {
+      out.push(r);
+      continue;
+    }
+    let at = 0;
+    for (const m of r.text.matchAll(POWER)) {
+      if (m.index > at) out.push({ text: r.text.slice(at, m.index), style: r.style });
+      // Letters in a power print in italic, as maths letters do; digits and signs stay upright.
+      for (const piece of (m[1] ?? m[2]).replace(/-/g, "−").match(/[A-Za-z]+|[^A-Za-z]+/g) ?? [])
+        out.push({ text: piece, style: /[A-Za-z]/.test(piece) ? "italic" : r.style, sup: true });
+      at = m.index + m[0].length;
+    }
+    if (at < r.text.length) out.push({ text: r.text.slice(at), style: r.style });
+  }
+  return out;
+}
 
 const VULGAR = /[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞⅑⅒]/;
 const SLASHED = /(?<![\w./{])\d+ ?\/ ?\d+(?![\w/}]|\.\d)/;
@@ -97,6 +123,8 @@ function fractionRuns(source: string, base: FontStyle, bold: boolean): Run[] {
 
 export function parseRuns(source: string, base: FontStyle = "regular", maths = false): Run[] {
   if (!maths) return plainRuns(source, base);
+  // A power's letters may come italicised by typesetting (x^*n*, 5^{2*n*}): the power styles its own letters.
+  source = source.replace(/\^\*([a-z])\*/g, "^$1").replace(/\^\{([^{}]{1,16})\}/g, (_, p: string) => `^{${p.replace(/\*/g, "")}}`);
   const runs: Run[] = [];
   let at = 0;
   for (const m of source.matchAll(BOLD_PAIR)) {
@@ -107,7 +135,7 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
     at = m.index + m[0].length;
   }
   if (at < source.length) runs.push(...fractionRuns(source.slice(at), base, false));
-  return runs;
+  return powerRuns(runs);
 }
 
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
@@ -119,7 +147,7 @@ const fracPartWidth = (s: string, size: number, bold = false) => [...s].reduce((
  * LibreOffice set equations with their own spacing: the layout must never under-measure a line.
  */
 export const runWidth = (r: Run, size: number) =>
-  r.frac ? (Math.max(fracPartWidth(r.frac.num, size, r.style === "bold"), fracPartWidth(r.frac.den, size, r.style === "bold")) / FRAC_SCALE) + 2 * FRAC_PAD : textWidth(r.text, r.style, size);
+  r.frac ? (Math.max(fracPartWidth(r.frac.num, size, r.style === "bold"), fracPartWidth(r.frac.den, size, r.style === "bold")) / FRAC_SCALE) + 2 * FRAC_PAD : textWidth(r.text, r.style, size) * (r.sup ? SUP_SCALE : 1);
 export const lineWidth = (l: Line, size: number) => l.reduce((w, r) => w + runWidth(r, size), 0);
 export const plainWidth = (s: string, size: number, style: FontStyle = "regular") => runWidth({ text: s, style }, size);
 
@@ -134,7 +162,7 @@ export function wrap(source: string, size: number, width: number, base: FontStyl
     const parts = run.text.split(/( )/);
     for (const part of parts) {
       if (part === " ") words.push([]);
-      else if (part) words[words.length - 1].push({ text: part, style: run.style });
+      else if (part) words[words.length - 1].push({ text: part, style: run.style, ...(run.sup ? { sup: true } : {}) });
     }
   }
   const lines: Line[] = [];
@@ -168,9 +196,14 @@ export const hasFraction = (line: Line) => line.some((r) => r.frac);
 /** One SVG text element; runs become tspans. A line holding stacked fractions is drawn in pieces. */
 export function textSvg(line: Line, x: number, y: number, size: number, fill: string, anchor: "start" | "middle" | "end" = "start") {
   if (hasFraction(line)) return fractionLineSvg(line, x, y, size, fill, anchor);
+  // A raised power is a smaller tspan moved up by dy; the next run moves back down to the baseline.
+  let raised = false;
   const spans = line
     .map((r) => {
-      const attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : "";
+      let attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : "";
+      if (r.sup) attr += ` font-size="${n(size * SUP_SCALE)}"${raised ? "" : ` dy="${n(-size * SUP_RAISE)}"`}`;
+      else if (raised) attr += ` dy="${n(size * SUP_RAISE)}"`;
+      raised = !!r.sup;
       return attr ? `<tspan${attr}>${esc(r.text)}</tspan>` : esc(r.text);
     })
     .join("");

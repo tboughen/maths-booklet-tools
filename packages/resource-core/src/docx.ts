@@ -113,6 +113,8 @@ export interface RunStyle {
   underline?: boolean;
   /** Extra space between letters, in millimetres (small capitals labels). */
   spacingMm?: number;
+  /** A raised power (x^5 with maths notation): Word's own superscript, as the pages print it. */
+  sup?: boolean;
 }
 function rPr(o: RunStyle): string {
   const font = o.bold ? FONT_BOLD : FONT;
@@ -120,6 +122,7 @@ function rPr(o: RunStyle): string {
   if (o.bold) p.push(`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}" w:eastAsia="${font}"/>`);
   if (o.italic) p.push("<w:i/><w:iCs/>");
   if (o.color) p.push(`<w:color w:val="${hex(o.color)}"/>`);
+  if (o.sup) p.push(`<w:vertAlign w:val="superscript"/>`);
   if (o.spacingMm) p.push(`<w:spacing w:val="${Math.round(o.spacingMm * 56.693)}"/>`);
   if (o.sizeMm !== undefined) p.push(`<w:sz w:val="${hp(o.sizeMm)}"/><w:szCs w:val="${hp(o.sizeMm)}"/>`);
   // Only answers on an answer line are underlined, so the underline is Edexcel's dotted line.
@@ -157,7 +160,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
   parseRuns(source, base, maths)
-    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
+    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic", sup: r.sup })))
     .join("");
 /**
  * Runs that fill a paragraph on their own (an answer-line cell, a table cell). When they are only
@@ -185,7 +188,7 @@ function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
     .map((r) =>
       r.frac
         ? fraction(r.frac, o, false, r.style === "bold").replace(/^<m:oMath>|<\/m:oMath>$/g, "")
-        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic" })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
+        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic", sup: r.sup })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
     )
     .join("");
   return `<m:oMath>${boxed ? `<m:borderBox><m:e>${inner}</m:e></m:borderBox>` : inner}</m:oMath>`;
