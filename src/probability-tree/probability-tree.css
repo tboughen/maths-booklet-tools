@@ -182,8 +182,15 @@
     max-height: none;
   }
 }
-/* Probabilities share the row evenly, so a value and its pupil-space tag both fit. */
-.pt-editor .pt-branch {
+/* The reach of a small target, worked out in the page (never into a neighbour). Invisible: the outline keeps
+   the label's real size. */
+.pt-editor .pt-hit::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--pt-reach-y, 0px)) calc(-1 * var(--pt-reach-x, 0px));
+}
+/* Probabilities share the Branches row evenly, so a value and its pupil-space tag both fit. */
+.pt-editor .pt-panel[aria-label="Branches"] .pt-branch {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 .pt-branch.pt-current {
@@ -226,9 +233,7 @@
   position: relative;
   display: block;
   min-width: 0;
-}
-.pt-field-wrap:has(> .pt-state) input {
-  padding-right: 84px !important;
+  container-type: inline-size;
 }
 .pt-state {
   position: absolute;
@@ -248,6 +253,31 @@
 .pt-state-hidden {
   background: color-mix(in srgb, var(--md-pink, #b0125b) 11%, #fff);
   color: var(--md-pink, #b0125b);
+}
+/* A narrow field keeps room for its value: the tag shrinks to a dot (its words stay for screen readers). */
+@container (max-width: 150px) {
+  .pt-field-wrap .pt-state {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    overflow: hidden;
+    color: transparent;
+    font-size: 1px;
+  }
+  .pt-field-wrap .pt-state-hidden {
+    background: var(--md-pink, #b0125b);
+  }
+  .pt-field-wrap .pt-state-omit {
+    background: #8a99ad;
+  }
+}
+.pt-field-wrap:has(> .pt-state) input {
+  padding-right: 84px !important;
+}
+@container (max-width: 150px) {
+  .pt-field-wrap:has(> .pt-state) input {
+    padding-right: 20px !important;
+  }
 }
 /* The live hint line at the foot of the Branches card. */
 .pt-hint {

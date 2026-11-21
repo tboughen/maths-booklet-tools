@@ -7,7 +7,7 @@ import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
@@ -181,6 +181,21 @@ function DraftField({
         }
       }}
     />
+  );
+}
+
+/** A touch board or tablet: targets reach further. Follows a tablet docked or undocked while the page is open. */
+const COARSE = "(pointer: coarse)";
+function useCoarsePointer() {
+  return useSyncExternalStore(
+    (change) => {
+      if (typeof matchMedia !== "function") return () => {};
+      const query = matchMedia(COARSE);
+      query.addEventListener("change", change);
+      return () => query.removeEventListener("change", change);
+    },
+    () => typeof matchMedia === "function" && matchMedia(COARSE).matches,
+    () => false,
   );
 }
 
@@ -377,13 +392,28 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     else commit(next);
   }
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
-  // Every target is at least 24 px across with a mouse and 44 px on a touch board, grown about its centre.
-  const minTarget = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? 44 : 24;
+  // Every target reaches at least 24 px across with a mouse and 44 px on a touch board. The extra reach is an
+  // invisible margin (the button's ::before), so the outline still shows the label's real size, and it stops halfway
+  // to a neighbouring label, so a press never lands on the wrong one.
+  const minTarget = useCoarsePointer() ? 44 : 24;
   const mmToPx = ((96 / 25.4) * fitted.scale) || 1;
-  const grown = (start: number, size: number) => {
+  const reach = useMemo(() => {
     const need = minTarget / mmToPx;
-    return size >= need ? { start, size } : { start: start - (need - size) / 2, size: need };
-  };
+    return g.targets.map((t, i) => {
+      let gx = Math.max(0, (need - t.width) / 2),
+        gy = Math.max(0, (need - t.height) / 2);
+      g.targets.forEach((o, j) => {
+        if (i === j) return;
+        const overlapY = t.y - gy < o.y + o.height && o.y < t.y + t.height + gy;
+        const overlapX = t.x - gx < o.x + o.width && o.x < t.x + t.width + gx;
+        const gapX = Math.max(o.x - (t.x + t.width), t.x - (o.x + o.width));
+        const gapY = Math.max(o.y - (t.y + t.height), t.y - (o.y + o.height));
+        if (overlapY && gapX >= 0) gx = Math.min(gx, gapX / 2);
+        if (overlapX && gapY >= 0) gy = Math.min(gy, gapY / 2);
+      });
+      return { x: gx * mmToPx, y: gy * mmToPx };
+    });
+  }, [g.targets, minTarget, mmToPx]);
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
@@ -488,7 +518,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.targets.map((t) => {
+                  {g.targets.map((t, i) => {
                     const id = fieldId(t.kind, t.id);
                     const key = `${t.kind}:${t.id}`;
                     const l = labelAt(d, t.kind, t.id);
@@ -506,11 +536,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         aria-expanded={selected === key && boxAnchor !== null}
                         title={state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out. ${TARGET_TIP}` : TARGET_TIP}
                         disabled={blocked}
-                        style={(() => {
-                          const x = grown(t.x, t.width),
-                            y = grown(t.y, t.height);
-                          return { left: px(x.start, g.width), top: px(y.start, g.height), width: px(x.size, g.width), height: px(y.size, g.height) };
-                        })()}
+                        style={
+                          {
+                            left: px(t.x, g.width),
+                            top: px(t.y, g.height),
+                            width: px(t.width, g.width),
+                            height: px(t.height, g.height),
+                            "--pt-reach-x": `${reach[i]?.x ?? 0}px`,
+                            "--pt-reach-y": `${reach[i]?.y ?? 0}px`,
+                          } as CSSProperties
+                        }
                         onClick={(ev) => {
                           setSelected(key);
                           setBoxAnchor(ev.currentTarget);

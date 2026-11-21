@@ -9,7 +9,7 @@ import "./options-box.css";
 function HelpPop({ title, help }: { title: string; help: ReactNode }) {
   const [open, setOpen] = useState(false);
   const id = useId();
-  const wrap = useRef<HTMLSpanElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const away = (event: PointerEvent) => {
@@ -29,7 +29,7 @@ function HelpPop({ title, help }: { title: string; help: ReactNode }) {
     };
   }, [open]);
   return (
-    <span className="md-card-help-wrap" ref={wrap}>
+    <div className="md-card-help-wrap" ref={wrap}>
       <button
         type="button"
         className="md-card-help"
@@ -42,12 +42,12 @@ function HelpPop({ title, help }: { title: string; help: ReactNode }) {
         ?
       </button>
       {open && (
-        <span className="md-card-help-pop" id={id} role="note">
+        <div className="md-card-help-pop" id={id} role="note">
           <strong>{title}</strong>
           {help}
-        </span>
+        </div>
       )}
-    </span>
+    </div>
   );
 }
 
@@ -107,7 +107,7 @@ export function FoldCard({
         <span className="md-fold-icon" aria-hidden="true">
           <Icon size={16} />
         </span>
-        <span className="md-fold-words">
+        <div className="md-fold-words">
           <h2>
             <button
               type="button"
@@ -125,7 +125,7 @@ export function FoldCard({
             </button>
           </h2>
           <span className="md-fold-summary">{summary}</span>
-        </span>
+        </div>
         {open && help && <HelpPop title={title} help={help} />}
         <ChevronDown className="md-fold-chevron" size={18} aria-hidden="true" />
       </div>
@@ -165,10 +165,18 @@ export function NumberStepper({
   const up = steps.find((s) => s > value);
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  // A new value (−, +, Undo, another file) replaces a rejected draft.
+  const [seen, setSeen] = useState(value);
+  if (seen !== value) {
+    setSeen(value);
+    setDraft(null);
+    setError(false);
+  }
   const commit = () => {
     if (draft === null) return;
-    const n = Number(draft.replace(unit, "").trim());
-    if (Number.isInteger(n) && n >= min && n <= max) {
+    const text = draft.replace(unit, "").trim();
+    const n = /^\d+$/.test(text) ? Number(text) : NaN;
+    if (n >= min && n <= max) {
       setDraft(null);
       setError(false);
       if (n !== value) onChange(n);

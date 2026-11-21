@@ -110,6 +110,13 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   expect((await saved(page)).document.branchMm).toBe(30);
   await page.getByRole("button", { name: "More branch length" }).click();
   expect((await saved(page)).document.branchMm).toBe(32);
+  // A size out of range is refused and named; the next press replaces it.
+  await length.fill("99");
+  await length.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Type a whole number from 12 to 50." })).toBeVisible();
+  await page.getByRole("button", { name: "More branch length" }).click();
+  await expect(length).toHaveValue("36 mm");
+  await expect(page.getByRole("alert").filter({ hasText: "Type a whole number" })).toHaveCount(0);
   // No box, highlight or marker reaches an export.
   await target.click();
   const svgPromise = page.waitForEvent("download");
