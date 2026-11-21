@@ -61,6 +61,7 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   await target.click();
   await page.keyboard.press("h");
   expect((await shows())[2]).toBe("hidden");
+  await page.getByRole("button", { name: "Layout" }).click();
   await page.getByLabel("Stage 1 title").fill("H");
   expect((await shows())[2]).toBe("hidden");
   await page.getByLabel("Stage 1 title").press("Enter");
@@ -95,12 +96,20 @@ test("what pupils see: double-click, H, leave out, the kind switches and clearin
   await probabilities.getByRole("button", { name: "Pupil space" }).click();
   expect(await shows()).toEqual(Array(6).fill("hidden"));
   expect(await undoName()).toContain("pupil space on all probabilities");
-  await expect(page.getByText("6 pupil spaces")).toBeVisible();
+  await expect(page.locator(".pt-hint")).toContainText("6 so far");
   await page.getByRole("button", { name: "Clear pupil spaces" }).click();
   expect(await shows()).toEqual(Array(6).fill("show"));
   expect(await undoName()).toContain("clear 6 pupil spaces");
   await page.getByRole("button", { name: "Undo" }).click();
   expect(await shows()).toEqual(Array(6).fill("hidden"));
+  // The folded Layout row says what is set, and its stepper takes a typed size.
+  await expect(page.locator(".md-fold").filter({ hasText: "Layout" })).toContainText("32 mm branches · 14 mm spacing");
+  const length = page.getByRole("textbox", { name: "Branch length (mm)" });
+  await length.fill("30");
+  await length.press("Enter");
+  expect((await saved(page)).document.branchMm).toBe(30);
+  await page.getByRole("button", { name: "More branch length" }).click();
+  expect((await saved(page)).document.branchMm).toBe(32);
   // No box, highlight or marker reaches an export.
   await target.click();
   const svgPromise = page.waitForEvent("download");
@@ -114,11 +123,14 @@ test("grows an unequal tree, fills from a bag and calculates a given-that answer
   await page.getByRole("button", { name: "Edit outcome for Red, Red" }).click();
   await page.getByRole("button", { name: "Add branches after this" }).click();
   expect((await saved(page)).document.branches).toHaveLength(8);
+  // The rarer groups are folded into one row each; pressing the row opens it.
+  await page.getByRole("button", { name: "Fill probabilities" }).click();
   await page.getByRole("button", { name: "Fill from bag" }).click();
   await page.getByRole("button", { name: "Use this tree" }).click();
   expect((await saved(page)).document.branches.map((b: { probability: { text: string } }) => b.probability.text)).toEqual([
     "5/8", "4/7", "3/6", "3/6", "3/7", "3/8", "5/7", "2/7",
   ]);
+  await page.getByRole("button", { name: 'Questions and "given that"' }).click();
   await page.getByRole("button", { name: "Add question" }).click();
   await page.getByText("Paths for calculating").click();
   await page.getByLabel("Blue, Red is in the event").check();
@@ -150,6 +162,7 @@ test("exports a 600 ppi PNG and an SVG at the stated physical size", async ({ pa
 
 test("work survives leaving the page and reloading", async ({ page }) => {
   await boot(page);
+  await page.getByRole("button", { name: "Layout" }).click();
   await page.getByLabel("Stage 1 title").fill("Bag A");
   await page.getByLabel("Stage 1 title").press("Enter");
   await switchTool(page, "Venn diagrams");
@@ -164,6 +177,7 @@ test("bold lines are saved, printed and undoable; normal lines are not saved (U1
   const art = page.getByTestId("tree-resource").locator("svg").first();
   const first = async () => Number((await art.innerHTML()).match(/stroke-width="([\d.]+)"/)![1]);
   const normal = await first();
+  await page.getByRole("button", { name: "Layout" }).click();
   const lines = page.getByLabel("Lines", { exact: true });
   await lines.selectOption("bold");
   await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");

@@ -60,7 +60,7 @@
 .ft-factors input {
   width: 100%;
 }
-.pt-hit.pt-selected,
+/* Factor trees only: unscoped, this rounded every selected target in the other tree tools. */
 .ft-editor .pt-hit {
   border-radius: 999px;
 }

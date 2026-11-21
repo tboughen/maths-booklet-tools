@@ -27,7 +27,8 @@ import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { OptionsBox } from "../site/OptionsBox";
 import { VisibilitySwitch } from "../site/VisibilitySwitch";
-import { CardHeading, NumberStepper } from "../site/CardHelp";
+import { CardHeading, FoldCard, NumberStepper } from "../site/CardHelp";
+import { Columns3, MessageCircleQuestion, PaintBucket, Ruler } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -186,7 +187,7 @@ function DraftField({
 /** Under a field in the settings: what pupils see of it, when that is not the value. */
 function StateTag({ value }: { value: Label }) {
   if (value.show === "show") return null;
-  return <span className={`pt-state pt-state-${value.show}`}>{value.show === "hidden" ? "Pupil space" : "Left out"}</span>;
+  return <span className={`pt-state pt-state-${value.show}`}>{value.show === "hidden" ? "pupil space" : "left out"}</span>;
 }
 
 export default function ProbabilityTreePage({ active = true }: { active?: boolean }) {
@@ -376,6 +377,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     else commit(next);
   }
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
+  // Every target is at least 24 px across with a mouse and 44 px on a touch board, grown about its centre.
+  const minTarget = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? 44 : 24;
+  const mmToPx = ((96 / 25.4) * fitted.scale) || 1;
+  const grown = (start: number, size: number) => {
+    const need = minTarget / mmToPx;
+    return size >= need ? { start, size } : { start: start - (need - size) / 2, size: need };
+  };
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
@@ -498,7 +506,11 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         aria-expanded={selected === key && boxAnchor !== null}
                         title={state === "hidden" ? TARGET_TIP_SPACE : state === "omit" ? `Left out. ${TARGET_TIP}` : TARGET_TIP}
                         disabled={blocked}
-                        style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
+                        style={(() => {
+                          const x = grown(t.x, t.width),
+                            y = grown(t.y, t.height);
+                          return { left: px(x.start, g.width), top: px(y.start, g.height), width: px(x.size, g.width), height: px(y.size, g.height) };
+                        })()}
                         onClick={(ev) => {
                           setSelected(key);
                           setBoxAnchor(ev.currentTarget);
@@ -650,6 +662,23 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             <ReturnToDiagram />
             <div className="md-kit-cards">
             <div>
+            <section className="panel-card pt-panel" aria-label="What pupils see">
+              <CardHeading
+                title="What pupils see"
+                help={
+                  <>
+                    <p className="pt-note">Show prints the value. Pupil space prints a space to fill in; the answers copy shows the value. Leave out prints nothing in either copy and keeps the value.</p>
+                    <p className="pt-note">Each switch sets every label of that kind. Mixed means the labels differ: change one on the tree.</p>
+                  </>
+                }
+              />
+              {KINDS.map(({ kind, name }) => {
+                const value = commonVisibility(labelsOf(d, kind).map((l) => l.show));
+                return value === null ? null : (
+                  <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />
+                );
+              })}
+            </section>
             <section className="panel-card pt-panel" aria-label="Branches">
               <CardHeading
                 title="Branches"
@@ -673,7 +702,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                       style={{ paddingLeft: (k - 1) * 14 }}
                       onFocus={() => setSelected((s) => (s?.endsWith(":" + b.id) ? s : `outcome:${b.id}`))}
                     >
-                      <span>
+                      <span className="pt-field-wrap">
                         <DraftField
                           id={fieldId("outcome", b.id)}
                           className={selected === `outcome:${b.id}` ? "pt-field-selected" : ""}
@@ -685,7 +714,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                         />
                         <StateTag value={b.outcome} />
                       </span>
-                      <span>
+                      <span className="pt-field-wrap">
                         <DraftField
                           id={fieldId("probability", b.id)}
                           className={selected === `probability:${b.id}` ? "pt-field-selected" : ""}
@@ -703,40 +732,30 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   );
                 })}
               </div>
+              <div className="pt-hint" aria-live="polite">
+                <span>
+                  Click a label to edit · double-click for a pupil space
+                  {spaceCount > 0 && ` · ${spaceCount} so far`}
+                </span>
+                {spaceCount > 0 && (
+                  <button type="button" className="pt-link" aria-label="Clear pupil spaces" title="Show every value again (one undo step)" disabled={blocked} onClick={clearSpaces}>
+                    Clear
+                  </button>
+                )}
+              </div>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.linkLabels} onChange={(ev) => patch((n) => void (n.linkLabels = ev.target.checked))} />
                 Same outcome names across each stage
               </label>
             </section>
-            <section className="panel-card pt-panel">
-              <CardHeading
-                title="What pupils see"
-                help={
-                  <>
-                    <p className="pt-note">Show prints the value. Pupil space prints a space to fill in; the answers copy shows the value. Leave out prints nothing in either copy and keeps the value.</p>
-                    <p className="pt-note">Each switch sets every label of that kind. Mixed means the labels differ: change one on the tree.</p>
-                  </>
-                }
-              />
-              {KINDS.map(({ kind, name }) => {
-                const value = commonVisibility(labelsOf(d, kind).map((l) => l.show));
-                return value === null ? null : (
-                  <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />
-                );
-              })}
-              <div className="pt-row pt-spaces">
-                <span>
-                  {spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
-                </span>
-                <button type="button" disabled={blocked || spaceCount === 0} title={spaceCount === 0 ? "There are no pupil spaces to clear." : "Show every value again"} onClick={clearSpaces}>
-                  Clear pupil spaces
-                </button>
-              </div>
-            </section>
             </div>
             <div>
-            <section className="panel-card pt-panel">
-              <h2>Fill probabilities</h2>
+            <FoldCard
+              tool="probability-tree"
+              title="Fill probabilities"
+              icon={PaintBucket}
+              summary={`From a bag of ${bag.trim() || "…"} · ${replacement ? "with" : "without"} replacement, or 1 − p`}
+            >
               <p className="pt-note">Nothing is filled until you press a button. Each fill can be undone.</p>
               <div className="pt-fields">
                 <label>
@@ -767,9 +786,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   Fill missing 1 − p
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Outcome columns</h2>
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title="Outcome columns"
+              icon={Columns3}
+              summary={{ none: "Nothing at the end of each path", outcome: "Outcome at the end of each path", both: "Outcome and probability at the end of each path" }[d.endColumn]}
+            >
               <div className="pt-fields">
                 <label>
                   At the end of each path
@@ -785,12 +808,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   <div className="pt-branches">
                     {paths.map((b) => (
                       <div key={b.id} className="pt-branch">
-                        <span>
+                        <span className="pt-field-wrap">
                           <DraftField id={fieldId("endOutcome", b.id)} label={`End outcome for ${branchName(b)}`} value={b.endOutcome.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endOutcome", { text: v })} />
                           <StateTag value={b.endOutcome} />
                         </span>
                         {d.endColumn === "both" && (
-                          <span>
+                          <span className="pt-field-wrap">
                             <DraftField id={fieldId("endProbability", b.id)} label={`End probability for ${branchName(b)}`} value={b.endProbability.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endProbability", { text: v })} />
                             <StateTag value={b.endProbability} />
                           </span>
@@ -811,17 +834,19 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   </div>
                 </>
               )}
-            </section>
-            <section className="panel-card pt-panel">
-              <CardHeading
-                title={'Questions and "given that"'}
-                help={
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title={'Questions and "given that"'}
+              icon={MessageCircleQuestion}
+              summary={d.questions.length ? `${d.questions.length} question${d.questions.length === 1 ? "" : "s"} below the tree` : "None yet"}
+              help={
                   <p className="pt-note">
                     Questions print below the tree with an answer space. To calculate an answer, tick the paths in the event and,
                     for a given-that question, the paths in the condition.
                   </p>
                 }
-              />
+            >
               {d.questions.map((q, qi) => {
                 const value = questionValue(d, q);
                 return (
@@ -830,7 +855,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                       Question ({String.fromCharCode(97 + qi)})
                       <DraftField label={`Question ${qi + 1} text`} value={q.text} maxLength={60} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].text = v))} />
                     </label>
-                    <span>
+                    <span className="pt-field-wrap">
                       <DraftField id={fieldId("answer", q.id)} label={`Answer to question ${qi + 1}`} value={q.answer.text} maxLength={24} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].answer.text = v))} />
                       <StateTag value={q.answer} />
                     </span>
@@ -877,11 +902,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   Add question
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <CardHeading
-                title="Layout"
-                help={
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.branchMm} mm branches · ${d.gapMm} mm spacing · ${d.blankStyle === "box" ? "boxes" : "dotted spaces"} · ${LINE_WEIGHT_NAMES[d.lines ?? "normal"].toLowerCase()}`}
+              help={
                   <>
                     <p className="pt-note">
                       Paths can be different lengths: click a branch on the tree and choose Add branches after this, or End the
@@ -893,7 +920,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     </p>
                   </>
                 }
-              />
+            >
               <div className="pt-fields">
                 {Array.from({ length: depth }, (_, k) => (
                   <label key={k}>
@@ -929,10 +956,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     ))}
                   </select>
                 </label>
-                <NumberStepper name="Branch length" unit="mm" value={d.branchMm} steps={BRANCH_STEPS} disabled={blocked} onChange={(v) => patch((n) => void (n.branchMm = v))} />
-                <NumberStepper name="Path spacing" unit="mm" value={d.gapMm} steps={GAP_STEPS} disabled={blocked} onChange={(v) => patch((n) => void (n.gapMm = v))} />
+                <NumberStepper name="Branch length" unit="mm" value={d.branchMm} steps={BRANCH_STEPS} min={12} max={50} disabled={blocked} onChange={(v) => patch((n) => void (n.branchMm = v))} />
+                <NumberStepper name="Path spacing" unit="mm" value={d.gapMm} steps={GAP_STEPS} min={8} max={24} disabled={blocked} onChange={(v) => patch((n) => void (n.gapMm = v))} />
               </div>
-            </section>
+            </FoldCard>
             </div>
             </div>
           </aside>

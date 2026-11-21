@@ -35,6 +35,7 @@ export function VisibilitySwitch({
             key={v}
             type="button"
             aria-pressed={value === v}
+            data-visibility={v}
             title={VISIBILITY_HELP[v]}
             disabled={disabled}
             onClick={() => onChange(v)}

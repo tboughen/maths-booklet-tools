@@ -28,7 +28,7 @@ export const SAVED_NOTE = "Saved to file";
 /** How long the check stays beside the File button. */
 export const SAVED_NOTE_MS = 3000;
 export const LINK_DESCRIPTION =
-  "Anyone with the link can open the saved resource, including hidden answers.";
+  "For colleagues: it opens the whole resource, answers included. Never send it to pupils.";
 export const SAVE_DESCRIPTION = "Includes hidden answers.";
 export const WORD_SETUP_LABEL = "First-time Word setup";
 

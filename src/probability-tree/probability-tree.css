@@ -171,8 +171,6 @@
   padding: 2px;
 }
 /* A field with what pupils see of it underneath. */
-.pt-branch > span:has(> .pt-state),
-.pt-question > span:has(> .pt-state),
 .pt-branch > span:has(> .pt-hide),
 .pt-question > span:has(> .pt-hide) {
   display: grid;
@@ -183,6 +181,10 @@
   .pt-branches {
     max-height: none;
   }
+}
+/* Probabilities share the row evenly, so a value and its pupil-space tag both fit. */
+.pt-editor .pt-branch {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 .pt-branch.pt-current {
   background: #e2efff;
@@ -219,21 +221,58 @@
   user-select: none;
   -webkit-user-select: none;
 }
-/* A finger reaches a little beyond a small label. */
-@media (pointer: coarse) {
-  .pt-editor .pt-hit::before {
-    content: "";
-    position: absolute;
-    inset: -6px;
-  }
+/* A field that is a pupil space or left out carries a small tag inside it, as in the mock-ups. */
+.pt-field-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+.pt-field-wrap:has(> .pt-state) input {
+  padding-right: 84px !important;
 }
 .pt-state {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eef1f5;
+  color: var(--md-ink-2, #50617a);
   font-size: 11px;
-  color: var(--muted, #50617a);
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .pt-state-hidden {
+  background: color-mix(in srgb, var(--md-pink, #b0125b) 11%, #fff);
   color: var(--md-pink, #b0125b);
 }
-.pt-spaces {
-  justify-content: space-between;
+/* The live hint line at the foot of the Branches card. */
+.pt-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--md-line, #dbe3ec);
+  border-radius: var(--md-radius, 6px);
+  background: var(--md-page, #f2f5f8);
+  color: var(--md-ink-2, #50617a);
+  font-size: var(--md-text-xs, 12px);
 }
+.md-kit :is(.site-panel, .panel-card) button.pt-link {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--md-blue, #0f62fe);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-kit :is(.site-panel, .panel-card) button.pt-link:hover:not(:disabled) {
+  background: none;
+}
+

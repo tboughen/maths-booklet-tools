@@ -165,30 +165,159 @@
   }
 }
 
-/* A card heading with its (?) help, and a number with − and + (src/site/CardHelp.tsx). */
+/* A card heading with its (?) help, a folded group and a size stepper (src/site/CardHelp.tsx). */
 .md-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
-.md-kit :is(.site-panel, .panel-card) button.md-card-help {
+.md-card-help-wrap {
+  position: relative;
   flex: none;
+}
+.md-kit :is(.site-panel, .panel-card) button.md-card-help {
+  display: grid;
+  place-items: center;
   width: var(--md-control);
   height: var(--md-control);
   margin-block: -4px;
   padding: 0;
+  border-color: transparent;
   border-radius: 50%;
+  background: transparent;
   color: var(--md-ink-2, #50617a);
   font-weight: 600;
 }
-.md-card-help-text {
-  display: grid;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: var(--md-radius, 6px);
-  background: var(--md-page, #f2f5f8);
+.md-kit :is(.site-panel, .panel-card) button.md-card-help::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
 }
+.md-card-help-pop {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  right: -4px;
+  display: grid;
+  gap: 4px;
+  width: 270px;
+  padding: 10px 12px;
+  border: 1px solid var(--md-line-strong, #b5c3d5);
+  border-radius: var(--md-radius, 6px);
+  background: var(--md-paper, #fff);
+  box-shadow: 0 6px 24px #15335126;
+  color: var(--md-ink-2, #50617a);
+  font-size: var(--md-text-xs, 12px);
+  line-height: 1.45;
+  text-align: left;
+}
+.md-card-help-pop strong {
+  color: var(--md-ink, #213c59);
+  font-size: var(--md-text-sm, 13px);
+}
+.md-card-help-pop p {
+  margin: 0 !important;
+}
+
+/* A folded group: icon, name and summary in one row; the whole row opens it. */
+.md-kit .panel-card.md-fold {
+  gap: 0;
+  padding-block: 8px;
+}
+.md-fold-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.md-fold-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--md-radius, 6px);
+  background: var(--md-blue-soft, #e6efff);
+  color: var(--md-blue, #0f62fe);
+}
+.md-fold-words {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.md-kit :is(.site-panel, .panel-card) .md-fold-words h2 {
+  font-size: 15px;
+  line-height: 1.2;
+}
+.md-kit :is(.site-panel, .panel-card) button.md-fold-toggle {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.md-kit :is(.site-panel, .panel-card) button.md-fold-toggle:hover:not(:disabled) {
+  background: none;
+}
+/* The whole row is the button's target. */
+.md-fold-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -8px -12px;
+  border-radius: var(--md-radius-card, 8px);
+}
+.md-fold-toggle:focus-visible {
+  outline: none;
+}
+.md-fold-toggle:focus-visible::after {
+  outline: 2px solid var(--md-blue, #0f62fe);
+}
+.md-fold-head:hover .md-fold-chevron {
+  color: var(--md-blue, #0f62fe);
+}
+.md-fold-summary {
+  color: var(--md-ink-2, #50617a);
+  font-size: var(--md-text-xs, 12px);
+  line-height: 1.35;
+}
+.md-fold-chevron {
+  flex: none;
+  color: var(--md-ink-3, #62748c);
+  transition: transform 0.15s;
+}
+.md-fold--open .md-fold-chevron {
+  transform: rotate(180deg);
+}
+/* Above the row's target, so the help opens rather than the fold closing. */
+.md-fold-head .md-card-help-wrap {
+  z-index: 1;
+}
+.md-fold-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--md-line, #dbe3ec);
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-fold-chevron {
+    transition: none;
+  }
+}
+
+/* A size: − [32 mm] +. */
 .md-number-stepper {
   display: grid;
   gap: 3px;
@@ -210,8 +339,31 @@
   place-items: center;
   padding: 0 !important;
 }
-.md-number-stepper output {
+.md-number-stepper-box {
+  position: relative;
+  min-width: 0;
+}
+.md-kit :is(.site-panel, .panel-card) .md-number-stepper-box input {
   text-align: center;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+}
+.md-number-stepper-error {
+  color: var(--md-red, #b42318);
+  font-size: var(--md-text-xs, 12px);
+}
+
+/* What pupils see: a pressed Pupil space is pink, the answer colour, as in the mock-ups. */
+.md-visibility-buttons > button[data-visibility="hidden"][aria-pressed="true"] {
+  border-color: var(--md-pink, #b0125b) !important;
+  background: color-mix(in srgb, var(--md-pink, #b0125b) 9%, #fff) !important;
+  color: var(--md-pink, #b0125b);
+  z-index: 1;
+}
+/* A finger gets a full-height row to press. */
+@media (max-width: 767px), (pointer: coarse) {
+  .md-kit :is(.site-panel, .panel-card) button.md-fold-toggle {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }

@@ -107,7 +107,8 @@ const kitSizes = (page: Page, twoLines: string[] = []) =>
   page.locator(".inspector-stack.md-kit").evaluate((el, twoLines) => {
     const drawn = (selector: string) => [...el.querySelectorAll<HTMLElement>(selector)].filter((c) => c.getClientRects().length > 0);
     return {
-      buttons: [...new Set(drawn(".panel-card button").filter((b) => !twoLines.includes(b.textContent ?? "")).map((b) => b.getBoundingClientRect().height))],
+      // A folded group's row and a text link in a hint line are words, not buttons to size.
+      buttons: [...new Set(drawn(".panel-card button:not(.md-fold-toggle, .pt-link)").filter((b) => !twoLines.includes(b.textContent ?? "")).map((b) => b.getBoundingClientRect().height))],
       fields: [...new Set(drawn(".panel-card :is(select, input:not([type=checkbox]))").map((b) => b.getBoundingClientRect().height))],
       ticks: [...new Set(drawn(".panel-card input[type=checkbox]").map((b) => b.getBoundingClientRect().width))],
       faded: [...el.querySelectorAll<HTMLElement>(".panel-card button:disabled")].filter((b) => getComputedStyle(b).opacity !== "1").length,
