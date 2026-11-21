@@ -236,7 +236,7 @@ const planSubmission = z
     title: text(80).describe("The unit title for the cover."),
     coverNote: text(240).describe("One or two short lines for the cover: equipment and how to use the booklet."),
     intro: introSchema,
-    lessons: z.array(lessonPlan).min(1).max(12),
+    lessons: z.array(lessonPlan).min(1).max(16),
   })
   .strict();
 export type BookletPlan = z.infer<typeof planSubmission>;

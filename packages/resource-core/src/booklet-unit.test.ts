@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { lessonFileName, lessonPagesOf, planBooklet, renderBooklet, renderLessonNotes, singleLessonBooklet } from "./booklet-render";
+import { issuePlace, lessonFileName, lessonPagesOf, planBooklet, renderBooklet, renderLessonNotes, singleLessonBooklet } from "./booklet-render";
 import { writeBookletDocx } from "./booklet-docx";
 
 // Full unit booklets (BOOKLET-STANDARD N12, Tim 18 and 20 November 2026): a unit may open with a
@@ -75,6 +75,8 @@ describe("the fold-over retrieval page", () => {
   it("reports a page too full and a stacked fraction it cannot print", () => {
     const many = { items: Array.from({ length: 20 }, () => ({ question: "A long question that wraps over more than one line of the page so the rows grow taller than they would otherwise be.", answer: "8" })) };
     expect(renderBooklet(unit({ retrieval: many })).issues.some((i) => /fold-over page needs/.test(i.message))).toBe(true);
+    const full = renderBooklet(unit({ retrieval: many })).issues.find((i) => /fold-over page needs/.test(i.message))!;
+    expect(issuePlace(full)).toMatch(/^fold-over page, page \d+$/);
     const frac = { items: [{ question: "Work out {3/4} of 8.", answer: "6" }] };
     expect(renderBooklet(unit({ retrieval: frac, notation: "maths" })).issues.some((i) => /stacked fraction/.test(i.message))).toBe(true);
   });

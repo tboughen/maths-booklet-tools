@@ -44,6 +44,8 @@ export interface BookletIssue {
   question?: number | string;
   /** 1-based printed page. */
   page?: number;
+  /** The issue is on the fold-over retrieval page. */
+  retrieval?: boolean;
   message: string;
 }
 export interface BookletRenderOptions {
@@ -763,13 +765,13 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
     const a = para(it.answer, retrievalAnswerWidth(), st);
     out.push(at(a, foldX + R.gap, lineY - a.h + 1.2));
     if (maths && [it.question, it.answer].some((t) => /\{[^{}]+\/[^{}]+\}/.test(t)))
-      issues.push({ lesson: 0, page: pageNo, question: i + 1, message: `Fold-over question ${i + 1} has a stacked fraction, which this page prints as typed. Write it another way, such as 3 ÷ 4.` });
+      issues.push({ lesson: 0, retrieval: true, page: pageNo, question: i + 1, message: `Fold-over question ${i + 1} has a stacked fraction, which this page prints as typed. Write it another way, such as 3 ÷ 4.` });
     y += h;
   });
   out.push(hline(x0, x0 + W, y, st, 0.35));
   out.push(`<line x1="${n(foldX)}" y1="${n(top - lh(S.body) - 2.5)}" x2="${n(foldX)}" y2="${n(y + 6)}" stroke="${st.ink}" stroke-width="0.4" stroke-dasharray="2.4 1.6"/>`);
   out.push(textSvg(parseRuns("Fold back along the dashed line", "italic"), foldX, y + 6 + base(A4.small) + 0.5, A4.small, st.muted, "middle"));
-  if (y + 6 + lh(A4.small) > A4.bottom) issues.push({ lesson: 0, page: pageNo, message: `The fold-over page needs ${n(y + 6 + lh(A4.small) - A4.bottom)} mm more height: use fewer or shorter questions.` });
+  if (y + 6 + lh(A4.small) > A4.bottom) issues.push({ lesson: 0, retrieval: true, page: pageNo, message: `The fold-over page needs ${n(y + 6 + lh(A4.small) - A4.bottom)} mm more height: use fewer or shorter questions.` });
   return out.join("");
 }
 
@@ -993,7 +995,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
 
   if (doc.retrieval && plan.retrievalPage) {
     const pageNo = plan.retrievalPage + (options.numbering?.pageOffset ?? 0);
-    glyphs(doc.retrieval, { lesson: 0, page: pageNo }, "The fold-over page");
+    glyphs(doc.retrieval, { lesson: 0, retrieval: true, page: pageNo }, "The fold-over page");
     pages.push(page(retrievalPage(doc.retrieval, st, issues, pageNo, doc.notation === "maths") + footer(doc, pageNo, st), `${doc.title}, ${doc.retrieval.title}`, options));
   }
 
@@ -1022,7 +1024,7 @@ export function bookletFileName(booklet: Booklet, view: View = "pupil"): string 
 
 /** Where an issue is, in teacher words. */
 export function issuePlace(i: BookletIssue): string {
-  return [i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
+  return [i.retrieval ? "fold-over page" : i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
 }
 
 /** The printed pages of one lesson (0-based index), with the full booklet's page numbers. */

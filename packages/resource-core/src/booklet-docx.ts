@@ -519,8 +519,8 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle): string {
   const margin = { left: R.gap, right: 1 - WORD_WRAP_SLACK_MM };
   const headRow = row(
     [
-      cell(para(runs("Questions", { bold: true, color: st.navy })), { width: R.num + qw, vAlign: "bottom" }),
-      cell(gap(END_MM), { width: R.gap, borders: { right: fold } }),
+      cell(para(runs("Questions", { bold: true, color: st.navy })), { width: R.num + qw + WORD_WRAP_SLACK_MM, span: 2, vAlign: "bottom" }),
+      cell(gap(END_MM), { width: R.gap - WORD_WRAP_SLACK_MM, borders: { right: fold } }),
       cell(para(runs("Answers", { bold: true, color: st.navy })), { width: rightW, margin, borders: { left: fold }, vAlign: "bottom" }),
     ],
     { mm: lh(S.body) + 1.5, exact: true },
@@ -534,15 +534,17 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle): string {
     return row(
       [
         cell(gap(R.pad) + para(runs(String(i + 1), { bold: true, color: st.navy })), { width: R.num, borders: b }),
-        cell(gap(R.pad) + para(runs(it.question)) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw - WORD_WRAP_SLACK_MM, align: "right", leader: "dot" }] }), { width: qw, borders: b }),
-        cell(gap(END_MM), { width: R.gap, borders: { ...b, right: fold } }),
-        cell(gap(Math.max(END_MM, h - R.pad - 1.2 - wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body))) + para(runs(it.answer)), { width: rightW, margin, borders: { ...b, left: fold } }),
+        cell(gap(R.pad) + para(runs(it.question)) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
+        cell(gap(END_MM), { width: R.gap - WORD_WRAP_SLACK_MM, borders: { ...b, right: fold } }),
+        cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body))) + para(runs(it.answer)), { width: rightW, margin, borders: { ...b, left: fold } }),
       ],
-      { mm: h, exact: true },
+      // Word prints row borders outside an exact row height (probe P1): each row's top rule, and the
+      // last row's bottom rule too, come off its height so the table is as tall as the PDF's.
+      { mm: h - line.width - (i === r.items.length - 1 ? line.width : 0), exact: true },
       true,
     );
   });
-  out.push(table([R.num, qw, R.gap, rightW], [headRow, ...rows]));
+  out.push(table([R.num, qw + WORD_WRAP_SLACK_MM, R.gap - WORD_WRAP_SLACK_MM, rightW], [headRow, ...rows]));
   out.push(gap(1.5), para(runs("Fold back along the dashed line", { italic: true, color: st.muted, sizeMm: A4.small }), { line: lh(A4.small), left: leftW - 30, right: rightW - 30, align: "center" }));
   return out.join("");
 }
