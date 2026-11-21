@@ -46,6 +46,8 @@ import {
   MARKER_LABEL,
   MARKER_LABEL_HELP,
   MAX_MARKERS,
+  MAX_WORDS,
+  WORD_TEXT,
   type Envelope,
   type Operation,
   type Secondary,
@@ -1564,8 +1566,12 @@ export default function NumberLinePage({
                               const text = rest.join("=").trim();
                               if (!value?.trim() || !text)
                                 throw Error("Write each word as value = word, such as 1/2 = Even chance.");
+                              if (!WORD_TEXT.test(text))
+                                throw Error(`Use up to 16 letters for "${text}", with single spaces, such as Even chance.`);
                               return { value: value.trim(), text };
                             });
+                          if (words.length > MAX_WORDS)
+                            throw Error(`Use up to ${MAX_WORDS} words under the line.`);
                           change([{ op: "set_words", words: words.length ? words : null }]);
                         },
                       )}

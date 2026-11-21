@@ -7942,7 +7942,7 @@
                 },
                 "text": {
                   "type": "string",
-                  "pattern": "^(?=.{1,16}$)[A-Za-z][A-Za-z' -]*$"
+                  "pattern": "^(?=.{1,16}$)[A-Za-z]+(?:[ '-][A-Za-z]+)*$"
                 }
               },
               "required": [

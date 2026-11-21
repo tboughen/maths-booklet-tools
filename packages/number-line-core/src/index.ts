@@ -51,7 +51,7 @@ export const MARKER_LABEL = /^(?=.{1,12}$)(?:[A-Za-z0-9]+|[A-Za-z][A-Za-z0-9]*(?
 export const MARKER_LABEL_HELP = "Use up to 12 characters for an arrow label: a letter or words such as A or Even chance, a number such as 3.47 or −2.5, or a fraction such as 1/3.";
 const markerLabel = z.string().regex(MARKER_LABEL, MARKER_LABEL_HELP);
 /** A word printed under the line at a value: letters, spaces, hyphens and apostrophes, up to 16 characters. */
-export const WORD_TEXT = /^(?=.{1,16}$)[A-Za-z][A-Za-z' -]*$/;
+export const WORD_TEXT = /^(?=.{1,16}$)[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
 export const wordSchema = z.object({ value: num, text: z.string().regex(WORD_TEXT, "Use up to 16 letters and spaces for a word under the line, such as Even chance.") }).strict();
 const widthCm = z.number().min(MIN_WIDTH_CM).max(MAX_WIDTH_CM);
 export const markerSchema = z.object({ id, value: num, label: markerLabel.optional() }).strict();
@@ -123,7 +123,7 @@ const FRACTION_MARKER_ROOM = 3.6;
 /** Room under the tick labels for a row of words (mm). */
 const WORD_ROOM = 5.5;
 export const isFractionLabel = (label: string) => label.includes("/");
-export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 : d.markers ? MARKER_AXIS_Y + (d.markers.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const numbersBottom = axisY + (fraction ? 10 : 7), wordY = numbersBottom + 3.6, labelBottom = numbersBottom + (d.words ? WORD_ROOM : 0), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; const plain = d.axis.ends === "plain"; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, wordY, left: 7, right: width - (plain && !d.axis.variable ? 7 : 12), barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
+export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 + (d.markers?.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : d.markers ? MARKER_AXIS_Y + (d.markers.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const numbersBottom = axisY + (fraction ? 10 : 7), wordY = numbersBottom + 3.6, labelBottom = numbersBottom + (d.words ? WORD_ROOM : 0), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; const plain = d.axis.ends === "plain"; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, wordY, left: 7, right: width - (plain && !d.axis.variable ? 7 : 12), barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
 export function position(d: LineDocument, v: string) { const m = metrics(d); return m.left + (valueOf(v) - valueOf(d.axis.minimum)) / (valueOf(d.axis.maximum) - valueOf(d.axis.minimum)) * (m.right - m.left); }
 export function validate(raw: unknown): Envelope {
     const e = envelopeSchema.parse(raw), d = e.document;
@@ -181,6 +181,8 @@ export function validate(raw: unknown): Envelope {
                 throw Error(`Arrow markers ${placed[i - 1].k.label ?? placed[i - 1].k.id} and ${placed[i].k.label ?? placed[i].k.id} are too close at this print width. Move one or widen the line.`);
         required.push(...d.markers.map(k => k.value));
     }
+    if (d.axis.ends === "plain" && d.secondary?.style === "bar")
+        throw Error("A percentage bar is closed already, so plain ends don't apply. Turn plain ends off.");
     if (d.axis.ends === "plain" && (s?.kind === "ray" || (s?.kind === "points" && s.rays?.length)))
         throw Error("A line with plain ends stops at its last tick, so it can't show a ray. Use arrow ends for an inequality that carries on.");
     if (d.words) {
@@ -240,7 +242,7 @@ export function validate(raw: unknown): Envelope {
             throw Error("The prompt or answer is too long for this print width.");
     return e;
 }
-export function create(raw: unknown = {}): Envelope { return validate({ schemaVersion: 1, rendererVersion: RENDERER_VERSION, styleProfile: "examination-v1", kind: "number-line", document: documentSchema.parse(unmix(raw)) }); }
+export function create(raw: unknown = {}): Envelope { const document = documentSchema.parse(unmix(raw)); if (document.axis.ends !== "plain") delete document.axis.ends; return validate({ schemaVersion: 1, rendererVersion: RENDERER_VERSION, styleProfile: "examination-v1", kind: "number-line", document }); }
 export function canonical(e: Envelope) { return JSON.stringify(validate(e)); }
 export function parseFile(text: string) { if (new TextEncoder().encode(text).length > 32768)
     throw Error("Use a number-line file smaller than 32 KiB."); return validate(JSON.parse(text)); }
@@ -389,8 +391,8 @@ export function apply(e: Envelope, raw: unknown): Envelope {
 export async function revise(raw: unknown) { const v = revisionSchema.parse(raw); if (await hash(v.envelope) !== v.baseHash)
     throw Error("stale_hash: The baseHash does not match this definition. Use the last returned envelope and hash."); return apply(v.envelope, v.operations); }
 export const warnings = (e: Envelope) => e.document.solution?.kind === "ray" && e.document.solution.intentional ? ["This drawing intentionally disagrees with the completed ray for an error-spotting task."] : [];
-export const describe = (e: Envelope) => `Number line from ${e.document.axis.minimum} to ${e.document.axis.maximum}; step ${e.document.axis.step}; ${e.document.teaching.solutionVisible ? (e.document.solution?.kind ?? "blank") : "solution hidden"}${e.document.markers ? `; ${e.document.markers.length} arrow marker${e.document.markers.length > 1 ? "s" : ""}` : ""}.`;
-export function printFacts(d: LineDocument) { return { recommendedScale: 1 as const, preserveAspectRatio: true as const, referenceFeatures: { textSizesPt: ticks(d).some(v => labelled(d, v) && d.teaching.labels[labelKey(v)] !== "hidden") || d.axis.variable || d.markers?.some(k => k.label) || d.teaching.prompt || d.teaching.answerVisible ? [11] : [], gridPitchMm: [], answerLineLengthsMm: [...(d.teaching.responseLines ? [d.widthCm * 10 - 14] : []), ...(Object.values(d.teaching.labels).includes("answer-line") ? [5] : [])], tableRowHeightsMm: [] } }; }
+export const describe = (e: Envelope) => `Number line from ${e.document.axis.minimum} to ${e.document.axis.maximum}; step ${e.document.axis.step}; ${e.document.teaching.solutionVisible ? (e.document.solution?.kind ?? "blank") : "solution hidden"}${e.document.markers ? `; ${e.document.markers.length} arrow marker${e.document.markers.length > 1 ? "s" : ""}` : ""}${e.document.axis.ends === "plain" ? "; plain ends" : ""}${e.document.words ? `; words ${e.document.words.map(w => w.text).join(", ")}` : ""}.`;
+export function printFacts(d: LineDocument) { return { recommendedScale: 1 as const, preserveAspectRatio: true as const, referenceFeatures: { textSizesPt: ticks(d).some(v => labelled(d, v) && d.teaching.labels[labelKey(v)] !== "hidden") || d.axis.variable || d.markers?.some(k => k.label) || d.words || d.teaching.prompt || d.teaching.answerVisible ? [11] : [], gridPitchMm: [], answerLineLengthsMm: [...(d.teaching.responseLines ? [d.widthCm * 10 - 14] : []), ...(Object.values(d.teaching.labels).includes("answer-line") ? [5] : [])], tableRowHeightsMm: [] } }; }
 export function displayNumber(d: LineDocument, s: string) {
     if (d.axis.numberFormat === "fraction")
         return fractionString(parseNumber(s));
@@ -414,7 +416,8 @@ const PART = FONT * 10 / 11;
 const MIXED_GAP = .6;
 /** Arrow labels print a typed hyphen as a true minus sign. */
 const markerLabelText = (label: string) => label.replaceAll("-", "−");
-const markerLabelWidth = (label: string) => isFractionLabel(label) ? numberWidth(label.replace("−", "-")) + 1 : textWidth(markerLabelText(label), FONT);
+// A negative fraction prints an 11 pt minus 0.3 mm left of its bar; count it on both sides so the label stays centred in the checks.
+const markerLabelWidth = (label: string) => isFractionLabel(label) ? numberWidth(label.replace("−", "-").replace(/^-/, "")) + 1 + (/^[−-]/.test(label) ? 2 * (textWidth("−", FONT) + .3) : 0) : textWidth(markerLabelText(label), FONT);
 const wordWidth = (text: string) => textWidth(text, FONT);
 /** Centre of a word under the line: under its value, moved inwards only as far as needed to stay 1 mm inside the drawing. */
 export function wordX(d: LineDocument, w: { value: string; text: string }) {
