@@ -1,6 +1,7 @@
 import { typesetForPrint } from "./typeset";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTINUED_HEAD, DID_YOU_KNOW, didYouKnowBox, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeas, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
-import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
+import { card as measureCard } from "./render";
+import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, DID_YOU_KNOW, didYouKnowBox, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { LESSON_WORDS, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Section } from "./booklet";
 import {
   CARD_RULE,
   cardCell,
@@ -102,19 +103,18 @@ function noteBox(source: string, st: HouseStyle): { xml: string; h: number } {
 }
 
 /** The key idea box (N3), as the SVG page draws it: "Key idea" in a left cell, each idea on its own line in a right cell. */
-function keyIdeaBox(keyIdea: string, st: HouseStyle): { xml: string; h: number } {
+function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): { xml: string; h: number } {
   const K = KEY_IDEA;
   const left = keyIdeaLabelWidth();
-  const tw_ = W - left - K.pad;
-  const ideas = keyIdeas(keyIdea);
-  const textH = ideas.reduce((h, idea) => h + lines(idea, S.body, tw_) * lh(S.body), 0) + K.ideaGap * (ideas.length - 1);
+  const ideas = keyIdeas(keyIdea).map((idea) => ({ idea, ...keyIdeaLines(idea, keyIdeaTextWidth(), maths) }));
+  const textH = ideas.reduce((h, f) => h + f.h, 0) + K.ideaGap * (ideas.length - 1);
   const label = cell(para(runs(K.label, { bold: true, color: st.navy }), {}), {
     width: left,
     shade: st.tint,
     borders: { left: { color: st.navy, width: K.bar } },
     margin: { top: K.pad, left: K.bar + K.pad, bottom: K.pad, right: 0 },
   });
-  const text = cell(ideas.map((idea, i) => para(runs(idea), { after: i < ideas.length - 1 ? K.ideaGap : 0 })).join(""), {
+  const text = cell(ideas.map((f, i) => para(runs(f.idea, {}, "regular", maths), { line: f.line, after: i < ideas.length - 1 ? K.ideaGap : 0 })).join(""), {
     width: W - left,
     shade: st.tint,
     margin: { top: K.pad, left: 0, bottom: K.pad, right: K.pad - WORD_WRAP_SLACK_MM },
@@ -147,7 +147,7 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
   const tagW = W - startTextX() - tw_;
   const unit = unitLabel(doc);
   const navy = (content: string, width: number, vAlign: "top" | "center" = "center") => cell(content, { width, shade: st.navy, vAlign });
-  const tileCell = navy(linesTile([{ text: B.label, size: pt(10), color: st.navy, line: 5 }, { text: String(number), size: pt(26), color: st.navy, line: 10.5 }], B.tile, B.tile, "#ffffff"), B.tile);
+  const tileCell = navy(linesTile([{ text: lessonWords(doc).badge, size: pt(10), color: st.navy, line: 5 }, { text: String(number), size: pt(26), color: st.navy, line: 10.5 }], B.tile, B.tile, "#ffffff"), B.tile);
   const text =
     (unit ? textPara(unit, START_SIZES.unit, { color: "#ffffff", bold: true, right: 0 }) + gap(START_SIZES.gap) : "") +
     textPara(lesson.title, START_SIZES.title, { color: "#ffffff", bold: true, right: 0 });
@@ -161,7 +161,7 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
   let y = h;
   if (lesson.keyIdea.trim()) {
     out.push(gap(3));
-    const box = keyIdeaBox(lesson.keyIdea, st);
+    const box = keyIdeaBox(lesson.keyIdea, st, !!ctx.maths);
     out.push(box.xml);
     y += 3 + box.h;
   }
@@ -195,10 +195,10 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
 }
 
 /** The corner badge and stage squares of a later page (N11): right on odd printed pages, left on even. */
-function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle): string {
+function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle, words: LessonWords): string {
   const B = BOOKEND;
   const right = pageNo % 2 === 1;
-  const badge = cell(linesTile([{ text: B.label, size: pt(10), color: "#ffffff", line: 4.6 }, { text: String(number), size: pt(24), color: "#ffffff", line: 9 }], B.badgeW, B.badgeH, st.navy), { width: B.badgeW });
+  const badge = cell(linesTile([{ text: words.badge, size: pt(10), color: "#ffffff", line: 4.6 }, { text: String(number), size: pt(24), color: "#ffffff", line: 9 }], B.badgeW, B.badgeH, st.navy), { width: B.badgeW });
   const sq: { xml: string; w: number }[] = [];
   squares.forEach((label, i) => {
     if (i) sq.push({ xml: cell(gap(END_MM), { width: B.squareGap }), w: B.squareGap });
@@ -260,7 +260,7 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
   const out: string[] = [];
   let cursor = BOOKEND.top;
   if (p.continued) {
-    out.push(cornerBadge(shownLesson, p.squares, p.stage, p.pageNo + pageOffset, st));
+    out.push(cornerBadge(shownLesson, p.squares, p.stage, p.pageNo + pageOffset, st, lessonWords(doc)));
     cursor += BOOKEND.badgeH;
   }
   for (const block of p.blocks) {
@@ -285,17 +285,45 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       continue;
     }
     // A row of cards: one table row that cannot split, every card pinned to the row's planned height.
-    const w = section.columns === 2 ? BOOKLET_WIDTHS.half : BOOKLET_WIDTHS.full;
+    // A tall row is one table: the tall card merged down the stacked cards' rows and the gaps between them.
+    const quiet = { ...ctx, issues: [] };
+    const places = placeRow(section, block, block.h, (i, w) => measureCard(section.cards[i], block.cards.find((c) => c.index === i)?.number ?? null, w, quiet, p.extra, 0).h);
+    const where = (c: { number: number | string | null }) => (ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: p.pageNo });
+    const gapCell = () => cell(gap(END_MM), { width: A4.columnGap + CARD_RULE });
+    if (block.shape.kind === "tall") {
+      const [tall, ...stack] = places;
+      const left = block.shape.side === "left";
+      const tw_ = tall.w - CARD_RULE;
+      const rule = { color: st.rule, width: CARD_RULE };
+      const sides = (first: string, second: string) => (left ? [first, gapCell(), second] : [second, gapCell(), first]);
+      const rows: string[] = [];
+      // Merged cells below the first carry the tall card's sides; the last one draws its bottom border.
+      const below = (bottom: boolean) => cell(gap(END_MM), { width: tw_, vMerge: "continue", borders: bottom ? { left: rule, right: rule, bottom: rule } : { left: rule, right: rule } });
+      stack.forEach((c, j) => {
+        const last = j === stack.length - 1;
+        where(tall);
+        const tallCell = j === 0 ? cardCell(section.cards[tall.index], tall.number, tall.w, ctx, p.extra, "restart") : below(last);
+        where(c);
+        rows.push(row(sides(tallCell, cardCell(section.cards[c.index], c.number, c.w, ctx, p.extra)), { mm: c.h - 2 * CARD_RULE }, true));
+        if (!last) rows.push(row(sides(below(false), cell(gap(END_MM), { width: c.w - CARD_RULE })), { mm: A4.rowGap, exact: true }, true));
+      });
+      // Word must not break the table between its rows: every row but the last keeps with the next.
+      for (let r = 0; r < rows.length - 1; r++) rows[r] = rows[r].replaceAll("<w:pPr>", "<w:pPr><w:keepNext/>");
+      const grid = left ? [tw_, A4.columnGap + CARD_RULE, stack[0].w - CARD_RULE] : [stack[0].w - CARD_RULE, A4.columnGap + CARD_RULE, tw_];
+      out.push(table(grid, rows));
+      cursor = block.y + block.h;
+      continue;
+    }
     const grid: number[] = [];
     const cells: string[] = [];
-    block.cards.forEach((c, k) => {
+    places.forEach((c, k) => {
       if (k) {
         grid.push(A4.columnGap + CARD_RULE);
-        cells.push(cell(gap(END_MM), { width: A4.columnGap + CARD_RULE }));
+        cells.push(gapCell());
       }
-      ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: p.pageNo };
-      grid.push(w - CARD_RULE);
-      cells.push(cardCell(section.cards[c.index], c.number, w, ctx, p.extra));
+      where(c);
+      grid.push(c.w - CARD_RULE);
+      cells.push(cardCell(section.cards[c.index], c.number, c.w, ctx, p.extra));
     });
     out.push(table(grid, [row(cells, { mm: block.h - 2 * CARD_RULE }, true)]));
     cursor = block.y + block.h;
@@ -500,14 +528,14 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${content}${gap(END_MM)}</w:ftr>`;
 }
 
-/** The end band in the footer of a lesson's last page (N11): lesson tile, "End of lesson N", the page number and STOP. */
-function endBandFooter(number: number, st: HouseStyle): string {
+/** The end band in the footer of a lesson's last page (N11): lesson tile, "End of lesson N" (or the booklet's own name), the page number and STOP. */
+function endBandFooter(number: number, st: HouseStyle, words: LessonWords = LESSON_WORDS): string {
   const B = BOOKEND;
   const size = pt(14);
   const o = { bold: true, color: "#ffffff", sizeMm: size };
   const navy = (content: string, width: number) => cell(content, { width, shade: st.navy, vAlign: "center" });
   const restW = W - 3 - B.endTile - 3;
-  const text = para(run(`End of lesson ${number}`, o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>` + tab(o) + run(B.stop, o), {
+  const text = para(run(`${words.end} ${number}`, o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>` + tab(o) + run(B.stop, o), {
     line: lh(size),
     tabs: [
       { pos: W / 2 - (3 + B.endTile + 3), align: "center" },
@@ -559,7 +587,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
       const k = endFooters.size + 1;
       const id = `rIdEndFooter${k}`;
       endFooters.set(kind, id);
-      parts.push({ name: `footer-end${k}.xml`, id, relType: "footer", contentType: footerType, xml: endBandFooter(Number(kind.slice(4)), st) });
+      parts.push({ name: `footer-end${k}.xml`, id, relType: "footer", contentType: footerType, xml: endBandFooter(Number(kind.slice(4)), st, lessonWords(doc)) });
     }
     return endFooters.get(kind)!;
   };
@@ -610,7 +638,7 @@ export async function writeLessonNotesDocx(saved: Booklet, lesson: number, optio
   const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0);
   const rendered = renderLessonNotes(booklet, lesson, { numbering: options.numbering });
   const ctx: Ctx = { st, view: "answers", diagrams: 0, issues: [], where: { lesson: lesson + 1 }, media: [], rels: [], pictures: [], maths: doc.notation === "maths" };
-  const pages = planNotes(doc.lessons[lesson], shown).map((np) => notesPage(np, st));
+  const pages = planNotes(doc.lessons[lesson], shown, lessonWords(doc)).map((np) => notesPage(np, st));
   if (!pages.length) throw Error(`Lesson ${shown} has no teaching notes to print.`);
   const body = pages.map((xml, i) => pageOpen(i === 0) + xml).join("");
   const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);

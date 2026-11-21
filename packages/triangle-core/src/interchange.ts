@@ -60,7 +60,7 @@ export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("remove_caption"), id }).strict(),
   z.object({ op: z.literal("set_shared_label"), id, text: z.string().max(40) }).strict(),
   z.object({ op: z.literal("link_label"), ref, sharedId: id.nullable() }).strict(),
-  z.object({ op: z.literal("set_print"), widthCm: z.number().min(6).max(18).optional(), fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict()
+  z.object({ op: z.literal("set_print"), widthCm: z.number().min(5).max(18).optional(), fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict()
     .refine(o => o.widthCm !== undefined || o.fontPt !== undefined || o.lines !== undefined, "set_print needs widthCm, fontPt or lines."),
   z.object({ op: z.literal("set_not_to_scale"), visible: z.boolean() }).strict(),
   z.object({ op: z.literal("construct"), triangleId: id, method: z.enum(["SSS", "SAS", "ASA", "AAS", "right"]), inputs }).strict(),
@@ -76,7 +76,7 @@ export const createSchema = z.object({
   spec: z.object({
     shape: z.enum(["right", "scalene", "isosceles", "equilateral"]).optional(),
     example: z.string().max(80).optional(),
-    widthCm: z.number().min(6).max(18).optional(), notToScale: z.boolean().optional(),
+    widthCm: z.number().min(5).max(18).optional(), notToScale: z.boolean().optional(),
     fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional(),
     labels: z.array(labelEdit).max(40).optional(), operations: z.array(operationSchema).max(30).optional(),
   }).strict().optional(),

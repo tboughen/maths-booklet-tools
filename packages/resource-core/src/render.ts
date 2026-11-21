@@ -222,8 +222,39 @@ export function answerNeed(l: Extract<Leaf, { type: "answerLine" }>, maths: bool
   const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
   return pre + post + Math.max(ANSWER_LINE_MIN, l.answer ? widthOf(l.answer) + 2 : 0);
 }
+/** Inset of model working inside a working space (answers copy). */
+export const SPACE_WORKING = { x: 2, top: 1.5 } as const;
+/** The lines of model working in a space: one paragraph per line break, blank lines dropped. */
+export const workingLines = (answer: string) =>
+  answer
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+/** Model working in a working space on the answers copy; reported when it needs more height than the space has. */
+function spaceWorking(answer: string, w: number, h: number, ctx: AnyCtx): string {
+  const out: string[] = [];
+  let y = SPACE_WORKING.top;
+  for (const line of workingLines(answer)) {
+    const f = para(line, w - 2 * SPACE_WORKING.x, ctx, { fill: ctx.st.answer, x: SPACE_WORKING.x });
+    out.push(at(f, 0, y));
+    y += f.h;
+  }
+  // Word ends the space with a gap paragraph at least 0.36 mm high, so the working must leave that much.
+  if (y > h - 0.36 + 0.01) issue(ctx, `The model working in a space needs ${n(y + 0.36)} mm but the space is ${n(h)} mm high. Make the space taller or the working shorter.`);
+  return out.join("");
+}
+
 /** The texts on an answer line that may hold a stacked fraction. */
 export const answerTexts = (l: Extract<Leaf, { type: "answerLine" }>) => [l.prefix, l.suffix, l.answer, ...(l.blanks ?? []).flatMap((b) => [b.before, b.answer])];
+
+/**
+ * An answer line as Edexcel prints it: a row of dots ("x = ..........") rather than a rule.
+ * Round dots 0.4 mm across, 1.1 mm apart (a 0.05 mm dash: PDF writers refuse a zero-length one), on the same baseline the solid line used.
+ */
+export const ANSWER_DOT = { width: 0.4, pitch: 1.1 } as const;
+export function answerRule(x1: number, x2: number, y: number, ink: string): string {
+  return `<line x1="${n(x1)}" y1="${n(y)}" x2="${n(x2)}" y2="${n(y)}" stroke="${ink}" stroke-width="${ANSWER_DOT.width}" stroke-linecap="round" stroke-dasharray="0.05 ${ANSWER_DOT.pitch - 0.05}"/>`;
+}
 
 /** `lone`: a single inline line with no inline neighbours, printed short (rule P3). */
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx, lone = false): Frag {
@@ -261,11 +292,11 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
     const answerW = l.answer ? widthOf(l.answer) : 0;
     if (l.answer && answerW + 2 > x2 - x1 + 0.01)
       issue(ctx, `A saved answer is ${n(answerW + 2 - (x2 - x1))} mm wider than its answer line, so it would run past the line in the answers copy. Shorten it or give it a longer line.`);
-    out.push(`<line x1="${n(x1)}" y1="${n(base + 0.8)}" x2="${n(x2)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`);
+    out.push(answerRule(x1, x2, base + 0.8, ctx.st.ink));
     if (l.suffix) out.push(textSvg(runsOf(l.suffix), x2 + 1.8, base, size, ctx.st.ink));
     // A stacked fraction answer is raised so its denominator clears the line.
-    if (ctx.view === "answers" && l.answer)
-      out.push(textSvg(runsOf(l.answer), x1 + 2, base - 0.6 - (answerHasFraction(l.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer));
+    if ((ctx.view === "answers" || l.given) && l.answer)
+      out.push(textSvg(runsOf(l.answer), x1 + 2, base - 0.6 - (answerHasFraction(l.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, l.given ? ctx.st.ink : ctx.st.answer));
   });
   return { h, svg: out.join("") };
 }
@@ -282,9 +313,9 @@ function frameSvg(l: Extract<Leaf, { type: "answerLine" }>, x0: number, base: nu
   return answerFrame(widthOf, l.prefix, l.blanks ?? [], l.suffix)
     .pieces.map((p) => {
       if (p.kind === "text") return textSvg(runsOf(p.text), x0 + p.x, base, size, ctx.st.ink);
-      const line = `<line x1="${n(x0 + p.x)}" y1="${n(base + 0.8)}" x2="${n(x0 + p.end)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`;
-      if (ctx.view !== "answers" || !p.answer) return line;
-      return line + textSvg(runsOf(p.answer), x0 + (p.x + p.end) / 2, base - 0.6 - (answerHasFraction(p.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer, "middle");
+      const line = answerRule(x0 + p.x, x0 + p.end, base + 0.8, ctx.st.ink);
+      if ((ctx.view !== "answers" && !l.given) || !p.answer) return line;
+      return line + textSvg(runsOf(p.answer), x0 + (p.x + p.end) / 2, base - 0.6 - (answerHasFraction(p.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, l.given ? ctx.st.ink : ctx.st.answer, "middle");
     })
     .join("");
 }
@@ -419,8 +450,11 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
       return choice(item, w, ctx);
     case "answerLine":
       return answerRow([item], w, ctx);
-    case "space":
-      return { h: item.heightMm + extra, svg: "" };
+    case "space": {
+      const h = item.heightMm + extra;
+      if (ctx.view !== "answers" || !item.answer?.trim()) return { h, svg: "" };
+      return { h, svg: spaceWorking(item.answer, w, h, ctx) };
+    }
     case "diagram":
       return diagram(item.diagram, w, ctx);
     case "paper": {
@@ -596,8 +630,11 @@ export const besideHeight = (a: Leaf, b: Leaf, ctx: AnyCtx, w: number): number =
 
 /** A row of two items: both are measured without spare height, and the row takes the spare height once if either holds a space. */
 export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "space" || b.type === "space" ? extra : 0);
-/** In a row of two, an answer line beside a space is aligned to the row's bottom, like the space's own last line. */
-export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && other.type === "space";
+/**
+ * In a row of two, an answer line beside a space or a diagram is aligned to the row's bottom: like
+ * the space's own last line, or under the working room beside a diagram (Tim, 19 Nov 2026). A ratio table keeps its line on its bottom row.
+ */
+export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && (other.type === "space" || (other.type === "diagram" && ratioFoot(other) === null));
 
 /**
  * How many shares of spare height a list of items takes: one per working or drawing space, but
@@ -790,7 +827,9 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
   }
   out.push(`<rect x="0" y="0" width="${n(W)}" height="${n(H)}" fill="none" stroke="${st.rule}" stroke-width="0.3"/>`);
   if (item.axes) {
-    const snap = (v: number, max: number) => Math.min(Math.max(Math.round(v / pitch) * pitch, 0), Math.floor(max / pitch) * pitch);
+    // On graph paper the axes sit on a bold 10 mm line, as on an exam grid.
+    const step = item.style === "graph" ? 10 : pitch;
+    const snap = (v: number, max: number) => Math.min(Math.max(Math.round(v / step) * step, 0), Math.floor(max / step) * step);
     const ox = snap(item.axes.originMm.x, W),
       oy = H - snap(item.axes.originMm.y, H);
     const a = 1.6;
@@ -868,6 +907,14 @@ export function renderResource(saved: Resource, options: RenderOptions = {}): Re
     inline: new Map(),
   };
   ctx.issues.push(...missingGlyphIssues(resource));
+  // Wide and tall cards are a booklet layout; a worksheet's columns have their own widths.
+  resource.document.sides.forEach((side, si) =>
+    side.columns.forEach((col, ci) =>
+      col.cards.forEach((cd) => {
+        if (cd.wide || cd.tall) ctx.issues.push({ side: si + 1, column: ci + 1, message: `Card "${cd.title}" is set ${cd.wide ? "wide" : "tall"}, which only booklets print. Remove the setting.` });
+      }),
+    ),
+  );
   const P = S.page,
     m = S.margin;
   const colTop = m + S.headerHeight;

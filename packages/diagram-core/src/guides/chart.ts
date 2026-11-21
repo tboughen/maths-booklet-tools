@@ -16,7 +16,7 @@ export const chartConfig = {
     minorSquaresPerStep: [1, 2, 4, 5, 10],
     categories: { minimum: 1, maximum: chart.MAX_CATEGORIES },
     series: { minimum: 1, maximum: chart.MAX_SERIES },
-    heightMm: { minimum: 40, maximum: 140 },
+    heightMm: { minimum: 25, maximum: 140 },
     barMm: { minimum: 5, maximum: 20 },
     lines: ["normal", "bold"],
     pie: {

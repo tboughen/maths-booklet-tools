@@ -2273,7 +2273,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   />
                 </label>
                 <p className="tr-note">
-                  6–18 cm. Text keeps its chosen size; preview zoom changes only
+                  5–18 cm. Text keeps its chosen size; preview zoom changes only
                   the view. Actual height follows the complete artwork and captions.
                 </p>
                 <label>

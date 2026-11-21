@@ -76,6 +76,12 @@ const answerLine = z
     suffix: text(20).default(""),
     /** Saved answer: printed only in the answers view. */
     answer: text(ANSWER_MAX).default(""),
+    /**
+     * true writes the saved answer (or each blank's) on the line in BOTH copies, in ink, not the
+     * answer colour: the worked example's own writing, which pupils read. Leave it off for every
+     * question pupils answer.
+     */
+    given: z.literal(true).optional(),
     /** Several short lines side by side on one row (e.g. three totals). */
     inline: z.boolean().default(false),
     /**
@@ -146,6 +152,15 @@ const leafItems = [
       /** working: blank room for calculations. drawing: open area for a sketch or chart. */
       kind: z.enum(["working", "drawing"]),
       heightMm: z.number().min(8).max(200),
+      /**
+       * Model working written in the space on the answers copy only, in the answer colour, from
+       * the top. A line break starts a new line. The pupil copy keeps the space empty.
+       */
+      answer: z
+        .string()
+        .max(600)
+        .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 && c !== "\n"), "Use ordinary text without control characters; a line break starts a new line.")
+        .optional(),
     })
     .strict(),
   z.object({ type: z.literal("diagram"), beside, diagram: diagramSchema }).strict(),
@@ -255,6 +270,15 @@ export const cardSchema = z
     /** Starts a new labelled stage band (the next letter) above this card: stages on wider layouts. */
     stage: text(40).optional(),
     working: workingSchema.optional(),
+    /** Booklets, two-column sections: the card takes the whole width, across both columns. */
+    wide: z.literal(true).optional(),
+    /**
+     * Booklets, two-column sections: the card stands tall in one column beside the next 2 to 6
+     * cards, which stack in the other column (a tall diagram beside several short questions).
+     */
+    tall: z.number().int().min(2).max(6).optional(),
+    /** The column a tall card stands in; left unless set. */
+    tallSide: z.enum(["left", "right"]).optional(),
   })
   .strict();
 

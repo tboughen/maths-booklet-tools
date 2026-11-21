@@ -32,7 +32,7 @@ const presentation = z
     yTitle: z.string().max(40).optional(),
     grid: z.enum(core.gridChoices).optional(),
     key: z.boolean().optional(),
-    heightMm: z.number().int().min(40).max(140).optional(),
+    heightMm: z.number().int().min(25).max(140).optional(),
     barMm: z.number().int().min(5).max(20).optional(),
     lines: core.envelopeSchema.shape.document.shape.lines,
     pie: core.pieSchema.partial().optional(),

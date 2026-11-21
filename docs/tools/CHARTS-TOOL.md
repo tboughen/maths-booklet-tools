@@ -40,7 +40,7 @@ worked-solutions tools; see Grouped data below).
 - **Validation:** values and axis numbers stay as typed. Non-numbers, negative values, values
   above the axis, a step that does not divide the range, a non-zero axis start, stacked totals
   above the axis and charts wider than 18 cm are shown as specific errors and block export.
-- **Print:** 11 pt STIX text, physical millimetre layout, chart height 40–140 mm, bar width (or
+- **Print:** 11 pt STIX text, physical millimetre layout, chart height 25–140 mm, bar width (or
   line spacing) 5–20 mm. Patterns (hatching, cross-hatching, dots) print in black and white.
   Vertical line charts draw 0.6 mm black lines with a grid line through every category.
 - **Limits:** 1–12 categories, 1–4 data sets, at most 40 axis steps.

@@ -51,6 +51,7 @@ const bagInput = z
       .array(z.object({ label: item.optional(), fill: fill.optional(), count: z.number().int().min(1).max(core.MAX_COUNTERS) }).strict())
       .min(1)
       .max(core.MAX_GROUPS),
+    perRow: core.bagSchema.shape.perRow,
     caption: caption.optional(),
   })
   .strict();
@@ -121,6 +122,7 @@ export function buildObject(objectId: string, input: z.infer<typeof objectInput>
   return {
     ...core.newBag(objectId),
     groups: input.groups.map((g) => ({ label: toValue(g.label), fill: g.fill ?? "none", count: g.count })),
+    ...(input.perRow !== undefined ? { perRow: input.perRow } : {}),
     caption: input.caption ?? "",
   };
 }

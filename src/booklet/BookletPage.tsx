@@ -384,6 +384,39 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                       </button>
                     </div>
                     <Field label="Card title" value={card.title} max={60} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.sections[si].cards[ci].title = v))} />
+                    {(section.columns === 2 || card.wide || card.tall) && (
+                      <label className="ws-field">
+                        <span>Card shape</span>
+                        <select
+                          value={card.wide ? "wide" : card.tall ? `tall-${card.tallSide ?? "left"}-${card.tall}` : "half"}
+                          disabled={blocked}
+                          onChange={(e) =>
+                            setLesson((l) => {
+                              const c = l.sections[si].cards[ci];
+                              delete c.wide;
+                              delete c.tall;
+                              delete c.tallSide;
+                              const [kind, side, count] = e.target.value.split("-");
+                              if (kind === "wide") c.wide = true;
+                              if (kind === "tall") {
+                                c.tall = Number(count);
+                                if (side === "right") c.tallSide = "right";
+                              }
+                            })
+                          }
+                        >
+                          <option value="half">Half width</option>
+                          <option value="wide">Wide: across both columns</option>
+                          {(["left", "right"] as const).flatMap((side) =>
+                            [2, 3, 4, 5, 6].map((k) => (
+                              <option key={`${side}-${k}`} value={`tall-${side}-${k}`}>
+                                Tall on the {side}, beside the next {k} cards
+                              </option>
+                            )),
+                          )}
+                        </select>
+                      </label>
+                    )}
                     {card.items.map((item, i) =>
                       item.type === "part" ? (
                         <div key={i} className="ws-part">
@@ -625,6 +658,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 <Field label="Unit code" value={d.code} max={16} disabled={blocked} onCommit={(v) => patch((x) => void (x.code = v))} />
                 <Field label="Year or tier" value={d.group} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.group = v))} />
               </div>
+              <div className="ws-line-edit">
+                <Field label="Each part is called" value={d.lessonName} max={30} disabled={blocked} onCommit={(v) => patch((x) => void (x.lessonName = v))} />
+                <Field label="Badge word" value={d.lessonBadge} max={12} disabled={blocked} onCommit={(v) => patch((x) => void (x.lessonBadge = v))} />
+              </div>
+              <p className="ws-hint">Empty means "Lesson". "Mock revision" prints "End of mock revision 1" and a "Revision" badge.</p>
               <Field label="Cover note" value={d.coverNote} max={240} multiline disabled={blocked} onCommit={(v) => patch((x) => void (x.coverNote = v))} />
               <label className="ws-check">
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines

@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, SPACE_WORKING, STAGE_BAND, stageLetters, tooWideMessage, workingLines, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -122,7 +122,8 @@ function rPr(o: RunStyle): string {
   if (o.color) p.push(`<w:color w:val="${hex(o.color)}"/>`);
   if (o.spacingMm) p.push(`<w:spacing w:val="${Math.round(o.spacingMm * 56.693)}"/>`);
   if (o.sizeMm !== undefined) p.push(`<w:sz w:val="${hp(o.sizeMm)}"/><w:szCs w:val="${hp(o.sizeMm)}"/>`);
-  if (o.underline) p.push(`<w:u w:val="single" w:color="${hex(o.color ?? "#000000")}"/>`);
+  // Only answers on an answer line are underlined, so the underline is Edexcel's dotted line.
+  if (o.underline) p.push(`<w:u w:val="dotted" w:color="${hex(o.color ?? "#000000")}"/>`);
   if (o.border) p.push(`<w:bdr w:val="single" w:sz="${b8(0.3)}" w:space="0" w:color="${hex(o.border)}"/>`);
   if (o.shade) p.push(`<w:shd w:val="clear" w:color="auto" w:fill="${hex(o.shade)}"/>`);
   return p.length ? `<w:rPr>${p.join("")}</w:rPr>` : "";
@@ -241,20 +242,23 @@ export const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
 export interface CellOpts {
   width: number;
   span?: number;
-  borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number }>>;
+  borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number; style?: "dotted" }>>;
   shade?: string;
   margin?: Partial<Record<"top" | "left" | "bottom" | "right", number>>;
   vAlign?: "top" | "center" | "bottom";
+  /** A cell merged down rows (a booklet's tall card): restart in its first row, continue below. */
+  vMerge?: "restart" | "continue";
 }
 export function cell(content: string, o: CellOpts): string {
   const p: string[] = [`<w:tcW w:w="${tw(o.width)}" w:type="dxa"/>`];
   if (o.span && o.span > 1) p.push(`<w:gridSpan w:val="${o.span}"/>`);
+  if (o.vMerge) p.push(o.vMerge === "restart" ? `<w:vMerge w:val="restart"/>` : `<w:vMerge/>`);
   const sides = ["top", "left", "bottom", "right"] as const;
   p.push(
     `<w:tcBorders>${sides
       .map((s) => {
         const b = o.borders?.[s];
-        return b ? `<w:${s} w:val="single" w:sz="${b8(b.width)}" w:space="0" w:color="${hex(b.color)}"/>` : `<w:${s} w:val="nil"/>`;
+        return b ? `<w:${s} w:val="${b.style ?? "single"}" w:sz="${b8(b.width)}" w:space="0" w:color="${hex(b.color)}"/>` : `<w:${s} w:val="nil"/>`;
       })
       .join("")}</w:tcBorders>`,
   );
@@ -392,8 +396,8 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
           at = end;
         } else {
           add(p.x - at, gap(END_MM));
-          add(p.end - p.x, ctx.view === "answers" && p.answer ? text(p.answer, { color: ctx.st.answer }, "center") : gap(END_MM), {
-            borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
+          add(p.end - p.x, (ctx.view === "answers" || l.given) && p.answer ? text(p.answer, { color: l.given ? ctx.st.ink : ctx.st.answer }, "center") : gap(END_MM), {
+            borders: { bottom: { color: ctx.st.ink, width: 0.3, style: "dotted" } },
           });
           at = p.end;
         }
@@ -408,12 +412,12 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
       cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom" }));
     }
     grid.push(mid);
-    const shown = ctx.view === "answers" && l.answer;
+    const shown = (ctx.view === "answers" || l.given) && l.answer;
     cells.push(
-      cell(shown ? text(l.answer, { color: ctx.st.answer }) : gap(END_MM), {
+      cell(shown ? text(l.answer, { color: l.given ? ctx.st.ink : ctx.st.answer }) : gap(END_MM), {
         width: mid,
         vAlign: "bottom",
-        borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
+        borders: { bottom: { color: ctx.st.ink, width: 0.3, style: "dotted" } },
         margin: { left: 2 },
       }),
     );
@@ -600,9 +604,21 @@ function leaf(item: Leaf, w: number, indent: number, ctx: WordCtx, extra: number
       return choice(item, w, indent, ctx);
     case "answerLine":
       return answerRow([item], w, indent, ctx);
-    case "space":
-      // Working and drawing space: one empty paragraph of exact height.
-      return gap(item.heightMm + extra, indent);
+    case "space": {
+      // Working and drawing space: one empty paragraph of exact height. On the answers copy any model
+      // working comes first, line by line at the PDF's line heights, and the gap takes the rest.
+      const h = item.heightMm + extra;
+      if (ctx.view !== "answers" || !item.answer?.trim()) return gap(h, indent);
+      const left = indent + SPACE_WORKING.x;
+      const lines = workingLines(item.answer);
+      let used = SPACE_WORKING.top;
+      const paras = lines.map((line) => {
+        const tall = grows(ctx, line);
+        used += wrap(line, S.body, w - 2 * SPACE_WORKING.x, "regular", !!ctx.maths).length * (tall ? S.body * FRAC_LINE : lineBox(S.body));
+        return para(mt(line, ctx, { color: ctx.st.answer }), { left, right: SPACE_WORKING.x - WORD_WRAP_SLACK_MM, grow: tall });
+      });
+      return gap(SPACE_WORKING.top, indent) + paras.join("") + gap(Math.max(0.36, h - used), indent);
+    }
     case "diagram":
       return picture(item.diagram, w, indent, ctx);
     case "paper":
@@ -658,14 +674,14 @@ export function items(list: Item[], w: number, indent: number, ctx: WordCtx, ext
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const post = only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0;
-        const answer = ctx.view === "answers" && only.answer ? run("\u00a0") + runs(only.answer, { color: ctx.st.answer, underline: true }) : "";
+        const answer = (ctx.view === "answers" || only.given) && only.answer ? run("\u00a0") + runs(only.answer, { color: only.given ? ctx.st.ink : ctx.st.answer, underline: true }) : "";
         const line = run("\u00a0") + answer + tab({ color: ctx.st.ink }) + (only.suffix ? run("\u00a0") + runs(only.suffix) : "");
         blocks.push(
           para(run(label) + tab() + mt(it.text, ctx) + line, {
             grow: grows(ctx, it.text),
             ...head,
             before: lift,
-            tabs: [{ pos: indent + w - post, align: "left", leader: "underscore" }],
+            tabs: [{ pos: indent + w - post, align: "left", leader: "dot" }],
           }),
         );
         continue;
@@ -718,7 +734,7 @@ export const CARD_RULE = 0.45;
  * The bordered cell of a question card laid out `w` wide. Its row's minimum height must be the
  * card's height less two borders (`CARD_RULE`); the cell is one border narrower than `w`.
  */
-export function cardCell(c: Card, number: number | string | null, w: number, ctx: WordCtx, extra: number): string {
+export function cardCell(c: Card, number: number | string | null, w: number, ctx: WordCtx, extra: number, merge?: "restart"): string {
   const st = ctx.st,
     pad = S.cardPad;
   const inner = w - pad * 2;
@@ -764,7 +780,9 @@ export function cardCell(c: Card, number: number | string | null, w: number, ctx
   const cw = w - rule.width;
   return cell(body, {
     width: cw,
-    borders: { top: rule, left: rule, bottom: rule, right: rule },
+    // A tall card merged down several rows takes its bottom border from its last row.
+    borders: merge ? { top: rule, left: rule, right: rule } : { top: rule, left: rule, bottom: rule, right: rule },
+    vMerge: merge,
     // The padding paragraphs give the top and bottom borders' width back.
     margin: { top: 0, left: pad, bottom: 0, right: pad - rule.width - WORD_WRAP_SLACK_MM },
   });

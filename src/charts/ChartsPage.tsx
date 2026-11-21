@@ -1516,6 +1516,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   >
                     {[
                       ...new Set([
+                        25,
+                        30,
                         40,
                         50,
                         60,

@@ -814,7 +814,31 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                   )}
                   {o.type === "bag" && (
                     <>
-                      <div className="pt-fields">{captionField(o)}</div>
+                      <div className="pt-fields">
+                        {captionField(o)}
+                        <label>
+                          Counters per row
+                          <select
+                            aria-label={`${objectName(o.id)}: Counters per row`}
+                            value={o.perRow ?? 0}
+                            disabled={blocked}
+                            onChange={(ev) =>
+                              change(o.id, "change counters per row", (x) => {
+                                const v = Number(ev.target.value);
+                                if (v) (x as typeof o).perRow = v;
+                                else delete (x as typeof o).perRow;
+                              })
+                            }
+                          >
+                            <option value={0}>Automatic</option>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
+                              <option key={v} value={v}>
+                                {v}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
                       <p className="pt-note">
                         {o.groups.map((gr) => `${gr.count} ${gr.label.text || "plain"}`).join(", ")}. Click a counter to change its group.
                       </p>

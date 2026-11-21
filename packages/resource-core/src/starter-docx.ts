@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { items as svgItems, countSpaces } from "./render";
 import { cell, drawing, gap, items, LAST_PARAGRAPH, para, row, run, runs, stack, table, tw, writePackage, type DocxOptions, type WordCtx } from "./docx";
-import { renderStarterRun, starterTooWide, slotBoxes, slotContent, STARTER, starterHeaderSvg, starterIconSvg, withoutDiagramBackground, type StarterIssue } from "./starter-render";
+import { cardLayout, renderStarterRun, starterTooWide, slotBoxes, slotContent, STARTER, starterHeaderSvg, starterIconSvg, type StarterIssue } from "./starter-render";
 import { isExtensionSlot, type StarterRun } from "./starter";
 import { SIZE, styles } from "./style";
 
@@ -10,8 +10,8 @@ import { SIZE, styles } from "./style";
  * copies of its A5 card and a dashed cut line, at the same sizes as the PDF.
  *
  * - The header (title, run tracker, topic, logo) is a picture, so it prints exactly as on the PDF.
- * - The slots are one table with exact row heights; each slot is a cell holding the question's
- *   number, instruction and items as editable Word text, tables, equations and diagrams.
+ * - The cards are one table with exact row heights: a shaded header strip (number, instruction,
+ *   EXTENSION) over a cell holding the items as editable Word text, tables, equations and diagrams.
  * - Spare height goes to working spaces, measured by the SVG layout, so Word matches the PDF.
  */
 export interface RenderedStarterDocx {
@@ -29,14 +29,19 @@ const SHEET_GAP = (S.sheet.height / 2 - S.card.height) / 2;
 const exactPicture = (xml: string, height: number, align: "center" | "right" = "center") =>
   xml.replace(/w:line="240" w:lineRule="auto"/, `w:line="${tw(height)}" w:lineRule="exact"`).replace('<w:jc w:val="center"/>', align === "center" ? '<w:jc w:val="center"/>' : '<w:jc w:val="right"/>');
 
-/** The black label band across the top of slot 5, reaching both edges of the cell (past its padding). */
-function band(width: number): string {
-  const size = 9 * 0.3528;
-  return table(
-    [width],
-    [row([cell(para(run("EXTENSION", { bold: true, color: "#ffffff", sizeMm: size }), { align: "center", line: SIZE.body * SIZE.lineHeight }), { width, shade: "#000000", vAlign: "center" })], { mm: S.extensionBand, exact: true })],
-    -S.padX,
-  );
+/** A card's header strip as one Word paragraph: number and instruction, with EXTENSION at a right tab. */
+function stripCell(run_: StarterRun, starter: number, slot: number, ctx: WordCtx<Where>): string {
+  const doc = run_.document;
+  const card = doc.starters[starter].cards[slot];
+  const box = slotBoxes(doc.template)[slot];
+  const ext = isExtensionSlot(doc.template, slot);
+  const ink = ext ? "#ffffff" : styles.mathsdock.navy;
+  const title = cardLayout(doc.template, slot, card, !!ctx.maths).stripTitle;
+  let content = run(String(slot + 1), { bold: true, color: ink, sizeMm: S.numberSize });
+  if (title) content += run("  ", { sizeMm: SIZE.body }) + runs(title, { bold: true, color: ink, sizeMm: SIZE.body }, "bold", ctx.maths);
+  if (ext) content += `<w:r><w:tab/></w:r>` + run("EXTENSION", { bold: true, color: "#ffffff", sizeMm: S.tagSize });
+  const tab = `<w:tabs><w:tab w:val="right" w:pos="${tw(box.w - 2 * S.padX)}"/></w:tabs>`;
+  return para(content, { line: S.strip }).replace("<w:pPr>", `<w:pPr>${tab}`);
 }
 
 function slotCell(run_: StarterRun, starter: number, slot: number, ctx: WordCtx<Where>): string {
@@ -44,24 +49,18 @@ function slotCell(run_: StarterRun, starter: number, slot: number, ctx: WordCtx<
   const card = doc.starters[starter].cards[slot];
   const icon = doc.slots[slot]?.icon ?? "none";
   const place = slotContent(doc.template, slot, icon);
-  const ext = isExtensionSlot(doc.template, slot);
   ctx.where = { starter: starter + 1, question: slot + 1 };
   // The same spare-height share as the SVG layout, so working spaces match the PDF.
   const quiet = { ...ctx, issues: [], diagrams: 0, inline: undefined };
-  const natural = svgItems(card.items, place.w, quiet, 0).h;
+  const list = cardLayout(doc.template, slot, card, !!ctx.maths).items;
+  const natural = svgItems(list, place.w, quiet, 0).h;
   const spare = place.height - natural;
-  const spaces = countSpaces(card.items);
+  const spaces = countSpaces(list);
   const extra = spare > 0 && spaces ? spare / spaces : 0;
   const used = natural + extra * spaces;
-  const firstPicture = ctx.pictures.length;
-  const label = run(`${slot + 1})`, { bold: true, color: S.colours.number, sizeMm: S.numberSize });
-  const title = card.title.trim() ? run(" ", { sizeMm: SIZE.body }) + runs(card.title, { bold: true, color: "#000000", sizeMm: SIZE.body }, "bold", ctx.maths) : "";
-  const parts: string[] = [];
-  if (place.band) parts.push(band(place.box.w));
-  parts.push(gap(S.padTop), para(label + title, { line: place.numberLine }), gap(SIZE.itemGap));
-  const blocks = items(card.items, place.w, 0, ctx, extra);
+  const parts: string[] = [gap(S.padTop)];
+  const blocks = items(list, place.w, 0, ctx, extra);
   if (blocks.length) parts.push(stack(blocks, SIZE.itemGap));
-  if (ext) for (const p of ctx.pictures.slice(firstPicture)) p.svg = withoutDiagramBackground(p.svg);
   const room = Math.max(0.36, place.height - used);
   if (icon !== "none") {
     // The icon picture has half a millimetre round it so its frame is never clipped; its line takes the picture's height.
@@ -72,37 +71,33 @@ function slotCell(run_: StarterRun, starter: number, slot: number, ctx: WordCtx<
   return parts.join("");
 }
 
+/**
+ * The cards as one table: card columns with narrow gap columns between, and for each row of cards a
+ * header-strip row and a body row, then a gap row. Word has no rounded corners, so the frames are square.
+ */
 function grid(run_: StarterRun, starter: number, ctx: WordCtx<Where>): string {
   const doc = run_.document;
   const boxes = slotBoxes(doc.template);
   const cols = doc.template === "four" ? 2 : 3;
-  const widths = Array.from({ length: cols }, () => W / cols);
-  const thin = { color: "#000000", width: S.slotRule };
-  const thick = { color: "#000000", width: S.extensionRule };
-  // Slot index for (row, column): four go in reading order, six down the columns.
-  const index = (r: number, c: number) => (cols === 2 ? r * 2 + c : c * 2 + r);
-  const rows = [0, 1].map((r) =>
-    row(
-      Array.from({ length: cols }, (_, c) => {
-        const i = index(r, c);
-        const ext = isExtensionSlot(doc.template, i);
-        const right = c < cols - 1 ? (doc.template === "core-extension" && c === 1 ? thick : thin) : undefined;
-        return cell(slotCell(run_, starter, i, ctx), {
-          width: widths[c],
-          borders: { ...(right ? { right } : {}), ...(r === 0 ? { bottom: thin } : {}) },
-          shade: ext ? S.colours.tint : undefined,
-          margin: { top: 0, bottom: 0, left: S.padX, right: S.padX },
-        });
-      }),
-      { mm: boxes[0].h, exact: true },
-    ),
-  );
+  const cw = boxes[0].w;
+  const widths = Array.from({ length: cols * 2 - 1 }, (_, k) => (k % 2 ? S.cardGap : cw));
+  const spacer = (w: number) => cell(gap(0.36), { width: w });
+  const rows: string[] = [];
+  for (let r = 0; r < 2; r++) {
+    const slot = (c: number) => r * cols + c;
+    const edge = (c: number) => (isExtensionSlot(doc.template, slot(c)) ? { color: styles.mathsdock.navy, width: 0.5 } : { color: S.colours.edge, width: 0.35 });
+    const fill = (c: number) => (isExtensionSlot(doc.template, slot(c)) ? styles.mathsdock.navy : S.colours.pale);
+    const line = (make: (c: number) => string) => widths.map((w, k) => (k % 2 ? spacer(w) : make(k / 2)));
+    rows.push(row(line((c) => cell(stripCell(run_, starter, slot(c), ctx), { width: cw, shade: fill(c), borders: { top: edge(c), left: edge(c), right: edge(c) }, margin: { top: 0, bottom: 0, left: S.padX, right: S.padX } })), { mm: S.strip, exact: true }));
+    rows.push(row(line((c) => cell(slotCell(run_, starter, slot(c), ctx), { width: cw, borders: { left: edge(c), right: edge(c), bottom: edge(c) }, margin: { top: 0, bottom: 0, left: S.padX, right: S.padX } })), { mm: boxes[0].h - S.strip, exact: true }));
+    if (r === 0) rows.push(row(widths.map((w) => spacer(w)), { mm: S.cardGap, exact: true }));
+  }
   return table(widths, rows);
 }
 
 function copy(run_: StarterRun, starter: number, ctx: WordCtx<Where>, issues: StarterIssue[]): string {
   const header = exactPicture(drawing({ svg: starterHeaderSvg(run_, starter + 1, issues), widthMm: W, heightMm: S.header }, W, 0, ctx), S.header);
-  return header + grid(run_, starter, ctx);
+  return header + gap(S.headerGap) + grid(run_, starter, ctx);
 }
 
 /** The dashed cut line across the whole sheet, halfway down, with the gap the PDF leaves around it. */

@@ -36,7 +36,7 @@ const svgOf = (doc: Resource, view: "pupil" | "answers") => {
 };
 /** Where the answer line sits: a taller answer row puts it lower. */
 const answerLineY = (svg: string) => {
-  const lines = [...svg.matchAll(/<line x1="[\d.]+" y1="([\d.]+)" x2="[\d.]+" y2="[\d.]+" stroke="#262720" stroke-width="0.3"\/>/g)];
+  const lines = [...svg.matchAll(/<line x1="[\d.]+" y1="([\d.]+)" x2="[\d.]+" y2="[\d.]+" stroke="#262720" stroke-width="0.4" stroke-linecap="round" stroke-dasharray="[^"]+"\/>/g)];
   return Number(lines[lines.length - 1][1]);
 };
 

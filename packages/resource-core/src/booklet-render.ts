@@ -1,9 +1,9 @@
 import { typesetForPrint } from "./typeset";
-import { at, card, countSpaces, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
+import { at, card, countSpaces, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, lineWidth, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
+import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
 import type { FontStyle } from "./metrics";
-import { lessonLabels, sectionTitle, type Booklet, type Intro, type Lesson, type QuestionLabel, type Section } from "./booklet";
+import { LESSON_WORDS, lessonLabels, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Section } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -110,7 +110,6 @@ export const BOOKEND = {
   endTop: 283,
   endH: 10,
   endTile: 7,
-  label: "Lesson",
   start: "START",
   stop: "STOP",
   /** The square for the Challenge work after the last stage (N12: was E). */
@@ -192,7 +191,7 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   out.push(rect(0, 0, W, h, `rx="2" fill="${st.navy}"`));
   const ty = (h - B.tile) / 2;
   out.push(rect(B.startPad, ty, B.tile, B.tile, `rx="1.6" fill="white"`));
-  out.push(textSvg([{ text: B.label, style: "bold" }], B.startPad + B.tile / 2, ty + 5.4, pt(10), st.navy, "middle"));
+  out.push(textSvg([{ text: lessonWords(doc).badge, style: "bold" }], B.startPad + B.tile / 2, ty + 5.4, pt(10), st.navy, "middle"));
   out.push(textSvg([{ text: String(number), style: "bold" }], B.startPad + B.tile / 2, ty + 14.6, pt(26), st.navy, "middle"));
   const y0 = (h - textH) / 2;
   out.push(at(unitF, 0, y0), at(title, 0, y0 + unitF.h + (unit ? START_SIZES.gap : 0)));
@@ -201,7 +200,7 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   let y = h;
   if (lesson.keyIdea.trim()) {
     y += 3;
-    const box = keyIdeaBox(lesson.keyIdea, st);
+    const box = keyIdeaBox(lesson.keyIdea, st, doc.notation === "maths");
     out.push(at(box, 0, y));
     y += box.h;
   }
@@ -243,13 +242,13 @@ export function sectionStages(lesson: Lesson): (string | null)[] {
 }
 
 /** The corner badge and stage squares, in the outer corner: right on odd printed pages, left on even. */
-export function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle): string {
+export function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle, words: LessonWords = LESSON_WORDS): string {
   const B = BOOKEND;
   const right = pageNo % 2 === 1;
   const bx = right ? A4.marginX + W - B.badgeW : A4.marginX;
   const out = [
     rect(bx, B.top, B.badgeW, B.badgeH, `rx="1.6" fill="${st.navy}"`),
-    textSvg([{ text: B.label, style: "bold" }], bx + B.badgeW / 2, B.top + 4.6, pt(10), "white", "middle"),
+    textSvg([{ text: words.badge, style: "bold" }], bx + B.badgeW / 2, B.top + 4.6, pt(10), "white", "middle"),
     textSvg([{ text: String(number), style: "bold" }], bx + B.badgeW / 2, B.top + 12.2, pt(24), "white", "middle"),
   ];
   const run = squares.length * B.square + Math.max(0, squares.length - 1) * B.squareGap;
@@ -265,7 +264,7 @@ export function cornerBadge(number: number, squares: string[], lit: string | nul
 }
 
 /** The end band on a lesson's last page, in the footer's place: lesson tile, "End of lesson N", the page number and STOP. */
-export function endBand(number: number, pageNo: number, st: HouseStyle): string {
+export function endBand(number: number, pageNo: number, st: HouseStyle, words: LessonWords = LESSON_WORDS): string {
   const B = BOOKEND;
   const x0 = A4.marginX;
   const y = B.endTop;
@@ -276,7 +275,7 @@ export function endBand(number: number, pageNo: number, st: HouseStyle): string 
     rect(x0, y, W, B.endH, `rx="1.6" fill="${st.navy}"`),
     rect(x0 + 3, y + tile, B.endTile, B.endTile, `rx="1" fill="white"`),
     textSvg([{ text: String(number), style: "bold" }], x0 + 3 + B.endTile / 2, by, size, st.navy, "middle"),
-    textSvg([{ text: `End of lesson ${number}`, style: "bold" }], x0 + 3 + B.endTile + 3, by, size, "white"),
+    textSvg([{ text: `${words.end} ${number}`, style: "bold" }], x0 + 3 + B.endTile + 3, by, size, "white"),
     textSvg([{ text: `Page ${pageNo}`, style: "bold" }], x0 + W / 2, by, size, "white", "middle"),
     textSvg([{ text: B.stop, style: "bold" }], x0 + W - 5, by, size, "white", "end"),
   ].join("");
@@ -292,17 +291,33 @@ export const keyIdeas = (keyIdea: string) =>
     .map((l) => l.trim())
     .filter(Boolean);
 
+/**
+ * One idea of a key idea, wrapped to the box. With maths notation on, {3/4} prints stacked, and
+ * every line of an idea holding a fraction is a fraction line high (as in card text), so Word and
+ * the PDF keep the same fixed height.
+ */
+export function keyIdeaLines(idea: string, width: number, maths: boolean) {
+  const lines = wrap(idea, S.body, width, "regular", maths);
+  const frac = lines.some(hasFraction);
+  const line = frac ? fractionLine(S.body) : lh(S.body);
+  return { lines, frac, line, h: lines.length * line, first: frac ? fractionBaseline(S.body) : base(S.body) };
+}
+/** The key idea text cell's width, shared with Word. */
+export const keyIdeaTextWidth = () => W - keyIdeaLabelWidth() - KEY_IDEA.pad;
+
 /** Key idea box (N3): two cells, "Key idea" on the left, the text on the right with a clear gap. */
-function keyIdeaBox(keyIdea: string, st: HouseStyle): Frag {
+function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
   const K = KEY_IDEA;
   const left = keyIdeaLabelWidth();
-  const tw = W - left - K.pad;
+  const tw = keyIdeaTextWidth();
   const out: string[] = [];
   let y = 0;
   keyIdeas(keyIdea).forEach((idea, i) => {
     if (i) y += K.ideaGap;
-    const f = para(idea, tw, st, { x: left });
-    out.push(at(f, 0, y));
+    const f = keyIdeaLines(idea, tw, maths);
+    // Without a fraction the idea prints exactly as a paragraph always has.
+    const svg = f.frac ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
+    out.push(at({ h: f.h, svg }, 0, y));
     y += f.h;
   });
   const h = y + K.pad * 2;
@@ -350,31 +365,122 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean): Frag
   return { h: h + 3.8, svg: out.join("") };
 }
 
+/**
+ * A row of cards on the page. In a two-column section a row is a pair side by side, one wide card
+ * across both columns, or a tall card in one column beside 2 to 6 cards stacked in the other.
+ */
+export type RowShape = { kind: "pair" } | { kind: "wide" } | { kind: "tall"; side: "left" | "right" };
 interface Row {
   cards: { index: number; number: QuestionLabel }[];
+  shape: RowShape;
   /** Natural height, before spare space. */
   h: number;
-  /** Most working or drawing spaces in one card of the row: how much it grows per mm of extra. */
+  /** How much the row grows per mm of extra: the most spaces in one card, or in one column of a tall row. */
   spaces: number;
 }
 
-function rowsOf(section: Section, labels: QuestionLabel[], sectionNo: number, lessonNo: number, ctx: BCtx): Row[] {
-  const cols = section.columns;
-  const w = cols === 2 ? BOOKLET_WIDTHS.half : BOOKLET_WIDTHS.full;
-  const rows: Row[] = [];
-  for (let i = 0; i < section.cards.length; i += cols) {
-    const cards = section.cards.slice(i, i + cols).map((_, k) => ({ index: i + k, number: labels[i + k] }));
-    const quiet: BCtx = { ...ctx, issues: [], diagrams: 0 };
-    let h = 0,
-      spaces = 0;
-    for (const c of cards) {
-      quiet.where = { lesson: lessonNo, section: sectionNo, question: c.number ?? undefined };
-      h = Math.max(h, card(section.cards[c.index], c.number, w, quiet, 0, 0).h);
-      spaces = Math.max(spaces, countSpaces(section.cards[c.index].items));
+/** Where a card of a row sits: its left edge and width, its top within the row and the height it is drawn at. */
+export interface CardPlace {
+  index: number;
+  number: QuestionLabel;
+  x: number;
+  w: number;
+  dy: number;
+  h: number;
+  /** A tall row: 0 for the tall card, 1, 2… for the stacked ones (Word builds the row from these). */
+  slot: number;
+}
+
+/** The cards of a section grouped into rows (wide and tall cards in two-column sections). */
+export function groupRows(section: Section, labels: QuestionLabel[]): { cards: { index: number; number: QuestionLabel }[]; shape: RowShape }[] {
+  const rows: { cards: { index: number; number: QuestionLabel }[]; shape: RowShape }[] = [];
+  const cards = section.cards;
+  const at = (i: number) => ({ index: i, number: labels[i] });
+  const special = (i: number) => section.columns === 2 && (!!cards[i]?.wide || !!cards[i]?.tall);
+  for (let i = 0; i < cards.length; ) {
+    const c = cards[i];
+    if (section.columns === 1) {
+      rows.push({ cards: [at(i)], shape: { kind: "pair" } });
+      i += 1;
+    } else if (c.wide) {
+      rows.push({ cards: [at(i)], shape: { kind: "wide" } });
+      i += 1;
+    } else if (c.tall) {
+      // The stacked cards end early at a wide or tall card, or at the section's end (reported);
+      // with fewer than two beside it the tall card prints as an ordinary pair.
+      let k = 0;
+      while (k < c.tall && i + 1 + k < cards.length && !special(i + 1 + k)) k++;
+      rows.push({ cards: Array.from({ length: k + 1 }, (_, j) => at(i + j)), shape: k >= 2 ? { kind: "tall", side: c.tallSide ?? "left" } : { kind: "pair" } });
+      i += k + 1;
+    } else {
+      const two = i + 1 < cards.length && !special(i + 1);
+      rows.push({ cards: two ? [at(i), at(i + 1)] : [at(i)], shape: { kind: "pair" } });
+      i += two ? 2 : 1;
     }
-    rows.push({ cards, h, spaces });
   }
   return rows;
+}
+
+/** Layout problems with wide and tall cards, in the section's own words. */
+export function spanIssues(section: Section): string[] {
+  const out: string[] = [];
+  section.cards.forEach((c, i) => {
+    if (section.columns === 1 && (c.wide || c.tall)) out.push(`Card ${i + 1} is set ${c.wide ? "wide" : "tall"}, which needs a two-column section; it prints as an ordinary full-width card.`);
+    if (c.wide && c.tall) out.push(`Card ${i + 1} is set both wide and tall. Choose one.`);
+    if (section.columns === 2 && c.tall && !c.wide) {
+      let k = 0;
+      while (k < c.tall && i + 1 + k < section.cards.length && !section.cards[i + 1 + k].wide && !section.cards[i + 1 + k].tall) k++;
+      if (k < c.tall) out.push(`Card ${i + 1} stands beside ${c.tall} cards, but only ${k} ${k === 1 ? "follows it" : "follow it"} before ${i + 1 + k < section.cards.length ? "a wide or tall card" : "the section ends"}.`);
+    }
+  });
+  return out;
+}
+
+/** Card widths in a section. */
+const widthsOf = (section: Section) => (section.columns === 2 ? BOOKLET_WIDTHS.half : BOOKLET_WIDTHS.full);
+
+/**
+ * Places a row's cards for a row height of `rowH` (natural height plus spare space). `measure`
+ * gives a card's own height at a width with this page's extra. A pair pads every card to the row;
+ * a tall row pads the tall card to the row and shares what is left among the stacked cards.
+ */
+export function placeRow(section: Section, row: { cards: { index: number; number: QuestionLabel }[]; shape: RowShape }, rowH: number, measure: (index: number, w: number) => number): CardPlace[] {
+  const half = widthsOf(section);
+  const step = half + A4.columnGap;
+  if (row.shape.kind === "wide") return [{ ...row.cards[0], x: 0, w: BOOKLET_WIDTHS.full, dy: 0, h: rowH, slot: 0 }];
+  if (row.shape.kind === "pair") return row.cards.map((c, k) => ({ ...c, x: k * step, w: half, dy: 0, h: rowH, slot: 0 }));
+  const [tall, ...stack] = row.cards;
+  const tallX = row.shape.side === "left" ? 0 : step;
+  const stackX = row.shape.side === "left" ? step : 0;
+  const own = stack.map((c) => measure(c.index, half));
+  const used = own.reduce((a, b) => a + b, 0) + (stack.length - 1) * A4.rowGap;
+  const pad = Math.max(0, rowH - used) / stack.length;
+  let dy = 0;
+  const out: CardPlace[] = [{ ...tall, x: tallX, w: half, dy: 0, h: rowH, slot: 0 }];
+  stack.forEach((c, j) => {
+    out.push({ ...c, x: stackX, w: half, dy, h: own[j] + pad, slot: j + 1 });
+    dy += own[j] + pad + A4.rowGap;
+  });
+  return out;
+}
+
+function rowsOf(section: Section, labels: QuestionLabel[], sectionNo: number, lessonNo: number, ctx: BCtx): Row[] {
+  const half = widthsOf(section);
+  return groupRows(section, labels).map((g) => {
+    const quiet: BCtx = { ...ctx, issues: [], diagrams: 0 };
+    const measure = (c: { index: number; number: QuestionLabel }, w: number) => {
+      quiet.where = { lesson: lessonNo, section: sectionNo, question: c.number ?? undefined };
+      return card(section.cards[c.index], c.number, w, quiet, 0, 0).h;
+    };
+    const spacesOf = (c: { index: number }) => countSpaces(section.cards[c.index].items);
+    if (g.shape.kind === "tall") {
+      const [tall, ...stack] = g.cards;
+      const stackH = stack.reduce((a, c) => a + measure(c, half), 0) + (stack.length - 1) * A4.rowGap;
+      return { ...g, h: Math.max(measure(tall, half), stackH), spaces: Math.max(spacesOf(tall), stack.reduce((a, c) => a + spacesOf(c), 0)) };
+    }
+    const w = g.shape.kind === "wide" ? BOOKLET_WIDTHS.full : half;
+    return { ...g, h: Math.max(...g.cards.map((c) => measure(c, w))), spaces: Math.max(...g.cards.map(spacesOf)) };
+  });
 }
 
 type Block =
@@ -423,7 +529,7 @@ export const NOTES = { bulletIndent: 5, gap: 2, titleGap: 3 } as const;
  * D5) printed as a file of their own: "Teaching notes" with the lesson number and title, then the notes line by line. A lesson's
  * notes start on a new page; lines never shrink, and a long note runs on to another page.
  */
-export function planNotes(lesson: Lesson, lessonNo: number): NotesPage[] {
+export function planNotes(lesson: Lesson, lessonNo: number, words: LessonWords = LESSON_WORDS): NotesPage[] {
   const notes = lesson.teacherNotes.trim();
   if (!notes) return [];
   const pages: NotesPage[] = [];
@@ -431,10 +537,10 @@ export function planNotes(lesson: Lesson, lessonNo: number): NotesPage[] {
   let y = A4.top;
   const fresh = () => {
     pages.push({ lesson: lessonNo, lines });
-    lines = [{ kind: "running", text: `Teaching notes · Lesson ${lessonNo} (continued)`, y: A4.top, size: A4.small, indent: 0, bullet: false }];
+    lines = [{ kind: "running", text: `Teaching notes · ${words.name} ${lessonNo} (continued)`, y: A4.top, size: A4.small, indent: 0, bullet: false }];
     y = A4.top + CONTINUED_HEAD;
   };
-  lines.push({ kind: "title", text: `Teaching notes · Lesson ${lessonNo}`, y, size: A4.lessonTitle, indent: 0, bullet: false });
+  lines.push({ kind: "title", text: `Teaching notes · ${words.name} ${lessonNo}`, y, size: A4.lessonTitle, indent: 0, bullet: false });
   y += lh(A4.lessonTitle);
   lines.push({ kind: "subtitle", text: lesson.title, y, size: A4.small, indent: 0, bullet: false });
   y += lh(A4.small) + NOTES.titleGap;
@@ -604,7 +710,7 @@ export type PlacedBlock =
   | { kind: "head"; y: number; h: number }
   | { kind: "section"; section: number; continued: boolean; y: number; h: number }
   | { kind: "banner"; section: number; end: boolean; y: number; h: number }
-  | { kind: "row"; section: number; cards: { index: number; number: QuestionLabel }[]; y: number; h: number; natural: number };
+  | { kind: "row"; section: number; cards: { index: number; number: QuestionLabel }[]; shape: RowShape; y: number; h: number; natural: number };
 /** One printed lesson page of the plan. */
 export interface PlannedLessonPage {
   /** 1-based lesson. */
@@ -704,7 +810,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   });
   const contents = [
     ...(introPageNo ? [{ label: "", title: "Unit introduction", page: introPageNo }] : []),
-    ...doc.lessons.map((l, i) => ({ label: `Lesson ${i + 1}`, title: l.title, page: lessonPages[i] })),
+    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1}`, title: l.title, page: lessonPages[i] })),
   ];
 
   // 3. Give each page's spare height to its working and drawing spaces.
@@ -720,7 +826,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       if (block.kind === "banner") return { kind: "banner", section: block.section, end: block.end, y: yy, h: block.frag.h };
       const grown = block.row.h + extra * block.row.spaces;
       shift += grown - block.row.h;
-      return { kind: "row", section: block.section, cards: block.row.cards, y: yy, h: grown, natural: block.row.h };
+      return { kind: "row", section: block.section, cards: block.row.cards, shape: block.row.shape, y: yy, h: grown, natural: block.row.h };
     });
     const lesson = doc.lessons[p.lesson - 1];
     const firstSection = blocks.find((b): b is Exclude<PlacedBlock, { kind: "head" }> => b.kind !== "head");
@@ -748,6 +854,19 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   };
   glyphs({ title: doc.title, code: doc.code, group: doc.group, coverNote: doc.coverNote }, { lesson: 0, page: 1 }, "The cover");
   if (doc.intro) glyphs(doc.intro, { lesson: 0, page: 2 }, "The unit introduction");
+  glyphs({ lessonName: doc.lessonName, lessonBadge: doc.lessonBadge }, { lesson: 0, page: 1 }, "The lesson name");
+  doc.lessons.forEach((l, li) => l.sections.forEach((sec, si) => spanIssues(sec).forEach((message) => issues.push({ lesson: li + 1, section: si + 1, message }))));
+  const badgeWord = lessonWords(doc).badge;
+  if (plainWidth(badgeWord, pt(10), "bold") > BOOKEND.tile - 2)
+    issues.push({ lesson: 0, page: 1, message: `The badge word "${badgeWord}" is too wide for the lesson tile. Use a shorter word, such as "Revision".` });
+  // The end band's words run from beside its tile to just short of the centred page number.
+  {
+    const size = pt(14);
+    const room = W / 2 - plainWidth("Page 99", size, "bold") / 2 - 4 - (3 + BOOKEND.endTile + 3);
+    const endText = `${lessonWords(doc).end} ${doc.lessons.length + (options.numbering?.lessonOffset ?? 0)}`;
+    if (plainWidth(endText, size, "bold") > room)
+      issues.push({ lesson: 0, page: 1, message: `"${endText}" is too long for the end band and would run into the page number. Use a shorter name for each part.` });
+  }
 
   const pages: string[] = [];
   pages.push(page(cover(doc, plan.contents, st, issues), `${doc.title}, cover${view === "answers" ? ", answers" : ""}`, options));
@@ -761,7 +880,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     const shownLesson = p.lesson + (options.numbering?.lessonOffset ?? 0);
     const shownPage = pageNo + (options.numbering?.pageOffset ?? 0);
     // Later pages: the lesson badge and stage squares in the outer top corner (N11), in place of a running header.
-    if (p.continued) out.push(cornerBadge(shownLesson, p.squares, p.stage, shownPage, st));
+    if (p.continued) out.push(cornerBadge(shownLesson, p.squares, p.stage, shownPage, st, lessonWords(doc)));
     const extra = p.extra;
     for (const block of p.blocks) {
       const yy = block.y;
@@ -783,21 +902,21 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         continue;
       }
       const section = lesson.sections[block.section];
-      const cols = section.columns;
-      const w = cols === 2 ? BOOKLET_WIDTHS.half : BOOKLET_WIDTHS.full;
       const grown = block.h;
       if (block.natural > A4.bottom - contentTop - contHead - 14)
         issues.push({ lesson: p.lesson, section: block.section + 1, question: block.cards[0].number ?? undefined, page: pageNo, message: `A card is ${n(block.natural)} mm tall, more than a page holds. Split it into two cards or reduce its working space; text is never shrunk.` });
-      block.cards.forEach((c, k) => {
+      const quiet = { ...ctx, issues: [] };
+      const places = placeRow(section, block, grown, (i, w) => card(section.cards[i], block.cards.find((c) => c.index === i)?.number ?? null, w, quiet, extra, 0).h);
+      places.forEach((c) => {
         ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: pageNo };
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
         glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${sectionTitle(section)}${c.number !== null ? `, question ${c.number}` : ""}`);
-        const natural = card(section.cards[c.index], c.number, w, { ...ctx, issues: [] }, extra, 0).h;
-        const f = card(section.cards[c.index], c.number, w, ctx, extra, Math.max(0, grown - natural));
-        out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));
+        const natural = card(section.cards[c.index], c.number, c.w, { ...ctx, issues: [] }, extra, 0).h;
+        const f = card(section.cards[c.index], c.number, c.w, ctx, extra, Math.max(0, c.h - natural));
+        out.push(at(f, A4.marginX + c.x, yy + c.dy));
       });
     }
-    pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
+    pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 
   // Card-level issues carry the lesson, section and question they belong to.
@@ -860,7 +979,7 @@ export function renderLessonNotes(saved: Booklet, lesson: number, options: Pick<
   // A lesson printed from a one-lesson booklet keeps its number in the unit, as lessonPagesOf does.
   const shown = lesson + 1 + (options.numbering?.lessonOffset ?? 0);
   for (const c of missingCharacters({ text: doc.lessons[lesson].teacherNotes })) issues.push({ lesson: lesson + 1, message: missingCharacterMessage(`Lesson ${shown}'s teaching notes`, c) });
-  const planned = planNotes(doc.lessons[lesson], shown);
+  const planned = planNotes(doc.lessons[lesson], shown, lessonWords(doc));
   planned.forEach((np, k) => {
     for (const l of np.lines) if (l.tooWide) issues.push({ lesson: lesson + 1, page: k + 1, message: `Lesson ${shown}'s teaching notes have a word too long for the line: "${l.text.slice(0, 40)}". Break it up or shorten it.` });
   });
