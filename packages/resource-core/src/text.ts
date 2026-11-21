@@ -10,14 +10,16 @@ export type Run = { text: string; style: FontStyle; frac?: { num: string; den: s
 export const SUP_SCALE = 0.7;
 /** How far a raised power's baseline sits above the line's (a share of the text size). */
 export const SUP_RISE = 0.36;
-const POWER = /\^(\d{1,2})/g;
+/** A caret power: digits, a gap of dots for pupils to fill (3^....), or one letter (5^n, typeset as 5^*n*). */
+const POWER = /\^(\d{1,2}|\.{2,8}|\*[a-z]\*|[a-z](?![a-z]))|([²³])/g;
 /** Text split into plain pieces and raised powers: "a^4b" is a, 4 (raised), b. */
 export function powerPieces(s: string): { text: string; sup: boolean }[] {
   const out: { text: string; sup: boolean }[] = [];
   let at = 0;
   for (const m of s.matchAll(POWER)) {
     if (m.index > at) out.push({ text: s.slice(at, m.index), sup: false });
-    out.push({ text: m[1], sup: true });
+    // ² and ³ print raised too, so every power on a page has the same size and weight.
+    out.push({ text: m[2] ? (m[2] === "²" ? "2" : "3") : m[1].replace(/\*/g, ""), sup: true });
     at = m.index + m[0].length;
   }
   if (at < s.length || !out.length) out.push({ text: s.slice(at), sup: false });
@@ -26,9 +28,11 @@ export function powerPieces(s: string): { text: string; sup: boolean }[] {
 /** Plain runs with their caret powers as raised runs. A raised power is upright (bold in bold text). */
 function powerRuns(runs: Run[]): Run[] {
   return runs.flatMap((r) =>
-    r.frac || !r.text.includes("^")
+    r.frac || !/[\^²³]/.test(r.text)
       ? [r]
-      : powerPieces(r.text).filter((p) => p.text).map((p) => (p.sup ? { text: p.text, style: r.style === "bold" ? "bold" : "regular", sup: true } : { text: p.text, style: r.style })),
+      : powerPieces(r.text)
+          .filter((p) => p.text)
+          .map((p) => (p.sup ? { text: p.text, style: r.style === "bold" ? "bold" : /^[a-z]$/.test(p.text) ? "italic" : "regular", sup: true } : { text: p.text, style: r.style })),
   );
 }
 export type Line = Run[];
@@ -224,7 +228,7 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
   // The bar sits on the maths axis (the height of a minus sign); the parts clear it by 0.55 mm.
   const axis = y - size * 0.27;
   const part = (s: string, cx: number, baseline: number, bold = false) => {
-    const raised = s.includes("^");
+    const raised = /[\^²³]/.test(s);
     const pieces = powerPieces(s).flatMap((p) => [...p.text].map((c) => ({ c, sup: p.sup })));
     return `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle"${bold ? ' font-weight="600"' : ""} xml:space="preserve">${pieces
       .map(({ c, sup }) => {

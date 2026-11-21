@@ -62,7 +62,11 @@ describe("maths notation typesets printed text", () => {
     const before = JSON.stringify(r);
     const svg = renderResource(r).pages.join("");
     // The short inequality stays on one line: its spaces are no-break spaces.
-    expect(svg).toContain('Solve 3<tspan font-style="italic">x</tspan>\u00a0−\u00a02\u00a0≤\u00a0<tspan font-style="italic">x</tspan>².');
+    // A line with a power places each piece on its baseline; the ² prints raised and smaller (raised-powers.test.ts).
+    const line = svg.match(/<text[^>]*>(?:(?!<\/text>).)*Solve(?:(?!<\/text>).)*<\/text>/)![0];
+    expect(line.replace(/<[^>]+>/g, "")).toBe("Solve 3x\u00a0−\u00a02\u00a0≤\u00a0x2.");
+    expect(line).toContain('<tspan font-style="italic" y=');
+    expect(line).toMatch(/font-size="[\d.]+">2<\/tspan>/);
     expect(JSON.stringify(r)).toBe(before);
     // A printed copy is never typeset a second time.
     const printed = typesetForPrint(r);
