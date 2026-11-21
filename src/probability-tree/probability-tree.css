@@ -255,7 +255,7 @@
   color: var(--md-pink, #b0125b);
 }
 /* A narrow field keeps room for its value: the tag shrinks to a dot (its words stay for screen readers). */
-@container (max-width: 150px) {
+@container (max-width: 110px) {
   .pt-field-wrap .pt-state {
     width: 9px;
     height: 9px;
@@ -274,7 +274,7 @@
 .pt-field-wrap:has(> .pt-state) input {
   padding-right: 84px !important;
 }
-@container (max-width: 150px) {
+@container (max-width: 110px) {
   .pt-field-wrap:has(> .pt-state) input {
     padding-right: 20px !important;
   }
