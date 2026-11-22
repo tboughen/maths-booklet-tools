@@ -16,6 +16,8 @@ export function OptionsBox({
   anchor,
   anchorKey,
   focusField = true,
+  takeFocus = true,
+  bounds,
   title,
   onClose,
   children,
@@ -26,6 +28,10 @@ export function OptionsBox({
   anchorKey: string;
   /** Open with the cursor in the text field (the default). False: the box itself takes focus, as on a touch screen. */
   focusField?: boolean;
+  /** False: focus stays where it is, for a box beside a field typed in on the drawing itself (ratio table cells). */
+  takeFocus?: boolean;
+  /** Keep the box across this element (the editor's drawing area) rather than the whole window, so it never covers the settings. */
+  bounds?: HTMLElement | null;
   title: string;
   onClose: () => void;
   children: ReactNode;
@@ -45,13 +51,16 @@ export function OptionsBox({
       gap = 8,
       edge = 8;
     if (!a.width && !a.height) return;
+    const b = bounds?.isConnected ? bounds.getBoundingClientRect() : null,
+      lo = Math.max(0, b?.left ?? 0) + edge,
+      hi = Math.min(innerWidth, b?.right ?? innerWidth) - edge;
     let left: number, top: number;
-    if (a.right + gap + w <= innerWidth - edge) left = a.right + gap;
-    else if (a.left - gap - w >= edge) left = a.left - gap - w;
+    if (a.right + gap + w <= hi) left = a.right + gap;
+    else if (a.left - gap - w >= lo) left = a.left - gap - w;
     else left = -1;
     if (left >= 0) top = Math.min(Math.max(edge, a.top - 4), innerHeight - edge - h);
     else {
-      left = Math.min(Math.max(edge, a.left), innerWidth - edge - w);
+      left = Math.min(Math.max(lo, a.left), hi - w);
       top = a.bottom + gap + h <= innerHeight - edge ? a.bottom + gap : Math.max(edge, a.top - gap - h);
     }
     setPlace((p) => (p && Math.abs(p.left - left) < 0.5 && Math.abs(p.top - top) < 0.5 ? p : { left, top }));
@@ -73,13 +82,13 @@ export function OptionsBox({
   // Typing comes first (Tim, 21 Nov 2026): the cursor goes straight into the box's text field, its text selected, so
   // typing replaces the value. A box with no text field takes the focus itself.
   useEffect(() => {
-    if (!placed) return;
+    if (!placed || !takeFocus) return;
     const field = focusField ? box.current?.querySelector<HTMLInputElement>("input:not([type=checkbox]):not([disabled])") : null;
     if (field) {
       field.focus({ preventScroll: true });
       field.select();
     } else box.current?.focus({ preventScroll: true });
-  }, [anchorKey, placed, focusField]);
+  }, [anchorKey, placed, focusField, takeFocus]);
   // Whether focus was in the box, kept as it moves: by the time React removes the box, focus has already left it.
   const hadFocus = useRef(false);
   useEffect(() => {

@@ -537,3 +537,33 @@ div.ratio-label {
     border-radius: 0;
   }
 }
+/* A value kept but left out of both copies: still on screen to edit, faded (wave 2, 22 Nov 2026). */
+.ratio-inline-cell[data-left-out] input {
+  opacity: 0.45;
+}
+/* The selected item's options float in a box beside the table (wave 2, 22 Nov 2026). */
+.md-options-box .ratio-step-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+.md-options-box .ratio-label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--md-text-sm, 13px);
+}
+.md-options-box .ratio-number-field {
+  margin: 0;
+}
+.md-options-box .panel-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.md-options-box .ratio-danger:not(:disabled) {
+  color: #ad433d;
+}

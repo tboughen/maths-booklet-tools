@@ -121,7 +121,7 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
     .getByRole("button", { name: "Fill next row", exact: true })
     .click();
   await page
-    .getByRole("dialog")
+    .locator('[aria-modal="true"]')
     .getByRole("button", { name: "Fill next row", exact: true })
     .click();
   await expect(page.getByLabel("Row 2 y value", { exact: true })).toHaveValue(
@@ -436,7 +436,7 @@ test("direct editing, three clear scaling arrows, explicit fill and undo work to
     .getByRole("button", { name: "Fill next row", exact: true })
     .click();
   await page
-    .getByRole("dialog")
+    .locator('[aria-modal="true"]')
     .getByRole("button", { name: "Fill next row", exact: true })
     .click();
   await expect
@@ -478,7 +478,7 @@ test("direct editing, three clear scaling arrows, explicit fill and undo work to
   await structure
     .getByRole("button", { name: "Remove column", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator('[aria-modal="true"]')).toHaveCount(0);
   await expect.poll(async () => (await stored(page)).schemaVersion).toBe(2);
   await expect
     .poll(async () => (await stored(page)).document)
@@ -557,6 +557,8 @@ test("GUI row selection adds one shared operation and keyboard entry preserves i
   await expect(page.locator(".ratio-preview .ratio-scaling-arrow")).toHaveCount(
     2,
   );
+  // The new arrow's options open beside the table when it is clicked.
+  await page.getByRole("button", { name: /Edit scaling arrow 1 to 2/ }).first().click();
   await page
     .getByLabel("Row 1 scaling operation", { exact: true })
     .selectOption("divide");
@@ -636,7 +638,7 @@ test("three-column image and editable exports survive reopening without editor d
           buffer: bytes,
         });
       await page
-        .getByRole("dialog")
+        .locator('[aria-modal="true"]')
         .getByRole("button", { name: "Open this table", exact: true })
         .click();
       await expect.poll(() => stored(page)).toEqual(envelope);
@@ -714,20 +716,21 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
   await page.setViewportSize({ width: 1440, height: 1000 });
   await left.press("Enter");
   await expect(right).toHaveValue("4");
-  await expect(
-    page.getByLabel("Row 1 scaling factor", { exact: true }),
-  ).toHaveValue("4");
   expect((await stored(page)).document.rows).toEqual(simple.document.rows);
   await page.getByRole("button", { name: /Edit scaling arrow.*left/ }).click();
   await expect(
     page.getByLabel("Row 1 scaling factor", { exact: true }),
   ).toBeFocused();
+  await expect(
+    page.getByLabel("Row 1 scaling factor", { exact: true }),
+  ).toHaveValue("4");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(left).toHaveValue("2");
   await expect(right).toHaveValue("2");
   await page.getByRole("button", { name: "Redo", exact: true }).click();
   await clickPrintedFactor(1);
   await expect(right).toBeFocused();
+  await page.getByRole("button", { name: /Edit scaling arrow.*right/ }).click();
   await page
     .getByLabel("Row 1 scaling operation", { exact: true })
     .selectOption("divide");
@@ -872,7 +875,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
   await structure
     .getByRole("button", { name: "Remove column", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator('[aria-modal="true"]')).toHaveCount(0);
   await expect
     .poll(async () => (await stored(page)).document.rows[0].cells)
     .toEqual([{ kind: "number", value: "1" }]);
@@ -1060,7 +1063,7 @@ test("editing guides are on by default, editor only, and turning them off is rem
   await expect(guides).toBeChecked();
   await expect(page.locator(".ratio-guides")).toBeVisible();
   // The guides sit in an editor layer; the rendered resource has none.
-  await expect(page.getByTestId("ratio-preview").locator(".ratio-guides, [stroke-dasharray]")).toHaveCount(0);
+  await expect(page.getByTestId("ratio-preview").locator('.ratio-guides, [stroke-dasharray="3 5"]')).toHaveCount(0);
   await guides.uncheck();
   await expect(page.locator(".ratio-guides")).toHaveCount(0);
   await page.reload();
@@ -1078,13 +1081,18 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
   // A blank cannot become a hidden answer: there is no value to hide, and none is invented.
   const cell = page.getByLabel("Row 2 y value", { exact: true });
   await cell.click();
-  const type = page.getByLabel("Row 2 y cell type", { exact: true });
-  await expect(type.locator('option[value="hidden"]')).toHaveAttribute("disabled", "");
-  // Type the answer, then hide it.
+  const see = page.locator(".md-options-box").getByRole("group", { name: "What pupils see" });
+  // The seeded cell is an answer line with no saved answer: a pupil space already, with nothing to show.
+  await see.getByRole("button", { name: "Show" }).click();
+  await expect(page.getByText("Type the value first, then show it.")).toBeVisible();
+  // Typing in an answer line saves its answer; the tick takes it off the line.
   await cell.fill("2/3");
   await cell.press("Enter");
+  await expect
+    .poll(async () => (await stored(page)).document.rows[1].cells[1])
+    .toEqual({ kind: "hidden", value: "2/3", line: true });
   await cell.click();
-  await type.selectOption("hidden");
+  await page.locator(".md-options-box").getByLabel("On a dotted answer line").uncheck();
   await expect
     .poll(async () => (await stored(page)).document.rows[1].cells[1])
     .toEqual({ kind: "hidden", value: "2/3" });
@@ -1133,4 +1141,31 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
   await expect
     .poll(async () => (await stored(page)).document.headings[1].direction)
     .toBe("up");
+});
+
+test("double-click a cell for a pupil space, leave every value out in one step, and keep the value", async ({ page }) => {
+  await seed(page, JSON.stringify(simple));
+  await page.goto("/tools/ratio-table");
+  const cell = page.getByLabel("Row 1 x value", { exact: true });
+  const first = async () => (await stored(page)).document.rows[0].cells[0];
+  await cell.dblclick();
+  await expect.poll(first).toEqual({ kind: "hidden", value: "4" });
+  // The box sits beside the table, and the cursor stays in the cell for typing.
+  const box = page.locator(".md-options-box");
+  await expect(box.getByRole("group", { name: "What pupils see" }).getByRole("button", { name: "Pupil space" })).toHaveAttribute("aria-pressed", "true");
+  await expect(cell).toBeFocused();
+  await cell.dblclick();
+  await expect.poll(first).toEqual({ kind: "number", value: "4" });
+  await page.keyboard.press("Escape");
+  const see = page.getByRole("region", { name: "What pupils see" });
+  await see.getByRole("group", { name: "Values" }).getByRole("button", { name: "Leave out" }).click();
+  await expect.poll(first).toEqual({ kind: "empty", value: "4" });
+  // A left-out value prints on neither copy, and is kept on screen to edit.
+  await expect(page.getByTestId("ratio-preview").locator("text", { hasText: /^4$/ })).toHaveCount(0);
+  await expect(cell).toHaveValue("4");
+  await see.getByRole("group", { name: "Values" }).getByRole("button", { name: "Show" }).click();
+  await expect.poll(first).toEqual({ kind: "number", value: "4" });
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(first).toEqual({ kind: "number", value: "4" });
 });

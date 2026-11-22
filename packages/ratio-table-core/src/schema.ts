@@ -19,7 +19,8 @@ export const cellSchema = z.discriminatedUnion("kind", [
   z
     .object({ kind: z.literal("number"), value: z.string().min(1).max(32) })
     .strict(),
-  z.object({ kind: z.literal("empty") }).strict(),
+  // An empty cell prints nothing in either copy. A value typed before it was left out is kept (Leave out, 22 Nov 2026).
+  z.object({ kind: z.literal("empty"), value: z.string().min(1).max(32).optional() }).strict(),
   z.object({ kind: z.literal("answer-line") }).strict(),
   // A saved answer: blank (or an answer line, with line: true) in the pupil copy, printed in the
   // answers copy only. Never filled or calculated by the tool.
@@ -184,7 +185,9 @@ export function normalizeDocument(input: unknown): RatioDocument {
     throw new RatioError("invalid_ratio_table", "Row IDs must be unique.");
   for (const row of document.rows)
     for (const cell of row.cells)
-      if (cell.kind === "number" || cell.kind === "hidden") {
+      if (cell.kind === "empty") {
+        if (cell.value !== undefined) cell.value = canonicalRatioNumber(cell.value);
+      } else if (cell.kind === "number" || cell.kind === "hidden") {
         cell.value = canonicalRatioNumber(cell.value);
         // One saved form per state: line: false is the default, so it is left out.
         if (cell.kind === "hidden" && !cell.line) delete cell.line;
