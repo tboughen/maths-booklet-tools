@@ -26,8 +26,9 @@ import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { OptionsBox } from "../site/OptionsBox";
 import { VisibilitySwitch } from "../site/VisibilitySwitch";
-import { CardHeading, FoldCard, NumberStepper } from "../site/CardHelp";
-import { Columns3, MessageCircleQuestion, PaintBucket, Ruler, X } from "lucide-react";
+import { FoldCard, NumberStepper } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { Columns3, Eye, GitFork, MessageCircleQuestion, PaintBucket, Ruler, X } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -266,6 +267,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const answerSvg = renderSvg(forView(e, "answer"));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const depth = maxDepth(d);
+  const stackRef = useMoreBelow<HTMLElement>();
   const paths = leaves(d);
   const selectedBranch = d.branches.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
@@ -740,19 +742,22 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit md-kit--one" aria-label="Probability tree settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Probability tree settings">
             <ReturnToDiagram />
             {/* One column (Tim, 21 Nov 2026): the main cards, then the rarer groups folded together in one card. */}
-            <section className="panel-card pt-panel" aria-label="What pupils see">
-              <CardHeading
-                title="What pupils see"
-                help={
+            <FoldCard
+              tool="probability-tree"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every label shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
                   <>
                     <p className="pt-note">Pupil space: a blank for pupils to fill in. Leave out: nothing prints, in either copy.</p>
                     <p className="pt-note">Each switch sets every label of that kind.</p>
                   </>
                 }
-              />
+            >
               {KINDS.map(({ kind, name }) => {
                 const value = commonVisibility(labelsOf(d, kind).map((l) => l.show));
                 return value === null ? null : (
@@ -769,17 +774,20 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   Clear pupil spaces
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel" aria-label="Branches">
-              <CardHeading
-                title="Branches"
-                help={
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title="Branches"
+              icon={GitFork}
+              defaultOpen
+              summary={`${depth} stage${depth === 1 ? "" : "s"} · ${d.branches.length} branches`}
+              help={
                   <>
                     <p className="pt-note">Type fractions such as 3/8, decimals or algebra such as 1 − x.</p>
                     <p className="pt-note">+ Branch adds a branch at that point; + Stage adds a stage after every path. A label on the tree has its own options.</p>
                   </>
                 }
-              />
+            >
               <div className="pt-branches">
                 {(function rows(parent: string | null, k: number): ReactNode[] {
                   const group = childrenOf(d, parent);
@@ -876,7 +884,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 <input type="checkbox" disabled={blocked} checked={d.linkLabels} onChange={(ev) => patch((n) => void (n.linkLabels = ev.target.checked))} />
                 Same outcome names across each stage
               </label>
-            </section>
+            </FoldCard>
             <div className="md-fold-group">
             <FoldCard
               tool="probability-tree"
