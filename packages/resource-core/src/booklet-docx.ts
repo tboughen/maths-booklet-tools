@@ -16,6 +16,7 @@ import {
   run,
   runs,
   tab,
+  titleWordRuns,
   table,
   tw,
   WORD_FOOT_MM,
@@ -217,12 +218,12 @@ function cornerBadge(number: number, squares: string[], lit: string | null, page
 }
 
 /** A section's heading, its instruction (on the same line when it fits) and the navy rule under it. */
-function sectionHead(section: Section, st: HouseStyle, continued: boolean): { xml: string; h: number } {
+function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean): { xml: string; h: number } {
   const title = sectionTitle(section) + (continued ? " (continued)" : "");
   const titleW = plainWidth(title, A4.heading, "bold");
   const ins = continued ? "" : section.instruction.trim();
   const inline = !!ins && plainWidth(ins, A4.small) <= W - titleW - 4;
-  const head = runs(title, { bold: true, color: st.navy, sizeMm: A4.heading });
+  const head = titleWordRuns(title, { bold: true, color: st.navy, sizeMm: A4.heading }, maths);
   const out = [
     para(inline ? head + tab() + runs(ins, { color: st.muted, sizeMm: A4.small }) : head, { line: lh(A4.heading), tabs: inline ? [{ pos: titleW + 4 }] : undefined, right: -WORD_WRAP_SLACK_MM }),
   ];
@@ -279,7 +280,7 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       continue;
     }
     if (block.kind === "section") {
-      const head = sectionHead(section, st, block.continued);
+      const head = sectionHead(section, st, block.continued, !!ctx.maths);
       out.push(head.xml);
       cursor = block.y + head.h;
       continue;
@@ -462,7 +463,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
       }
       const body =
         gap(pad - rule.width) +
-        para(runs(title, { bold: true, color: st.navy }), {}) +
+        para(titleWordRuns(title, { bold: true, color: st.navy }, doc.notation === "maths"), {}) +
         gap(1.6) +
         list.map((b) => para(run("•") + tab() + runs(b), { left: 4.2, hanging: 4.2 - 0.8 })).join(gap(0.6)) +
         gap(0.6 + pad - rule.width);
@@ -505,10 +506,10 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
 }
 
 /** The fold-over retrieval page (N12), as the SVG page draws it: questions, a dashed fold line, then the answers strip. */
-function retrievalPageXml(r: Retrieval, st: HouseStyle): string {
+function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string {
   const R = RETRIEVAL;
   const out: string[] = [];
-  out.push(textPara(r.title, A4.lessonTitle, { color: st.navy, bold: true }), gap(1));
+  out.push(para(titleWordRuns(r.title, { bold: true, color: st.navy, sizeMm: A4.lessonTitle }, maths), { line: lh(A4.lessonTitle), right: -WORD_WRAP_SLACK_MM }), gap(1));
   if (r.instruction.trim()) out.push(textPara(r.instruction, S.body));
   out.push(gap(4));
   const qw = retrievalQuestionWidth();
@@ -619,7 +620,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   }
   const lessonOffset = (numbering?.lessonOffset ?? 0) + lessonShift(doc);
   for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : "page" });
-  if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st), footer: "page" });
+  if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st, doc.notation === "maths"), footer: "page" });
 
   const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
   const footerType = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml";

@@ -149,4 +149,16 @@ describe("factor trees (N-5)", () => {
     const top = f.setNode(f.split(f.create("1000000"), "t1", "n1", ["1000", "1000"]), "t1", "n1", { show: "hidden" });
     expect(f.layout(top).r).toBeGreaterThanOrEqual(f.textWidth("0000000") / 2 + 1.6);
   });
+  it("completing keeps a left-out blank left out, and a blank answer line keeps its chosen state", () => {
+    let e = f.split(f.create("12"), "t1", "n1", ["3", ""]);
+    e = f.setNode(e, "t1", "n3", { show: "omit" });
+    e = f.setProduct(e, "t1", { show: "omit" });
+    expect(e.document.trees[0].product).toEqual({ text: "", show: "omit" });
+    const done = f.completeTree(e, undefined, false).envelope.document.trees[0];
+    expect(done.nodes.find((n) => n.id === "n3")!.value).toEqual({ text: "4", show: "omit" });
+    expect(done.product).toEqual({ text: "2^2 × 3", show: "omit" });
+    // Clearing a left-out answer line keeps it left out.
+    const filled = f.setProduct(e, "t1", { text: "2^2 × 3" });
+    expect(f.setProduct(filled, "t1", { text: "" }).document.trees[0].product).toEqual({ text: "", show: "omit" });
+  });
 });

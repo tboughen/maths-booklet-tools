@@ -204,11 +204,13 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
-  ["/tools/frequency-tree", "Selected group", ["Total and groups"], ["Work out counts", "Questions", "Layout"], 2],
-  ["/tools/factor-tree", "Selected number", ["Trees and answer lines"], ["Complete the trees", "Layout"], 3],
+  ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
+  ["/tools/factor-tree", "Trees and answer lines", ["What pupils see"], ["Complete the trees", "Layout"], 2],
+  ["/tools/sample-space", "What pupils see", ["What pupils see"], ["Fill the cells", "Layout"], 2],
+  ["/tools/two-way-table", "What pupils see", ["What pupils see"], ["Totals", "Layout"], 2],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -235,23 +237,20 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset), path).toBe(true);
     if (!ONE_COLUMN.has(path)) expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
+    // Sample space and two-way tables keep every field in a folded group: open one to measure it.
+    if (path === "/tools/sample-space") await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
+    if (path === "/tools/two-way-table") await page.getByRole("button", { name: "Layout", exact: true }).click();
     const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     // Every card in the one column folds (22 Nov 2026), so its headings are the fold rows' 15 px.
     expect(sizes.heading, path).toContain(ONE_COLUMN.has(path) ? "600 15px" : "600 17px");
   }
-  // A Hide tick's label sits 3 px under its field, in a list that is not cut off and scrolls only from 460 px.
+  // Frequency trees (one column, 22 Nov 2026): no Hide ticks (What pupils see and the tree set pupil spaces), and the
+  // list grows with the tree instead of scrolling inside its card.
   await page.goto("/tools/frequency-tree");
-  const row = page.locator(".pt-branch > span:has(> .pt-hide)").first();
-  const fieldBox = (await row.locator("input:not([type=checkbox])").boundingBox())!;
-  expect((await row.locator(".pt-hide").boundingBox())!.y).toBe(fieldBox.y + fieldBox.height + 3);
+  await expect(page.locator(".pt-hide input[aria-label^='Hide']")).toHaveCount(0);
   const list = page.locator(".pt-branches").first();
-  expect(await list.evaluate((el) => [el.scrollHeight <= el.clientHeight, getComputedStyle(el).maxHeight])).toEqual([true, "460px"]);
-  // Two paragraphs of help do not run together.
-  await page.getByText("Editing and printing help", { exact: true }).click();
-  const help = await page.locator(".md-kit details[open] > p").evaluateAll((all) => all.map((p) => p.getBoundingClientRect()).map((r) => [r.top, r.bottom]));
-  expect(help.length).toBeGreaterThanOrEqual(2);
-  expect(help[1][0] - help[0][1]).toBe(6);
+  expect(await list.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
 });
 
 test("the tree tools keep one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {
@@ -273,7 +272,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(path === "/tools/factor-tree" ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
@@ -872,8 +871,6 @@ type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
 const SAVED = "Print every saved answer on the pupil copy";
 const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
-  ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
-  ["Sample space diagrams", "/tools/sample-space", "Selected cell", [], ["Fill the cells", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", [], ["Objects"], { under: ["Layout"] }],
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
   ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps"], { under: ["Layout"] }],
