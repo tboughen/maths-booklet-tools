@@ -44,10 +44,12 @@ describe("opening one paper", () => {
 
   it("a paper added whole keeps its own question order, ahead of anything already on the paper", () => {
     const coverage = catalogueCoverage(catalogue, {...emptyRoute, revision: "include"});
-    const earlier = draftReducer(emptyDraft(), {type: "add", questions: paperQuestions(catalogue, "1MA1_JUN_2018_1H").slice(0, 2)});
-    const draft = draftReducer(earlier, {type: "paper", questions: paperQuestions(catalogue, "1MA1_NOV_2023_2H")});
+    const earlier = draftReducer(emptyDraft(), {type: "add", questions: paperQuestions(catalogue, "1MA1_JUN_2018_1H").slice(0, 6)});
+    const shown = draftEntries(coverage, earlier).map(e => e.question.source);
+    const draft = draftReducer(earlier, {type: "paper", questions: paperQuestions(catalogue, "1MA1_NOV_2023_2H"), visible: draftEntries(coverage, earlier).map(e => e.key)});
     const sources = draftEntries(coverage, draft).map(e => e.question.source);
     expect(sources.slice(0, 21)).toEqual(Array.from({length: 21}, (_, i) => `November 2023 2H Q${i + 1}`));
-    expect(sources.slice(21).sort()).toEqual(["June 2018 1H Q1", "June 2018 1H Q2"]);
+    // What was already on the paper keeps the order it had on screen.
+    expect(sources.slice(21)).toEqual(shown);
   });
 });
