@@ -34,6 +34,14 @@ describe("typesetting typed maths", () => {
     expect(typesetText("x^4")).toBe("*x*^4");
   });
 
+  it("italicises a letter after a number and a comma (x = 4, y = 10), but not a unit after a number", () => {
+    expect(typesetText("When x = 4, y = 10.")).toBe("When *x* = 4, *y* = 10.");
+    expect(typesetText("A length of 5 m")).toBe("A length of 5 m");
+    expect(typesetText("A pressure of 25 N/m² acts")).toBe("A pressure of 25 N/m² acts");
+    expect(typesetText("(A) 38p")).toBe("(A) 38p");
+    expect(typesetText("Mass of 1 rod =")).toBe("Mass of 1 rod =");
+  });
+
   it("keeps bold, italic and fractions whole, and gives them symbols only", () => {
     expect(typesetText("**Bold x + 1** and {-3/4} of *y*")).toBe("**Bold x + 1** and {−3/4} of *y*");
     expect(typesetText("x <= 2", false)).toBe("x ≤ 2");

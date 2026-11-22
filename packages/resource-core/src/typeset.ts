@@ -47,7 +47,7 @@ export function typesetSymbols(s: string): string {
 }
 
 /** Italic markup for the maths letters in one stretch of plain text (no markup or fractions in it). */
-const UNIT_LETTERS = "(?:mm|cm|m|km|g|kg|mg|ml|cl|l|s|h)[²³]?";
+const UNIT_LETTERS = "(?:mm|cm|m|km|g|kg|mg|ml|cl|l|s|h|N)[²³]?";
 const COMPOUND_UNIT = new RegExp(`^${UNIT_LETTERS}(\\/${UNIT_LETTERS})?$`);
 
 function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
@@ -76,14 +76,16 @@ function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
     // maths serif (22 Nov 2026).
     const unit = core.match(COMPOUND_UNIT);
     if (unit && (unit[1] || /^[−-]?[\d.,]+$/.test(prev))) return;
+    // An amount in pence (40p, 2.5p) is not maths.
+    if (/^\d+(\.\d+)?p$/.test(core)) return;
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
-    if (/^[a-z]{2,3}$/.test(core) && byOperator && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
+    if (/^[a-z]{2,3}$/.test(core) && byOperator && !/^[−-]?[\d.,]*\d$/.test(prev) && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
     if (/^[a-z]$/.test(core)) {
       // A unit after a number (5 m, 3 g) stays upright; so does the word "a" unless it is maths (a = 3).
-      const afterNumber = /^[−-]?[\d.,]+%?$/.test(prev);
+      const afterNumber = /^[−-]?[\d.,]*\d%?$/.test(prev);
       // A part or option named in prose (part b, Option c) is a label.
       const named = /^(part|option)$/i.test(prev);
       if ((core === "a" && !byOperator) || afterNumber || named) return;
