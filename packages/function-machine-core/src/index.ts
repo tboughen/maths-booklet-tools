@@ -27,7 +27,8 @@ export const MAX_STEPS = 5;
 export const MAX_TEXT = 16;
 export const ANSWER_COLOUR = "#b0125b";
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy, not even a blank. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const valueSchema = z.object({ text: z.string().max(MAX_TEXT), show }).strict();
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,23}$/);
 export const stepSchema = z
@@ -169,7 +170,8 @@ export function setSlot(e: Envelope, machineId: string, slot: Slot, change: { te
   const v = slotValue(m, slot)!;
   if (change.text !== undefined) v.text = change.text.trim();
   if (!v.text && change.show === "hidden") throw Error("A blank cannot hold a hidden answer. Enter the answer, then hide it.");
-  v.show = v.text ? (change.show ?? v.show) : "show";
+  // A blank keeps a chosen state (show or left out); an emptied hidden item becomes a plain blank.
+  v.show = change.show ?? (!v.text && v.show === "hidden" ? "show" : v.show);
   return validate(n);
 }
 /** Adds an empty box after box `after` (-1 for the front); the end stays at the end. */
@@ -330,14 +332,15 @@ export function complete(e: Envelope, machineId?: string, hidden = true, between
       if (i === 0 || i === m.steps.length) {
         const v = i === 0 ? m.start : m.end;
         if (!v.text) {
-          Object.assign(v, value(text, visibility));
+          // A left-out blank stays left out once filled.
+          Object.assign(v, value(text, v.show === "omit" ? "omit" : visibility));
           filled++;
         }
       } else {
         const step = m.steps[i - 1];
         if (step.out === null && !between) return;
         if (!step.out?.text) {
-          step.out = value(text, visibility);
+          step.out = value(text, step.out?.show === "omit" ? "omit" : visibility);
           filled++;
         }
       }
@@ -418,6 +421,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const n = clone(e);
   for (const m of n.document.machines)
     for (const v of values(m)) {
+      // A left-out item stays out of the teacher copy too.
+      if (v.show === "omit") continue;
       if (v.show === "hidden" && v.text) ANSWERED.add(v);
       if (mark && v.show === "hidden" && v.text) REVEALED.add(v);
       v.show = "show";
@@ -558,12 +563,12 @@ export function renderSvg(e: Envelope): string {
       const cx = (body.from + body.to) / 2;
       const p = printed(b.op);
       if (p) out.push(mathsMarkup(opLabel(p), cx, r.y, ink(b.op)));
-      else out.push(dotted(body.from + 1.5, body.to - 1.5, r.y + 3));
+      else if (b.op.show !== "omit") out.push(dotted(body.from + 1.5, body.to - 1.5, r.y + 3));
     }
     for (const l of r.labels) {
       const p = printed(l.v);
       if (p) out.push(mathsMarkup(p, l.cx, l.cy, ink(l.v)));
-      else out.push(dotted(l.cx - l.blank / 2, l.cx + l.blank / 2, l.cy + FONT * 0.4));
+      else if (l.v.show !== "omit") out.push(dotted(l.cx - l.blank / 2, l.cx + l.blank / 2, l.cy + FONT * 0.4));
     }
   }
   const label = `Function machine${d.machines.length > 1 ? "s" : ""}: ${d.machines

@@ -33,7 +33,6 @@ import {
   complete,
   create,
   forView,
-  hasHidden,
   layout,
   MAX_MACHINES,
   MAX_STEPS,
@@ -55,6 +54,15 @@ import { LINK_PREFIX, parseFunctionMachineLink, functionMachineLink } from "./li
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { FONT } from "../../packages/function-machine-core/src/maths-text";
+import { Eye, Ruler, Wand2, Workflow } from "lucide-react";
 const STORAGE = copyStorageKey("maths-booklet-tools:function-machine:v1");
 type Doc = Envelope["document"];
 /** An item on the diagram: its machine and its place on the machine. */
@@ -101,6 +109,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -111,6 +120,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -146,11 +157,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -176,6 +189,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [between, setBetween] = useState(true),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
@@ -198,6 +212,12 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
     selectedValue = undefined;
   }
   const selectedNumber = (slot: string) => Number(slot.split(":")[1]);
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const reach = useTargetReach(g.hits, (96 / 25.4) * fitted.scale, coarse);
+  const spaceCount = d.machines.reduce((n, m) => n + values(m).filter((v) => v.show === "hidden").length, 0);
   const selectedIndex = selected && /^(op|out):/.test(selected.slot) ? selectedNumber(selected.slot) : -1;
 
   const lastError = useRef("");
@@ -249,14 +269,44 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
     const where = a.slot === "start" ? "start" : a.slot === "end" ? "end" : a.slot.startsWith("op:") ? `box ${selectedNumber(a.slot) + 1}` : `value after box ${selectedNumber(a.slot) + 1}`;
     return `${machineName(a.machine)}${where}`;
   };
-  function choose(a: Address) {
+  function choose(a: Address, anchor: HTMLElement) {
     setSelected(a);
-    requestAnimationFrame(() => {
-      const field = document.getElementById("fm-selected-value") as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  const valueAt = (a: Address) => {
+    const m = d.machines.find((x) => x.id === a.machine);
+    try {
+      return m ? slotValue(m, a.slot) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  /** What pupils see of one item: one undo step. A blank is already a space for pupils. */
+  function setVisibility(a: Address, v: Visibility) {
+    const l = valueAt(a);
+    if (blocked || !l || l.show === v) return;
+    if (v === "hidden" && !l.text) return setMessage("This is a blank with no answer: pupils already see a space. Type the answer first.");
+    commit(() => setSlot(e, a.machine, a.slot, { show: v }), visibilityStep(v, l.text || "blank"));
+  }
+  type Kind = "ends" | "boxes" | "arrows";
+  const itemsOf = (m: Doc["machines"][number], kind: Kind) =>
+    kind === "ends" ? [m.start, m.end] : kind === "boxes" ? m.steps.map((s) => s.op) : m.steps.flatMap((s) => (s.out ? [s.out] : []));
+  /** Every item of one kind at once: one undo step. Blanks stay blank spaces. */
+  function setKind(kind: Kind, v: Visibility) {
+    patch((n) => {
+      for (const m of n.machines) for (const x of itemsOf(m, kind)) x.show = v === "hidden" && !x.text ? "show" : v;
     });
   }
+  function clearSpaces() {
+    patch((n) => {
+      for (const m of n.machines) for (const x of values(m)) if (x.show === "hidden") x.show = "show";
+    });
+  }
+  // The box closes when its item goes (a removed box or machine, a new diagram, or Reset).
+  const selectedDrawn = !!selectedValue;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   // Autosave with protection for another tab's newer draft.
   useEffect(() => {
@@ -430,84 +480,60 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.hits.map((h) => {
+                  {g.hits.map((h, k) => {
                     const a = { machine: h.machineId, slot: h.slot },
-                      m = d.machines.find((x) => x.id === h.machineId),
-                      v = m ? slotValue(m, h.slot) : null,
-                      hiddenHere = view === "pupil" && v?.show === "hidden";
+                      v = valueAt(a),
+                      key = `${h.machineId}:${h.slot}`;
+                    if (!v) return null;
                     return (
-                      <button
-                        key={`${h.machineId}-${h.slot}`}
-                        type="button"
-                        className={`pt-hit ${selected?.machine === h.machineId && selected.slot === h.slot ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit the ${slotName(a)}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                      <LabelHit
+                        key={key}
+                        what={`the ${slotName(a)}`}
+                        state={v.show}
+                        text={v.text}
+                        selected={selected?.machine === h.machineId && selected.slot === h.slot}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="fm-quick-tip"
+                        tipShown={tip?.key === key}
+                        tipHandlers={quick.bind(key, v.show)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[k]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(h.x, g.width), top: px(h.y, g.height), width: px(h.width, g.width), height: px(h.height, g.height) }}
-                        onClick={() => choose(a)}
+                        onOpen={(anchor) => choose(a, anchor)}
+                        onVisibility={(nv) => setVisibility(a, nv)}
                       />
                     );
                   })}
+                  <QuickTip id="fm-quick-tip" tip={tip && !(boxAnchor && selected && `${selected.machine}:${selected.slot}` === tip.key) ? tip : null} />
                 </div>
-              </div>
-            </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={
-                <EditorHint tool="function-machine">Click a box, the start, the end or a value on an arrow to edit it. Enter applies; Escape restores.</EditorHint>
-              }
-            ></EditorFoot>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-          </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Function machine settings">
-            <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected item">
-              <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected item"}</h2>
-              {selected && selectedMachine && selectedValue ? (
-                <>
-                  <div className="pt-fields">
-                    <label>
-                      {selected.slot.startsWith("op:") ? "Operation" : "Text or number"}
-                      <DraftField
-                        key={`${selected.machine}-${selected.slot}`}
-                        id="fm-selected-value"
-                        label={selected.slot.startsWith("op:") ? "Selected operation" : "Selected value"}
-                        value={selectedValue.text}
-                        maxLength={MAX_TEXT}
-                        disabled={blocked}
-                        onCommit={(v) => commit(() => setSlot(e, selected.machine, selected.slot, { text: v }))}
-                      />
-                    </label>
-                  </div>
-                  <label className="pt-hide" title="Hidden items are saved answers; pupils see a blank.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedValue.text}
-                      checked={selectedValue.show === "hidden"}
-                      onChange={(ev) => commit(() => setSlot(e, selected.machine, selected.slot, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  {!selectedValue.text && <p className="pt-note">This is a blank with no answer. Enter the answer first to hide it.</p>}
+                {boxAnchor && selected && selectedMachine && selectedValue && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={`${selected.machine}:${selected.slot}`}
+                    focusField={!coarse}
+                    title={`The ${slotName(selected)}`}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedValue.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        {selected.slot.startsWith("op:") ? "Operation" : "Text or number"}
+                        <DraftField
+                          key={`${selected.machine}-${selected.slot}`}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Text of the ${slotName(selected)}`}
+                          value={selectedValue.text}
+                          maxLength={MAX_TEXT}
+                          disabled={blocked}
+                          onCommit={(v) => commit(() => setSlot(e, selected.machine, selected.slot, { text: v }))}
+                        />
+                      </label>
+                    </div>
                   {selected.slot.startsWith("op:") && (
-                    <div className="pt-row">
+                    <div className="md-options-actions">
                       {selectedIndex < selectedMachine.steps.length - 1 && !selectedMachine.steps[selectedIndex].out && (
                         <button type="button" disabled={blocked} onClick={() => commit(() => setSlot(e, selected.machine, `out:${selectedIndex}`, {}), "add value on arrow")}>
                           Add a value after this box
@@ -532,7 +558,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                     </div>
                   )}
                   {selected.slot.startsWith("out:") && (
-                    <div className="pt-row">
+                    <div className="md-options-actions">
                       <button
                         type="button"
                         disabled={blocked}
@@ -544,27 +570,66 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                       </button>
                     </div>
                   )}
-                  <p className="pt-note">Type operations such as x3, -8, /2 or + 1/2: they print as × 3, − 8, ÷ 2 and a stacked fraction. Letters print in italic.</p>
-                </>
-              ) : (
-                <p className="pt-note">Click a box, the start, the end or a value on an arrow to choose it.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const m of n.machines) for (const v of values(m)) v.show = "show";
-                    })
-                  }
-                >
-                  Show all
-                </button>
+                    {!selectedValue.text && <p className="pt-note">This is a blank with no answer: pupils already see a space.</p>}
+                  </OptionsBox>
+                )}
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Machines</h2>
+            </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={
+                <EditorHint tool="function-machine">Click a box, the start, the end or a value to type it. Double-click it for a pupil space.</EditorHint>
+              }
+            ></EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
+          </Panel>
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Function machine settings">
+            <ReturnToDiagram />
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="function-machine"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Everything shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: a blank for pupils to fill in; the answers copy shows it. Leave out: nothing prints, not even a blank, in either copy.</p>
+                  <p className="pt-note">An empty item is a blank with no answer, and is always a space. Type operations such as x3, -8, /2 or + 1/2: they print as × 3, − 8, ÷ 2 and a stacked fraction. Letters print in italic.</p>
+                </>
+              }
+            >
+              {(["ends", "boxes", "arrows"] as const).map((kind) => {
+                const value = commonVisibility(d.machines.flatMap((m) => itemsOf(m, kind).map((x) => x.show)));
+                const name = { ends: "Start and end", boxes: "Boxes", arrows: "Values on arrows" }[kind];
+                return value ? <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} /> : null;
+              })}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a box, the start, the end or a value for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="function-machine"
+              title="Machines"
+              icon={Workflow}
+              defaultOpen
+              summary={`${d.machines.length} machine${d.machines.length === 1 ? "" : "s"}`}
+            >
               {d.machines.map((m, i) => (
                 <fieldset key={m.id} className="md-kit-group">
                   <legend>{d.machines.length > 1 ? `Machine ${i + 1}` : "The machine"}</legend>
@@ -608,23 +673,27 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                   Add a different machine
                 </button>
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Work the machines out</h2>
-              <p className="pt-note">
-                Work out goes forwards from a number at the start, or backwards from a number at the end when the start is blank. It
-                fills blanks and can write the value on each arrow. What you entered is kept. Nothing happens until you press the button,
-                and it can be undone.
-              </p>
+            </FoldCard>
+            <FoldCard
+              tool="function-machine"
+              title="Work the machines out"
+              icon={Wand2}
+              summary={hideFilled ? "Fills blanks as pupil spaces" : "Fills blanks for pupils to see"}
+              help={
+                <p className="pt-note">
+                  Work out goes forwards from a number at the start, or backwards from a number at the end when the start is blank. It
+                  fills blanks and can write the value on each arrow. What you entered is kept. Nothing happens until you press the button,
+                  and it can be undone.
+                </p>
+              }
+            >
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={between} onChange={(ev) => setBetween(ev.target.checked)} />
                 Write the values between the boxes
               </label>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={hideFilled} onChange={(ev) => setHideFilled(ev.target.checked)} />
-                Hide what it fills (keep as answers)
+                Make what it fills pupil spaces
               </label>
               <div className="pt-row">
                 <button
@@ -643,9 +712,25 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                   Work out
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="function-machine"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.boxShape === "pentagon" ? "Arrow-shaped boxes" : "Rectangles"}${d.lines === "bold" ? " · bold lines" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Up to {MAX_MACHINES} machines with {MAX_STEPS} boxes each. Values that do not follow from the machine add a teacher
+                    note; they are never corrected for you.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown under the machine; preview zoom never changes it. Download PNG (600 ppi) if
+                    your browser blocks copying.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Boxes
@@ -669,20 +754,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This diagram has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click an item on the machine to edit it. Enter applies; Escape restores. Up to {MAX_MACHINES} machines with {MAX_STEPS}{" "}
-                  boxes each. Values that do not follow from the machine add a teacher note; they are never corrected for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown under the machine; preview zoom never changes it. Download PNG (600 ppi) if
-                  your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -735,6 +807,7 @@ export default function FunctionMachinePage({ active = true }: { active?: boolea
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >

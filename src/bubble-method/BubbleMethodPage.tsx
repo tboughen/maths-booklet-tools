@@ -30,7 +30,7 @@ import {
   canonical,
   create,
   forView,
-  hasHidden,
+  FONT,
   isBubble,
   layout,
   lineIndexOf,
@@ -60,6 +60,14 @@ import { LINK_PREFIX, parseBubbleMethodLink, bubbleMethodLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Eye, Footprints, Ruler } from "lucide-react";
 const STORAGE = copyStorageKey("maths-booklet-tools:bubble-method:v1");
 type Doc = Envelope["document"];
 
@@ -104,6 +112,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -114,6 +123,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -149,11 +160,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -194,6 +207,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Slot | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null),
     expected = useRef<string | null>(null);
@@ -215,6 +229,12 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
   const selectedLine = selected ? lineIndexOf(selected) : null;
   const selectedStep = selected && selected.startsWith("step:") ? Number(selected.split(":")[1]) : -1;
   const selectedSide = selected?.endsWith(":left") ? "left" : selected?.endsWith(":right") ? "right" : null;
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const reach = useTargetReach(g.hits, (96 / 25.4) * fitted.scale, coarse);
+  const spaceCount = values(d).filter((v) => v.show === "hidden").length;
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -260,14 +280,36 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
   function replace(next: Envelope, title: string, explanation = "This replaces the current diagram. You can undo the replacement.") {
     if (!blocked) setPending({ e: next, title, explanation });
   }
-  function choose(slot: Slot) {
+  function choose(slot: Slot, anchor: HTMLElement) {
     setSelected(slot);
-    requestAnimationFrame(() => {
-      const field = document.getElementById("bm-selected-value") as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  /** What pupils see of one item: one undo step. A blank is already a space for pupils. */
+  function setVisibility(slot: Slot, v: Visibility) {
+    const l = slotValue(d, slot);
+    if (blocked || l.show === v) return;
+    if (v === "hidden" && !l.text) return setMessage("This is a blank with no answer: pupils already see a space. Type the answer first.");
+    commit(() => setSlot(e, slot, { show: v }), visibilityStep(v, l.text || "blank"));
+  }
+  type Kind = "sides" | "bubbles";
+  const itemsOf = (n: Doc, kind: Kind) =>
+    kind === "sides" ? [n.first.lhs, n.first.rhs, ...n.steps.flatMap((s) => [s.line.lhs, s.line.rhs])] : n.steps.flatMap((s) => [s.left.op, s.right.op]);
+  /** Every item of one kind at once: one undo step. Blanks stay blank spaces. */
+  function setKind(kind: Kind, v: Visibility) {
+    patch((n) => {
+      for (const x of itemsOf(n, kind)) x.show = v === "hidden" && !x.text ? "show" : v;
     });
   }
+  function clearSpaces() {
+    patch((n) => {
+      for (const x of values(n)) if (x.show === "hidden") x.show = "show";
+    });
+  }
+  // The box closes when its item goes (a removed step, a new diagram, or Reset).
+  const selectedDrawn = !!selectedValue;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
   const lineName = (at: "first" | number) => (at === "first" ? "the first line" : `line ${at + 2}`);
   const relationOf = (at: "first" | number) => (at === "first" ? d.first.rel : d.steps[at].line.rel);
   const underOf = (step: number, side: "left" | "right") => d.steps[step][side].under;
@@ -445,61 +487,43 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.hits.map((h) => {
-                    const v = slotValue(d, h.slot),
-                      hiddenHere = view === "pupil" && v.show === "hidden";
+                  {g.hits.map((h, k) => {
+                    const v = slotValue(d, h.slot);
                     return (
-                      <button
+                      <LabelHit
                         key={h.slot}
-                        type="button"
-                        className={`pt-hit ${isBubble(h.slot) ? "" : "bub-line-hit"} ${selected === h.slot ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit the ${slotName(h.slot)}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                        className={isBubble(h.slot) ? undefined : "bub-line-hit"}
+                        what={`the ${slotName(h.slot)}`}
+                        state={v.show}
+                        text={v.text}
+                        selected={selected === h.slot}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="bm-quick-tip"
+                        tipShown={tip?.key === h.slot}
+                        tipHandlers={quick.bind(h.slot, v.show)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[k]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(h.x, g.width), top: px(h.y, g.height), width: px(h.width, g.width), height: px(h.height, g.height) }}
-                        onClick={() => choose(h.slot)}
+                        onOpen={(anchor) => choose(h.slot, anchor)}
+                        onVisibility={(nv) => setVisibility(h.slot, nv)}
                       />
                     );
                   })}
+                  <QuickTip id="bm-quick-tip" tip={tip && !(boxAnchor && selected === tip.key) ? tip : null} />
                 </div>
-              </div>
-            </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={<EditorHint tool="bubble-method">Click a side of a line or a bubble to edit it. Enter applies; Escape restores.</EditorHint>}
-            ></EditorFoot>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-          </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Bubble method settings">
-            <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected item">
-              <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected item"}</h2>
-              {selected && selectedValue ? (
-                <>
+                {boxAnchor && selected && selectedValue && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={selected} focusField={!coarse} title={`The ${slotName(selected)}`} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedValue.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
                   <div className="pt-fields">
                     <label>
                       {selectedSide ? "Operation" : "Expression"}
                       <DraftField
                         key={selected}
-                        id="bm-selected-value"
-                        label={selectedSide ? "Selected bubble" : "Selected side"}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label={`Text of the ${slotName(selected)}`}
                         value={selectedValue.text}
                         maxLength={selectedSide ? MAX_OP : MAX_SIDE}
                         disabled={blocked}
@@ -553,55 +577,74 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                       </label>
                     )}
                   </div>
-                  <label className="pt-hide" title="Hidden items are saved answers; pupils see a blank.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedValue.text}
-                      checked={selectedValue.show === "hidden"}
-                      onChange={(ev) => commit(() => setSlot(e, selected, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  {!selectedValue.text && (
-                    <p className="pt-note">
-                      This is a blank with no answer: {selectedSide ? "an empty bubble" : "a dotted line"} for pupils. Enter the answer first to hide it.
-                    </p>
-                  )}
                   {selectedSide && selectedStep >= 0 && selectedValue.text && (
-                    <div className="pt-row">
+                    <div className="md-options-actions">
                       <button type="button" disabled={blocked} onClick={() => commit(() => setBubbles(e, selectedStep, selectedValue.text), "write both bubbles")}>
                         Write it in both bubbles
                       </button>
                     </div>
                   )}
-                  <p className="pt-note">
-                    {selectedSide
-                      ? "Type operations such as -2, /3, x3 or +5: they print as −2, ÷3, ×3 and +5."
-                      : "Type 3x+2, y-2 or (y-2)/3: signs print as on a paper, letters in italic and fractions stacked. For a half of x type x/2 or (1/2)x; 1/2x stacks as 1 over 2x."}
-                  </p>
-                </>
-              ) : (
-                <p className="pt-note">Click a side of a line or a bubble to choose it.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const v of values(n)) v.show = "show";
-                    })
-                  }
-                >
-                  Show all
-                </button>
+                    {!selectedValue.text && (
+                      <p className="pt-note">This is a blank with no answer: {selectedSide ? "an empty bubble" : "a dotted line"} for pupils.</p>
+                    )}
+                  </OptionsBox>
+                )}
               </div>
-            </section>
             </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Steps</h2>
-              <p className="pt-note">Each step is a pair of bubbles and the line they lead to. Nothing is worked out for you.</p>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={<EditorHint tool="bubble-method">Click a side or a bubble to type it. Double-click it for a pupil space.</EditorHint>}
+            ></EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
+          </Panel>
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Bubble method settings">
+            <ReturnToDiagram />
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="bubble-method"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Everything shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: a blank for pupils to fill in; the answers copy shows it. Leave out: nothing prints, not even a dotted line, in either copy.</p>
+                  <p className="pt-note">Type 3x+2, y-2 or (y-2)/3 on a line, and -2, /3, x3 or +5 in a bubble: signs print as on a paper, letters in italic and fractions stacked. For a half of x type x/2 or (1/2)x.</p>
+                </>
+              }
+            >
+              {(["sides", "bubbles"] as const).map((kind) => {
+                const value = commonVisibility(itemsOf(d, kind).map((x) => x.show));
+                const name = { sides: "Sides of the lines", bubbles: "Bubbles" }[kind];
+                return value ? <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} /> : null;
+              })}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a side of a line or a bubble for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="bubble-method"
+              title="Steps"
+              icon={Footprints}
+              defaultOpen
+              summary={`${d.steps.length} step${d.steps.length === 1 ? "" : "s"}`}
+              help={<p className="pt-note">Each step is a pair of bubbles and the line they lead to. A bubble has its own options: click it. Nothing is worked out for you.</p>}
+            >
               {d.steps.map((s, i) => (
                 <fieldset key={i} className="md-kit-group">
                   <legend>Step {i + 1}</legend>
@@ -627,11 +670,25 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                   Add a step
                 </button>
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="bubble-method"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.lines === "bold" ? "Bold" : "Normal"} lines${d.intentionalError ? " · deliberate error" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Up to {MAX_STEPS} steps. A + or − bubble sits under the last term of the line above and any other bubble under the whole
+                    side; choose a term to move it. Bubbles that differ add a teacher note; nothing is corrected for you.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown under the working; preview zoom never changes it. Download PNG (600 ppi) if
+                    your browser blocks copying.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Lines
@@ -648,21 +705,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This working has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a side of a line or a bubble to edit it. Enter applies; Escape restores. Up to {MAX_STEPS} steps. A + or − bubble
-                  sits under the last term of the line above and any other bubble under the whole side; choose a term to move it. Bubbles
-                  that differ add a teacher note; nothing is corrected for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown under the working; preview zoom never changes it. Download PNG (600 ppi) if
-                  your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -715,6 +758,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >

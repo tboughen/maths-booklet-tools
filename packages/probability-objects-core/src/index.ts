@@ -38,7 +38,8 @@ export const FILLS = ["none", "grey", "hatched", "dotted"] as const;
 export type Fill = (typeof FILLS)[number];
 export const FILL_NAMES: Record<Fill, string> = { none: "White", grey: "Grey", hatched: "Hatched", dotted: "Dotted" };
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy, not even a blank. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const valueSchema = z.object({ text: z.string().max(MAX_TEXT), show }).strict();
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,23}$/);
 const fill = z.enum(FILLS);
@@ -290,7 +291,8 @@ export function setLabel(e: Envelope, objectId: string, slot: Slot, change: { te
     v = slotValue(objectOf(n.document, objectId), slot);
   if (change.text !== undefined) v.text = change.text.trim();
   if (!v.text && change.show === "hidden") throw Error("A blank cannot hold a hidden answer. Enter the answer, then hide it.");
-  v.show = v.text ? (change.show ?? v.show) : "show";
+  // A blank keeps a chosen state (show or left out); an emptied hidden label becomes a plain blank.
+  v.show = change.show ?? (!v.text && v.show === "hidden" ? "show" : v.show);
   return validate(n);
 }
 /** Changes one object's settings (not its ID or type); the result must still be valid. */
@@ -396,6 +398,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const n = clone(e);
   for (const o of n.document.objects)
     for (const v of labels(o)) {
+      // A left-out label stays out of the teacher copy too.
+      if (v.show === "omit") continue;
       if (mark && v.show === "hidden" && v.text) REVEALED.add(v);
       v.show = "show";
     }
@@ -425,6 +429,7 @@ const dotted = (cx: number, y: number, w = BLANK) =>
   `<line x1="${num(cx - w / 2)}" y1="${num(y)}" x2="${num(cx + w / 2)}" y2="${num(y)}" stroke="black" stroke-width="0.3" stroke-dasharray="0.3 0.9" stroke-linecap="round"/>`;
 /** A label, or its blank: text centred on (cx, cy); a blank's dotted line sits where the text's baseline would. */
 function labelMarkup(v: Value, cx: number, cy: number, empty: "blank" | "none", backing = false): string {
+  if (v.show === "omit") return "";
   const p = printed(v);
   if (!p) return empty === "blank" ? (backing ? backingRect(cx, cy, BLANK + 1, FONT * 1.2) : "") + dotted(cx, cy + FONT * 0.4) : "";
   const w = mathsWidth(p),

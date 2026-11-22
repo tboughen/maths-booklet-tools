@@ -107,6 +107,7 @@ export function LabelHit({
   coarse,
   onOpen,
   onVisibility,
+  className,
 }: {
   /** "probability for Red, Blue": the button's name is "Edit <what>". */
   what: string;
@@ -125,13 +126,15 @@ export function LabelHit({
   coarse: boolean;
   onOpen: (anchor: HTMLElement) => void;
   onVisibility: (v: Visibility) => void;
+  /** A tool's own shape for the target, such as a rounded line. */
+  className?: string;
 }) {
   const words = visibilityWords(state);
   return (
     <button
       type="button"
       data-options-anchor=""
-      className={`pt-hit ${selected ? "pt-selected" : ""} ${pupilView && state === "hidden" ? "pt-hidden-answer" : ""} ${state === "omit" ? "pt-omitted" : ""}`}
+      className={`pt-hit ${selected ? "pt-selected" : ""} ${pupilView && state === "hidden" ? "pt-hidden-answer" : ""} ${state === "omit" ? "pt-omitted" : ""} ${className ?? ""}`}
       aria-label={`Edit ${what}${words ? `, ${words}` : ""}`}
       aria-haspopup="dialog"
       aria-expanded={selected && boxOpen}
