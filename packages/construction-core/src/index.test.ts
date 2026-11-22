@@ -232,3 +232,14 @@ describe("review fixes", () => {
     expect(() => c.locusFromPoint(twoPoints(), { point: "A", distance: 2, group: "abcdefghi" })).not.toThrow();
   });
 });
+
+describe("left-out labels", () => {
+  it("keep a label's text but print it on neither copy", () => {
+    const e = c.create();
+    e.document.points[0].label.show = "omit";
+    const v = c.validate(e);
+    expect(c.forView(v, "answer").document.points[0].label).toEqual({ text: "A", show: "omit" });
+    for (const view of ["pupil", "answer"] as const) expect(c.renderSvg(v, view)).not.toMatch(/>A</);
+    expect(c.renderSvg(v, "pupil")).toMatch(/>B</);
+  });
+});

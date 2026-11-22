@@ -30,7 +30,6 @@ import {
   formatBearing,
   bearingOf,
   freshId,
-  hasHidden,
   HEIGHT,
   layout,
   locusFromPoint,
@@ -65,6 +64,14 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./construction.css";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { commonVisibility, TARGET_TIP, TARGET_TIP_SPACE, togglePupilSpace, visibilityStep, visibilityWords, type Visibility } from "../editor-kit/visibility";
+import { DraftingCompass, Eye, Frame, MapPin, PaintBucket, PenLine } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:construction:v1");
 type Doc = Envelope["document"];
@@ -76,7 +83,9 @@ function initial() {
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inputMode, className }: {
+function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inputMode, className, onHistory }: {
+  /** Ctrl+Z and Ctrl+Y with nothing typed: the drawing's undo and redo. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   id?: string;
   label: string;
   value: string;
@@ -110,11 +119,13 @@ function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inpu
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && draft !== value) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -197,7 +208,11 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
     [drag, setDrag] = useState<{ id: string; x: number; y: number } | null>(null),
-    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer(),
+    dragMoved = useRef(false);
   const [cType, setCType] = useState<ConstructionType>("perpendicular-bisector"),
     [cPoints, setCPoints] = useState<string[]>([]),
     [cDistance, setCDistance] = useState("3"),
@@ -224,6 +239,26 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
   const ownPoints = d.points.filter((p) => !p.group);
   const segments = d.objects.filter((o): o is Extract<Obj, { type: "segment" }> => o.type === "segment" && !o.group);
   const pointName = (p: Point) => (p.label.text.trim() && p.label.text.trim() !== p.id ? `${p.label.text} (${p.id})` : p.id);
+  useEffect(() => {
+    if (boxAnchor && (!selectedPoint || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedPoint]);
+  /** The labels What pupils see sets: the points' own, and the labels of lines, arcs, angles and bearings. */
+  const pointLabels = (doc: Doc) => doc.points.filter((p) => !p.group && p.label.text.trim()).map((p) => p.label);
+  const lineLabels = (doc: Doc) =>
+    doc.objects.flatMap((o) => (!o.group && o.type !== "text" && "label" in o && o.label.text.trim() ? [o.label as { text: string; show: Visibility }] : []));
+  const allLabels = (doc: Doc) => [...pointLabels(doc), ...lineLabels(doc), ...(doc.caption.text.trim() ? [doc.caption] : [])];
+  const spaceCount = allLabels(d).filter((l) => l.show === "hidden").length;
+  const answerCount = [...ownPoints, ...d.objects.filter((o) => !o.group)].filter((x) => x.role === "answer").length + groups.filter((grp) => [...d.points, ...d.objects].some((x) => x.group === grp && x.role === "answer")).length;
+  function setLabelVisibility(id: string, v: Visibility) {
+    const p = d.points.find((q) => q.id === id);
+    if (!p) return;
+    if (v !== "show" && !p.label.text.trim()) return setMessage("Type a label first, then make it a pupil space.");
+    commit(() => {
+      const n = structuredClone(e);
+      n.document.points.find((q) => q.id === id)!.label.show = v;
+      return n;
+    }, visibilityStep(v, `the label of ${pointName(p)}`));
+  }
 
   function commit(next: Envelope | null | (() => Envelope), label?: string) {
     if (recovery !== null || !next) return false;
@@ -288,7 +323,9 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      handleUndoKeys(event, { undo, redo });
+      if (handleUndoKeys(event, { undo, redo })) return;
+      if ((event.target as HTMLElement | null)?.closest("input, select, textarea")) return;
+      if (event.key === "Escape" && selected && !boxAnchor) setSelected(null);
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -551,7 +588,11 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   className="pt-resource"
                   data-testid="construction-resource"
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
-                  onPointerMove={(ev) => drag && setDrag({ id: drag.id, ...pointerToDoc(ev) })}
+                  onPointerMove={(ev) => {
+                    if (!drag) return;
+                    dragMoved.current = true;
+                    setDrag({ id: drag.id, ...pointerToDoc(ev) });
+                  }}
                   onPointerUp={() => {
                     if (drag) movePoint(drag.id, drag.x, drag.y);
                     setDrag(null);
@@ -568,14 +609,24 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                           key={p.id}
                           type="button"
                           className={`pt-hit cn-point ${selected === p.id ? "pt-selected" : ""} ${p.role === "answer" ? "pt-hidden-answer" : ""}`}
-                          aria-label={`Select point ${pointName(p)} at (${p.x}, ${p.y}); drag to move it`}
+                          aria-label={`Select point ${pointName(p)} at (${p.x}, ${p.y}); drag to move it${visibilityWords(p.label.show) ? `, label ${visibilityWords(p.label.show)}` : ""}`}
+                          aria-haspopup="dialog"
+                          data-options-anchor=""
+                          title={p.label.show === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}
                           disabled={blocked}
+                          onClick={(ev) => {
+                            setSelected(p.id);
+                            if (!dragMoved.current) setBoxAnchor(ev.currentTarget);
+                          }}
+                          onDoubleClick={() => setLabelVisibility(p.id, togglePupilSpace(p.label.show))}
                           style={{ left: px(pageX(at.x) - 2.5, g.width), top: px(pageY(at.y) - 2.5, g.height), width: px(5, g.width), height: px(5, g.height) }}
                           onPointerDown={(ev) => {
                             if (blocked) return;
                             ev.preventDefault();
                             setSelected(p.id);
-                            (ev.currentTarget.parentElement as HTMLElement).setPointerCapture?.(ev.pointerId);
+                            dragMoved.current = false;
+                            // Captured by the point itself, so a click without a drag still reaches it and opens its options.
+                            ev.currentTarget.setPointerCapture?.(ev.pointerId);
                             setDrag({ id: p.id, x: p.x, y: p.y });
                           }}
                           onKeyDown={(ev) => {
@@ -590,6 +641,81 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                     })}
                 </div>
               </div>
+                {boxAnchor && selectedPoint && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={selectedPoint.id} focusField={!coarse} title={`Point ${pointName(selectedPoint)}`} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch name="Its label" caption="Its label" value={selectedPoint.label.show} disabled={blocked || !selectedPoint.label.text.trim()} onChange={(v) => setLabelVisibility(selectedPoint.id, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        Label
+                        <DraftField label="Point label" onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })} value={selectedPoint.label.text} disabled={blocked} maxLength={40} onCommit={(v) => setPointField(selectedPoint.id, (p) => void (p.label.text = v))} />
+                      </label>
+                      <label>
+                        Across (cm)
+                        <DraftField
+                          label="Distance across in centimetres"
+                          inputMode="decimal"
+                          value={String(selectedPoint.x)}
+                          disabled={blocked}
+                          onCommit={(v) => {
+                            const x = parseNumber(v);
+                            if (x === null) setMessage("Type a number of centimetres.");
+                            else movePoint(selectedPoint.id, x, selectedPoint.y);
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Up (cm)
+                        <DraftField
+                          label="Distance up in centimetres"
+                          inputMode="decimal"
+                          value={String(selectedPoint.y)}
+                          disabled={blocked}
+                          onCommit={(v) => {
+                            const y = parseNumber(v);
+                            if (y === null) setMessage("Type a number of centimetres.");
+                            else movePoint(selectedPoint.id, selectedPoint.x, y);
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Label position
+                        <select aria-label="Label position" value={selectedPoint.labelAt} disabled={blocked} onChange={(ev) => setPointField(selectedPoint.id, (p) => void (p.labelAt = ev.target.value as Point["labelAt"]))}>
+                          {["auto", "n", "ne", "e", "se", "s", "sw", "w", "nw"].map((x) => (
+                            <option key={x} value={x}>
+                              {x === "auto" ? "Away from lines" : x.toUpperCase()}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Mark
+                        <select aria-label="Point mark" value={selectedPoint.mark} disabled={blocked} onChange={(ev) => setPointField(selectedPoint.id, (p) => void (p.mark = ev.target.value as Point["mark"]))}>
+                          <option value="cross">Cross</option>
+                          <option value="dot">Dot</option>
+                          <option value="none">None</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label className="pt-hide">
+                      <input type="checkbox" disabled={blocked} checked={selectedPoint.role === "answer"} onChange={(ev) => commit(() => setRole(e, [selectedPoint.id], ev.target.checked ? "answer" : "given"))} />
+                      Answer (answers copy only, with anything drawn from it)
+                    </label>
+                    <div className="md-options-actions">
+                      <button
+                        type="button"
+                        disabled={blocked}
+                        onClick={() => {
+                          if (commit(() => remove(e, [selectedPoint.id]), `remove point ${selectedPoint.id}`)) {
+                            setSelected(null);
+                            setBoxAnchor(null);
+                          }
+                        }}
+                      >
+                        Remove point and what is drawn from it
+                      </button>
+                    </div>
+                  </OptionsBox>
+                )}
             </div>
             <EditorFoot
               zoom={zoom}
@@ -598,7 +724,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={message}
               hint={
-                <EditorHint tool="construction">Drag a point to move it, or select it and use the arrow keys. Add constructions and measurements in the settings.</EditorHint>
+                <EditorHint tool="construction">Click a point for its options; drag it to move it. Double-click it for a pupil space on its label. Add constructions and measurements in the settings.</EditorHint>
               }
             >
             </EditorFoot>
@@ -615,91 +741,56 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Construction settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Construction settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            {selectedPoint && (
-              <section className="panel-card pt-panel" aria-label="Selected point">
-                <h2>Point {pointName(selectedPoint)}</h2>
-                <div className="pt-fields">
-                  <label>
-                    Label
-                    <DraftField label="Point label" value={selectedPoint.label.text} disabled={blocked} maxLength={40} onCommit={(v) => setPointField(selectedPoint.id, (p) => void (p.label.text = v))} />
-                  </label>
-                  <label>
-                    Across (cm)
-                    <DraftField
-                      label="Distance across in centimetres"
-                      inputMode="decimal"
-                      value={String(selectedPoint.x)}
-                      disabled={blocked}
-                      onCommit={(v) => {
-                        const x = parseNumber(v);
-                        if (x === null) setMessage("Type a number of centimetres.");
-                        else movePoint(selectedPoint.id, x, selectedPoint.y);
-                      }}
-                    />
-                  </label>
-                  <label>
-                    Up (cm)
-                    <DraftField
-                      label="Distance up in centimetres"
-                      inputMode="decimal"
-                      value={String(selectedPoint.y)}
-                      disabled={blocked}
-                      onCommit={(v) => {
-                        const y = parseNumber(v);
-                        if (y === null) setMessage("Type a number of centimetres.");
-                        else movePoint(selectedPoint.id, selectedPoint.x, y);
-                      }}
-                    />
-                  </label>
-                  <label>
-                    Label position
-                    <select aria-label="Label position" value={selectedPoint.labelAt} disabled={blocked} onChange={(ev) => setPointField(selectedPoint.id, (p) => void (p.labelAt = ev.target.value as Point["labelAt"]))}>
-                      {["auto", "n", "ne", "e", "se", "s", "sw", "w", "nw"].map((x) => (
-                        <option key={x} value={x}>
-                          {x === "auto" ? "Away from lines" : x.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Mark
-                    <select aria-label="Point mark" value={selectedPoint.mark} disabled={blocked} onChange={(ev) => setPointField(selectedPoint.id, (p) => void (p.mark = ev.target.value as Point["mark"]))}>
-                      <option value="cross">Cross</option>
-                      <option value="dot">Dot</option>
-                      <option value="none">None</option>
-                    </select>
-                  </label>
-                </div>
-                <label className="pt-hide">
-                  <input type="checkbox" disabled={blocked} checked={selectedPoint.role === "answer"} onChange={(ev) => commit(() => setRole(e, [selectedPoint.id], ev.target.checked ? "answer" : "given"))} />
-                  Answer (answers copy only, with anything drawn from it)
-                </label>
-                <label className="pt-hide">
-                  <input type="checkbox" disabled={blocked} checked={selectedPoint.label.show === "hidden"} onChange={(ev) => setPointField(selectedPoint.id, (p) => void (p.label.show = ev.target.checked ? "hidden" : "show"))} />
-                  Hide the label for pupils
-                </label>
-                <div className="pt-row">
-                  <button
-                    type="button"
-                    disabled={blocked}
-                    onClick={() => {
-                      if (commit(() => remove(e, [selectedPoint.id]), `remove point ${selectedPoint.id}`)) setSelected(null);
-                    }}
-                  >
-                    Remove point and what is drawn from it
-                  </button>
-                </div>
-              </section>
-            )}
-            <section className="panel-card pt-panel">
-              <h2>Points</h2>
+            {/* One column (the usability rollout, 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="construction"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <p className="pt-note">
+                  Show: printed on both copies. Pupil space: left for pupils to write, printed on the answers copy. Leave out: printed on neither copy, but kept. Points,
+                  lines and constructions ticked Answer print only on the answers copy.
+                </p>
+              }
+            >
+              {(
+                [
+                  ["Point labels", pointLabels],
+                  ["Line labels", lineLabels],
+                ] as const
+              ).map(([name, of]) => {
+                const all = commonVisibility(of(d).map((l) => l.show));
+                return (
+                  all && (
+                    <VisibilitySwitch key={name} name={name} caption={name} value={all} disabled={blocked} onChange={(v) => patch((n) => of(n).forEach((l) => (l.show = v)), visibilityStep(v, `all ${name.toLowerCase()}`))} />
+                  )
+                );
+              })}
+              <p className="pt-note">{answerCount === 0 ? "No answers yet." : `${answerCount} answer${answerCount === 1 ? "" : "s"} (answers copy only).`}</p>
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={() => patch((n) => allLabels(n).forEach((l) => l.show === "hidden" && (l.show = "show")), "show all")}>
+                Double-click a point for a pupil space on its label.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="construction" title="Points" icon={MapPin} defaultOpen summary={ownPoints.length === 1 ? "1 point" : `${ownPoints.length} points`}>
               <div className="cn-list">
                 {ownPoints.map((p) => (
-                  <button key={p.id} type="button" className="cn-chip" aria-pressed={selected === p.id} disabled={blocked} onClick={() => setSelected(p.id)}>
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="cn-chip"
+                    aria-pressed={selected === p.id}
+                    aria-haspopup="dialog"
+                    data-options-anchor=""
+                    disabled={blocked}
+                    onClick={(ev) => {
+                      setSelected(p.id);
+                      setBoxAnchor(ev.currentTarget);
+                    }}
+                  >
                     {pointName(p)} ({p.x}, {p.y}){p.role === "answer" ? " · answer" : ""}
                   </button>
                 ))}
@@ -710,9 +801,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 </button>
               </div>
               <p className="pt-note">Drag a point on the drawing, or select it and use the arrow keys (Shift moves 1 cm). Positions are in centimetres from the bottom-left corner.</p>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Lines and marks</h2>
+            </FoldCard>
+            <FoldCard tool="construction" title="Lines and marks" icon={PenLine} defaultOpen summary={(() => { const k = d.objects.filter((o) => !o.group && o.type !== "region").length; return k === 0 ? "None yet" : k === 1 ? "1 line or mark" : `${k} lines and marks`; })()}>
               {d.objects.filter((o) => !o.group && o.type !== "region").map((o) => (
                 <div key={o.id} className="cn-item">
                   <span>{describe(o)}</span>
@@ -722,7 +812,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                       <DraftField label={`Label for ${describe(o)}`} value={o.label.text} disabled={blocked} maxLength={40} onCommit={(v) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { text: string } }).label.text = v))} />
                       <label className="pt-hide">
                         <input type="checkbox" disabled={blocked} checked={o.label.show === "hidden"} onChange={(ev) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { show: string } }).label.show = ev.target.checked ? "hidden" : "show"))} />
-                        Hide for pupils
+                        Pupil space
                       </label>
                     </span>
                   )}
@@ -777,11 +867,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   Add {OBJECTS[oType].name.toLowerCase()}
                 </button>
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel" aria-label="Ruler and compass constructions">
-              <h2>Ruler and compass constructions</h2>
+            </FoldCard>
+            <FoldCard tool="construction" title="Ruler and compass constructions" icon={DraftingCompass} defaultOpen summary={groups.length === 0 ? "None yet" : groups.length === 1 ? "1 construction" : `${groups.length} constructions`}>
               <p className="pt-note">Each construction draws its compass arcs and is saved as an answer, so pupils see only the starting lines. Tick “Show on the pupil copy” for a worked example.</p>
               {groups.map((grp) => {
                 const parts = [...d.points, ...d.objects].filter((x) => x.group === grp);
@@ -848,9 +935,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   Add construction
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Shaded regions</h2>
+            </FoldCard>
+            <FoldCard tool="construction" title="Shaded regions" icon={PaintBucket} summary={(() => { const k = d.objects.filter((o) => o.type === "region").length; return k === 0 ? "None yet" : k === 1 ? "1 region" : `${k} regions`; })()}>
               {d.objects.filter((o): o is Extract<Obj, { type: "region" }> => o.type === "region").map((o) => (
                 <div key={o.id} className="cn-item">
                   <span>
@@ -927,9 +1013,25 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   Add shaded region
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Drawing</h2>
+            </FoldCard>
+            <FoldCard
+              tool="construction"
+              title="Drawing"
+              icon={Frame}
+              summary={`${d.width} by ${d.height} cm`}
+              help={
+                <>
+                  <p className="pt-note">
+                    The drawing prints at true size: 1 cm on the sheet is 1 cm, so pupils can construct, measure and shade on it. Nothing is
+                    measured or written for you; Measure writes a length, angle or bearing only when you press it, and can be undone.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or
+                    PDF if your browser blocks copying, and print at 100% (actual size).
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Width (cm)
@@ -975,10 +1077,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 <input type="checkbox" disabled={blocked} checked={d.border} onChange={(ev) => patch((n) => void (n.border = ev.target.checked))} />
                 Border round the drawing area
               </label>
-              <label className="pt-hide">
-                <input type="checkbox" disabled={blocked} checked={d.caption.show === "hidden"} onChange={(ev) => patch((n) => void (n.caption.show = ev.target.checked ? "hidden" : "show"))} />
-                Hide the caption for pupils
-              </label>
+              <VisibilitySwitch name="Scale caption: what pupils see" caption="Scale caption" value={d.caption.show} disabled={blocked || !d.caption.text.trim()} onChange={(v) => patch((n) => void (n.caption.show = v), visibilityStep(v, "the scale caption"))} />
               <h3>Scale for measuring lengths</h3>
               <div className="pt-fields cn-scale">
                 <label>
@@ -994,25 +1093,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   <input aria-label="Real unit" maxLength={12} value={scale.unit} disabled={blocked} onChange={(ev) => setScale({ ...scale, unit: ev.target.value })} />
                 </label>
               </div>
-              <div className="pt-row">
-                <button type="button" disabled={blocked || !hasHidden(e)} onClick={() => commit(() => setRole(e, [...d.points, ...d.objects].filter((x) => x.role === "answer").map((x) => x.id), "given"), "show all")}>
-                  Show every answer on the pupil copy
-                </button>
-              </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  The drawing prints at true size: 1 cm on the sheet is 1 cm, so pupils can construct, measure and shade on it. Nothing is
-                  measured or written for you; Measure writes a length, angle or bearing only when you press it, and can be undone.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or
-                  PDF if your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (

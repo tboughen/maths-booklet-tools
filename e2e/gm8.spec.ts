@@ -100,3 +100,33 @@ test("plans and elevations: refuses to remove the last cube and keeps one size o
   expect(await size.textContent()).toBe(pupilSize);
   expect(eLayout(e, "pupil").width).toBe(eLayout(e, "answer").width);
 });
+
+test("constructions: click a point for its options, double-click for a pupil space, and leave every point label out in one step", async ({ page }) => {
+  await page.goto("/tools/construction");
+  const art = page.getByTestId("construction-resource").locator(".pt-art svg");
+  const label = (i: number) => saved(page, cKey).then((s) => s.document.points[i].label.show);
+  const hit = page.getByRole("button", { name: /^Select point A / });
+  await hit.click();
+  const box = page.locator(".md-options-box");
+  await expect(box).toContainText("Point A");
+  await expect(box.getByRole("textbox", { name: "Point label" })).toBeFocused();
+  await box.getByRole("group", { name: "Its label" }).getByRole("button", { name: "Pupil space" }).click();
+  expect(await label(0)).toBe("hidden");
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+  await page.getByRole("button", { name: /^Select point A / }).dblclick();
+  expect(await label(0)).toBe("show");
+  await page.keyboard.press("Escape");
+  const see = page.getByRole("region", { name: "What pupils see" });
+  await see.getByRole("group", { name: "Point labels" }).getByRole("button", { name: "Leave out" }).click();
+  expect([await label(0), await label(1)]).toEqual(["omit", "omit"]);
+  // A left-out label prints on neither copy.
+  await expect(art.locator("text", { hasText: /^[AB]$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").check();
+  await expect(art.locator("text", { hasText: /^[AB]$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(art.locator("text", { hasText: /^[AB]$/ })).toHaveCount(2);
+  // The click targets and the box are never part of the printed artwork.
+  expect(await page.getByTestId("construction-resource").locator(".pt-art .md-options-box, .pt-art button").count()).toBe(0);
+});
