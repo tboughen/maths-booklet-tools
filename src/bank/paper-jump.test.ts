@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { bankPapers, emptyRoute, filterQuestions, paperName, readRoute, routeQuery, type BankCatalogue, type BankListQuestion } from "./model";
+import { bankPapers, emptyReason, emptyRoute, filterQuestions, paperName, readRoute, routeQuery, type BankCatalogue, type BankListQuestion } from "./model";
 
 const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue<BankListQuestion>;
 
@@ -32,5 +32,11 @@ describe("opening one paper", () => {
     expect(routeQuery(route)).toBe("?paper=1MA1_NOV_2023_2H&question=1MA1_NOV_2023_2H_Q3");
     expect(readRoute(routeQuery(route), catalogue)).toEqual(route);
     expect(readRoute("?code=U837", catalogue).paper).toBeUndefined();
+    expect(routeQuery({...route, bankView: "topics"})).toBe(routeQuery(route));
+  });
+
+  it("says when a linked paper is not in the bank", () => {
+    expect(emptyReason(catalogue, {...emptyRoute, paper: "1MA1_NOV_2099_2H"})).toBe("unknown-paper");
+    expect(emptyReason(catalogue, {...emptyRoute, paper: "1MA1_NOV_2023_2H"})).toBeNull();
   });
 });

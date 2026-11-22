@@ -198,13 +198,13 @@ function readView(raw: string | null, count: number | undefined): Pick<BankRoute
 /** The query string for a bank route, without the page path; empty for the default route. */
 export function routeQuery(route: BankRoute): string {
   const p = new URLSearchParams();
-  if (route.bankView === "topics") p.set("bankView", "topics");
   if (route.paper) {
     p.set("paper", route.paper);
     if (route.question) p.set("question", route.question);
     if (route.view > 0) p.set("view", String(route.view + 1));
     return `?${p}`;
   }
+  if (route.bankView === "topics") p.set("bankView", "topics");
   if (route.code) p.set("code", normalizeCode(route.code));
   if (route.tier !== "all") p.set("tier", route.tier);
   if (route.calculator !== "all") p.set("calc", route.calculator);
@@ -267,7 +267,8 @@ export function exportSelection<Q extends BankListQuestion>(catalogue: BankCatal
   return {questions, marks: questions.reduce((n, q) => n + q.marks, 0), version: catalogue.version};
 }
 
-export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "filtered" | "revision" | "no-bank-match" | "not-in-pilot" | null {
+export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "unknown-paper" | "filtered" | "revision" | "no-bank-match" | "not-in-pilot" | null {
+  if (route.paper) return paperQuestions(catalogue, route.paper).length ? null : "unknown-paper";
   const topic = catalogue.topics.find(t => t.code === route.code);
   if (route.code && !topic) return "unknown";
   if (filterQuestions(catalogue, route).length) return null;
