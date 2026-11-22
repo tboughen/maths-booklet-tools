@@ -21,12 +21,12 @@ describe("A4 booklet renderer", () => {
     const [a, b] = a7Booklet.document.lessons;
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(a7Booklet, 1);
-    expect(sha(renderBooklet(a7Booklet).pages)).toBe("8e8afa701ba79864ce8ad82d717c63f605e7da208b88c8d7b10f3d5539701aac");
-    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("a8d4c7843842ae674ba000ce65e3aa7faba915c1e413aec315ca044a72410999");
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("9e18e6b39c90e36d533b4794893e5be3ba0935199ba6d8732c08517f95553336");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("07fdef8a4274c3b33816d4f71963e6c4bf1573444e65940496ca571a784731ec");
     expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("5941f551e7affb1116cfb8ec733e72aedef6bad0aac956514242c567be676a32");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
-    expect(sha(whole.pages)).toBe("c5c0d4e6169a2ff3b8139607fee5dea9bf945ee1162f3678c9f318de0aeda6e0");
+    expect(sha(whole.pages)).toBe("576df4f5d4cb1b8415c579b9df2b5aa0c94f90bf62a88508920634768b351821");
   });
 
   it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {

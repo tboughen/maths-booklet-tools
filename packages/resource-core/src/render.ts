@@ -3,7 +3,7 @@ import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
 import { ratioBottomBaselineMm } from "../../ratio-table-core/src/svg";
 
@@ -701,7 +701,7 @@ export function card(c: Card, number: number | string | null, w: number, ctx: An
     out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
     out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, "white", "middle"));
   }
-  out.push(textSvg(parseRuns(c.title, "bold"), titleX, titleY, S.cardTitle, st.navy));
+  out.push(textSvg(titleRuns(c.title, !!ctx.maths), titleX, titleY, S.cardTitle, st.navy));
   if (plainWidth(c.title, S.cardTitle, "bold") > w - titleX - pad) issue(ctx, "The card title is wider than the card.");
   out.push(at(body, pad, top));
   return { h, svg: out.join("") };
@@ -926,7 +926,7 @@ export function renderResource(saved: Resource, options: RenderOptions = {}): Re
   const pages = doc.sides.map((side, s) => {
     const out: string[] = [];
     // Header: title, objective and instruction left; group, name line and side right; a hairline below.
-    out.push(textSvg(parseRuns(doc.title, "bold"), m, m + 6.6, S.title, st.navy));
+    out.push(textSvg(titleRuns(doc.title, doc.notation === "maths"), m, m + 6.6, S.title, st.navy));
     const objective = [doc.code, doc.objective].filter(Boolean).join(" • ");
     out.push(textSvg(parseRuns(objective), m, m + 12.2, S.objective, st.muted));
     if (side.instruction) out.push(textSvg(parseRuns(side.instruction), m, m + 16.4, S.objective, st.ink));

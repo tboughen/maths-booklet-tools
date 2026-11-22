@@ -155,6 +155,13 @@ function mathsLetters(runs: Run[]): Run[] {
   );
 }
 
+/**
+ * With maths notation on, a heading or card title (which never takes fraction markup) still prints its typeset letters in the maths font,
+ * so "Make *x* the subject" matches the questions below it (rule N16). Nothing else changes.
+ */
+export const titleRuns = (source: string, maths: boolean, base: FontStyle = "bold"): Run[] =>
+  maths ? mathsLetters(parseRuns(source, base)) : parseRuns(source, base);
+
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
 /** Letters in a fraction print in italic, as maths letters do; digits and signs stay upright. */
 export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "maths" : "regular");
