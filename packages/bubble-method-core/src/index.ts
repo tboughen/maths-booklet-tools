@@ -32,7 +32,8 @@ export const ANSWER_COLOUR = "#b0125b";
 export const RELATIONS = ["=", "<", ">", "≤", "≥"] as const;
 export type Relation = (typeof RELATIONS)[number];
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy, not even a blank line. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const sideSchema = z.object({ text: z.string().max(MAX_SIDE), show }).strict();
 export const opSchema = z.object({ text: z.string().max(MAX_OP), show }).strict();
 export const lineSchema = z
@@ -170,7 +171,8 @@ export function setSlot(e: Envelope, slot: Slot, change: { text?: string; show?:
     v = slotValue(n.document, slot);
   if (change.text !== undefined) v.text = change.text.trim();
   if (!v.text && change.show === "hidden") throw Error(HIDDEN_BLANK);
-  v.show = v.text ? (change.show ?? v.show) : "show";
+  // A blank keeps a chosen state (show or left out); an emptied hidden item becomes a plain blank.
+  v.show = change.show ?? (!v.text && v.show === "hidden" ? "show" : v.show);
   return validate(n);
 }
 export function setUnder(e: Envelope, step: number, side: "left" | "right", under: Under): Envelope {
@@ -250,6 +252,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   if (view === "pupil") return e;
   const n = clone(e);
   for (const v of values(n.document)) {
+    // A left-out item stays out of the teacher copy too.
+    if (v.show === "omit") continue;
     if (v.show === "hidden" && v.text) {
       ANSWERED.add(v);
       if (mark) REVEALED.add(v);
@@ -410,10 +414,12 @@ export function renderSvg(e: Envelope): string {
           const t = typesetSide(p),
             w = widthOf(t);
           out.push(markupAt(t, s.align === "end" ? s.x + s.width - w : s.x, r.cy, ink(s.v)));
-        } else out.push(dotted(s.x, s.x + s.width, r.cy + FONT * 0.45));
+        } else if (s.v.show !== "omit") out.push(dotted(s.x, s.x + s.width, r.cy + FONT * 0.45));
       }
     } else
       for (const b of r.items) {
+        // A left-out bubble prints nothing, not even the empty bubble a pupil blank prints.
+        if (b.v.show === "omit") continue;
         out.push(`<ellipse cx="${num(b.cx)}" cy="${num(r.cy)}" rx="${num(b.rx)}" ry="${num(b.ry)}" fill="none" stroke="black" stroke-width="0.3"/>`);
         const p = printed(b.v);
         if (p) out.push(markupCentred(typesetOp(p), b.cx, r.cy, ink(b.v)));

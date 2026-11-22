@@ -119,4 +119,14 @@ describe("function machines", () => {
     expect(next.document.machines[0].end.text).toBe("20");
     await expect(io.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
   });
+  it("leaves out an item in both copies, with no blank, and keeps a blank left out", () => {
+    const e0 = fm.create();
+    const id = e0.document.machines[0].id;
+    let e = fm.setSlot(e0, id, "end", { text: "12", show: "omit" });
+    expect(fm.renderSvg(fm.forView(e, "answer", true))).not.toMatch(/>12</);
+    const dots = (svg: string) => (svg.match(/stroke-dasharray/g) ?? []).length;
+    e = fm.setSlot(e, id, "end", { text: "" });
+    expect(e.document.machines[0].end).toEqual({ text: "", show: "omit" });
+    expect(dots(fm.renderSvg(e))).toBe(dots(fm.renderSvg(fm.setSlot(e, id, "end", { show: "show" }))) - 1);
+  });
 });
