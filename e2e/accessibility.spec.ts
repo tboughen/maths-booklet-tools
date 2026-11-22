@@ -42,7 +42,7 @@ test("draft ordering, grey estimates, manual moves and both real PDF exports",as
   await page.goto(`/question-bank?code=${questions[0].codes[0]}&question=${questions[0].id}`);
   await page.getByRole("button",{name:/^\d+ questions?$/}).click();
   for(const q of questions){
-    await page.getByRole("combobox",{name:"Sparx code or topic"}).fill(q.codes[0]);
+    await page.getByRole("combobox",{name:"Sparx code, topic or paper"}).fill(q.codes[0]);
     await page.getByRole("button",{name:"Find",exact:true}).click();
     await page.locator(".qb-result button").filter({hasText:q.source}).click();
     await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);

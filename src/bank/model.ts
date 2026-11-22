@@ -427,3 +427,31 @@ export function bankPapers(catalogue: BankCatalogue<BankListQuestion>): BankPape
 
 /** A paper's name as teachers say it: "November 2023 2H". */
 export const paperName = (paper: Pick<BankPaper, "set" | "paper" | "tier">): string => `${paper.set} ${paper.paper}${paper.tier}`;
+
+const MONTH_WORDS: Record<string, string> = {j: "june", jun: "june", june: "june", n: "november", nov: "november", november: "november"};
+/**
+ * Papers a typed search names, newest first: "nov 23 2h", "N23 2H", "November 2023 paper 2 higher",
+ * "1MA1 June 2019 1F", "mock set 6 2h", "MS6 3F". Empty when the text names no series, year, mock set
+ * or paper code, so topic searches are left alone.
+ */
+export function matchPapers(papers: BankPaper[], text: string): BankPaper[] {
+  let rest = ` ${text.toLowerCase().replace(/1ma1/g, " ").replace(/[_,./-]/g, " ")} `;
+  let month = "", year = "", mock = "", number = "", tier = "";
+  const take = (pattern: RegExp, apply: (m: RegExpMatchArray) => void) => {const m = rest.match(pattern); if (m) {apply(m); rest = rest.replace(m[0], " ");}};
+  take(/\s(?:mock\s*(?:set\s*)?|ms\s*)(\d{1,2})\s/, m => {mock = String(Number(m[1]));});
+  take(/\s([123])\s*([fh])\s/, m => {number = m[1]; tier = m[2].toUpperCase();});
+  take(/\s(jun|june|nov|november|j|n)\s*(\d{2}|\d{4})?\s/, m => {month = MONTH_WORDS[m[1]]; if (m[2]) year = m[2].length === 2 ? `20${m[2]}` : m[2];});
+  take(/\s(20\d{2})\s/, m => {year = m[1];});
+  take(/\spaper\s*([123])\s/, m => {number = m[1];});
+  take(/\s(foundation|higher)\s/, m => {tier = m[1][0].toUpperCase();});
+  if (!number) take(/\s([123])\s/, m => {number = m[1];});
+  if (!year && month) take(/\s(\d{2})\s/, m => {year = `20${m[1]}`;});
+  if (!month && !year && !mock && !(number && tier)) return [];
+  // Anything left over that is not a filler word means the text was not a paper.
+  if (rest.replace(/\b(paper|set|tier|calculator|non|exam|series)\b/g, " ").trim()) return [];
+  return papers.filter(p => {
+    const set = p.set.toLowerCase();
+    if (mock) return set === `mock set ${mock}` && (!number || p.paper === number) && (!tier || p.tier === tier) && !month && !year;
+    return (!month || set.startsWith(month)) && (!year || set.endsWith(year)) && (!number || p.paper === number) && (!tier || p.tier === tier) && (!(month || year) || !p.mock);
+  });
+}
