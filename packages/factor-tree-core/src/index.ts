@@ -25,7 +25,8 @@ export const MAX_DIGITS = 7;
 export const MAX_PRODUCT = 48;
 export const ANSWER_COLOUR = "#b0125b";
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const valueSchema = z.object({ text: z.string().max(MAX_DIGITS + 4), show }).strict();
 export const productSchema = z.object({ text: z.string().max(MAX_PRODUCT + 12), show }).strict();
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,23}$/);
@@ -232,7 +233,7 @@ export function setNode(e: Envelope, treeId: string, nodeId: string, change: { t
     node = nodeOf(treeOf(n.document, treeId), nodeId);
   if (change.text !== undefined) node.value.text = change.text.trim();
   if (!node.value.text && change.show === "hidden") throw Error("A blank number cannot hold a hidden answer. Enter the answer, then hide it.");
-  node.value.show = node.value.text ? (change.show ?? node.value.show) : "show";
+  node.value.show = node.value.text || change.show === "omit" ? (change.show ?? node.value.show) : node.value.show === "omit" ? "omit" : "show";
   if (change.circled !== undefined) {
     if (change.circled) node.circled = change.circled;
     else delete node.circled;
@@ -411,7 +412,9 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
         if (mark) REVEALED_RING.add(x);
       }
     for (const v of [...t.nodes.map((x) => x.value), ...(t.product ? [t.product] : [])]) {
-      if (mark && v.show === "hidden" && v.text) REVEALED.add(v);
+      // A left-out value stays out of the teacher copy too.
+      if (v.show !== "hidden") continue;
+      if (mark && v.text) REVEALED.add(v);
       v.show = "show";
     }
   }
@@ -533,6 +536,8 @@ export function renderSvg(e: Envelope): string {
   for (const p of g.nodes) {
     const v = p.node.value,
       fill = REVEALED.has(v) ? ANSWER_COLOUR : "black";
+    // A left-out number prints nothing, not even a space or its circle.
+    if (v.show === "omit") continue;
     const showing = !!v.text && v.show === "show";
     if (showing) out.push(text(v.text, p.x, p.y + FONT * 0.33, fill));
     else if (d.blankStyle === "box") out.push(`<rect x="${num(p.x - r + 0.6)}" y="${num(p.y - FONT * 0.8)}" width="${num(2 * r - 1.2)}" height="${num(FONT * 1.6)}" fill="none" stroke="black" stroke-width="0.25"/>`);
@@ -542,6 +547,8 @@ export function renderSvg(e: Envelope): string {
       out.push(`<circle cx="${num(p.x)}" cy="${num(p.y)}" r="${num(showing ? circleRadius(v.text) : r - 0.3)}" fill="none" stroke="${REVEALED_RING.has(p.node) ? ANSWER_COLOUR : fill}" stroke-width="0.3"/>`);
   }
   for (const a of g.answers) {
+    // A left-out answer line prints nothing in either copy.
+    if (a.product.show === "omit") continue;
     const fill = REVEALED.has(a.product) ? ANSWER_COLOUR : "black";
     const start = a.x + textWidth(a.prefix);
     if (a.prefix) out.push(text(a.prefix.trim(), a.x, a.y, "black", "start"));
