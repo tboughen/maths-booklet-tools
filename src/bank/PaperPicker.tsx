@@ -12,6 +12,7 @@ export function PaperPicker({catalogue, current, onOpen}: {catalogue?: BankCatal
   useEffect(() => {
     const open = papers.find(p => p.id === current);
     if (open) {setSet(open.set); setPaper(open.paper); setTier(open.tier);}
+    else setSet("");
   }, [papers, current]);
   const chosen = papers.find(p => p.set === set && p.paper === paper && p.tier === tier);
   const group = (mock: boolean) => sets.filter(s => papers.some(p => p.set === s && p.mock === mock)).map(s => <option key={s} value={s}>{s}</option>);
@@ -25,6 +26,6 @@ export function PaperPicker({catalogue, current, onOpen}: {catalogue?: BankCatal
     </select>
     <select aria-label="Paper" value={paper} onChange={e => setPaper(e.target.value)}>{["1", "2", "3"].map(n => <option key={n} value={n}>{PAPER_NAMES[n]}</option>)}</select>
     <select aria-label="Tier" value={tier} onChange={e => setTier(e.target.value as "F" | "H")}><option value="F">Foundation</option><option value="H">Higher</option></select>
-    <button className="qb-button" type="submit" disabled={!chosen || chosen.id === current}>Open</button>
+    <button className="qb-button" type="submit" disabled={!chosen}>Open</button>
   </form>;
 }

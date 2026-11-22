@@ -22,6 +22,7 @@ test.describe("question bank: open a paper", () => {
     await page.getByRole("button", { name: "Find" }).click();
     await expect(page).toHaveURL(/\?code=U151/);
     await expect(page.locator(".qb-filters")).toHaveCount(1);
+    await expect(picker.getByLabel("Series")).toHaveValue("");
   });
 
   test("a question's source opens its paper at that question", async ({ page }) => {
@@ -30,6 +31,7 @@ test.describe("question bank: open a paper", () => {
     await page.getByRole("button", { name: "June 2018 1H Q4" }).click();
     await expect(page).toHaveURL(/\?paper=1MA1_JUN_2018_1H&question=1MA1_JUN_2018_1H_Q4$/);
     await expect(page.locator(".qb-topic h1")).toHaveText("June 2018 1H");
+    await expect(page.locator(".qb-topic h1")).toBeFocused();
     await expect(page.getByText("Question 4 of", { exact: false })).toBeVisible();
   });
 

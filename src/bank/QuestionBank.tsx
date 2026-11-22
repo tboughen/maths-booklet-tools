@@ -21,7 +21,7 @@ import { forgetWork, noteWork } from "../site/recentWork";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
-import { bankPapers, emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
+import { bankPapers, emptyReason, paperName, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
 import { PaperPicker } from "./PaperPicker";
 import { createDetailLoader, fetchCatalogueIndex, type BankIndex, type DetailLoader } from "./catalogueLoader";
 import { withPerformance } from "./performance";
@@ -145,7 +145,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const role=on.includes(showing.active)?showing.active:on[0];
   const topic=catalogue?.topics.find(t=>t.code===route.code);
   const openPaper=useMemo(()=>route.paper&&catalogue?bankPapers(catalogue).find(p=>p.id===route.paper):undefined,[catalogue,route.paper]);
-  const goPaper=(paper:string,question="")=>go({...emptyRoute,paper,question,view:0});
+  // Opening a paper moves focus to its heading, so the keyboard and screen readers follow (the source button goes away).
+  const goPaper=(paper:string,question="")=>{go({...emptyRoute,paper,question,view:0});requestAnimationFrame(()=>app.current?.querySelector<HTMLElement>(".qb-topic h1")?.focus());};
   const match=question?matchingParts(question,route.code):undefined;
   const served=useMemo(()=>question&&route.code&&match?servedParts(question,match.labels):undefined,[question,route.code,match]);
   // Only the matching parts, where a topic is open and the question is cut into parts (never for a mark scheme).
@@ -324,7 +325,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       {!topicsMode&&<><div className="qb-toolbar">
         <div className="qb-topic">
           {route.code&&<span className="qb-code">{route.code}</span>}{route.paper&&<span className="qb-code">Paper</span>}
-          <div><h1 tabIndex={-1}>{openPaper?`${openPaper.set} ${openPaper.paper}${openPaper.tier}`:route.paper?"Find a paper":topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{openPaper?`${openPaper.tier==="H"?"Higher":"Foundation"} · ${openPaper.calculator?"Calculator":"Non-calculator"} · ${formatCount(openPaper.questions)} questions · ${formatCount(openPaper.marks)} marks${openPaper.revisionUse?` · Year 11 revision: ${openPaper.revisionUse}`:""}`:topic?`${formatCount(topic.bankCount)} matched in full bank · ${formatCount(topic.availableCount??topic.pilotCount)} ${catalogue?.publication?"available":"in this pilot"}${revisionHidden?` · ${formatCount(revisionHidden)} Year 11 revision hidden`:""}`:catalogue?.publication?.description||(catalogue?`${formatCount(catalogue.questions.length)} reviewed questions`:"")}</span></div>
+          <div><h1 tabIndex={-1}>{openPaper?paperName(openPaper):route.paper?"Find a paper":topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{openPaper?`${openPaper.tier==="H"?"Higher":"Foundation"} · ${openPaper.calculator?"Calculator":"Non-calculator"} · ${formatCount(openPaper.questions)} questions · ${formatCount(openPaper.marks)} marks${openPaper.revisionUse?` · Year 11 revision: ${openPaper.revisionUse}`:""}`:topic?`${formatCount(topic.bankCount)} matched in full bank · ${formatCount(topic.availableCount??topic.pilotCount)} ${catalogue?.publication?"available":"in this pilot"}${revisionHidden?` · ${formatCount(revisionHidden)} Year 11 revision hidden`:""}`:catalogue?.publication?.description||(catalogue?`${formatCount(catalogue.questions.length)} reviewed questions`:"")}</span></div>
         </div>
         <div className="qb-toolbar-actions">
           <label className="qb-performance-toggle"><input type="checkbox" checked={showPerformance} onChange={e=>setShowPerformance(e.target.checked)}/> Show average marks achieved</label>
