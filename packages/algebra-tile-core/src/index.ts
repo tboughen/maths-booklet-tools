@@ -32,7 +32,8 @@ export const ANSWER_COLOUR = "#b0125b";
 /** Letters a pupil could confuse with a number (o, l) or an operation (x is fine; it is italic) are refused. */
 const LETTER = /^[a-km-np-z]$/;
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy, not even a blank line. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const valueSchema = z.object({ text: z.string().max(MAX_TEXT), show }).strict();
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,23}$/);
 const power = z.number().int().min(0).max(MAX_DEGREE);
@@ -373,7 +374,8 @@ export function setItem(e: Envelope, item: Item, change: { text?: string; show?:
   const v = (d[item] ??= value());
   if (change.text !== undefined) v.text = change.text.trim();
   if (!v.text && change.show === "hidden") throw Error("A blank cannot hold a hidden answer. Enter the answer, then hide it.");
-  v.show = v.text ? (change.show ?? v.show) : "show";
+  // A blank keeps a chosen state (show or left out); an emptied hidden line becomes a plain blank.
+  v.show = change.show ?? (!v.text && v.show === "hidden" ? "show" : v.show);
   return validate(n);
 }
 /** Renames the letters: every tile keeps its shape. */
@@ -397,7 +399,8 @@ function fill(e: Envelope, item: Item, text: string, hidden: boolean) {
   const v = e.document[item];
   if (v?.text) return { envelope: e, filled: false };
   if (text.length > MAX_TEXT) throw Error(`The ${item} would be longer than ${MAX_TEXT} characters.`);
-  return { envelope: setItem(e, item, { text, show: hidden ? "hidden" : "show" }), filled: true };
+  // A left-out line stays left out once written.
+  return { envelope: setItem(e, item, { text, show: v?.show === "omit" ? "omit" : hidden ? "hidden" : "show" }), filled: true };
 }
 
 /* ---------- Teacher warnings ---------- */
@@ -433,6 +436,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const n = clone(e),
     d = n.document;
   for (const t of d.terms) {
+    // Left-out tiles and lines stay out of the teacher copy too.
+    if (t.show === "omit") continue;
     if (t.show === "hidden") {
       ANSWERED.add(t);
       if (mark) REVEALED.add(t);
@@ -440,7 +445,7 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
     t.show = "show";
   }
   for (const v of [d.expression, d.answer]) {
-    if (!v) continue;
+    if (!v || v.show === "omit") continue;
     if (v.show === "hidden" && v.text) {
       ANSWERED.add(v);
       if (mark) REVEALED.add(v);
@@ -727,7 +732,7 @@ export function renderSvg(e: Envelope): string {
     if (i > 0) out.push(mathsMarkup("=", l.x - EQUALS / 2, g.lineY));
     const p = printed(l.v);
     if (p) out.push(mathsMarkup(p, l.x + mathsWidth(p) / 2, g.lineY, REVEALED.has(l.v) ? ANSWER_COLOUR : "black"));
-    else out.push(dotted(l.x, l.x + l.blank, g.lineY + FONT * 0.4));
+    else if (l.v.show !== "omit") out.push(dotted(l.x, l.x + l.blank, g.lineY + FONT * 0.4));
   }
   const shownTerms = d.terms.filter((t) => t.show === "show");
   const label = `Algebra tiles: ${shownTerms.length ? formatParts(partsOf({ ...d, terms: shownTerms }), d.letters) : "space to draw the tiles"}${d.arrangement === "grouped" ? ", like tiles grouped" : ""}`;
