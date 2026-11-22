@@ -10,6 +10,8 @@ export type DraftAction =
   | {type: "code"; code: string; checked: boolean}
   | {type: "question"; question: BankListQuestion; checked: boolean}
   | {type: "add"; questions: BankListQuestion[]}
+  /** Adds a whole paper in its own question order: those questions go first, as if ordered by hand. */
+  | {type: "paper"; questions: BankListQuestion[]; visible: string[]}
   | {type: "exclude"; key: string}
   | {type: "restore"}
   | {type: "partsOnly"; value: boolean}
@@ -26,6 +28,12 @@ export function draftReducer(state: PaperDraft, action: DraftAction): PaperDraft
       return action.checked ? {...state, manual: {...state.manual, [key]: action.question.id}, excluded: state.excluded.filter(k => k !== key)} : {...state, excluded: [...new Set([...state.excluded, key])]};
     }
     case "add": return action.questions.reduce((s, question) => draftReducer(s, {type: "question", question, checked: true}), state);
+    case "paper": {
+      const added = draftReducer(state, {type: "add", questions: action.questions}), keys = [...new Set(action.questions.map(questionIdentity))];
+      // Anything already on the paper keeps the order it has on screen (`visible`), after the paper's questions.
+      const rest = [...action.visible, ...state.order];
+      return {...added, order: [...keys, ...rest.filter(k => !keys.includes(k))], manuallyOrdered: true};
+    }
     case "exclude": return {...state, excluded: [...new Set([...state.excluded, action.key])]};
     case "restore": return {...state, excluded: []};
     case "partsOnly": { const {partsOnly: _old, ...rest} = state; void _old; return action.value ? {...rest, partsOnly: true} : rest; }
