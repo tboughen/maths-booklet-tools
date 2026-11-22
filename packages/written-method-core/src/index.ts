@@ -525,7 +525,9 @@ export function complete(e: Envelope, hidden = true, decimals = false): { envelo
   const ids = new Set([...d.numbers.map((x) => x.id), ...d.working.map((x) => x.id), "answer", "extend"]);
   for (const m of fill.marks) {
     if (!ids.has(m.row) || d.marks.some((x) => x.row === m.row && x.place === m.place) || d.marks.length >= MAX_MARKS) continue;
-    d.marks.push({ row: m.row, place: m.place, text: m.text, show: visibility, ...(m.cross ? { cross: true as const } : {}) });
+    // The small digits of a left-out row are left out with it.
+    const row = rowValue(d, m.row);
+    d.marks.push({ row: m.row, place: m.place, text: m.text, show: row?.show === "omit" ? "omit" : visibility, ...(m.cross ? { cross: true as const } : {}) });
     filled++;
   }
   return { envelope: validate(n), filled };

@@ -141,5 +141,8 @@ describe("written methods", () => {
     const done = wm.complete(e, false).envelope;
     expect(done.document.answer).toEqual({ text: "42", show: "omit" });
     expect(wm.renderSvg(wm.forView(done, "answer", true))).not.toMatch(/>4</);
+    // A carry into a left-out answer is left out with it.
+    const carried = wm.complete(wm.setRow(wm.setRow(wm.setRow(wm.create("add"), "n1", { text: "58" }), "n2", { text: "67" }), "answer", { show: "omit" }), true).envelope;
+    expect(carried.document.marks.filter((m) => m.row === "answer").every((m) => m.show === "omit")).toBe(true);
   });
 });

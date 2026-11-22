@@ -418,6 +418,8 @@ export function renderSvg(e: Envelope): string {
       }
     } else
       for (const b of r.items) {
+        // A left-out bubble prints nothing, not even the empty bubble a pupil blank prints.
+        if (b.v.show === "omit") continue;
         out.push(`<ellipse cx="${num(b.cx)}" cy="${num(r.cy)}" rx="${num(b.rx)}" ry="${num(b.ry)}" fill="none" stroke="black" stroke-width="0.3"/>`);
         const p = printed(b.v);
         if (p) out.push(markupCentred(typesetOp(p), b.cx, r.cy, ink(b.v)));

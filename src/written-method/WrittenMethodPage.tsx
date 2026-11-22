@@ -591,6 +591,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                               <span>{placeName(p)}</span>
                               <DraftField
                                 key={`${selected}-${p}-${m?.text ?? ""}`}
+                                onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
                                 label={`Small digit in the ${placeName(p)} column`}
                                 value={m?.text ?? ""}
                                 maxLength={2}
