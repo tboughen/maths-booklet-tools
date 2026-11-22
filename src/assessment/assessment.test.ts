@@ -230,7 +230,7 @@ describe("follow-up difficulty anchored on the failed question", () => {
       for (const entry of pack.entries) for (const code of entry.codes) {
         const ceiling = ceilings.get(code), rate = ratePercentage(entry.question, bank);
         if (ceiling === undefined || rate === undefined || rate >= ceiling - CEILING_TOLERANCE) continue;
-        const alternative = bank.questions.some(q => q.tier === "H" && !q.revisionUse && q.codes.includes(code) && (ratePercentage(q, bank) ?? -1) >= ceiling - CEILING_TOLERANCE && !higher.some(i => i.questionId === q.id));
+        const alternative = bank.questions.some(q => q.tier === "H" && q.review === "reviewed" && !q.revisionUse && q.codes.includes(code) && (ratePercentage(q, bank) ?? -1) >= ceiling - CEILING_TOLERANCE && !higher.some(i => i.questionId === q.id || i.questionId === q.equivalentId) && layoutPack([{ question: q, codes: [code], references: [], reason: "" }], defaults.pageLimit).valid);
         expect(alternative, `${failed.label} ${entry.question.id} ${code}`).toBe(false);
       }
     }

@@ -5,16 +5,16 @@ import { bankPapers, emptyReason, emptyRoute, filterQuestions, paperName, readRo
 const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue<BankListQuestion>;
 
 describe("opening one paper", () => {
-  it("lists all 138 papers: exam series newest first, then mock sets, each Foundation 1-3 then Higher 1-3", () => {
+  it("lists all 150 papers: exam series newest first, then mock sets, each Foundation 1-3 then Higher 1-3", () => {
     const papers = bankPapers(catalogue);
-    expect(papers).toHaveLength(138);
+    expect(papers).toHaveLength(150);
     expect(papers.reduce((n, p) => n + p.questions, 0)).toBe(catalogue.questions.length);
     const sets = [...new Set(papers.map(p => p.set))];
-    expect(sets[0]).toBe("June 2025");
-    expect(sets.slice(0, 3)).toEqual(["June 2025", "November 2024", "June 2024"]);
+    expect(sets[0]).toBe("June 2026");
+    expect(sets.slice(0, 4)).toEqual(["June 2026", "November 2025", "June 2025", "November 2024"]);
     expect(sets.indexOf("June 2017")).toBe(sets.findIndex(s => s.startsWith("Mock")) - 1);
     expect(sets.slice(-2)).toEqual(["Mock Set 7", "Mock Set 8"]);
-    expect(papers.slice(0, 6).map(paperName)).toEqual(["June 2025 1F", "June 2025 2F", "June 2025 3F", "June 2025 1H", "June 2025 2H", "June 2025 3H"]);
+    expect(papers.slice(0, 6).map(paperName)).toEqual(["June 2026 1F", "June 2026 2F", "June 2026 3F", "June 2026 1H", "June 2026 2H", "June 2026 3H"]);
     for (const p of papers) expect(p.marks, p.id).toBe(80);
   });
 

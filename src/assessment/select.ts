@@ -202,7 +202,7 @@ export function generateClass(catalogue: BankCatalogue, items: AssessmentItem[],
       pack.entries = ladder(pack.entries, catalogue, settings);
       for (const entry of pack.entries) {
         const rate = ratePercentage(entry.question, catalogue), anchor = Math.max(...entry.codes.map(code => ceilings.get(code) ?? -1));
-        if (rate !== undefined && anchor >= 0 && rate < anchor - CEILING_TOLERANCE) pack.warnings.push(`${entry.question.source} is harder than the failed question (${Math.round(rate)}% against ${Math.round(anchor)}% nationally): the bank has no easier question for this skill.`);
+        if (rate !== undefined && anchor >= 0 && rate < anchor - CEILING_TOLERANCE) pack.warnings.push(`${entry.question.source} is harder than the failed question (${Math.round(rate)}% against ${Math.round(anchor)}% nationally): no easier question for this skill fits these limits.`);
       }
     }
     if (!pack.entries.length) pack.warnings.push("No suitable complete question and scheme fit these limits.");
