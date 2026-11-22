@@ -37,9 +37,22 @@ export const pointSchema = z.object({ id, value: num, included: z.boolean().opti
 /** An arrow that points down at a value on the line, for "what number is the arrow pointing to?" questions (U92). */
 /** Narrowest and widest print widths (cm). Narrow lines rely on the label-collision checks below. */
 export const MIN_WIDTH_CM = 4, MAX_WIDTH_CM = 18;
-/** An arrow label: a letter such as A or P1, or a number such as 3.47, −2.5 or 12 500 (up to 8 characters). */
-export const MARKER_LABEL = /^(?=.{1,8}$)(?:[A-Za-z0-9]+|[−-]?[0-9]+(?: [0-9]{3})*(?:\.[0-9]+)?)$/;
-const markerLabel = z.string().regex(MARKER_LABEL, "Use up to 8 characters for an arrow label: letters and digits such as A or P1, or a number such as 3.47, −2.5 or 12 500.");
+/** Most tick intervals on one line: 100 gives hundredths from 0 to 1. */
+export const MAX_INTERVALS = 100;
+/** Most arrow markers on one line. */
+export const MAX_MARKERS = 10;
+/** Most words printed under the line, such as Impossible, Even chance and Certain on a probability scale. */
+export const MAX_WORDS = 7;
+/**
+ * An arrow label, up to 12 characters: a letter or words such as A, P1 or Even chance, a number such as 3.47,
+ * −2.5 or 12 500, or a fraction such as 1/3, which prints stacked.
+ */
+export const MARKER_LABEL = /^(?=.{1,12}$)(?:[A-Za-z0-9]+|[A-Za-z][A-Za-z0-9]*(?: [A-Za-z][A-Za-z0-9]*)+|[−-]?[0-9]+(?: [0-9]{3})*(?:\.[0-9]+)?|[−-]?[0-9]+\/[1-9][0-9]*)$/;
+export const MARKER_LABEL_HELP = "Use up to 12 characters for an arrow label: a letter or words such as A or Even chance, a number such as 3.47 or −2.5, or a fraction such as 1/3.";
+const markerLabel = z.string().regex(MARKER_LABEL, MARKER_LABEL_HELP);
+/** A word printed under the line at a value: letters, spaces, hyphens and apostrophes, up to 16 characters. */
+export const WORD_TEXT = /^(?=.{1,16}$)[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
+export const wordSchema = z.object({ value: num, text: z.string().regex(WORD_TEXT, "Use up to 16 letters and spaces for a word under the line, such as Even chance.") }).strict();
 const widthCm = z.number().min(MIN_WIDTH_CM).max(MAX_WIDTH_CM);
 export const markerSchema = z.object({ id, value: num, label: markerLabel.optional() }).strict();
 export const connectionSchema = z.object({id, from: id, to: id}).strict();
@@ -48,9 +61,11 @@ export const pointRaySchema = z.object({ id, from: id, direction: z.enum(["left"
 export const setSchema = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("interval"), id, lower: num, upper: num, lowerIncluded: z.boolean(), upperIncluded: z.boolean() }).strict(),
     z.object({ kind: z.literal("ray"), id, value: num, included: z.boolean(), direction: z.enum(["left", "right"]), intentional: z.boolean().default(false), stop: num.nullable().default(null) }).strict(),
-    z.object({ kind: z.literal("points"), id, points: z.array(pointSchema).max(33), intervals: z.array(connectionSchema).max(32).optional(), rays: z.array(pointRaySchema).max(2).optional() }).strict(),
+    z.object({ kind: z.literal("points"), id, points: z.array(pointSchema).max(MAX_INTERVALS + 1), intervals: z.array(connectionSchema).max(MAX_INTERVALS).optional(), rays: z.array(pointRaySchema).max(2).optional() }).strict(),
 ]);
-export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(32).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction", "mixed"]).default("decimal"), variableBelow: z.boolean().default(false), minorTicks: z.boolean().optional() }).strict();
+export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(MAX_INTERVALS).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction", "mixed"]).default("decimal"), variableBelow: z.boolean().default(false), minorTicks: z.boolean().optional(),
+    /** plain: the line stops at the first and last ticks with no arrow, as a probability scale does. Left out: an arrow. */
+    ends: z.enum(["arrow", "plain"]).optional() }).strict();
 export const teachingSchema = z.object({ solutionVisible: z.boolean().default(true), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}), prompt: z.string().max(160).default(""), answer: z.string().max(160).default(""), answerVisible: z.boolean().default(false), responseLines: z.number().int().min(0).max(3).default(0) }).strict();
 /**
  * A second scale on the same ticks (U109): a double number line, or a percentage bar when style is
@@ -59,21 +74,21 @@ export const teachingSchema = z.object({ solutionVisible: z.boolean().default(tr
  */
 export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9/\s]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
 export type Secondary = z.infer<typeof secondarySchema>;
-export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: widthCm.default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(),
+export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: widthCm.default(14), markers: z.array(markerSchema).min(1).max(MAX_MARKERS).optional(), words: z.array(wordSchema).min(1).max(MAX_WORDS).optional(), secondary: secondarySchema.optional(),
     /** Bold lines (U111). Normal lines are the default and are never saved. */
     lines: z.enum(LINE_WEIGHTS).transform(v => v === "bold" ? v : undefined).optional() }).strict();
 export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal(RENDERER_VERSION), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema, ...aboutShape }).strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;
-export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: widthCm.optional(), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict();
+export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: widthCm.optional(), markers: z.array(markerSchema).min(1).max(MAX_MARKERS).optional(), words: z.array(wordSchema).min(1).max(MAX_WORDS).optional(), secondary: secondarySchema.optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict();
 export const FONT = 11 * 25.4 / 72;
 export const compare = (a: string, b: string) => { const x = parseNumber(a), y = parseNumber(b); const v = x.n * y.d - y.n * x.d; return v < 0n ? -1 : v > 0n ? 1 : 0; };
 export function add(a: string, b: string, sign = 1) { const x = parseNumber(a), y = parseNumber(b); return fractionString(rational(x.n * y.d + BigInt(sign) * y.n * x.d, x.d * y.d)); }
 export const valueOf = (s: string) => { const q = parseNumber(s); return Number(q.n) / Number(q.d); };
 export const labelKey = (s: string) => fractionString(parseNumber(s));
-export function ticks(d: LineDocument) { const a = parseNumber(d.axis.minimum), b = parseNumber(d.axis.maximum), s = parseNumber(d.axis.step); const numerator = (b.n * a.d - a.n * b.d) * s.d, denominator = b.d * a.d * s.n; if (denominator <= 0n || numerator % denominator || numerator / denominator < 2n || numerator / denominator > 32n)
-    throw Error("Use 2–32 whole tick intervals with a positive step."); if ((a.n * s.d) % (a.d * s.n))
+export function ticks(d: LineDocument) { const a = parseNumber(d.axis.minimum), b = parseNumber(d.axis.maximum), s = parseNumber(d.axis.step); const numerator = (b.n * a.d - a.n * b.d) * s.d, denominator = b.d * a.d * s.n; if (denominator <= 0n || numerator % denominator || numerator / denominator < 2n || numerator / denominator > BigInt(MAX_INTERVALS))
+    throw Error(`Use 2–${MAX_INTERVALS} whole tick intervals with a positive step.`); if ((a.n * s.d) % (a.d * s.n))
     throw Error("The first tick must align with the step from zero."); const n = Number(numerator / denominator); return Array.from({ length: n + 1 }, (_, i) => fractionString(rational(a.n * s.d + BigInt(i) * s.n * a.d, a.d * s.d))); }
 export function labelled(d: LineDocument, v: string) { const x = parseNumber(v), s = parseNumber(d.axis.step); return (x.n * s.d) % (x.d * s.n * BigInt(d.axis.labelEvery)) === 0n; }
 /** Axis height that leaves room above it for arrow markers and their letters when there is no prompt (mm).
@@ -103,7 +118,12 @@ function secondaryRoom(d: LineDocument) {
 }
 /** Height of a percentage bar (mm). */
 export const BAR_HEIGHT = 8;
-export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 : d.markers ? MARKER_AXIS_Y : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const labelBottom = axisY + (fraction ? 10 : 7), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, left: 7, right: width - 12, barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
+/** Extra room above the line when an arrow label is a stacked fraction (mm). */
+const FRACTION_MARKER_ROOM = 3.6;
+/** Room under the tick labels for a row of words (mm). */
+const WORD_ROOM = 5.5;
+export const isFractionLabel = (label: string) => label.includes("/");
+export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 + (d.markers?.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : d.markers ? MARKER_AXIS_Y + (d.markers.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const numbersBottom = axisY + (fraction ? 10 : 7), wordY = numbersBottom + 3.6, labelBottom = numbersBottom + (d.words ? WORD_ROOM : 0), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; const plain = d.axis.ends === "plain"; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, wordY, left: 7, right: width - (plain && !d.axis.variable ? 7 : 12), barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
 export function position(d: LineDocument, v: string) { const m = metrics(d); return m.left + (valueOf(v) - valueOf(d.axis.minimum)) / (valueOf(d.axis.maximum) - valueOf(d.axis.minimum)) * (m.right - m.left); }
 export function validate(raw: unknown): Envelope {
     const e = envelopeSchema.parse(raw), d = e.document;
@@ -161,6 +181,19 @@ export function validate(raw: unknown): Envelope {
                 throw Error(`Arrow markers ${placed[i - 1].k.label ?? placed[i - 1].k.id} and ${placed[i].k.label ?? placed[i].k.id} are too close at this print width. Move one or widen the line.`);
         required.push(...d.markers.map(k => k.value));
     }
+    if (d.axis.ends === "plain" && d.secondary?.style === "bar")
+        throw Error("A percentage bar is closed already, so plain ends don't apply. Turn plain ends off.");
+    if (d.axis.ends === "plain" && (s?.kind === "ray" || (s?.kind === "points" && s.rays?.length)))
+        throw Error("A line with plain ends stops at its last tick, so it can't show a ray. Use arrow ends for an inequality that carries on.");
+    if (d.words) {
+        if (new Set(d.words.map(w => labelKey(w.value))).size !== d.words.length)
+            throw Error("Put one word at each value.");
+        const placedWords = d.words.map(w => ({ w, x: wordX(d, w), width: wordWidth(w.text) })).sort((a, b) => a.x - b.x);
+        for (let i = 1; i < placedWords.length; i++)
+            if (placedWords[i].x - placedWords[i - 1].x < (placedWords[i].width + placedWords[i - 1].width) / 2 + 1.5)
+                throw Error(`The words ${placedWords[i - 1].w.text} and ${placedWords[i].w.text} overlap at this print width. Widen the line or shorten a word.`);
+        required.push(...d.words.map(w => w.value));
+    }
     for (const v of required)
         if (compare(v, d.axis.minimum) < 0 || compare(v, d.axis.maximum) > 0)
             throw Error(`Keep ${v} within the visible range; extend the axis first.`);
@@ -209,7 +242,7 @@ export function validate(raw: unknown): Envelope {
             throw Error("The prompt or answer is too long for this print width.");
     return e;
 }
-export function create(raw: unknown = {}): Envelope { return validate({ schemaVersion: 1, rendererVersion: RENDERER_VERSION, styleProfile: "examination-v1", kind: "number-line", document: documentSchema.parse(unmix(raw)) }); }
+export function create(raw: unknown = {}): Envelope { const document = documentSchema.parse(unmix(raw)); if (document.axis.ends !== "plain") delete document.axis.ends; return validate({ schemaVersion: 1, rendererVersion: RENDERER_VERSION, styleProfile: "examination-v1", kind: "number-line", document }); }
 export function canonical(e: Envelope) { return JSON.stringify(validate(e)); }
 export function parseFile(text: string) { if (new TextEncoder().encode(text).length > 32768)
     throw Error("Use a number-line file smaller than 32 KiB."); return validate(JSON.parse(text)); }
@@ -236,6 +269,7 @@ export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("add_marker"), marker: markerSchema }).strict(),
     z.object({ op: z.literal("set_marker"), id, value: num.optional(), label: z.union([z.literal(""), markerLabel]).optional() }).strict(),
     z.object({ op: z.literal("remove_marker"), id }).strict(),
+    z.object({ op: z.literal("set_words"), words: z.array(wordSchema).max(MAX_WORDS).nullable() }).strict().describe("Words under the line; null removes them."),
     z.object({ op: z.literal("set_secondary"), secondary: secondarySchema.nullable() }).strict().describe("Add, change or remove (null) the second scale above the line: a double number line, or a percentage bar with style bar."),
     z.object({ op: z.literal("set_secondary_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict().describe("Show, hide or leave an answer line for one second-scale label, by its exact value."),
 ]);
@@ -248,6 +282,8 @@ export function apply(e: Envelope, raw: unknown): Envelope {
             d.axis = { ...d.axis, ...o.axis };
             if (!d.axis.minorTicks)
                 delete d.axis.minorTicks;
+            if (d.axis.ends !== "plain")
+                delete d.axis.ends;
         }
         if (o.op === "add_marker")
             d.markers = [...(d.markers ?? []), o.marker];
@@ -337,6 +373,10 @@ export function apply(e: Envelope, raw: unknown): Envelope {
             if (o.lines === "bold") d.lines = "bold";
             else if (o.lines === "normal") delete d.lines;
         }
+        if (o.op === "set_words") {
+            if (o.words?.length) d.words = o.words;
+            else delete d.words;
+        }
         if (o.op === "set_secondary") {
             if (o.secondary) d.secondary = o.secondary;
             else delete d.secondary;
@@ -351,8 +391,8 @@ export function apply(e: Envelope, raw: unknown): Envelope {
 export async function revise(raw: unknown) { const v = revisionSchema.parse(raw); if (await hash(v.envelope) !== v.baseHash)
     throw Error("stale_hash: The baseHash does not match this definition. Use the last returned envelope and hash."); return apply(v.envelope, v.operations); }
 export const warnings = (e: Envelope) => e.document.solution?.kind === "ray" && e.document.solution.intentional ? ["This drawing intentionally disagrees with the completed ray for an error-spotting task."] : [];
-export const describe = (e: Envelope) => `Number line from ${e.document.axis.minimum} to ${e.document.axis.maximum}; step ${e.document.axis.step}; ${e.document.teaching.solutionVisible ? (e.document.solution?.kind ?? "blank") : "solution hidden"}${e.document.markers ? `; ${e.document.markers.length} arrow marker${e.document.markers.length > 1 ? "s" : ""}` : ""}.`;
-export function printFacts(d: LineDocument) { return { recommendedScale: 1 as const, preserveAspectRatio: true as const, referenceFeatures: { textSizesPt: ticks(d).some(v => labelled(d, v) && d.teaching.labels[labelKey(v)] !== "hidden") || d.axis.variable || d.markers?.some(k => k.label) || d.teaching.prompt || d.teaching.answerVisible ? [11] : [], gridPitchMm: [], answerLineLengthsMm: [...(d.teaching.responseLines ? [d.widthCm * 10 - 14] : []), ...(Object.values(d.teaching.labels).includes("answer-line") ? [5] : [])], tableRowHeightsMm: [] } }; }
+export const describe = (e: Envelope) => `Number line from ${e.document.axis.minimum} to ${e.document.axis.maximum}; step ${e.document.axis.step}; ${e.document.teaching.solutionVisible ? (e.document.solution?.kind ?? "blank") : "solution hidden"}${e.document.markers ? `; ${e.document.markers.length} arrow marker${e.document.markers.length > 1 ? "s" : ""}` : ""}${e.document.axis.ends === "plain" ? "; plain ends" : ""}${e.document.words ? `; words ${e.document.words.map(w => w.text).join(", ")}` : ""}.`;
+export function printFacts(d: LineDocument) { return { recommendedScale: 1 as const, preserveAspectRatio: true as const, referenceFeatures: { textSizesPt: ticks(d).some(v => labelled(d, v) && d.teaching.labels[labelKey(v)] !== "hidden") || d.axis.variable || d.markers?.some(k => k.label) || d.words || d.teaching.prompt || d.teaching.answerVisible ? [11] : [], gridPitchMm: [], answerLineLengthsMm: [...(d.teaching.responseLines ? [d.widthCm * 10 - 14] : []), ...(Object.values(d.teaching.labels).includes("answer-line") ? [5] : [])], tableRowHeightsMm: [] } }; }
 export function displayNumber(d: LineDocument, s: string) {
     if (d.axis.numberFormat === "fraction")
         return fractionString(parseNumber(s));
@@ -376,7 +416,14 @@ const PART = FONT * 10 / 11;
 const MIXED_GAP = .6;
 /** Arrow labels print a typed hyphen as a true minus sign. */
 const markerLabelText = (label: string) => label.replaceAll("-", "−");
-const markerLabelWidth = (label: string) => textWidth(markerLabelText(label), FONT);
+// A negative fraction prints an 11 pt minus 0.3 mm left of its bar; count it on both sides so the label stays centred in the checks.
+const markerLabelWidth = (label: string) => isFractionLabel(label) ? numberWidth(label.replace("−", "-").replace(/^-/, "")) + 1 + (/^[−-]/.test(label) ? 2 * (textWidth("−", FONT) + .3) : 0) : textWidth(markerLabelText(label), FONT);
+const wordWidth = (text: string) => textWidth(text, FONT);
+/** Centre of a word under the line: under its value, moved inwards only as far as needed to stay 1 mm inside the drawing. */
+export function wordX(d: LineDocument, w: { value: string; text: string }) {
+    const x = position(d, w.value), half = wordWidth(w.text) / 2, width = d.widthCm * 10;
+    return Math.min(Math.max(x, half + 1), width - half - 1);
+}
 /** Centre of an arrow's label: over the arrow, moved inwards only as far as needed to stay 1 mm inside the drawing. */
 export function markerLabelX(d: LineDocument, k: { value: string; label?: string }) {
     const x = position(d, k.value), half = k.label ? markerLabelWidth(k.label) / 2 : 0, width = d.widthCm * 10;
@@ -429,13 +476,15 @@ export function renderSvg(e: Envelope, showAnswers = false) {
         art += `<text x="7" y="6">${esc(d.teaching.prompt)}</text>`;
     const bar = d.secondary?.style === "bar";
     // A percentage bar is a closed rectangle from the first tick to the last; a line keeps its arrow.
-    art += bar ? `<rect data-bar="" x="${m.left}" y="${m.barTop}" width="${m.right - m.left}" height="${BAR_HEIGHT}" fill="none"/>` : `<path d="M${m.left - 3} ${m.axisY}H${m.right + 4}"/>${arrow(m.right + 4, m.axisY, 1)}`;
+    const plain = d.axis.ends === "plain";
+    art += bar ? `<rect data-bar="" x="${m.left}" y="${m.barTop}" width="${m.right - m.left}" height="${BAR_HEIGHT}" fill="none"/>` : plain ? `<path data-ends="plain" d="M${m.left} ${m.axisY}H${m.right}"/>` : `<path d="M${m.left - 3} ${m.axisY}H${m.right + 4}"/>${arrow(m.right + 4, m.axisY, 1)}`;
     if (d.axis.variable)
         art += `<text x="${m.right + 6}" y="${m.axisY + (d.axis.variableBelow ? 6 : 1.2)}" font-style="italic">${d.axis.variable}</text>`;
     for (const v of ticks(d)) {
-        const x = position(d, v);
+        const x = position(d, v), end = plain && (v === ticks(d)[0] || v === ticks(d).at(-1));
         // Minor ticks (U92): labelled ticks cross the axis, the others are short, as on exam scales.
-        art += bar ? `<path d="M${x} ${m.barTop}V${m.axisY + 2}"/>` : d.secondary ? `<path d="M${x} ${m.axisY - 2}V${m.axisY + 2}"/>` : !d.axis.minorTicks ? `<path d="M${x} ${m.axisY}v2"/>` : labelled(d, v) ? `<path d="M${x} ${m.axisY - 1.5}v3.5"/>` : `<path d="M${x} ${m.axisY}v1.2"/>`;
+        // A plain-ended scale closes each end with a tick that crosses the line, as exam probability scales do.
+        art += end && !bar && !d.secondary ? `<path d="M${x} ${m.axisY - 1.5}v3.5"/>` : bar ? `<path d="M${x} ${m.barTop}V${m.axisY + 2}"/>` : d.secondary ? `<path d="M${x} ${m.axisY - 2}V${m.axisY + 2}"/>` : !d.axis.minorTicks ? `<path d="M${x} ${m.axisY}v2"/>` : labelled(d, v) ? `<path d="M${x} ${m.axisY - 1.5}v3.5"/>` : `<path d="M${x} ${m.axisY}v1.2"/>`;
         if (!labelled(d, v))
             continue;
         const state = d.teaching.labels[labelKey(v)] ?? "value";
@@ -446,7 +495,10 @@ export function renderSvg(e: Envelope, showAnswers = false) {
     }
     for (const k of d.markers ?? []) {
         const x = position(d, k.value);
-        art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? `<text x="${markerLabelX(d, k)}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(markerLabelText(k.label))}</text>` : ""}</g>`;
+        art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? isFractionLabel(k.label) ? numberSvg(k.label.replace("−", "-"), markerLabelX(d, k), m.axisY - 12.4) : `<text x="${markerLabelX(d, k)}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(markerLabelText(k.label))}</text>` : ""}</g>`;
+    }
+    for (const w of d.words ?? []) {
+        art += `<text data-word="" x="${wordX(d, w)}" y="${m.wordY}" text-anchor="middle">${esc(w.text)}</text>`;
     }
     if (d.secondary) {
         const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? (bar ? 4.2 : 6.1) : 3.2);

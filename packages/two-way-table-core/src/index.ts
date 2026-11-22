@@ -4,7 +4,7 @@
  *
  * Every cell is {text, show}. Empty text is a pupil blank (an empty box). A hidden cell keeps its
  * saved answer: the pupil copy leaves the box empty and the answers copy prints it in the answer
- * colour. Zero is a value, never a blank. Numbers stay exact: integers, decimals, fractions and
+ * colour. A left-out cell keeps its value and prints empty in both copies. Zero is a value, never a blank. Numbers stay exact: integers, decimals, fractions and
  * mixed numbers, printed with stacked fractions. Totals are filled only by completeTotals.
  */
 import { z } from "zod";
@@ -28,7 +28,8 @@ export const MAX_CATEGORIES = 5;
 export const MAX_HEADING = 24;
 export const ANSWER_COLOUR = "#b0125b";
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const cellSchema = z.object({ text: z.string().max(16), show }).strict();
 const heading = z
   .string()
@@ -158,7 +159,8 @@ export function setCell(e: Envelope, rowId: string, columnId: string, text: stri
     c = cellAt(n.document, rowId, columnId);
   c.text = text.trim();
   if (!c.text && visibility === "hidden") throw Error("A blank cell cannot hold a hidden answer. Enter the answer, then hide it.");
-  c.show = c.text ? (visibility ?? c.show) : "show";
+  // A blank cell keeps a chosen state (show or left out); an emptied hidden cell becomes a plain space.
+  c.show = visibility ?? (!c.text && c.show === "hidden" ? "show" : c.show);
   return validate(n);
 }
 export function setHeading(e: Envelope, targetId: string, text: string): Envelope {
@@ -293,7 +295,8 @@ export function completeTotals(e: Envelope, hidden = false): { envelope: Envelop
     for (const s of sums(n.document)) {
       if (s.total.text || s.parts.some((c) => !c.text)) continue;
       s.total.text = totalText(sum(s.parts.map((c) => value(c)!)), s.parts);
-      s.total.show = hidden ? "hidden" : "show";
+      // A left-out total stays left out once filled.
+      s.total.show = s.total.show === "omit" ? "omit" : hidden ? "hidden" : "show";
       filled++;
       progress = true;
     }
@@ -309,6 +312,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   if (view === "pupil") return e;
   const n = clone(e);
   for (const c of allCells(n.document)) {
+    // A left-out cell stays out of the teacher copy too.
+    if (c.show === "omit") continue;
     if (mark && c.show === "hidden" && c.text) REVEALED.add(c);
     c.show = "show";
   }
@@ -397,7 +402,7 @@ export function renderSvg(e: Envelope): string {
   const rows = [...d.rows.map((r) => r.cells), ...(d.totalRow ? [d.totalRow] : [])];
   rows.forEach((row, i) =>
     row.forEach((c, j) => {
-      if (!c.text || c.show === "hidden") return;
+      if (!c.text || c.show !== "show") return;
       out.push(numberMarkup(c.text, mid(g.x[j + 1], g.x[j + 2]), mid(g.y[i + 1], g.y[i + 2]), REVEALED.has(c) ? ANSWER_COLOUR : "black"));
     }),
   );

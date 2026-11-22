@@ -15,14 +15,12 @@
  */
 import { FRACTION } from "./text";
 import { advance } from "./metrics";
+import { UPRIGHT, WORDS } from "./prose-words";
 
 const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
-/** Letter runs that stay upright inside a maths token: function names, units, ordinals and times. */
-const UPRIGHT = new Set(["sin", "cos", "tan", "log", "ln", "exp", "min", "max", "mm", "cm", "km", "kg", "mg", "ml", "cl", "mph", "st", "nd", "rd", "th", "am", "pm"]);
 
-/** Short English words that can sit beside an operator in prose ("x = 3 or 4") and stay upright. */
-const WORDS = new Set(["an", "as", "at", "be", "by", "do", "if", "in", "is", "it", "of", "on", "or", "so", "to", "up", "we", "and", "are", "but", "can", "for", "has", "its", "not", "the", "was", "who", "why", "how", "all", "any", "one", "two", "six", "ten"]);
+
 
 /** Character rewrites that are safe anywhere printed text appears, fractions and bold included. */
 export function typesetSymbols(s: string): string {
@@ -34,8 +32,8 @@ export function typesetSymbols(s: string): string {
       .replace(/\+\/-|\+-(?=\s|\d)/g, "±")
       .replace(/\bsqrt\s*(?=[\d(a-zπ])/g, "√")
       .replace(/(?<![A-Za-z])pi(?![A-Za-z-])/g, "π")
-      .replace(/\^\(?2\)?(?!\d)/g, "²")
-      .replace(/\^\(?3\)?(?!\d)/g, "³")
+      .replace(/\^(?:\(2\)|2(?!\d))/g, "²")
+      .replace(/\^(?:\(3\)|3(?!\d))/g, "³")
       // 3 x 4: a lone x between two numbers is a times sign.
       .replace(/(\d) x (?=\d)/g, "$1 × ")
       // A sign: at the start, after a space, a bracket, a slash or an operator, before a number,
@@ -49,10 +47,12 @@ export function typesetSymbols(s: string): string {
 }
 
 /** Italic markup for the maths letters in one stretch of plain text (no markup or fractions in it). */
-function italicLetters(s: string): string {
+function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
   const tokens = s.split(/(\s+)/);
   const words = tokens.map((t, i) => ({ t, i })).filter((w) => w.t && !/^\s+$/.test(w.t));
   const out = [...tokens];
+  const starts: number[] = [];
+  tokens.reduce((pos, t, i) => ((starts[i] = pos), pos + t.length), 0);
   words.forEach((w, k) => {
     const prev = words[k - 1]?.t ?? "";
     const next = words[k + 1]?.t ?? "";
@@ -69,7 +69,7 @@ function italicLetters(s: string): string {
       return;
     }
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
-    if (/^[a-z]{2,3}$/.test(core) && byOperator && !WORDS.has(core) && !UPRIGHT.has(core)) {
+    if (/^[a-z]{2,3}$/.test(core) && byOperator && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
@@ -88,6 +88,7 @@ function italicLetters(s: string): string {
     if (!mathsy) return;
     const body = core.replace(/[a-z]+/g, (run, at: number, whole: string) => {
       if (run.length > 3 || UPRIGHT.has(run)) return run;
+      if (run.length > 1 && event[offset + starts[w.i] + lead.length + at]) return run;
       // Joined to a capital or a longer word (Q3a, 3D): leave it.
       if (/[A-Z]/.test(whole[at - 1] ?? "") || /[A-Z]/.test(whole[at + run.length] ?? "")) return run;
       return `*${run}*`;
@@ -117,13 +118,29 @@ export function typesetText(source: string, italic = true): string {
 function typesetPlain(source: string, italic: boolean): string {
   const s = typesetSymbols(source);
   if (!italic) return s;
+  const event = eventSpans(s);
   let out = "";
   let at = 0;
   for (const m of s.matchAll(PROTECTED)) {
-    out += italicLetters(s.slice(at, m.index)) + m[0];
+    out += italicLetters(s.slice(at, m.index), at, event) + m[0];
     at = m.index + m[0].length;
   }
-  return out + italicLetters(s.slice(at));
+  return out + italicLetters(s.slice(at), at, event);
+}
+
+/**
+ * The characters inside a closed P( ): the words there name an event (P(not red), P(red or blue)),
+ * so they stay upright words, not maths letters (rule N16). An unclosed P( marks nothing.
+ */
+function eventSpans(s: string): boolean[] {
+  const mask: boolean[] = [];
+  for (const m of s.matchAll(/(?<![A-Za-z])P\(/g)) {
+    let depth = 1;
+    let end = m.index + 2;
+    for (; end < s.length && depth > 0; end++) depth += s[end] === "(" ? 1 : s[end] === ")" ? -1 : 0;
+    if (depth === 0) for (let i = m.index + 2; i < end - 1; i++) mask[i] = true;
+  }
+  return mask;
 }
 
 /** A no-break space: Word and the page layout both keep the words either side of it on one line. */
@@ -213,9 +230,9 @@ export function keepTogether(source: string): string {
 }
 
 /** Printed keys whose text takes italic maths letters, and those that print in bold (symbols only). */
-const BODY = new Set(["text", "prefix", "suffix", "answer", "before", "items", "options", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next", "columns"]);
+const BODY = new Set(["text", "prefix", "suffix", "answer", "before", "items", "options", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next", "columns", "question"]);
 /** Printed keys that wrap as paragraphs; answer lines, options, cells and headings stay as typed. */
-const FLOWING = new Set(["text", "items", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next"]);
+const FLOWING = new Set(["text", "items", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next", "question"]);
 const HEADINGS = new Set(["title", "heading", "label", "word", "startBanner", "endBanner"]);
 
 function typesetValue(v: unknown, key: string, maths = true): unknown {

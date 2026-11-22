@@ -1,11 +1,16 @@
-import { advance, type FontStyle } from "./metrics";
+import { advance, MATHS_FONT, MATHS_SCALE, type FontStyle } from "./metrics";
+import { PROSE_WORDS } from "./prose-words";
+
+/** SVG attributes for a maths letter: the exam paper's serif italic. */
+const MATHS_ATTR = ` font-family="'${MATHS_FONT}'" font-style="italic"`;
 
 /**
  * A run of text in one style. Markup: **bold** and *italic*; everything else prints as typed.
  * With maths notation on (a worksheet's `notation: "maths"`), {3/4} is a stacked fraction: a run
- * whose `frac` holds the numerator and denominator, printed one above the other.
+ * whose `frac` holds the numerator and denominator, printed one above the other; and a power
+ * x^5, x^-2, x^n or x^{2n} is a raised run (`sup`), printed smaller above the baseline.
  */
-export type Run = { text: string; style: FontStyle; frac?: { num: string; den: string } };
+export type Run = { text: string; style: FontStyle; frac?: { num: string; den: string }; sup?: boolean };
 export type Line = Run[];
 
 /** Stacked fractions: digits at this share of the body size, with this much side padding (mm). */
@@ -20,6 +25,31 @@ export const FRAC_LINE = 2.4;
 export const FRAC_FOOT = 1;
 /** {numerator/denominator}: one slash, no braces inside, up to 12 characters a side. */
 export const FRACTION = /\{([^{}/]{1,12})\/([^{}/]{1,12})\}/g;
+/** A raised power prints at this share of the text size, its baseline this share of the size up. */
+export const SUP_SCALE = 0.7;
+export const SUP_RAISE = 0.36;
+/** A power with maths notation on: ^5, ^-2, ^n, or a braced one such as ^{2n} or ^{-1}. */
+const POWER = /\^(?:\{([^{}]{1,8})\}|([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z]))/g;
+/** Splits each plain run at its powers: the power becomes a raised run in the same style. */
+function powerRuns(runs: Run[]): Run[] {
+  const out: Run[] = [];
+  for (const r of runs) {
+    if (r.frac || !r.text.includes("^")) {
+      out.push(r);
+      continue;
+    }
+    let at = 0;
+    for (const m of r.text.matchAll(POWER)) {
+      if (m.index > at) out.push({ text: r.text.slice(at, m.index), style: r.style });
+      // Letters in a power print in italic, as maths letters do; digits and signs stay upright.
+      for (const piece of (m[1] ?? m[2]).replace(/-/g, "−").match(/[A-Za-z]+|[^A-Za-z]+/g) ?? [])
+        out.push({ text: piece, style: /[A-Za-z]/.test(piece) ? "maths" : r.style, sup: true });
+      at = m.index + m[0].length;
+    }
+    if (at < r.text.length) out.push({ text: r.text.slice(at), style: r.style });
+  }
+  return out;
+}
 
 const VULGAR = /[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞⅑⅒]/;
 const SLASHED = /(?<![\w./{])\d+ ?\/ ?\d+(?![\w/}]|\.\d)/;
@@ -97,6 +127,11 @@ function fractionRuns(source: string, base: FontStyle, bold: boolean): Run[] {
 
 export function parseRuns(source: string, base: FontStyle = "regular", maths = false): Run[] {
   if (!maths) return plainRuns(source, base);
+  // A power's letters may come italicised by typesetting (x^*n*, 5^{2*n*}): the power styles its own letters.
+  // A typed ² or ³ prints raised like every other power, so all powers on a page share one size and weight.
+  // Straight before a letter or digit (a title's untypeset x²y) the glyph stays: ^2y would not read as a power.
+  source = source.replace(/([²³])(?![A-Za-z\d])/g, (c) => (c === "²" ? "^2" : "^3"));
+  source = source.replace(/\^\*([a-z])\*/g, "^$1").replace(/\^\{([^{}]{1,16})\}/g, (_, p: string) => `^{${p.replace(/\*/g, "")}}`);
   const runs: Run[] = [];
   let at = 0;
   for (const m of source.matchAll(BOLD_PAIR)) {
@@ -107,19 +142,51 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
     at = m.index + m[0].length;
   }
   if (at < source.length) runs.push(...fractionRuns(source.slice(at), base, false));
-  return runs;
+  return mathsLetters(powerRuns(runs));
 }
+
+/**
+ * A typeset maths letter (*x*, *mx*) prints in the maths font. Longer italic words, and short English
+ * words a teacher italicised for emphasis (*not*, *one*), stay in the prose italic.
+ */
+function mathsLetters(runs: Run[]): Run[] {
+  return runs.map((r) =>
+    r.style === "italic" && !r.frac && /^[A-Za-z]{1,3}$/.test(r.text) && (r.text.length === 1 || !PROSE_WORDS.has(r.text.toLowerCase())) ? { ...r, style: "maths" } : r,
+  );
+}
+
+/**
+ * With maths notation on, a heading or card title (which never takes fraction markup) still prints its typeset letters in the maths font,
+ * so "Make *x* the subject" matches the questions below it (rule N16). Nothing else changes.
+ */
+export const titleRuns = (source: string, maths: boolean, base: FontStyle = "bold"): Run[] =>
+  maths ? mathsLetters(parseRuns(source, base)) : parseRuns(source, base);
 
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
 /** Letters in a fraction print in italic, as maths letters do; digits and signs stay upright. */
-export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "italic" : "regular");
-const fracPartWidth = (s: string, size: number, bold = false) => [...s].reduce((w, c) => w + advance(c, bold && fracStyle(c) === "regular" ? "bold" : fracStyle(c)), 0) * size * FRAC_SCALE;
+export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "maths" : "regular");
+/** A fraction part's characters, each marked raised when it belongs to a power (x^6, a², 5^n). */
+export function fracPieces(s: string): { c: string; sup: boolean }[] {
+  const out: { c: string; sup: boolean }[] = [];
+  const t = s.replace(/\*/g, "").replace(/([²³])(?![A-Za-z\d])/g, (c) => (c === "²" ? "^2" : "^3"));
+  for (let i = 0; i < t.length; i++) {
+    // The same powers as inline text (POWER): ^5, ^-2, ^n, never ^1000 or ^ab.
+    const m = t[i] === "^" ? t.slice(i + 1).match(/^([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z])/) : null;
+    if (m) {
+      for (const c of m[1]) out.push({ c, sup: true });
+      i += m[1].length;
+    } else out.push({ c: t[i], sup: false });
+  }
+  return out;
+}
+const fracPartWidth = (s: string, size: number, bold = false) =>
+  fracPieces(s).reduce((w, { c, sup }) => w + advance(c, bold && fracStyle(c) === "regular" ? "bold" : fracStyle(c)) * (sup ? SUP_SCALE : 1), 0) * size * FRAC_SCALE;
 /**
  * A fraction's width allows its parts at full body size, wider than they print, because Word and
  * LibreOffice set equations with their own spacing: the layout must never under-measure a line.
  */
 export const runWidth = (r: Run, size: number) =>
-  r.frac ? (Math.max(fracPartWidth(r.frac.num, size, r.style === "bold"), fracPartWidth(r.frac.den, size, r.style === "bold")) / FRAC_SCALE) + 2 * FRAC_PAD : textWidth(r.text, r.style, size);
+  r.frac ? (Math.max(fracPartWidth(r.frac.num, size, r.style === "bold"), fracPartWidth(r.frac.den, size, r.style === "bold")) / FRAC_SCALE) + 2 * FRAC_PAD : textWidth(r.text, r.style, size) * (r.sup ? SUP_SCALE : 1);
 export const lineWidth = (l: Line, size: number) => l.reduce((w, r) => w + runWidth(r, size), 0);
 export const plainWidth = (s: string, size: number, style: FontStyle = "regular") => runWidth({ text: s, style }, size);
 
@@ -134,7 +201,7 @@ export function wrap(source: string, size: number, width: number, base: FontStyl
     const parts = run.text.split(/( )/);
     for (const part of parts) {
       if (part === " ") words.push([]);
-      else if (part) words[words.length - 1].push({ text: part, style: run.style });
+      else if (part) words[words.length - 1].push({ text: part, style: run.style, ...(run.sup ? { sup: true } : {}) });
     }
   }
   const lines: Line[] = [];
@@ -168,9 +235,16 @@ export const hasFraction = (line: Line) => line.some((r) => r.frac);
 /** One SVG text element; runs become tspans. A line holding stacked fractions is drawn in pieces. */
 export function textSvg(line: Line, x: number, y: number, size: number, fill: string, anchor: "start" | "middle" | "end" = "start") {
   if (hasFraction(line)) return fractionLineSvg(line, x, y, size, fill, anchor);
+  // A raised power is a smaller tspan moved up by dy; the next run moves back down to the baseline.
+  let raised = false;
   const spans = line
     .map((r) => {
-      const attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : "";
+      let attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : r.style === "maths" ? MATHS_ATTR : "";
+      const scale = (r.sup ? SUP_SCALE : 1) * (r.style === "maths" ? MATHS_SCALE : 1);
+      if (scale !== 1) attr += ` font-size="${n(size * scale)}"`;
+      if (r.sup) attr += raised ? "" : ` dy="${n(-size * SUP_RAISE)}"`;
+      else if (raised) attr += ` dy="${n(size * SUP_RAISE)}"`;
+      raised = !!r.sup;
       return attr ? `<tspan${attr}>${esc(r.text)}</tspan>` : esc(r.text);
     })
     .join("");
@@ -192,10 +266,24 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
   const fs = size * FRAC_SCALE;
   // The bar sits on the maths axis (the height of a minus sign); the parts clear it by 0.55 mm.
   const axis = y - size * 0.27;
-  const part = (s: string, cx: number, baseline: number, bold = false) =>
-    `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle"${bold ? ' font-weight="600"' : ""} xml:space="preserve">${[...s]
-      .map((c) => (fracStyle(c) === "italic" ? `<tspan font-style="italic">${esc(c)}</tspan>` : esc(c)))
-      .join("")}</text>`;
+  // A power in a part is a smaller tspan moved up by dy (never an absolute y, which would split the
+  // centred text into chunks); the next character moves back down to the baseline.
+  const part = (s: string, cx: number, baseline: number, bold = false) => {
+    let raised = false;
+    const spans = fracPieces(s)
+      .map(({ c, sup }) => {
+        const letter = fracStyle(c) === "maths";
+        let attr = letter ? MATHS_ATTR : "";
+        const scale = (sup ? SUP_SCALE : 1) * (letter ? MATHS_SCALE : 1);
+        if (scale !== 1) attr += ` font-size="${n(fs * scale)}"`;
+        if (sup) attr += raised ? "" : ` dy="${n(-fs * SUP_RAISE)}"`;
+        else if (raised) attr += ` dy="${n(fs * SUP_RAISE)}"`;
+        raised = sup;
+        return attr ? `<tspan${attr}>${esc(c)}</tspan>` : esc(c);
+      })
+      .join("");
+    return `<text x="${n(cx)}" y="${n(baseline)}" font-size="${n(fs)}" fill="${fill}" text-anchor="middle"${bold ? ' font-weight="600"' : ""} xml:space="preserve">${spans}</text>`;
+  };
   for (const r of line) {
     if (!r.frac) {
       pending.push(r);

@@ -360,7 +360,7 @@
                         },
                         "keywords": {
                           "default": [],
-                          "maxItems": 16,
+                          "maxItems": 24,
                           "type": "array",
                           "items": {
                             "type": "object",
@@ -389,9 +389,15 @@
                     }
                   ]
                 },
+                "firstLessonNumber": {
+                  "default": 1,
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1
+                },
                 "lessons": {
                   "minItems": 1,
-                  "maxItems": 12,
+                  "maxItems": 16,
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -1624,6 +1630,56 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "retrieval": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "default": "Fold and test yourself",
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "instruction": {
+                          "default": "Fold the answers back along the dashed line. Answer each question, then unfold the page and check.",
+                          "type": "string",
+                          "maxLength": 160
+                        },
+                        "items": {
+                          "minItems": 1,
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "question": {
+                                "type": "string",
+                                "maxLength": 160
+                              },
+                              "answer": {
+                                "type": "string",
+                                "maxLength": 80
+                              }
+                            },
+                            "required": [
+                              "question",
+                              "answer"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "items"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [

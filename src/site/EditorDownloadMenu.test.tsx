@@ -155,13 +155,13 @@ describe("Download and File menus of a diagram tool", () => {
   it("File lists the editable file, its notes and the Word setup, and starts without a rule", () => {
     show("file");
     const menu = screen.getByRole("menu", { name: "File" });
-    expect(names()).toEqual(["Title and note…", "Worked notes…", "Save editable file", "Open editable file", "Copy editable link", "First-time Word setup"]);
-    expect(menu.querySelectorAll('[role="separator"]')).toHaveLength(1);
+    expect(names()).toEqual(["Title and note…", "Worked notes…", "Save editable file", "Open editable file", "Copy editable link", "Keyboard shortcuts", "First-time Word setup"]);
+    expect(menu.querySelectorAll('[role="separator"]')).toHaveLength(2);
     expect(menu.firstElementChild?.querySelector('[role="separator"]')).toBeNull();
   });
 
   it("a page with one File button still gets every item", () => {
     setup(actions);
-    expect(names()).toHaveLength(9);
+    expect(names()).toHaveLength(10);
   });
 });

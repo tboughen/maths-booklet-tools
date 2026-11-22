@@ -14,6 +14,7 @@ import {
   fillFromBag,
   fitBranchLength,
   forView,
+  hasHidden,
   formatFraction,
   fromNested,
   labelBox,
@@ -26,6 +27,7 @@ import {
   pruneBranch,
   readProbability,
   removeLastSibling,
+  removeBranch,
   removeStage,
   renderSvg,
   setOutcome,
@@ -70,6 +72,22 @@ describe("probability tree core", () => {
     expect(e.document.questions[0].answer).toEqual({ text: "1/6", show: "hidden" });
     // The saved document keeps pupil visibility after rendering the answer view.
     expect(e.document.branches.some((b) => b.probability.show === "hidden")).toBe(true);
+  });
+
+  it("leaves an omitted label out of both copies, keeps its text and frees its space", () => {
+    const e = create();
+    e.document.branches[0].probability = { text: "13/17", show: "omit" };
+    const saved = parseFile(canonical(e));
+    expect(saved.document.branches[0].probability).toEqual({ text: "13/17", show: "omit" });
+    for (const view of ["pupil", "answer"] as const) {
+      const svg = renderSvg(forView(saved, view, true));
+      expect(svg).not.toContain(">13<");
+      expect(svg).not.toContain(">17<");
+    }
+    expect(forView(saved, "answer").document.branches[0].probability.show).toBe("omit");
+    expect(labelBox(saved.document.branches[0].probability, "dots", "probability")).toEqual({ width: 0, height: 0 });
+    // It is still a click target, so the teacher can bring it back.
+    expect(layout(saved).targets.some((t) => t.kind === "probability" && t.id === saved.document.branches[0].id)).toBe(true);
   });
 
   it("fills a bag with and without replacement only when asked", () => {
@@ -262,5 +280,124 @@ describe("connector create", () => {
     expect(layout(fitted).issues).toEqual([]);
     const asked = createTree({ spec: { stages, settings: { endColumn: "both", branchMm: 32 } } });
     expect(asked.document.branchMm).toBe(32);
+  });
+});
+
+describe("connector revise", () => {
+  it("leaves a label out with set_label and brings it back, keeping its text", async () => {
+    const { revise } = await import("./interchange");
+    const { hash } = await import("./index");
+    const e = create();
+    const id = e.document.branches[0].id;
+    const left = await revise({ envelope: e, baseHash: await hash(e), operations: [{ op: "set_label", branchId: id, part: "probability", show: "omit" }] });
+    expect(left.document.branches[0].probability).toEqual({ text: e.document.branches[0].probability.text, show: "omit" });
+    const back = await revise({ envelope: left, baseHash: await hash(left), operations: [{ op: "set_visibility", part: "all", show: "show" }] });
+    expect(back.document.branches[0].probability.show).toBe("show");
+  });
+});
+
+describe("removeBranch", () => {
+  it("removes the chosen branch and what follows it, and keeps a point's minimum", () => {
+    const e = create();
+    const first = e.document.branches.find((b) => b.parent === null)!;
+    const r = removeBranch(e, first.id);
+    expect(r).toBe(e); // the first stage keeps two branches
+    const child = e.document.branches.find((b) => b.parent === first.id)!;
+    const after = removeBranch(e, child.id);
+    expect(after.document.branches).toHaveLength(e.document.branches.length - 1);
+    expect(after.document.branches.some((b) => b.id === child.id)).toBe(false);
+  });
+});
+
+describe("addSibling names the new branch", () => {
+  it("uses the name in the same place elsewhere in the stage, else Outcome N, and leaves the probability empty", () => {
+    const e = create();
+    const first = e.document.branches.filter((b) => b.parent === null);
+    const a = addSibling(e, first[0].id);
+    const added = a.document.branches.find((b) => !e.document.branches.some((x) => x.id === b.id))!;
+    expect(added.outcome.text).toBe("Outcome 3");
+    expect(added.probability.text).toBe("");
+    const b = addSibling(a, first[1].id);
+    const added2 = b.document.branches.find((x) => !a.document.branches.some((y) => y.id === x.id))!;
+    expect(added2.outcome.text).toBe("Outcome 3");
+    const c = addSibling(e, null);
+    expect(c.document.branches.find((x) => !e.document.branches.some((y) => y.id === x.id))!.outcome.text).toBe("Outcome 3");
+  });
+});
+
+
+describe("path-end working (21 Nov 2026)", () => {
+  const working = () => {
+    const e = create();
+    e.document.endColumn = "working";
+    for (const b of e.document.branches) if (!e.document.branches.some((c) => c.parent === b.id)) b.endProbability.show = "hidden";
+    return e;
+  };
+  it("prints path names, the multiplication and a pupil space; the pupil copy has no product", () => {
+    const svg = renderSvg(working());
+    expect(svg).toContain(">Red, Blue<");
+    expect(svg.match(/>×</g)).toHaveLength(4);
+    expect(svg.match(/>=</g)).toHaveLength(4);
+    expect(svg).not.toContain(">64<");
+  });
+  it("the answer copy works out an empty space from the current values and saves nothing", () => {
+    const e = working();
+    e.document.branches[2].probability.text = "1/2";
+    const svg = renderSvg(forView(e, "answer"));
+    expect(svg).toContain(">9<");
+    expect(svg).toContain(">16<");
+    expect(e.document.branches.every((b) => !b.endProbability.text)).toBe(true);
+    expect(hasHidden(e)).toBe(true);
+  });
+  it("a hidden probability on the path stays a space in the working of the pupil copy", () => {
+    const e = working();
+    e.document.branches[0].probability.show = "hidden";
+    const g = layout(e);
+    const factors = g.placed.filter((p) => p.name === "working for Red, Red" && p.kind === "probability");
+    expect(factors.map((p) => p.label.show)).toEqual(["hidden", "show"]);
+  });
+  it("a teacher's own end probability text wins over the worked product", () => {
+    const e = working();
+    e.document.branches[1].endProbability.text = "0.14";
+    expect(renderSvg(forView(e, "answer"))).toContain(">0.14<");
+  });
+});
+
+describe("path-end working keeps pupil spaces and left-out values (review, 21 Nov 2026)", () => {
+  const working = () => {
+    const e = create();
+    e.document.endColumn = "working";
+    for (const b of e.document.branches) if (!e.document.branches.some((c) => c.parent === b.id)) b.endProbability.show = "hidden";
+    return e;
+  };
+  it("a hidden outcome on the path gives a pupil space for the end name, and the names only in the answer copy", () => {
+    const e = working();
+    e.document.branches[1].outcome.show = "hidden";
+    expect(renderSvg(e)).not.toContain(">Red, Red<");
+    expect(renderSvg(forView(e, "answer", true))).toContain(">Red, Red<");
+  });
+  it("a left-out outcome never reaches either copy through the end names", () => {
+    const e = working();
+    e.document.branches[1].outcome.show = "omit";
+    expect(renderSvg(e)).not.toContain(">Red, Red<");
+    expect(renderSvg(forView(e, "answer"))).not.toContain(">Red, Red<");
+  });
+  it("a hidden empty end name stays empty in the answer copy", () => {
+    const e = working();
+    for (const b of e.document.branches) b.endOutcome.show = "hidden";
+    expect(renderSvg(forView(e, "answer"))).not.toContain(">Red, Red<");
+  });
+  it("a left-out probability on the path is not worked out in the answer copy", () => {
+    const e = working();
+    e.document.branches[0].probability.show = "omit";
+    // Only the two Blue paths are worked out.
+    expect(renderSvg(forView(e, "answer")).match(/>64</g)).toHaveLength(2);
+  });
+  it("the pupil and answer copies print at the same size", () => {
+    for (const mm of [20, 26, 32]) {
+      const e = working();
+      e.document.branchMm = mm;
+      expect(layout(forView(e, "answer")).width).toBe(layout(e).width);
+    }
   });
 });

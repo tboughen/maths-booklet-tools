@@ -56,7 +56,7 @@ test("shows the example booklet with a contents page, edits a lesson title and u
   await expect(hiddenOnPage5).toHaveCount(0);
   await expect(answerInk).toHaveCount(0);
   await expect(page.locator("#bk-page-5")).not.toContainText("÷");
-  await page.getByLabel("Teacher preview: show hidden answers").check();
+  await page.getByLabel("Teacher preview: show answers").check();
   await expect(hiddenOnPage5).toHaveCount(2);
   await expect(answerInk).not.toHaveCount(0);
   await expect(page.locator("#bk-page-5")).toContainText("÷");

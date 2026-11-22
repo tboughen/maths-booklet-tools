@@ -200,7 +200,7 @@ then Copy image, Copy for Word, **Download** and **File**.
 - **Start again** is the reset: it asks first, and Undo brings the work back.
 - **Download** holds what leaves as a picture: SVG, PNG, PDF and, where a tool has them, the
   answers copies and the ZIP of both. **File** holds the editable file: Title and note, Worked
-  notes, Save, Open, Copy editable link, and the first-time Word setup. `diagramFileMenu`
+  notes, Save, Open, Copy editable link, Keyboard shortcuts, and the first-time Word setup. `diagramFileMenu`
   (`src/site/fileMenu.ts`) decides which menu lists an item; a tool passes one list.
 - Where the bar would not fit on one row it gives up room in two steps. First Examples and Start
   again show their icons only: up to 1,279 px wide in every tool, and up to 1,500 px in a tool
@@ -209,11 +209,68 @@ then Copy image, Copy for Word, **Download** and **File**.
   has the whole width, only a tool with an answers switch gives up room: icons only up to
   1,172 px wide, words only up to 1,037 px.
 - On a phone the four buttons at the right sit two by two.
+- The two copy buttons explain themselves on hover: Copy image is "a picture for slides or the
+  board", Copy for Word "pastes into Word at the real print size".
+- A new message from a copy, download or file (the one the foot strip shows) is also repeated for
+  a moment just under the copy buttons, where the teacher is looking (`StatusFlash` in
+  `EditorFoot.tsx`). It is for the eye only; the foot strip keeps the message and announces it.
+- **Keyboard shortcuts.** Pressing ? outside a text field, or choosing Keyboard shortcuts in the
+  File menu, opens one small card listing the keys every editor shares (`ShortcutsCard`, mounted
+  by `EditorToolbar`): undo and redo, Delete, arrow nudges, Tab, Enter and Escape.
+
+## Diagram targets
+
+Every part of a diagram that a click reaches gets a soft blue highlight and a pointer cursor on
+hover (`.pt-hit` in `probability-tree.css`, shared by the tools that use the `pt-` classes); a
+target that is a hidden answer keeps a pink tint. Like handles and focus rings, it is never part
+of an export.
+
+### What pupils see, and the options box (pilot: probability trees, 21 Nov 2026)
+
+One vocabulary for every label on a diagram (`src/editor-kit/visibility.ts`): **Show** prints the
+value, **Pupil space** (saved as `hidden`) leaves a space and the answers copy shows the value, and
+**Leave out** (saved as `omit`) prints nothing in either copy but keeps the value. "Answer line"
+stays the builders' word for the line after a question.
+
+- A click on a label opens the small options box beside it (`src/site/OptionsBox.tsx`): the What
+  pupils see switch (`VisibilitySwitch`), the label's text and the object's own actions. It is
+  live (no Apply or Cancel), one box at a time, never over its label, inside the window, and
+  closes on Escape or a press elsewhere. This replaces the 14 Nov "no floating editors" rule for
+  small boxes; a large floating form with Apply and Cancel is still out.
+- The box opens with the cursor in its text field, text selected: typing replaces the value (typing first, 21 Nov
+  2026). Escape undoes typing, then closes the box. No single-letter shortcuts in the box.
+- A double-click on a label toggles a pupil space.
+- A "What pupils see" card sets a whole kind at once, shows Mixed when labels differ, counts the
+  pupil spaces and offers "Clear pupil spaces" (never "Show all", which reads like "Show answers").
+- Card help sits behind a (?) beside the heading (`CardHeading` in `src/site/CardHelp.tsx`), and a
+  number setting with a few sensible values is a − / + stepper (`NumberStepper`).
+- Targets say what they are to a screen reader ("Edit probability for Red, Blue, pupil space"),
+  and use `touch-action: manipulation` and no text selection, so a double-tap on a board neither
+  zooms nor selects. Tools move to this pattern one group at a time; until then the U21 rule (the
+  selected object's card comes first) still applies to them.
+- The shared parts live in `src/site/LabelTargets.tsx` (`LabelHit`, `TypingField`, `QuickTip`, `StateTag`,
+  `PupilSpaceHint`) and `src/site/labelTargetHooks.ts` (`useQuickTip`, `useTargetReach`, `useCoarsePointer`).
+  A tool on the pattern drops its Hide ticks, its "Selected …" card and its Show all button.
+- On the pattern (22 Nov 2026, wave 1a): probability, frequency and factor trees, sample space diagrams and
+  two-way tables. Tables keep their entries grid under the drawing for typing many cells in a row.
+- Wave 1b (22 Nov 2026): spinners, dice and bags; function machines; the bubble method; written methods. A written
+  method's small digits live in its row's options box, with their own What pupils see.
+
+### Folding cards and the scroll fade (Tim, 22 Nov 2026)
+
+- Every card in a one-column settings stack folds. The main cards (What pupils see, Branches) use
+  `FoldCard defaultOpen` and start open; rarer groups start folded. A folded card shows a one-line summary
+  ("4 pupil spaces", "2 stages · 6 branches"). The browser remembers each teacher's choice.
+- A longer list pushes the cards below it down; the drawing zooms to fit and its print size never changes.
+- The stack scrolls on its own. `useMoreBelow` (`src/site/useMoreBelow.ts`) sets `data-more` while there is
+  more below, and the kit draws a soft fade at the foot of the column.
+- Settings stay on the right, as in Office, Material, Carbon and Figma: the left is for moving between things,
+  the right for the properties of what is open (Tim, 22 Nov 2026).
 
 ## The answers switch
 
 A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads
-"Show hidden answers" in every tool (`AnswerPreviewToggle` and `AnswerCopyToggle` in
+"Show answers" in every tool (`AnswerPreviewToggle` and `AnswerCopyToggle` in
 `src/site/AnswerPreviewToggle.tsx`, styled by `answer-switch.css`). The Worksheet and Booklet
 builders use the same switch, without the label.
 
@@ -225,7 +282,8 @@ builders use the same switch, without the label.
 - The label lies over the stage and lets clicks through, so nothing moves when it appears. It is
   never part of an export.
 - The switch's full name for screen readers still says which kind it is ("Teacher preview: show
-  hidden answers" or "Teacher copy: show hidden answers").
+  answers" or "Teacher copy: show answers"). It read "Show hidden answers" until 21 Nov 2026,
+  when the usability review settled on the words Show / Pupil space / Leave out.
 
 A tool passes its switch to `EditorToolbar` as `answers`.
 

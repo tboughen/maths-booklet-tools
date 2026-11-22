@@ -17,23 +17,42 @@ test("edits a cell from the table, hides it as an answer, shows it only in the t
   await boot(page, complete());
   // 18 (Year 7, Walk) is a hidden answer: not on the pupil copy.
   await expect(art(page).locator("text", { hasText: /^18$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^18$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
 
-  await page.getByRole("button", { name: "Edit the cell for Year 8, Car" }).click();
-  const field = page.getByRole("textbox", { name: "Cell for Year 8, Car" });
-  await expect(field).toBeFocused();
-  await field.fill("15");
-  await field.press("Enter");
+  // A click opens the options box with the number selected: typing replaces it (typing first, 22 Nov 2026).
+  const target = page.getByRole("button", { name: /^Edit the cell for Year 8, Car\b/ });
+  await target.click();
+  await expect(page.getByRole("textbox", { name: "Text of the cell for Year 8, Car" })).toBeFocused();
+  await page.keyboard.type("15");
+  await page.keyboard.press("Enter");
   expect((await saved(page)).document.rows[1].cells[2]).toEqual({ text: "15", show: "show" });
   // Hidden answers still count: 9 + 15 disagrees with the column total of 21.
   await expect(page.getByText("Teacher note: The parts of column Car add to 24, not 21.")).toBeVisible();
-  await page.getByLabel("Hide for pupils (keep as an answer)").check();
+  // A double-click makes it a pupil space.
+  await target.dblclick();
   expect((await saved(page)).document.rows[1].cells[2]).toEqual({ text: "15", show: "hidden" });
+  const field = page.getByRole("textbox", { name: "Cell for Year 8, Car", exact: true });
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(field).toHaveValue("12");
+});
+
+test("what pupils see: one switch for the cells, leave out prints nothing in either copy, clearing pupil spaces is one undo step", async ({ page }) => {
+  await boot(page, complete());
+  const cells = page.getByRole("group", { name: "Cells" });
+  await cells.getByRole("button", { name: "Leave out" }).click();
+  const all = (d: { rows: { cells: { show: string }[] }[]; totalRow: { show: string }[] }) => [...d.rows.flatMap((r) => r.cells), ...d.totalRow].map((c) => c.show);
+  expect(new Set(all((await saved(page)).document))).toEqual(new Set(["omit"]));
+  await page.getByLabel("Teacher copy: show answers").check();
+  await expect(art(page).locator("text", { hasText: /^18$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  await cells.getByRole("button", { name: "Pupil space" }).click();
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect(new Set(all((await saved(page)).document))).toEqual(new Set(["show"]));
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(new Set(all((await saved(page)).document))).toEqual(new Set(["hidden"]));
 });
 
 test("keeps an unreadable number in its box with the reason", async ({ page }) => {
@@ -61,12 +80,13 @@ test("completes totals only when asked, exactly, and keeps them hidden as answer
   await fill("Cell for B, Red", "3/8");
   await fill("Cell for B, Blue", "1/4");
   expect((await saved(page)).document.totalRow.every((c: { text: string }) => c.text === "")).toBe(true);
+  await page.getByRole("button", { name: "Totals", exact: true }).click();
   await page.getByRole("button", { name: "Complete totals" }).click();
   const d = (await saved(page)).document;
   expect(d.rows.map((r: { cells: { text: string }[] }) => r.cells[2])).toEqual([{ text: "3/8", show: "hidden" }, { text: "5/8", show: "hidden" }]);
   expect(d.totalRow.map((c: { text: string }) => c.text)).toEqual(["5/8", "3/8", "1"]);
   // Stacked fractions on the artwork: no inline slash.
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: "/" })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.totalRow[2].text).toBe("");
@@ -79,10 +99,12 @@ test("adds and removes rows, columns and totals", async ({ page }) => {
   let d = (await saved(page)).document;
   expect([d.rows.length, d.columns.length, d.rows[0].cells.length]).toEqual([3, 4, 5]);
   await page.getByRole("button", { name: "Remove row Year 8" }).click();
+  await page.getByRole("button", { name: "Totals", exact: true }).click();
   await page.getByLabel("Total row").uncheck();
   d = (await saved(page)).document;
   expect(d.rows.map((r: { heading: string }) => r.heading)).toEqual(["Year 7", ""]);
   expect(d.totalRow).toBeNull();
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
   await page.getByLabel("This table has a deliberate error").check();
   expect((await saved(page)).document.intentionalError).toBe(true);
 });

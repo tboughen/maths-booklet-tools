@@ -145,7 +145,7 @@ ${JSON.stringify(exampleLessonSource)}
 
 /** One lesson as a booklet of its own, so it can be laid out and checked alone. */
 function soloBooklet(lesson: Lesson): Booklet {
-  return { tool: "resource", schemaVersion: 1, document: { kind: "booklet-a4", title: "Check", code: "", group: "", coverNote: "", nameLine: false, lessonName: "", lessonBadge: "", notation: "maths", intro: null, lessons: [lesson] } };
+  return { tool: "resource", schemaVersion: 1, document: { kind: "booklet-a4", title: "Check", code: "", group: "", coverNote: "", nameLine: false, lessonName: "", lessonBadge: "", notation: "maths", intro: null, firstLessonNumber: 1, lessons: [lesson], retrieval: null } };
 }
 
 const REVEALING = /^(worked[A-Za-z]*|calculate|answerVisible)$/;
@@ -236,7 +236,7 @@ const planSubmission = z
     title: text(80).describe("The unit title for the cover."),
     coverNote: text(240).describe("One or two short lines for the cover: equipment and how to use the booklet."),
     intro: introSchema,
-    lessons: z.array(lessonPlan).min(1).max(12),
+    lessons: z.array(lessonPlan).min(1).max(16),
   })
   .strict();
 export type BookletPlan = z.infer<typeof planSubmission>;

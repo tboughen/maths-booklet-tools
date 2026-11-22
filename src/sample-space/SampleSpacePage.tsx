@@ -32,8 +32,8 @@ import {
   cellAt,
   create,
   fillCells,
+  FONT,
   forView,
-  hasHidden,
   layout,
   MAX_CELL,
   MAX_HEADING,
@@ -55,6 +55,14 @@ import { LINK_PREFIX, parseSampleSpaceLink, sampleSpaceLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Eye, Ruler, Wand2 } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:sample-space:v1");
 type Doc = Envelope["document"];
@@ -103,6 +111,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -113,6 +122,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -148,11 +159,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -178,6 +191,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [operation, setOperation] = useState<Operation>("sum"),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
@@ -195,6 +209,13 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
   const columnIds = d.columns.map((c) => c.id);
   const rowIds = d.rows.map((r) => r.id);
   const selectedCell = selected && rowIds.includes(selected.row) && columnIds.includes(selected.column) ? cellAt(d, selected.row, selected.column) : null;
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const cellBoxes = rowIds.flatMap((_, i) => columnIds.map((__, j) => ({ x: g.x[j + 1], y: g.y[i + 1], width: g.x[j + 2] - g.x[j + 1], height: g.y[i + 2] - g.y[i + 1] })));
+  const reach = useTargetReach(cellBoxes, (96 / 25.4) * fitted.scale, coarse);
+  const spaceCount = d.rows.reduce((n, r) => n + r.cells.filter((c) => c.show === "hidden").length, 0);
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -243,14 +264,33 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
   const rowName = (id: string) => d.rows.find((r) => r.id === id)?.heading || `row ${d.rows.findIndex((r) => r.id === id) + 1}`;
   const columnName = (id: string) => d.columns.find((c) => c.id === id)?.heading || `column ${d.columns.findIndex((c) => c.id === id) + 1}`;
   const cellId = (a: Address) => `ss-cell-${a.row}-${a.column}`;
-  function focusCell(a: Address) {
+  function choose(a: Address, anchor: HTMLElement) {
     setSelected(a);
-    requestAnimationFrame(() => {
-      const field = document.getElementById(cellId(a)) as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  /** What pupils see of one cell: one undo step. A blank cell is already a space for pupils. */
+  function setVisibility(a: Address, v: Visibility) {
+    const c = cellAt(d, a.row, a.column);
+    if (blocked || c.show === v) return;
+    if (v === "hidden" && !c.text) return setMessage("This cell is a blank with no answer: pupils already see a space. Type the answer first.");
+    commit(() => setCell(e, a.row, a.column, { show: v }), visibilityStep(v, c.text || "blank cell"));
+  }
+  /** Every cell at once: one undo step. Blank cells stay blank spaces. */
+  function setAll(v: Visibility) {
+    patch((n) => {
+      for (const r of n.rows) for (const c of r.cells) c.show = v === "hidden" && !c.text ? "show" : v;
     });
   }
+  function clearSpaces() {
+    patch((n) => {
+      for (const r of n.rows) for (const c of r.cells) if (c.show === "hidden") c.show = "show";
+    });
+  }
+  // The box closes when its cell goes (a smaller table, a new diagram, or Reset).
+  const selectedDrawn = !!selectedCell;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   // Autosave with protection for another tab's newer draft.
   useEffect(() => {
@@ -427,22 +467,78 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                   {rowIds.map((row, i) =>
                     columnIds.map((column, j) => {
                       const c = cellAt(d, row, column),
-                        hiddenHere = view === "pupil" && c.show === "hidden";
+                        key = `${row}:${column}`;
                       return (
-                        <button
-                          key={`${row}-${column}`}
-                          type="button"
-                          className={`pt-hit ${selected?.row === row && selected.column === column ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                          aria-label={`Edit the cell for ${rowName(row)}, ${columnName(column)}`}
-                          title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                        <LabelHit
+                          key={key}
+                          what={`the cell for ${rowName(row)}, ${columnName(column)}`}
+                          state={c.show}
+                          text={c.text}
+                          selected={selected?.row === row && selected.column === column}
+                          boxOpen={boxAnchor !== null}
+                          pupilView={view === "pupil"}
+                          tipId="ss-quick-tip"
+                          tipShown={tip?.key === key}
+                          tipHandlers={quick.bind(key, c.show)}
                           disabled={blocked}
+                          coarse={coarse}
+                          reach={reach[i * columnIds.length + j]}
+                          ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                           style={{ left: px(g.x[j + 1], g.width), top: px(g.y[i + 1], g.height), width: px(g.x[j + 2] - g.x[j + 1], g.width), height: px(g.y[i + 2] - g.y[i + 1], g.height) }}
-                          onClick={() => focusCell({ row, column })}
+                          onOpen={(anchor) => choose({ row, column }, anchor)}
+                          onVisibility={(v) => setVisibility({ row, column }, v)}
                         />
                       );
                     }),
                   )}
+                  <QuickTip id="ss-quick-tip" tip={tip && !(boxAnchor && selected && `${selected.row}:${selected.column}` === tip.key) ? tip : null} />
                 </div>
+                {boxAnchor && selected && selectedCell && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={`${selected.row}:${selected.column}`}
+                    focusField={!coarse}
+                    title={`The cell for ${rowName(selected.row)}, ${columnName(selected.column)}`}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedCell.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        Cell
+                        <DraftField
+                          key={`${selected.row}-${selected.column}`}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Text of the cell for ${rowName(selected.row)}, ${columnName(selected.column)}`}
+                          value={selectedCell.text}
+                          maxLength={MAX_CELL}
+                          disabled={blocked}
+                          onCommit={(v) => commit(() => setCell(e, selected.row, selected.column, { text: v }))}
+                        />
+                      </label>
+                    </div>
+                    <label className="pt-hide" title="A circled outcome, such as one that answers the question.">
+                      <input
+                        type="checkbox"
+                        disabled={blocked || !selectedCell.text}
+                        checked={!!selectedCell.ring}
+                        onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, { ring: ev.target.checked }))}
+                      />
+                      Circle this outcome
+                    </label>
+                    {selectedCell.ring ? (
+                      <label className="pt-hide" title="Pupils circle this outcome themselves; the circle prints on the answers copy.">
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={selectedCell.ring === "hidden"}
+                          onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, { ring: ev.target.checked ? "hidden" : true }))}
+                        />
+                        Circle only on the answers copy
+                      </label>
+                    ) : null}
+                    {!selectedCell.text && <p className="pt-note">This cell is a blank with no answer: pupils already see a space. Type the outcome to circle it.</p>}
+                  </OptionsBox>
+                )}
               </div>
             </div>
             <EditorFoot
@@ -452,7 +548,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={shownMessage}
               hint={
-                <EditorHint tool="sample-space">Click a cell on the diagram to edit it. Enter applies; Escape restores.</EditorHint>
+                <EditorHint tool="sample-space">Click a cell to type a new value. Double-click it for a pupil space.</EditorHint>
               }
             >
             </EditorFoot>
@@ -534,7 +630,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                         const c = r.cells[j],
                           here = selected?.row === r.id && selected.column === col.id;
                         return (
-                          <td key={col.id} className={`${c.show === "hidden" ? "ss-hidden" : ""} ${c.ring ? "ss-ring" : ""} ${here ? "ss-current" : ""}`}>
+                          <td key={col.id} className={`${c.show === "hidden" ? "ss-hidden" : ""} ${c.show === "omit" ? "ss-omit" : ""} ${c.ring ? "ss-ring" : ""} ${here ? "ss-current" : ""}`}>
                             <DraftField
                               id={cellId({ row: r.id, column: col.id })}
                               label={`Cell for ${rowName(r.id)}, ${columnName(col.id)}`}
@@ -561,74 +657,42 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
               </button>
             </div>
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Sample space settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Sample space settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected cell">
-              <h2>{selectedCell && selected ? `Cell: ${rowName(selected.row)}, ${columnName(selected.column)}` : "Selected cell"}</h2>
-              {selectedCell && selected ? (
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main card open, the rarer groups folded. */}
+            <FoldCard
+              tool="sample-space"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every cell shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
                 <>
-                  <label className="pt-hide" title="Hidden values are saved answers; pupils see an empty cell.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedCell.text}
-                      checked={selectedCell.show === "hidden"}
-                      onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  <label className="pt-hide" title="A circled outcome, such as one that answers the question.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedCell.text}
-                      checked={!!selectedCell.ring}
-                      onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, { ring: ev.target.checked }))}
-                    />
-                    Circle this outcome
-                  </label>
-                  {selectedCell.ring ? (
-                    <label className="pt-hide" title="Pupils circle this outcome themselves; the circle prints on the answers copy.">
-                      <input
-                        type="checkbox"
-                        disabled={blocked}
-                        checked={selectedCell.ring === "hidden"}
-                        onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, { ring: ev.target.checked ? "hidden" : true }))}
-                      />
-                      Circle only on the answers copy
-                    </label>
-                  ) : null}
-                  {!selectedCell.text && <p className="pt-note">This cell is a blank with no answer. Enter the answer first to hide or circle it.</p>}
+                  <p className="pt-note">Pupil space: an empty cell for pupils to fill in; the answers copy shows the outcome. Leave out: nothing prints, in either copy.</p>
+                  <p className="pt-note">An empty cell is a blank with no answer, and is always a space. Cells take short text such as 7, 1/36, H3 or (H, 3); fractions print stacked.</p>
                 </>
-              ) : (
-                <p className="pt-note">Click a cell on the diagram or in the entries to choose it.</p>
-              )}
-              <p className="pt-note">
-                Hide keeps an outcome as a saved answer and leaves its cell empty for pupils. An empty cell is a blank with no answer.
-                Cells take short text such as 7, 1/36, H3 or (H, 3); fractions print stacked.
-              </p>
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const r of n.rows) for (const c of r.cells) c.show = "show";
-                    })
-                  }
-                >
-                  Show all
-                </button>
-              </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Fill the cells</h2>
-              <p className="pt-note">
-                Fill puts the sum, product, difference or pair of each row and column outcome in every empty cell, exactly: fractions stay
-                fractions. Cells that already hold something are kept. Nothing is filled until you press the button, and it can be undone.
-              </p>
+              }
+            >
+              {(() => {
+                const cells = commonVisibility(d.rows.flatMap((r) => r.cells.map((c) => c.show)));
+                return cells && <VisibilitySwitch name="Cells" caption="Cells" value={cells} disabled={blocked} onChange={setAll} />;
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a cell on the diagram for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="sample-space"
+              title="Fill the cells"
+              icon={Wand2}
+              summary={`${OPERATION_NAMES[operation].replace(/, such as.*/, "")}${hideFilled ? ", as pupil spaces" : ""}`}
+              help={
+                <p className="pt-note">
+                  Fill puts the sum, product, difference or pair of each row and column outcome in every empty cell, exactly: fractions stay
+                  fractions. Cells that already hold something are kept. Nothing is filled until you press the button, and it can be undone.
+                </p>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Fill with
@@ -643,7 +707,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
               </div>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={hideFilled} onChange={(ev) => setHideFilled(ev.target.checked)} />
-                Hide the cells it fills (keep them as answers)
+                Make the cells it fills pupil spaces
               </label>
               <div className="pt-row">
                 <button
@@ -662,9 +726,25 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                   Fill empty cells
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="sample-space"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.cellMm} mm columns${d.lines === "bold" ? " · bold lines" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Up to {MAX_OUTCOMES} outcomes each way. A corner sign of +, × or − checks every number you type against the outcomes and
+                    adds a teacher note when one disagrees. Nothing is calculated or filled in for you.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi)
+                    if your browser blocks copying.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Column width (mm)
@@ -691,21 +771,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This diagram has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a cell on the diagram to edit it. Enter applies; Escape restores. Up to {MAX_OUTCOMES} outcomes each way. A corner
-                  sign of +, × or − checks every number you type against the outcomes and adds a teacher note when one disagrees. Nothing
-                  is calculated or filled in for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi)
-                  if your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -758,6 +824,7 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >

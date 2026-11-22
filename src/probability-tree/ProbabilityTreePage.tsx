@@ -7,13 +7,12 @@ import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
-import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -25,6 +24,13 @@ import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { FoldCard, NumberStepper } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { LabelHit, PupilSpaceHint, QuickTip, StateTag, TypingField } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { Columns3, Eye, GitFork, MessageCircleQuestion, PaintBucket, Ruler, X } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -32,6 +38,7 @@ import {
   addQuestion,
   addSibling,
   addStage,
+  allLabels,
   calculateQuestion,
   canonical,
   childrenOf,
@@ -43,7 +50,6 @@ import {
   fillFromBag,
   fitBranchLength,
   forView,
-  hasHidden,
   isLeaf,
   layout,
   leaves,
@@ -56,30 +62,61 @@ import {
   pruneBranch,
   questionValue,
   minimumBranches,
-  removeLastSibling,
+  removeBranch,
   removeStage,
   renderSvg,
-  setAllShown,
   setOutcome,
   validate,
   type Branch,
   type Envelope,
   type Label,
+  FONT,
 } from "../../packages/probability-tree-core/src";
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./probability-tree.css";
 import "../site/settings-kit.css";
+import {
+  commonVisibility,
+  visibilityStep,
+  type Visibility,
+} from "../editor-kit";
 import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
 type LabelKey = "outcome" | "probability" | "endOutcome" | "endProbability";
+type TargetKind = LabelKey | "answer";
+/** The kinds of label, in the order the What pupils see card lists them. */
+const KINDS: { kind: TargetKind; name: string; one: string }[] = [
+  { kind: "outcome", name: "Outcomes", one: "outcome" },
+  { kind: "probability", name: "Probabilities", one: "probability" },
+  { kind: "endOutcome", name: "End outcomes", one: "end outcome" },
+  { kind: "endProbability", name: "End probabilities", one: "end probability" },
+  { kind: "answer", name: "Question answers", one: "answer" },
+];
+const BRANCH_STEPS = [12, 16, 20, 24, 28, 32, 36, 40, 45, 50] as const;
+const GAP_STEPS = [8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24] as const;
+/** The labels of one kind that print with this tree's settings (end columns only while they are drawn). */
+function labelsOf(d: Doc, kind: TargetKind): Label[] {
+  if (kind === "answer") return d.questions.map((q) => q.answer);
+  if (kind === "endOutcome" && d.endColumn === "none") return [];
+  if (kind === "endProbability" && (d.endColumn === "none" || d.endColumn === "outcome")) return [];
+  const list = kind === "endOutcome" || kind === "endProbability" ? leaves(d) : d.branches;
+  return list.map((b) => b[kind]);
+}
+function labelAt(d: Doc, kind: TargetKind, id: string): Label | undefined {
+  if (kind === "answer") return d.questions.find((q) => q.id === id)?.answer;
+  return d.branches.find((b) => b.id === id)?.[kind];
+}
 
 /** A new tree starts from the house style's lines (U111). */
 function fresh() {
   const e = create();
+  // A new tree opens with each path's names, working and a pupil space for its probability (Tim, 21 Nov 2026).
+  e.document.endColumn = "working";
+  for (const b of leaves(e.document)) b.endProbability.show = "hidden";
   if (housePreference().lines === "bold") e.document.lines = "bold";
   return e;
 }
@@ -88,73 +125,11 @@ function initial() {
   return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
-/** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({
-  id,
-  label,
-  value,
-  onCommit,
-  disabled,
-  maxLength,
-  className,
-  inputMode,
-}: {
-  id?: string;
-  label: string;
-  value: string;
-  onCommit: (value: string) => void;
-  disabled?: boolean;
-  maxLength: number;
-  className?: string;
-  inputMode?: "decimal" | "text";
-}) {
-  const [draft, setDraft] = useState(value);
-  const [editing, setEditing] = useState(false);
-  useEffect(() => {
-    if (!editing) setDraft(value);
-  }, [value, editing]);
-  const commit = () => {
-    setEditing(false);
-    if (draft !== value) onCommit(draft);
-  };
-  return (
-    <input
-      id={id}
-      className={className}
-      aria-label={label}
-      value={draft}
-      disabled={disabled}
-      maxLength={maxLength}
-      inputMode={inputMode}
-      onChange={(ev) => {
-        setEditing(true);
-        setDraft(ev.target.value);
-      }}
-      onBlur={commit}
-      onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
-        if (ev.key === "Enter") {
-          ev.preventDefault();
-          commit();
-        }
-        if (ev.key === "Escape") {
-          ev.preventDefault();
-          ev.stopPropagation();
-          setDraft(value);
-          setEditing(false);
-        }
-      }}
-    />
-  );
-}
+/** The settings fields and the options box share one typing field. */
+const DraftField = TypingField;
 
-function HideBox({ label, value, disabled, onChange }: { label: string; value: Label; disabled: boolean; onChange: (hidden: boolean) => void }) {
-  return (
-    <label className="pt-hide" title="Hidden values are saved answers; pupils see a space.">
-      <input type="checkbox" aria-label={label} disabled={disabled} checked={value.show === "hidden"} onChange={(ev) => onChange(ev.target.checked)} />
-      Hide
-    </label>
-  );
-}
+
+
 
 export default function ProbabilityTreePage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
@@ -168,9 +143,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [bag, setBag] = useState("5, 3"),
     [replacement, setReplacementMode] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+  // The hint beside a label under the pointer or keyboard, shown at once (screen only).
+  const quick = useQuickTip(),
+    tip = quick.tip;
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
@@ -181,6 +160,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const answerSvg = renderSvg(forView(e, "answer"));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const depth = maxDepth(d);
+  const stackRef = useMoreBelow<HTMLElement>();
   const paths = leaves(d);
   const selectedBranch = d.branches.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
@@ -209,6 +189,36 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
       const b = n.branches.find((x) => x.id === id);
       if (b) Object.assign(b[key], change);
     });
+  const [selKind, selId] = (selected?.split(":") ?? []) as [TargetKind | undefined, string | undefined];
+  const selectedLabel = selKind && selId ? labelAt(d, selKind, selId) : undefined;
+  function describeTarget(kind: TargetKind, id: string) {
+    if (kind === "answer") return `answer to question ${d.questions.findIndex((q) => q.id === id) + 1}`;
+    const b = d.branches.find((x) => x.id === id);
+    return `${KINDS.find((k) => k.kind === kind)!.one} for ${b ? pathName(d, b.id) : ""}`;
+  }
+  /** What pupils see of one label: one undo step, named after its value ("pupil space on 3/8"). */
+  function setVisibility(kind: TargetKind, id: string, v: Visibility) {
+    const l = labelAt(d, kind, id);
+    if (blocked || !l || l.show === v) return;
+    const n = structuredClone(e);
+    labelAt(n.document, kind, id)!.show = v;
+    commit(n, undefined, visibilityStep(v, l.text.trim() || describeTarget(kind, id)));
+  }
+  /** Every label of one kind at once: one undo step. */
+  function setKind(kind: TargetKind, v: Visibility) {
+    if (blocked) return;
+    const n = structuredClone(e);
+    for (const l of labelsOf(n.document, kind)) l.show = v;
+    commit(n, undefined, visibilityStep(v, `all ${KINDS.find((k) => k.kind === kind)!.name.toLowerCase()}`));
+  }
+  // Every pupil space in the tree, including end columns that are switched off, so none comes back later.
+  const spaceCount = allLabels(d).filter((l) => l.show === "hidden").length;
+  function clearSpaces() {
+    if (blocked || !spaceCount) return;
+    const n = structuredClone(e);
+    for (const l of allLabels(n.document)) if (l.show === "hidden") l.show = "show";
+    commit(n, undefined, `clear ${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`);
+  }
   function undo() {
     if (blocked) return;
     documentHistory.undo();
@@ -219,14 +229,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   }
   function replace(next: Envelope, title: string, explanation = "This replaces the current tree. You can undo the replacement.") {
     if (!blocked) setPending({ e: next, title, explanation });
-  }
-  function focusField(id: string) {
-    setSelected(id);
-    requestAnimationFrame(() => {
-      const field = document.getElementById(id) as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
-    });
   }
 
   // Autosave with protection for another tab's newer draft.
@@ -310,9 +312,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     else commit(next);
   }
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
+  const coarse = useCoarsePointer();
+  const reach = useTargetReach(g.targets, (96 / 25.4) * fitted.scale, coarse);
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
+  // The box closes when its label goes (a smaller tree, a new tree, or Reset).
+  const selectedDrawn = !!selected && g.targets.some((t) => `${t.kind}:${t.id}` === selected);
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), undefined, WORKED_STEP) });
   return (
@@ -409,55 +418,127 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.targets.map((t) => {
-                    const id = fieldId(t.kind, t.id);
-                    const b = d.branches.find((x) => x.id === t.id);
-                    const l = t.kind === "answer" ? d.questions.find((q) => q.id === t.id)?.answer : b?.[t.kind];
-                    const hiddenHere = view === "pupil" && l?.show === "hidden";
-                    const what =
-                      t.kind === "answer"
-                        ? `answer to question ${d.questions.findIndex((q) => q.id === t.id) + 1}`
-                        : `${{ outcome: "outcome", probability: "probability", endOutcome: "end outcome", endProbability: "end probability" }[t.kind]} for ${b ? branchName(b) : ""}`;
+                  {g.targets.map((t, i) => {
+                    const key = `${t.kind}:${t.id}`;
+                    const l = labelAt(d, t.kind, t.id);
+                    const state = l?.show ?? "show";
                     return (
-                      <button
-                        key={id}
-                        type="button"
-                        className={`pt-hit ${selected === `${t.kind}:${t.id}` ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit ${what}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                      <LabelHit
+                        key={fieldId(t.kind, t.id)}
+                        what={describeTarget(t.kind, t.id)}
+                        state={state}
+                        text={l?.text ?? ""}
+                        selected={selected === key}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="pt-quick-tip"
+                        tipShown={tip?.key === key}
+                        tipHandlers={quick.bind(key, state)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[i]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
-                        onClick={() => {
-                          setSelected(`${t.kind}:${t.id}`);
-                          focusField(id);
-                          setSelected(`${t.kind}:${t.id}`);
+                        onOpen={(anchor) => {
+                          setSelected(key);
+                          setBoxAnchor(anchor);
                         }}
+                        onVisibility={(v) => l && setVisibility(t.kind, t.id, v)}
                       />
                     );
                   })}
+                  <QuickTip id="pt-quick-tip" tip={tip && !(boxAnchor && selected === tip.key) ? tip : null} />
                 </div>
-                <StructureStepper
-                 
-                  vertical
-                  name="Stages"
-                  caption=""
-                  add={{
-                    label: "Add a stage after every path that reaches the last stage",
-                    title: "Add stage",
-                    disabled: blocked || depth >= MAX_DEPTH,
-                    onClick: () => {
-                      // A tree that fitted the page keeps fitting: the new stage shortens branches if it must (one undo step).
-                      const next = addStage(e);
-                      commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage.");
-                    },
-                  }}
-                  remove={{
-                    label: "Remove the last stage",
-                    title: "Remove last stage",
-                    disabled: blocked || depth <= 1,
-                    onClick: () => commit(removeStage(e)),
-                  }}
-                />
+                {boxAnchor && selKind && selId && selectedLabel && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={selected ?? ""}
+                    // On a touch screen a tap would pop up the on-screen keyboard over the tree: the box takes focus
+                    // and a tap on its text field starts typing.
+                    focusField={!coarse}
+                    title={describeTarget(selKind, selId).replace(/^./, (c) => c.toUpperCase())}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch
+                      name="What pupils see"
+                      caption="What pupils see"
+                      value={selectedLabel.show}
+                      disabled={blocked}
+                      onChange={(v) => setVisibility(selKind, selId, v)}
+                    />
+                    <p>
+                      {selectedLabel.show === "hidden" && !selectedLabel.text.trim()
+                        ? "No saved answer, so the answers copy will be empty too."
+                        : "Type to change the value. Double-click the label for a pupil space."}
+                    </p>
+                    <label>
+                      Text
+                      <DraftField
+                        key={selected}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label={`Text of ${describeTarget(selKind, selId)}`}
+                        value={selectedLabel.text}
+                        maxLength={24}
+                        inputMode={selKind === "probability" || selKind === "endProbability" || selKind === "answer" ? "decimal" : "text"}
+                        disabled={blocked}
+                        onCommit={(v) => {
+                          if (selKind === "outcome") commit(setOutcome(e, selId, v));
+                          else if (selKind === "answer") patch((n) => void (n.questions.find((q) => q.id === selId)!.answer.text = v));
+                          else setLabel(selId, selKind, { text: v });
+                        }}
+                      />
+                    </label>
+                    {selectedBranch && (selKind === "outcome" || selKind === "probability") && (
+                      <>
+                        <label>
+                          <input
+                            type="checkbox"
+                            disabled={blocked}
+                            checked={selectedBranch.bold}
+                            onChange={(ev) => patch((n) => void (n.branches.find((b) => b.id === selectedBranch.id)!.bold = ev.target.checked))}
+                          />
+                          Bold branch (to pick out paths)
+                        </label>
+                        <div className="md-options-actions">
+                          {isLeaf(d, selectedBranch.id) ? (
+                            <button
+                              type="button"
+                              disabled={blocked || depthOf(d, selectedBranch.id) >= MAX_DEPTH}
+                              title={depthOf(d, selectedBranch.id) >= MAX_DEPTH ? `A tree has at most ${MAX_DEPTH} stages.` : undefined}
+                              onClick={() => commit(extendBranch(e, selectedBranch.id), "This tree has too many paths for more branches.")}
+                            >
+                              Add branches after this
+                            </button>
+                          ) : (
+                            <button type="button" disabled={blocked} onClick={() => commit(pruneBranch(e, selectedBranch.id))}>
+                              End the path here
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            disabled={blocked || childrenOf(d, selectedBranch.parent).length >= MAX_CHILDREN}
+                            title={childrenOf(d, selectedBranch.parent).length >= MAX_CHILDREN ? `Each point has at most ${MAX_CHILDREN} branches.` : undefined}
+                            onClick={() => commit(addSibling(e, selectedBranch.parent), "This tree has too many paths for another branch.")}
+                          >
+                            Add a branch beside it
+                          </button>
+                          <button
+                            type="button"
+                            disabled={blocked || childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent)}
+                            title={childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent) ? "This point already has as few branches as it can." : "Removes this branch and the branches after it"}
+                            onClick={() => {
+                              commit(removeBranch(e, selectedBranch.id));
+                              setSelected(null);
+                            }}
+                          >
+                            Remove this branch
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </OptionsBox>
+                )}
+                {/* Stages are added and removed in the Branches card: one column of tools (Tim, 21 Nov 2026). */}
               </div>
             </div>
             <EditorFoot
@@ -468,8 +549,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               status={message}
               hint={
                 <EditorHint tool="probability-tree">
-                  Click a label on the tree to edit it. Enter applies; Escape
-                  restores.
+                  Click a label to type a new value. Double-click it for a pupil space.
                 </EditorHint>
               }
             >
@@ -481,75 +561,74 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     {x}
                   </p>
                 ))}
-                {g.notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
+                {/* Teacher notes fold to one line, so the drawing keeps its room (scoring, 21 Nov 2026); errors stay open. */}
+                {g.notes.length > 0 && (
+                  <details className="pt-notes">
+                    <summary>
+                      {g.notes.length === 1 ? "Teacher note" : `${g.notes.length} teacher notes`}
+                      <span>: {g.notes[0]}</span>
+                    </summary>
+                    {g.notes.map((x, i) => (
+                      <p key={i}>Teacher note: {x}</p>
+                    ))}
+                  </details>
+                )}
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Probability tree settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Probability tree settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            {selectedBranch && (
-              <section className="panel-card pt-panel" aria-label="Selected branch">
-                <h2>Branch: {branchName(selectedBranch)}</h2>
-                <div className="pt-row">
-                  {isLeaf(d, selectedBranch.id) ? (
-                    <button
-                      type="button"
-                      disabled={blocked || depthOf(d, selectedBranch.id) >= MAX_DEPTH}
-                      onClick={() => commit(extendBranch(e, selectedBranch.id), "This tree has too many paths for more branches.")}
-                    >
-                      Add branches after this
-                    </button>
-                  ) : (
-                    <button type="button" disabled={blocked} onClick={() => commit(pruneBranch(e, selectedBranch.id))}>
-                      End the path here
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    disabled={blocked || childrenOf(d, selectedBranch.parent).length >= MAX_CHILDREN}
-                    onClick={() => commit(addSibling(e, selectedBranch.parent), "This tree has too many paths for another branch.")}
-                  >
-                    Add a branch beside it
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent)}
-                    onClick={() => {
-                      commit(removeLastSibling(e, selectedBranch.parent));
-                      setSelected(null);
-                    }}
-                  >
-                    Remove the last branch here
-                  </button>
-                  <label className="pt-hide">
-                    <input
-                      type="checkbox"
-                      disabled={blocked}
-                      checked={selectedBranch.bold}
-                      onChange={(ev) => patch((n) => void (n.branches.find((b) => b.id === selectedBranch.id)!.bold = ev.target.checked))}
-                    />
-                    Bold branch (to pick out paths)
-                  </label>
-                </div>
-              </section>
-            )}
-            <section className="panel-card pt-panel">
-              <h2>Branches</h2>
+            {/* One column (Tim, 21 Nov 2026): the main cards, then the rarer groups folded together in one card. */}
+            <FoldCard
+              tool="probability-tree"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every label shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                  <>
+                    <p className="pt-note">Pupil space: a blank for pupils to fill in. Leave out: nothing prints, in either copy.</p>
+                    <p className="pt-note">Each switch sets every label of that kind.</p>
+                  </>
+                }
+            >
+              {KINDS.map(({ kind, name }) => {
+                const value = commonVisibility(labelsOf(d, kind).map((l) => l.show));
+                return value === null ? null : (
+                  <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />
+                );
+              })}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                {/* The count and Clear sit with the switches that make pupil spaces (scoring, 21 Nov 2026). */}
+                Double-click a label on the tree for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title="Branches"
+              icon={GitFork}
+              defaultOpen
+              summary={`${depth} stage${depth === 1 ? "" : "s"} · ${d.branches.length} branches`}
+              help={
+                  <>
+                    <p className="pt-note">Type fractions such as 3/8, decimals or algebra such as 1 − x.</p>
+                    <p className="pt-note">+ Branch adds a branch at that point; + Stage adds a stage after every path. A label on the tree has its own options.</p>
+                  </>
+                }
+            >
               <div className="pt-branches">
-                {d.branches.map((b) => {
-                  const k = depthOf(d, b.id);
-                  return (
+                {(function rows(parent: string | null, k: number): ReactNode[] {
+                  const group = childrenOf(d, parent);
+                  const out: ReactNode[] = [];
+                  for (const b of group) {
+                    out.push(
                     <div
                       key={b.id}
                       className={`pt-branch ${selectedBranch?.id === b.id ? "pt-current" : ""}`}
                       style={{ paddingLeft: (k - 1) * 14 }}
                       onFocus={() => setSelected((s) => (s?.endsWith(":" + b.id) ? s : `outcome:${b.id}`))}
                     >
-                      <span>
+                      <span className="pt-field-wrap">
                         <DraftField
                           id={fieldId("outcome", b.id)}
                           className={selected === `outcome:${b.id}` ? "pt-field-selected" : ""}
@@ -559,9 +638,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           disabled={blocked}
                           onCommit={(v) => commit(setOutcome(e, b.id, v))}
                         />
-                        <HideBox label={`Hide outcome ${branchName(b)} for pupils`} value={b.outcome} disabled={blocked} onChange={(h) => setLabel(b.id, "outcome", { show: h ? "hidden" : "show" })} />
+                        <StateTag value={b.outcome} />
                       </span>
-                      <span>
+                      <span className="pt-field-wrap">
                         <DraftField
                           id={fieldId("probability", b.id)}
                           className={selected === `probability:${b.id}` ? "pt-field-selected" : ""}
@@ -572,34 +651,75 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                           disabled={blocked}
                           onCommit={(v) => setLabel(b.id, "probability", { text: v })}
                         />
-                        <HideBox label={`Hide probability for ${branchName(b)}`} value={b.probability} disabled={blocked} onChange={(h) => setLabel(b.id, "probability", { show: h ? "hidden" : "show" })} />
+                        <StateTag value={b.probability} />
                       </span>
-                      <span className="pt-note">{isLeaf(d, b.id) ? "end" : ""}</span>
+                      <span className="pt-row-end">
+                        {group.length > minimumBranches(parent) && (
+                          <button
+                            type="button"
+                            className="pt-remove"
+                            aria-label={`Remove ${branchName(b)}${isLeaf(d, b.id) ? "" : " and the branches after it"}`}
+                            title={isLeaf(d, b.id) ? "Remove this branch (one undo step)" : "Remove this branch and the branches after it (one undo step)"}
+                            disabled={blocked}
+                            onClick={() => {
+                              commit(removeBranch(e, b.id));
+                              setSelected(null);
+                              // The row has gone: focus moves to this point's + Branch.
+                              requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-add-for="${parent ?? "start"}"]`)?.focus());
+                            }}
+                          >
+                            <X size={14} aria-hidden="true" />
+                            <span className="pt-remove-word" aria-hidden="true">Remove</span>
+                          </button>
+                        )}
+                      </span>
                     </div>
-                  );
-                })}
+                    );
+                    out.push(...rows(b.id, k + 1));
+                  }
+                  if (group.length > 0) {
+                    const full = group.length >= MAX_CHILDREN;
+                    const after = parent === null ? "at the start" : `after ${branchName(d.branches.find((x) => x.id === parent)!)}`;
+                    out.push(
+                      <div key={`add:${parent ?? "start"}`} className="pt-add-row" style={{ paddingLeft: (k - 1) * 14 }}>
+                        <button
+                          type="button"
+                          className="pt-link"
+                          data-add-for={parent ?? "start"}
+                          aria-label={`+ Branch ${after}`}
+                          // Kept in place when full, so focus is never dropped.
+                          aria-disabled={blocked || full || undefined}
+                          title={full ? `Each point has at most ${MAX_CHILDREN} branches.` : "One undo step"}
+                          onClick={() => !blocked && !full && commit(addSibling(e, parent), "This tree has too many paths for another branch.")}
+                        >
+                          + Branch{parent === null ? " at the start" : ""}
+                        </button>
+                      </div>,
+                    );
+                  }
+                  return out;
+                })(null, 1)}
               </div>
-              <p className="pt-note">
-                Type fractions such as 3/8, decimals or algebra such as 1 − x. Hide keeps a value as a saved answer and leaves a
-                space for pupils. Click a branch label on the tree to select it and change its shape.
-              </p>
+              <div className="pt-add-row pt-add-stage">
+                <button type="button" className="pt-link" aria-disabled={blocked || depth >= MAX_DEPTH || undefined} title={depth >= MAX_DEPTH ? `A tree has at most ${MAX_DEPTH} stages.` : "Adds a stage after every path that reaches the last stage"} onClick={() => { if (blocked || depth >= MAX_DEPTH) return; const next = addStage(e); commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage."); }}>
+                  + Stage
+                </button>
+                <button type="button" className="pt-link" aria-disabled={blocked || depth <= 1 || undefined} title={depth <= 1 ? "A tree keeps at least one stage." : "One undo step"} onClick={() => !blocked && depth > 1 && commit(removeStage(e))}>
+                  Remove last stage
+                </button>
+              </div>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.linkLabels} onChange={(ev) => patch((n) => void (n.linkLabels = ev.target.checked))} />
                 Same outcome names across each stage
               </label>
-              <div className="pt-row">
-                <button type="button" disabled={blocked} onClick={() => commit(setAllShown(e, "probabilities", "hidden"))}>
-                  Hide all probabilities
-                </button>
-                <button type="button" disabled={blocked || !hasHidden(e)} onClick={() => commit(setAllShown(e, "all", "show"))}>
-                  Show all
-                </button>
-              </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Fill probabilities</h2>
+            </FoldCard>
+            <div className="md-fold-group">
+            <FoldCard
+              tool="probability-tree"
+              title="Fill probabilities"
+              icon={PaintBucket}
+              summary={`From a bag of ${bag.trim() || "…"} · ${replacement ? "with" : "without"} replacement, or 1 − p`}
+            >
               <p className="pt-note">Nothing is filled until you press a button. Each fill can be undone.</p>
               <div className="pt-fields">
                 <label>
@@ -630,9 +750,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   Fill missing 1 − p
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Outcome columns</h2>
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title="Outcome columns"
+              icon={Columns3}
+              summary={{ none: "Nothing at the end of each path", outcome: "Outcome at the end of each path", both: "Outcome and probability at the end of each path", working: "Outcome, working and probability at the end of each path" }[d.endColumn]}
+            >
               <div className="pt-fields">
                 <label>
                   At the end of each path
@@ -640,22 +764,26 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <option value="none">Nothing</option>
                     <option value="outcome">Outcome</option>
                     <option value="both">Outcome and probability</option>
+                    <option value="working">Outcome, working and probability</option>
                   </select>
                 </label>
               </div>
+              {d.endColumn === "working" && (
+                <p className="pt-note">An empty name follows the tree. An empty probability space is worked out in the answer copy only.</p>
+              )}
               {d.endColumn !== "none" && (
                 <>
                   <div className="pt-branches">
                     {paths.map((b) => (
                       <div key={b.id} className="pt-branch">
-                        <span>
+                        <span className="pt-field-wrap">
                           <DraftField id={fieldId("endOutcome", b.id)} label={`End outcome for ${branchName(b)}`} value={b.endOutcome.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endOutcome", { text: v })} />
-                          <HideBox label={`Hide end outcome for ${branchName(b)}`} value={b.endOutcome} disabled={blocked} onChange={(h) => setLabel(b.id, "endOutcome", { show: h ? "hidden" : "show" })} />
+                          <StateTag value={b.endOutcome} />
                         </span>
-                        {d.endColumn === "both" && (
-                          <span>
+                        {d.endColumn !== "outcome" && (
+                          <span className="pt-field-wrap">
                             <DraftField id={fieldId("endProbability", b.id)} label={`End probability for ${branchName(b)}`} value={b.endProbability.text} maxLength={24} disabled={blocked} onCommit={(v) => setLabel(b.id, "endProbability", { text: v })} />
-                            <HideBox label={`Hide end probability for ${branchName(b)}`} value={b.endProbability} disabled={blocked} onChange={(h) => setLabel(b.id, "endProbability", { show: h ? "hidden" : "show" })} />
+                            <StateTag value={b.endProbability} />
                           </span>
                         )}
                         <span />
@@ -666,24 +794,27 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     <button type="button" disabled={blocked} onClick={() => commit(fillEnd(e, "outcome"))}>
                       Fill outcome names
                     </button>
-                    {d.endColumn === "both" && (
+                    {d.endColumn !== "outcome" && (
                       <button type="button" disabled={blocked} onClick={() => commit(fillEnd(e, "probability"))}>
                         Calculate path probabilities
                       </button>
                     )}
-                    <button type="button" disabled={blocked} onClick={() => commit(setAllShown(e, "end", "hidden"))}>
-                      Hide the columns
-                    </button>
                   </div>
                 </>
               )}
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Questions and "given that"</h2>
-              <p className="pt-note">
-                Questions print below the tree with an answer space. To calculate an answer, tick the paths in the event and, for a
-                given-that question, the paths in the condition.
-              </p>
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title={'Questions and "given that"'}
+              icon={MessageCircleQuestion}
+              summary={d.questions.length ? `${d.questions.length} question${d.questions.length === 1 ? "" : "s"} below the tree` : "None yet"}
+              help={
+                  <p className="pt-note">
+                    Questions print below the tree with an answer space. To calculate an answer, tick the paths in the event and,
+                    for a given-that question, the paths in the condition.
+                  </p>
+                }
+            >
               {d.questions.map((q, qi) => {
                 const value = questionValue(d, q);
                 return (
@@ -692,9 +823,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                       Question ({String.fromCharCode(97 + qi)})
                       <DraftField label={`Question ${qi + 1} text`} value={q.text} maxLength={60} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].text = v))} />
                     </label>
-                    <span>
+                    <span className="pt-field-wrap">
                       <DraftField id={fieldId("answer", q.id)} label={`Answer to question ${qi + 1}`} value={q.answer.text} maxLength={24} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].answer.text = v))} />
-                      <HideBox label={`Hide answer to question ${qi + 1}`} value={q.answer} disabled={blocked} onChange={(h) => patch((n) => void (n.questions[qi].answer.show = h ? "hidden" : "show"))} />
+                      <StateTag value={q.answer} />
                     </span>
                     <details>
                       <summary>Paths for calculating</summary>
@@ -739,9 +870,25 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   Add question
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="probability-tree"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.branchMm} mm branches · ${d.gapMm} mm spacing · ${d.blankStyle === "box" ? "boxes" : "dotted spaces"} · ${LINE_WEIGHT_NAMES[d.lines ?? "normal"].toLowerCase()}`}
+              help={
+                  <>
+                    <p className="pt-note">
+                      Paths can be different lengths: click a branch on the tree and choose Add branches after this, or End the
+                      path here. Nothing is calculated or filled in for you.
+                    </p>
+                    <p className="pt-note">
+                      Copy for Word carries the physical size shown under the tree; preview zoom never changes it. Download PNG
+                      (600 ppi) if your browser blocks copying.
+                    </p>
+                  </>
+                }
+            >
               <div className="pt-fields">
                 {Array.from({ length: depth }, (_, k) => (
                   <label key={k}>
@@ -777,40 +924,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     ))}
                   </select>
                 </label>
-                <label>
-                  Branch length (mm)
-                  <select aria-label="Branch length" value={d.branchMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.branchMm = Number(ev.target.value)))}>
-                    {[...new Set([12, 16, 20, 24, 28, 32, 36, 40, 45, 50, d.branchMm])].sort((a, b) => a - b).map((x) => (
-                      <option key={x} value={x}>
-                        {x}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Path spacing (mm)
-                  <select aria-label="Path spacing" value={d.gapMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.gapMm = Number(ev.target.value)))}>
-                    {[...new Set([8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24, d.gapMm])].sort((a, b) => a - b).map((x) => (
-                      <option key={x} value={x}>
-                        {x}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <NumberStepper name="Branch length" unit="mm" value={d.branchMm} steps={BRANCH_STEPS} min={12} max={50} disabled={blocked} onChange={(v) => patch((n) => void (n.branchMm = v))} />
+                <NumberStepper name="Path spacing" unit="mm" value={d.gapMm} steps={GAP_STEPS} min={8} max={24} disabled={blocked} onChange={(v) => patch((n) => void (n.gapMm = v))} />
               </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a label on the tree to edit it. Enter applies; Escape restores. Paths can be different lengths: select a
-                  branch and choose Add branches after this, or End the path here. Nothing is calculated or filled in for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the tree; preview zoom never changes it. Download PNG (600
-                  ppi) if your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
+            </FoldCard>
             </div>
           </aside>
         </section>

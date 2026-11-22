@@ -134,4 +134,15 @@ describe("written methods", () => {
     expect(next.document.answer).toEqual({ text: "170", show: "hidden" });
     await expect(io.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
   });
+  it("leaves out a row in both copies, and working it out keeps a left-out blank left out", () => {
+    let e = wm.setRow(wm.setRow(wm.create("add"), "n1", { text: "12" }), "n2", { text: "30" });
+    e = wm.setRow(e, "answer", { show: "omit" });
+    expect(e.document.answer).toEqual({ text: "", show: "omit" });
+    const done = wm.complete(e, false).envelope;
+    expect(done.document.answer).toEqual({ text: "42", show: "omit" });
+    expect(wm.renderSvg(wm.forView(done, "answer", true))).not.toMatch(/>4</);
+    // A carry into a left-out answer is left out with it.
+    const carried = wm.complete(wm.setRow(wm.setRow(wm.setRow(wm.create("add"), "n1", { text: "58" }), "n2", { text: "67" }), "answer", { show: "omit" }), true).envelope;
+    expect(carried.document.marks.filter((m) => m.row === "answer").every((m) => m.show === "omit")).toBe(true);
+  });
 });

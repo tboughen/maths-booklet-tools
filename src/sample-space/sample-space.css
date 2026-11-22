@@ -57,3 +57,8 @@
 .ss-titles {
   padding: 0 12px;
 }
+.ss-grid .ss-omit input {
+  border-style: dotted;
+  color: #6b7785;
+  background: #eef1f4;
+}

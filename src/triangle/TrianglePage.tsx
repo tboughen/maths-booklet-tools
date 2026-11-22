@@ -2366,7 +2366,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     if (!blocked) {
                       commit(next);
                       setMessage(
-                        "Answer saved and hidden. Switch on Show hidden answers to see it, or use a worked version.",
+                        "Answer saved and hidden. Switch on Show answers to see it, or use a worked version.",
                       );
                     }
                   }}
@@ -2418,7 +2418,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   view.
                 </p>
                 <p className="tr-note">
-                  Show hidden answers is screen only. Downloads keep
+                  Show answers is screen only. Downloads keep
                   saved pupil visibility. Use worked version replaces the
                   current resource; Undo restores it.
                 </p>

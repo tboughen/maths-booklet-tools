@@ -99,7 +99,7 @@ copies:
   `set_answer_only {answerOnly}`). The pupil copy is blank paper of exactly the table's size,
   with no cross, headings, cells, arrows or operations, so the space stays for pupils to draw
   their own table. The answers copy prints the whole table in the answer colour. Editor:
-  **Answers copy only** in the table settings; the preview is blank until "Teacher preview: show hidden answers" is on.
+  **Answers copy only** in the table settings; the preview is blank until "Teacher preview: show answers" is on.
 
 Only `true` is ever saved. With a hidden heading, blank (`""`), hidden and answer-line cells
 keep their own meanings. In an answers-only table the pupil sees nothing at all, so its answer

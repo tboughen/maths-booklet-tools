@@ -17,18 +17,22 @@ test("edits a cell from the diagram, hides and circles it, shows it only in the 
   await boot(page, diceSum());
   // 12 (6 and 6) is a hidden answer: not on the pupil copy.
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByLabel("Teacher copy: show answers").uncheck();
 
-  await page.getByRole("button", { name: "Edit the cell for 6, 6" }).click();
-  const field = page.getByRole("textbox", { name: "Cell for 6, 6" });
-  await expect(field).toBeFocused();
-  await field.fill("13");
-  await field.press("Enter");
+  // A click opens the options box with the text selected: typing replaces it (typing first, 22 Nov 2026).
+  const target = page.getByRole("button", { name: /^Edit the cell for 6, 6\b/ });
+  await target.click();
+  await expect(page.getByRole("textbox", { name: "Text of the cell for 6, 6" })).toBeFocused();
+  await page.keyboard.type("13");
+  await page.keyboard.press("Enter");
   expect((await saved(page)).document.rows[5].cells[5]).toEqual({ text: "13", show: "hidden" });
   await expect(page.getByText("Teacher note: The cell for 6 and 6 holds 13; the sum is 12.")).toBeVisible();
-  await page.getByLabel("Hide for pupils (keep as an answer)").uncheck();
+  const field = page.getByRole("textbox", { name: "Cell for 6, 6", exact: true });
+  await expect(field).toHaveValue("13");
+  // A double-click brings the value back from a pupil space; the box stays open for the circle.
+  await target.dblclick();
   await page.getByLabel("Circle this outcome").check();
   expect((await saved(page)).document.rows[5].cells[5]).toEqual({ text: "13", show: "show", ring: true });
   await expect(art(page).locator("ellipse")).toHaveCount(1);
@@ -37,11 +41,27 @@ test("edits a cell from the diagram, hides and circles it, shows it only in the 
   await expect(art(page).locator("ellipse")).toHaveCount(0);
 });
 
+test("what pupils see: one switch for the cells, leave out prints nothing in either copy, clearing pupil spaces is one undo step", async ({ page }) => {
+  await boot(page, diceSum());
+  const cells = page.getByRole("group", { name: "Cells" });
+  await cells.getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page)).document.rows.every((r: { cells: { show: string }[] }) => r.cells.every((c) => c.show === "omit"))).toBe(true);
+  await page.getByLabel("Teacher copy: show answers").check();
+  await expect(art(page).locator("text", { hasText: /^12$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  await cells.getByRole("button", { name: "Pupil space" }).click();
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect((await saved(page)).document.rows.every((r: { cells: { show: string }[] }) => r.cells.every((c) => c.show === "show"))).toBe(true);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.rows.every((r: { cells: { show: string }[] }) => r.cells.every((c) => c.show === "hidden"))).toBe(true);
+});
+
 test("fills empty cells only when asked, exactly, and keeps them hidden as answers", async ({ page }) => {
   await boot(page, create(["H", "T"], ["1", "2"]));
   const cell = page.getByRole("textbox", { name: "Cell for H, 1" });
   await cell.fill("H1");
   await cell.press("Enter");
+  await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
   await page.getByRole("combobox", { name: "Fill with" }).selectOption("sum");
   await page.getByRole("button", { name: "Fill empty cells" }).click();
   await expect(page.getByRole("status")).toContainText("must be a number");
@@ -59,8 +79,9 @@ test("fills empty cells only when asked, exactly, and keeps them hidden as answe
 
 test("keeps fractions stacked and names the events beside the table", async ({ page }) => {
   await boot(page, create(["1/2", "1/4"], ["1/3"]));
+  await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
   await page.getByRole("button", { name: "Fill empty cells" }).click();
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: "/" })).toHaveCount(0);
   const name = page.getByRole("textbox", { name: "Event across the top" });
   await name.fill("Spinner");
@@ -73,6 +94,7 @@ test("adds and removes outcomes and keeps the lines choice", async ({ page }) =>
   await boot(page, create(["H", "T"], ["1", "2", "3"]));
   await page.getByRole("button", { name: "Add row" }).click();
   await page.getByRole("button", { name: "Remove column 2" }).click();
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
   await page.getByRole("combobox", { name: "Lines" }).selectOption("bold");
   const d = (await saved(page)).document;
   expect([d.rows.length, d.columns.map((c: { heading: string }) => c.heading), d.lines]).toEqual([3, ["1", "3"], "bold"]);

@@ -22,17 +22,21 @@ const art = (page: Page) => page.getByTestId("frequency-tree-resource").locator(
 test("edits a count from the tree, shows hidden answers only in the teacher copy and undoes", async ({ page }) => {
   await boot(page);
   await expect(art(page).locator("text", { hasText: /^37$/ })).toHaveCount(0);
-  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await page.getByLabel("Teacher copy: show answers").check();
   await expect(art(page).locator("text", { hasText: /^37$/ })).toHaveCount(1);
-  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
-  await page.getByRole("button", { name: "Edit count for men", exact: true }).click();
-  const field = page.getByRole("textbox", { name: "Count for men", exact: true });
-  await expect(field).toBeFocused();
-  await field.fill("30");
-  await field.press("Enter");
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  // A click opens the options box with the text selected: typing replaces it (typing first, 22 Nov 2026).
+  const target = page.getByRole("button", { name: /^Edit count for men\b/ }).first();
+  await target.click();
+  await expect(page.getByRole("textbox", { name: "Text of count for men", exact: true })).toBeFocused();
+  await page.keyboard.type("30");
+  await page.keyboard.press("Enter");
   expect((await saved(page)).document.nodes[0].count).toEqual({ text: "30", show: "hidden" });
-  await expect(page.getByText(/after the total add up to 78, not 80/)).toBeVisible();
-  await page.getByLabel("Hide count for men", { exact: true }).uncheck();
+  const field = page.getByRole("textbox", { name: "Count for men", exact: true });
+  await expect(field).toHaveValue("30");
+  // A double-click brings the value back from a pupil space.
+  await target.dblclick();
+  expect((await saved(page)).document.nodes[0].count.show).toBe("show");
   await expect(art(page).locator("text", { hasText: /^30$/ })).toHaveCount(1);
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
@@ -46,6 +50,7 @@ test("works out missing counts and calculates a question only on request", async
     await field.fill("");
     await field.press("Enter");
   }
+  await page.getByRole("button", { name: "Work out counts", exact: true }).click();
   await page.getByRole("button", { name: "Work out missing counts" }).click();
   // Men follow from their two branches; the women's branches cannot follow without the women's count.
   expect((await saved(page)).document.nodes.map((b: { count: { text: string } }) => b.count.text)).toEqual(["32", "24", "8", "48", "", ""]);
@@ -54,6 +59,7 @@ test("works out missing counts and calculates a question only on request", async
   await women.press("Enter");
   await page.getByRole("button", { name: "Work out missing counts" }).click();
   expect((await saved(page)).document.nodes[5].count).toEqual({ text: "11", show: "hidden" });
+  await page.getByRole("button", { name: "Questions", exact: true }).click();
   await page.getByRole("button", { name: "Add question" }).click();
   await page.getByText("Groups for calculating").click();
   await page.getByLabel("women, like coffee is in the top", { exact: true }).check();
@@ -66,12 +72,13 @@ test("works out missing counts and calculates a question only on request", async
 
 test("changes the tree's shape from a selected group", async ({ page }) => {
   await boot(page);
-  await page.getByRole("button", { name: "Edit group name for women", exact: true }).click();
+  await page.getByRole("button", { name: /^Edit group name for women\b/ }).first().click();
   await page.getByRole("button", { name: "End the path here" }).click();
   expect((await saved(page)).document.nodes).toHaveLength(4);
   await page.getByRole("button", { name: "Add a branch beside it" }).click();
   expect((await saved(page)).document.nodes).toHaveLength(5);
-  await page.getByLabel("Group names", { exact: true }).selectOption("node");
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
+  await page.getByRole("combobox", { name: "Group names" }).selectOption("node");
   await page.getByLabel("Shape", { exact: true }).selectOption("box");
   const doc = (await saved(page)).document;
   expect([doc.labelPlace, doc.nodeShape]).toEqual(["node", "box"]);
@@ -114,6 +121,7 @@ test("bold lines are saved, printed and undoable; normal lines are not saved (U1
   const art = page.getByTestId("frequency-tree-resource").locator("svg").first();
   const first = async () => Number((await art.innerHTML()).match(/stroke-width="([\d.]+)"/)![1]);
   const normal = await first();
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
   const lines = page.getByLabel("Lines", { exact: true });
   await lines.selectOption("bold");
   await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
@@ -123,4 +131,19 @@ test("bold lines are saved, printed and undoable; normal lines are not saved (U1
   await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
+});
+
+test("what pupils see: a switch per kind, leave out prints nothing in either copy, clearing pupil spaces is one undo step", async ({ page }) => {
+  await boot(page);
+  const counts = page.getByRole("group", { name: "Counts" });
+  await counts.getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page)).document.nodes.every((b: { count: { show: string } }) => b.count.show === "omit")).toBe(true);
+  await page.getByLabel("Teacher copy: show answers").check();
+  await expect(art(page).locator("text", { hasText: /^37$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  await counts.getByRole("button", { name: "Pupil space" }).click();
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect((await saved(page)).document.nodes.every((b: { count: { show: string } }) => b.count.show === "show")).toBe(true);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.nodes.every((b: { count: { show: string } }) => b.count.show === "hidden")).toBe(true);
 });

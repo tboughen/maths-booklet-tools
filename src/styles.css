@@ -88,6 +88,13 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .tool-button, .icon-button { min-height: var(--control-lg); border: 1px solid transparent; border-radius: 8px; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 650; font-size: var(--button-label); line-height: 18px; }
 .tool-button { padding: 0 16px; }
 .icon-button { width: var(--control-lg); flex: 0 0 var(--control-lg); padding: 0; }
+/* Undo and Redo carry their words where the toolbar has room (21 Nov 2026 scoring); icon only below that.
+   The class is repeated to outrank each tool's own icon-button width. */
+.history-word { display: none; }
+@media (min-width: 1600px) {
+  .icon-button.history-button.history-button.history-button { width: auto; flex: none; padding: 0 10px 0 8px; gap: 6px; }
+  .history-button .history-word { display: inline; }
+}
 .tool-button:hover:not(:disabled), .icon-button:hover:not(:disabled) { background: #f0ede7; }
 .equation-tool { margin-left: 3px; color: #4c5259; }
 .reset-button { padding-inline: 12px; color: #7d4b47; white-space: nowrap; }

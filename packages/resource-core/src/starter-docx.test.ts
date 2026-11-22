@@ -71,7 +71,7 @@ describe("Word output for silent starters", () => {
     const { document } = await open(year9Run, "pupil", 1);
     // Word reads a table row by row, so the first copy's labels come in table order: row 1 then row 2.
     const first = document.slice(0, document.indexOf('w:val="dashed"'));
-    const labels = [...first.matchAll(/<w:t xml:space="preserve">([1-6])<\/w:t>/g)].map((m) => m[1]);
+    const labels = [...first.matchAll(/(?<!superscript"\/><\/w:rPr>)<w:t xml:space="preserve">([1-6])<\/w:t>/g)].map((m) => m[1]);
     expect(labels).toEqual(["1", "2", "3", "4", "5", "6"]);
   });
 

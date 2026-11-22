@@ -1,5 +1,5 @@
 // The answers switch of the house style (docs/tools/APP-HOUSE-STYLE.md, choice 6A): it sits in the
-// action bar, reads "Show hidden answers" in every tool, and turns pink while it is on, with a
+// action bar, reads "Show answers" in every tool, and turns pink while it is on, with a
 // small pink label over the corner of the diagram. Pink means teacher only.
 import { test, expect } from "@playwright/test";
 
@@ -15,10 +15,10 @@ for (const tool of [...copies, ...previews])
     const shown = page.locator(".site-page:not([hidden])");
     const stage = shown.locator(".editor-card > .editor-stage");
     await expect(stage).toBeVisible();
-    const name = copies.includes(tool) ? "Teacher copy: show hidden answers" : "Teacher preview: show hidden answers";
+    const name = copies.includes(tool) ? "Teacher copy: show answers" : "Teacher preview: show answers";
     const input = shown.getByRole("checkbox", { name, exact: true });
     const label = shown.locator(".editor-toolbar .editor-view-actions label.answer-switch");
-    await expect(label).toHaveText("Show hidden answers");
+    await expect(label).toHaveText("Show answers");
     await expect(label.locator("input")).toHaveAccessibleName(name);
     await expect(shown.locator(".editor-foot .answer-switch")).toHaveCount(0);
     // It comes before the copy buttons.
@@ -54,7 +54,7 @@ test("on a phone the label wraps inside the card and the switch is a full-height
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/tools/venn");
   const shown = page.locator(".site-page:not([hidden])");
-  await shown.getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true }).check();
+  await shown.getByRole("checkbox", { name: "Teacher copy: show answers", exact: true }).check();
   const card = (await shown.locator(".editor-card").boundingBox())!, chip = (await shown.locator(".answer-chip").boundingBox())!;
   expect(chip.x).toBeGreaterThanOrEqual(card.x);
   expect(chip.x + chip.width).toBeLessThanOrEqual(card.x + card.width);
@@ -81,7 +81,7 @@ for (const tool of ["venn", "number-line"])
 test("the Worksheet builder's switch turns pink without a label, so nothing beside it moves", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/worksheets");
-  const input = page.getByRole("checkbox", { name: "Teacher preview: show hidden answers", exact: true });
+  const input = page.getByRole("checkbox", { name: "Teacher preview: show answers", exact: true });
   await expect(input).toBeVisible();
   const bar = page.locator(".ws-preview-bar").first();
   const before = await bar.boundingBox();

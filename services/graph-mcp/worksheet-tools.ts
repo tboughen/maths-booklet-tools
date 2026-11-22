@@ -348,8 +348,9 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     if (!pupil.issues.length) {
       const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderBooklet(booklet, { view: "answers" }).pages }];
       for (const p of await renderedProblems(raster, copies, doc.title, signal)) {
-        const lesson = pupil.lessonPages.reduce((found, first, i) => (first <= p.page + 1 ? i + 1 : found), 0);
-        pupil.issues.push({ lesson, page: p.page + 1, message: p.message });
+        const onRetrieval = pupil.retrievalPage !== null && p.page + 1 >= pupil.retrievalPage;
+        const lesson = onRetrieval ? 0 : pupil.lessonPages.reduce((found, first, i) => (first <= p.page + 1 ? i + 1 : found), 0);
+        pupil.issues.push({ lesson, ...(onRetrieval ? { retrieval: true } : {}), page: p.page + 1, message: p.message });
       }
     }
     const printReady = pupil.issues.length === 0;
@@ -633,7 +634,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
             tool: "create_booklet",
             rendererVersion: BOOKLET_RENDERER_VERSION,
             layout: BOOKLET_LAYOUT,
-            limits: { lessons: 12, sectionsPerLesson: 20, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
+            limits: { lessons: 16, sectionsPerLesson: 20, cardsPerSection: 16, keyIdeaChars: 500, keywords: 24 },
             sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],
             cardWidthsMm: { full: 186, half: 90.5 },
             outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "a pupil and answers PDF and Word file per lesson", "page previews"],

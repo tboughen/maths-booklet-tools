@@ -109,4 +109,12 @@ describe("sample space diagrams (P-3)", () => {
     expect(s.numberOf("1/-2")).toBeNull();
     expect(s.setCell(blank, "r1", "c1", { text: "1 / 36" }).document.rows[0].cells[0].text).toBe("1/36");
   });
+  it("leaves out a cell in both copies, circle and all, and keeps its value", () => {
+    let e = s.setCell(s.create(["1"], ["2"]), "r1", "c1", { text: "3", ring: "hidden" });
+    e = s.setCell(e, "r1", "c1", { show: "omit" });
+    expect(e.document.rows[0].cells[0]).toEqual({ text: "3", show: "omit", ring: "hidden" });
+    const answers = s.renderSvg(s.forView(e, "answer", true));
+    expect(answers).not.toMatch(/>3<|<ellipse/);
+    expect(s.fillCells(s.setCell(e, "r1", "c1", { text: "" }), "sum").envelope.document.rows[0].cells[0]).toEqual({ text: "3", show: "omit" });
+  });
 });
