@@ -51,6 +51,15 @@ function italicLetters(s: string): string {
   const tokens = s.split(/(\s+)/);
   const words = tokens.map((t, i) => ({ t, i })).filter((w) => w.t && !/^\s+$/.test(w.t));
   const out = [...tokens];
+  // Words naming an event inside P( ) are words, not letters: P(not red), P(red or blue) (rule N16).
+  let inP = false;
+  const eventWord = words.map((w) => {
+    const opens = /(?:^|[^A-Za-z])P\(/.test(w.t) || (!inP && w.t.startsWith("P("));
+    const was = inP || opens;
+    if (opens) inP = !/P\([^)]*\)/.test(w.t.slice(w.t.lastIndexOf("P(")));
+    else if (inP && w.t.includes(")")) inP = false;
+    return was;
+  });
   words.forEach((w, k) => {
     const prev = words[k - 1]?.t ?? "";
     const next = words[k + 1]?.t ?? "";
@@ -67,7 +76,7 @@ function italicLetters(s: string): string {
       return;
     }
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
-    if (/^[a-z]{2,3}$/.test(core) && byOperator && !WORDS.has(core) && !UPRIGHT.has(core)) {
+    if (/^[a-z]{2,3}$/.test(core) && byOperator && !eventWord[k] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
@@ -86,6 +95,7 @@ function italicLetters(s: string): string {
     if (!mathsy) return;
     const body = core.replace(/[a-z]+/g, (run, at: number, whole: string) => {
       if (run.length > 3 || UPRIGHT.has(run)) return run;
+      if (run.length > 1 && /P\([^)]*$/.test(whole.slice(0, at))) return run;
       // Joined to a capital or a longer word (Q3a, 3D): leave it.
       if (/[A-Z]/.test(whole[at - 1] ?? "") || /[A-Z]/.test(whole[at + run.length] ?? "")) return run;
       return `*${run}*`;

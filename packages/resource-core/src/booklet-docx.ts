@@ -506,10 +506,10 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
 }
 
 /** The fold-over retrieval page (N12), as the SVG page draws it: questions, a dashed fold line, then the answers strip. */
-function retrievalPageXml(r: Retrieval, st: HouseStyle): string {
+function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string {
   const R = RETRIEVAL;
   const out: string[] = [];
-  out.push(textPara(r.title, A4.lessonTitle, { color: st.navy, bold: true }), gap(1));
+  out.push(para(titleWordRuns(r.title, { bold: true, color: st.navy, sizeMm: A4.lessonTitle }, maths), { line: lh(A4.lessonTitle), right: -WORD_WRAP_SLACK_MM }), gap(1));
   if (r.instruction.trim()) out.push(textPara(r.instruction, S.body));
   out.push(gap(4));
   const qw = retrievalQuestionWidth();
@@ -620,7 +620,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   }
   const lessonOffset = (numbering?.lessonOffset ?? 0) + lessonShift(doc);
   for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : "page" });
-  if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st), footer: "page" });
+  if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st, doc.notation === "maths"), footer: "page" });
 
   const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
   const footerType = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml";
