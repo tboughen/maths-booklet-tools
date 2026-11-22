@@ -53,13 +53,21 @@ export function prioritiesFor(items: AssessmentItem[], pupil?: Pupil, catalogue?
   // Retain lower priorities until availability and physical fit are known.
   return [...byCode.values()].sort((a, b) => b.weight - a.weight || a.code.localeCompare(b.code)).map(({ code, weight, achieved, references, ceiling }) => ({ code, weight, achieved, references: references.sort((a, b) => questionLabel(a).localeCompare(questionLabel(b), "en", { numeric: true })), ...(ceiling !== undefined ? { ceiling } : {}) }));
 }
-/** National success rate (%) of the assessment question an item came from. */
+/** Measured national success rate (%) of the whole assessment question an item came from.
+ * Estimates from paper position are never used: the ceiling and the class analysis quote
+ * these numbers as national results. */
 export function sourceRate(item: AssessmentItem, catalogue?: BankCatalogue): number | undefined {
   const source = item.questionId ? catalogue?.questions.find(q => q.id === item.questionId) : undefined;
   if (!source || !catalogue) return undefined;
+  const performance = source.performance ?? performanceFor(source, catalogue.paperQuestionCounts?.[source.paperId] ?? originalPaperCount(source.paperId));
+  return performance?.kind === "measured" ? performance.percentage : undefined;
+}
+/** Measured national rate for the item itself: its own part's rate when Pearson gives one, else the whole question's. */
+export function itemRate(item: AssessmentItem, catalogue?: BankCatalogue): number | undefined {
+  const source = item.questionId ? catalogue?.questions.find(q => q.id === item.questionId) : undefined;
+  if (!source || !catalogue) return undefined;
   const part = partRecord(catalogue.partPerformance, source.paperId, source.number, item.label, item.marks);
-  if (part) return part.percentage;
-  return (source.performance ?? performanceFor(source, catalogue.paperQuestionCounts?.[source.paperId] ?? originalPaperCount(source.paperId)))?.percentage;
+  return part ? part.percentage : sourceRate(item, catalogue);
 }
 /** Points of national success rate a follow-up may fall below its ceiling. */
 export const CEILING_TOLERANCE = 3;
@@ -101,14 +109,19 @@ function candidates(catalogue: BankCatalogue, items: AssessmentItem[], prioritie
     if (q.codes.some(code => excluded.has(code)) || !priorities.some(p => q.codes.includes(p.code))) continue;
     groups.set(questionIdentity(q), q);
   }
-  return [...groups.values()].map(q => {
-    const matching = priorities.filter(p => q.codes.includes(p.code));
+  // A question harder than a skill's ceiling is used for that skill only when the bank has
+  // no question at or below the failed level for it (fitting the limits on its own).
+  const harder = (q: BankQuestion, p: Priority) => { const rate = ratePercentage(q, catalogue); return p.ceiling !== undefined && rate !== undefined && rate < p.ceiling - CEILING_TOLERANCE; };
+  const atLevel = new Set(priorities.filter(p => p.ceiling !== undefined && [...groups.values()].some(q => q.codes.includes(p.code) && !harder(q, p) && fits([{ question: q, codes: [p.code], references: [], reason: "" }], settings))).map(p => p.code));
+  return [...groups.values()].flatMap(q => {
+    const matching = priorities.filter(p => q.codes.includes(p.code) && !(atLevel.has(p.code) && harder(q, p)));
+    if (!matching.length) return [];
     const targetedMarks = q.parts.filter(p => p.codes.some(code => matching.some(priority => priority.code === code))).reduce((sum, p) => sum + p.marks, 0);
     const relevance = Math.min(1, targetedMarks / Math.max(1, q.marks));
     const score = matching.reduce((sum, p) => sum + p.weight * accessibility(q, catalogue, profile, p.achieved, p.ceiling), 0) * (.35 + .65 * relevance);
     const ceilings = matching.map(p => p.ceiling).filter((c): c is number => c !== undefined), anchor = ceilings.length ? Math.max(...ceilings) : undefined;
     const anchorNote = anchor === undefined ? "" : `; failed question ${Math.round(anchor)}% nationally`;
-    return { score, practice: { question: q, codes: matching.map(p => p.code), references: [...new Set(matching.flatMap(p => p.references))], reason: `${Math.round(relevance * 100)}% of marks match priorities; ${q.performance ? `${Math.round(q.performance.percentage)}% ${q.performance.kind === "measured" ? "exam average" : "estimated accessibility"}` : "original paper position"}${anchorNote}` } };
+    return [{ score, practice: { question: q, codes: matching.map(p => p.code), references: [...new Set(matching.flatMap(p => p.references))], reason: `${Math.round(relevance * 100)}% of marks match priorities; ${q.performance ? `${Math.round(q.performance.percentage)}% ${q.performance.kind === "measured" ? "exam average" : "estimated accessibility"}` : "original paper position"}${anchorNote}` } }];
   }).sort((a, b) => b.score - a.score || a.practice.question.order - b.practice.question.order || a.practice.question.id.localeCompare(b.practice.question.id));
 }
 function fits(entries: Practice[], settings: Settings): boolean {

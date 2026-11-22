@@ -1,6 +1,6 @@
 import type { BankCatalogue } from "../bank/model";
 import { questionLabel } from "./import";
-import { sourceRate } from "./select";
+import { itemRate } from "./select";
 import type { AssessmentItem, Pupil } from "./types";
 
 /** Results for one class (or the whole sheet) on one question or topic. */
@@ -27,7 +27,7 @@ export function analyseResults(catalogue: BankCatalogue, items: AssessmentItem[]
   const groups = named.length > 1 ? [ALL_GROUPS, ...named] : [ALL_GROUPS];
   const members = (group: string) => group === ALL_GROUPS ? pupils : pupils.filter(p => p.group === group);
   const questions: QuestionAnalysis[] = items.map(item => {
-    const national = sourceRate(item, catalogue), key = questionLabel(item.label), result: Record<string, GroupResult> = {};
+    const national = itemRate(item, catalogue), key = questionLabel(item.label), result: Record<string, GroupResult> = {};
     for (const group of groups) {
       const scores = members(group).map(p => p.scores[key]).filter((s): s is number => s !== null && s !== undefined);
       if (!scores.length) continue;
@@ -71,7 +71,8 @@ export function topicPattern(topic: TopicAnalysis, groups: string[]): "departmen
   return below === classes.length ? "department" : below ? "some classes" : "none";
 }
 
-const cell = (value: string) => `"${value.replace(/"/g, '""')}"`;
+// A leading = + - @ would run as a spreadsheet formula: prefix it with an apostrophe.
+const cell = (value: string) => `"${(/^[=+\-@\t\r]/.test(value) && !/^-?\d/.test(value) ? "'" + value : value).replace(/"/g, '""')}"`;
 const fixed = (n?: number) => n === undefined ? "" : n.toFixed(0);
 export function analysisCsv(analysis: ResultsAnalysis): string {
   const head = ["Sparx code", "Topic", "Strand", "Marks", "National %", ...analysis.groups.flatMap(g => [`${g} %`, `${g} gap`]), "Pattern"];

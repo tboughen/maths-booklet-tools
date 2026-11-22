@@ -122,7 +122,7 @@ export interface Detection { hasHeaders: boolean; identifierColumn: number | nul
 export interface PupilImport extends ImportResult<Pupil> { detection: Detection }
 const identifierHeaders = ["studentidentifier", "identifier", "studentid", "pupilid", "id", "name", "studentname", "pupilname", "student", "pupil", "candidatenumber"];
 /** A class or teaching-group column lets one sheet hold several classes for the department view. */
-const groupHeaders = ["class", "group", "set", "teachinggroup", "classgroup", "teacher"];
+const groupHeaders = ["class", "group", "set", "teachinggroup", "classgroup"];
 const missingScore = (value: string) => !value || /^(absent|missing|na|n\/a|-|a)$/i.test(value);
 export function importPupils(input: string[][], mappings: AssessmentItem[], options: ResultOptions | number = {}): PupilImport {
   const settings: ResultOptions = typeof options === "number" ? { identifier: options } : options;

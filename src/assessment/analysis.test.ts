@@ -4,7 +4,7 @@ import { verifyCatalogue } from "../bank/model";
 import { withPerformance } from "../bank/performance";
 import { importPupils, paperMappings, parseDelimited, questionLabel } from "./import";
 import { ALL_GROUPS, analyseResults, analysisCsv, topicPattern } from "./analysis";
-import { sourceRate } from "./select";
+import { itemRate, sourceRate } from "./select";
 import type { Pupil } from "./types";
 
 const bank = withPerformance(verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json", "utf8"))));
@@ -16,7 +16,7 @@ describe("class analysis", () => {
     const pupils = [pupil("A1", "10X", m => m), pupil("A2", "10X", m => m), pupil("B1", "10Y", () => 0), pupil("B2", "10Y", (m, i) => i < 3 ? m : 0)];
     const result = analyseResults(bank, items, pupils);
     expect(result.groups).toEqual([ALL_GROUPS, "10X", "10Y"]);
-    const q1 = result.questions[0], national = sourceRate(items[0], bank)!;
+    const q1 = result.questions[0], national = itemRate(items[0], bank)!;
     expect(q1.national).toBeCloseTo(national);
     expect(q1.groups["10X"]).toMatchObject({ pupils: 2, percentage: 100 });
     expect(q1.groups["10X"].gap).toBeCloseTo(100 - national);
@@ -31,6 +31,12 @@ describe("class analysis", () => {
     const csv = analysisCsv(analyseResults(bank, items, [pupil("Secret Name", "10X", () => 1)]));
     expect(csv).not.toContain("Secret Name");
     expect(csv.split("\n")[0]).toContain("National %");
+  });
+  it("never quotes an estimated rate as national, and defuses spreadsheet formulas", () => {
+    const mock = bank.questions.find(q => q.paperId.includes("MOCK") && q.performance?.kind !== "measured")!;
+    expect(sourceRate({ label: "Q1", marks: mock.marks, codes: mock.codes, questionId: mock.id }, bank)).toBeUndefined();
+    const csv = analysisCsv(analyseResults(bank, items, [pupil("P1", "=HYPERLINK(1)", m => m), pupil("P2", "10Y", () => 0)]));
+    expect(csv).toContain(`"'=HYPERLINK(1) %"`);
   });
   it("reads a Class column from the marks sheet", () => {
     const head = ["Student", "Class", ...items.slice(0, 2).map(i => i.label)].join("\t");
@@ -48,10 +54,10 @@ describe("part-level national rates", () => {
     const withParts = { ...bank, partPerformance: parts };
     const partItems = paperMappings(bank, "1MA1_JUN_2017_1H", true);
     const item = partItems.find(i => i.label === "Q1a")!;
-    expect(sourceRate(item, withParts)).toBe(parts.questions["1MA1_JUN_2017_1H/1"].a.percentage);
+    expect(itemRate(item, withParts)).toBe(parts.questions["1MA1_JUN_2017_1H/1"].a.percentage);
     expect(Object.keys(parts.grades.H)).toHaveLength(8);
     // Whole-question items keep the question rate.
     const whole = paperMappings(bank, "1MA1_JUN_2017_1H")[0];
-    expect(sourceRate(whole, withParts)).toBe(sourceRate(whole, bank));
+    expect(itemRate(whole, withParts)).toBe(itemRate(whole, bank));
   });
 });

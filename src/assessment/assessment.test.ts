@@ -219,6 +219,22 @@ describe("follow-up difficulty anchored on the failed question", () => {
       expect(pack.warnings.some(w => w.startsWith(entry.question.source))).toBe(true);
     }
   });
+  it("never uses a harder question for a skill that has one at or below the failed level", () => {
+    // One pupil per Higher question, failing only that question: no pack may hold a question
+    // harder than the failed one for a skill whose bank has an at-level question.
+    const higher = paperMappings(bank, "1MA1_NOV_2020_3H");
+    for (const failed of higher.slice(0, 8)) {
+      const pupil: Pupil = { identifier: failed.label, key: failed.label, profile: {}, scores: Object.fromEntries(higher.map(i => [questionLabel(i.label), i === failed ? 0 : i.marks])) };
+      const pack = generateClass(bank, higher, [pupil], { ...defaults, tier: "H" }).packs[0];
+      const ceilings = new Map(prioritiesFor(higher, pupil, bank).filter(p => p.ceiling !== undefined).map(p => [p.code, p.ceiling!]));
+      for (const entry of pack.entries) for (const code of entry.codes) {
+        const ceiling = ceilings.get(code), rate = ratePercentage(entry.question, bank);
+        if (ceiling === undefined || rate === undefined || rate >= ceiling - CEILING_TOLERANCE) continue;
+        const alternative = bank.questions.some(q => q.tier === "H" && !q.revisionUse && q.codes.includes(code) && (ratePercentage(q, bank) ?? -1) >= ceiling - CEILING_TOLERANCE && !higher.some(i => i.questionId === q.id));
+        expect(alternative, `${failed.label} ${entry.question.id} ${code}`).toBe(false);
+      }
+    }
+  });
   it("scores a question harder than the ceiling far below one at the failed level", () => {
     const q = bank.questions.find(q => q.tier === "H")!;
     const at = { ...q, performance: { kind: "measured" as const, percentage: 72 } }, harder = { ...q, performance: { kind: "measured" as const, percentage: 30 } };
