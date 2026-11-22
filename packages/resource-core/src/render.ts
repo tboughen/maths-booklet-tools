@@ -637,16 +637,15 @@ export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "spa
 export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && (other.type === "space" || (other.type === "diagram" && ratioFoot(other) === null));
 
 /**
- * How many shares of spare height a list of items takes: one per working or drawing space, but
- * one for a row of two items (beside) that holds any space, since the row grows once.
- */
-/**
  * A booklet card taller than its own content (a row partner or the page is taller) gives the spare
  * height to its last working space, so the answer line and anything after it ("Check yourself") sit
  * at the bottom of the card and pupils get the most room to work (Tim, 22 Nov 2026, rule N18).
  * Returns null when the card has no working space of its own to grow.
  */
+const GROW_MARGIN = 1;
 export function growLastSpace(c: Card, mm: number): Card | null {
+  // A millimetre stays free at the foot, so Word's rounding never pushes a fixed row taller.
+  mm -= GROW_MARGIN;
   if (!(mm > 0.01)) return null;
   let done = false;
   const grow = (list: Item[]): Item[] => {
@@ -654,7 +653,7 @@ export function growLastSpace(c: Card, mm: number): Card | null {
     for (let i = out.length - 1; i >= 0 && !done; i--) {
       const it = out[i];
       if (it.type === "part") out[i] = { ...it, items: grow(it.items) as typeof it.items };
-      else if (it.type === "space" && !it.beside && !(out[i + 1] as Leaf | undefined)?.beside) {
+      else if (it.type === "space" && it.kind === "working" && !it.beside && !(out[i + 1] as Leaf | undefined)?.beside) {
         out[i] = { ...it, heightMm: it.heightMm + mm };
         done = true;
       }
@@ -665,6 +664,10 @@ export function growLastSpace(c: Card, mm: number): Card | null {
   return done ? { ...c, items } : null;
 }
 
+/**
+ * How many shares of spare height a list of items takes: one per working or drawing space, but
+ * one for a row of two items (beside) that holds any space, since the row grows once.
+ */
 export function countSpaces(list: Item[]): number {
   let c = 0;
   for (let i = 0; i < list.length; i++) {
