@@ -12864,7 +12864,8 @@
                         "type": "string",
                         "enum": [
                           "show",
-                          "hidden"
+                          "hidden",
+                          "omit"
                         ]
                       },
                       "ring": {

@@ -5,7 +5,7 @@
  *
  * Every cell is {text, show, ring?}. Empty text is a pupil blank. A hidden cell keeps its saved
  * answer: the pupil copy leaves it empty and the answers copy prints it in the answer colour. Zero
- * is a value, never a blank. A ringed cell is circled (a chosen outcome) and prints in black and
+ * is a value, never a blank. A left-out cell keeps its value and prints empty in both copies. A ringed cell is circled (a chosen outcome) and prints in black and
  * white. Cells are filled only by fillCells, when the teacher asks.
  */
 import { z } from "zod";
@@ -28,7 +28,8 @@ export type Operation = (typeof OPERATIONS)[number];
 /** The corner sign printed for each arithmetic fill. */
 export const OPERATION_SIGN: Record<Exclude<Operation, "pair">, string> = { sum: "+", product: "×", difference: "−" };
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 const plain = (max: number) =>
   z
     .string()
@@ -179,7 +180,7 @@ export function setCell(e: Envelope, rowId: string, columnId: string, change: { 
     c = cellAt(n.document, rowId, columnId);
   if (change.text !== undefined) c.text = tidy(change.text);
   if (!c.text && change.show === "hidden") throw Error("A blank cell cannot hold a hidden answer. Enter the answer, then hide it.");
-  c.show = c.text ? (change.show ?? c.show) : "show";
+  c.show = c.text || change.show === "omit" ? (change.show ?? c.show) : c.show === "omit" ? "omit" : "show";
   if (change.ring !== undefined) {
     if (change.ring && !c.text) throw Error("A blank cell cannot be circled. Enter the outcome, then circle it.");
     if (change.ring) c.ring = change.ring;
@@ -285,7 +286,8 @@ export function fillCells(e: Envelope, operation: Operation, hidden = false): { 
     r.cells.forEach((c, j) => {
       if (c.text) return;
       c.text = combine(operation, r.heading, d.columns[j].heading);
-      c.show = hidden ? "hidden" : "show";
+      // A left-out cell stays left out once filled.
+      c.show = c.show === "omit" ? "omit" : hidden ? "hidden" : "show";
       filled++;
     });
   if (operation !== "pair" && !d.corner) d.corner = OPERATION_SIGN[operation];
@@ -324,6 +326,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   if (view === "pupil") return e;
   const n = clone(e);
   for (const c of allCells(n.document)) {
+    // A left-out cell stays out of the teacher copy too, circle and all.
+    if (c.show === "omit") continue;
     if (mark && c.show === "hidden" && c.text) REVEALED.add(c);
     if (c.ring === "hidden") {
       c.ring = true;
@@ -433,7 +437,7 @@ export function renderSvg(e: Envelope): string {
   d.rows.forEach((r, i) => r.heading && out.push(cellMarkup(r.heading, mid(g.x[0], g.x[1]), mid(g.y[i + 1], g.y[i + 2]), "black")));
   d.rows.forEach((r, i) =>
     r.cells.forEach((c, j) => {
-      if (!c.text || c.show === "hidden") return;
+      if (!c.text || c.show !== "show") return;
       const cx = mid(g.x[j + 1], g.x[j + 2]),
         cy = mid(g.y[i + 1], g.y[i + 2]),
         fill = REVEALED.has(c) ? ANSWER_COLOUR : "black";
