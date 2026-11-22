@@ -35,6 +35,14 @@ test.describe("question bank: open a paper", () => {
     await expect(page.getByText("Question 4 of", { exact: false })).toBeVisible();
   });
 
+  test("Add whole paper puts every question of a Year 11 revision paper into your paper", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto("/question-bank?paper=1MA1_NOV_2023_2H");
+    await page.locator(".qb-toolbar-actions button[aria-expanded]").click();
+    await page.getByRole("button", { name: "Add whole paper" }).click();
+    await expect(page.getByRole("region", { name: "Your paper" }).getByRole("status").first()).toContainText("21 distinct questions · 80 marks");
+  });
+
   test("a link to a paper that is not in the bank says so", async ({ page }) => {
     await page.goto("/question-bank?paper=1MA1_NOV_2099_2H");
     await expect(page.getByRole("heading", { name: "That paper was not found" })).toBeVisible();

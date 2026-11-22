@@ -120,14 +120,15 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   useEffect(()=>{const menus=()=>Array.from(app.current?.querySelectorAll<HTMLDetailsElement>("details.qb-filters[open], details.qb-more[open]")??[]);const outside=(event:Event)=>{for(const menu of menus())if(!menu.contains(event.target as Node))menu.open=false;};const escape=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;const menu=menus().find(m=>m.contains(document.activeElement));if(!menu)return;event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector("summary")?.focus();};document.addEventListener("pointerdown",outside);document.addEventListener("focusin",outside);document.addEventListener("keydown",escape,true);return()=>{document.removeEventListener("pointerdown",outside);document.removeEventListener("focusin",outside);document.removeEventListener("keydown",escape,true);};},[]);
 
 
-  const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection,crossover:route.crossover,revision:route.revision}),[route.tier,route.calculator,route.collection,route.crossover,route.revision]);
+  // An open paper is shown whole, so your paper counts its Year 11 revision questions while it is open.
+  const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection,crossover:route.crossover,revision:route.paper?"include" as const:route.revision}),[route.tier,route.calculator,route.collection,route.crossover,route.revision,route.paper]);
   const coverage=useMemo(()=>catalogue?catalogueCoverage(catalogue,filters):undefined,[catalogue,filters]);
   const overall=useMemo(()=>catalogue?catalogueCoverage(catalogue,{...emptyRoute,revision:"include"}):undefined,[catalogue]);
   const entries=useMemo(()=>coverage?draftEntries(coverage,draft):[],[coverage,draft]);
   // Questions already in the paper that the hidden Year 11 revision papers now leave out.
   // Questions taken off this paper by hand that would otherwise be on it.
   const removed=useMemo(()=>coverage&&draft.excluded.length?draftEntries(coverage,{...draft,excluded:[]}).length-entries.length:0,[coverage,draft,entries]);
-  const revisionDropped=useMemo(()=>catalogue&&route.revision==="hide"?draftEntries(catalogueCoverage(catalogue,{...filters,revision:"include"}),draft).length-entries.length:0,[catalogue,route.revision,filters,draft,entries]);
+  const revisionDropped=useMemo(()=>catalogue&&filters.revision==="hide"?draftEntries(catalogueCoverage(catalogue,{...filters,revision:"include"}),draft).length-entries.length:0,[catalogue,filters,draft,entries]);
   const included=useMemo(()=>new Set(entries.map(e=>e.key)),[entries]);
   const topicsMode=route.bankView==="topics";
   useEffect(()=>{dispatchDraft({type:"remember",keys:entries.map(e=>e.key)});},[entries]);
