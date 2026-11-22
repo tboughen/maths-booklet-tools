@@ -180,7 +180,8 @@ export function setCell(e: Envelope, rowId: string, columnId: string, change: { 
     c = cellAt(n.document, rowId, columnId);
   if (change.text !== undefined) c.text = tidy(change.text);
   if (!c.text && change.show === "hidden") throw Error("A blank cell cannot hold a hidden answer. Enter the answer, then hide it.");
-  c.show = c.text || change.show === "omit" ? (change.show ?? c.show) : c.show === "omit" ? "omit" : "show";
+  // A blank cell keeps a chosen state (show or left out); an emptied hidden cell becomes a plain space.
+  c.show = change.show ?? (!c.text && c.show === "hidden" ? "show" : c.show);
   if (change.ring !== undefined) {
     if (change.ring && !c.text) throw Error("A blank cell cannot be circled. Enter the outcome, then circle it.");
     if (change.ring) c.ring = change.ring;

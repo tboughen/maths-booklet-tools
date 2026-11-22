@@ -204,12 +204,13 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
   ["/tools/factor-tree", "Trees and answer lines", ["What pupils see"], ["Complete the trees", "Layout"], 2],
   ["/tools/sample-space", "What pupils see", ["What pupils see"], ["Fill the cells", "Layout"], 2],
+  ["/tools/two-way-table", "What pupils see", ["What pupils see"], ["Totals", "Layout"], 2],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -236,8 +237,9 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset), path).toBe(true);
     if (!ONE_COLUMN.has(path)) expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
-    // Sample space keeps every field in a folded group: open one to measure it.
+    // Sample space and two-way tables keep every field in a folded group: open one to measure it.
     if (path === "/tools/sample-space") await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
+    if (path === "/tools/two-way-table") await page.getByRole("button", { name: "Layout", exact: true }).click();
     const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     // Every card in the one column folds (22 Nov 2026), so its headings are the fold rows' 15 px.
@@ -270,7 +272,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(path === "/tools/factor-tree" || path === "/tools/sample-space" ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
@@ -869,7 +871,6 @@ type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
 const SAVED = "Print every saved answer on the pupil copy";
 const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
-  ["Two-way tables", "/tools/two-way-table", "Selected cell", [], ["Totals", "Layout"]],
   ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", [], ["Objects"], { under: ["Layout"] }],
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
   ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps"], { under: ["Layout"] }],

@@ -233,7 +233,8 @@ export function setNode(e: Envelope, treeId: string, nodeId: string, change: { t
     node = nodeOf(treeOf(n.document, treeId), nodeId);
   if (change.text !== undefined) node.value.text = change.text.trim();
   if (!node.value.text && change.show === "hidden") throw Error("A blank number cannot hold a hidden answer. Enter the answer, then hide it.");
-  node.value.show = node.value.text || change.show === "omit" ? (change.show ?? node.value.show) : node.value.show === "omit" ? "omit" : "show";
+  // A blank number keeps a chosen state (show or left out); an emptied hidden number becomes a plain space.
+  node.value.show = change.show ?? (!node.value.text && node.value.show === "hidden" ? "show" : node.value.show);
   if (change.circled !== undefined) {
     if (change.circled) node.circled = change.circled;
     else delete node.circled;

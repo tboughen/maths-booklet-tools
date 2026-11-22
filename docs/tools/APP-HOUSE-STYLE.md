@@ -248,6 +248,11 @@ stays the builders' word for the line after a question.
   and use `touch-action: manipulation` and no text selection, so a double-tap on a board neither
   zooms nor selects. Tools move to this pattern one group at a time; until then the U21 rule (the
   selected object's card comes first) still applies to them.
+- The shared parts live in `src/site/LabelTargets.tsx` (`LabelHit`, `TypingField`, `QuickTip`, `StateTag`,
+  `PupilSpaceHint`) and `src/site/labelTargetHooks.ts` (`useQuickTip`, `useTargetReach`, `useCoarsePointer`).
+  A tool on the pattern drops its Hide ticks, its "Selected …" card and its Show all button.
+- On the pattern (22 Nov 2026, wave 1a): probability, frequency and factor trees, sample space diagrams and
+  two-way tables. Tables keep their entries grid under the drawing for typing many cells in a row.
 
 ### Folding cards and the scroll fade (Tim, 22 Nov 2026)
 
