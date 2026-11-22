@@ -29,7 +29,6 @@ import {
   canonical,
   create,
   DIM_KINDS,
-  hasHidden,
   hitAnchors,
   label as makeLabel,
   layout,
@@ -48,7 +47,6 @@ import {
   validate,
   type Envelope,
   type Label,
-  type LabelState,
   type Place,
   type Solid,
   type SolidsDocument,
@@ -62,17 +60,19 @@ import "../probability-tree/probability-tree.css";
 import "../area/area.css";
 import "../figures/figures.css";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { commonVisibility, TARGET_TIP, TARGET_TIP_SPACE, togglePupilSpace, visibilityStep, visibilityWords, type Visibility } from "../editor-kit/visibility";
+import { houseVisibility, withHouseVisibility } from "../editor-kit/houseLabelVisibility";
+import { Box, Eye, Plus, Printer, Rotate3d } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:solids:v1");
 type View = "pupil" | "answer";
 type Kind = "solid" | "point" | "line" | "dim" | "angle";
-const STATE_NAMES: Record<LabelState, string> = {
-  value: "Given",
-  symbol: "Letter",
-  blank: "Blank (nothing printed)",
-  "answer-line": "Answer line",
-  hidden: "Hidden",
-};
 const TYPE_NAMES: Record<SolidType, string> = { prism: "Prism or cuboid", pyramid: "Pyramid or frustum", cylinder: "Cylinder", cone: "Cone or frustum", sphere: "Sphere", hemisphere: "Hemisphere" };
 const AXIS_NAMES: Record<(typeof AXES)[number], string> = { x: "Across (left to right)", y: "Upwards", z: "Going back" };
 const MARK_NAMES: Record<(typeof MARKS)[number], string> = { none: "No mark", arc: "Arc", right: "Right angle" };
@@ -99,7 +99,9 @@ function initial() {
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMode }: {
+function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMode, onHistory }: {
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   label: string;
   value: string;
   onCommit: (value: string) => boolean | void;
@@ -138,11 +140,13 @@ function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMod
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || refused)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -257,72 +261,69 @@ function parseCorners(text: string): { x: number; y: number }[] | null {
 }
 
 /** The label editor shared by lengths and angles. */
-function LabelFields({ value, isAngle, disabled, onChange, onMessage }: {
+/** A label that says something: a line with nothing typed and no answer is simply unlabelled. */
+const hasLabel = (l: Label) => l.state !== "blank" || !!l.text || !!l.answer;
+
+/** The label editor shared by sides and angles, in the options box: what pupils see, then the words. */
+function LabelFields({ value, isAngle, name, disabled, onChange, onVisibility, onHistory }: {
   value: Label;
   isAngle: boolean;
+  /** What the label is on, for the field's name: "line AB", "angle ABC". */
+  name: string;
   disabled: boolean;
   onChange: (update: (l: Label) => void, step: string) => boolean;
-  onMessage: (text: string) => void;
+  onVisibility: (v: Visibility) => void;
+  onHistory: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
+  const v = houseVisibility(value),
+    space = v === "hidden" && value.state !== "symbol";
   return (
     <>
+      <VisibilitySwitch name="What pupils see" caption="What pupils see" value={v} disabled={disabled} onChange={onVisibility} />
       <div className="pt-fields">
         <label>
-          Label
-          <select
-            aria-label="Label shows"
-            value={value.state}
-            disabled={disabled}
-            onChange={(ev) => {
-              const state = ev.target.value as LabelState;
-              if (state === "value" && value.answer) return onMessage(`A given ${isAngle ? "size" : "length"} prints on both copies, so it cannot keep a saved answer. Clear the saved answer first.`);
-              if ((state === "value" || state === "symbol") && !value.text) return onMessage(state === "value" ? (isAngle ? "Type the size first, such as 35." : "Type the length first, such as 8 cm.") : "Type the letter first, such as x.");
-              onChange((l) => void (l.state = state), "change label");
-            }}
-          >
-            {(Object.keys(STATE_NAMES) as LabelState[]).map((x) => (
-              <option key={x} value={x}>
-                {STATE_NAMES[x]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Text
+          {isAngle ? "Size or letter" : "Length or letter"}
           <DraftField
-            label="Label text"
-            value={value.text}
+            label={`Text of ${name}`}
+            value={space ? value.answer : value.text}
             disabled={disabled}
-            onCommit={(v) =>
+            onHistory={onHistory}
+            onCommit={(t) =>
               onChange((l) => {
-                l.text = v.trim();
+                const x = t.trim();
+                // A pupil space keeps its words as the saved answer; a letter keeps its own text.
+                if (space) {
+                  l.answer = x;
+                  if (!x) l.state = "blank";
+                  return;
+                }
+                // A left-out label keeps what was typed and stays left out; an empty place shows what is typed.
+                const was = l.text;
+                l.text = x;
                 // Typing a size or a letter shows it; clearing it leaves the place blank.
-                if (!l.text && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
-                else if (l.text && l.state === "blank") l.state = /\d/.test(l.text) && !l.answer ? "value" : "symbol";
+                if (!x && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
+                else if (x && l.state === "blank" && !was) l.state = /\d/.test(x) && !l.answer ? "value" : "symbol";
+                else if (x && l.state === "value" && !/\d/.test(x)) l.state = "symbol";
+                else if (x && l.state === "symbol" && /\d/.test(x) && !l.answer) l.state = "value";
               }, "edit label")
             }
           />
         </label>
-        <label>
-          Saved answer
-          <DraftField
-            label="Saved answer (answers copy only)"
-            value={value.answer}
-            disabled={disabled || value.state === "value"}
-            onCommit={(v) =>
-              onChange((l) => {
-                l.answer = v.trim();
-                // An answer on an empty place is hidden from pupils.
-                if (l.answer && l.state === "blank") l.state = "hidden";
-              }, "edit answer")
-            }
-          />
-        </label>
+        {value.state === "symbol" && (
+          <label>
+            Saved answer
+            <DraftField label="Saved answer (answers copy only)" value={value.answer} disabled={disabled} onHistory={onHistory} onCommit={(t) => onChange((l) => void (l.answer = t.trim()), "edit answer")} />
+          </label>
+        )}
       </div>
-      <p className="pt-note">
-        {isAngle ? "Type angle sizes without the degree sign: 35 prints as 35° and x as x°." : "Type lengths with their units (8 cm)."} 1/2 prints as a stacked fraction. A saved answer prints only on the answers copy.
-      </p>
-      {value.state !== "value" && value.answer && <p className="pt-note">The answers copy prints {printed(value, "answer", isAngle).text} here in pink; the pupil copy never shows it.</p>}
+      {space && (
+        <label className="pt-hide">
+          <input type="checkbox" disabled={disabled} checked={value.state === "answer-line"} onChange={(ev) => onChange((l) => void (l.state = ev.target.checked ? "answer-line" : "hidden"), "change pupil space")} />
+          An answer line on the pupil copy
+        </label>
+      )}
+      <p className="pt-note">{isAngle ? "Type angle sizes without the degree sign: 35 prints as 35° and x as x°." : "Type lengths with their units (8 cm)."} 1/2 prints as a stacked fraction.</p>
+      {v === "hidden" && value.answer && <p className="pt-note">The answers copy prints {printed(value, "answer", isAngle).text} here in pink; the pupil copy never shows it.</p>}
     </>
   );
 }
@@ -339,6 +340,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null),
     [adding, setAdding] = useState<{ a: string; b: string; c: string; type: SolidType }>({ a: "", b: "", c: "", type: "cylinder" });
   const file = useRef<HTMLInputElement>(null);
@@ -355,6 +357,19 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
   const pointIds = allPoints.map((p) => p.id);
   const lists = { solid: d.solids, point: allPoints, line: d.lines, dim: d.dims, angle: d.angles } as const;
   const current = selected && lists[split(selected).kind]?.some((x) => x.id === split(selected).id) ? split(selected) : null;
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
+  const allLabels = [...d.dims.map((m) => m.label), ...d.angles.map((a) => a.label)].filter(hasLabel);
+  const spaceCount = allLabels.filter((l) => houseVisibility(l) === "hidden").length;
+  // The box closes when its object goes (a removal, an undo).
+  useEffect(() => {
+    if (boxAnchor && (!current || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, current]);
+  /** Opens the options box for an object, beside what was clicked. */
+  const choose = (key: string, anchor: HTMLElement) => {
+    setSelected(key);
+    setBoxAnchor(anchor);
+  };
   const nameOf = (pid: string) => d.names.find((x) => x.id === pid)?.text || pid;
   const describe = (kind: Kind, id: string) => {
     if (kind === "solid") return `${TYPE_NAMES[d.solids.find((s) => s.id === id)!.type]} ${id}`;
@@ -426,7 +441,10 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
       // U9: Escape deselects; Delete removes the selected object, as one undo step.
       const command = objectKeyCommand(event);
       if (!command || !current || blocked) return;
-      if (command.kind === "deselect") setSelected(null);
+      if (command.kind === "deselect") {
+        setSelected(null);
+        setBoxAnchor(null);
+      }
       else if (command.kind === "delete") {
         event.preventDefault();
         removeObject(current.kind, current.id);
@@ -687,12 +705,44 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
     );
   }
 
+  /** The label on a length or an angle, with what pupils see changed: one undo step, or a message saying what to type. */
+  function setVisibility(kind: Kind, id: string, v: Visibility) {
+    const item = kind === "dim" ? d.dims.find((x) => x.id === id) : kind === "angle" ? d.angles.find((x) => x.id === id) : undefined;
+    if (!item) return false;
+    const next = withHouseVisibility(item.label, v, kind === "angle" ? "the size" : "the length");
+    if (typeof next === "string") {
+      setMessage(next);
+      return false;
+    }
+    return patch((n) => {
+      const x = kind === "dim" ? n.dims.find((m) => m.id === id) : n.angles.find((a) => a.id === id);
+      if (x) x.label = next;
+    }, visibilityStep(v, describe(kind, id).replace(/^./, (c) => c.toLowerCase())));
+  }
+  /** Every label on the drawing at once; one undo step. Lengths and angles with nothing typed stay as they are. */
+  function setAll(v: Visibility, only?: Visibility) {
+    patch((n) => {
+      for (const x of [...n.dims, ...n.angles]) {
+        if (!hasLabel(x.label) || (only && houseVisibility(x.label) !== only)) continue;
+        const next = withHouseVisibility(x.label, v);
+        if (typeof next !== "string") x.label = next;
+      }
+    }, visibilityStep(v, "all labels"));
+  }
   function selectedCard() {
-    if (!current) return <p className="pt-note">Click a length, angle or corner on the drawing, or choose an object above, to change it.</p>;
+    if (!current) return null;
     const { kind, id } = current;
+    const history = (ev: ReactKeyboardEvent<HTMLInputElement>) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true });
     const remove = (
-      <div className="pt-row">
-        <button type="button" disabled={blocked || !removable(kind, id)} onClick={() => removeObject(kind, id)}>
+      <div className="md-options-actions">
+        <button
+          type="button"
+          disabled={blocked || !removable(kind, id)}
+          onClick={() => {
+            removeObject(kind, id);
+            setBoxAnchor(null);
+          }}
+        >
           Remove {kind === "dim" ? "length" : kind}
         </button>
       </div>
@@ -807,7 +857,15 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
               Label in a gap in the arrow
             </label>
           )}
-          <LabelFields value={m.label} isAngle={false} disabled={blocked} onMessage={setMessage} onChange={(update, step) => set((x) => update(x.label), step)} />
+          <LabelFields
+            value={m.label}
+            isAngle={false}
+            name={describe("dim", id).replace(/^./, (c) => c.toLowerCase())}
+            disabled={blocked}
+            onHistory={history}
+            onVisibility={(v) => setVisibility("dim", id, v)}
+            onChange={(update, step) => set((x) => update(x.label), step)}
+          />
           {remove}
         </>
       );
@@ -822,7 +880,15 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
           {labelled("Arm to", pointSelect("Second arm", a.to, (v) => void set((x) => void (x.to = v))))}
           {labelled("Mark", choice("Angle mark", a.mark, MARKS, MARK_NAMES, (v) => void set((x) => void (x.mark = v), "angle mark")))}
         </div>
-        <LabelFields value={a.label} isAngle disabled={blocked} onMessage={setMessage} onChange={(update, step) => set((x) => update(x.label), step)} />
+        <LabelFields
+          value={a.label}
+          isAngle
+          name={describe("angle", id).replace(/^./, (c) => c.toLowerCase())}
+          disabled={blocked}
+          onHistory={history}
+          onVisibility={(v) => setVisibility("angle", id, v)}
+          onChange={(update, step) => set((x) => update(x.label), step)}
+        />
         {remove}
       </>
     );
@@ -832,11 +898,6 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   const anchors = useMemo(() => hitAnchors(e, g), [e, g]);
   const anchorKind = (k: "dim" | "angle" | "point"): Kind => k;
-  const objects: { key: string; text: string }[] = [
-    ...d.solids.map((s) => ({ key: keyOf("solid", s.id), text: describe("solid", s.id) })),
-    ...allPoints.map((p) => ({ key: keyOf("point", p.id), text: `Point ${p.name}` })),
-    ...(["dim", "angle", "line"] as Kind[]).flatMap((kind) => (lists[kind] as { id: string }[]).map((x) => ({ key: keyOf(kind, x.id), text: `${describe(kind, x.id)} (${x.id})` }))),
-  ];
   const v = d.view;
   const setView3 = (next: typeof d.view, step = "turn the view") => patch((n) => void (n.view = next), step);
   return (
@@ -924,20 +985,30 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                   {anchors.map((a) => {
                     const k = keyOf(anchorKind(a.kind), a.id);
                     const marked = a.kind !== "dim" || d.dims.find((x) => x.id === a.id)!.label.state !== "blank";
+                    const own = a.kind === "dim" ? d.dims.find((x) => x.id === a.id)?.label : a.kind === "angle" ? d.angles.find((x) => x.id === a.id)?.label : undefined,
+                      words = own && hasLabel(own) ? visibilityWords(houseVisibility(own)) : "";
                     return (
                       <button
                         key={k}
                         type="button"
                         className={`fig-hit${current && keyOf(current.kind, current.id) === k ? " fig-current" : ""}${marked ? "" : " fig-unmarked"}`}
                         style={{ left: a.at.x * pxPerMm, top: a.at.y * pxPerMm }}
-                        aria-label={`Select ${a.name} (${a.id})`}
+                        aria-label={`Select ${a.name} (${a.id})${words ? `, ${words}` : ""}`}
                         aria-pressed={!!current && keyOf(current.kind, current.id) === k}
+                        aria-haspopup="dialog"
+                        title={own ? (words === "pupil space" ? TARGET_TIP_SPACE : TARGET_TIP) : undefined}
                         disabled={blocked}
-                        onClick={() => setSelected(k)}
+                        onClick={(ev) => choose(k, ev.currentTarget)}
+                        onDoubleClick={() => own && setVisibility(anchorKind(a.kind), a.id, togglePupilSpace(hasLabel(own) ? houseVisibility(own) : "omit"))}
                       />
                     );
                   })}
                 </div>
+                {boxAnchor && current && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={keyOf(current.kind, current.id)} focusField={!coarse} title={describe(current.kind, current.id)} onClose={() => setBoxAnchor(null)}>
+                    {selectedCard()}
+                  </OptionsBox>
+                )}
               </div>
             </div>
             <EditorFoot
@@ -946,7 +1017,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
               scale={fitted.scale}
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={message}
-              hint={<EditorHint tool="solids">Click a length, angle or corner to label or name it. Turn the view under View; hidden edges are dashed for you.</EditorHint>}
+              hint={<EditorHint tool="solids">Click a length, angle or corner to label or name it. Double-click a label for a pupil space. Turn the view under View.</EditorHint>}
             />
             {(issue || g.notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
@@ -961,47 +1032,56 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="3D solid settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="3D solid settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected object">
-              <h2>{current ? describe(current.kind, current.id) : "Selected object"}</h2>
-              <div className="pt-fields">
-                <label className="pt-wide">
-                  Object
-                  <select aria-label="Object to edit" value={current ? keyOf(current.kind, current.id) : ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
-                    <option value="">Choose an object</option>
-                    {objects.map((x) => (
-                      <option key={x.key} value={x.key}>
-                        {x.text}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+            {/* One column (the usability rollout, 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="solids"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Show: the length, size or letter prints on both copies. Pupil space: the pupil copy has nothing there, or an answer line; the answers copy prints the answer in pink. Leave out: nothing prints there on either copy.</p>
+                  <p className="pt-note">Click a length, angle or corner on the drawing to change it.</p>
+                </>
+              }
+            >
+              {(() => {
+                const all = commonVisibility(allLabels.map((l) => houseVisibility(l)));
+                return all && <VisibilitySwitch name="Labels" caption="Labels" value={all} disabled={blocked} onChange={(x) => setAll(x)} />;
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={() => setAll("show", "hidden")}>
+                Double-click a label for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="solids"
+              title="Solids and lines"
+              icon={Box}
+              defaultOpen
+              summary={`${d.solids.length} solid${d.solids.length === 1 ? "" : "s"} · ${d.lines.length} line${d.lines.length === 1 ? "" : "s"}`}
+              help={<p className="pt-note">Solids and extra lines have no label to click on the drawing, so they are listed here. Removing a solid also removes the lengths, lines, angles and points on it; Undo brings them back.</p>}
+            >
+              <div className="pt-row fig-row">
+                {(["solid", "line"] as Kind[]).flatMap((kind) =>
+                  (lists[kind] as { id: string }[]).map((x) => (
+                    <button
+                      key={keyOf(kind, x.id)}
+                      type="button"
+                      aria-haspopup="dialog"
+                      aria-pressed={!!current && keyOf(current.kind, current.id) === keyOf(kind, x.id)}
+                      disabled={blocked}
+                      onClick={(ev) => choose(keyOf(kind, x.id), ev.currentTarget)}
+                    >
+                      {describe(kind, x.id)}
+                    </button>
+                  )),
+                )}
               </div>
-              {selectedCard()}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const l of [...n.dims.map((s) => s.label), ...n.angles.map((a) => a.label)])
-                        if (l.state !== "value" && l.answer) {
-                          l.text = l.answer;
-                          l.state = "value";
-                          l.answer = "";
-                        }
-                    }, "show all")
-                  }
-                >
-                  Print every saved answer on the pupil copy
-                </button>
-              </div>
-            </section>
-            <section className="panel-card pt-panel" aria-label="View">
-              <h2>View</h2>
+            </FoldCard>
+            <FoldCard tool="solids" title="View" icon={Rotate3d} summary={v.type === "oblique" ? "Front face flat" : "Turned and tilted"}>
               <div className="pt-fields">
                 {labelled(
                   "Drawn as",
@@ -1020,11 +1100,8 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" disabled={blocked} checked={d.hidden === "dashed"} onChange={(ev) => patch((n) => void (n.hidden = ev.target.checked ? "dashed" : "none"), "hidden edges")} />
                 Dash the hidden edges (leave them out when unticked)
               </label>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel" aria-label="Add to the drawing">
-              <h2>Add to the drawing</h2>
+            </FoldCard>
+            <FoldCard tool="solids" title="Add to the drawing" icon={Plus} summary={`${d.dims.length} lengths · ${d.angles.length} angles`}>
               <div className="pt-fields">
                 {labelled("First point", pointSelect("First point", addA, (x) => setAdding({ ...adding, a: x })))}
                 {labelled("Second point", pointSelect("Second point", addB, (x) => setAdding({ ...adding, b: x }), pointIds.filter((x) => x !== addA)))}
@@ -1060,9 +1137,24 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
               <p className="pt-note">A new solid goes to the right of the drawing; set its position to stand it on another. One solid does not hide another&apos;s edges, so keep joined solids side by side or stacked.</p>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
+            </FoldCard>
+            <FoldCard
+              tool="solids"
+              title="Printing"
+              icon={Printer}
+              summary={`${d.fontPt ?? 11} pt${d.notToScale ? " · not accurately drawn" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Sizes are in millimetres on the drawing: x across, y up and back going away from you. The labels you type never have to match them, as exam diagrams are not accurately drawn. A teacher note
+                    says when a right-angle mark is far from 90° in the solid or two points share a name.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or PDF if your browser blocks copying, and print at 100% (actual size).
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Text size
@@ -1089,19 +1181,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
                 Print “Diagram NOT accurately drawn”
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Sizes are in millimetres on the drawing: x across, y up and back going away from you. The labels you type never have to match them, as exam diagrams are not accurately drawn. A teacher note
-                  says when a right-angle mark is far from 90° in the solid or two points share a name.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or PDF if your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
