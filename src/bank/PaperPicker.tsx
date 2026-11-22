@@ -21,13 +21,13 @@ export function PaperPicker({catalogue, current, onOpen, label = "Open a paper",
   function submit(event: FormEvent) {event.preventDefault(); if (chosen) onOpen(chosen.id);}
   return <form className="qb-paper-picker" aria-label={label} onSubmit={submit}>
     <span>{label}</span>
-    <select aria-label="Series" value={set} disabled={!papers.length} onChange={e => setSet(e.target.value)}>
+    <select aria-label="Paper series" value={set} disabled={!papers.length} onChange={e => setSet(e.target.value)}>
       <option value="" disabled>Series…</option>
       <optgroup label="Exam series">{group(false)}</optgroup>
       <optgroup label="Mock sets">{group(true)}</optgroup>
     </select>
-    <select aria-label="Paper" value={paper} onChange={e => setPaper(e.target.value)}>{["1", "2", "3"].map(n => <option key={n} value={n}>{PAPER_NAMES[n]}</option>)}</select>
-    <select aria-label="Tier" value={tier} onChange={e => setTier(e.target.value as "F" | "H")}><option value="F">Foundation</option><option value="H">Higher</option></select>
+    <select aria-label="Paper number" value={paper} onChange={e => setPaper(e.target.value)}>{["1", "2", "3"].map(n => <option key={n} value={n}>{PAPER_NAMES[n]}</option>)}</select>
+    <select aria-label="Paper tier" value={tier} onChange={e => setTier(e.target.value as "F" | "H")}><option value="F">Foundation</option><option value="H">Higher</option></select>
     <button className="qb-button" type="submit" disabled={!chosen}>{action}</button>
   </form>;
 }
