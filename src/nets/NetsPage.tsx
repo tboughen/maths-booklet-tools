@@ -643,7 +643,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                                 checked={v?.show === "hidden"}
                                 onChange={(ev) => commit(() => setVertex(e, selected.net, p, { show: ev.target.checked ? "hidden" : "show" }), "pupil space on corner letter")}
                               />
-                              Pupil space
+                              Pupil space{v?.show === "omit" ? " (left out now)" : ""}
                             </label>
                             <label>
                               Edge to {ptName(q)}
@@ -662,7 +662,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                                 checked={len?.show === "hidden"}
                                 onChange={(ev) => commit(() => setEdge(e, selected.net, p, q, { show: ev.target.checked ? "hidden" : "show" }), "pupil space on edge label")}
                               />
-                              Pupil space
+                              Pupil space{len?.show === "omit" ? " (left out now)" : ""}
                             </label>
                           </div>
                         );

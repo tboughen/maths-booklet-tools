@@ -721,13 +721,21 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
   }
   /** Every label on the drawing at once; one undo step. Lengths and angles with nothing typed stay as they are. */
   function setAll(v: Visibility, only?: Visibility) {
+    let skipped = "";
+    let left = 0;
     patch((n) => {
       for (const x of [...n.dims, ...n.angles]) {
         if (!hasLabel(x.label) || (only && houseVisibility(x.label) !== only)) continue;
         const next = withHouseVisibility(x.label, v);
         if (typeof next !== "string") x.label = next;
+        else {
+          skipped ||= next;
+          left++;
+        }
       }
     }, visibilityStep(v, "all labels"));
+    // Say why the switch still reads Mixed, rather than skipping a label without a word.
+    if (left) setMessage(left === 1 ? `One label was left as it was. ${skipped}` : `${left} labels were left as they were, for example: ${skipped}`);
   }
   function selectedCard() {
     if (!current) return null;
@@ -996,6 +1004,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                         aria-label={`Select ${a.name} (${a.id})${words ? `, ${words}` : ""}`}
                         aria-pressed={!!current && keyOf(current.kind, current.id) === k}
                         aria-haspopup="dialog"
+                        data-options-anchor=""
                         title={own ? (words === "pupil space" ? TARGET_TIP_SPACE : TARGET_TIP) : undefined}
                         disabled={blocked}
                         onClick={(ev) => choose(k, ev.currentTarget)}
@@ -1071,6 +1080,7 @@ export default function SolidsPage({ active = true }: { active?: boolean }) {
                       key={keyOf(kind, x.id)}
                       type="button"
                       aria-haspopup="dialog"
+                      data-options-anchor=""
                       aria-pressed={!!current && keyOf(current.kind, current.id) === keyOf(kind, x.id)}
                       disabled={blocked}
                       onClick={(ev) => choose(keyOf(kind, x.id), ev.currentTarget)}

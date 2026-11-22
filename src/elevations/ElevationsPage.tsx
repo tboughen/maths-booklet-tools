@@ -67,6 +67,8 @@ const VIEW_NAMES: Record<ViewKind, string> = { isometric: "Isometric drawing", p
  */
 const PANEL_VISIBILITY: Record<ViewPanel["state"], Visibility> = { drawn: "show", answer: "hidden", blank: "omit" };
 const PANEL_STATE: Record<Visibility, ViewPanel["state"]> = { show: "drawn", hidden: "answer", omit: "blank" };
+/** A panel's own words: Pupil space and Leave out both print an empty grid for pupils. */
+const PANEL_HELP = { hidden: "An empty grid for pupils. The answers copy draws the view.", omit: "An empty grid on both copies, with no answer." };
 
 function initial() {
   const start = openDraft({ key: STORAGE, parse: parseFile, fresh: create, recoveryMessage: "Saved views data needs recovery. Download the original before starting afresh." });
@@ -284,6 +286,10 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
       const [p] = n.panels.splice(i, 1);
       n.panels.splice(i + by, 0, p);
     }, "move panel");
+    // The box follows the panel it was editing to its new place.
+    setSelected(i + by);
+    const hit = document.querySelectorAll<HTMLElement>(".ev-hit")[i + by];
+    if (boxAnchor && hit) setBoxAnchor(hit);
   }
   function changeView(i: number, kind: ViewKind) {
     setPanel(i, (p) => {
@@ -385,6 +391,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                         aria-label={`Edit ${panelName(i)}${words ? `, ${words}` : ""}`}
                         aria-pressed={current === i}
                         aria-haspopup="dialog"
+                        data-options-anchor=""
                         title={q.state === "answer" ? TARGET_TIP_SPACE : TARGET_TIP}
                         disabled={blocked}
                         onClick={(ev) => {
@@ -402,7 +409,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   const fit = q.view === "isometric" ? null : flatView(d, q.view);
                   return (
                     <OptionsBox anchor={boxAnchor} anchorKey={String(i)} focusField={!coarse} title={`Panel ${i + 1}: ${VIEW_NAMES[q.view]}`} onClose={() => setBoxAnchor(null)}>
-                      <VisibilitySwitch name="What pupils see" caption="What pupils see" value={PANEL_VISIBILITY[q.state]} disabled={blocked} onChange={(v) => setVisibility(i, v)} />
+                      <VisibilitySwitch name="What pupils see" caption="What pupils see" help={PANEL_HELP} value={PANEL_VISIBILITY[q.state]} disabled={blocked} onChange={(v) => setVisibility(i, v)} />
                       <div className="pt-fields">
                         <label>
                           Label
@@ -521,6 +528,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                     <VisibilitySwitch
                       name="Panels"
                       caption="Panels"
+                      help={PANEL_HELP}
                       value={all}
                       disabled={blocked}
                       onChange={(v) => patch((n) => n.panels.forEach((q) => (q.state = PANEL_STATE[v])), visibilityStep(v, "all panels"))}
@@ -604,6 +612,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                     key={i}
                     type="button"
                     aria-haspopup="dialog"
+                    data-options-anchor=""
                     aria-pressed={current === i}
                     disabled={blocked}
                     onClick={(ev) => {

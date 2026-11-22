@@ -590,18 +590,22 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                   onPointerMove={(ev) => {
                     if (!drag) return;
-                    dragMoved.current = true;
-                    setDrag({ id: drag.id, ...pointerToDoc(ev) });
+                    const at = pointerToDoc(ev),
+                      p = d.points.find((q) => q.id === drag.id);
+                    // A wobble smaller than the 0.1 cm step is still a click.
+                    if (p && (Math.abs(at.x - p.x) >= 0.1 || Math.abs(at.y - p.y) >= 0.1)) dragMoved.current = true;
+                    setDrag({ id: drag.id, ...at });
                   }}
                   onPointerUp={() => {
-                    if (drag) movePoint(drag.id, drag.x, drag.y);
+                    if (drag && dragMoved.current) movePoint(drag.id, drag.x, drag.y);
                     setDrag(null);
                   }}
                   onPointerCancel={() => setDrag(null)}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(e, view), e, view === "answer") }} />
                   {d.points
-                    .filter((p) => !p.group && (view === "answer" || p.role === "given"))
+                    // An answer point keeps its target in the pupil view (marked as an answer), so its box stays open when it is ticked.
+                    .filter((p) => !p.group)
                     .map((p) => {
                       const at = drag?.id === p.id ? drag : p;
                       return (
@@ -616,14 +620,20 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                           disabled={blocked}
                           onClick={(ev) => {
                             setSelected(p.id);
-                            if (!dragMoved.current) setBoxAnchor(ev.currentTarget);
+                            // A keyboard press (detail 0) always opens the box; a pointer click only when it did not drag.
+                            if (ev.detail === 0 || !dragMoved.current) setBoxAnchor(ev.currentTarget);
+                            dragMoved.current = false;
                           }}
                           onDoubleClick={() => setLabelVisibility(p.id, togglePupilSpace(p.label.show))}
                           style={{ left: px(pageX(at.x) - 2.5, g.width), top: px(pageY(at.y) - 2.5, g.height), width: px(5, g.width), height: px(5, g.height) }}
                           onPointerDown={(ev) => {
                             if (blocked) return;
+                            // Commit any typing in the open box to the point it belongs to, before another point is chosen.
+                            const typing = document.activeElement as HTMLElement | null;
+                            if (typing?.closest(".md-options-box")) typing.blur();
                             ev.preventDefault();
                             setSelected(p.id);
+                            if (boxAnchor && boxAnchor !== ev.currentTarget) setBoxAnchor(ev.currentTarget);
                             dragMoved.current = false;
                             // Captured by the point itself, so a click without a drag still reaches it and opens its options.
                             ev.currentTarget.setPointerCapture?.(ev.pointerId);
@@ -644,7 +654,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 {boxAnchor && selectedPoint && (
                   <OptionsBox anchor={boxAnchor} anchorKey={selectedPoint.id} focusField={!coarse} title={`Point ${pointName(selectedPoint)}`} onClose={() => setBoxAnchor(null)}>
                     <VisibilitySwitch name="Its label" caption="Its label" value={selectedPoint.label.show} disabled={blocked || !selectedPoint.label.text.trim()} onChange={(v) => setLabelVisibility(selectedPoint.id, v)} />
-                    <div className="pt-fields">
+                    <div className="pt-fields" key={selectedPoint.id}>
                       <label>
                         Label
                         <DraftField label="Point label" onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })} value={selectedPoint.label.text} disabled={blocked} maxLength={40} onCommit={(v) => setPointField(selectedPoint.id, (p) => void (p.label.text = v))} />
@@ -812,7 +822,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                       <DraftField label={`Label for ${describe(o)}`} value={o.label.text} disabled={blocked} maxLength={40} onCommit={(v) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { text: string } }).label.text = v))} />
                       <label className="pt-hide">
                         <input type="checkbox" disabled={blocked} checked={o.label.show === "hidden"} onChange={(ev) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { show: string } }).label.show = ev.target.checked ? "hidden" : "show"))} />
-                        Pupil space
+                        {o.label.show === "omit" ? "Pupil space (left out now)" : "Pupil space"}
                       </label>
                     </span>
                   )}

@@ -130,3 +130,26 @@ test("constructions: click a point for its options, double-click for a pupil spa
   // The click targets and the box are never part of the printed artwork.
   expect(await page.getByTestId("construction-resource").locator(".pt-art .md-options-box, .pt-art button").count()).toBe(0);
 });
+
+test("plans and elevations: the options box follows its panel when it moves earlier", async ({ page }) => {
+  await page.goto("/tools/elevations");
+  const panels = async () => (await saved(page, eKey))?.document.panels ?? JSON.parse(eCanonical(eCreate())).document.panels;
+  const second = (await panels())[1];
+  await page.getByRole("button", { name: /^Edit panel 2 / }).click();
+  const box = page.locator(".md-options-box");
+  await box.getByRole("button", { name: "Move panel 2 earlier" }).click();
+  expect((await panels())[0]).toEqual(second);
+  await expect(box).toContainText("Panel 1");
+});
+
+test("constructions: typing in one point's box is kept for that point when another point is pressed", async ({ page }) => {
+  await page.goto("/tools/construction");
+  await page.getByRole("button", { name: /^Select point A / }).click();
+  const box = page.locator(".md-options-box");
+  await box.getByRole("textbox", { name: "Point label" }).fill("P");
+  await page.getByRole("button", { name: /^Select point B / }).click();
+  await expect(box).toContainText("Point B");
+  const points = (await saved(page, cKey)).document.points;
+  expect(points.map((p: { label: { text: string } }) => p.label.text).slice(0, 2)).toEqual(["P", "B"]);
+  await expect(box.getByRole("textbox", { name: "Point label" })).toHaveValue("B");
+});
