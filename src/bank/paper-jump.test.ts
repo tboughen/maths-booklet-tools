@@ -68,6 +68,6 @@ describe("typing a paper into the search box", () => {
     expect(names("2h")[0]).toBe("June 2026 2H");
   });
   it("leaves topic searches alone", () => {
-    for (const text of ["U837", "box plots", "pythagoras", "", "2", "angles in a triangle", "M108"]) expect(names(text), text).toEqual([]);
+    for (const text of ["n", "j", "nu", "U837", "box plots", "pythagoras", "", "2", "angles in a triangle", "M108"]) expect(names(text), text).toEqual([]);
   });
 });

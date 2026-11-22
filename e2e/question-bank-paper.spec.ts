@@ -6,7 +6,9 @@ test.describe("question bank: open a paper", () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/question-bank?code=U151");
     const search = page.getByRole("combobox", { name: "Sparx code, topic or paper" });
+    await expect(page.locator(".qb-topic h1")).toHaveText("Calculating with speed");
     await search.fill("jun 18 1");
+    await expect(search).toHaveValue("jun 18 1");
     const list = page.getByRole("listbox", { name: "Suggestions" });
     await expect(list.getByRole("option")).toHaveCount(2);
     await list.getByRole("option", { name: /June 2018 1H/ }).click();
@@ -37,6 +39,12 @@ test.describe("question bank: open a paper", () => {
     await page.getByRole("button", { name: /Browse all \d+ papers/ }).click();
     const all = page.getByRole("group", { name: "All papers" });
     await expect(all.getByRole("button")).toHaveCount(150);
+    // The keyboard lands in the grid, and Escape returns to the search box.
+    await expect(all.getByRole("button").first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(all).toHaveCount(0);
+    await expect(page.getByRole("combobox", { name: "Sparx code, topic or paper" })).toBeFocused();
+    await page.getByRole("button", { name: /Browse all \d+ papers/ }).click();
     await all.getByRole("button", { name: "Mock Set 6 3F" }).click();
     await expect(page.locator(".qb-topic h1")).toHaveText("Mock Set 6 3F");
   });

@@ -1,4 +1,4 @@
-import { useId, useMemo, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
+import { useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { Search } from "lucide-react";
 import { bankPapers, matchPapers, paperName, type BankCatalogue, type BankListQuestion, type BankTopic } from "./model";
 import { formatCount } from "./format";
@@ -13,7 +13,7 @@ export function BankSearch({catalogue, value, onChange, topics, input, onTopic, 
   catalogue?: BankCatalogue<BankListQuestion>; value: string; onChange: (text: string) => void; topics: BankTopic[];
   input: RefObject<HTMLInputElement | null>; onTopic: (code: string) => void; onPaper: (paperId: string) => void; onFind: () => void;
 }) {
-  const id = useId(), [open, setOpen] = useState(false), [browse, setBrowse] = useState(false), [active, setActive] = useState(-1);
+  const grid = useRef<HTMLDivElement>(null), id = useId(), [open, setOpen] = useState(false), [browse, setBrowse] = useState(false), [active, setActive] = useState(-1);
   const papers = useMemo(() => catalogue ? bankPapers(catalogue) : [], [catalogue]);
   const matched = useMemo(() => matchPapers(papers, value), [papers, value]);
   const options: Option[] = [
@@ -29,31 +29,31 @@ export function BankSearch({catalogue, value, onChange, topics, input, onTopic, 
     else {close(); onFind();}
   }
   function keys(event: KeyboardEvent) {
-    if (event.key === "Escape" && (open || browse)) {event.preventDefault(); close(); return;}
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    if (event.key === "Escape" && (open || browse)) {event.preventDefault(); close(); input.current?.focus(); return;}
+    if (event.target !== input.current || (event.key !== "ArrowDown" && event.key !== "ArrowUp")) return;
     event.preventDefault(); setOpen(true); setBrowse(false);
     const n = options.length, down = event.key === "ArrowDown";
     setActive(i => !n ? -1 : down ? (i + 1) % n : i <= 0 ? n - 1 : i - 1);
   }
   const sets = [...new Set(papers.map(p => p.set))];
   const head = (label: string) => <li role="presentation" className="qb-suggest-head">{label}</li>;
-  return <form onSubmit={submit} className="qb-search-form" onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close();}}>
-    <label className="qb-search"><Search size={18}/><input ref={input} role="combobox" aria-label="Sparx code, topic or paper" aria-expanded={open && !browse} aria-controls={`${id}-list`} aria-autocomplete="list" aria-activedescendant={open && options[active] ? options[active].id : undefined}
-      value={value} placeholder="Sparx code, topic or paper" autoComplete="off" onFocus={() => setOpen(true)} onKeyDown={keys}
+  return <form onSubmit={submit} className="qb-search-form" onKeyDown={keys} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close();}}>
+    <label className="qb-search"><Search size={18}/><input ref={input} role="combobox" aria-label="Sparx code, topic or paper" aria-expanded={open && !browse && options.length > 0} aria-controls={`${id}-list`} aria-autocomplete="list" aria-activedescendant={open && options[active] ? options[active].id : undefined}
+      value={value} placeholder="Sparx code, topic or paper" autoComplete="off" onFocus={() => setOpen(true)}
       onChange={e => {onChange(e.target.value); setOpen(true); setBrowse(false); setActive(-1);}}/></label>
     <button className="qb-button qb-primary" type="submit">Find</button>
     {open && !browse && <div className="qb-suggest">
-      <ul id={`${id}-list`} role="listbox" aria-label="Suggestions">
+      {options.length > 0 && <ul id={`${id}-list`} role="listbox" aria-label="Suggestions">
         {matched.length > 0 && head("Papers")}
         {!matched.length && options.length > 0 && head("Topics")}
         {options.map((option, i) => <li key={option.id} id={option.id} role="option" aria-selected={i === active} className={i === active ? "active" : undefined}
           onMouseDown={e => e.preventDefault()} onClick={() => pick(option)}><b>{option.name}</b><span>{option.detail}</span></li>)}
-      </ul>
-      <button type="button" className="qb-text-button" onMouseDown={e => e.preventDefault()} onClick={() => {setBrowse(true); setActive(-1);}}>Browse all {formatCount(papers.length)} papers…</button>
+      </ul>}
+      <button type="button" className="qb-text-button" onMouseDown={e => e.preventDefault()} onClick={() => {setBrowse(true); setActive(-1); requestAnimationFrame(() => grid.current?.querySelector("button")?.focus());}}>Browse all {formatCount(papers.length)} papers…</button>
     </div>}
-    {browse && <div className="qb-suggest qb-browse" role="group" aria-label="All papers">
+    {browse && <div ref={grid} className="qb-suggest qb-browse" role="group" aria-label="All papers">
       {sets.map(set => <div key={set} className="qb-browse-row"><span>{set}</span>
-        {papers.filter(p => p.set === set).map(p => <button type="button" key={p.id} className="qb-button" aria-label={paperName(p)} onClick={() => {close(); onPaper(p.id);}}>{p.paper}{p.tier}</button>)}
+        {papers.filter(p => p.set === set).map(p => <button type="button" key={p.id} className="qb-button" aria-label={paperName(p)} onMouseDown={e => e.preventDefault()} onClick={() => {close(); onPaper(p.id);}}>{p.paper}{p.tier}</button>)}
       </div>)}
     </div>}
   </form>;

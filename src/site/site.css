@@ -221,7 +221,7 @@ body { background: #f2f5f8; }
 .qb-page-search .qb-search-form { position: relative; }
 .qb-suggest { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; width: min(600px, calc(100vw - 32px)); max-height: min(70vh, 560px); overflow: auto; background: #fff; border: 1px solid #d7dfe8; border-radius: 8px; box-shadow: 0 8px 24px rgba(23, 60, 101, .16); padding: 6px 0; }
 .qb-suggest ul { list-style: none; margin: 0; padding: 0; }
-.qb-suggest li[role=option] { display: flex; justify-content: space-between; gap: 16px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+.qb-suggest li[role=option] { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
 .qb-suggest li[role=option] span { color: #536579; white-space: nowrap; }
 .qb-suggest li[role=option]:hover, .qb-suggest li.active { background: #edf4ff; }
 .qb-suggest-head { padding: 6px 14px; font-size: 12px; font-weight: 600; color: #536579; text-transform: uppercase; letter-spacing: .04em; }

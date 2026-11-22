@@ -440,7 +440,7 @@ export function matchPapers(papers: BankPaper[], text: string): BankPaper[] {
   const take = (pattern: RegExp, apply: (m: RegExpMatchArray) => void) => {const m = rest.match(pattern); if (m) {apply(m); rest = rest.replace(m[0], " ");}};
   take(/\s(?:mock\s*(?:set\s*)?|ms\s*)(\d{1,2})\s/, m => {mock = String(Number(m[1]));});
   take(/\s([123])\s*([fh])\s/, m => {number = m[1]; tier = m[2].toUpperCase();});
-  take(/\s(jun|june|nov|november|j|n)\s*(\d{2}|\d{4})?\s/, m => {month = MONTH_WORDS[m[1]]; if (m[2]) year = m[2].length === 2 ? `20${m[2]}` : m[2];});
+  take(/\s(?:(jun|june|nov|november)\s*(\d{2}|\d{4})?|(j|n)\s*(\d{2}|\d{4}))\s/, m => {const y = m[2] ?? m[4]; month = MONTH_WORDS[m[1] ?? m[3]]; if (y) year = y.length === 2 ? `20${y}` : y;});
   take(/\s(20\d{2})\s/, m => {year = m[1];});
   take(/\spaper\s*([123])\s/, m => {number = m[1];});
   take(/\s(foundation|higher)\s/, m => {tier = m[1][0].toUpperCase();});
