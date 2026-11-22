@@ -218,6 +218,8 @@ const TREES: [string, string, string[], string[], number][] = [
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
+  // One pass per tool on the pattern: allow for the whole list.
+  test.setTimeout(120_000);
   await page.setViewportSize({ width: 1920, height: 1080 });
   for (const [path, selected, left, right] of TREES) {
     await page.goto(path);
@@ -258,6 +260,8 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
 });
 
 test("the tree tools keep one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {
+  // One pass per tool on the pattern: allow for the whole list.
+  test.setTimeout(120_000);
   for (const [path, , left, right, upright] of TREES) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
@@ -966,7 +970,7 @@ test("Bubble method: a tick sits beside its words, and Layout stays reachable ho
   expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
 });
 
-test("Algebra tiles, Function machines and Written methods still fit one screen when they are full", async ({ page }) => {
+test("Algebra tiles, Function machines and Written methods stay usable when they are full", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   const fits = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight);
   const fill = async (name: string) => {
@@ -979,27 +983,29 @@ test("Algebra tiles, Function machines and Written methods still fit one screen 
   await page.locator(".pt-hit").first().click();
   expect(await fits()).toBe(true);
 
+  // Function machines and Written methods are one folding column (22 Nov 2026): a full list may scroll the column, with a fade.
+  const fitsOrFades = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset);
   await page.goto("/tools/function-machine");
   await fill("Add a different machine");
   await fill("Add a box");
-  await page.locator(".pt-hit").first().click();
   expect(await page.locator(".md-kit fieldset.md-kit-group").count()).toBe(3);
-  expect(await fits()).toBe(true);
+  expect(await fitsOrFades()).toBe(true);
 
   // Twelve digits, the most a row holds, give the longest list of small digits: one each and one to carry into.
+  // They sit in the row's options box, which stays inside the window.
   await page.goto("/tools/written-method");
   await page.locator(".pt-hit").first().click();
-  const digits = page.locator("#wm-selected-value");
-  await digits.fill("123456789.123");
-  await digits.press("Enter");
-  await page.locator(".pt-hit").first().click();
-  const small = page.locator(".md-kit .wm-mark input:not([type=checkbox])");
+  await page.keyboard.type("123456789.123");
+  await page.keyboard.press("Enter");
+  const box = page.locator(".md-options-box");
+  const small = box.locator(".wm-mark input:not([type=checkbox])");
   await expect(small).toHaveCount(13);
-  expect(await fits()).toBe(true);
-  // A small digit keeps its narrow field, and a field on its own row has the row to itself.
+  const shown = (await box.boundingBox())!;
+  expect(shown.y + shown.height).toBeLessThanOrEqual(1080);
+  // A small digit keeps its narrow field.
   expect((await small.first().boundingBox())!.width).toBeLessThan(60);
-  const card = (await page.locator('.md-kit .panel-card[aria-label="Selected row"]').boundingBox())!;
-  expect((await digits.boundingBox())!.width).toBeGreaterThan(card.width - 40);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
 
   // Lists side by side share the card evenly and never overlap, at the narrowest two-column window too.
   await page.setViewportSize({ width: 1800, height: 1000 });

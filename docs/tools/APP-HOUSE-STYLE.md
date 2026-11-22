@@ -253,6 +253,8 @@ stays the builders' word for the line after a question.
   A tool on the pattern drops its Hide ticks, its "Selected …" card and its Show all button.
 - On the pattern (22 Nov 2026, wave 1a): probability, frequency and factor trees, sample space diagrams and
   two-way tables. Tables keep their entries grid under the drawing for typing many cells in a row.
+- Wave 1b (22 Nov 2026): spinners, dice and bags; function machines; the bubble method; written methods. A written
+  method's small digits live in its row's options box, with their own What pupils see.
 
 ### Folding cards and the scroll fade (Tim, 22 Nov 2026)
 
