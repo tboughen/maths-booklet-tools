@@ -8133,7 +8133,8 @@
                 "type": "string",
                 "enum": [
                   "show",
-                  "hidden"
+                  "hidden",
+                  "omit"
                 ]
               }
             },
@@ -8176,7 +8177,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8197,7 +8199,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -8259,7 +8262,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -10267,7 +10271,8 @@
                         "type": "string",
                         "enum": [
                           "show",
-                          "hidden"
+                          "hidden",
+                          "omit"
                         ]
                       }
                     },
@@ -10307,7 +10312,8 @@
                       "type": "string",
                       "enum": [
                         "show",
-                        "hidden"
+                        "hidden",
+                        "omit"
                       ]
                     }
                   },
@@ -10491,7 +10497,8 @@
                             "type": "string",
                             "enum": [
                               "show",
-                              "hidden"
+                              "hidden",
+                              "omit"
                             ]
                           }
                         },
@@ -10535,7 +10542,8 @@
                           "type": "string",
                           "enum": [
                             "show",
-                            "hidden"
+                            "hidden",
+                            "omit"
                           ]
                         }
                       },
@@ -12858,7 +12866,8 @@
                         "type": "string",
                         "enum": [
                           "show",
-                          "hidden"
+                          "hidden",
+                          "omit"
                         ]
                       },
                       "ring": {
