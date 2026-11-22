@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { answerRule, at, card, countSpaces, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
+import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap } from "./text";
 import type { FontStyle } from "./metrics";
@@ -324,8 +324,9 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
   keyIdeas(keyIdea).forEach((idea, i) => {
     if (i) y += K.ideaGap;
     const f = keyIdeaLines(idea, tw, maths);
-    // Without a fraction or a power the idea prints exactly as a paragraph always has.
-    const svg = f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
+    // With maths notation on, the idea prints as typeset lines so its letters take the maths serif (N16);
+    // otherwise, without a fraction or a power, it prints exactly as a paragraph always has.
+    const svg = maths || f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
     out.push(at({ h: f.h, svg }, 0, y));
     y += f.h;
   });
@@ -991,7 +992,9 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
         glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${sectionTitle(section)}${c.number !== null ? `, question ${c.number}` : ""}`);
         const natural = card(section.cards[c.index], c.number, c.w, { ...ctx, issues: [] }, extra, 0).h;
-        const f = card(section.cards[c.index], c.number, c.w, ctx, extra, Math.max(0, c.h - natural));
+        const slack = Math.max(0, c.h - natural);
+        const grown = growLastSpace(section.cards[c.index], slack);
+        const f = grown ? card(grown, c.number, c.w, ctx, extra, GROW_MARGIN) : card(section.cards[c.index], c.number, c.w, ctx, extra, slack);
         out.push(at(f, A4.marginX + c.x, yy + c.dy));
       });
     }

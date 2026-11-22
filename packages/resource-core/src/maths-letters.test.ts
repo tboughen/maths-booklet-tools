@@ -47,4 +47,8 @@ describe("maths letters in the exam-style serif italic", () => {
     for (const s of ["P(not red) =", "P(red or blue) =", "P(red)=0.2", "P(red) = 0.2. Work out P(not red).", "P(not red)=0.5", "P(**not** red) ="]) expect(typeset(s).some((r) => r.style === "maths")).toBe(false);
     for (const s of ["2ab = 6", "P(not red)+ab=1", "Find P(red. Then ab = 3", "UP(ab+1)", "P(red) = 0.2 so ab = 3"]) expect(typeset(s).find((r) => r.text === "ab")?.style, s).toBe("maths");
   });
+  it("keeps units upright: rates anywhere, a plain unit after a number or on its own", () => {
+    for (const s of ["(density 1.2\u00a0g/cm³) is", "g/cm³", "a mass of 9 g, so", "speed 30 m/s", "2 kg"]) expect(typeset(s).some((r) => r.style === "maths"), s).toBe(false);
+    for (const s of ["Let m = 5", "find m", "3m + 2", "s = 4", "m", "y = {1/2}h", "**Find** h"]) expect(typeset(s).some((r) => r.style === "maths"), s).toBe(true);
+  });
 });
