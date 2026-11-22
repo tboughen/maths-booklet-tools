@@ -1114,26 +1114,36 @@ export function bookletGaps(saved: Booklet, options: Pick<BookletRenderOptions, 
   const plan = planBooklet(booklet, options);
   const out: BookletGap[] = [];
   const mm = (v: number) => Math.round(v);
-  for (const p of plan.pages) {
+  plan.pages.forEach((p, pi) => {
     const page = p.pageNo + (options.numbering?.pageOffset ?? 0);
+    const next = plan.pages[pi + 1];
+    // The next page cannot lend a card when this is the lesson's last page or the next page opens a cycle (a forced break).
+    const forced = p.last || !next || next.blocks.some((b) => b.kind === "banner" && !b.end);
     const lesson = doc.lessons[p.lesson - 1];
     const bottom = p.blocks.reduce((m, b) => Math.max(m, b.y + b.h), 0);
     const foot = A4.bottom - bottom;
     if (foot > limit)
-      out.push({ lesson: p.lesson, page, kind: "foot", width: W, height: foot, message: `Page ${page} leaves ${mm(foot)} mm empty below its last card (the limit is ${limit} mm). Add a question, give the cards more working space, or move a card up from the next page.` });
+      out.push({ lesson: p.lesson, page, kind: "foot", width: W, height: foot, message: `Page ${page} leaves ${mm(foot)} mm empty below its last card (the limit is ${limit} mm). ${forced ? "Give the cards more working space, set a card wide or tall, or add a question." : "Give the cards more working space, set a card wide or tall, add a question, or move a card up from the next page."}` });
     for (const b of p.blocks) {
       if (b.kind !== "row") continue;
       const section = lesson.sections[b.section];
       const where = { lesson: p.lesson, page, section: b.section + 1, question: b.cards[0].number ?? undefined };
       if (section.columns === 2 && b.shape.kind === "pair" && b.cards.length === 1 && b.h > limit)
-        out.push({ ...where, kind: "beside", width: BOOKLET_WIDTHS.half, height: b.h, message: `Page ${page}: ${b.cards[0].number !== null ? `question ${b.cards[0].number}` : "a card"} stands alone with a ${mm(b.h)} mm tall empty half row beside it. Set the card wide, add a card beside it, or make it tall beside cards that follow.` });
+        out.push({ ...where, kind: "beside", width: BOOKLET_WIDTHS.half, height: b.h, message: `Page ${page}: ${b.cards[0].number !== null ? `question ${b.cards[0].number}` : "a card"} stands alone with a ${mm(b.h)} mm tall empty half row beside it. ${section.cards[b.cards[0].index].tall ? "It is set tall but no cards follow it: add cards after it, or set it wide." : "Set the card wide, add a card beside it, or make it tall beside cards that follow."}` });
       const measure = (i: number, w: number) => card(section.cards[i], b.cards.find((c) => c.index === i)?.number ?? null, w, quiet, p.extra, 0).h;
+      const tall = b.shape.kind === "tall";
+      let stackBlank = 0;
       for (const c of placeRow(section, b, b.h, measure)) {
         const slack = c.h - measure(c.index, c.w);
-        if (slack > limit && !growLastSpace(section.cards[c.index], slack))
-          out.push({ ...where, question: c.number ?? undefined, kind: "inside", width: c.w, height: slack, message: `Page ${page}: ${c.number !== null ? `question ${c.number}` : "a card"} has ${mm(slack)} mm of blank height with no working space to take it. Give the card a working space, or pair it with a card of similar height.` });
+        if (!(slack > 0) || growLastSpace(section.cards[c.index], slack)) continue;
+        if (tall && c.slot > 0) stackBlank += slack;
+        if (slack > limit)
+          out.push({ ...where, question: c.number ?? undefined, kind: "inside", width: c.w, height: slack, message: `Page ${page}: ${c.number !== null ? `question ${c.number}` : "a card"} has ${mm(slack)} mm of blank height that no working space can take (drawing spaces do not grow). ${tall && c.slot > 0 ? "Give the stacked cards working spaces, add cards to the stack, or shorten the tall card." : "Give the card a working space, or pair it with a card of similar height."}` });
       }
+      // Blank shared thinly among a tall card's stack can add up to an empty column.
+      if (tall && stackBlank > limit && !out.some((g) => g.kind === "inside" && g.page === page && b.cards.slice(1).some((c) => (c.number ?? undefined) === g.question)))
+        out.push({ ...where, question: b.cards[1].number ?? undefined, kind: "inside", width: BOOKLET_WIDTHS.half, height: stackBlank, message: `Page ${page}: the cards stacked beside a tall card leave ${mm(stackBlank)} mm blank in all. Give the stacked cards working spaces, add cards to the stack, or shorten the tall card.` });
     }
-  }
+  });
   return out;
 }

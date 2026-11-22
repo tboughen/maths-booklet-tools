@@ -47,7 +47,21 @@ describe("empty space on booklet pages (N21)", () => {
     const gaps = bookletGaps(lesson([{ kind: "practice", columns: 2, cards: [card("Tall", 120), card("Short", null)] }]));
     const inside = gaps.filter((g) => g.kind === "inside");
     expect(inside).toHaveLength(1);
-    expect(inside[0].message).toContain("no working space to take it");
+    expect(inside[0].message).toContain("no working space can take");
+  });
+
+  it("adds up blank shared thinly among the cards stacked beside a tall card", () => {
+    const stack = Array.from({ length: 6 }, (_, i) => card(String(i + 1), null));
+    const gaps = bookletGaps(lesson([{ kind: "practice", columns: 2, cards: [card("Tall", 200, { tall: 6 }), ...stack] }]));
+    const inside = gaps.filter((g) => g.kind === "inside");
+    expect(inside).toHaveLength(1);
+    expect(inside[0].message).toContain("stacked beside a tall card");
+    expect(inside[0].height).toBeGreaterThan(GAP_LIMIT);
+  });
+
+  it("does not tell the last page of a lesson to borrow from the next page", () => {
+    const [foot] = bookletGaps(lesson([{ kind: "practice", columns: 2, cards: [card("A", null), card("B", null)] }]));
+    expect(foot.message).not.toContain("next page");
   });
 
   it("reports nothing at or under the limit", () => {
