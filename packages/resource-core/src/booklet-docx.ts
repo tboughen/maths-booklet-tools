@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { card as measureCard } from "./render";
+import { card as measureCard, growLastSpace } from "./render";
 import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Section } from "./booklet";
 import {
@@ -289,6 +289,9 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
     // A tall row is one table: the tall card merged down the stacked cards' rows and the gaps between them.
     const quiet = { ...ctx, issues: [] };
     const places = placeRow(section, block, block.h, (i, w) => measureCard(section.cards[i], block.cards.find((c) => c.index === i)?.number ?? null, w, quiet, p.extra, 0).h);
+    // The card as printed: spare height in its last working space, as the PDF does (N18).
+    const fit = (c: { index: number; number: number | string | null; w: number; h: number }) =>
+      growLastSpace(section.cards[c.index], c.h - measureCard(section.cards[c.index], c.number, c.w, quiet, p.extra, 0).h) ?? section.cards[c.index];
     const where = (c: { number: number | string | null }) => (ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: p.pageNo });
     const gapCell = () => cell(gap(END_MM), { width: A4.columnGap + CARD_RULE });
     if (block.shape.kind === "tall") {
@@ -303,9 +306,9 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       stack.forEach((c, j) => {
         const last = j === stack.length - 1;
         where(tall);
-        const tallCell = j === 0 ? cardCell(section.cards[tall.index], tall.number, tall.w, ctx, p.extra, "restart") : below(last);
+        const tallCell = j === 0 ? cardCell(fit(tall), tall.number, tall.w, ctx, p.extra, "restart") : below(last);
         where(c);
-        rows.push(row(sides(tallCell, cardCell(section.cards[c.index], c.number, c.w, ctx, p.extra)), { mm: c.h - 2 * CARD_RULE }, true));
+        rows.push(row(sides(tallCell, cardCell(fit(c), c.number, c.w, ctx, p.extra)), { mm: c.h - 2 * CARD_RULE }, true));
         if (!last) rows.push(row(sides(below(false), cell(gap(END_MM), { width: c.w - CARD_RULE })), { mm: A4.rowGap, exact: true }, true));
       });
       // Word must not break the table between its rows: every row but the last keeps with the next.
@@ -324,7 +327,7 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       }
       where(c);
       grid.push(c.w - CARD_RULE);
-      cells.push(cardCell(section.cards[c.index], c.number, c.w, ctx, p.extra));
+      cells.push(cardCell(fit(c), c.number, c.w, ctx, p.extra));
     });
     out.push(table(grid, [row(cells, { mm: block.h - 2 * CARD_RULE }, true)]));
     cursor = block.y + block.h;
