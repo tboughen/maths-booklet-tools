@@ -636,14 +636,15 @@ export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "spa
  */
 export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && (other.type === "space" || (other.type === "diagram" && ratioFoot(other) === null));
 
+/** The free millimetre a grown card keeps at its foot (the card still prints at its full height). */
+export const GROW_MARGIN = 1;
+
 /**
  * A booklet card taller than its own content (a row partner or the page is taller) gives the spare
  * height to its last working space, so the answer line and anything after it ("Check yourself") sit
  * at the bottom of the card and pupils get the most room to work (Tim, 22 Nov 2026, rule N18).
  * Returns null when the card has no working space of its own to grow.
  */
-/** The free millimetre a grown card keeps at its foot (the card still prints at its full height). */
-export const GROW_MARGIN = 1;
 export function growLastSpace(c: Card, mm: number): Card | null {
   // A millimetre stays free at the foot, so Word's rounding never pushes a fixed row taller.
   mm -= GROW_MARGIN;
