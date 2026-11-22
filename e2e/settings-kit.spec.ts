@@ -294,19 +294,17 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
   }
 });
 
-test("Plans and elevations uses the kit: the solid on the left with printing under it, the panels on the right", async ({ page }) => {
+test("Plans and elevations uses the kit: one folding column, the solid and the panels open, printing folded", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/elevations");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const solid = (await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!;
-  const printing = await chartCard(page, "Printing"), panels = await chartCard(page, "Panels");
-  expect(printing.x).toBe(solid.x);
-  expect(printing.y).toBeGreaterThan(solid.y + solid.height);
-  expect(panels.x).toBeGreaterThanOrEqual(solid.x + solid.width);
-  expect(panels.y).toBe(solid.y);
-  // The settings were 1,693 px long before the kit. With four panels they are now about 1,000 px in a 967 px column.
-  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1100);
+  const panels = await chartCard(page, "Panels"), printing = await chartCard(page, "Printing");
+  expect(Math.abs(panels.x - solid.x)).toBeLessThanOrEqual(1);
+  expect(panels.y).toBeGreaterThan(solid.y + solid.height - 1);
+  expect(printing.y).toBeGreaterThan(panels.y);
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The grid of heights stays a small grid, and a square with cubes on it stays marked.
@@ -316,8 +314,7 @@ test("Plans and elevations uses the kit: the solid on the left with printing und
   expect(await filled.boundingBox()).toMatchObject({ height: 32 });
   expect(await filled.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
   expect(await empty.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
-  // The widest solid there can be (six columns) still fits its card at the narrowest two-column window.
-  await page.setViewportSize({ width: 1800, height: 900 });
+  // The widest solid there can be (six columns) still fits its card.
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add a column on the right", exact: true }).click();
   await expect(page.getByRole("button", { name: "Add a column on the right", exact: true })).toBeDisabled();
   const fits = await page.locator(".ev-heights").evaluate((el) => {
@@ -325,16 +322,9 @@ test("Plans and elevations uses the kit: the solid on the left with printing und
     return el.getBoundingClientRect().right <= card.right - parseFloat(cardStyle.paddingRight) - parseFloat(cardStyle.borderRightWidth);
   });
   expect(fits).toBe(true);
-  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.getByRole("button", { name: "Printing", exact: true }).click();
   const sizes = await kitSizes(page);
   expect(sizes).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
-
-  // One column in a smaller window, in the same order.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const [a, b, c] = [(await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!, await chartCard(page, "Panels"), await chartCard(page, "Printing")];
-  expect([b.x, c.x]).toEqual([a.x, a.x]);
-  expect(b.y).toBeGreaterThan(a.y);
-  expect(c.y).toBeGreaterThan(b.y);
 
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });

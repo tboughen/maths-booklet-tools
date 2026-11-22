@@ -66,6 +66,26 @@ test("plans and elevations: edits the solid, adds a panel and undoes", async ({ 
   expect(await saved(page, eKey)).toEqual(JSON.parse(eCanonical(eCreate())));
 });
 
+test("plans and elevations: click a panel for its options, double-click for a pupil space, and leave every panel out in one step", async ({ page }) => {
+  await page.goto("/tools/elevations");
+  const state = async (i: number) => (await saved(page, eKey)).document.panels[i].state;
+  const first = page.getByRole("button", { name: /^Edit panel 1 / });
+  await first.click();
+  const box = page.locator(".md-options-box");
+  await expect(box).toContainText("Panel 1");
+  await box.getByRole("group", { name: "What pupils see" }).getByRole("button", { name: "Show" }).click();
+  expect(await state(0)).toBe("drawn");
+  await page.keyboard.press("Escape");
+  await first.dblclick();
+  expect(await state(0)).toBe("answer");
+  await page.getByRole("group", { name: "Panels", exact: true }).getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page, eKey)).document.panels.every((p: { state: string }) => p.state === "blank")).toBe(true);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(await state(0)).toBe("answer");
+  // The click targets are never part of the printed artwork.
+  expect(await page.getByTestId("elevations-resource").locator("svg button, svg .ev-hit").count()).toBe(0);
+});
+
 test("plans and elevations: refuses to remove the last cube and keeps one size on both copies", async ({ page }) => {
   await page.goto("/tools/elevations");
   await page.getByRole("button", { name: "Remove the back row" }).click();

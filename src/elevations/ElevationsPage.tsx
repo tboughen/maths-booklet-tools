@@ -28,7 +28,6 @@ import {
   cubeCount,
   DEFAULT_LABELS,
   flatView,
-  hasHidden,
   layout,
   MAX_HEIGHT,
   MAX_PANELS,
@@ -49,12 +48,25 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./elevations.css";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { commonVisibility, TARGET_TIP, TARGET_TIP_SPACE, togglePupilSpace, visibilityStep, visibilityWords, type Visibility } from "../editor-kit/visibility";
+import { Boxes, Eye, LayoutGrid, Printer } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:elevations:v1");
 type Doc = Envelope["document"];
 type View = "pupil" | "answer";
 const VIEW_NAMES: Record<ViewKind, string> = { isometric: "Isometric drawing", plan: "Plan", front: "Front elevation", side: "Side elevation" };
-const STATE_NAMES: Record<ViewPanel["state"], string> = { drawn: "Drawn on both copies", blank: "Blank for pupils (no answer)", answer: "Blank for pupils, drawn on the answer copy" };
+/**
+ * What pupils see of a panel (wave 1d, 22 Nov 2026): Show draws it on both copies; Pupil space is an empty grid
+ * for pupils, drawn on the answers copy; Leave out is an empty grid on both copies (no answer).
+ */
+const PANEL_VISIBILITY: Record<ViewPanel["state"], Visibility> = { drawn: "show", answer: "hidden", blank: "omit" };
+const PANEL_STATE: Record<Visibility, ViewPanel["state"]> = { show: "drawn", hidden: "answer", omit: "blank" };
 
 function initial() {
   const start = openDraft({ key: STORAGE, parse: parseFile, fresh: create, recoveryMessage: "Saved views data needs recovery. Download the original before starting afresh." });
@@ -62,7 +74,9 @@ function initial() {
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inputMode, className }: {
+function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inputMode, className, onHistory }: {
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   id?: string;
   label: string;
   value: string;
@@ -96,11 +110,13 @@ function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inpu
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && draft !== value) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -123,8 +139,12 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     [view, setView] = useState<View>("pupil"),
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
-    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null),
+    [selected, setSelected] = useState<number | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null);
   const file = useRef<HTMLInputElement>(null);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
   const e = history.present,
     d = e.document,
     g = layout(e, view),
@@ -134,6 +154,13 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const rows = d.heights.length,
     cols = d.heights[0].length;
+  const current = selected !== null && selected < d.panels.length ? selected : null;
+  const spaceCount = d.panels.filter((q) => q.state === "answer").length + d.panels.filter((q) => q.label.show === "hidden").length;
+  // The box closes when its panel goes (a removal, an undo).
+  useEffect(() => {
+    if (boxAnchor && (current === null || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, current]);
+  const panelName = (i: number) => `panel ${i + 1} (${VIEW_NAMES[d.panels[i].view].toLowerCase()})`;
 
   function commit(next: Envelope | null | (() => Envelope), label?: string) {
     if (recovery !== null || !next) return false;
@@ -178,7 +205,8 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      handleUndoKeys(event, { undo, redo });
+      if (handleUndoKeys(event, { undo, redo })) return;
+      if (event.key === "Escape" && current !== null && !boxAnchor) setSelected(null);
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -246,6 +274,10 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
   function addPanel(kind: ViewKind) {
     if (d.panels.length >= MAX_PANELS) return setMessage(`Use at most ${MAX_PANELS} panels.`);
     patch((n) => void n.panels.push(makePanel(kind, "answer")), `add ${VIEW_NAMES[kind].toLowerCase()}`);
+  }
+  /** What pupils see of one panel's drawing: one undo step. */
+  function setVisibility(i: number, v: Visibility) {
+    return setPanel(i, (q) => void (q.state = PANEL_STATE[v]), visibilityStep(v, panelName(i)));
   }
   function movePanel(i: number, by: number) {
     patch((n) => {
@@ -341,7 +373,110 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(e, view), e, view === "answer") }} />
+                  {g.placed.map(({ x, y, p: q, b }, i) => {
+                    const pxPerMm = (96 / 25.4) * fitted.scale,
+                      words = visibilityWords(PANEL_VISIBILITY[q.state]);
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        className={`ev-hit${current === i ? " ev-current" : ""}`}
+                        style={{ left: (x + g.margin) * pxPerMm, top: (y + g.margin) * pxPerMm, width: b.width * pxPerMm, height: (b.height + (q.label.text.trim() ? 6 : 0)) * pxPerMm }}
+                        aria-label={`Edit ${panelName(i)}${words ? `, ${words}` : ""}`}
+                        aria-pressed={current === i}
+                        aria-haspopup="dialog"
+                        title={q.state === "answer" ? TARGET_TIP_SPACE : TARGET_TIP}
+                        disabled={blocked}
+                        onClick={(ev) => {
+                          setSelected(i);
+                          setBoxAnchor(ev.currentTarget);
+                        }}
+                        onDoubleClick={() => setVisibility(i, togglePupilSpace(PANEL_VISIBILITY[q.state]))}
+                      />
+                    );
+                  })}
                 </div>
+                {boxAnchor && current !== null && (() => {
+                  const i = current,
+                    q = d.panels[i];
+                  const fit = q.view === "isometric" ? null : flatView(d, q.view);
+                  return (
+                    <OptionsBox anchor={boxAnchor} anchorKey={String(i)} focusField={!coarse} title={`Panel ${i + 1}: ${VIEW_NAMES[q.view]}`} onClose={() => setBoxAnchor(null)}>
+                      <VisibilitySwitch name="What pupils see" caption="What pupils see" value={PANEL_VISIBILITY[q.state]} disabled={blocked} onChange={(v) => setVisibility(i, v)} />
+                      <div className="pt-fields">
+                        <label>
+                          Label
+                          <DraftField label={`Panel ${i + 1} label`} onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })} value={q.label.text} disabled={blocked} onCommit={(v) => setPanel(i, (x) => void (x.label.text = v), "edit label")} />
+                        </label>
+                        <label>
+                          View
+                          <select aria-label={`Panel ${i + 1} view`} value={q.view} disabled={blocked} onChange={(ev) => changeView(i, ev.target.value as ViewKind)}>
+                            {VIEWS.map((v) => (
+                              <option key={v} value={v}>
+                                {VIEW_NAMES[v]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        {q.view !== "isometric" && q.state !== "drawn" && (
+                          <label>
+                            Grid size
+                            <select
+                              aria-label={`Panel ${i + 1} grid size`}
+                              value={q.squares.across ? `${q.squares.across}x${q.squares.up}` : "fit"}
+                              disabled={blocked}
+                              onChange={(ev) =>
+                                setPanel(i, (x) => {
+                                  const [a, u] = ev.target.value === "fit" ? [0, 0] : ev.target.value.split("x").map(Number);
+                                  x.squares = { across: a, up: u };
+                                }, "change grid size")
+                              }
+                            >
+                              <option value="fit">Fit the view, one square spare</option>
+                              {[4, 6, 8, 10]
+                                .concat(q.squares.across || [])
+                                .filter((v, k, a) => a.indexOf(v) === k)
+                                .sort((a, b) => a - b)
+                                .map((v) => (
+                                  <option key={v} value={`${v}x${q.squares.up && q.squares.across === v ? q.squares.up : v}`}>
+                                    {v} by {q.squares.up && q.squares.across === v ? q.squares.up : v} squares
+                                  </option>
+                                ))}
+                            </select>
+                          </label>
+                        )}
+                      </div>
+                      {fit && q.state !== "drawn" && q.squares.across > 0 && (q.squares.across < fit.across || q.squares.up < fit.up) && (
+                        <p className="pt-note">This grid is smaller than the view ({fit.across} by {fit.up} squares).</p>
+                      )}
+                      <label className="pt-hide">
+                        <input type="checkbox" disabled={blocked || !q.label.text.trim()} checked={q.label.show === "hidden"} onChange={(ev) => setPanel(i, (x) => void (x.label.show = ev.target.checked ? "hidden" : "show"), "hide label")} />
+                        Hide the label for pupils
+                      </label>
+                      <p className="pt-note">Pupil space: an empty grid for pupils, drawn on the answers copy. Leave out: an empty grid on both copies.</p>
+                      <div className="md-options-actions">
+                        <button type="button" aria-label={`Move panel ${i + 1} earlier`} disabled={blocked || i === 0} onClick={() => movePanel(i, -1)}>
+                          Earlier
+                        </button>
+                        <button type="button" aria-label={`Move panel ${i + 1} later`} disabled={blocked || i === d.panels.length - 1} onClick={() => movePanel(i, 1)}>
+                          Later
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Remove panel ${i + 1}`}
+                          disabled={blocked || d.panels.length <= 1}
+                          onClick={() => {
+                            patch((n) => void n.panels.splice(i, 1), "remove panel");
+                            setBoxAnchor(null);
+                            setSelected(null);
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </OptionsBox>
+                  );
+                })()}
               </div>
             </div>
             <EditorFoot
@@ -351,7 +486,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={message}
               hint={
-                <EditorHint tool="elevations">Change the solid and the views in the settings; the drawing updates as you go.</EditorHint>
+                <EditorHint tool="elevations">Click a panel to change it. Double-click it for a pupil space. Change the solid in the settings.</EditorHint>
               }
             >
             </EditorFoot>
@@ -368,12 +503,47 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Plans and elevations settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Plans and elevations settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="The solid">
-              <h2>The solid ({cubeCount(d)} cubes)</h2>
+            {/* One column (the usability rollout, 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="elevations"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={<p className="pt-note">Show: the view is drawn on both copies. Pupil space: an empty grid for pupils, drawn on the answers copy. Leave out: an empty grid on both copies, with no answer.</p>}
+            >
+              {(() => {
+                const all = commonVisibility(d.panels.map((q) => PANEL_VISIBILITY[q.state]));
+                return (
+                  all && (
+                    <VisibilitySwitch
+                      name="Panels"
+                      caption="Panels"
+                      value={all}
+                      disabled={blocked}
+                      onChange={(v) => patch((n) => n.panels.forEach((q) => (q.state = PANEL_STATE[v])), visibilityStep(v, "all panels"))}
+                    />
+                  )
+                );
+              })()}
+              <PupilSpaceHint
+                count={spaceCount}
+                disabled={blocked}
+                onClear={() =>
+                  patch((n) => {
+                    for (const q of n.panels) {
+                      if (q.state === "answer") q.state = "drawn";
+                      q.label.show = "show";
+                    }
+                  }, "show all")
+                }
+              >
+                Double-click a panel for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="elevations" title="The solid" icon={Boxes} defaultOpen summary={`${cubeCount(d)} cubes`}>
               <p className="pt-note">Seen from above: each square is a stack of cubes. The front of the solid is at the bottom of this grid.</p>
               <table className="ev-heights">
                 <tbody>
@@ -419,92 +589,32 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   Remove the right column
                 </button>
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel" aria-label="Panels">
-              <h2>Panels</h2>
-              <p className="pt-note">Panels print left to right in this order. An answer panel is an empty grid for pupils and is drawn on the answer copy.</p>
-              {d.panels.map((p, i) => {
-                const fit = p.view === "isometric" ? null : flatView(d, p.view);
-                return (
-                  <div key={i} className="ev-panel">
-                    <div className="pt-fields">
-                      <label>
-                        View
-                        <select aria-label={`Panel ${i + 1} view`} value={p.view} disabled={blocked} onChange={(ev) => changeView(i, ev.target.value as ViewKind)}>
-                          {VIEWS.map((v) => (
-                            <option key={v} value={v}>
-                              {VIEW_NAMES[v]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Shows
-                        <select aria-label={`Panel ${i + 1} state`} value={p.state} disabled={blocked} onChange={(ev) => setPanel(i, (q) => void (q.state = ev.target.value as ViewPanel["state"]), "change panel")}>
-                          {(["drawn", "answer", "blank"] as const).map((s) => (
-                            <option key={s} value={s}>
-                              {STATE_NAMES[s]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Label
-                        <DraftField label={`Panel ${i + 1} label`} value={p.label.text} disabled={blocked} onCommit={(v) => setPanel(i, (q) => void (q.label.text = v), "edit label")} />
-                      </label>
-                      {p.view !== "isometric" && p.state !== "drawn" && (
-                        <label>
-                          Grid size
-                          <select
-                            aria-label={`Panel ${i + 1} grid size`}
-                            value={p.squares.across ? `${p.squares.across}x${p.squares.up}` : "fit"}
-                            disabled={blocked}
-                            onChange={(ev) =>
-                              setPanel(i, (q) => {
-                                const [a, u] = ev.target.value === "fit" ? [0, 0] : ev.target.value.split("x").map(Number);
-                                q.squares = { across: a, up: u };
-                              }, "change grid size")
-                            }
-                          >
-                            <option value="fit">Fit the view, one square spare</option>
-                            {[4, 6, 8, 10]
-                              .concat(p.squares.across || [])
-                              .filter((v, k, a) => a.indexOf(v) === k)
-                              .sort((a, b) => a - b)
-                              .map((v) => (
-                                <option key={v} value={`${v}x${p.squares.up && p.squares.across === v ? p.squares.up : v}`}>
-                                  {v} by {p.squares.up && p.squares.across === v ? p.squares.up : v} squares
-                                </option>
-                              ))}
-                          </select>
-                        </label>
-                      )}
-                    </div>
-                    {fit && p.state !== "drawn" && p.squares.across > 0 && (p.squares.across < fit.across || p.squares.up < fit.up) && (
-                      <p className="pt-note">This grid is smaller than the view ({fit.across} by {fit.up} squares).</p>
-                    )}
-                    <div className="pt-row">
-                      <label className="pt-hide">
-                        <input type="checkbox" disabled={blocked || !p.label.text.trim()} checked={p.label.show === "hidden"} onChange={(ev) => setPanel(i, (q) => void (q.label.show = ev.target.checked ? "hidden" : "show"), "hide label")} />
-                        Hide the label for pupils
-                      </label>
-                    </div>
-                    <div className="pt-row">
-                      <button type="button" aria-label={`Move panel ${i + 1} earlier`} disabled={blocked || i === 0} onClick={() => movePanel(i, -1)}>
-                        Earlier
-                      </button>
-                      <button type="button" aria-label={`Move panel ${i + 1} later`} disabled={blocked || i === d.panels.length - 1} onClick={() => movePanel(i, 1)}>
-                        Later
-                      </button>
-                      <button type="button" aria-label={`Remove panel ${i + 1}`} disabled={blocked || d.panels.length <= 1} onClick={() => patch((n) => void n.panels.splice(i, 1), "remove panel")}>
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+            </FoldCard>
+            <FoldCard
+              tool="elevations"
+              title="Panels"
+              icon={LayoutGrid}
+              defaultOpen
+              summary={`${d.panels.length} panel${d.panels.length === 1 ? "" : "s"}`}
+              help={<p className="pt-note">Panels print left to right in this order. Click a panel on the drawing, or its name here, to change it.</p>}
+            >
+              <div className="pt-row fig-row">
+                {d.panels.map((q, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-pressed={current === i}
+                    disabled={blocked}
+                    onClick={(ev) => {
+                      setSelected(i);
+                      setBoxAnchor(ev.currentTarget);
+                    }}
+                  >
+                    {i + 1}. {VIEW_NAMES[q.view]}
+                  </button>
+                ))}
+              </div>
               <div className="pt-row">
                 {VIEWS.map((v) => (
                   <button key={v} type="button" disabled={blocked || d.panels.length >= MAX_PANELS} onClick={() => addPanel(v)}>
@@ -512,11 +622,25 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   </button>
                 ))}
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
+            </FoldCard>
+            <FoldCard
+              tool="elevations"
+              title="Printing"
+              icon={Printer}
+              summary={`${d.unitCm} cm cubes`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Plans and elevations follow the exam convention: the outline, with a line wherever the solid steps in height or depth. A blank
+                    isometric panel is plain space for pupils to sketch the solid, as in the papers.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or
+                    PDF if your browser blocks copying, and print at 100% (actual size).
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Cube edge on the grids
@@ -545,36 +669,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 <input type="checkbox" disabled={blocked} checked={d.isoDots} onChange={(ev) => patch((n) => void (n.isoDots = ev.target.checked))} />
                 Isometric dots behind the drawing
               </label>
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const p of n.panels) {
-                        if (p.state === "answer") p.state = "drawn";
-                        p.label.show = "show";
-                      }
-                    }, "show all")
-                  }
-                >
-                  Show every answer on the pupil copy
-                </button>
-              </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Plans and elevations follow the exam convention: the outline, with a line wherever the solid steps in height or depth. A blank
-                  isometric panel is plain space for pupils to sketch the solid, as in the papers.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the drawing; preview zoom never changes it. Download PNG (600 ppi) or
-                  PDF if your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
