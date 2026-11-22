@@ -182,7 +182,7 @@ For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet
 whole booklet; `worksheet_capabilities` lists its layout and section kinds. A booklet is used
 with the teaching (a worksheet follows it), so give every lesson: a one-sentence key idea; a
 check in on its prerequisites first; worked example beside a blank "Our turn"; "Your turn" with
-help fading; lettered mini-whiteboard diagnostic questions AND an explain-or-correct card for
+help fading; lettered multiple choice questions AND an explain-or-correct card for
 each named misconception; practice with at least three unaided questions per case; a short
 "From earlier" strip; a challenge; and an exam-style page in Edexcel wording with marks, as its
 description sets out. Use the school's method, named the same way, wherever the skill returns,

@@ -87,7 +87,7 @@ The prompt asks for, in order:
 4. Worked example beside Our turn, with the same numbered steps (a four-step method such as table,
    coordinates, plot, join where it fits). Our turn keeps the step labels and leaves the work blank.
 5. Your turn: near-identical questions with the same pre-drawn diagram or empty table, help fading.
-6. Multiple choice questions (the section heading; never "mini whiteboard"): A to D, each wrong option built on one
+6. Multiple choice questions, with no instruction line: A to D, each wrong option built on one
    named misconception.
 7. Practice that fades (support given, then bare, then a changed presentation, then reasoning), with
    at least three unaided questions for every case the lesson names.

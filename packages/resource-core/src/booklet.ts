@@ -6,7 +6,7 @@ import { withFields } from "../../envelope-core/src/errors";
  * An A4 portrait unit booklet in reading order, the shape of the department's lesson booklets
  * (A07 and its siblings): a cover with contents, an optional unit introduction, then one lesson
  * per objective. Each lesson opens on a new page with its key idea, then runs through sections:
- * check-in, worked example beside "your turn", practice, mini-whiteboard diagnostics, spot the
+ * check-in, worked example beside "your turn", practice, multiple choice questions, spot the
  * mistake and a challenge. Sections hold the same question cards as worksheets, so every item
  * type, diagram family and answer state means exactly what it means on an A3 sheet.
  *

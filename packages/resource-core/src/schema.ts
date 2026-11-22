@@ -136,7 +136,7 @@ const leafItems = [
       beside,
       /**
        * circle: options on one row, pupil circles one. tick: one box per option, stacked.
-       * letters: lettered options A, B, C… for mini-whiteboard hinge questions.
+       * letters: lettered options A, B, C… for multiple choice hinge questions.
        */
       mode: z.enum(["circle", "tick", "letters"]),
       options: z.array(text(120)).min(2).max(5),
