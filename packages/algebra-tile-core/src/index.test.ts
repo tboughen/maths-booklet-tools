@@ -118,6 +118,21 @@ describe("algebra tiles", () => {
     expect(layout(hidden).height).toBe(layout(forView(hidden, "answer")).height);
   });
 
+  it("leaves a term or line out of both copies, and filling keeps it out", () => {
+    const blank = setItem(create("x + 1"), "answer", {});
+    const out = setItem(blank, "answer", { show: "omit" });
+    expect(out.document.answer).toEqual({ text: "", show: "omit" });
+    // No dotted answer line on either copy.
+    expect(renderSvg(out)).not.toBe(renderSvg(blank));
+    expect(renderSvg(forView(out, "answer", true))).toBe(renderSvg(out));
+    // Collecting fills the answer but it stays left out.
+    const filled = collect(out).envelope;
+    expect(filled.document.answer).toMatchObject({ show: "omit" });
+    expect(renderSvg(forView(filled, "answer", true))).not.toContain(ANSWER_COLOUR);
+    const gone = setTerm(create("x + 1"), "t1", { show: "omit" });
+    expect(renderSvg(forView(gone, "answer", true))).not.toContain(ANSWER_COLOUR);
+  });
+
   it("hidden answers take the same room on both copies", () => {
     const e = collect(setItem(create("3a + 2b + a − b", ab), "expression", { text: "3a + 2b + a − b" })).envelope;
     const p = layout(e),

@@ -729,7 +729,7 @@ export function renderSvg(e: Envelope): string {
     out.push(`<rect x="${num(x)}" y="${num(y)}" width="${num(w)}" height="${num(h)}" rx="${num(Math.min(4, w / 2))}" fill="none" stroke="${ringInk}" stroke-width="0.4" stroke-dasharray="1.6 0.8"/>`);
   }
   for (const [i, l] of g.line.entries()) {
-    if (i > 0) out.push(mathsMarkup("=", l.x - EQUALS / 2, g.lineY));
+    if (i > 0 && l.v.show !== "omit" && g.line[i - 1].v.show !== "omit") out.push(mathsMarkup("=", l.x - EQUALS / 2, g.lineY));
     const p = printed(l.v);
     if (p) out.push(mathsMarkup(p, l.x + mathsWidth(p) / 2, g.lineY, REVEALED.has(l.v) ? ANSWER_COLOUR : "black"));
     else if (l.v.show !== "omit") out.push(dotted(l.x, l.x + l.blank, g.lineY + FONT * 0.4));
