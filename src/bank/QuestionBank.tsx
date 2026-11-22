@@ -103,19 +103,19 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const app=useRef<HTMLDivElement>(null);
   // A route read from a link may carry viewError (the link named a view that does not exist); it is
   // shown once as the notice and never kept on the route, so later route changes do not repeat it.
-  const go=useCallback(({viewError,...next}:BankRoute,replace=false,keepSearch=false)=>{
+  const go=useCallback(({viewError,...next}:BankRoute,replace=false,typedOver?:string)=>{
     const address=bankAddress(next);
     if(activePage.current && location.pathname+location.search!==address) history[replace?"replaceState":"pushState"]({},"",address);
     if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
-    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);if(!keepSearch)setSearch(next.code);setMode(QUESTION_ONLY);setZooms(FIT);setNotice(viewError??"");
+    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);if(typedOver===undefined)setSearch(next.code);else setSearch(text=>text===typedOver?next.code:text);setMode(QUESTION_ONLY);setZooms(FIT);setNotice(viewError??"");
   },[]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
     fetchCatalogueIndex(controller.signal).then(data=>{const c=withPerformance(data);setDetails({});setDetailError("");setCatalogue(c);const old=draftRef.current;
       // Reconciling with a newer catalogue is not the teacher's change, so Home's "Carry on" keeps its time.
       paperChoice.current=paperChoiceOf(draftReducer(old,{type:"reconcile",catalogue:c}));
-      dispatchDraft({type:"reconcile",catalogue:c});// Keep anything the teacher typed while the catalogue loaded.
-      go(readRoute(activePage.current?location.search:initialSearch,c),true,true);if(old.version&&old.version!==c.version){const reconciled="The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.";setNotice(previous=>previous?`${previous} ${reconciled}`:reconciled);}}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
+      dispatchDraft({type:"reconcile",catalogue:c});// Keep anything the teacher typed while the catalogue loaded; untouched text follows the route (an alias becomes its new code).
+      go(readRoute(activePage.current?location.search:initialSearch,c),true,readRoute(activePage.current?location.search:initialSearch).code);if(old.version&&old.version!==c.version){const reconciled="The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.";setNotice(previous=>previous?`${previous} ${reconciled}`:reconciled);}}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
   useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);if(next.question!==route.question)setMode(QUESTION_ONLY);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZooms(FIT);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);

@@ -87,4 +87,9 @@ test.describe("question bank: open a paper", () => {
     await page.goto("/question-bank?paper=1MA1_NOV_2099_2H");
     await expect(page.getByRole("heading", { name: "That paper was not found" })).toBeVisible();
   });
+  test("an old topic code in a link shows its new code in the search box", async ({ page }) => {
+    await page.goto("/question-bank?code=U449");
+    await expect(page.locator(".qb-topic .qb-code, .qb-topic").first()).toContainText("U499");
+    await expect(page.getByRole("combobox", { name: "Sparx code, topic or paper" })).toHaveValue("U499");
+  });
 });
