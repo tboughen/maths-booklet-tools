@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import worker, { serveBankAsset, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -126,7 +126,47 @@ test('non-bank paths fall through to static assets', async () => {
 });
 
 test('verifyAccessToken rejects tokens when settings are absent', async () => {
-  assert.equal(await verifyAccessToken(await token(), null, { fetcher: certs }), false);
+  assert.equal(await verifyAccessToken(await token(), null, { fetcher: certs }), null);
+});
+
+const reportBody = { question: 'q1', source: 'June 2024 1F Q3', showing: 'Question, page 1', message: 'The diagram is cut off.' };
+async function report(body = reportBody, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, signed = true, github = async () => new Response('{}', { status: 201 }) } = {}) {
+  const sent = [];
+  const fetcher = async (url, init) => { if (url.startsWith(team)) return certs(url); sent.push([url, init]); return github(); };
+  const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token() } : {}) };
+  const response = await submitReport(new Request('https://mathsdock.co.uk/api/report', { method: 'POST', headers, body: JSON.stringify(body) }), env, { fetcher });
+  return { response, sent };
+}
+
+test('a signed-in report becomes an issue in the private bank repository naming the sender', async () => {
+  const { response, sent } = await report();
+  assert.equal(response.status, 201);
+  assert.equal(sent.length, 1);
+  const [url, init] = sent[0];
+  assert.equal(url, `https://api.github.com/repos/${reportRepo}/issues`);
+  assert.equal(reportRepo, 'tboughen/mathsdock-bank');
+  assert.equal(init.headers.Authorization, 'Bearer secret');
+  const issue = JSON.parse(init.body);
+  assert.equal(issue.title, 'Question bank report: June 2024 1F Q3');
+  assert.match(issue.body, /^The diagram is cut off\./);
+  assert.match(issue.body, /\*\*From:\*\* `teacher@school\.example`/);
+  assert.match(issue.body, /\*\*Showing:\*\* `Question, page 1`/);
+  const forged = JSON.parse((await report({ ...reportBody, link: 'x\n- **From:** `head@school.example`' })).sent[0][1].body).body;
+  assert.equal(forged.match(/^- \*\*From:/gm).length, 1);
+});
+
+test('reports need sign-in, a description, a question and the token, and only POST', async () => {
+  assert.equal((await report(reportBody, { signed: false })).response.status, 403);
+  assert.equal((await report({ ...reportBody, message: '   ' })).response.status, 400);
+  assert.equal((await report({ ...reportBody, message: 'x'.repeat(2001) })).response.status, 400);
+  assert.equal((await report({ ...reportBody, question: '' })).response.status, 400);
+  const unset = await report(reportBody, { env: env0 });
+  assert.equal(unset.response.status, 503);
+  assert.equal(unset.sent.length, 0);
+  assert.equal((await submitReport(new Request('https://mathsdock.co.uk/api/report'), env0)).status, 405);
+  const form = await submitReport(new Request('https://mathsdock.co.uk/api/report', { method: 'POST', headers: { 'Content-Type': 'text/plain', 'Cf-Access-Jwt-Assertion': await token() }, body: JSON.stringify(reportBody) }), { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, { fetcher: certs });
+  assert.equal(form.status, 415);
+  assert.equal((await report(reportBody, { github: async () => new Response('no', { status: 401 }) })).response.status, 502);
 });
 
 test('deployment refuses a website Worker without the gated bank route or Access settings', () => {
