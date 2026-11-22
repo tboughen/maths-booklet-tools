@@ -260,6 +260,13 @@ stays the builders' word for the line after a question.
   letter is Show; hidden or an answer line is Pupil space (a tick in the box picks the answer line); blank is Leave
   out, with what was typed kept. A function machine box left out keeps its outline (Tim, 22 Nov 2026), so an open
   "make your own machine" task still has its box.
+- Wave 1d (22 Nov 2026): 3D solids; plans and elevations; nets; constructions and loci. Solids list their solids
+  and lines in a card, since they have no click target. An elevations panel is a click target: Pupil space leaves
+  an empty grid for pupils, Leave out an empty grid on both copies. Nets: a face, its letter and its mark each have
+  their own switch in the face's box, and double-click makes the face a pupil space (pupils draw it). Constructions:
+  double-click a point for a pupil space on its label; points, lines and constructions keep their Answer tick
+  (answers copy only), which is a different thing from a label's pupil space. The MCP interchange does not take
+  Leave out yet for these tools (a follow-up, with a service redeploy).
 
 ### Folding cards and the scroll fade (Tim, 22 Nov 2026)
 
