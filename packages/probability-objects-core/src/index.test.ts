@@ -113,4 +113,15 @@ describe("spinners, dice and bags", () => {
     const e = io.create({ spec: { objects: [{ type: "dice", faces: ["1", "2", "3", "4", "5", "6"] }] } });
     expect((e.document.objects[0] as po.Dice).view).toBe("faces");
   });
+  it("leaves out a label in both copies, with no blank, and keeps it left out when emptied", () => {
+    const e0 = po.create();
+    const id = e0.document.objects[0].id;
+    let e = po.setLabel(e0, id, "sector:1", { text: "Red", show: "omit" });
+    const answers = po.renderSvg(po.forView(e, "answer", true));
+    expect(answers).not.toMatch(/>Red</);
+    e = po.setLabel(e, id, "sector:1", { text: "" });
+    expect(po.slotValue(e.document.objects[0], "sector:1")).toEqual({ text: "", show: "omit" });
+    const blanks = (svg: string) => (svg.match(/stroke-dasharray/g) ?? []).length;
+    expect(blanks(po.renderSvg(e))).toBe(blanks(po.renderSvg(po.setLabel(e, id, "sector:1", { show: "show" }))) - 1);
+  });
 });

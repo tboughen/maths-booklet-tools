@@ -204,13 +204,14 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
   ["/tools/factor-tree", "Trees and answer lines", ["What pupils see"], ["Complete the trees", "Layout"], 2],
   ["/tools/sample-space", "What pupils see", ["What pupils see"], ["Fill the cells", "Layout"], 2],
   ["/tools/two-way-table", "What pupils see", ["What pupils see"], ["Totals", "Layout"], 2],
+  ["/tools/probability-objects", "Objects", ["What pupils see"], ["Layout"], 2],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -272,7 +273,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"].includes(path) ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
@@ -871,7 +872,6 @@ type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
 const SAVED = "Print every saved answer on the pupil copy";
 const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
-  ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", [], ["Objects"], { under: ["Layout"] }],
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
   ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps"], { under: ["Layout"] }],
   ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
@@ -931,17 +931,19 @@ for (const [tool, path, selected, left, right, { under = [], twoLines = [], long
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-test("Spinners, dice and bags: each object is a named group, and Layout stays in view however many there are", async ({ page }) => {
+test("Spinners, dice and bags: each object is a named group, and Layout stays reachable however many there are", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/probability-objects");
   const group = page.locator(".md-kit fieldset.md-kit-group");
   expect(await group.first().evaluate((el) => [getComputedStyle(el).display, getComputedStyle(el).rowGap])).toEqual(["grid", "8px"]);
-  // The list of objects is the right column on its own, so it can grow without pushing another card away.
+  // One column (22 Nov 2026): the list of objects grows and pushes Layout down; the column scrolls, with a fade.
   for (const name of ["Add a dice", "Add a bag", "Add a spinner"]) await page.getByRole("button", { name, exact: true }).click();
   await expect(group).toHaveCount(4);
   const layout = await chartCard(page, "Layout"), objects = await chartCard(page, "Objects");
-  expect(layout.x).toBeLessThan(objects.x);
-  expect(layout.y + layout.height).toBeLessThan(1080);
+  expect(Math.abs(layout.x - objects.x)).toBeLessThanOrEqual(1);
+  expect(layout.y).toBeGreaterThan(objects.y + objects.height);
+  const stack = page.locator(".inspector-stack.md-kit");
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
 });
 
 test("Bubble method: a tick sits beside its words, and Layout stays in view however many steps there are", async ({ page }) => {
