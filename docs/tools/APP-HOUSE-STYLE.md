@@ -249,6 +249,17 @@ stays the builders' word for the line after a question.
   zooms nor selects. Tools move to this pattern one group at a time; until then the U21 rule (the
   selected object's card comes first) still applies to them.
 
+### Folding cards and the scroll fade (Tim, 22 Nov 2026)
+
+- Every card in a one-column settings stack folds. The main cards (What pupils see, Branches) use
+  `FoldCard defaultOpen` and start open; rarer groups start folded. A folded card shows a one-line summary
+  ("4 pupil spaces", "2 stages · 6 branches"). The browser remembers each teacher's choice.
+- A longer list pushes the cards below it down; the drawing zooms to fit and its print size never changes.
+- The stack scrolls on its own. `useMoreBelow` (`src/site/useMoreBelow.ts`) sets `data-more` while there is
+  more below, and the kit draws a soft fade at the foot of the column.
+- Settings stay on the right, as in Office, Material, Carbon and Figma: the left is for moving between things,
+  the right for the properties of what is open (Tim, 22 Nov 2026).
+
 ## The answers switch
 
 A tool with hidden answers has one switch in the action bar, before the copy buttons. It reads
