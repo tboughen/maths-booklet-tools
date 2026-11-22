@@ -94,7 +94,7 @@ describe("maths notation typesets printed text", () => {
     const printed = typesetForPrint(booklet);
     expect(printed.document.lessons[0].keyIdea).toBe("The gradient of *y*\u00a0=\u00a02*x*\u00a0−\u00a01 is\u00a02.");
     expect(printed.document.lessons[0].teacherNotes).toBe("x^2 stays as typed in notes");
-    expect(renderBooklet(booklet).pages.join("")).toContain("2<tspan font-style=\"italic\">x</tspan>\u00a0−\u00a01");
+    expect(renderBooklet(booklet).pages.join("")).toContain("2<tspan font-family=\"'STIX Two Text'\" font-style=\"italic\" font-size=\"4.46\">x</tspan>\u00a0−\u00a01");
   });
 
   it("keeps units, addresses and named parts as typed, and finds a minus beside fractions and negatives", () => {
