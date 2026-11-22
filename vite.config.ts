@@ -77,6 +77,8 @@ export default defineConfig(({ command, mode }) => ({
         this.emitFile({type: "asset", fileName: "bank/catalogue.json", source: release.catalogueJson});
         // Hashing the scheme files is cheap, so a reused inventory gets the same index as a cold build.
         this.emitFile({type: "asset", fileName: SCHEMES_PATH, source: prepareSchemes("public").schemesJson});
+        // Pearson success rates per question part, fetched by Assessment Follow-Up.
+        add("bank/performance-parts.json");
         const split = splitJson(release.catalogueJson);
         this.emitFile({type: "asset", fileName: INDEX_PATH, source: split.index});
         for (const file of split.files) this.emitFile({type: "asset", fileName: file.path, source: file.json});
@@ -87,6 +89,7 @@ export default defineConfig(({ command, mode }) => ({
         writeFileSync("cloudflare-release/evidence/catalogue-build.json", JSON.stringify({ status: cached ? 'reused' : 'cold', reason: cacheReason }));
       } else {
         add("bank/catalogue.json");
+        add("bank/performance-parts.json");
         const split = splitJson(readFileSync("public/bank/catalogue.json", "utf8"));
         this.emitFile({type: "asset", fileName: INDEX_PATH, source: split.index});
         for (const file of split.files) this.emitFile({type: "asset", fileName: file.path, source: file.json});

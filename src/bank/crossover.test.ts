@@ -9,12 +9,12 @@ const identity = (q: BankQuestion) => q.equivalentId ? [q.id, q.equivalentId].so
 const shared = catalogue.questions.filter(q => q.tier === "F" && q.equivalentId);
 
 describe("reviewed Foundation/Higher crossover catalogue", () => {
-  it("retains all paper appearances with 500 reciprocal reviewed pairs across all 69 Foundation components", () => {
-    expect(catalogue.questions).toHaveLength(3441);
-    expect(new Set(catalogue.questions.map(q => q.paperId)).size).toBe(138);
-    expect(shared).toHaveLength(500);
-    expect(new Set(shared.map(q => q.paperId)).size).toBe(69);
-    expect(filterQuestions(catalogue, emptyRoute)).toHaveLength(3441);
+  it("retains all paper appearances with 540 reciprocal reviewed pairs across all 75 Foundation components", () => {
+    expect(catalogue.questions).toHaveLength(3729);
+    expect(new Set(catalogue.questions.map(q => q.paperId)).size).toBe(150);
+    expect(shared).toHaveLength(540);
+    expect(new Set(shared.map(q => q.paperId)).size).toBe(75);
+    expect(filterQuestions(catalogue, emptyRoute)).toHaveLength(3729);
   });
 
   it("shows every mapped identity exactly once for every Sparx code and every individual filter", () => {
@@ -55,7 +55,7 @@ describe("reviewed Foundation/Higher crossover catalogue", () => {
       }
     }
     const all = exportSelection(catalogue, catalogue.questions.map(q => q.id));
-    expect(all.questions).toHaveLength(2941);
+    expect(all.questions).toHaveLength(3189);
     expect(all.marks).toBe(catalogue.questions.reduce((sum, q) => sum + q.marks, 0) - shared.reduce((sum, q) => sum + q.marks, 0));
   });
 
