@@ -63,17 +63,18 @@ export function CardHeading({ title, help }: { title: string; help?: ReactNode }
 
 /** Opened folds, per viewer and tool: a convenience only, so storage that fails is ignored. */
 const foldKey = (tool: string, title: string) => `mathsdock:fold:${tool}:${title}`;
-function readFold(tool: string, title: string) {
+function readFold(tool: string, title: string, byDefault: boolean) {
   try {
-    return localStorage.getItem(foldKey(tool, title)) === "open";
+    const kept = localStorage.getItem(foldKey(tool, title));
+    return kept === "open" ? true : kept === "closed" ? false : byDefault;
   } catch {
-    return false;
+    return byDefault;
   }
 }
-function writeFold(tool: string, title: string, open: boolean) {
+function writeFold(tool: string, title: string, open: boolean, byDefault: boolean) {
   try {
-    if (open) localStorage.setItem(foldKey(tool, title), "open");
-    else localStorage.removeItem(foldKey(tool, title));
+    if (open === byDefault) localStorage.removeItem(foldKey(tool, title));
+    else localStorage.setItem(foldKey(tool, title), open ? "open" : "closed");
   } catch {
     /* Nothing to keep. */
   }
@@ -90,6 +91,7 @@ export function FoldCard({
   icon: Icon,
   summary,
   help,
+  defaultOpen = false,
   children,
 }: {
   tool: string;
@@ -97,12 +99,14 @@ export function FoldCard({
   icon: LucideIcon;
   summary: string;
   help?: ReactNode;
+  /** A main card (What pupils see, Branches) starts open; a rarer group starts folded. */
+  defaultOpen?: boolean;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(() => readFold(tool, title));
+  const [open, setOpen] = useState(() => readFold(tool, title, defaultOpen));
   const body = useId();
   return (
-    <section className={`panel-card md-fold${open ? " md-fold--open" : ""}`}>
+    <section className={`panel-card md-fold${open ? " md-fold--open" : ""}`} aria-label={title}>
       <div className="md-fold-head">
         <span className="md-fold-icon" aria-hidden="true">
           <Icon size={16} />
@@ -116,7 +120,7 @@ export function FoldCard({
               aria-controls={body}
               onClick={() =>
                 setOpen((o) => {
-                  writeFold(tool, title, !o);
+                  writeFold(tool, title, !o, defaultOpen);
                   return !o;
                 })
               }
@@ -227,3 +231,4 @@ export function NumberStepper({
     </div>
   );
 }
+

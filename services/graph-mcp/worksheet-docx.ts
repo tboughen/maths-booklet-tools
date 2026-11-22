@@ -32,7 +32,7 @@ export function wordPicture(svg: string, widthMm: number, heightMm: number, root
 
 function fonts(roots: DocxFontRoots): DocxFonts {
   const read = (file: string) => new Uint8Array(readFileSync(join(roots.text, file)));
-  return { regular: read("Inter-Regular.ttf"), semiBold: read("Inter-SemiBold.ttf"), italic: read("Inter-Italic.ttf") };
+  return { regular: read("Inter-Regular.ttf"), semiBold: read("Inter-SemiBold.ttf"), italic: read("Inter-Italic.ttf"), maths: read("STIXTwoText-Italic-letters.ttf") };
 }
 
 /** The Word file for one view of a worksheet, with the fonts read from disk. */
