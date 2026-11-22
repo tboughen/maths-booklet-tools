@@ -1,4 +1,7 @@
-import { advance, type FontStyle } from "./metrics";
+import { advance, MATHS_FONT, MATHS_SCALE, type FontStyle } from "./metrics";
+
+/** SVG attributes for a maths letter: the exam paper's serif italic. */
+const MATHS_ATTR = ` font-family="'${MATHS_FONT}'" font-style="italic"`;
 
 /**
  * A run of text in one style. Markup: **bold** and *italic*; everything else prints as typed.
@@ -39,7 +42,7 @@ function powerRuns(runs: Run[]): Run[] {
       if (m.index > at) out.push({ text: r.text.slice(at, m.index), style: r.style });
       // Letters in a power print in italic, as maths letters do; digits and signs stay upright.
       for (const piece of (m[1] ?? m[2]).replace(/-/g, "−").match(/[A-Za-z]+|[^A-Za-z]+/g) ?? [])
-        out.push({ text: piece, style: /[A-Za-z]/.test(piece) ? "italic" : r.style, sup: true });
+        out.push({ text: piece, style: /[A-Za-z]/.test(piece) ? "maths" : r.style, sup: true });
       at = m.index + m[0].length;
     }
     if (at < r.text.length) out.push({ text: r.text.slice(at), style: r.style });
@@ -138,12 +141,17 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
     at = m.index + m[0].length;
   }
   if (at < source.length) runs.push(...fractionRuns(source.slice(at), base, false));
-  return powerRuns(runs);
+  return mathsLetters(powerRuns(runs));
+}
+
+/** A typeset maths letter (*x*, *mx*) prints in the maths font; longer italic words stay prose. */
+function mathsLetters(runs: Run[]): Run[] {
+  return runs.map((r) => (r.style === "italic" && !r.frac && /^[A-Za-z]{1,3}$/.test(r.text) ? { ...r, style: "maths" } : r));
 }
 
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
 /** Letters in a fraction print in italic, as maths letters do; digits and signs stay upright. */
-export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "italic" : "regular");
+export const fracStyle = (c: string): FontStyle => (/[A-Za-z]/.test(c) ? "maths" : "regular");
 /** A fraction part's characters, each marked raised when it belongs to a power (x^6, a², 5^n). */
 export function fracPieces(s: string): { c: string; sup: boolean }[] {
   const out: { c: string; sup: boolean }[] = [];
@@ -218,8 +226,10 @@ export function textSvg(line: Line, x: number, y: number, size: number, fill: st
   let raised = false;
   const spans = line
     .map((r) => {
-      let attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : "";
-      if (r.sup) attr += ` font-size="${n(size * SUP_SCALE)}"${raised ? "" : ` dy="${n(-size * SUP_RAISE)}"`}`;
+      let attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : r.style === "maths" ? MATHS_ATTR : "";
+      const scale = (r.sup ? SUP_SCALE : 1) * (r.style === "maths" ? MATHS_SCALE : 1);
+      if (scale !== 1) attr += ` font-size="${n(size * scale)}"`;
+      if (r.sup) attr += raised ? "" : ` dy="${n(-size * SUP_RAISE)}"`;
       else if (raised) attr += ` dy="${n(size * SUP_RAISE)}"`;
       raised = !!r.sup;
       return attr ? `<tspan${attr}>${esc(r.text)}</tspan>` : esc(r.text);
@@ -249,8 +259,11 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
     let raised = false;
     const spans = fracPieces(s)
       .map(({ c, sup }) => {
-        let attr = fracStyle(c) === "italic" && !sup ? ' font-style="italic"' : "";
-        if (sup) attr += ` font-size="${n(fs * SUP_SCALE)}"${raised ? "" : ` dy="${n(-fs * SUP_RAISE)}"`}`;
+        const letter = fracStyle(c) === "maths";
+        let attr = letter ? MATHS_ATTR : "";
+        const scale = (sup ? SUP_SCALE : 1) * (letter ? MATHS_SCALE : 1);
+        if (scale !== 1) attr += ` font-size="${n(fs * scale)}"`;
+        if (sup) attr += raised ? "" : ` dy="${n(-fs * SUP_RAISE)}"`;
         else if (raised) attr += ` dy="${n(fs * SUP_RAISE)}"`;
         raised = sup;
         return attr ? `<tspan${attr}>${esc(c)}</tspan>` : esc(c);

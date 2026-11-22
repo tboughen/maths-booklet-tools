@@ -1,5 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
+import { MATHS_FONT, MATHS_SCALE } from "./metrics";
 import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, SPACE_WORKING, STAGE_BAND, stageLetters, tooWideMessage, workingLines, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
@@ -29,6 +30,8 @@ export interface DocxFonts {
   regular: Uint8Array;
   semiBold: Uint8Array;
   italic: Uint8Array;
+  /** STIX Two Text Italic, for maths letters. Without it Word falls back to a serif italic. */
+  maths?: Uint8Array;
 }
 /** A diagram ready for Word: SVG with its text as outlines, and a PNG of the same picture. */
 export interface DocxPicture {
@@ -115,16 +118,19 @@ export interface RunStyle {
   spacingMm?: number;
   /** A raised power (x^5 with maths notation): Word's own superscript, as the pages print it. */
   sup?: boolean;
+  /** A maths letter: STIX Two Text Italic at MATHS_SCALE times the size, as the pages print it. */
+  maths?: boolean;
 }
 function rPr(o: RunStyle): string {
-  const font = o.bold ? FONT_BOLD : FONT;
+  const font = o.maths ? MATHS_FONT : o.bold ? FONT_BOLD : FONT;
   const p: string[] = [];
-  if (o.bold) p.push(`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}" w:eastAsia="${font}"/>`);
-  if (o.italic) p.push("<w:i/><w:iCs/>");
+  if (o.bold || o.maths) p.push(`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}" w:eastAsia="${font}"/>`);
+  if (o.italic || o.maths) p.push("<w:i/><w:iCs/>");
   if (o.color) p.push(`<w:color w:val="${hex(o.color)}"/>`);
   if (o.sup) p.push(`<w:vertAlign w:val="superscript"/>`);
   if (o.spacingMm) p.push(`<w:spacing w:val="${Math.round(o.spacingMm * 56.693)}"/>`);
-  if (o.sizeMm !== undefined) p.push(`<w:sz w:val="${hp(o.sizeMm)}"/><w:szCs w:val="${hp(o.sizeMm)}"/>`);
+  const size = o.maths ? (o.sizeMm ?? S.body) * MATHS_SCALE : o.sizeMm;
+  if (size !== undefined) p.push(`<w:sz w:val="${hp(size)}"/><w:szCs w:val="${hp(size)}"/>`);
   // Only answers on an answer line are underlined, so the underline is Edexcel's dotted line.
   if (o.underline) p.push(`<w:u w:val="dotted" w:color="${hex(o.color ?? "#000000")}"/>`);
   if (o.border) p.push(`<w:bdr w:val="single" w:sz="${b8(0.3)}" w:space="0" w:color="${hex(o.border)}"/>`);
@@ -146,7 +152,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
   const part = (s: string) =>
     fracPieces(s)
       .map(({ c, sup }) => {
-        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic" && !sup, bold: bold && fracStyle(c) === "regular", sup });
+        const r = rPr({ color: o.color, sizeMm: size, maths: fracStyle(c) === "maths", bold: bold && fracStyle(c) === "regular", sup });
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");
@@ -160,7 +166,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
   parseRuns(source, base, maths)
-    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic", sup: r.sup })))
+    .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic", maths: r.style === "maths", sup: r.sup })))
     .join("");
 /**
  * Runs that fill a paragraph on their own (an answer-line cell, a table cell). When they are only
@@ -188,7 +194,7 @@ function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
     .map((r) =>
       r.frac
         ? fraction(r.frac, o, false, r.style === "bold").replace(/^<m:oMath>|<\/m:oMath>$/g, "")
-        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic", sup: r.sup })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
+        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic", maths: r.style === "maths", sup: r.sup })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
     )
     .join("");
   return `<m:oMath>${boxed ? `<m:borderBox><m:e>${inner}</m:e></m:borderBox>` : inner}</m:oMath>`;
@@ -1053,6 +1059,7 @@ export async function writePackage(o: {
     { name: FONT, kind: "embedRegular", bytes: options.fonts.regular, file: "font1.odttf" },
     { name: FONT, kind: "embedItalic", bytes: options.fonts.italic, file: "font2.odttf" },
     { name: FONT_BOLD, kind: "embedRegular", bytes: options.fonts.semiBold, file: "font3.odttf" },
+    ...(options.fonts.maths ? [{ name: MATHS_FONT, kind: "embedItalic", bytes: options.fonts.maths, file: "font4.odttf" }] : []),
   ];
   const fontRels: string[] = [];
   const fontEntries = new Map<string, string[]>();
@@ -1068,7 +1075,9 @@ export async function writePackage(o: {
     XML +
     `<w:fonts xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="${REL}">` +
     [...fontEntries]
-      .map(([name, embeds]) => `<w:font w:name="${name}"><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/>${embeds.join("")}</w:font>`)
+      // STIX is a serif: a Word that cannot load the embedded copy substitutes a serif italic
+      // (Times New Roman or Cambria), so x stays curly.
+      .map(([name, embeds]) => `<w:font w:name="${name}"><w:charset w:val="00"/><w:family w:val="${name === MATHS_FONT ? "roman" : "swiss"}"/><w:pitch w:val="variable"/>${embeds.join("")}</w:font>`)
       .join("") +
     `<w:font w:name="Cambria Math"><w:charset w:val="00"/><w:family w:val="roman"/><w:pitch w:val="variable"/></w:font></w:fonts>`;
 

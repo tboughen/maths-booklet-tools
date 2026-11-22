@@ -565,7 +565,7 @@ export function planNotes(lesson: Lesson, lessonNo: number, words: LessonWords =
     wrap(textSrc, S.body, W - indent).forEach((runs, k) => {
       if (y + lh(S.body) > A4.bottom) fresh();
       const tooWide = lineWidth(runs, S.body) > W - indent + 0.01;
-      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
+      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" || r.style === "maths" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
       y += lh(S.body);
     });
   }

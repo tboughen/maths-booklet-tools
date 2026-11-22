@@ -839,10 +839,10 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
     );
     const size = S.body;
     const xBelow = H - oy >= 5;
-    out.push(textSvg([{ text: item.axes.xLabel, style: "italic" }], W - 1.2, xBelow ? oy + 4.2 : oy - 1.6, size, st.ink, "end"));
+    out.push(textSvg([{ text: item.axes.xLabel, style: /^[A-Za-z]$/.test(item.axes.xLabel) ? "maths" : "italic" }], W - 1.2, xBelow ? oy + 4.2 : oy - 1.6, size, st.ink, "end"));
     const yRight = W - ox >= 6;
-    out.push(textSvg([{ text: item.axes.yLabel, style: "italic" }], yRight ? ox + 2 : ox - 2, 4.6, size, st.ink, yRight ? "start" : "end"));
-    if (ox >= 4 && H - oy >= 5) out.push(textSvg([{ text: "O", style: "italic" }], ox - 1, oy + 4.2, size, st.ink, "end"));
+    out.push(textSvg([{ text: item.axes.yLabel, style: /^[A-Za-z]$/.test(item.axes.yLabel) ? "maths" : "italic" }], yRight ? ox + 2 : ox - 2, 4.6, size, st.ink, yRight ? "start" : "end"));
+    if (ox >= 4 && H - oy >= 5) out.push(textSvg([{ text: "O", style: "maths" }], ox - 1, oy + 4.2, size, st.ink, "end"));
   }
   return out.join("");
 }
