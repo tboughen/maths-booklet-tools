@@ -155,8 +155,9 @@ export function readRoute(search: string, catalogue?: BankCatalogue<BankListQues
   const p = new URLSearchParams(search);
   const raw = normalizeCode(p.get("code") || "");
   const paper = (p.get("paper") || "").trim().toUpperCase();
-  // A paper is opened whole: no topic, and its Year 11 revision questions are shown.
-  if (paper) return {...emptyRoute, bankView: "questions", revision: "include", paper, question: p.get("question") || "", ...readView(p.get("view"), viewCount(catalogue, p.get("question") || ""))};
+  // A paper is opened whole, with no topic. Its Year 11 revision questions are shown (filterQuestions),
+  // but the revision filter stays hidden, so leaving the paper does not include them elsewhere.
+  if (paper) return {...emptyRoute, bankView: "questions", paper, question: p.get("question") || "", ...readView(p.get("view"), viewCount(catalogue, p.get("question") || ""))};
   return {
     bankView: p.get("bankView") === "topics" ? "topics" : "questions",
     code: catalogue?.aliases[raw] || raw,

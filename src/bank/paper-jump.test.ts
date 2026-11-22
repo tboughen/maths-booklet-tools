@@ -21,14 +21,14 @@ describe("opening one paper", () => {
   it("shows a paper whole, in paper order, whatever the other filters say, including Year 11 revision papers", () => {
     const revision = bankPapers(catalogue).find(p => p.revisionUse)!;
     const route = readRoute(`?paper=${revision.id.toLowerCase()}&code=U837&tier=F&calc=no`, catalogue);
-    expect(route).toEqual({...emptyRoute, paper: revision.id, revision: "include"});
+    expect(route).toEqual({...emptyRoute, paper: revision.id});
     const shown = filterQuestions(catalogue, {...route, tier: revision.tier === "F" ? "H" : "F", revision: "hide", crossover: "only"});
     expect(shown.map(q => q.number)).toEqual(Array.from({length: revision.questions}, (_, i) => i + 1));
     expect(shown.every(q => q.paperId === revision.id)).toBe(true);
   });
 
   it("round-trips a paper link with its question and view", () => {
-    const route = {...emptyRoute, paper: "1MA1_NOV_2023_2H", revision: "include" as const, question: "1MA1_NOV_2023_2H_Q3", view: 0};
+    const route = {...emptyRoute, paper: "1MA1_NOV_2023_2H", question: "1MA1_NOV_2023_2H_Q3", view: 0};
     expect(routeQuery(route)).toBe("?paper=1MA1_NOV_2023_2H&question=1MA1_NOV_2023_2H_Q3");
     expect(readRoute(routeQuery(route), catalogue)).toEqual(route);
     expect(readRoute("?code=U837", catalogue).paper).toBeUndefined();
