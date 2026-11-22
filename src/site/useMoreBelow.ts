@@ -19,11 +19,13 @@ export function useMoreBelow<T extends HTMLElement>() {
     const seen = new ResizeObserver(check);
     seen.observe(el);
     for (const child of el.children) seen.observe(child);
-    const added = new MutationObserver(() => {
+    // Only the column's own cards change its length; removed ones are let go.
+    const added = new MutationObserver((changes) => {
+      for (const c of changes) for (const n of c.removedNodes) if (n instanceof Element) seen.unobserve(n);
       for (const child of el.children) seen.observe(child);
       check();
     });
-    added.observe(el, { childList: true, subtree: true });
+    added.observe(el, { childList: true });
     return () => {
       el.removeEventListener("scroll", check);
       seen.disconnect();

@@ -66,14 +66,8 @@
 
 /* More below: a soft fade at the foot of a scrolling settings column (set by useMoreBelow), so folded groups
    under the visible part are not missed (22 Nov 2026). */
-.inspector-stack.md-kit[data-more]::after {
-  content: "";
-  position: sticky;
-  bottom: 0;
-  display: block;
-  height: 40px;
-  margin-top: -40px;
-  background: linear-gradient(to bottom, transparent, var(--md-page, #f2f5f8));
-  pointer-events: none;
-  z-index: 1;
+.inspector-stack.md-kit[data-more] {
+  /* A mask on the scrolling box itself: no extra grid row, nothing painted over pop-ups. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+  scroll-padding-bottom: 48px;
 }
