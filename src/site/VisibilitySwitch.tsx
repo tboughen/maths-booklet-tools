@@ -12,6 +12,7 @@ export function VisibilitySwitch({
   disabled,
   onChange,
   caption,
+  help,
 }: {
   /** The group's accessible name, e.g. "What pupils see" or "Probabilities". */
   name: string;
@@ -20,6 +21,8 @@ export function VisibilitySwitch({
   onChange: (v: Visibility) => void;
   /** Visible words before the buttons; defaults to none. */
   caption?: string;
+  /** Tooltips that differ from the usual words, e.g. a panel left out still prints its empty grid. */
+  help?: Partial<Record<Visibility, string>>;
 }) {
   return (
     <div className="md-visibility" role="group" aria-label={name}>
@@ -36,7 +39,7 @@ export function VisibilitySwitch({
             type="button"
             aria-pressed={value === v}
             data-visibility={v}
-            title={VISIBILITY_HELP[v]}
+            title={help?.[v] ?? VISIBILITY_HELP[v]}
             disabled={disabled}
             onClick={() => onChange(v)}
           >

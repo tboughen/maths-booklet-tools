@@ -14,7 +14,8 @@ const art = (page: Page) => page.getByTestId("solids-resource").locator("svg").f
 // Maths runs print as separate text elements, so a label's pieces are joined.
 const texts = (page: Page) => art(page).locator("text").evaluateAll((els) => els.map((x) => x.textContent ?? "").join(""));
 const example = (id: string) => examples.find((x) => x.id === id)!.make();
-const card = (page: Page) => page.getByRole("region", { name: "Selected object" });
+const box = (page: Page) => page.locator(".md-options-box");
+const fold = (page: Page, name: string) => page.getByRole("button", { name, exact: true }).click();
 const answers = (page: Page) => page.getByRole("checkbox", { name: /answers/i }).filter({ visible: true }).first();
 
 test("starts as a cuboid with its hidden edges dashed and three lengths given", async ({ page }) => {
@@ -22,20 +23,20 @@ test("starts as a cuboid with its hidden edges dashed and three lengths given", 
   expect(await texts(page)).toContain("8 cm");
   expect(await texts(page)).toContain("Diagram NOT accurately drawn");
   expect(await art(page).locator("[stroke-dasharray]").count()).toBeGreaterThan(0);
+  await fold(page, "View");
   await page.getByRole("checkbox", { name: /Dash the hidden edges/ }).uncheck();
   expect(await art(page).locator("[stroke-dasharray]").count()).toBe(0);
   expect((await saved(page)).document.hidden).toBe("none");
 });
 
-test("selects a length on the drawing, saves a hidden answer for the answers copy and undoes", async ({ page }) => {
+test("labels a length in its options box, makes it a pupil space for the answers copy and undoes", async ({ page }) => {
   await boot(page);
   await page.getByRole("button", { name: "Select length p1p2 (w)" }).click();
-  await expect(card(page).getByRole("heading")).toHaveText("Length p1p2");
-  await card(page).getByRole("textbox", { name: "Label text" }).fill("");
-  await card(page).getByRole("textbox", { name: "Label text" }).press("Enter");
-  const answer = card(page).getByRole("textbox", { name: "Saved answer (answers copy only)" });
-  await answer.fill("12 cm");
-  await answer.press("Enter");
+  await expect(box(page)).toContainText("Length p1p2");
+  const text = box(page).getByRole("textbox", { name: "Text of length p1p2" });
+  await text.fill("12 cm");
+  await text.press("Enter");
+  await box(page).getByRole("group", { name: "What pupils see" }).getByRole("button", { name: "Pupil space" }).click();
   expect((await saved(page)).document.dims.find((m: { id: string }) => m.id === "w").label).toEqual({ state: "hidden", text: "", answer: "12 cm" });
   expect(await texts(page)).not.toContain("12 cm");
   await answers(page).check();
@@ -48,9 +49,9 @@ test("selects a length on the drawing, saves a hidden answer for the answers cop
 test("names a corner, and an angle size takes a degree sign", async ({ page }) => {
   await boot(page, example("triangular-prism"));
   expect(await texts(page)).toContain("35°");
-  await page.getByRole("combobox", { name: "Object to edit" }).selectOption("point:pb3");
-  await expect(card(page).getByRole("heading")).toHaveText("Point E");
-  const name = card(page).getByRole("textbox", { name: "Point name" });
+  await page.getByRole("button", { name: /\(pb3\)/ }).click();
+  await expect(box(page)).toContainText("Point E");
+  const name = box(page).getByRole("textbox", { name: "Point name" });
   await name.fill("G");
   await name.press("Enter");
   expect((await saved(page)).document.names).toContainEqual({ id: "pb3", text: "G" });
@@ -59,13 +60,14 @@ test("names a corner, and an angle size takes a degree sign", async ({ page }) =
 
 test("turns a cylinder's view, and changing a solid's type is one undo step", async ({ page }) => {
   await boot(page, example("cylinder-tank"));
+  await fold(page, "View");
   const tilt = page.getByRole("textbox", { name: "Tilt" });
   await tilt.fill("25");
   await tilt.press("Enter");
   expect((await saved(page)).document.view).toEqual({ type: "turned", turn: 0, tilt: 25 });
-  await page.getByRole("combobox", { name: "Object to edit" }).selectOption("solid:c");
+  await page.getByRole("button", { name: "Cylinder c", exact: true }).click();
   // A cone has no top rim, so the point on it and the height arrow to it go too, and say so.
-  await card(page).getByRole("combobox", { name: "Solid type" }).selectOption("cone");
+  await box(page).getByRole("combobox", { name: "Solid type" }).selectOption("cone");
   expect((await saved(page)).document.solids[0]).toMatchObject({ type: "cone", r: 16, h: 42, top: 0 });
   expect((await saved(page)).document.points.map((p: { id: string }) => p.id)).toEqual(["b"]);
   await page.getByRole("button", { name: "Undo" }).click();
@@ -74,8 +76,8 @@ test("turns a cylinder's view, and changing a solid's type is one undo step", as
 
 test("removing a point takes the lines and lengths on it, says so, and Undo brings them back", async ({ page }) => {
   await boot(page, example("square-pyramid"));
-  await page.getByRole("combobox", { name: "Object to edit" }).selectOption("point:m");
-  await card(page).getByRole("button", { name: "Remove point" }).click();
+  await page.getByRole("button", { name: /\(m\)/ }).click();
+  await box(page).getByRole("button", { name: "Remove point" }).click();
   await expect(page.getByRole("status")).toContainText("built on it were removed too");
   const d = (await saved(page)).document;
   expect(d.points.map((p: { id: string }) => p.id)).toEqual(["o"]);
@@ -87,14 +89,15 @@ test("removing a point takes the lines and lengths on it, says so, and Undo brin
 
 test("adds a length, an angle, a midpoint and a second solid from the Add panel", async ({ page }) => {
   await boot(page);
+  await fold(page, "Add to the drawing");
   const add = page.getByRole("region", { name: "Add to the drawing" });
   await add.getByRole("combobox", { name: "First point" }).selectOption("p1");
   await add.getByRole("combobox", { name: "Second point" }).selectOption("p3");
   await add.getByRole("button", { name: "Length from first to second" }).click();
-  await expect(card(page).getByRole("heading")).toHaveText("Length p1p3");
+  await expect(page.getByRole("button", { name: /^Select length p1p3/, pressed: true })).toBeVisible();
   await add.getByRole("combobox", { name: "Third point" }).selectOption("p2");
   await add.getByRole("button", { name: "Angle at the second point" }).click();
-  await expect(card(page).getByRole("heading")).toHaveText("Angle p1p3p2");
+  await expect(page.getByRole("button", { name: /^Select angle p1p3p2/, pressed: true })).toBeVisible();
   await add.getByRole("button", { name: "Midpoint of first and second" }).click();
   await add.getByRole("combobox", { name: "New solid" }).selectOption("cylinder");
   await add.getByRole("button", { name: "Add the solid" }).click();
@@ -103,4 +106,17 @@ test("adds a length, an angle, a midpoint and a second solid from the Add panel"
   expect(d.angles.at(-1)).toMatchObject({ at: "p3", from: "p1", to: "p2", mark: "arc" });
   expect(d.points.at(-1).place).toEqual({ type: "along", a: "p1", b: "p3", t: 0.5 });
   expect(d.solids.at(-1)).toMatchObject({ type: "cylinder", r: 12, h: 30 });
+});
+
+test("What pupils see: double-click a length for a pupil space, leave every label out, and clear the spaces", async ({ page }) => {
+  await boot(page);
+  const before = (await saved(page)).document.dims.find((m: { id: string }) => m.id === "w").label;
+  await page.getByRole("button", { name: "Select length p1p2 (w)" }).dblclick();
+  expect((await saved(page)).document.dims.find((m: { id: string }) => m.id === "w").label).toEqual({ state: "hidden", text: "", answer: before.text });
+  await page.keyboard.press("Escape");
+  await page.getByRole("group", { name: "Labels", exact: true }).getByRole("button", { name: "Leave out" }).click();
+  expect(await texts(page)).not.toContain("cm");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect((await saved(page)).document.dims.find((m: { id: string }) => m.id === "w").label).toEqual(before);
 });
