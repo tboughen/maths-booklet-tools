@@ -62,6 +62,9 @@ test("types an answer in any common form and adds a second tree", async ({ page 
   await answer.fill("2³ x 3² * 5");
   await answer.press("Enter");
   expect((await saved(page)).document.trees[0].product.text).toBe("2^3 × 3^2 × 5");
+  // Each answer line has its own What pupils see.
+  await page.getByRole("group", { name: "What pupils see of the answer for the tree" }).getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page)).document.trees[0].product.show).toBe("omit");
   await page.getByRole("button", { name: "+ Tree for the same number" }).click();
   const d = (await saved(page)).document;
   expect(d.trees).toHaveLength(2);

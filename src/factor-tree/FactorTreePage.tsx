@@ -59,7 +59,7 @@ import { FoldCard } from "../site/CardHelp";
 import { useMoreBelow } from "../site/useMoreBelow";
 import { OptionsBox } from "../site/OptionsBox";
 import { VisibilitySwitch } from "../site/VisibilitySwitch";
-import { LabelHit, PupilSpaceHint, QuickTip, StateTag } from "../site/LabelTargets";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
 import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
 import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
 import { Eye, ListTree, Ruler, Wand2 } from "lucide-react";
@@ -263,7 +263,8 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
     const t = d.trees.find((x) => x.id === a.tree),
       n = t?.nodes.find((x) => x.id === a.node);
     if (!t || !n) return "";
-    const label = n.value.text && (n.value.show === "show" || view === "answer") ? n.value.text : n.value.text ? "hidden number" : "blank";
+    // The teacher sees a left-out number faintly, so its name says it; a pupil space keeps its answer out of the name.
+    const label = n.value.text && (n.value.show !== "hidden" || view === "answer") ? n.value.text : n.value.text ? "hidden number" : "blank";
     return `${treeName(t.id)}${n.parent ? `level ${depthOf(t, n.id)}` : "top"} ${label}`;
   };
   function choose(a: Address, anchor: HTMLElement) {
@@ -275,6 +276,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
   function setVisibility(a: Address, v: Visibility) {
     const n = d.trees.find((t) => t.id === a.tree)?.nodes.find((x) => x.id === a.node);
     if (blocked || !n || n.value.show === v) return;
+    if (v === "hidden" && !n.value.text) return setMessage("This number is a blank with no answer: pupils already see a space. Type the answer first.");
     commit(() => setNode(e, a.tree, a.node, { show: v }), visibilityStep(v, n.value.text || "blank number"));
   }
   /** Every number, or every answer line, at once: one undo step. Blank numbers stay blank spaces. */
@@ -671,9 +673,19 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                             disabled={blocked}
                             onCommit={(v) => commit(() => setProduct(e, t.id, { text: v }))}
                           />
-                          <StateTag value={t.product} />
                         </label>
                       </div>
+                      {/* Each tree's answer line has its own What pupils see (the Answer lines switch sets them all). */}
+                      <VisibilitySwitch
+                        name={`What pupils see of the answer for ${d.trees.length > 1 ? `tree ${i + 1}` : "the tree"}`}
+                        caption="What pupils see"
+                        value={t.product.show}
+                        disabled={blocked}
+                        onChange={(v) => {
+                          if (v === "hidden" && !t.product?.text) return setMessage("This answer line is a blank with no answer: pupils already see a line. Type the answer first.");
+                          commit(() => setProduct(e, t.id, { show: v }), visibilityStep(v, "answer line"));
+                        }}
+                      />
                     </>
                   )}
                   {d.trees.length > 1 && (

@@ -300,7 +300,8 @@ export function setProduct(e: Envelope, treeId: string, product: { text?: string
     const next = t.product ?? value();
     if (product.text !== undefined) next.text = canonicalProduct(product.text);
     if (!next.text && product.show === "hidden") throw Error("A blank answer line cannot hold a hidden answer. Enter the answer, then hide it.");
-    next.show = next.text ? (product.show ?? next.show) : "show";
+    // A blank line keeps a chosen state (show or left out); an emptied hidden line becomes a plain line.
+    next.show = product.show ?? (!next.text && next.show === "hidden" ? "show" : next.show);
     t.product = next;
   }
   return validate(n);
@@ -319,6 +320,8 @@ export function completeTree(e: Envelope, treeId?: string, hidden = false): { en
   if (treeId !== undefined) treeOf(n.document, treeId);
   let filled = 0;
   const visibility = hidden ? "hidden" : "show";
+  // A left-out blank stays left out once filled: completing never brings it back into either copy.
+  const filledAs = (old: Value) => (old.show === "omit" ? "omit" : visibility);
   for (const t of n.document.trees) {
     if (treeId !== undefined && t.id !== treeId) continue;
     let progress = true;
@@ -332,13 +335,13 @@ export function completeTree(e: Envelope, treeId?: string, hidden = false): { en
             av = numberOf(a.value),
             bv = numberOf(b.value);
           if (pv === null && av !== null && bv !== null && av * bv < 10 ** MAX_DIGITS) {
-            p.value = value(String(av * bv), visibility);
+            p.value = value(String(av * bv), filledAs(p.value));
             filled++;
             progress = true;
           }
           for (const [x, other] of [[a, bv], [b, av]] as const)
             if (pv !== null && numberOf(x.value) === null && other && pv % other === 0) {
-              x.value = value(String(pv / other), visibility);
+              x.value = value(String(pv / other), filledAs(x.value));
               filled++;
               progress = true;
             }
@@ -364,7 +367,7 @@ export function completeTree(e: Envelope, treeId?: string, hidden = false): { en
     }
     const root = numberOf(t.nodes[0].value);
     if (t.product && !t.product.text && root !== null && root > 1) {
-      t.product = value(indexForm(root), visibility);
+      t.product = value(indexForm(root), filledAs(t.product));
       filled++;
     }
   }
