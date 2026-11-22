@@ -139,6 +139,8 @@ export interface BankRoute {
   collection: CollectionFilter;
   crossover: CrossoverFilter;
   revision: RevisionFilter;
+  /** One paper (`paperId`, e.g. 1MA1_NOV_2023_2H) shown whole in paper order; set only when chosen. */
+  paper?: string;
   question: string;
   /** The question view, counted from 0 here; the address counts from 1 (`view=1` is the first view). */
   view: number;
@@ -152,6 +154,10 @@ export const normalizeCode = (code: string) => code.replace(/\s/g, "").toUpperCa
 export function readRoute(search: string, catalogue?: BankCatalogue<BankListQuestion>): BankRoute {
   const p = new URLSearchParams(search);
   const raw = normalizeCode(p.get("code") || "");
+  const paper = (p.get("paper") || "").trim().toUpperCase();
+  // A paper is opened whole, with no topic. Its Year 11 revision questions are shown (filterQuestions),
+  // but the revision filter stays hidden, so leaving the paper does not include them elsewhere.
+  if (paper) return {...emptyRoute, bankView: "questions", paper, question: p.get("question") || "", ...readView(p.get("view"), viewCount(catalogue, p.get("question") || ""))};
   return {
     bankView: p.get("bankView") === "topics" ? "topics" : "questions",
     code: catalogue?.aliases[raw] || raw,
@@ -193,6 +199,12 @@ function readView(raw: string | null, count: number | undefined): Pick<BankRoute
 /** The query string for a bank route, without the page path; empty for the default route. */
 export function routeQuery(route: BankRoute): string {
   const p = new URLSearchParams();
+  if (route.paper) {
+    p.set("paper", route.paper);
+    if (route.question) p.set("question", route.question);
+    if (route.view > 0) p.set("view", String(route.view + 1));
+    return `?${p}`;
+  }
   if (route.bankView === "topics") p.set("bankView", "topics");
   if (route.code) p.set("code", normalizeCode(route.code));
   if (route.tier !== "all") p.set("tier", route.tier);
@@ -211,6 +223,7 @@ export function topicQuestions<Q extends BankListQuestion>(catalogue: BankCatalo
 }
 
 export function filterQuestions<Q extends BankListQuestion>(catalogue: BankCatalogue<Q>, route: BankRoute): Q[] {
+  if (route.paper) return paperQuestions(catalogue, route.paper);
   const questions = topicQuestions(catalogue, route.code).filter(q => questionEligible(q, route));
   // Filter first: retain the matching tier and mapping, including old direct links.
   return (route.code ? distinctQuestions(questions, route.question) : questions).sort(compareAccessibility);
@@ -255,7 +268,8 @@ export function exportSelection<Q extends BankListQuestion>(catalogue: BankCatal
   return {questions, marks: questions.reduce((n, q) => n + q.marks, 0), version: catalogue.version};
 }
 
-export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "filtered" | "revision" | "no-bank-match" | "not-in-pilot" | null {
+export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "unknown-paper" | "filtered" | "revision" | "no-bank-match" | "not-in-pilot" | null {
+  if (route.paper) return paperQuestions(catalogue, route.paper).length ? null : "unknown-paper";
   const topic = catalogue.topics.find(t => t.code === route.code);
   if (route.code && !topic) return "unknown";
   if (filterQuestions(catalogue, route).length) return null;
@@ -366,3 +380,47 @@ function checkCatalogue(data: unknown, detail: boolean): BankCatalogue<BankListQ
   }
   return d;
 }
+
+/** One paper's questions in the order they are printed on it. */
+export function paperQuestions<Q extends BankListQuestion>(catalogue: BankCatalogue<Q>, paperId: string): Q[] {
+  return catalogue.questions.filter(q => q.paperId === paperId).sort((a, b) => a.number - b.number || a.order - b.order || a.id.localeCompare(b.id));
+}
+
+export interface BankPaper {
+  id: string;
+  /** The series or mock set, as `set` on its questions: "November 2023", "Mock Set 6". */
+  set: string;
+  /** "1", "2" or "3". */
+  paper: string;
+  tier: "F" | "H";
+  calculator: boolean;
+  mock: boolean;
+  questions: number;
+  marks: number;
+  revisionUse?: string;
+}
+
+const MONTHS: Record<string, number> = {january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12};
+/** Exam series newest first, then mock sets in number order. */
+function compareSets(a: string, b: string): number {
+  const series = (s: string) => {const m = /^(\w+) (\d{4})$/.exec(s); return m && MONTHS[m[1].toLowerCase()] ? Number(m[2]) * 12 + MONTHS[m[1].toLowerCase()] : null;};
+  const mock = (s: string) => Number(/(\d+)\s*$/.exec(s)?.[1] ?? 0);
+  const x = series(a), y = series(b);
+  if (x !== null && y !== null) return y - x;
+  if (x !== null || y !== null) return x !== null ? -1 : 1;
+  return mock(a) - mock(b) || a.localeCompare(b);
+}
+
+/** Every paper in the bank, grouped by set (series newest first, then mocks), then Foundation 1-3, Higher 1-3. */
+export function bankPapers(catalogue: BankCatalogue<BankListQuestion>): BankPaper[] {
+  const papers = new Map<string, BankPaper>();
+  for (const q of catalogue.questions) {
+    const found = papers.get(q.paperId);
+    if (found) {found.questions++; found.marks += q.marks; continue;}
+    papers.set(q.paperId, {id: q.paperId, set: q.set, paper: /_(\d)[FH]$/.exec(q.paperId)?.[1] ?? "", tier: q.tier, calculator: q.calculator, mock: /^mock/i.test(q.collection), questions: 1, marks: q.marks, revisionUse: q.revisionUse});
+  }
+  return [...papers.values()].sort((a, b) => compareSets(a.set, b.set) || a.tier.localeCompare(b.tier) || a.paper.localeCompare(b.paper));
+}
+
+/** A paper's name as teachers say it: "November 2023 2H". */
+export const paperName = (paper: Pick<BankPaper, "set" | "paper" | "tier">): string => `${paper.set} ${paper.paper}${paper.tier}`;
