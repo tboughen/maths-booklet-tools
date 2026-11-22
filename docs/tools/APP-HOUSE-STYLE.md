@@ -255,6 +255,11 @@ stays the builders' word for the line after a question.
   two-way tables. Tables keep their entries grid under the drawing for typing many cells in a row.
 - Wave 1b (22 Nov 2026): spinners, dice and bags; function machines; the bubble method; written methods. A written
   method's small digits live in its row's options box, with their own What pupils see.
+- Wave 1c (22 Nov 2026): algebra tiles; angle diagrams; area and perimeter; geometry figures. The geometry tools keep
+  their five label states and read them as three (`src/editor-kit/houseLabelVisibility.ts`): a given value or a
+  letter is Show; hidden or an answer line is Pupil space (a tick in the box picks the answer line); blank is Leave
+  out, with what was typed kept. A function machine box left out keeps its outline (Tim, 22 Nov 2026), so an open
+  "make your own machine" task still has its box.
 
 ### Folding cards and the scroll fade (Tim, 22 Nov 2026)
 

@@ -31,7 +31,6 @@ import {
   collect,
   create,
   forView,
-  hasHidden,
   layout,
   MAX_COUNT,
   MAX_TERMS,
@@ -57,6 +56,15 @@ import { LINK_PREFIX, parseAlgebraTilesLink, algebraTilesLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { FONT } from "../../packages/function-machine-core/src/maths-text";
+import { Eye, Grid2x2, Ruler, Wand2 } from "lucide-react";
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-tiles:v1");
 type Doc = Envelope["document"];
 /** What is selected on the diagram: a term (all its tiles) or a line under the tiles. */
@@ -103,6 +111,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -113,6 +122,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -148,11 +159,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -182,6 +195,7 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null),
@@ -198,6 +212,12 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
   const selectedTerm = selected && "term" in selected ? d.terms.find((t) => t.id === selected.term) : undefined;
   const selectedItem = selected && "item" in selected ? selected.item : undefined;
   const selectedLine = selectedItem ? d[selectedItem] : null;
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const lines = [d.expression, d.answer].filter((v): v is NonNullable<typeof v> => !!v);
+  const spaceCount = d.terms.filter((t) => t.show === "hidden").length + lines.filter((v) => v.show === "hidden").length + (d.zeroPairs === "hidden" ? 1 : 0);
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -249,14 +269,39 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
     return t ? `term ${i + 1} (${t.count < 0 ? "−" : ""}${Math.abs(t.count) === 1 ? "" : Math.abs(t.count)}${termLetters(t, d.letters) === "1" && Math.abs(t.count) !== 1 ? "" : termLetters(t, d.letters)})` : "term";
   };
   const addressName = (a: Address) => ("term" in a ? termName(a.term) : ITEM_NAMES[a.item]);
-  function choose(a: Address) {
+  function choose(a: Address, anchor: HTMLElement) {
     setSelected(a);
-    requestAnimationFrame(() => {
-      const field = document.getElementById("at-selected-value") as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
-    });
+    setBoxAnchor(anchor);
   }
+  const stateOf = (a: Address) => ("term" in a ? d.terms.find((t) => t.id === a.term)?.show : d[a.item]?.show);
+  /** What pupils see of one term or line: one undo step. An empty line is already a space for pupils. */
+  function setVisibility(a: Address, v: Visibility) {
+    if (blocked || stateOf(a) === v) return;
+    if ("term" in a) return void commit(() => setTerm(e, a.term, { show: v }), visibilityStep(v, termName(a.term)));
+    const line = d[a.item];
+    if (!line) return;
+    if (v === "hidden" && !line.text) return setMessage("This is an answer line with no answer: pupils already see a line. Type the answer first.");
+    commit(() => setItem(e, a.item, { show: v }), visibilityStep(v, ITEM_NAMES[a.item]));
+  }
+  /** Every term, or both lines, at once: one undo step. Empty lines stay plain answer lines. */
+  function setKind(kind: "tiles" | "lines", v: Visibility) {
+    patch((n) => {
+      if (kind === "tiles") for (const t of n.terms) t.show = v;
+      else for (const x of [n.expression, n.answer]) if (x) x.show = v === "hidden" && !x.text ? "show" : v;
+    }, "what pupils see");
+  }
+  function clearSpaces() {
+    patch((n) => {
+      for (const t of n.terms) if (t.show === "hidden") t.show = "show";
+      for (const x of [n.expression, n.answer]) if (x?.show === "hidden") x.show = "show";
+      if (n.zeroPairs === "hidden") n.zeroPairs = "show";
+    }, "clear pupil spaces");
+  }
+  // The box closes when its term or line goes (a removed term, a new diagram, or Reset).
+  const selectedDrawn = !!(selectedTerm || selectedLine);
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
   const readCount = (text: string) => {
     const n = Number(text.trim().replace(/[−–]/g, "-"));
     if (!Number.isInteger(n) || n === 0 || Math.abs(n) > MAX_COUNT) throw Error(`Type a whole number of tiles from 1 to ${MAX_COUNT}, with − for negative tiles.`);
@@ -384,6 +429,7 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
       }
     }
   }
+  const reach = useTargetReach(hitList, (96 / 25.4) * fitted.scale, coarse);
   return (
     <FieldErrors.Provider value={fieldErrorContext}>
     <div className="app-shell booklet-editor pt-editor at-editor">
@@ -470,60 +516,44 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
                   {hitList.map((h, k) => {
                     const a: Address = "term" in h.target ? { term: h.target.term } : { item: h.target.item },
-                      hiddenHere =
-                        view === "pupil" && ("term" in a ? d.terms.find((t) => t.id === a.term)?.show === "hidden" : d[a.item]?.show === "hidden");
+                      id = "term" in a ? a.term : a.item,
+                      key = `${id}:${k}`,
+                      state = stateOf(a) ?? "show",
+                      text = "term" in a ? termName(a.term) : (d[a.item]?.text ?? "");
                     return (
-                      <button
-                        key={`${"term" in a ? a.term : a.item}-${k}`}
-                        type="button"
-                        className={`pt-hit ${sameAddress(selected, a) ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit the ${addressName(a)}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                      <LabelHit
+                        key={key}
+                        what={`the ${addressName(a)}`}
+                        state={state}
+                        text={"term" in a ? "" : text}
+                        selected={sameAddress(selected, a)}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="at-quick-tip"
+                        tipShown={tip?.key === key}
+                        tipHandlers={quick.bind(key, state)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[k]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(h.x, g.width), top: px(h.y, g.height), width: px(h.width, g.width), height: px(h.height, g.height) }}
-                        onClick={() => choose(a)}
+                        onOpen={(anchor) => choose(a, anchor)}
+                        onVisibility={(nv) => setVisibility(a, nv)}
                       />
                     );
                   })}
+                  <QuickTip id="at-quick-tip" tip={tip && !(boxAnchor && selected && tip.key.startsWith(`${"term" in selected ? selected.term : selected.item}:`)) ? tip : null} />
                 </div>
-              </div>
-            </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={<EditorHint tool="algebra-tiles">Click a term's tiles, the expression or the answer to edit it. Enter applies; Escape restores.</EditorHint>}
-            ></EditorFoot>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-          </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Algebra tiles settings">
-            <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected item">
-              <h2>{selected && (selectedTerm || selectedLine) ? `Selected: ${addressName(selected)}` : "Selected item"}</h2>
-              {selectedTerm ? (
-                <>
+                {boxAnchor && selected && selectedTerm && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={selectedTerm.id} focusField={!coarse} title={`The ${termName(selectedTerm.id)}`} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedTerm.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
                   <div className="pt-fields">
                     <label>
                       Tile
                       <DraftField
                         key={`${selectedTerm.id}-kind`}
-                        id="at-selected-value"
-                        label="Selected tile"
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label={`Tile of the ${termName(selectedTerm.id)}`}
                         value={termLetters(selectedTerm, d.letters)}
                         maxLength={12}
                         disabled={blocked}
@@ -534,7 +564,8 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                       How many (− for negative)
                       <DraftField
                         key={`${selectedTerm.id}-count`}
-                        label="Selected count"
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label="How many"
                         value={String(selectedTerm.count).replace("-", "−")}
                         maxLength={4}
                         inputMode="text"
@@ -545,16 +576,7 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                       />
                     </label>
                   </div>
-                  <label className="pt-hide" title="Hidden tiles are saved answers; pupils see the space empty and draw them.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked}
-                      checked={selectedTerm.show === "hidden"}
-                      onChange={(ev) => commit(() => setTerm(e, selectedTerm.id, { show: ev.target.checked ? "hidden" : "show" }), ev.target.checked ? "hide tiles" : "show tiles")}
-                    />
-                    Hide for pupils (they draw these tiles)
-                  </label>
-                  <div className="pt-row">
+                  <div className="md-options-actions">
                     <button type="button" disabled={blocked || d.terms[0].id === selectedTerm.id} onClick={() => commit(() => moveTerm(e, selectedTerm.id, -1), "move term")}>
                       Move earlier
                     </button>
@@ -582,16 +604,18 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                     Type a tile such as {d.letters.long}, {d.letters.long}², {d.letters.long}
                     {d.letters.short}, {d.letters.long}²{d.letters.short} or 1 (^2 also makes a square).
                   </p>
-                </>
-              ) : selectedItem && selectedLine ? (
-                <>
+                  </OptionsBox>
+                )}
+                {boxAnchor && selected && selectedItem && selectedLine && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={selectedItem} focusField={!coarse} title={`The ${ITEM_NAMES[selectedItem]}`} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedLine.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
                   <div className="pt-fields">
                     <label>
                       {selectedItem === "answer" ? "Answer" : "Expression"}
                       <DraftField
                         key={selectedItem}
-                        id="at-selected-value"
-                        label={selectedItem === "answer" ? "Selected answer" : "Selected expression"}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label={`Text of the ${ITEM_NAMES[selectedItem]}`}
                         value={selectedLine.text}
                         maxLength={MAX_TEXT}
                         disabled={blocked}
@@ -599,39 +623,70 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                       />
                     </label>
                   </div>
-                  <label className="pt-hide" title="Hidden items are saved answers; pupils see an answer line.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedLine.text}
-                      checked={selectedLine.show === "hidden"}
-                      onChange={(ev) => commit(() => setItem(e, selectedItem, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  {!selectedLine.text && <p className="pt-note">This is an answer line with no answer. Enter the answer first to hide it.</p>}
-                  <p className="pt-note">Type ^2 or ² for squares and - for minus: they print as on a paper, letters in italic.</p>
-                </>
-              ) : (
-                <p className="pt-note">Click a term's tiles, the expression or the answer to choose it.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const t of n.terms) t.show = "show";
-                      for (const v of [n.expression, n.answer]) if (v) v.show = "show";
-                      if (n.zeroPairs === "hidden") n.zeroPairs = "show";
-                    }, "show all")
-                  }
-                >
-                  Show all
-                </button>
+                    {!selectedLine.text && <p className="pt-note">This is an answer line with no answer: pupils already see a line.</p>}
+                    <p className="pt-note">Type ^2 or ² for squares and - for minus: they print as on a paper, letters in italic.</p>
+                  </OptionsBox>
+                )}
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Tiles</h2>
+            </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={<EditorHint tool="algebra-tiles">Click a term's tiles, the expression or the answer to type it. Double-click it for a pupil space.</EditorHint>}
+            ></EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
+          </Panel>
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Algebra tiles settings">
+            <ReturnToDiagram />
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="algebra-tiles"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Everything shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: pupils draw the tiles or write the line; the answers copy shows them. Leave out: nothing prints, not even a line, in either copy.</p>
+                  <p className="pt-note">An empty line is an answer line with no answer, and is always a space.</p>
+                </>
+              }
+            >
+              {(() => {
+                const tiles = commonVisibility(d.terms.map((t) => t.show));
+                const written = commonVisibility(lines.map((v) => v.show));
+                return (
+                  <>
+                    {tiles && <VisibilitySwitch name="Tiles" caption="Tiles" value={tiles} disabled={blocked} onChange={(v) => setKind("tiles", v)} />}
+                    {written && <VisibilitySwitch name="Expression and answer" caption="Expression and answer" value={written} disabled={blocked} onChange={(v) => setKind("lines", v)} />}
+                  </>
+                );
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a term&apos;s tiles or a line for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="algebra-tiles"
+              title="Tiles"
+              icon={Grid2x2}
+              defaultOpen
+              summary={`${d.terms.length} term${d.terms.length === 1 ? "" : "s"}`}
+            >
               <div className="pt-fields">
                 <label>
                   Tiles for
@@ -676,20 +731,20 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                 <button type="button" disabled={blocked || d.terms.length >= MAX_TERMS} onClick={() => commit(() => addTerm(e, { count: 1, long: 0, short: 0 }), "add term")}>
                   Add a term
                 </button>
-                <button
-                  type="button"
-                  disabled={blocked || d.terms.every((t) => t.show === "hidden")}
-                  title="Pupils see the space empty and draw the tiles; the answers copy prints them."
-                  onClick={() => patch((n) => n.terms.forEach((t) => (t.show = "hidden")), "hide all tiles")}
-                >
-                  Hide every tile
-                </button>
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Expression and answer</h2>
+            </FoldCard>
+            <FoldCard
+              tool="algebra-tiles"
+              title="Expression and answer"
+              icon={Wand2}
+              summary={[d.expression ? "Expression" : "", d.answer ? "Answer" : ""].filter(Boolean).join(" and ") || "No lines"}
+              help={
+                <p className="pt-note">
+                  An empty line is an answer line for pupils. These buttons fill an empty line from the tiles; nothing happens until you press one, and
+                  it can be undone.
+                </p>
+              }
+            >
               <label className="pt-hide">
                 <input
                   type="checkbox"
@@ -708,13 +763,9 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                 />
                 Simplified answer (after =)
               </label>
-              <p className="pt-note">
-                An empty line is an answer line for pupils. These buttons fill an empty line from the tiles; nothing happens until you press one, and
-                it can be undone.
-              </p>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={hideFilled} onChange={(ev) => setHideFilled(ev.target.checked)} />
-                Hide what it fills (keep as answers)
+                Make what it fills pupil spaces
               </label>
               <div className="pt-row">
                 <button
@@ -728,9 +779,26 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                   Collect like terms
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="algebra-tiles"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.arrangement === "grouped" ? "Like tiles grouped" : "As written"}${d.fill === "plain" ? " · white tiles" : ""}${d.lines === "bold" ? " · bold lines" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Each kind of term has its own tile: 1 is a small square, a letter a strip, a squared letter a square, two letters a rectangle and
+                    three letters a block (a²b is a by a by b; ab² is a by b by b). Negative tiles are red and hatched (and signed while labels print), so they still read in
+                    black and white. Up to {MAX_TERMS} terms of {MAX_COUNT} tiles each.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown under the tiles; preview zoom never changes it. Download PNG (600 ppi) if your
+                    browser blocks copying.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Arrangement
@@ -777,21 +845,7 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This diagram has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Each kind of term has its own tile: 1 is a small square, a letter a strip, a squared letter a square, two letters a rectangle and
-                  three letters a block (a²b is a by a by b; ab² is a by b by b). Negative tiles are red and hatched (and signed while labels print), so they still read in
-                  black and white. Up to {MAX_TERMS} terms of {MAX_COUNT} tiles each.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown under the tiles; preview zoom never changes it. Download PNG (600 ppi) if your
-                  browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -844,6 +898,7 @@ export default function AlgebraTilesPage({ active = true }: { active?: boolean }
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >
