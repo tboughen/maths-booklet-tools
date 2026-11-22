@@ -1,12 +1,11 @@
 import { test, expect } from "./release-fixtures";
 
-/** U6: every structure control (+/− row, column, stage, level, category, cuboid) looks and sizes the same. */
+/** U6 (frequency trees left on 22 Nov 2026: their levels are links in the Total and groups card): every structure control (+/− row, column, stage, level, category, cuboid) looks and sizes the same. */
 const tools: [string, string][] = [
   ["ratio-table", "Rows"],
   ["value-table-graph", "x values"],
   ["cuboids", "Cuboids"],
   ["charts", "Categories"],
-  ["frequency-tree", "Levels"],
 ];
 for (const [tool, name] of tools) {
   test(`${tool}: the ${name} control is the shared stepper`, async ({ page }) => {

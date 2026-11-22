@@ -54,3 +54,10 @@
 @media (max-width: 550px) { .af-page { padding: 12px; } .af-inspector { grid-template-columns: minmax(0,1fr); } .af-panel { padding: 12px; } :is(.af-toolbar, .af-main > .af-actions) button { flex: 1 1 140px; } }
 /* Under a finger the page's own buttons are as tall as a card's. */
 @media (max-width: 767px), (pointer: coarse) { .af-page button { min-height: 44px; } }
+
+.af-themes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.af-themes h3 { font-size: 14px; margin: 0 0 4px; }
+.af-themes ol { margin: 0; padding-left: 20px; font-size: 13px; }
+.af-gap-low { background: #fadadd; }
+.af-gap-below { background: #fff0c2; }
+.af-gap-above { background: #d3eedb; }

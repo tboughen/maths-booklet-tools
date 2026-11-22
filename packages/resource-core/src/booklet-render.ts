@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
-import { answerRule, at, card, countSpaces, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
+import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
+import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap } from "./text";
 import type { FontStyle } from "./metrics";
 import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Section } from "./booklet";
 
@@ -324,8 +324,9 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
   keyIdeas(keyIdea).forEach((idea, i) => {
     if (i) y += K.ideaGap;
     const f = keyIdeaLines(idea, tw, maths);
-    // Without a fraction or a power the idea prints exactly as a paragraph always has.
-    const svg = f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
+    // With maths notation on, the idea prints as typeset lines so its letters take the maths serif (N16);
+    // otherwise, without a fraction or a power, it prints exactly as a paragraph always has.
+    const svg = maths || f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
     out.push(at({ h: f.h, svg }, 0, y));
     y += f.h;
   });
@@ -355,10 +356,10 @@ export function bannerFrag(label: string, end: boolean, st: HouseStyle): Frag {
   };
 }
 
-function sectionHead(section: Section, st: HouseStyle, continued: boolean): Frag {
+function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean): Frag {
   const title = sectionTitle(section) + (continued ? " (continued)" : "");
   const tw = plainWidth(title, A4.heading, "bold");
-  const out = [textSvg(parseRuns(title, "bold"), 0, base(A4.heading), A4.heading, st.navy)];
+  const out = [textSvg(titleRuns(title, maths), 0, base(A4.heading), A4.heading, st.navy)];
   let h = lh(A4.heading);
   const ins = continued ? "" : section.instruction.trim();
   if (ins) {
@@ -565,7 +566,7 @@ export function planNotes(lesson: Lesson, lessonNo: number, words: LessonWords =
     wrap(textSrc, S.body, W - indent).forEach((runs, k) => {
       if (y + lh(S.body) > A4.bottom) fresh();
       const tooWide = lineWidth(runs, S.body) > W - indent + 0.01;
-      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
+      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" || r.style === "maths" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
       y += lh(S.body);
     });
   }
@@ -746,7 +747,7 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
   const x0 = A4.marginX;
   const out: string[] = [];
   let y = A4.top;
-  out.push(textSvg(parseRuns(r.title, "bold"), x0, y + base(A4.lessonTitle), A4.lessonTitle, st.navy));
+  out.push(textSvg(titleRuns(r.title, maths), x0, y + base(A4.lessonTitle), A4.lessonTitle, st.navy));
   y += lh(A4.lessonTitle) + 1;
   if (r.instruction.trim()) {
     const f = para(r.instruction, W, st);
@@ -840,7 +841,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
     const labels = lessonLabels(lesson);
     lesson.sections.forEach((section, si) => {
       const rows = rowsOf(section, labels[si], si + 1, L, ctx);
-      const headFrag = sectionHead(section, st, false);
+      const headFrag = sectionHead(section, st, false, !!ctx.maths);
       // A start banner stays with the heading and first row; an end banner stays with the last row.
       const startFrag = section.startBanner.trim() ? bannerFrag(section.startBanner, false, st) : null;
       const endFrag = section.endBanner.trim() ? bannerFrag(section.endBanner, true, st) : null;
@@ -863,7 +864,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
         if (y + row.h + tail > A4.bottom && ri > 0) {
           pg.end = y - A4.rowGap;
           fresh();
-          const cont = sectionHead(section, st, true);
+          const cont = sectionHead(section, st, true, !!ctx.maths);
           pg.blocks.push({ block: { kind: "section", section: si, continued: true, frag: cont }, y: pg.end });
           y = pg.end + cont.h;
         }
@@ -976,7 +977,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         continue;
       }
       if (block.kind === "section") {
-        out.push(at(sectionHead(lesson.sections[block.section], st, block.continued), A4.marginX, yy));
+        out.push(at(sectionHead(lesson.sections[block.section], st, block.continued, !!ctx.maths), A4.marginX, yy));
         if (!block.continued) glyphs({ title: lesson.sections[block.section].title, instruction: lesson.sections[block.section].instruction }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(lesson.sections[block.section])} heading`);
         continue;
       }
@@ -991,7 +992,9 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
         glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${sectionTitle(section)}${c.number !== null ? `, question ${c.number}` : ""}`);
         const natural = card(section.cards[c.index], c.number, c.w, { ...ctx, issues: [] }, extra, 0).h;
-        const f = card(section.cards[c.index], c.number, c.w, ctx, extra, Math.max(0, c.h - natural));
+        const slack = Math.max(0, c.h - natural);
+        const grown = growLastSpace(section.cards[c.index], slack);
+        const f = grown ? card(grown, c.number, c.w, ctx, extra, GROW_MARGIN) : card(section.cards[c.index], c.number, c.w, ctx, extra, slack);
         out.push(at(f, A4.marginX + c.x, yy + c.dy));
       });
     }

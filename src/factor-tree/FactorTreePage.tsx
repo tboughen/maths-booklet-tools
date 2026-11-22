@@ -30,8 +30,8 @@ import {
   canonical,
   completeTree,
   create,
+  FONT,
   forView,
-  hasHidden,
   isLeaf,
   layout,
   MAX_DEPTH,
@@ -55,6 +55,14 @@ import { LINK_PREFIX, parseFactorTreeLink, factorTreeLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Eye, ListTree, Ruler, Wand2 } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:factor-tree:v1");
 type Doc = Envelope["document"];
@@ -102,7 +110,9 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   id?: string;
   label: string;
   value: string;
@@ -147,11 +157,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -177,6 +189,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [factors, setFactors] = useState<[string, string]>(["", ""]),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
@@ -193,6 +206,13 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
   const notes = warnings(e);
   const selectedTree = selected ? d.trees.find((t) => t.id === selected.tree) : undefined;
   const selectedNode = selectedTree?.nodes.find((n) => n.id === selected?.node);
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const nodeBoxes = g.nodes.map((p) => ({ x: p.x - g.r, y: p.y - g.r, width: 2 * g.r, height: 2 * g.r }));
+  const reach = useTargetReach(nodeBoxes, (96 / 25.4) * fitted.scale, coarse);
+  const spaceCount = d.trees.reduce((n, t) => n + t.nodes.filter((x) => x.value.show === "hidden").length + (t.product?.show === "hidden" ? 1 : 0), 0);
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -243,18 +263,44 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
     const t = d.trees.find((x) => x.id === a.tree),
       n = t?.nodes.find((x) => x.id === a.node);
     if (!t || !n) return "";
-    const label = n.value.text && (n.value.show === "show" || view === "answer") ? n.value.text : n.value.text ? "hidden number" : "blank";
+    // The teacher sees a left-out number faintly, so its name says it; a pupil space keeps its answer out of the name.
+    const label = n.value.text && (n.value.show !== "hidden" || view === "answer") ? n.value.text : n.value.text ? "hidden number" : "blank";
     return `${treeName(t.id)}${n.parent ? `level ${depthOf(t, n.id)}` : "top"} ${label}`;
   };
-  function choose(a: Address) {
+  function choose(a: Address, anchor: HTMLElement) {
+    if (selected?.tree !== a.tree || selected.node !== a.node) setFactors(["", ""]);
     setSelected(a);
-    setFactors(["", ""]);
-    requestAnimationFrame(() => {
-      const field = document.getElementById("ft-selected-value") as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  /** What pupils see of one number: one undo step. A blank number is already a space for pupils. */
+  function setVisibility(a: Address, v: Visibility) {
+    const n = d.trees.find((t) => t.id === a.tree)?.nodes.find((x) => x.id === a.node);
+    if (blocked || !n || n.value.show === v) return;
+    if (v === "hidden" && !n.value.text) return setMessage("This number is a blank with no answer: pupils already see a space. Type the answer first.");
+    commit(() => setNode(e, a.tree, a.node, { show: v }), visibilityStep(v, n.value.text || "blank number"));
+  }
+  /** Every number, or every answer line, at once: one undo step. Blank numbers stay blank spaces. */
+  function setKind(kind: "number" | "answer", v: Visibility) {
+    patch((n) => {
+      for (const t of n.trees) {
+        if (kind === "number") for (const x of t.nodes) x.value.show = v === "hidden" && !x.value.text ? "show" : v;
+        else if (t.product) t.product.show = v === "hidden" && !t.product.text ? "show" : v;
+      }
     });
   }
+  function clearSpaces() {
+    patch((n) => {
+      for (const t of n.trees) {
+        for (const x of t.nodes) if (x.value.show === "hidden") x.value.show = "show";
+        if (t.product?.show === "hidden") t.product.show = "show";
+      }
+    });
+  }
+  // The box closes when its number goes (a smaller tree, a new diagram, or Reset).
+  const selectedDrawn = !!selectedNode;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   // Autosave with protection for another tab's newer draft.
   useEffect(() => {
@@ -428,56 +474,43 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.nodes.map((p) => {
+                  {g.nodes.map((p, i) => {
                     const a = { tree: p.treeId, node: p.id },
-                      hiddenHere = view === "pupil" && p.node.value.show === "hidden";
+                      key = `${p.treeId}:${p.id}`,
+                      state = p.node.value.show;
                     return (
-                      <button
-                        key={`${p.treeId}-${p.id}`}
-                        type="button"
-                        className={`pt-hit ${selected?.tree === p.treeId && selected.node === p.id ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit the number at ${nodeName(a)}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                      <LabelHit
+                        key={key}
+                        what={`the number at ${nodeName(a)}`}
+                        state={state}
+                        text={p.node.value.text}
+                        selected={selected?.tree === p.treeId && selected.node === p.id}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="fct-quick-tip"
+                        tipShown={tip?.key === key}
+                        tipHandlers={quick.bind(key, state)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[i]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(p.x - g.r, g.width), top: px(p.y - g.r, g.height), width: px(2 * g.r, g.width), height: px(2 * g.r, g.height) }}
-                        onClick={() => choose(a)}
+                        onOpen={(anchor) => choose(a, anchor)}
+                        onVisibility={(v) => setVisibility(a, v)}
                       />
                     );
                   })}
+                  <QuickTip id="fct-quick-tip" tip={tip && !(boxAnchor && selected && `${selected.tree}:${selected.node}` === tip.key) ? tip : null} />
                 </div>
-              </div>
-            </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={
-                <EditorHint tool="factor-tree">Click a number on the tree to edit, split or circle it. Enter applies; Escape restores.</EditorHint>
-              }
-            >
-            </EditorFoot>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-          </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Factor tree settings">
-            <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected number">
-              <h2>{selected && selectedNode ? `Number: ${nodeName(selected)}` : "Selected number"}</h2>
-              {selected && selectedTree && selectedNode ? (
+                {boxAnchor && selected && selectedTree && selectedNode && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={`${selected.tree}:${selected.node}`}
+                    focusField={!coarse}
+                    title={`The number at ${nodeName(selected)}`}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedNode.value.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
                 <>
                   <div className="pt-fields">
                     <label>
@@ -485,7 +518,8 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                       <DraftField
                         key={`${selected.tree}-${selected.node}`}
                         id="ft-selected-value"
-                        label="Selected number"
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label={`Text of the number at ${nodeName(selected)}`}
                         value={selectedNode.value.text}
                         maxLength={MAX_DIGITS}
                         inputMode="decimal"
@@ -494,15 +528,6 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                       />
                     </label>
                   </div>
-                  <label className="pt-hide" title="Hidden numbers are saved answers; pupils see a blank.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedNode.value.text}
-                      checked={selectedNode.value.show === "hidden"}
-                      onChange={(ev) => commit(() => setNode(e, selected.tree, selected.node, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
                   <label className="pt-hide" title="Primes are circled. A hidden number's circle prints only on the answers copy.">
                     <input
                       type="checkbox"
@@ -536,7 +561,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                           <input aria-label="Second factor" value={factors[1]} maxLength={MAX_DIGITS} inputMode="decimal" disabled={blocked} onChange={(ev) => setFactors([factors[0], ev.target.value])} />
                         </label>
                       </div>
-                      <div className="pt-row">
+                      <div className="md-options-actions">
                         <button
                           type="button"
                           disabled={blocked || depthOf(selectedTree, selectedNode.id) >= MAX_DEPTH || selectedTree.nodes.length + 2 > MAX_NODES}
@@ -550,36 +575,80 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                       <p className="pt-note">Leave a factor empty to give pupils a blank. Nothing is worked out for you.</p>
                     </>
                   ) : (
-                    <div className="pt-row">
+                    <div className="md-options-actions">
                       <button type="button" disabled={blocked} onClick={() => commit(() => unsplit(e, selected.tree, selected.node), "remove branches")}>
                         Remove its branches
                       </button>
                     </div>
                   )}
-                  {!selectedNode.value.text && <p className="pt-note">This number is a blank with no answer. Enter the answer first to hide it.</p>}
+                  {!selectedNode.value.text && <p>This number is a blank with no answer: pupils already see a space.</p>}
                 </>
-              ) : (
-                <p className="pt-note">Click a number on the tree to choose it.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const t of n.trees) {
-                        for (const x of t.nodes) x.value.show = "show";
-                        if (t.product) t.product.show = "show";
-                      }
-                    })
-                  }
-                >
-                  Show all
-                </button>
+                  </OptionsBox>
+                )}
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Trees and answer lines</h2>
+            </div>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={
+                <EditorHint tool="factor-tree">Click a number to type, split or circle it. Double-click it for a pupil space.</EditorHint>
+              }
+            >
+            </EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
+          </Panel>
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Factor tree settings">
+            <ReturnToDiagram />
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="factor-tree"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every number shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: a blank for pupils to fill in; the answers copy shows the number. Leave out: nothing prints, in either copy.</p>
+                  <p className="pt-note">A blank number with no answer is always a space. Each switch sets every label of that kind.</p>
+                </>
+              }
+            >
+              {(() => {
+                const numbers = commonVisibility(d.trees.flatMap((t) => t.nodes.map((x) => x.value.show)));
+                const answers = commonVisibility(d.trees.flatMap((t) => (t.product ? [t.product.show] : [])));
+                return (
+                  <>
+                    {numbers && <VisibilitySwitch name="Numbers" caption="Numbers" value={numbers} disabled={blocked} onChange={(v) => setKind("number", v)} />}
+                    {answers && <VisibilitySwitch name="Answer lines" caption="Answer lines" value={answers} disabled={blocked} onChange={(v) => setKind("answer", v)} />}
+                  </>
+                );
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a number on the tree for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="factor-tree"
+              title="Trees and answer lines"
+              icon={ListTree}
+              defaultOpen
+              summary={`${d.trees.length} tree${d.trees.length === 1 ? "" : "s"}${d.trees.some((t) => t.product) ? " · answer lines" : ""}`}
+              help={<p className="pt-note">Type answers such as 2^3 × 3^2 × 5 (x and * work too); powers print raised. An empty answer is a line for pupils. A number on the tree has its own options: split it, circle it or remove its branches.</p>}
+            >
               {d.trees.map((t, i) => (
                 <fieldset key={t.id} className="md-kit-group">
                   <legend>{d.trees.length > 1 ? `Tree ${i + 1}` : "The tree"}</legend>
@@ -595,7 +664,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                   {t.product && (
                     <>
                       <div className="pt-fields">
-                        <label>
+                        <label className="pt-field-wrap">
                           Answer
                           <DraftField
                             label={`Answer for ${d.trees.length > 1 ? `tree ${i + 1}` : "the tree"}`}
@@ -606,15 +675,17 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                           />
                         </label>
                       </div>
-                      <label className="pt-hide">
-                        <input
-                          type="checkbox"
-                          disabled={blocked || !t.product.text}
-                          checked={t.product.show === "hidden"}
-                          onChange={(ev) => commit(() => setProduct(e, t.id, { show: ev.target.checked ? "hidden" : "show" }))}
-                        />
-                        Hide the answer for pupils
-                      </label>
+                      {/* Each tree's answer line has its own What pupils see (the Answer lines switch sets them all). */}
+                      <VisibilitySwitch
+                        name={`What pupils see of the answer for ${d.trees.length > 1 ? `tree ${i + 1}` : "the tree"}`}
+                        caption="What pupils see"
+                        value={t.product.show}
+                        disabled={blocked}
+                        onChange={(v) => {
+                          if (v === "hidden" && !t.product?.text) return setMessage("This answer line is a blank with no answer: pupils already see a line. Type the answer first.");
+                          commit(() => setProduct(e, t.id, { show: v }), visibilityStep(v, "answer line"));
+                        }}
+                      />
                     </>
                   )}
                   {d.trees.length > 1 && (
@@ -626,22 +697,19 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                   )}
                 </fieldset>
               ))}
-              <p className="pt-note">Type answers such as 2^3 × 3^2 × 5 (x and * work too); powers print raised. An empty answer is a line for pupils.</p>
-              <div className="pt-row">
-                <button type="button" disabled={blocked || d.trees.length >= MAX_TREES} onClick={() => commit(() => addTree(e), "add tree")}>
-                  Add a tree for the same number
+              <div className="pt-add-row">
+                <button type="button" className="pt-link" aria-disabled={blocked || d.trees.length >= MAX_TREES || undefined} onClick={() => !blocked && d.trees.length < MAX_TREES && commit(() => addTree(e), "add tree")}>
+                  + Tree for the same number
                 </button>
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Complete the trees</h2>
-              <p className="pt-note">
-                Complete fills blanks from the numbers around them, splits every number that is not prime by its smallest prime, circles the
-                primes and writes an empty answer line in index form. Numbers you entered are kept. Nothing happens until you press the
-                button, and it can be undone.
-              </p>
+            </FoldCard>
+            <FoldCard
+              tool="factor-tree"
+              title="Complete the trees"
+              icon={Wand2}
+              summary={hideFilled ? "Fills blanks and keeps them as answers" : "Fills blanks for pupils to see"}
+              help={<p className="pt-note">Complete fills blanks from the numbers around them, splits every number that is not prime by its smallest prime, circles the primes and writes an empty answer line in index form. Numbers you entered are kept. Nothing happens until you press the button, and it can be undone.</p>}
+            >
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={hideFilled} onChange={(ev) => setHideFilled(ev.target.checked)} />
                 Hide what it fills (keep as answers)
@@ -663,9 +731,14 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                   Complete trees
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="factor-tree"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.levelMm} mm levels · ${d.blankStyle === "box" ? "boxes" : "dotted lines"}${d.intentionalError ? " · deliberate error" : ""}`}
+              help={<p className="pt-note">Up to {MAX_TREES} trees, {MAX_DEPTH} levels and {MAX_NODES} numbers in each. Copy for Word carries the physical size shown under the trees; preview zoom never changes it.</p>}
+            >
               <div className="pt-fields">
                 <label>
                   Level height (mm)
@@ -699,21 +772,11 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This diagram has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a number on the tree to edit it. Enter applies; Escape restores. Up to {MAX_TREES} trees, {MAX_DEPTH} levels and{" "}
-                  {MAX_NODES} numbers in each. Branches that do not multiply to their number, circled numbers that are not prime and answers
-                  that do not match add a teacher note; they are never corrected for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the trees; preview zoom never changes it. Download PNG (600 ppi) if
-                  your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+              <label className="pt-hide" title="For a spot-the-mistake task: wrong splits, circles and answers raise no teacher note.">
+                <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
+                This diagram has a deliberate error
+              </label>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (

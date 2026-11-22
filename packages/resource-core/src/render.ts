@@ -3,7 +3,7 @@ import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
 import { ratioBottomBaselineMm } from "../../ratio-table-core/src/svg";
 
@@ -636,6 +636,36 @@ export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "spa
  */
 export const besideBottom = (item: Leaf, other: Leaf) => item.type === "answerLine" && (other.type === "space" || (other.type === "diagram" && ratioFoot(other) === null));
 
+/** The free millimetre a grown card keeps at its foot (the card still prints at its full height). */
+export const GROW_MARGIN = 1;
+
+/**
+ * A booklet card taller than its own content (a row partner or the page is taller) gives the spare
+ * height to its last working space, so the answer line and anything after it ("Check yourself") sit
+ * at the bottom of the card and pupils get the most room to work (Tim, 22 Nov 2026, rule N18).
+ * Returns null when the card has no working space of its own to grow.
+ */
+export function growLastSpace(c: Card, mm: number): Card | null {
+  // A millimetre stays free at the foot, so Word's rounding never pushes a fixed row taller.
+  mm -= GROW_MARGIN;
+  if (!(mm > 0.01)) return null;
+  let done = false;
+  const grow = (list: Item[]): Item[] => {
+    const out = [...list];
+    for (let i = out.length - 1; i >= 0 && !done; i--) {
+      const it = out[i];
+      if (it.type === "part") out[i] = { ...it, items: grow(it.items) as typeof it.items };
+      else if (it.type === "space" && it.kind === "working" && !it.beside && !(out[i + 1] as Leaf | undefined)?.beside) {
+        out[i] = { ...it, heightMm: it.heightMm + mm };
+        done = true;
+      }
+    }
+    return out;
+  };
+  const items = grow(c.items);
+  return done ? { ...c, items } : null;
+}
+
 /**
  * How many shares of spare height a list of items takes: one per working or drawing space, but
  * one for a row of two items (beside) that holds any space, since the row grows once.
@@ -701,7 +731,7 @@ export function card(c: Card, number: number | string | null, w: number, ctx: An
     out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
     out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, "white", "middle"));
   }
-  out.push(textSvg(parseRuns(c.title, "bold"), titleX, titleY, S.cardTitle, st.navy));
+  out.push(textSvg(titleRuns(c.title, !!ctx.maths), titleX, titleY, S.cardTitle, st.navy));
   if (plainWidth(c.title, S.cardTitle, "bold") > w - titleX - pad) issue(ctx, "The card title is wider than the card.");
   out.push(at(body, pad, top));
   return { h, svg: out.join("") };
@@ -839,10 +869,10 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
     );
     const size = S.body;
     const xBelow = H - oy >= 5;
-    out.push(textSvg([{ text: item.axes.xLabel, style: "italic" }], W - 1.2, xBelow ? oy + 4.2 : oy - 1.6, size, st.ink, "end"));
+    out.push(textSvg([{ text: item.axes.xLabel, style: /^[A-Za-z]$/.test(item.axes.xLabel) ? "maths" : "italic" }], W - 1.2, xBelow ? oy + 4.2 : oy - 1.6, size, st.ink, "end"));
     const yRight = W - ox >= 6;
-    out.push(textSvg([{ text: item.axes.yLabel, style: "italic" }], yRight ? ox + 2 : ox - 2, 4.6, size, st.ink, yRight ? "start" : "end"));
-    if (ox >= 4 && H - oy >= 5) out.push(textSvg([{ text: "O", style: "italic" }], ox - 1, oy + 4.2, size, st.ink, "end"));
+    out.push(textSvg([{ text: item.axes.yLabel, style: /^[A-Za-z]$/.test(item.axes.yLabel) ? "maths" : "italic" }], yRight ? ox + 2 : ox - 2, 4.6, size, st.ink, yRight ? "start" : "end"));
+    if (ox >= 4 && H - oy >= 5) out.push(textSvg([{ text: "O", style: "maths" }], ox - 1, oy + 4.2, size, st.ink, "end"));
   }
   return out.join("");
 }
@@ -926,7 +956,7 @@ export function renderResource(saved: Resource, options: RenderOptions = {}): Re
   const pages = doc.sides.map((side, s) => {
     const out: string[] = [];
     // Header: title, objective and instruction left; group, name line and side right; a hairline below.
-    out.push(textSvg(parseRuns(doc.title, "bold"), m, m + 6.6, S.title, st.navy));
+    out.push(textSvg(titleRuns(doc.title, doc.notation === "maths"), m, m + 6.6, S.title, st.navy));
     const objective = [doc.code, doc.objective].filter(Boolean).join(" • ");
     out.push(textSvg(parseRuns(objective), m, m + 12.2, S.objective, st.muted));
     if (side.instruction) out.push(textSvg(parseRuns(side.instruction), m, m + 16.4, S.objective, st.ink));

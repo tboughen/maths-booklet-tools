@@ -8,8 +8,8 @@
   gap: 2px;
   font-size: 0.85rem;
 }
-/* A small digit is one or two characters, so its field stays narrow on the settings kit too. */
-.wm-editor .wm-mark input:not([type="checkbox"]) {
+/* A small digit is one or two characters, so its field stays narrow, in the options box too. */
+.wm-mark-grid .wm-mark input:not([type="checkbox"]) {
   width: 3.5em;
 }
 .wm-cross {

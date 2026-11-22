@@ -121,11 +121,13 @@ export interface ResultOptions { headers?: "auto" | "yes" | "no"; identifier?: "
 export interface Detection { hasHeaders: boolean; identifierColumn: number | null; matchedQuestions: number; missingResults: number; ignoredColumns: number; firstQuestionColumn: number }
 export interface PupilImport extends ImportResult<Pupil> { detection: Detection }
 const identifierHeaders = ["studentidentifier", "identifier", "studentid", "pupilid", "id", "name", "studentname", "pupilname", "student", "pupil", "candidatenumber"];
+/** A class or teaching-group column lets one sheet hold several classes for the department view. */
+const groupHeaders = ["class", "group", "set", "teachinggroup", "classgroup"];
 const missingScore = (value: string) => !value || /^(absent|missing|na|n\/a|-|a)$/i.test(value);
 export function importPupils(input: string[][], mappings: AssessmentItem[], options: ResultOptions | number = {}): PupilImport {
   const settings: ResultOptions = typeof options === "number" ? { identifier: options } : options;
   const explicitQuestions = (input[0] || []).filter(value => /[a-z]/i.test(value) && mappings.some(item => questionLabel(value) === questionLabel(item.label))).length;
-  const namedHeader = (input[0] || []).some(value => identifierHeaders.includes(header(value)) || ["year", "yeargroup", "tier", "strength"].includes(header(value)));
+  const namedHeader = (input[0] || []).some(value => identifierHeaders.includes(header(value)) || ["year", "yeargroup", "tier", "strength", ...groupHeaders].includes(header(value)));
   const numericValues = (input[0] || []).some(value => value.trim() && Number.isFinite(Number(value)));
   const hasHeaders = settings.headers === "yes" || settings.headers !== "no" && (namedHeader || !numericValues && explicitQuestions >= Math.min(2, mappings.length));
   const data = hasHeaders ? input.slice(1) : input;
@@ -159,7 +161,8 @@ export function importPupils(input: string[][], mappings: AssessmentItem[], opti
   const usedColumns = new Set(mappedColumns.map(c => c.column).filter(c => c >= 0));
   if (identifierColumn !== null) usedColumns.add(identifierColumn);
   const yearColumn = columns.findIndex(c => ["year", "yeargroup"].includes(c)), tierColumn = columns.findIndex(c => ["tier", "examinationtier"].includes(c)), strengthColumn = columns.findIndex(c => c === "strength");
-  for (const column of [yearColumn, tierColumn, strengthColumn]) if (column >= 0) usedColumns.add(column);
+  const groupColumn = hasHeaders ? columns.findIndex(c => groupHeaders.includes(c)) : -1;
+  for (const column of [yearColumn, tierColumn, strengthColumn, groupColumn]) if (column >= 0) usedColumns.add(column);
   detection.ignoredColumns = Math.max(0, width - usedColumns.size);
   if (detection.ignoredColumns) warnings.push(`${detection.ignoredColumns} extra column(s) were ignored. Use Adjust import if they contain question marks.`);
   for (const [index, row] of table.slice(1).entries()) {
@@ -180,7 +183,8 @@ export function importPupils(input: string[][], mappings: AssessmentItem[], opti
     if (year) { const number = Number(year); if (Number.isInteger(number) && number >= 7 && number <= 13) profile.year = number; else warnings.push(`Results row ${rowNumber}: invalid year; class default used.`); }
     if (tier) { if (["F", "FOUNDATION", "H", "HIGHER"].includes(tier)) profile.tier = tier.startsWith("F") ? "F" : "H"; else warnings.push(`Results row ${rowNumber}: invalid tier; class default used.`); }
     if (strength) { if (strength === "developing" || strength === "secure" || strength === "strong") profile.strength = strength; else warnings.push(`Results row ${rowNumber}: invalid strength; class default used.`); }
-    rows.push({ key: `row-${index + 1}`, identifier, scores, profile });
+    const group = groupColumn >= 0 ? row[groupColumn]?.trim() : "";
+    rows.push({ key: `row-${index + 1}`, identifier, scores, profile, ...(group ? { group } : {}) });
   }
   return { rows, warnings, detection };
 }

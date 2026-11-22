@@ -15,14 +15,12 @@
  */
 import { FRACTION } from "./text";
 import { advance } from "./metrics";
+import { UPRIGHT, WORDS } from "./prose-words";
 
 const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
-/** Letter runs that stay upright inside a maths token: function names, units, ordinals and times. */
-const UPRIGHT = new Set(["sin", "cos", "tan", "log", "ln", "exp", "min", "max", "mm", "cm", "km", "kg", "mg", "ml", "cl", "mph", "st", "nd", "rd", "th", "am", "pm"]);
 
-/** Short English words that can sit beside an operator in prose ("x = 3 or 4") and stay upright. */
-const WORDS = new Set(["an", "as", "at", "be", "by", "do", "if", "in", "is", "it", "of", "on", "or", "so", "to", "up", "we", "and", "are", "but", "can", "for", "has", "its", "not", "the", "was", "who", "why", "how", "all", "any", "one", "two", "six", "ten"]);
+
 
 /** Character rewrites that are safe anywhere printed text appears, fractions and bold included. */
 export function typesetSymbols(s: string): string {
@@ -49,10 +47,15 @@ export function typesetSymbols(s: string): string {
 }
 
 /** Italic markup for the maths letters in one stretch of plain text (no markup or fractions in it). */
-function italicLetters(s: string): string {
+const UNIT_LETTERS = "(?:mm|cm|m|km|g|kg|mg|ml|cl|l|s|h)[²³]?";
+const COMPOUND_UNIT = new RegExp(`^${UNIT_LETTERS}(\\/${UNIT_LETTERS})?$`);
+
+function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
   const tokens = s.split(/(\s+)/);
   const words = tokens.map((t, i) => ({ t, i })).filter((w) => w.t && !/^\s+$/.test(w.t));
   const out = [...tokens];
+  const starts: number[] = [];
+  tokens.reduce((pos, t, i) => ((starts[i] = pos), pos + t.length), 0);
   words.forEach((w, k) => {
     const prev = words[k - 1]?.t ?? "";
     const next = words[k + 1]?.t ?? "";
@@ -68,8 +71,13 @@ function italicLetters(s: string): string {
       out[w.i] = `${lead}*${axis[1]}*-${axis[2]}${tail}`;
       return;
     }
+    // A unit stays upright: any rate (g/cm³, m/s), and a plain unit (g, cm³) after a number. An answer
+    // line's suffix that is only a unit is handled in typesetValue. Density pages printed g in the
+    // maths serif (22 Nov 2026).
+    const unit = core.match(COMPOUND_UNIT);
+    if (unit && (unit[1] || /^[−-]?[\d.,]+$/.test(prev))) return;
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
-    if (/^[a-z]{2,3}$/.test(core) && byOperator && !WORDS.has(core) && !UPRIGHT.has(core)) {
+    if (/^[a-z]{2,3}$/.test(core) && byOperator && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
@@ -88,6 +96,7 @@ function italicLetters(s: string): string {
     if (!mathsy) return;
     const body = core.replace(/[a-z]+/g, (run, at: number, whole: string) => {
       if (run.length > 3 || UPRIGHT.has(run)) return run;
+      if (run.length > 1 && event[offset + starts[w.i] + lead.length + at]) return run;
       // Joined to a capital or a longer word (Q3a, 3D): leave it.
       if (/[A-Z]/.test(whole[at - 1] ?? "") || /[A-Z]/.test(whole[at + run.length] ?? "")) return run;
       return `*${run}*`;
@@ -117,13 +126,29 @@ export function typesetText(source: string, italic = true): string {
 function typesetPlain(source: string, italic: boolean): string {
   const s = typesetSymbols(source);
   if (!italic) return s;
+  const event = eventSpans(s);
   let out = "";
   let at = 0;
   for (const m of s.matchAll(PROTECTED)) {
-    out += italicLetters(s.slice(at, m.index)) + m[0];
+    out += italicLetters(s.slice(at, m.index), at, event) + m[0];
     at = m.index + m[0].length;
   }
-  return out + italicLetters(s.slice(at));
+  return out + italicLetters(s.slice(at), at, event);
+}
+
+/**
+ * The characters inside a closed P( ): the words there name an event (P(not red), P(red or blue)),
+ * so they stay upright words, not maths letters (rule N16). An unclosed P( marks nothing.
+ */
+function eventSpans(s: string): boolean[] {
+  const mask: boolean[] = [];
+  for (const m of s.matchAll(/(?<![A-Za-z])P\(/g)) {
+    let depth = 1;
+    let end = m.index + 2;
+    for (; end < s.length && depth > 0; end++) depth += s[end] === "(" ? 1 : s[end] === ")" ? -1 : 0;
+    if (depth === 0) for (let i = m.index + 2; i < end - 1; i++) mask[i] = true;
+  }
+  return mask;
 }
 
 /** A no-break space: Word and the page layout both keep the words either side of it on one line. */
@@ -221,6 +246,8 @@ const HEADINGS = new Set(["title", "heading", "label", "word", "startBanner", "e
 function typesetValue(v: unknown, key: string, maths = true): unknown {
   if (typeof v === "string") {
     if (!maths) return FLOWING.has(key) ? keepTogether(v) : v;
+    // An answer line's unit suffix ("g", "cm³", "g/cm³") prints upright.
+    if (key === "suffix" && COMPOUND_UNIT.test(v.trim())) return typesetSymbols(v);
     return BODY.has(key) ? (FLOWING.has(key) ? keepTogether(typesetText(v)) : typesetText(v)) : HEADINGS.has(key) ? typesetText(v, false) : v;
   }
   if (Array.isArray(v)) return v.map((x) => typesetValue(x, key, maths));

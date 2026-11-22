@@ -35,7 +35,8 @@ const plain = (max: number) =>
       (s) => ![...s].some((c) => c.charCodeAt(0) < 32 || c === "<" || c === ">"),
       "Use ordinary text without markup.",
     );
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const countSchema = z.object({ text: plain(12), show }).strict();
 export const categorySchema = z.object({ text: plain(30), show }).strict();
 export const answerSchema = z.object({ text: plain(24), show }).strict();
@@ -90,7 +91,7 @@ export const envelopeSchema = z
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type TreeDocument = Envelope["document"];
 export type TreeNode = z.infer<typeof nodeSchema>;
-export type Label = { text: string; show: "show" | "hidden" };
+export type Label = { text: string; show: "show" | "hidden" | "omit" };
 export type Question = z.infer<typeof questionSchema>;
 
 export const label = (text = "", visibility: Label["show"] = "show"): Label => ({ text, show: visibility });
@@ -199,8 +200,10 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // A left-out label stays out of the teacher copy too.
   for (const l of allLabels(n.document)) {
-    if (mark && l.show === "hidden" && l.text.trim()) REVEALED.add(l);
+    if (l.show !== "hidden") continue;
+    if (mark && l.text.trim()) REVEALED.add(l);
     l.show = "show";
   }
   return n;
@@ -505,6 +508,7 @@ export type Layout = ReturnType<typeof layout>;
 /** Size of a group name or of its pupil line. */
 function categoryBlock(l: Label, max: number) {
   if (l.show === "hidden") return { lines: [] as string[], width: 16, height: LINE };
+  if (l.show === "omit") return { lines: [] as string[], width: 0, height: 0 };
   const lines = l.text.trim() ? wrapLabel(l.text, max) : [];
   return { lines, width: Math.max(0, ...lines.map((x) => textWidth(x))), height: lines.length * LINE };
 }

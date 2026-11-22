@@ -10,7 +10,7 @@ describe("raised powers with maths notation", () => {
     expect(sups("x^5 × x^3")).toEqual(["5", "3"]);
     expect(sups("a^-2 and 3^0")).toEqual(["−2", "0"]);
     expect(sups("5^{2n} ÷ 5^n")).toEqual(["2", "n", "n"]);
-    expect(parseRuns("5^{2n}", "regular", true).find((r) => r.text === "n")?.style).toBe("italic");
+    expect(parseRuns("5^{2n}", "regular", true).find((r) => r.text === "n")?.style).toBe("maths");
     expect(parseRuns("x^5 more", "regular", true).map((r) => r.text).join("")).toBe("x5 more");
   });
   it("keeps typeset italics and works after typesetting", () => {

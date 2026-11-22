@@ -30,8 +30,8 @@ import {
   cellAt,
   completeTotals,
   create,
+  FONT,
   forView,
-  hasHidden,
   layout,
   MAX_CATEGORIES,
   MAX_HEADING,
@@ -50,6 +50,14 @@ import { LINK_PREFIX, parseTwoWayTableLink, twoWayTableLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Eye, Ruler, Sigma } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:two-way-table:v1");
 type Doc = Envelope["document"];
@@ -80,6 +88,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -90,6 +99,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -125,11 +136,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -154,6 +167,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -169,6 +183,14 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   const columnIds = [...d.columns.map((c) => c.id), ...(d.totalColumn ? ["total"] : [])];
   const rowIds = [...d.rows.map((r) => r.id), ...(d.totalRow ? ["total"] : [])];
   const selectedCell = selected && rowIds.includes(selected.row) && columnIds.includes(selected.column) ? cellAt(d, selected.row, selected.column) : null;
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const cellBoxes = rowIds.flatMap((_, i) => columnIds.map((__, j) => ({ x: g.x[j + 1], y: g.y[i + 1], width: g.x[j + 2] - g.x[j + 1], height: g.y[i + 2] - g.y[i + 1] })));
+  const reach = useTargetReach(cellBoxes, (96 / 25.4) * fitted.scale, coarse);
+  const everyCell = [...d.rows.flatMap((r) => r.cells), ...(d.totalRow ?? [])];
+  const spaceCount = everyCell.filter((c) => c.show === "hidden").length;
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -218,14 +240,33 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   const columnName = (id: string) =>
     id === "total" ? "Total" : d.columns.find((c) => c.id === id)?.heading || `column ${d.columns.findIndex((c) => c.id === id) + 1}`;
   const cellId = (a: Address) => `twt-cell-${a.row}-${a.column}`;
-  function focusCell(a: Address) {
+  function choose(a: Address, anchor: HTMLElement) {
     setSelected(a);
-    requestAnimationFrame(() => {
-      const field = document.getElementById(cellId(a)) as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  /** What pupils see of one cell: one undo step. A blank cell is already a space for pupils. */
+  function setVisibility(a: Address, v: Visibility) {
+    const c = cellAt(d, a.row, a.column);
+    if (blocked || c.show === v) return;
+    if (v === "hidden" && !c.text) return setMessage("This cell is a blank with no answer: pupils already see a space. Type the answer first.");
+    commit(() => setCell(e, a.row, a.column, c.text, v), visibilityStep(v, c.text || "blank cell"));
+  }
+  /** Every cell at once: one undo step. Blank cells stay blank spaces. */
+  function setAll(v: Visibility) {
+    patch((n) => {
+      for (const c of [...n.rows.flatMap((r) => r.cells), ...(n.totalRow ?? [])]) c.show = v === "hidden" && !c.text ? "show" : v;
     });
   }
+  function clearSpaces() {
+    patch((n) => {
+      for (const c of [...n.rows.flatMap((r) => r.cells), ...(n.totalRow ?? [])]) if (c.show === "hidden") c.show = "show";
+    });
+  }
+  // The box closes when its cell goes (a smaller table, a new table, or Reset).
+  const selectedDrawn = !!selectedCell;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   // Autosave with protection for another tab's newer draft.
   const savedText = useMemo(() => canonical(history.present), [history.present]);
@@ -384,22 +425,59 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                   {rowIds.map((row, i) =>
                     columnIds.map((column, j) => {
                       const c = cellAt(d, row, column),
-                        hiddenHere = view === "pupil" && c.show === "hidden";
+                        key = `${row}:${column}`;
                       return (
-                        <button
-                          key={`${row}-${column}`}
-                          type="button"
-                          className={`pt-hit ${selected?.row === row && selected.column === column ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                          aria-label={`Edit the cell for ${rowName(row)}, ${columnName(column)}`}
-                          title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                        <LabelHit
+                          key={key}
+                          what={`the cell for ${rowName(row)}, ${columnName(column)}`}
+                          state={c.show}
+                          text={c.text}
+                          selected={selected?.row === row && selected.column === column}
+                          boxOpen={boxAnchor !== null}
+                          pupilView={view === "pupil"}
+                          tipId="twt-quick-tip"
+                          tipShown={tip?.key === key}
+                          tipHandlers={quick.bind(key, c.show)}
                           disabled={blocked}
+                          coarse={coarse}
+                          reach={reach[i * columnIds.length + j]}
+                          ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                           style={{ left: px(g.x[j + 1], g.width), top: px(g.y[i + 1], g.height), width: px(g.x[j + 2] - g.x[j + 1], g.width), height: px(g.y[i + 2] - g.y[i + 1], g.height) }}
-                          onClick={() => focusCell({ row, column })}
+                          onOpen={(anchor) => choose({ row, column }, anchor)}
+                          onVisibility={(v) => setVisibility({ row, column }, v)}
                         />
                       );
                     }),
                   )}
+                  <QuickTip id="twt-quick-tip" tip={tip && !(boxAnchor && selected && `${selected.row}:${selected.column}` === tip.key) ? tip : null} />
                 </div>
+                {boxAnchor && selected && selectedCell && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={`${selected.row}:${selected.column}`}
+                    focusField={!coarse}
+                    title={`The cell for ${rowName(selected.row)}, ${columnName(selected.column)}`}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedCell.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        Number
+                        <DraftField
+                          key={`${selected.row}-${selected.column}`}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Text of the cell for ${rowName(selected.row)}, ${columnName(selected.column)}`}
+                          value={selectedCell.text}
+                          maxLength={16}
+                          inputMode="decimal"
+                          disabled={blocked}
+                          onCommit={(v) => commit(() => setCell(e, selected.row, selected.column, v))}
+                        />
+                      </label>
+                    </div>
+                    {!selectedCell.text && <p className="pt-note">This cell is a blank with no answer: pupils already see a space.</p>}
+                  </OptionsBox>
+                )}
               </div>
             </div>
             <EditorFoot
@@ -409,7 +487,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={shownMessage}
               hint={
-                <EditorHint tool="two-way-table">Click a cell on the table to edit it. Enter applies; Escape restores.</EditorHint>
+                <EditorHint tool="two-way-table">Click a cell to type a new value. Double-click it for a pupil space.</EditorHint>
               }
             >
             </EditorFoot>
@@ -498,7 +576,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                         const c = cellAt(d, row, column),
                           here = selected?.row === row && selected.column === column;
                         return (
-                          <td key={column} className={`${c.show === "hidden" ? "twt-hidden" : ""} ${here ? "twt-current" : ""}`}>
+                          <td key={column} className={`${c.show === "hidden" ? "twt-hidden" : ""} ${c.show === "omit" ? "twt-omit" : ""} ${here ? "twt-current" : ""}`}>
                             <DraftField
                               id={cellId({ row, column })}
                               label={`Cell for ${rowName(row)}, ${columnName(column)}`}
@@ -507,7 +585,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                               inputMode="decimal"
                               disabled={blocked}
                               onFocus={() => setSelected({ row, column })}
-                              onCommit={(v) => commit(() => setCell(e, row, column, v, v.trim() ? c.show : "show"))}
+                              onCommit={(v) => commit(() => setCell(e, row, column, v))}
                             />
                           </td>
                         );
@@ -526,50 +604,42 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               </button>
             </div>
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Two-way table settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Two-way table settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected cell">
-              <h2>{selectedCell && selected ? `Cell: ${rowName(selected.row)}, ${columnName(selected.column)}` : "Selected cell"}</h2>
-              {selectedCell && selected ? (
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main card open, the rarer groups folded. */}
+            <FoldCard
+              tool="two-way-table"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every cell shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
                 <>
-                  <label className="pt-hide" title="Hidden values are saved answers; pupils see an empty cell.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedCell.text}
-                      checked={selectedCell.show === "hidden"}
-                      onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, selectedCell.text, ev.target.checked ? "hidden" : "show"))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  {!selectedCell.text && <p className="pt-note">This cell is a blank with no answer. Enter the answer first to hide it.</p>}
+                  <p className="pt-note">Pupil space: an empty box for pupils to fill in; the answers copy shows the number. Leave out: nothing prints, in either copy.</p>
+                  <p className="pt-note">An empty cell is a blank with no answer, and is always a space. Cells take whole numbers, decimals, fractions such as 3/20 and mixed numbers such as 2 1/2; fractions print stacked.</p>
                 </>
-              ) : (
-                <p className="pt-note">Click a cell on the table or in the entries to choose it.</p>
-              )}
-              <p className="pt-note">
-                Hide keeps a number as a saved answer and leaves its cell empty for pupils. An empty cell is a blank with no answer.
-                Cells take whole numbers, decimals, fractions such as 3/20 and mixed numbers such as 2 1/2; fractions print stacked.
-              </p>
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const r of [...n.rows.map((x) => x.cells), ...(n.totalRow ? [n.totalRow] : [])]) for (const c of r) c.show = "show";
-                    })
-                  }
-                >
-                  Show all
-                </button>
-              </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Totals</h2>
+              }
+            >
+              {(() => {
+                const cells = commonVisibility(everyCell.map((c) => c.show));
+                return cells && <VisibilitySwitch name="Cells" caption="Cells" value={cells} disabled={blocked} onChange={setAll} />;
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a cell on the table for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="two-way-table"
+              title="Totals"
+              icon={Sigma}
+              summary={[d.totalColumn && "Total column", d.totalRow && "Total row"].filter(Boolean).join(" · ") || "No totals"}
+              help={
+                <p className="pt-note">
+                  Complete totals fills each empty total whose parts are all entered, exactly: fractions stay fractions and decimals stay
+                  decimals. Nothing is filled until you press the button, and it can be undone.
+                </p>
+              }
+            >
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.totalColumn} onChange={(ev) => commit(() => setTotals(e, { column: ev.target.checked }))} />
                 Total column
@@ -578,13 +648,9 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 <input type="checkbox" disabled={blocked} checked={!!d.totalRow} onChange={(ev) => commit(() => setTotals(e, { row: ev.target.checked }))} />
                 Total row
               </label>
-              <p className="pt-note">
-                Complete totals fills each empty total whose parts are all entered, exactly: fractions stay fractions and decimals stay
-                decimals. Nothing is filled until you press the button, and it can be undone.
-              </p>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={hideFilled} onChange={(ev) => setHideFilled(ev.target.checked)} />
-                Hide the totals it fills (keep them as answers)
+                Make the totals it fills pupil spaces
               </label>
               <div className="pt-row">
                 <button
@@ -599,9 +665,25 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                   Complete totals
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="two-way-table"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.cellMm} mm columns`}
+              help={
+                <>
+                  <p className="pt-note">
+                    A number the table cannot read stays in its box with the reason above. Up to {MAX_CATEGORIES} rows and {MAX_CATEGORIES}{" "}
+                    columns; headings widen their column when needed. Nothing is calculated or filled in for you.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the table; preview zoom never changes it. Download PNG (600 ppi)
+                    if your browser blocks copying.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Column width (mm)
@@ -618,21 +700,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This table has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a cell on the table to edit it. Enter applies; Escape restores. A number the table cannot read stays in its box
-                  with the reason above. Up to {MAX_CATEGORIES} rows and {MAX_CATEGORIES} columns; headings widen their column when
-                  needed. Nothing is calculated or filled in for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the table; preview zoom never changes it. Download PNG (600 ppi)
-                  if your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -683,6 +751,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >

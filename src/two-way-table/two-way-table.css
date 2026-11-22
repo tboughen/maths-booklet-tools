@@ -50,3 +50,8 @@
   padding: 0 6px;
   line-height: 1;
 }
+.twt-grid .twt-omit input {
+  border-style: dotted;
+  color: #6b7785;
+  background: #eef1f4;
+}
