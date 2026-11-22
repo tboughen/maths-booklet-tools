@@ -53,6 +53,9 @@ test.describe("question bank: open a paper", () => {
     await picker.getByRole("button", { name: "Add paper" }).click();
     await expect(page.getByText("November 2023 2H added to your paper. Filters were cleared so the whole paper shows.")).toBeVisible();
     await expect(page.getByRole("region", { name: "Your paper" }).getByRole("status").first()).toContainText("21 distinct questions · 80 marks");
+    // The paper keeps its own question order.
+    await expect(page.locator(".qb-paper-list li strong").first()).toHaveText("November 2023 2H Q1");
+    await expect(page.locator(".qb-paper-list li strong").nth(1)).toHaveText("November 2023 2H Q2");
   });
 
   test("a link to a paper that is not in the bank says so", async ({ page }) => {

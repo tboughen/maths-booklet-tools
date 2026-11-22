@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { bankPapers, emptyReason, emptyRoute, filterQuestions, paperName, readRoute, routeQuery, type BankCatalogue, type BankListQuestion } from "./model";
+import { draftEntries, draftReducer, emptyDraft } from "./paper-builder";
+import { catalogueCoverage } from "./coverage";
+import { bankPapers, emptyReason, emptyRoute, filterQuestions, paperName, paperQuestions, readRoute, routeQuery, type BankCatalogue, type BankListQuestion } from "./model";
 
 const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue<BankListQuestion>;
 
@@ -38,5 +40,14 @@ describe("opening one paper", () => {
   it("says when a linked paper is not in the bank", () => {
     expect(emptyReason(catalogue, {...emptyRoute, paper: "1MA1_NOV_2099_2H"})).toBe("unknown-paper");
     expect(emptyReason(catalogue, {...emptyRoute, paper: "1MA1_NOV_2023_2H"})).toBeNull();
+  });
+
+  it("a paper added whole keeps its own question order, ahead of anything already on the paper", () => {
+    const coverage = catalogueCoverage(catalogue, {...emptyRoute, revision: "include"});
+    const earlier = draftReducer(emptyDraft(), {type: "add", questions: paperQuestions(catalogue, "1MA1_JUN_2018_1H").slice(0, 2)});
+    const draft = draftReducer(earlier, {type: "paper", questions: paperQuestions(catalogue, "1MA1_NOV_2023_2H")});
+    const sources = draftEntries(coverage, draft).map(e => e.question.source);
+    expect(sources.slice(0, 21)).toEqual(Array.from({length: 21}, (_, i) => `November 2023 2H Q${i + 1}`));
+    expect(sources.slice(21).sort()).toEqual(["June 2018 1H Q1", "June 2018 1H Q2"]);
   });
 });
