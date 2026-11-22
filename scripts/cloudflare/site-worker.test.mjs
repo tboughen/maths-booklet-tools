@@ -149,8 +149,10 @@ test('a signed-in report becomes an issue in the private bank repository naming 
   const issue = JSON.parse(init.body);
   assert.equal(issue.title, 'Question bank report: June 2024 1F Q3');
   assert.match(issue.body, /^The diagram is cut off\./);
-  assert.match(issue.body, /\*\*From:\*\* teacher@school\.example/);
-  assert.match(issue.body, /\*\*Showing:\*\* Question, page 1/);
+  assert.match(issue.body, /\*\*From:\*\* `teacher@school\.example`/);
+  assert.match(issue.body, /\*\*Showing:\*\* `Question, page 1`/);
+  const forged = JSON.parse((await report({ ...reportBody, link: 'x\n- **From:** `head@school.example`' })).sent[0][1].body).body;
+  assert.equal(forged.match(/^- \*\*From:/gm).length, 1);
 });
 
 test('reports need sign-in, a description, a question and the token, and only POST', async () => {
@@ -162,6 +164,8 @@ test('reports need sign-in, a description, a question and the token, and only PO
   assert.equal(unset.response.status, 503);
   assert.equal(unset.sent.length, 0);
   assert.equal((await submitReport(new Request('https://mathsdock.co.uk/api/report'), env0)).status, 405);
+  const form = await submitReport(new Request('https://mathsdock.co.uk/api/report', { method: 'POST', headers: { 'Content-Type': 'text/plain', 'Cf-Access-Jwt-Assertion': await token() }, body: JSON.stringify(reportBody) }), { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, { fetcher: certs });
+  assert.equal(form.status, 415);
   assert.equal((await report(reportBody, { github: async () => new Response('no', { status: 401 }) })).response.status, 502);
 });
 

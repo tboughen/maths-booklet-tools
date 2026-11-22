@@ -8,8 +8,9 @@ interface Props { details?:ReportDetails;onClose:()=>void;onSent:()=>void }
 export function ReportDialog({details,onClose,onSent}:Props) {
   const dialog=useRef<HTMLDialogElement>(null);
   const [message,setMessage]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
-  const open=!!details;
-  useEffect(()=>{if(open){setError("");dialog.current?.showModal();}else dialog.current?.close();},[open]);
+  const question=details?.question;
+  // A new question starts with an empty box; a native close (a second Escape) still tells the page.
+  useEffect(()=>{setMessage("");setError("");if(question)dialog.current?.showModal();else dialog.current?.close();},[question]);
   async function send(e:FormEvent) {
     e.preventDefault();
     if(!details||busy)return;
@@ -23,7 +24,7 @@ export function ReportDialog({details,onClose,onSent}:Props) {
     } catch(failure) {setError(failure instanceof Error&&failure.message!=="Failed to fetch"?failure.message:"The report could not be sent. Check your connection and try again.");}
     finally {setBusy(false);}
   }
-  return <dialog ref={dialog} className="qb-dialog qb-report-dialog" aria-labelledby="qb-report-title" onCancel={e=>{e.preventDefault();if(!busy)onClose();}}>
+  return <dialog ref={dialog} className="qb-dialog qb-report-dialog" aria-labelledby="qb-report-title" onCancel={e=>{e.preventDefault();if(!busy)onClose();}} onClose={()=>{if(details)onClose();}}>
     <form onSubmit={e=>void send(e)}>
       <div className="qb-dialog-heading"><h2 id="qb-report-title">Report a problem</h2><button type="button" className="qb-button" disabled={busy} onClick={onClose}>Close</button></div>
       {details&&<p><strong>{details.source}</strong><br/>Showing: {details.showing}</p>}

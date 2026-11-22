@@ -110,7 +110,7 @@ export async function serveBankAsset(request, env, options = {}) {
 export const reportRepo = 'tboughen/mathsdock-bank';
 const reportLimits = { message: 2000, field: 200 };
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
-const field = value => typeof value === 'string' ? value.trim().slice(0, reportLimits.field) : '';
+const field = value => typeof value === 'string' ? value.replace(/[\r\n`]+/g, ' ').trim().slice(0, reportLimits.field) : '';
 
 export async function submitReport(request, env, { fetcher = fetch, ...options } = {}) {
   if (request.method !== 'POST') return json(405, { error: 'Method not allowed' });
@@ -119,6 +119,8 @@ export async function submitReport(request, env, { fetcher = fetch, ...options }
   const claims = await verifyAccessToken(request.headers.get('Cf-Access-Jwt-Assertion'), settings, { fetcher, ...options });
   if (!claims) return json(403, { error: 'Sign in again to send a report.' });
   if (!env.REPORT_GITHUB_TOKEN) return json(503, { error: 'Problem reports are not set up yet.' });
+  // JSON only, so a cross-site form post cannot send a report without a CORS preflight.
+  if (!/^application\/json\b/i.test(request.headers.get('Content-Type') || '')) return json(415, { error: 'The report could not be read.' });
   let body;
   try { body = await request.json(); } catch { return json(400, { error: 'The report could not be read.' }); }
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
@@ -128,7 +130,7 @@ export async function submitReport(request, env, { fetcher = fetch, ...options }
   if (!source || !question) return json(400, { error: 'The report must name a question.' });
   const sender = field(claims.email) || 'unknown sender';
   const details = [['Question', `${source} (${question})`], ['Showing', field(body.showing)], ['Sparx code', field(body.code)], ['Catalogue', field(body.version)], ['Link', field(body.link)], ['From', sender]]
-    .filter(([, value]) => value).map(([name, value]) => `- **${name}:** ${value}`).join('\n');
+    .filter(([, value]) => value).map(([name, value]) => `- **${name}:** \`${value}\``).join('\n');
   const response = await fetcher(`https://api.github.com/repos/${reportRepo}/issues`, {
     method: 'POST',
     headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${env.REPORT_GITHUB_TOKEN}`, 'Content-Type': 'application/json', 'User-Agent': 'mathsdock-site', 'X-GitHub-Api-Version': '2022-11-28' },

@@ -20,6 +20,15 @@ describe("report a problem",()=>{
     expect(url).toBe("/api/report");
     expect(JSON.parse(String(init.body))).toEqual({...details,message:"Part (b) is cut off."});
   });
+  it("starts empty for another question and tells the page when the dialog closes natively",()=>{
+    const onClose=vi.fn();
+    const {rerender,container}=render(<ReportDialog details={details} onClose={onClose} onSent={vi.fn()}/>);
+    fireEvent.change(screen.getByLabelText("What is wrong?"),{target:{value:"Typed for Q3."}});
+    rerender(<ReportDialog details={{...details,question:"q7"}} onClose={onClose} onSent={vi.fn()}/>);
+    expect((screen.getByLabelText("What is wrong?") as HTMLTextAreaElement).value).toBe("");
+    fireEvent(container.querySelector("dialog")!,new Event("close"));
+    expect(onClose).toHaveBeenCalled();
+  });
   it("keeps the text and shows the server's reason when sending fails",async()=>{
     vi.stubGlobal("fetch",vi.fn(async()=>new Response('{"error":"Problem reports are not set up yet."}',{status:503})));
     const onSent=vi.fn();
