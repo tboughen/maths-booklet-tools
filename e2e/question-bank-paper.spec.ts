@@ -6,11 +6,12 @@ test.describe("question bank: open a paper", () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/question-bank?code=U151");
     const search = page.getByRole("combobox", { name: "Sparx code, topic or paper" });
-    await expect(page.locator(".qb-topic h1")).toHaveText("Calculating with speed");
+    // Typed straight away, while the catalogue may still be loading: the text must survive the load.
     await search.fill("jun 18 1");
-    await expect(search).toHaveValue("jun 18 1");
     const list = page.getByRole("listbox", { name: "Suggestions" });
     await expect(list.getByRole("option")).toHaveCount(2);
+    await expect(page.locator(".qb-topic h1")).toHaveText("Calculating with speed");
+    await expect(search).toHaveValue("jun 18 1");
     await list.getByRole("option", { name: /June 2018 1H/ }).click();
     await expect(page).toHaveURL(/\?paper=1MA1_JUN_2018_1H$/);
     await expect(page.locator(".qb-topic h1")).toHaveText("June 2018 1H");
@@ -85,5 +86,10 @@ test.describe("question bank: open a paper", () => {
   test("a link to a paper that is not in the bank says so", async ({ page }) => {
     await page.goto("/question-bank?paper=1MA1_NOV_2099_2H");
     await expect(page.getByRole("heading", { name: "That paper was not found" })).toBeVisible();
+  });
+  test("an old topic code in a link shows its new code in the search box", async ({ page }) => {
+    await page.goto("/question-bank?code=U449");
+    await expect(page.locator(".qb-topic .qb-code, .qb-topic").first()).toContainText("U499");
+    await expect(page.getByRole("combobox", { name: "Sparx code, topic or paper" })).toHaveValue("U499");
   });
 });
