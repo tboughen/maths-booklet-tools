@@ -1,5 +1,5 @@
 import { typesetForPrint } from "./typeset";
-import { answerRule, at, card, countSpaces, growLastSpace, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
+import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap } from "./text";
 import type { FontStyle } from "./metrics";
@@ -994,7 +994,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         const natural = card(section.cards[c.index], c.number, c.w, { ...ctx, issues: [] }, extra, 0).h;
         const slack = Math.max(0, c.h - natural);
         const grown = growLastSpace(section.cards[c.index], slack);
-        const f = grown ? card(grown, c.number, c.w, ctx, extra, 0) : card(section.cards[c.index], c.number, c.w, ctx, extra, slack);
+        const f = grown ? card(grown, c.number, c.w, ctx, extra, GROW_MARGIN) : card(section.cards[c.index], c.number, c.w, ctx, extra, slack);
         out.push(at(f, A4.marginX + c.x, yy + c.dy));
       });
     }
