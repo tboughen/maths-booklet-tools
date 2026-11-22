@@ -1082,3 +1082,58 @@ export const lessonNotesFileName = (booklet: Booklet, lesson: number) => lessonF
 export function lessonFileName(booklet: Booklet, lesson: number, view: View = "pupil"): string {
   return bookletFileName(booklet, view).replace(/_Booklet/, `_Lesson ${lesson + 1 + lessonShift(booklet.document)}`);
 }
+
+/** An empty area on a lesson page that is neither a card nor working or drawing space (booklet standard N21). */
+export interface BookletGap {
+  /** 1-based lesson. */
+  lesson: number;
+  /** The printed page number, after numbering offsets. */
+  page: number;
+  /** foot: below the last card on the page; beside: the empty half of a row that holds one card; inside: blank card height that no working space could take. */
+  kind: "foot" | "beside" | "inside";
+  section?: number;
+  question?: QuestionLabel;
+  /** Size of the empty area in millimetres. */
+  width: number;
+  height: number;
+  message: string;
+}
+
+/** The most empty height a lesson page may leave without a card, in millimetres (booklet standard N21). */
+export const GAP_LIMIT = 20;
+
+/**
+ * Empty areas on each lesson page taller than `limit`, measured from the same page plan the PDF and
+ * Word file are drawn from. Spare height already given to working and drawing spaces is not empty.
+ */
+export function bookletGaps(saved: Booklet, options: Pick<BookletRenderOptions, "numbering" | "view" | "style"> = {}, limit: number = GAP_LIMIT): BookletGap[] {
+  const booklet = typesetForPrint(saved);
+  const doc = booklet.document;
+  const st = styles[options.style ?? "mathsdock"];
+  const quiet: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, maths: doc.notation === "maths" };
+  const plan = planBooklet(booklet, options);
+  const out: BookletGap[] = [];
+  const mm = (v: number) => Math.round(v);
+  for (const p of plan.pages) {
+    const page = p.pageNo + (options.numbering?.pageOffset ?? 0);
+    const lesson = doc.lessons[p.lesson - 1];
+    const bottom = p.blocks.reduce((m, b) => Math.max(m, b.y + b.h), 0);
+    const foot = A4.bottom - bottom;
+    if (foot > limit)
+      out.push({ lesson: p.lesson, page, kind: "foot", width: W, height: foot, message: `Page ${page} leaves ${mm(foot)} mm empty below its last card (the limit is ${limit} mm). Add a question, give the cards more working space, or move a card up from the next page.` });
+    for (const b of p.blocks) {
+      if (b.kind !== "row") continue;
+      const section = lesson.sections[b.section];
+      const where = { lesson: p.lesson, page, section: b.section + 1, question: b.cards[0].number ?? undefined };
+      if (section.columns === 2 && b.shape.kind === "pair" && b.cards.length === 1 && b.h > limit)
+        out.push({ ...where, kind: "beside", width: BOOKLET_WIDTHS.half, height: b.h, message: `Page ${page}: ${b.cards[0].number !== null ? `question ${b.cards[0].number}` : "a card"} stands alone with a ${mm(b.h)} mm tall empty half row beside it. Set the card wide, add a card beside it, or make it tall beside cards that follow.` });
+      const measure = (i: number, w: number) => card(section.cards[i], b.cards.find((c) => c.index === i)?.number ?? null, w, quiet, p.extra, 0).h;
+      for (const c of placeRow(section, b, b.h, measure)) {
+        const slack = c.h - measure(c.index, c.w);
+        if (slack > limit && !growLastSpace(section.cards[c.index], slack))
+          out.push({ ...where, question: c.number ?? undefined, kind: "inside", width: c.w, height: slack, message: `Page ${page}: ${c.number !== null ? `question ${c.number}` : "a card"} has ${mm(slack)} mm of blank height with no working space to take it. Give the card a working space, or pair it with a card of similar height.` });
+      }
+    }
+  }
+  return out;
+}
