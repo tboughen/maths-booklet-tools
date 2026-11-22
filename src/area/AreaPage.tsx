@@ -29,7 +29,6 @@ import {
   canonical,
   dropHeights,
   extent,
-  hasHidden,
   heightFoot,
   hitAnchors,
   holeFor,
@@ -54,7 +53,6 @@ import {
   type Envelope,
   type Hole,
   type Label,
-  type LabelState,
   type Polygon,
   type Preset,
   type Shape,
@@ -66,16 +64,18 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./area.css";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { commonVisibility, TARGET_TIP, TARGET_TIP_SPACE, togglePupilSpace, visibilityStep, visibilityWords, type Visibility } from "../editor-kit/visibility";
+import { houseVisibility, withHouseVisibility } from "../editor-kit/houseLabelVisibility";
+import { Eye, Layers, Printer, Square, Tag } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:area:v1");
 type View = "pupil" | "answer";
-const STATE_NAMES: Record<LabelState, string> = {
-  value: "Given",
-  symbol: "Letter",
-  blank: "Blank (nothing printed)",
-  "answer-line": "Answer line",
-  hidden: "Hidden",
-};
 const ARC_NAMES: Record<ArcKind, string> = { none: "Straight", out: "Semicircle added", in: "Semicircle cut out" };
 const pointName = (id: string) => (id === "o" ? "The centre" : id === "a" ? "End A of the line" : id === "b" ? "End B of the line" : /^v\d+$/.test(id) ? `Corner ${id.slice(1)}` : id);
 
@@ -96,7 +96,9 @@ function initial() {
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMode }: {
+function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMode, onHistory }: {
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   label: string;
   value: string;
   onCommit: (value: string) => boolean | void;
@@ -135,11 +137,13 @@ function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMod
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || refused)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -166,6 +170,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
@@ -198,6 +203,13 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
   const chosen = current ? d.labels.find((l) => l.id === current) : undefined;
   const pxPerMm = (96 / 25.4) * fitted.scale;
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
+  const spaceCount = d.labels.filter((l) => houseVisibility(l) === "hidden").length;
+  // The box closes when its place goes (a new shape, an undo).
+  useEffect(() => {
+    if (boxAnchor && (!current || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, current]);
 
   function commit(next: Envelope | null | (() => Envelope), label?: string) {
     if (recovery !== null || !next) return false;
@@ -227,6 +239,31 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
       }
       update(l);
     }, label);
+  }
+  /** What pupils see of one label: one undo step. Nothing typed yet gives a message instead. */
+  function setVisibility(id: string, v: Visibility) {
+    const next = withHouseVisibility(d.labels.find((l) => l.id === id) ?? makeLabel(id), v, "the length");
+    if (typeof next === "string") {
+      setMessage(next);
+      return false;
+    }
+    return setLabel(id, (l) => void Object.assign(l, next), visibilityStep(v, `the label on ${slotName(id)}`));
+  }
+  /** Every label at once; one undo step. Labels with nothing typed stay as they are. */
+  function setAll(v: Visibility, only?: Visibility) {
+    let skipped = 0;
+    const ok = patch((n) => {
+      n.labels = n.labels.map((l) => {
+        if (only && houseVisibility(l) !== only) return l;
+        const next = withHouseVisibility(l, v, "the length");
+        if (typeof next === "string") {
+          skipped++;
+          return l;
+        }
+        return next;
+      });
+    }, visibilityStep(v, "all labels"));
+    if (ok && skipped) setMessage(`${skipped === 1 ? "One label has" : `${skipped} labels have`} nothing typed, so ${skipped === 1 ? "it stays" : "they stay"} as before.`);
   }
   function removeLabel(id: string) {
     if (!d.labels.some((l) => l.id === id)) return;
@@ -284,7 +321,10 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
       // U9: Escape deselects; Delete removes the selected label, as one undo step.
       const command = objectKeyCommand(event);
       if (!command || !current || blocked) return;
-      if (command.kind === "deselect") setSelected(null);
+      if (command.kind === "deselect") {
+        setSelected(null);
+        setBoxAnchor(null);
+      }
       else if (command.kind === "delete" && chosen) {
         event.preventDefault();
         removeLabel(current);
@@ -471,13 +511,100 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                       type="button"
                       className={`area-hit${a.id === current ? " area-current" : ""}${d.labels.some((x) => x.id === a.id) ? "" : " area-unmarked"}`}
                       style={{ left: a.at.x * pxPerMm, top: a.at.y * pxPerMm }}
-                      aria-label={`Select the label on ${a.name} (${a.id})`}
+                      aria-label={`Select the label on ${a.name} (${a.id})${(() => {
+                        const m = d.labels.find((x) => x.id === a.id);
+                        const words = m ? visibilityWords(houseVisibility(m)) : "";
+                        return words ? `, ${words}` : "";
+                      })()}`}
                       aria-pressed={a.id === current}
+                      aria-haspopup="dialog"
+                      title={d.labels.some((x) => x.id === a.id && houseVisibility(x) === "hidden") ? TARGET_TIP_SPACE : TARGET_TIP}
                       disabled={blocked}
-                      onClick={() => setSelected(a.id)}
+                      onClick={(ev) => {
+                        setSelected(a.id);
+                        setBoxAnchor(ev.currentTarget);
+                      }}
+                      onDoubleClick={() => {
+                        const m = d.labels.find((x) => x.id === a.id);
+                        setVisibility(a.id, togglePupilSpace(m ? houseVisibility(m) : "omit"));
+                      }}
                     />
                   ))}
                 </div>
+                {boxAnchor && current && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={current} focusField={!coarse} title={`The label on ${slotName(current)}`} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={chosen ? houseVisibility(chosen) : "omit"} disabled={blocked} onChange={(v) => setVisibility(current, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        Length or letter
+                        <DraftField
+                          key={`${current}-text`}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Text of the label on ${slotName(current)}`}
+                          value={chosen ? (houseVisibility(chosen) === "hidden" && chosen.state !== "symbol" ? chosen.answer : chosen.text) : ""}
+                          disabled={blocked}
+                          onCommit={(v) =>
+                            setLabel(current, (l) => {
+                              const t = v.trim();
+                              // A pupil space keeps its words as the saved answer; a letter keeps its own text.
+                              if (houseVisibility(l) === "hidden" && l.state !== "symbol") {
+                                l.answer = t;
+                                if (!t) l.state = "blank";
+                                return;
+                              }
+                              l.text = t;
+                              // Typing a length or a letter shows it; clearing it leaves the place blank.
+                              if (!t && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
+                              else if (t && l.state === "blank") l.state = /\d/.test(t) && !l.answer ? "value" : "symbol";
+                              else if (t && l.state === "value" && !/\d/.test(t)) l.state = "symbol";
+                              else if (t && l.state === "symbol" && /\d/.test(t) && !l.answer) l.state = "value";
+                            }, "edit label")
+                          }
+                        />
+                      </label>
+                      {chosen?.state === "symbol" && (
+                        <label>
+                          Saved answer
+                          <DraftField
+                            key={`${current}-answer`}
+                            onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                            label="Saved answer (answers copy only)"
+                            value={chosen.answer}
+                            disabled={blocked}
+                            onCommit={(v) => setLabel(current, (l) => void (l.answer = v.trim()), "edit answer")}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    {chosen && houseVisibility(chosen) === "hidden" && chosen.state !== "symbol" && (
+                      <label className="pt-hide">
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={chosen.state === "answer-line"}
+                          onChange={(ev) => setLabel(current, (l) => void (l.state = ev.target.checked ? "answer-line" : "hidden"), "change pupil space")}
+                        />
+                        An answer line on the pupil copy
+                      </label>
+                    )}
+                    {chosen && houseVisibility(chosen) === "hidden" && chosen.answer && (
+                      <p className="pt-note">The answers copy prints {printed(chosen, "answer").text} here in pink; the pupil copy never shows it.</p>
+                    )}
+                    <p className="pt-note">Type lengths with their units (8 cm). 1/2 prints as a stacked fraction, ^2 as ² and pi as π, so “25π cm²” stays exact.</p>
+                    <div className="md-options-actions">
+                      <button
+                        type="button"
+                        disabled={blocked || !chosen}
+                        onClick={() => {
+                          removeLabel(current);
+                          setBoxAnchor(null);
+                        }}
+                      >
+                        Remove label
+                      </button>
+                    </div>
+                  </OptionsBox>
+                )}
               </div>
             </div>
             <EditorFoot
@@ -487,7 +614,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={message}
               hint={
-                <EditorHint tool="area">Click a side, line or the middle of the shape to label it. Change the shape in the settings.</EditorHint>
+                <EditorHint tool="area">Click a side, line or the middle of the shape to label it. Double-click it for a pupil space.</EditorHint>
               }
             >
             </EditorFoot>
@@ -504,121 +631,31 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Area and perimeter settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Area and perimeter settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected label">
-              <h2>{current ? `Label: ${slotName(current)}` : "Selected label"}</h2>
-              <div className="pt-fields">
-                <label>
-                  Place
-                  <select aria-label="Label to edit" value={current ?? ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
-                    <option value="">Choose a place</option>
-                    {slots.map((x) => (
-                      <option key={x.id} value={x.id}>
-                        {x.name} ({x.id}){d.labels.some((l) => l.id === x.id) ? " ✓" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              {current ? (
+            {/* One column (the usability rollout, 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="area"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
                 <>
-                  <div className="pt-fields">
-                    <label>
-                      Label
-                      <select
-                        aria-label="Label shows"
-                        value={chosen?.state ?? "blank"}
-                        disabled={blocked}
-                        onChange={(ev) => {
-                          const state = ev.target.value as LabelState;
-                          if (state === "value" && chosen?.answer) {
-                            setMessage("A given length prints on both copies, so it cannot keep a saved answer. Clear the saved answer first.");
-                            return;
-                          }
-                          if ((state === "value" || state === "symbol") && !chosen?.text) {
-                            setMessage(state === "value" ? "Type the length first, such as 8 cm." : "Type the letter first, such as x.");
-                            return;
-                          }
-                          setLabel(current, (l) => void (l.state = state), "change label");
-                        }}
-                      >
-                        {(Object.keys(STATE_NAMES) as LabelState[]).map((x) => (
-                          <option key={x} value={x}>
-                            {STATE_NAMES[x]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Text
-                      <DraftField
-                        label="Label text"
-                        value={chosen?.text ?? ""}
-                        disabled={blocked}
-                        onCommit={(v) =>
-                          setLabel(current, (l) => {
-                            l.text = v.trim();
-                            // Typing a length or a letter shows it; clearing it leaves the place blank.
-                            if (!l.text && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
-                            else if (l.text && l.state === "blank") l.state = /\d/.test(l.text) && !l.answer ? "value" : "symbol";
-                          }, "edit label")
-                        }
-                      />
-                    </label>
-                    <label>
-                      Saved answer
-                      <DraftField
-                        label="Saved answer (answers copy only)"
-                        value={chosen?.answer ?? ""}
-                        disabled={blocked || chosen?.state === "value"}
-                        onCommit={(v) =>
-                          setLabel(current, (l) => {
-                            l.answer = v.trim();
-                            // An answer on an empty place is hidden from pupils.
-                            if (l.answer && l.state === "blank") l.state = "hidden";
-                          }, "edit answer")
-                        }
-                      />
-                    </label>
-                  </div>
-                  <p className="pt-note">Type lengths with their units (8 cm). 1/2 prints as a stacked fraction, ^2 as ² and pi as π. A saved answer prints only on the answers copy, so “25π cm²” stays exact.</p>
-                  {chosen?.state === "value" && <p className="pt-note">A given length is printed on both copies, so it has no saved answer.</p>}
-                  {chosen && chosen.state !== "value" && chosen.answer && <p className="pt-note">The answers copy prints {printed(chosen, "answer").text} here in pink; the pupil copy never shows it.</p>}
-                  <div className="pt-row">
-                    <button type="button" disabled={blocked || !chosen} onClick={() => removeLabel(current)}>
-                      Remove label
-                    </button>
-                  </div>
+                  <p className="pt-note">Show: the length or letter prints on both copies. Pupil space: the pupil copy has nothing there, or an answer line; the answers copy prints the answer in pink. Leave out: nothing prints there on either copy.</p>
+                  <p className="pt-note">Click a side, line or the middle of the shape to label it.</p>
                 </>
-              ) : (
-                <p className="pt-note">Click a place on the diagram, or choose one above, to label it.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const l of n.labels)
-                        if (l.state !== "value" && l.answer) {
-                          l.text = l.answer;
-                          l.state = "value";
-                          l.answer = "";
-                        }
-                    }, "show all")
-                  }
-                >
-                  Print every saved answer on the pupil copy
-                </button>
-              </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel" aria-label="Shape">
-              <h2>Shape</h2>
+              }
+            >
+              {(() => {
+                const all = commonVisibility(d.labels.map((l) => houseVisibility(l)));
+                return all && <VisibilitySwitch name="Labels" caption="Labels" value={all} disabled={blocked} onChange={(v) => setAll(v)} />;
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={() => setAll("show", "hidden")}>
+                Double-click a label for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="area" title="Shape" icon={Square} defaultOpen summary={s.type === "circle" ? "Circle" : `${s.arcs.length} corners`}>
               <div className="pt-fields">
                 <label>
                   Start from
@@ -844,9 +881,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                   </div>
                 </details>
               )}
-            </section>
-            <section className="panel-card pt-panel" aria-label="Hole and shading">
-              <h2>Hole and shading</h2>
+            </FoldCard>
+            <FoldCard tool="area" title="Hole and shading" icon={Layers} summary={`${d.hole ? (d.hole.type === "circle" ? "Circular hole" : "Rectangular hole") : "No hole"}${d.shaded === "none" ? "" : " · shaded"}`}>
               <div className="pt-fields">
                 <label>
                   Hole
@@ -872,11 +908,14 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                     </label>
                   ))}
               </div>
-            </section>
-            <section className="panel-card pt-panel" aria-label="Point names">
-              <details>
-                <summary>Point names (A, B, C …)</summary>
-                <p className="pt-note">Letters print upright beside their corners, for questions such as “ABCD is a trapezium”.</p>
+            </FoldCard>
+            <FoldCard
+              tool="area"
+              title="Point names"
+              icon={Tag}
+              summary={d.names.length ? d.names.map((x) => x.text).join(", ") : "None"}
+              help={<p className="pt-note">Letters print upright beside their corners, for questions such as “ABCD is a trapezium”.</p>}
+            >
                 <div className="pt-fields">
                   {Object.keys(g.geometry.points).map((id) => (
                     <label key={id}>
@@ -896,12 +935,25 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                     </label>
                   ))}
                 </div>
-              </details>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
+            </FoldCard>
+            <FoldCard
+              tool="area"
+              title="Printing"
+              icon={Printer}
+              summary={`${d.fontPt ?? 11} pt${d.grid ? " · cm squares" : ""}${d.notToScale ? " · not accurately drawn" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    The drawing never has to match the lengths: exam diagrams are not accurately drawn. When the sides of a rectilinear shape cannot
+                    fit together, or the two radii of a sector differ, a teacher note says so. Leave it if the error is deliberate.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
+                    your browser blocks copying, and print at 100% (actual size) so grid squares measure 1 cm.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Text size
@@ -932,20 +984,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
                 Print “Diagram NOT accurately drawn”
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  The drawing never has to match the lengths: exam diagrams are not accurately drawn. When the sides of a rectilinear shape cannot
-                  fit together, or the two radii of a sector differ, a teacher note says so. Leave it if the error is deliberate.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
-                  your browser blocks copying, and print at 100% (actual size) so grid squares measure 1 cm.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (

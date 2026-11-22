@@ -14,15 +14,17 @@ const saved = (page: Page) => page.evaluate((k) => JSON.parse(localStorage.getIt
 const art = (page: Page) => page.getByTestId("area-resource").locator("svg").first();
 const texts = (page: Page) => art(page).locator("text").allTextContents();
 const example = (id: string, worked = false) => examples.find((x) => x.id === id)!.make(worked);
+const box = (page: Page) => page.locator(".md-options-box");
+const hit = (page: Page, id: string) => page.getByRole("button", { name: new RegExp(`^Select the label on .*\\(${id}\\)`) });
+const pressed = (page: Page) => page.locator(".area-hit[aria-pressed=true]");
 
-test("selects a side on the diagram, saves a hidden answer for the answers copy and undoes", async ({ page }) => {
+test("types the answer for a pupil space in its options box, for the answers copy only, and undoes", async ({ page }) => {
   await boot(page, example("l-shape"));
   await page.getByRole("button", { name: "Select the label on side 3 (e3)" }).click();
-  const card = page.getByRole("region", { name: "Selected label" });
-  await expect(card.getByRole("heading")).toHaveText("Label: side 3");
-  const answer = card.getByRole("textbox", { name: "Saved answer (answers copy only)" });
-  await answer.fill("7 cm");
-  await answer.press("Enter");
+  await expect(box(page)).toContainText("The label on side 3");
+  const text = box(page).getByRole("textbox", { name: "Text of the label on side 3" });
+  await text.fill("7 cm");
+  await text.press("Enter");
   expect((await saved(page)).document.labels.find((l: Saved) => l.id === "e3")).toEqual({ id: "e3", state: "hidden", text: "", answer: "7 cm" });
   // The pupil copy prints nothing there; the answers copy prints the saved answer.
   expect(await texts(page)).not.toContain("7 cm");
@@ -33,13 +35,28 @@ test("selects a side on the diagram, saves a hidden answer for the answers copy 
   expect((await saved(page)).document.labels.find((l: Saved) => l.id === "e3").answer).toBe("");
 });
 
-test("Delete removes the selected label in one undo step; Escape deselects", async ({ page }) => {
+test("What pupils see: double-click for a pupil space, leave every label out, and clear the spaces", async ({ page }) => {
+  await boot(page, example("l-shape"));
+  const given = (await saved(page)).document.labels.find((l: Saved) => l.state === "value") as Saved;
+  await hit(page, given.id).dblclick();
+  expect((await saved(page)).document.labels.find((l: Saved) => l.id === given.id)).toEqual({ ...given, state: "hidden", text: "", answer: given.text });
+  expect(await texts(page)).not.toContain(given.text);
+  await page.keyboard.press("Escape");
+  await page.getByRole("group", { name: "Labels", exact: true }).getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page)).document.labels.every((l: Saved) => l.state === "blank" && !l.answer)).toBe(true);
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect((await saved(page)).document.labels.find((l: Saved) => l.id === given.id)).toEqual(given);
+});
+
+test("removes a label in one undo step; Escape closes its options", async ({ page }) => {
   await boot(page, example("l-shape"));
   await page.getByRole("button", { name: "Select the label on side 1 (e1)" }).click();
-  await page.keyboard.press("Delete");
+  await box(page).getByRole("button", { name: "Remove label" }).click();
   expect((await saved(page)).document.labels.map((l: Saved) => l.id)).not.toContain("e1");
+  await page.getByRole("button", { name: "Select the label on side 2 (e2)" }).click();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("region", { name: "Selected label" }).getByRole("heading")).toHaveText("Selected label");
+  await expect(box(page)).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.labels.map((l: Saved) => l.id)).toContain("e1");
 });
@@ -48,14 +65,13 @@ test("changes to a sector, keeps the labels it has a place for and warns about r
   await boot(page);
   await page.getByRole("combobox", { name: "Start from a shape" }).selectOption("sector");
   await expect(page.getByRole("status")).toContainText("Undo brings");
-  const select = page.getByRole("combobox", { name: "Label to edit" });
-  const text = page.getByRole("region", { name: "Selected label" }).getByRole("textbox", { name: "Label text" });
-  await select.selectOption("r");
-  await text.fill("9 cm");
-  await text.press("Enter");
-  await select.selectOption("r2");
-  await text.fill("8 cm");
-  await text.press("Enter");
+  for (const [id, size] of [["r", "9 cm"], ["r2", "8 cm"]]) {
+    await hit(page, id).click();
+    const text = box(page).getByRole("textbox", { name: /^Text of / });
+    await text.fill(size);
+    await text.press("Enter");
+    await page.keyboard.press("Escape");
+  }
   await expect(page.getByText("Teacher note: The two radii are 9 and 8, but they should be equal.")).toBeVisible();
   await page.getByRole("textbox", { name: "Sector angle" }).fill("400");
   await page.getByRole("textbox", { name: "Sector angle" }).press("Enter");
@@ -65,10 +81,12 @@ test("changes to a sector, keeps the labels it has a place for and warns about r
 test("adds a shaded hole and a grid, and prints Diagram NOT accurately drawn by default", async ({ page }) => {
   await boot(page, example("l-shape"));
   expect(await texts(page)).toContain("Diagram NOT accurately drawn");
+  await page.getByRole("button", { name: "Hole and shading", exact: true }).click();
   await page.getByRole("combobox", { name: "Hole" }).selectOption("circle");
   const d = (await saved(page)).document;
   expect(d.hole.type).toBe("circle");
   expect(d.shaded).toBe("shape");
+  await page.getByRole("button", { name: "Printing", exact: true }).click();
   await page.getByRole("checkbox", { name: /Centimetre squares/ }).check();
   expect((await saved(page)).document.grid).toBe(true);
   await page.getByRole("checkbox", { name: "Print “Diagram NOT accurately drawn”" }).uncheck();
@@ -88,30 +106,30 @@ test("adding a corner splits the last side and drops its label; removing one dro
   await expect.poll(ids).toContain("e6");
   // A selected side lets go when the sides renumber, and Undo does not bring the selection back.
   await page.getByRole("button", { name: "Select the label on side 6 (e6)" }).click();
-  const card = page.getByRole("region", { name: "Selected label" });
-  await expect(card.getByRole("heading")).toHaveText("Label: side 6");
+  await expect(box(page)).toContainText("The label on side 6");
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Add a corner" }).click();
-  await expect(card.getByRole("heading")).toHaveText("Selected label");
+  await expect(pressed(page)).toHaveCount(0);
   await expect.poll(ids).not.toContain("e6");
   expect(await ids()).toContain("e5");
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(ids).toContain("e6");
-  await expect(card.getByRole("heading")).toHaveText("Selected label");
+  await expect(pressed(page)).toHaveCount(0);
   // Editing a label, and undoing and redoing that edit, keeps the selection.
   await page.getByRole("button", { name: "Select the label on side 2 (e2)" }).click();
-  await card.getByRole("textbox", { name: "Label text" }).fill("6 cm");
-  await card.getByRole("textbox", { name: "Label text" }).press("Enter");
+  await box(page).getByRole("textbox", { name: "Text of the label on side 2" }).fill("6 cm");
+  await box(page).getByRole("textbox", { name: "Text of the label on side 2" }).press("Enter");
   await expect.poll(async () => (await saved(page)).document.labels.find((l: Saved) => l.id === "e2").text).toBe("6 cm");
-  await expect(card.getByRole("heading")).toHaveText("Label: side 2");
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Redo" }).click();
-  await expect(card.getByRole("heading")).toHaveText("Label: side 2");
+  await expect(hit(page, "e2")).toHaveAttribute("aria-pressed", "true");
   // A stretch keeps the selection; a new shape lets it go.
   const width = page.getByRole("textbox", { name: "Shape width" });
   await width.fill("80");
   await width.press("Enter");
   await expect.poll(async () => Math.max(...(await saved(page)).document.shape.corners.map((c: { x: number }) => c.x))).toBeGreaterThan(70);
-  await expect(card.getByRole("heading")).toHaveText("Label: side 2");
+  await expect(hit(page, "e2")).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("combobox", { name: "Start from a shape" }).selectOption("rectangle");
-  await expect(card.getByRole("heading")).toHaveText("Selected label");
+  await expect(pressed(page)).toHaveCount(0);
 });

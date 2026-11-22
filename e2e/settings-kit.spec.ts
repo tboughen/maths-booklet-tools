@@ -204,7 +204,7 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles", "/tools/angles"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles", "/tools/angles", "/tools/area"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
@@ -217,6 +217,7 @@ const TREES: [string, string, string[], string[], number][] = [
   ["/tools/written-method", "Method", ["What pupils see"], ["Work the method out", "Layout"], 3],
   ["/tools/algebra-tiles", "Tiles", ["What pupils see"], ["Expression and answer", "Layout"], 2],
   ["/tools/angles", "Figure", ["What pupils see"], ["Point names", "Printing"], 2],
+  ["/tools/area", "Shape", ["What pupils see"], ["Hole and shading", "Point names", "Printing"], 2],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -229,7 +230,7 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     await expect(stack).toBeVisible();
     await page.locator(HIT).first().click();
     const chosen = (await page.locator(`.md-kit .panel-card[aria-label="${selected}"]`).boundingBox())!;
-    const layout = await chartCard(page, path === "/tools/angles" ? "Printing" : "Layout");
+    const layout = await chartCard(page, right.at(-1)!);
     for (const name of left) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(chosen.x);
     if (ONE_COLUMN.has(path)) {
       // One narrow column (the usability pilot): the folded groups sit under the cards, in one card, inset by its border.
@@ -248,7 +249,7 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     // Some tools keep every field in a folded group: open one to measure it.
     if (path === "/tools/sample-space") await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
     if (["/tools/two-way-table", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles"].includes(path)) await page.getByRole("button", { name: "Layout", exact: true }).click();
-    if (path === "/tools/angles") {
+    if (path === "/tools/angles" || path === "/tools/area") {
       await page.keyboard.press("Escape");
       await page.getByRole("button", { name: "Printing", exact: true }).click();
     }
@@ -286,7 +287,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles", "/tools/angles"].includes(path) ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles", "/tools/angles", "/tools/area"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
@@ -885,7 +886,6 @@ type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
 const SAVED = "Print every saved answer on the pupil copy";
 const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
-  ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
   ["Geometry figures", "/tools/figures", "Selected object", [], ["Add to the figure"], PRINT],
   // Six cards, four of them lists that grow: 2,025 px long before the kit, and still more than one screen.
   ["Constructions and loci", "/tools/construction", "Selected point", ["Points", "Lines and marks"], ["Ruler and compass constructions", "Shaded regions", "Drawing"], { longest: 1200 }],
