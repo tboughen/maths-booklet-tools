@@ -107,7 +107,7 @@ test("actual browser downloads retain multipart, crossover, writing space and ph
   test.setTimeout(90000);
   await page.goto("/question-bank?code=U945&question=1MA1_JUN_2018_3H_Q3");
   await page.getByRole("button",{name:"Select question",exact:true}).click();
-  await page.getByRole("combobox",{name:"Sparx code or topic"}).fill("U350");
+  await page.getByRole("combobox",{name:"Sparx code, topic or paper"}).fill("U350");
   await page.getByRole("button",{name:"Find",exact:true}).click();await page.getByRole("button",{name:"Select question",exact:true}).click();
   await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true}).click();
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("U538");

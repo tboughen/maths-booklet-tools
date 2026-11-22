@@ -2,27 +2,51 @@ import { test, expect } from "./release-fixtures";
 
 // Opening one paper whole, in paper order. June 2018 1H is in the lite bank used by pull-request CI.
 test.describe("question bank: open a paper", () => {
-  test("the picker opens a paper in paper order, and a topic search leaves it", async ({ page }) => {
+  test("typing a paper into the search box opens it in paper order, and a topic search leaves it", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/question-bank?code=U151");
-    const picker = page.getByRole("form", { name: "Open a paper" });
-    await picker.getByLabel("Series").selectOption("June 2018");
-    await picker.getByLabel("Paper").selectOption("1");
-    await picker.getByLabel("Tier").selectOption("H");
-    await picker.getByRole("button", { name: "Open" }).click();
+    const search = page.getByRole("combobox", { name: "Sparx code, topic or paper" });
+    await expect(page.locator(".qb-topic h1")).toHaveText("Calculating with speed");
+    await search.fill("jun 18 1");
+    await expect(search).toHaveValue("jun 18 1");
+    const list = page.getByRole("listbox", { name: "Suggestions" });
+    await expect(list.getByRole("option")).toHaveCount(2);
+    await list.getByRole("option", { name: /June 2018 1H/ }).click();
     await expect(page).toHaveURL(/\?paper=1MA1_JUN_2018_1H$/);
     await expect(page.locator(".qb-topic h1")).toHaveText("June 2018 1H");
+    await expect(page.locator(".qb-topic h1")).toBeFocused();
     await expect(page.locator(".qb-scope")).toContainText("80 marks");
     await expect(page.locator(".qb-source-heading strong")).toHaveText("June 2018 1H Q1");
     // Filters step aside while a paper is open.
     await expect(page.locator(".qb-filters")).toHaveCount(0);
     await page.getByRole("button", { name: "Next" }).click();
     await expect(page.locator(".qb-source-heading strong")).toHaveText("June 2018 1H Q2");
-    await page.getByLabel("Sparx code or topic").fill("U151");
-    await page.getByRole("button", { name: "Find" }).click();
+    // Enter on a typed paper opens it; the keyboard can choose a topic.
+    await search.fill("N23 2H");
+    await search.press("Enter");
+    await expect(page.locator(".qb-topic h1")).toHaveText("November 2023 2H");
+    await search.fill("U151");
+    await search.press("ArrowDown");
+    await search.press("Enter");
     await expect(page).toHaveURL(/\?code=U151/);
     await expect(page.locator(".qb-filters")).toHaveCount(1);
-    await expect(picker.getByLabel("Series")).toHaveValue("");
+  });
+
+  test("Browse all papers lists every paper", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto("/question-bank");
+    await page.getByRole("combobox", { name: "Sparx code, topic or paper" }).focus();
+    await page.getByRole("button", { name: /Browse all \d+ papers/ }).click();
+    const all = page.getByRole("group", { name: "All papers" });
+    await expect(all.getByRole("button")).toHaveCount(150);
+    // The keyboard lands in the grid, and Escape returns to the search box.
+    await expect(all.getByRole("button").first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(all).toHaveCount(0);
+    await expect(page.getByRole("combobox", { name: "Sparx code, topic or paper" })).toBeFocused();
+    await page.getByRole("button", { name: /Browse all \d+ papers/ }).click();
+    await all.getByRole("button", { name: "Mock Set 6 3F" }).click();
+    await expect(page.locator(".qb-topic h1")).toHaveText("Mock Set 6 3F");
   });
 
   test("a question's source opens its paper at that question", async ({ page }) => {

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { draftEntries, draftReducer, emptyDraft } from "./paper-builder";
 import { catalogueCoverage } from "./coverage";
-import { bankPapers, emptyReason, emptyRoute, filterQuestions, paperName, paperQuestions, readRoute, routeQuery, type BankCatalogue, type BankListQuestion } from "./model";
+import { bankPapers, emptyReason, emptyRoute, filterQuestions, matchPapers, paperName, paperQuestions, readRoute, routeQuery, type BankCatalogue, type BankListQuestion } from "./model";
 
 const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue<BankListQuestion>;
 
@@ -51,5 +51,23 @@ describe("opening one paper", () => {
     expect(sources.slice(0, 21)).toEqual(Array.from({length: 21}, (_, i) => `November 2023 2H Q${i + 1}`));
     // What was already on the paper keeps the order it had on screen.
     expect(sources.slice(21)).toEqual(shown);
+  });
+});
+
+describe("typing a paper into the search box", () => {
+  const papers = bankPapers(catalogue);
+  const names = (text: string) => matchPapers(papers, text).map(paperName);
+  it("understands the ways teachers write a paper", () => {
+    for (const text of ["nov 23 2h", "N23 2H", "november 2023 2H", "Nov 2023 paper 2 higher", "1MA1 Nov 2023 2H", "1MA1_NOV_2023_2H"])
+      expect(names(text), text).toEqual(["November 2023 2H"]);
+    expect(names("june 2019 1f")).toEqual(["June 2019 1F"]);
+    expect(names("mock set 6 2h")).toEqual(["Mock Set 6 2H"]);
+    expect(names("MS6 3F")).toEqual(["Mock Set 6 3F"]);
+    expect(names("nov 23 2")).toEqual(["November 2023 2F", "November 2023 2H"]);
+    expect(names("2023")).toHaveLength(12);
+    expect(names("2h")[0]).toBe("June 2026 2H");
+  });
+  it("leaves topic searches alone", () => {
+    for (const text of ["n", "j", "nu", "U837", "box plots", "pythagoras", "", "2", "angles in a triangle", "M108"]) expect(names(text), text).toEqual([]);
   });
 });

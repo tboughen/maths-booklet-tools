@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, FileDown, List, Maximize2, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, FileDown, List, Maximize2, MoreHorizontal, Pencil, Plus, SlidersHorizontal, X } from "lucide-react";
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
 import { WorkedSurface } from "./WorkedSurface";
@@ -24,6 +24,7 @@ import { PaperReviewDialog } from "./PaperReviewDialog";
 import { ReportDialog, type ReportDetails } from "./ReportDialog";
 import { bankPapers, emptyReason, paperName, paperQuestions, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
 import { PaperPicker } from "./PaperPicker";
+import { BankSearch } from "./BankSearch";
 import { createDetailLoader, fetchCatalogueIndex, type BankIndex, type DetailLoader } from "./catalogueLoader";
 import { withPerformance } from "./performance";
 import { PerformanceBadge } from "./PerformanceBadge";
@@ -276,7 +277,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     return()=>lifecycle.abort();
   },[active]);
 
-  function submitSearch(e:FormEvent){e.preventDefault();if(!search.trim()){go({...route,paper:undefined,code:"",question:"",view:0});return;}const code=normalizeCode(search),alias=catalogue?.aliases[code]||code;const exact=catalogue?.topics.find(t=>t.title.toLowerCase()===search.trim().toLowerCase());const candidate=exact?.code||(/^U\d+$/.test(alias)?alias:suggestions[0]?.code);if(candidate)go({...route,paper:undefined,code:candidate,question:"",view:0});else setNotice("Choose a topic from the list or enter a Sparx code.");}
+  function findTopic(){if(!search.trim()){go({...route,paper:undefined,code:"",question:"",view:0});return;}const code=normalizeCode(search),alias=catalogue?.aliases[code]||code;const exact=catalogue?.topics.find(t=>t.title.toLowerCase()===search.trim().toLowerCase());const candidate=exact?.code||(/^U\d+$/.test(alias)?alias:suggestions[0]?.code);if(candidate)go({...route,paper:undefined,code:candidate,question:"",view:0});else setNotice("Choose a topic from the list, or enter a Sparx code or a paper such as Nov 2023 2H.");}
   function isSelected(id:string){const q=catalogue?.questions.find(q=>q.id===id);return !!q&&included.has(questionIdentity(q));}
   function selectQuestion(id:string,checked:boolean){const q=catalogue?.questions.find(q=>q.id===id);if(q)dispatchDraft({type:"question",question:q,checked});}
   // Adds a whole paper to your paper. Choosing a Year 11 revision paper by name includes those papers.
@@ -346,12 +347,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
         </div>
       </div>
 <div className="qb-page-search">
-      <form onSubmit={submitSearch} className="qb-search-form">
-        <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
-        <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
-        <button className="qb-button qb-primary" type="submit">Find</button>
-      </form>
-      <PaperPicker catalogue={catalogue} current={route.paper} onOpen={id=>id===route.paper?app.current?.querySelector<HTMLElement>(".qb-topic h1")?.focus():goPaper(id)}/>
+      <BankSearch catalogue={catalogue} value={search} onChange={setSearch} topics={suggestions} input={searchInput} onTopic={code=>go({...route,paper:undefined,code,question:"",view:0})} onPaper={id=>id===route.paper?app.current?.querySelector<HTMLElement>(".qb-topic h1")?.focus():goPaper(id)} onFind={findTopic}/>
       <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
       </div>
             </>}
