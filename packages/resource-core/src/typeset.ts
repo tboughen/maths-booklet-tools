@@ -47,6 +47,9 @@ export function typesetSymbols(s: string): string {
 }
 
 /** Italic markup for the maths letters in one stretch of plain text (no markup or fractions in it). */
+const UNIT_LETTERS = "(?:mm|cm|m|km|g|kg|mg|ml|cl|l|s|h)[²³]?";
+const COMPOUND_UNIT = new RegExp(`^${UNIT_LETTERS}(\\/${UNIT_LETTERS})?$`);
+
 function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
   const tokens = s.split(/(\s+)/);
   const words = tokens.map((t, i) => ({ t, i })).filter((w) => w.t && !/^\s+$/.test(w.t));
@@ -68,6 +71,10 @@ function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
       out[w.i] = `${lead}*${axis[1]}*-${axis[2]}${tail}`;
       return;
     }
+    // A unit stays upright: any rate (g/cm³, m/s), and a plain unit (g, cm³) after a number or on its own
+    // (an answer line's "g/cm³" suffix). Density pages printed g in the maths serif (22 Nov 2026).
+    const unit = core.match(COMPOUND_UNIT);
+    if (unit && (unit[1] || /^[−-]?[\d.,]+$/.test(prev) || words.length === 1)) return;
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
     if (/^[a-z]{2,3}$/.test(core) && byOperator && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
