@@ -34,7 +34,6 @@ import {
   DEFAULT_PRESETS,
   foldNet,
   forView,
-  hasHidden,
   layout,
   makeNet,
   markOpposite,
@@ -65,6 +64,14 @@ import { LINK_PREFIX, parseNetsLink, netsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { commonVisibility, TARGET_TIP, TARGET_TIP_SPACE, togglePupilSpace, visibilityStep, visibilityWords, type Visibility } from "../editor-kit/visibility";
+import { Eye, LayoutGrid, Printer, Shapes } from "lucide-react";
 const STORAGE = copyStorageKey("maths-booklet-tools:nets:v1");
 type Doc = Envelope["document"];
 /** A face on the diagram: its net and its ID. */
@@ -122,6 +129,31 @@ const PRESET_FIELDS: Record<PresetType, { key: string; label: string; min: numbe
   tetrahedron: [{ key: "side", label: "Side", min: 0.5, max: 12, step: 0.5 }],
 };
 const MARK_NAMES: Record<Mark, string> = { none: "None", dot: "Dot", cross: "Cross", shade: "Shading" };
+/** The groups in What pupils see: every face, and every letter, mark, corner label and caption that has text. */
+type Kind = "faces" | "letters" | "marks" | "corners" | "captions";
+const KINDS: readonly (readonly [Kind, string])[] = [
+  ["faces", "Faces"],
+  ["letters", "Letters on faces"],
+  ["marks", "Marks"],
+  ["corners", "Corner letters and lengths"],
+  ["captions", "Captions"],
+];
+function partsOf(doc: Doc, k: Kind): { show: Visibility }[] {
+  return doc.nets.flatMap((n): { show: Visibility }[] =>
+    k === "faces"
+      ? n.faces
+      : k === "letters"
+        ? n.faces.filter((f) => f.label.text).map((f) => f.label)
+        : k === "marks"
+          ? n.faces.filter((f) => f.mark.kind !== "none").map((f) => f.mark)
+          : k === "corners"
+            ? [...n.vertices, ...n.edges].filter((v) => v.label.text).map((v) => v.label)
+            : n.caption.text
+              ? [n.caption]
+              : [],
+  );
+}
+const everyPart = (doc: Doc) => KINDS.flatMap(([k]) => partsOf(doc, k));
 
 /** Lets each refused draft keep its reason on screen until that field is fixed or restored. */
 const FieldErrors = createContext<{ lastError: () => string; report: (field: string, error: string | null) => void }>({
@@ -129,7 +161,22 @@ const FieldErrors = createContext<{ lastError: () => string; report: (field: str
   report: () => undefined,
 });
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. A refused draft stays, marked invalid. */
-function DraftField({ id, label, value, onCommit, disabled }: { id?: string; label: string; value: string; onCommit: (value: string) => boolean; disabled?: boolean }) {
+function DraftField({
+  id,
+  label,
+  value,
+  onCommit,
+  disabled,
+  onHistory,
+}: {
+  id?: string;
+  label: string;
+  value: string;
+  onCommit: (value: string) => boolean;
+  disabled?: boolean;
+  /** Ctrl+Z and Ctrl+Y with nothing typed: the diagram's undo and redo. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
+}) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
   const [invalid, setInvalid] = useState(false);
@@ -161,11 +208,13 @@ function DraftField({ id, label, value, onCommit, disabled }: { id?: string; lab
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -195,7 +244,10 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
     [adding, setAdding] = useState(false),
     [preset, setPreset] = useState<Preset>(DEFAULT_PRESETS.cube),
     [target, setTarget] = useState("n1"),
-    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | SVGElement | null>(null);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
   const file = useRef<HTMLInputElement>(null),
     expected = useRef<string | null>(null);
   const e = history.present,
@@ -210,6 +262,10 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
   const selectedNet = selected ? d.nets.find((n) => n.id === selected.net) : undefined;
   const selectedFace = selectedNet && selected ? selectedNet.faces.find((f) => f.id === selected.face) : undefined;
   const targetNet = d.nets.find((n) => n.id === target) ?? d.nets[0];
+  const spaceCount = everyPart(d).filter((o) => o.show === "hidden").length;
+  useEffect(() => {
+    if (boxAnchor && (!selectedFace || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedFace]);
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -266,10 +322,15 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
       f = n?.faces[i];
     return `face ${i + 1}${f?.label.text ? ` (${f.label.text})` : ""}${d.nets.length > 1 ? ` of ${netName(a.net)}` : ""}`;
   };
-  function choose(a: Address) {
+  function choose(a: Address, anchor: HTMLElement | SVGElement) {
     setSelected(a);
     setTarget(a.net);
-    requestAnimationFrame(() => (document.getElementById("nets-face-label") as HTMLInputElement | null)?.focus());
+    setBoxAnchor(anchor);
+  }
+  /** What pupils see of a face, its letter or its mark: one undo step. */
+  function setPart(a: Address, part: "face" | "label" | "mark", v: Visibility) {
+    const what = part === "face" ? faceName(a) : part === "label" ? `the letter on ${faceName(a)}` : `the mark on ${faceName(a)}`;
+    return commit(() => setFace(e, a.net, a.face, part === "face" ? { show: v } : part === "label" ? { label: { show: v } } : { mark: { show: v } }), visibilityStep(v, what));
   }
 
   // Autosave with protection for another tab's newer draft.
@@ -311,12 +372,16 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
       if (typing) return;
       if (event.key === "Escape" && (selected || adding)) {
         setSelected(null);
+        setBoxAnchor(null);
         setAdding(false);
         return;
       }
       if (event.key === "Delete" && selected && !blocked) {
         event.preventDefault();
-        if (commit(() => removeFace(e, selected.net, selected.face), "remove face")) setSelected(null);
+        if (commit(() => removeFace(e, selected.net, selected.face), "remove face")) {
+          setSelected(null);
+          setBoxAnchor(null);
+        }
       }
     };
     window.addEventListener("keydown", key);
@@ -484,7 +549,8 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                             ))}
                             {net.faces.map((f, k) => {
                               const a = { net: net.id, face: f.id },
-                                hiddenHere = view === "pupil" && f.show === "hidden";
+                                hiddenHere = view === "pupil" && f.show !== "show",
+                                words = visibilityWords(f.show);
                               const isSelected = selected?.net === net.id && selected.face === f.id;
                               return (
                                 <polygon
@@ -493,17 +559,20 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                                   points={f.points.map((q) => `${X(q[0])},${Y(q[1])}`).join(" ")}
                                   role="button"
                                   tabIndex={blocked ? -1 : 0}
-                                  aria-label={`Edit face ${k + 1}${d.nets.length > 1 ? ` of ${netName(net.id)}` : ""}`}
+                                  aria-label={`Edit face ${k + 1}${d.nets.length > 1 ? ` of ${netName(net.id)}` : ""}${words ? `, ${words}` : ""}`}
                                   aria-pressed={isSelected}
-                                  onClick={() => !blocked && choose(a)}
+                                  aria-haspopup="dialog"
+                                  data-options-anchor=""
+                                  onClick={(ev) => !blocked && choose(a, ev.currentTarget)}
+                                  onDoubleClick={() => !blocked && setPart(a, "face", togglePupilSpace(f.show))}
                                   onKeyDown={(ev) => {
                                     if ((ev.key === "Enter" || ev.key === " ") && !blocked) {
                                       ev.preventDefault();
-                                      choose(a);
+                                      choose(a, ev.currentTarget);
                                     }
                                   }}
                                 >
-                                  {hiddenHere && <title>Hidden face (pupils draw this)</title>}
+                                  <title>{f.show === "hidden" ? TARGET_TIP_SPACE : f.show === "omit" ? "Left out: prints on neither copy. Click to edit" : TARGET_TIP}</title>
                                 </polygon>
                               );
                             })}
@@ -514,13 +583,130 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                   </div>
                 </div>
               </div>
+              {boxAnchor && selected && selectedNet && selectedFace && (
+                <OptionsBox anchor={boxAnchor} anchorKey={`${selected.net}-${selected.face}`} focusField={!coarse} title={faceName(selected).replace(/^./, (c) => c.toUpperCase())} onClose={() => setBoxAnchor(null)}>
+                  <VisibilitySwitch name="The face" caption="The face" value={selectedFace.show} disabled={blocked} onChange={(v) => setPart(selected, "face", v)} />
+                  <div className="pt-fields">
+                    <label>
+                      Letter or word
+                      <DraftField
+                        key={`${selected.net}-${selected.face}`}
+                        id="nets-face-label"
+                        label="Face label"
+                        value={selectedFace.label.text}
+                        disabled={blocked}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        onCommit={(v) => commit(() => setFace(e, selected.net, selected.face, { label: { text: v, ...(v.trim() ? {} : { show: "show" }) } }), "label face")}
+                      />
+                    </label>
+                    <label>
+                      Mark
+                      <select
+                        aria-label="Face mark"
+                        value={selectedFace.mark.kind}
+                        disabled={blocked}
+                        onChange={(ev) => commit(() => setFace(e, selected.net, selected.face, { mark: { kind: ev.target.value as Mark } }), "mark face")}
+                      >
+                        {(Object.keys(MARK_NAMES) as Mark[]).map((m) => (
+                          <option key={m} value={m}>
+                            {MARK_NAMES[m]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <VisibilitySwitch name="Its letter" caption="Its letter" value={selectedFace.label.show} disabled={blocked || !selectedFace.label.text} onChange={(v) => setPart(selected, "label", v)} />
+                  <VisibilitySwitch name="Its mark" caption="Its mark" value={selectedFace.mark.show} disabled={blocked || selectedFace.mark.kind === "none"} onChange={(v) => setPart(selected, "mark", v)} />
+                  <details>
+                    <summary>Corner letters and lengths</summary>
+                    <div className="nets-corners">
+                      {selectedFace.points.map((p, k) => {
+                        const v = vertexText(p);
+                        const q = selectedFace.points[(k + 1) % selectedFace.points.length];
+                        const len = edgeText(p, q);
+                        return (
+                          <div key={`${p[0]},${p[1]}`} className="nets-corner-row">
+                            <label>
+                              Corner {ptName(p)}
+                              <DraftField
+                                label={`Corner ${ptName(p)} letter`}
+                                value={v?.text ?? ""}
+                                disabled={blocked}
+                                onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                                onCommit={(t) => commit(() => setVertex(e, selected.net, p, { text: t, ...(t.trim() ? {} : { show: "show" }) }), "corner letter")}
+                              />
+                            </label>
+                            <label className="pt-hide">
+                              <input
+                                type="checkbox"
+                                disabled={blocked || !v?.text}
+                                checked={v?.show === "hidden"}
+                                onChange={(ev) => commit(() => setVertex(e, selected.net, p, { show: ev.target.checked ? "hidden" : "show" }), "pupil space on corner letter")}
+                              />
+                              Pupil space
+                            </label>
+                            <label>
+                              Edge to {ptName(q)}
+                              <DraftField
+                                label={`Edge ${ptName(p)} to ${ptName(q)} label`}
+                                value={len?.text ?? ""}
+                                disabled={blocked}
+                                onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                                onCommit={(t) => commit(() => setEdge(e, selected.net, p, q, { text: t, ...(t.trim() ? {} : { show: "show" }) }), "edge label")}
+                              />
+                            </label>
+                            <label className="pt-hide">
+                              <input
+                                type="checkbox"
+                                disabled={blocked || !len?.text}
+                                checked={len?.show === "hidden"}
+                                onChange={(ev) => commit(() => setEdge(e, selected.net, p, q, { show: ev.target.checked ? "hidden" : "show" }), "pupil space on edge label")}
+                              />
+                              Pupil space
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="pt-note">Corners are in grid squares from the panel&apos;s top-left corner. Letters and lengths print outside the net.</p>
+                  </details>
+                  <div className="md-options-actions">
+                    <button
+                      type="button"
+                      disabled={blocked || !folded?.ok}
+                      title={
+                        !folded
+                          ? "Only nets of cubes and cuboids can be folded."
+                          : !folded.ok
+                            ? `This net does not fold: ${folded.reason}.`
+                            : "Marks the face that ends up opposite, as a pupil space."
+                      }
+                      onClick={() => commit(() => markOpposite(e, selected.net, selected.face, selectedFace.mark.kind === "none" ? undefined : (selectedFace.mark.kind as Exclude<Mark, "none">)), "mark opposite face")}
+                    >
+                      Mark the opposite face
+                    </button>
+                    <button
+                      type="button"
+                      disabled={blocked}
+                      onClick={() => {
+                        if (commit(() => removeFace(e, selected.net, selected.face), "remove face")) {
+                          setSelected(null);
+                          setBoxAnchor(null);
+                        }
+                      }}
+                    >
+                      Remove this face
+                    </button>
+                  </div>
+                </OptionsBox>
+              )}
               <EditorFoot
                 zoom={zoom}
                 onZoom={setZoom}
                 scale={fitted.scale}
                 size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
                 status={shownMessage}
-                hint={<EditorHint tool="nets">Click a face to label, mark or hide it. Turn on Add squares, then click empty squares to build a net.</EditorHint>}
+                hint={<EditorHint tool="nets">Click a face for its options. Double-click it for a pupil space. Turn on Add squares, then click empty squares to build a net.</EditorHint>}
               ></EditorFoot>
               {(issue || notes.length > 0) && (
                 <div className="pt-status" aria-live="polite">
@@ -535,169 +721,41 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                 </div>
               )}
             </Panel>
-            <aside className="inspector-stack md-kit" aria-label="Nets settings">
+            <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Nets settings">
               <ReturnToDiagram />
-              <div className="md-kit-cards">
-              <div>
-              <section className="panel-card pt-panel" aria-label="Selected face">
-                <h2>{selected && selectedFace ? `Selected: ${faceName(selected)}` : "Selected face"}</h2>
-                {selected && selectedNet && selectedFace ? (
-                  <>
-                    <div className="pt-fields">
-                      <label>
-                        Letter or word
-                        <DraftField
-                          key={`${selected.net}-${selected.face}`}
-                          id="nets-face-label"
-                          label="Face label"
-                          value={selectedFace.label.text}
-                          disabled={blocked}
-                          onCommit={(v) => commit(() => setFace(e, selected.net, selected.face, { label: { text: v, ...(v.trim() ? {} : { show: "show" }) } }), "label face")}
-                        />
-                      </label>
-                      <label>
-                        Mark
-                        <select
-                          aria-label="Face mark"
-                          value={selectedFace.mark.kind}
-                          disabled={blocked}
-                          onChange={(ev) => commit(() => setFace(e, selected.net, selected.face, { mark: { kind: ev.target.value as Mark } }), "mark face")}
-                        >
-                          {(Object.keys(MARK_NAMES) as Mark[]).map((m) => (
-                            <option key={m} value={m}>
-                              {MARK_NAMES[m]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                    <label className="pt-hide" title="A hidden face prints nothing for pupils; the answers copy draws it.">
-                      <input
-                        type="checkbox"
+              {/* One column (the usability rollout, 22 Nov 2026): the main cards open, the rarer groups folded. */}
+              <FoldCard
+                tool="nets"
+                title="What pupils see"
+                icon={Eye}
+                defaultOpen
+                summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+                help={
+                  <p className="pt-note">
+                    Show: printed on both copies. Pupil space: nothing for pupils (they draw the face or write the letter), printed in the answer colour on the answers copy. Leave out: printed on neither copy, but kept.
+                  </p>
+                }
+              >
+                {KINDS.map(([k, name]) => {
+                  const all = commonVisibility(partsOf(d, k).map((o) => o.show));
+                  return (
+                    all && (
+                      <VisibilitySwitch
+                        key={k}
+                        name={name}
+                        caption={name}
+                        value={all}
                         disabled={blocked}
-                        checked={selectedFace.show === "hidden"}
-                        onChange={(ev) => commit(() => setFace(e, selected.net, selected.face, { show: ev.target.checked ? "hidden" : "show" }), "hide face")}
+                        onChange={(v) => patch((n) => partsOf(n, k).forEach((o) => (o.show = v)), visibilityStep(v, `all ${name.toLowerCase()}`))}
                       />
-                      Hide this face for pupils (they draw it)
-                    </label>
-                    <label className="pt-hide">
-                      <input
-                        type="checkbox"
-                        disabled={blocked || !selectedFace.label.text}
-                        checked={selectedFace.label.show === "hidden"}
-                        onChange={(ev) => commit(() => setFace(e, selected.net, selected.face, { label: { show: ev.target.checked ? "hidden" : "show" } }), "hide label")}
-                      />
-                      Hide the letter (keep as an answer)
-                    </label>
-                    <label className="pt-hide">
-                      <input
-                        type="checkbox"
-                        disabled={blocked || selectedFace.mark.kind === "none"}
-                        checked={selectedFace.mark.show === "hidden"}
-                        onChange={(ev) => commit(() => setFace(e, selected.net, selected.face, { mark: { show: ev.target.checked ? "hidden" : "show" } }), "hide mark")}
-                      />
-                      Hide the mark (keep as an answer)
-                    </label>
-                    <div className="pt-row">
-                      <button
-                        type="button"
-                        disabled={blocked || !folded?.ok}
-                        title={
-                          !folded
-                            ? "Only nets of cubes and cuboids can be folded."
-                            : !folded.ok
-                              ? `This net does not fold: ${folded.reason}.`
-                              : "Marks the face that ends up opposite, as a hidden answer."
-                        }
-                        onClick={() => commit(() => markOpposite(e, selected.net, selected.face, selectedFace.mark.kind === "none" ? undefined : (selectedFace.mark.kind as Exclude<Mark, "none">)), "mark opposite face")}
-                      >
-                        Mark the opposite face
-                      </button>
-                      <button
-                        type="button"
-                        disabled={blocked}
-                        onClick={() => {
-                          if (commit(() => removeFace(e, selected.net, selected.face), "remove face")) setSelected(null);
-                        }}
-                      >
-                        Remove this face
-                      </button>
-                    </div>
-                    <details>
-                      <summary>Corner letters and lengths</summary>
-                      <div className="nets-corners">
-                        {selectedFace.points.map((p, k) => {
-                          const v = vertexText(p);
-                          const q = selectedFace.points[(k + 1) % selectedFace.points.length];
-                          const len = edgeText(p, q);
-                          return (
-                            <div key={`${p[0]},${p[1]}`} className="nets-corner-row">
-                              <label>
-                                Corner {ptName(p)}
-                                <DraftField
-                                  label={`Corner ${ptName(p)} letter`}
-                                  value={v?.text ?? ""}
-                                  disabled={blocked}
-                                  onCommit={(t) => commit(() => setVertex(e, selected.net, p, { text: t, ...(t.trim() ? {} : { show: "show" }) }), "corner letter")}
-                                />
-                              </label>
-                              <label className="pt-hide">
-                                <input
-                                  type="checkbox"
-                                  disabled={blocked || !v?.text}
-                                  checked={v?.show === "hidden"}
-                                  onChange={(ev) => commit(() => setVertex(e, selected.net, p, { show: ev.target.checked ? "hidden" : "show" }), "hide corner letter")}
-                                />
-                                Hide
-                              </label>
-                              <label>
-                                Edge to {ptName(q)}
-                                <DraftField
-                                  label={`Edge ${ptName(p)} to ${ptName(q)} label`}
-                                  value={len?.text ?? ""}
-                                  disabled={blocked}
-                                  onCommit={(t) => commit(() => setEdge(e, selected.net, p, q, { text: t, ...(t.trim() ? {} : { show: "show" }) }), "edge label")}
-                                />
-                              </label>
-                              <label className="pt-hide">
-                                <input
-                                  type="checkbox"
-                                  disabled={blocked || !len?.text}
-                                  checked={len?.show === "hidden"}
-                                  onChange={(ev) => commit(() => setEdge(e, selected.net, p, q, { show: ev.target.checked ? "hidden" : "show" }), "hide edge label")}
-                                />
-                                Hide
-                              </label>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <p className="pt-note">Corners are in grid squares from the panel&apos;s top-left corner. Letters and lengths print outside the net.</p>
-                    </details>
-                  </>
-                ) : (
-                  <p className="pt-note">Click a face to choose it.</p>
-                )}
-                <div className="pt-row">
-                  <button
-                    type="button"
-                    disabled={blocked || !hasHidden(e)}
-                    onClick={() =>
-                      patch((n) => {
-                        for (const net of n.nets) {
-                          net.caption.show = "show";
-                          for (const f of net.faces) [f, f.label, f.mark].forEach((o) => (o.show = "show"));
-                          [...net.vertices, ...net.edges].forEach((v) => (v.label.show = "show"));
-                        }
-                      }, "show all")
-                    }
-                  >
-                    Show all
-                  </button>
-                </div>
-              </section>
-              <section className="panel-card pt-panel" aria-label="Shape">
-                <h2>Shape</h2>
+                    )
+                  );
+                })}
+                <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={() => patch((n) => everyPart(n).forEach((o) => o.show === "hidden" && (o.show = "show")), "show all")}>
+                  Double-click a face for a pupil space.
+                </PupilSpaceHint>
+              </FoldCard>
+              <FoldCard tool="nets" title="Shape" icon={Shapes} defaultOpen summary={PRESET_NAMES[preset.type]}>
                 <div className="pt-fields">
                   <label>
                     Net of a
@@ -754,11 +812,8 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                   <input type="checkbox" disabled={blocked} checked={adding} onChange={(ev) => setAdding(ev.target.checked)} />
                   Add squares to {netName(targetNet.id)} by clicking the grid
                 </label>
-              </section>
-              </div>
-              <div>
-              <section className="panel-card pt-panel" aria-label="Nets">
-                <h2>Nets</h2>
+              </FoldCard>
+              <FoldCard tool="nets" title="Nets" icon={LayoutGrid} defaultOpen summary={d.nets.length === 1 ? "1 net" : `${d.nets.length} nets`}>
                 {d.nets.map((net, i) => (
                   <fieldset key={net.id} className="md-kit-group">
                     <legend>{d.nets.length > 1 ? `Net ${i + 1}` : "The net"}</legend>
@@ -807,23 +862,21 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                         />
                       </label>
                     </div>
-                    <label className="pt-hide">
-                      <input
-                        type="checkbox"
-                        disabled={blocked || !net.caption.text}
-                        checked={net.caption.show === "hidden"}
-                        onChange={(ev) => commit(() => setNet(e, net.id, { caption: { show: ev.target.checked ? "hidden" : "show" } }), "hide caption")}
-                      />
-                      Hide the caption (keep as an answer)
-                    </label>
+                    <VisibilitySwitch
+                      name={`Net ${i + 1} caption`}
+                      caption="Caption"
+                      value={net.caption.show}
+                      disabled={blocked || !net.caption.text}
+                      onChange={(v) => commit(() => setNet(e, net.id, { caption: { show: v } }), visibilityStep(v, "the caption"))}
+                    />
                     <label className="pt-hide">
                       <input
                         type="checkbox"
                         disabled={blocked || !net.faces.length}
                         checked={net.faces.length > 0 && net.faces.every((f) => f.show === "hidden")}
-                        onChange={(ev) => patch((n) => n.nets[i].faces.forEach((f) => (f.show = ev.target.checked ? "hidden" : "show")), "hide net")}
+                        onChange={(ev) => patch((n) => n.nets[i].faces.forEach((f) => (f.show = ev.target.checked ? "hidden" : "show")), ev.target.checked ? "pupil space on the net" : "show the net")}
                       />
-                      Hide the whole net (pupils draw it)
+                      Every face a pupil space (pupils draw the net)
                     </label>
                     <div className="pt-row" role="group" aria-label={`Move net ${i + 1}`}>
                       {(
@@ -855,11 +908,22 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                     </div>
                   </fieldset>
                 ))}
-              </section>
-              </div>
-              <div>
-              <section className="panel-card pt-panel" aria-label="Paper">
-                <h2>Paper</h2>
+              </FoldCard>
+              <FoldCard
+                tool="nets"
+                title="Paper"
+                icon={Printer}
+                summary={d.grid === "squares" ? `${d.unitCm} cm squares` : d.grid === "dots" ? `${d.unitCm} cm dots` : "Plain paper"}
+                help={
+                  <>
+                    <p className="pt-note">
+                      Cube and cuboid nets are checked: a teacher note says when one does not fold, and which lettered faces end up opposite. Nothing is
+                      marked for you unless you press Mark the opposite face.
+                    </p>
+                    <p className="pt-note">Copy for Word carries the physical size shown under the nets; preview zoom never changes it.</p>
+                  </>
+                }
+              >
                 <div className="pt-fields">
                   <label className="pt-wide">
                     Grid
@@ -887,17 +951,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                     </select>
                   </label>
                 </div>
-                <details>
-                  <summary>Editing and printing help</summary>
-                  <p className="pt-note">
-                    Cube and cuboid nets are checked: a teacher note says when one does not fold, and which lettered faces end up opposite. Nothing is
-                    marked for you unless you press Mark the opposite face.
-                  </p>
-                  <p className="pt-note">Copy for Word carries the physical size shown under the nets; preview zoom never changes it.</p>
-                </details>
-              </section>
-              </div>
-              </div>
+              </FoldCard>
             </aside>
           </section>
           {recovery !== null && (

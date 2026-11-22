@@ -12,7 +12,6 @@ const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "ratio-table", select: (page) => page.getByRole("button", { name: "Edit headings", exact: true }).click() },
   { tool: "number-line", select: (page) => page.getByRole("button", { name: "Tick 3", exact: true }).click() },
   { tool: "triangle" },
-  { tool: "nets", select: (page) => page.getByRole("button", { name: "Edit face 1", exact: true }).click() },
   { tool: "construction", select: (page) => page.getByRole("button", { name: /^Select point / }).first().click() },
 ];
 
