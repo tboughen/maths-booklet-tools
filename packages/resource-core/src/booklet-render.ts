@@ -325,7 +325,7 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
     if (i) y += K.ideaGap;
     const f = keyIdeaLines(idea, tw, maths);
     // Without a fraction or a power the idea prints exactly as a paragraph always has.
-    const svg = f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
+    const svg = f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left, maths }).svg;
     out.push(at({ h: f.h, svg }, 0, y));
     y += f.h;
   });

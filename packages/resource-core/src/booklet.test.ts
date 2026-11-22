@@ -13,7 +13,7 @@ describe("A4 booklet renderer", () => {
     // retaken when the example's fractions became stacked, and when maths notation began typesetting
     // typed maths: the objective's y = mx ± c now prints with italic letters, and when ratio-table
     // fraction parts and operation labels rose to the 10 pt house minimum, U111, and when graph axes and grids took the
-    // Edexcel line weights for exam parity, and when short equations, ranges and a short last word began keeping together on one line, and when the graph plot clip began reaching half a line width past the grid, and when a hidden ratio-table operation got a 13 mm answer line (16 Nov 2026), and when graph lines began printing straight through the axis numbers, 16 Nov 2026, and when Tim's marking of the A7.03 pilot gave one run of question numbers, lettered sections, one title line and a two-cell key idea box, 17 Nov 2026, and when lessons took a start block, an end band and a corner lesson badge with stage squares, N11, 18 Nov 2026, and when a maths letter began keeping its movement arrow, "x →", 20 Nov 2026, and when answer lines became Edexcel dotted lines, 20 Nov 2026). The PDF pages and the Word files are
+    // Edexcel line weights for exam parity, and when short equations, ranges and a short last word began keeping together on one line, and when the graph plot clip began reaching half a line width past the grid, and when a hidden ratio-table operation got a 13 mm answer line (16 Nov 2026), and when graph lines began printing straight through the axis numbers, 16 Nov 2026, and when Tim's marking of the A7.03 pilot gave one run of question numbers, lettered sections, one title line and a two-cell key idea box, 17 Nov 2026, and when lessons took a start block, an end band and a corner lesson badge with stage squares, N11, 18 Nov 2026, and when a maths letter began keeping its movement arrow, "x →", 20 Nov 2026, and when answer lines became Edexcel dotted lines, 20 Nov 2026, and when key idea maths letters took the serif maths font, 22 Nov 2026). The PDF pages and the Word files are
     // both made from the plan, so any change here moves printed pages: update these only for a
     // deliberate change to the printed booklet.
     const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
@@ -21,12 +21,12 @@ describe("A4 booklet renderer", () => {
     const [a, b] = a7Booklet.document.lessons;
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(a7Booklet, 1);
-    expect(sha(renderBooklet(a7Booklet).pages)).toBe("8e8afa701ba79864ce8ad82d717c63f605e7da208b88c8d7b10f3d5539701aac");
-    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("a8d4c7843842ae674ba000ce65e3aa7faba915c1e413aec315ca044a72410999");
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("ed6ff0a04e2730be3146c414c8bde231cd2d6c878363ebc363eda014abfa71cc");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("28a982251f0928df845c41f31a8325cc58d803d66ff44880d5c5a3770e3fcc40");
     expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("5941f551e7affb1116cfb8ec733e72aedef6bad0aac956514242c567be676a32");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
-    expect(sha(whole.pages)).toBe("c5c0d4e6169a2ff3b8139607fee5dea9bf945ee1162f3678c9f318de0aeda6e0");
+    expect(sha(whole.pages)).toBe("27cb450c914327d045b331ff3159cb8a4f7474105ed0cefd1a07d7ef93ff2fc4");
   });
 
   it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {

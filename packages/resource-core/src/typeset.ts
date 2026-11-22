@@ -77,7 +77,7 @@ function italicLetters(s: string): string {
     }
     if (/^[a-z]$/.test(core)) {
       // A unit after a number (5 m, 3 g) stays upright; so does the word "a" unless it is maths (a = 3).
-      const afterNumber = /^[−-]?[\d.,]+%?$/.test(prev);
+      const afterNumber = /^[−-]?[\d.,]*\d%?$/.test(prev);
       // A part or option named in prose (part b, Option c) is a label.
       const named = /^(part|option)$/i.test(prev);
       if ((core === "a" && !byOperator) || afterNumber || named) return;
@@ -85,7 +85,7 @@ function italicLetters(s: string): string {
       return;
     }
     // A unit with a power or a "per" (m², cm³, N/m², g/cm³) after a number, or any compound unit, is upright.
-    if (UNIT_WORD.test(core) && (core.includes("/") || /^[−-]?[\d.,]+%?$/.test(prev))) return;
+    if (UNIT_WORD.test(core) && (core.includes("/") || /^[−-]?[\d.,]*\d%?$/.test(prev))) return;
     // An amount in pence (40p, 2.5p) is not maths.
     if (/^\d+(\.\d+)?p$/.test(core)) return;
     // A question or paper label (Q3a, A4) is not maths.
