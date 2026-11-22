@@ -15,6 +15,10 @@ describe("maths letters in the exam-style serif italic", () => {
     expect(r.find((p) => p.text === "2")?.style).toBe("regular");
     expect(parseRuns("*Note* the answer", "regular", true)[0].style).toBe("italic");
     expect(parseRuns("*x* = 3", "regular", false)[0].style).toBe("italic");
+    const emphasis = parseRuns(typesetText("Do *not* use a calculator. Name *one* way, *mx* + *c*."), "regular", true);
+    expect(emphasis.find((p) => p.text === "not")?.style).toBe("italic");
+    expect(emphasis.find((p) => p.text === "one")?.style).toBe("italic");
+    expect(emphasis.find((p) => p.text === "mx")?.style).toBe("maths");
   });
   it("draws a maths letter in STIX Two Text italic, larger, and measures it with STIX widths", () => {
     const line = typeset("2x + 1");

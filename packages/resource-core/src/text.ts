@@ -1,4 +1,5 @@
 import { advance, MATHS_FONT, MATHS_SCALE, type FontStyle } from "./metrics";
+import { PROSE_WORDS } from "./prose-words";
 
 /** SVG attributes for a maths letter: the exam paper's serif italic. */
 const MATHS_ATTR = ` font-family="'${MATHS_FONT}'" font-style="italic"`;
@@ -144,9 +145,14 @@ export function parseRuns(source: string, base: FontStyle = "regular", maths = f
   return mathsLetters(powerRuns(runs));
 }
 
-/** A typeset maths letter (*x*, *mx*) prints in the maths font; longer italic words stay prose. */
+/**
+ * A typeset maths letter (*x*, *mx*) prints in the maths font. Longer italic words, and short English
+ * words a teacher italicised for emphasis (*not*, *one*), stay in the prose italic.
+ */
 function mathsLetters(runs: Run[]): Run[] {
-  return runs.map((r) => (r.style === "italic" && !r.frac && /^[A-Za-z]{1,3}$/.test(r.text) ? { ...r, style: "maths" } : r));
+  return runs.map((r) =>
+    r.style === "italic" && !r.frac && /^[A-Za-z]{1,3}$/.test(r.text) && (r.text.length === 1 || !PROSE_WORDS.has(r.text.toLowerCase())) ? { ...r, style: "maths" } : r,
+  );
 }
 
 const textWidth = (text: string, style: FontStyle, size: number) => [...text].reduce((w, c) => w + advance(c, style), 0) * size;
