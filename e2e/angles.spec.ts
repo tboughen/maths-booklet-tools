@@ -13,13 +13,14 @@ const saved = (page: Page) => page.evaluate((k) => JSON.parse(localStorage.getIt
 const art = (page: Page) => page.getByTestId("angles-resource").locator("svg").first();
 const texts = (page: Page) => art(page).locator("text").allTextContents();
 const example = (id: string, worked = false) => examples.find((x) => x.id === id)!.make(worked);
+const box = (page: Page) => page.locator(".md-options-box");
+const label = async (page: Page, id: string) => (await saved(page)).document.angles.find((a: { id: string }) => a.id === id)?.label;
 
 test("selects an angle on the diagram, labels it, keeps its answer for the teacher copy and undoes", async ({ page }) => {
   await boot(page, example("straight-line"));
   await page.getByRole("button", { name: "Select angle 2 (s2)" }).click();
-  const card = page.getByRole("region", { name: "Selected angle" });
-  await expect(card.getByRole("heading")).toHaveText("Angle: angle 2");
-  const answer = card.getByRole("textbox", { name: "Saved answer (answers copy only)" });
+  await expect(box(page)).toContainText("Angle 2");
+  const answer = box(page).getByRole("textbox", { name: "Saved answer (answers copy only)" });
   await answer.fill("67");
   await answer.press("Enter");
   expect((await saved(page)).document.angles.find((a: { id: string }) => a.id === "s2").label).toEqual({ state: "symbol", text: "x", answer: "67" });
@@ -33,13 +34,15 @@ test("selects an angle on the diagram, labels it, keeps its answer for the teach
   expect((await saved(page)).document.angles.find((a: { id: string }) => a.id === "s2").label.answer).toBe("");
 });
 
-test("Delete removes the selected angle's mark and label in one undo step; Escape deselects", async ({ page }) => {
+test("removes an angle's mark and label in one undo step; Escape closes its options", async ({ page }) => {
   await boot(page, example("straight-line"));
   await page.getByRole("button", { name: "Select angle 1 (s1)" }).click();
-  await page.keyboard.press("Delete");
+  await box(page).getByRole("button", { name: "Remove mark and label" }).click();
   expect((await saved(page)).document.angles.map((a: { id: string }) => a.id)).toEqual(["s2", "s3"]);
+  await page.getByRole("button", { name: "Select angle 2 (s2)" }).click();
+  await expect(box(page)).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("region", { name: "Selected angle" }).getByRole("heading")).toHaveText("Selected angle");
+  await expect(box(page)).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.angles.map((a: { id: string }) => a.id)).toEqual(["s1", "s2", "s3"]);
 });
@@ -64,13 +67,12 @@ test("changes the figure to a polygon with an exterior angle, and warns about si
   await page.getByRole("combobox", { name: "Figure" }).selectOption("polygon");
   await expect(page.getByRole("status")).toContainText("Undo brings");
   await page.getByRole("checkbox", { name: "Exterior angle at corner 2" }).check();
-  await page.getByRole("combobox", { name: "Angle to edit" }).selectOption("e2");
-  const text = page.getByRole("region", { name: "Selected angle" }).getByRole("textbox", { name: "Label text" });
-  await text.fill("50");
-  await text.press("Enter");
-  await page.getByRole("combobox", { name: "Angle to edit" }).selectOption("i2");
-  await text.fill("120");
-  await text.press("Enter");
+  for (const [id, size] of [["e2", "50"], ["i2", "120"]]) {
+    await page.getByRole("button", { name: new RegExp(`\\(${id}\\)`) }).click();
+    const text = box(page).getByRole("textbox", { name: /^Text of / });
+    await text.fill(size);
+    await text.press("Enter");
+  }
   await expect(page.getByText("Teacher note: The interior and exterior angles at corner 2 add to 170°, not 180°.")).toBeVisible();
   expect(await texts(page)).toContain("50°");
 });
@@ -78,6 +80,7 @@ test("changes the figure to a polygon with an exterior angle, and warns about si
 test("prints Diagram NOT accurately drawn by default and draws stacked-card settings with the selected angle first", async ({ page }) => {
   await boot(page);
   expect(await texts(page)).toContain("Diagram NOT accurately drawn");
+  await page.getByRole("button", { name: "Printing", exact: true }).click();
   await page.getByRole("checkbox", { name: "Print “Diagram NOT accurately drawn”" }).uncheck();
   expect(await texts(page)).not.toContain("Diagram NOT accurately drawn");
 });
@@ -128,7 +131,7 @@ test("adds a second transversal whose meeting angles can be marked", async ({ pa
   const second = (await saved(page)).document.figure.second;
   expect(second.crossDeg).toBe(122);
   await page.getByRole("button", { name: /Select where the transversals meet, angle 1/ }).click();
-  await expect(page.getByRole("region", { name: "Selected angle" }).getByRole("heading")).toHaveText("Angle: where the transversals meet, angle 1");
+  await expect(box(page).getByRole("textbox", { name: "Text of where the transversals meet, angle 1" })).toBeVisible();
   await page.getByRole("checkbox", { name: "Second transversal" }).uncheck();
   expect((await saved(page)).document.figure.second).toBeUndefined();
 });
@@ -142,4 +145,23 @@ test("draws regular polygons meeting at a corner and adds a third", async ({ pag
   await page.getByRole("combobox", { name: "Sides of shape 3" }).selectOption("10");
   await expect(page.getByRole("status")).toContainText("overlap at the shared corner");
   expect((await saved(page)).document.figure.sides).toEqual([5, 6, 6]);
+});
+
+test("What pupils see: double-click a given size for a pupil space, leave every label out, and undo in one step", async ({ page }) => {
+  await boot(page, example("straight-line"));
+  await page.getByRole("button", { name: "Select angle 1 (s1)" }).dblclick();
+  expect(await label(page, "s1")).toEqual({ state: "hidden", text: "", answer: "48" });
+  expect(await texts(page)).not.toContain("48°");
+  await box(page).getByRole("checkbox", { name: /An answer line/ }).check();
+  expect((await label(page, "s1")).state).toBe("answer-line");
+  await page.keyboard.press("Escape");
+  await page.getByRole("group", { name: "Angles", exact: true }).getByRole("button", { name: "Leave out" }).click();
+  // Only the marks print; what was typed is kept.
+  expect(await label(page, "s1")).toEqual({ state: "blank", text: "48", answer: "" });
+  expect(await label(page, "s2")).toEqual({ state: "blank", text: "x", answer: "" });
+  expect(await texts(page)).not.toContain("65°");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await label(page, "s1")).state).toBe("answer-line");
+  await page.getByRole("button", { name: "Clear pupil spaces" }).click();
+  expect(await label(page, "s1")).toEqual({ state: "value", text: "48", answer: "" });
 });
