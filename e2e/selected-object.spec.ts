@@ -5,27 +5,23 @@ import { expect, test, type Page } from "./release-fixtures";
  * in every editor that has a selection card. The number line's card stays mounted with nothing selected,
  * so the Draw card below does not jump as the selection comes and goes. (Cuboids and the classic bar model
  * show a "Selected …" picker only when there are several shapes or bars; it already sits at the top.)
- * Probability trees edit what is selected in the options box beside it instead (the 21 Nov 2026 usability pilot);
- * each tool leaves this list as it takes up the box.
+ * Probability, frequency and factor trees, sample spaces and two-way tables edit what is selected in the options box
+ * beside it instead (the 21–22 Nov 2026 usability pilot); each tool leaves this list as it takes up the box.
  */
 const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "ratio-table", select: (page) => page.getByRole("button", { name: "Edit headings", exact: true }).click() },
   { tool: "number-line", select: (page) => page.getByRole("button", { name: "Tick 3", exact: true }).click() },
   { tool: "triangle" },
-  { tool: "frequency-tree", select: (page) => page.locator(".pt-hit").filter({ visible: true }).first().click() },
-  { tool: "two-way-table" },
   { tool: "angles", select: (page) => page.getByRole("button", { name: /^Select angle 1 / }).click() },
   { tool: "area", select: (page) => page.getByRole("button", { name: /^Select the label on side 1 / }).click() },
   { tool: "figures", select: (page) => page.getByRole("button", { name: /^Select side AB / }).click() },
   { tool: "solids", select: (page) => page.getByRole("button", { name: /^Select length p1p2 / }).click() },
-  { tool: "factor-tree" },
   { tool: "nets", select: (page) => page.getByRole("button", { name: "Edit face 1", exact: true }).click() },
   { tool: "function-machine", select: (page) => page.getByRole("button", { name: "Edit the box 1", exact: true }).click() },
   { tool: "bubble-method", select: (page) => page.getByRole("button", { name: "Edit the left bubble of step 1", exact: true }).click() },
   { tool: "probability-objects", select: (page) => page.getByRole("button", { name: "Edit the spinner, sector 1", exact: true }).click() },
   { tool: "algebra-tiles", select: (page) => page.getByRole("button", { name: /^Edit the term 1/ }).first().click() },
   { tool: "written-method", select: (page) => page.getByRole("button", { name: "Edit the answer", exact: true }).click() },
-  { tool: "sample-space" },
   { tool: "construction", select: (page) => page.getByRole("button", { name: /^Select point / }).first().click() },
 ];
 

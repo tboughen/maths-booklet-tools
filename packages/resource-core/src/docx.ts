@@ -5,7 +5,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, answerTexts, besideBottom, besideExtra, besideLayout, besidePlacement, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, letterColumns, letterOptionWidth, LETTERS, overflowMessage, paperSvg, partLabel, planColumn, renderResource, scoreBox, SPACE_WORKING, STAGE_BAND, stageLetters, tooWideMessage, workingLines, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, tableRows, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { fracPieces, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { fracPieces, ANSWER_SLOT_GAP, answerFrame, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, titleRuns, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -165,7 +165,11 @@ function fraction(f: { num: string; den: string }, o: RunStyle, display = false,
 }
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
-  parseRuns(source, base, maths)
+  wordRuns(parseRuns(source, base, maths), o, display);
+/** A heading or card title as Word runs, its typeset letters in the maths font (rule N16). */
+export const titleWordRuns = (source: string, o: RunStyle, maths: boolean) => wordRuns(titleRuns(source, maths), o, false);
+const wordRuns = (parsed: Run[], o: RunStyle, display: boolean) =>
+  parsed
     .map((r) => (r.frac ? fraction(r.frac, o, display, r.style === "bold") : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic", maths: r.style === "maths", sup: r.sup })))
     .join("");
 /**
@@ -747,8 +751,8 @@ export function cardCell(c: Card, number: number | string | null, w: number, ctx
   const st = ctx.st,
     pad = S.cardPad;
   const inner = w - pad * 2;
-  const titleRuns = runs(c.title, { bold: true, color: st.navy, sizeMm: S.cardTitle });
-  const titleCell = (width: number) => cell(para(titleRuns, { line: lineBox(S.cardTitle) }), { width, vAlign: "center" });
+  const titleXml = titleWordRuns(c.title, { bold: true, color: st.navy, sizeMm: S.cardTitle }, !!ctx.maths);
+  const titleCell = (width: number) => cell(para(titleXml, { line: lineBox(S.cardTitle) }), { width, vAlign: "center" });
   const titleRow =
     number === null
       ? table([inner], [row([titleCell(inner)], { mm: S.tile, exact: true })])
@@ -854,7 +858,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, 
   const rightW = HEADER_RIGHT;
   // Header: title, objective and instruction left; group, name line and side right; a hairline below.
   const left = [
-    para(runs(doc.title, { bold: true, color: st.navy, sizeMm: S.title }), { line: 8.47 }),
+    para(titleWordRuns(doc.title, { bold: true, color: st.navy, sizeMm: S.title }, !!ctx.maths), { line: 8.47 }),
     para(runs([doc.code, doc.objective].filter(Boolean).join(" • "), { color: st.muted, sizeMm: S.objective }), { line: 4.8 }),
     para(sideData.instruction ? runs(sideData.instruction, { color: st.ink, sizeMm: S.objective }) : "", { line: 4.8 }),
   ].join("");

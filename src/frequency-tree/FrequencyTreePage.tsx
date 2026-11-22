@@ -7,13 +7,12 @@ import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { frequencyTreeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { EditorFoot } from "../site/EditorFoot";
-import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -38,10 +37,9 @@ import {
   create,
   depthOf,
   fillCounts,
+  FONT,
   forView,
   groupName,
-  hasHidden,
-  hideCounts,
   isLeaf,
   layout,
   MAX_CHILDREN,
@@ -55,7 +53,6 @@ import {
   removeLevel,
   renderSvg,
   setCategory,
-  showAll,
   splitNode,
   validate,
   type Envelope,
@@ -66,6 +63,14 @@ import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } fro
 import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip, StateTag, TypingField } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Calculator, Eye, GitFork, MessageCircleQuestion, Ruler } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:frequency-tree:v1");
 type Doc = Envelope["document"];
@@ -81,72 +86,27 @@ function initial() {
   return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
-/** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({
-  id,
-  label,
-  value,
-  onCommit,
-  disabled,
-  maxLength,
-  className,
-  inputMode,
-}: {
-  id?: string;
-  label: string;
-  value: string;
-  onCommit: (value: string) => void;
-  disabled?: boolean;
-  maxLength: number;
-  className?: string;
-  inputMode?: "numeric" | "text";
-}) {
-  const [draft, setDraft] = useState(value);
-  const [editing, setEditing] = useState(false);
-  useEffect(() => {
-    if (!editing) setDraft(value);
-  }, [value, editing]);
-  const commit = () => {
-    setEditing(false);
-    if (draft !== value) onCommit(draft);
-  };
-  return (
-    <input
-      id={id}
-      className={className}
-      aria-label={label}
-      value={draft}
-      disabled={disabled}
-      maxLength={maxLength}
-      inputMode={inputMode}
-      onChange={(ev) => {
-        setEditing(true);
-        setDraft(ev.target.value);
-      }}
-      onBlur={commit}
-      onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
-        if (ev.key === "Enter") {
-          ev.preventDefault();
-          commit();
-        }
-        if (ev.key === "Escape") {
-          ev.preventDefault();
-          ev.stopPropagation();
-          setDraft(value);
-          setEditing(false);
-        }
-      }}
-    />
-  );
-}
+/** The settings fields and the options box share one typing field. */
+const DraftField = TypingField;
 
-function HideBox({ label, value, disabled, onChange }: { label: string; value: Label; disabled: boolean; onChange: (hidden: boolean) => void }) {
-  return (
-    <label className="pt-hide" title="Hidden values are saved answers; pupils see an empty oval or line.">
-      <input type="checkbox" aria-label={label} disabled={disabled} checked={value.show === "hidden"} onChange={(ev) => onChange(ev.target.checked)} />
-      Hide
-    </label>
-  );
+type Kind = "total" | "category" | "count" | "answer";
+/** The kinds of label, in the order the What pupils see card lists them. */
+const KINDS: { kind: Kind; name: string }[] = [
+  { kind: "total", name: "Total" },
+  { kind: "category", name: "Group names" },
+  { kind: "count", name: "Counts" },
+  { kind: "answer", name: "Question answers" },
+];
+function labelsOf(d: Doc, kind: Kind): Label[] {
+  if (kind === "total") return [d.total];
+  if (kind === "answer") return d.questions.map((q) => q.answer);
+  return d.nodes.map((b) => b[kind]);
+}
+const allSpaces = (d: Doc) => KINDS.reduce((n, k) => n + labelsOf(d, k.kind).filter((l) => l.show === "hidden").length, 0);
+function labelAt(d: Doc, kind: Kind, id: string): Label | undefined {
+  if (kind === "total") return d.total;
+  if (kind === "answer") return d.questions.find((q) => q.id === id)?.answer;
+  return d.nodes.find((b) => b.id === id)?.[kind];
 }
 
 export default function FrequencyTreePage({ active = true }: { active?: boolean }) {
@@ -161,6 +121,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
@@ -172,7 +133,12 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   const answerSvg = renderSvg(forView(e, "answer"));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const depth = maxDepth(d);
-  const selectedNode = d.nodes.find((b) => b.id === selected?.split(":")[1]) ?? null;
+  const [selKind, selId] = (selected?.split(":") ?? []) as [Kind | undefined, string | undefined];
+  const selectedLabel = selKind && selId ? labelAt(d, selKind, selId) : undefined;
+  const selectedNode = selKind === "category" || selKind === "count" ? (d.nodes.find((b) => b.id === selId) ?? null) : null;
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
 
   function commit(next: Envelope | null, failure = "That change is not possible for this tree.", label?: string) {
     if (recovery !== null) return;
@@ -199,6 +165,38 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
       const b = n.nodes.find((x) => x.id === id);
       if (b) Object.assign(b[key], change);
     });
+  function describe(kind: Kind, id: string) {
+    if (kind === "total") return "total";
+    if (kind === "answer") return `answer to question (${String.fromCharCode(97 + d.questions.findIndex((q) => q.id === id))})`;
+    return `${kind === "count" ? "count" : "group name"} for ${groupName(d, id)}`;
+  }
+  /** What pupils see of one label: one undo step, named after its value ("pupil space on 12"). */
+  function setVisibility(kind: Kind, id: string, v: Visibility) {
+    const l = labelAt(d, kind, id);
+    if (blocked || !l || l.show === v) return;
+    const n = structuredClone(e);
+    labelAt(n.document, kind, id)!.show = v;
+    commit(n, undefined, visibilityStep(v, l.text.trim() || describe(kind, id)));
+  }
+  /** Every label of one kind at once: one undo step. */
+  function setKind(kind: Kind, v: Visibility) {
+    if (blocked) return;
+    const n = structuredClone(e);
+    for (const l of labelsOf(n.document, kind)) l.show = v;
+    commit(n, undefined, visibilityStep(v, `all ${KINDS.find((k) => k.kind === kind)!.name.toLowerCase()}`));
+  }
+  const spaceCount = allSpaces(d);
+  function clearSpaces() {
+    const n = structuredClone(e);
+    for (const kind of KINDS) for (const l of labelsOf(n.document, kind.kind)) if (l.show === "hidden") l.show = "show";
+    commit(n, undefined, `clear ${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`);
+  }
+  function setText(kind: Kind, id: string, v: string) {
+    if (kind === "category") commit(setCategory(e, id, v));
+    else if (kind === "total") patch((n) => void (n.total.text = v));
+    else if (kind === "answer") patch((n) => void (n.questions.find((q) => q.id === id)!.answer.text = v));
+    else setNodeLabel(id, "count", { text: v });
+  }
   function undo() {
     if (blocked) return;
     documentHistory.undo();
@@ -209,13 +207,6 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   }
   function replace(next: Envelope, title: string, explanation = "This replaces the current tree. You can undo the replacement.") {
     if (!blocked) setPending({ e: next, title, explanation });
-  }
-  function focusField(id: string) {
-    requestAnimationFrame(() => {
-      const field = document.getElementById(id) as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
-    });
   }
 
   // Autosave with protection for another tab's newer draft.
@@ -288,6 +279,13 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   const name = (id: string) => groupName(d, id);
   const fieldId = (key: string, id: string) => `ft-${key}-${id}`;
   const letter = (i: number) => String.fromCharCode(97 + i);
+  const coarse = useCoarsePointer();
+  const reach = useTargetReach(g.targets, (96 / 25.4) * fitted.scale, coarse);
+  // The box closes when its label goes (a smaller tree, a new tree, or Reset).
+  const selectedDrawn = !!selected && g.targets.some((t) => `${t.kind}:${t.id}` === selected);
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), undefined, WORKED_STEP) });
@@ -374,53 +372,92 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.targets.map((t) => {
-                    const id = t.kind === "total" ? "ft-total" : fieldId(t.kind, t.id);
-                    const b = d.nodes.find((x) => x.id === t.id);
-                    const qi = d.questions.findIndex((q) => q.id === t.id);
-                    const l = t.kind === "total" ? d.total : t.kind === "answer" ? d.questions[qi]?.answer : t.kind === "count" ? b?.count : b?.category;
-                    const hiddenHere = view === "pupil" && l?.show === "hidden";
-                    const what =
-                      t.kind === "total"
-                        ? "total"
-                        : t.kind === "answer"
-                          ? `answer to question (${letter(qi)})`
-                          : `${t.kind === "count" ? "count" : "group name"} for ${b ? name(b.id) : ""}`;
+                  {g.targets.map((t, i) => {
+                    const key = `${t.kind}:${t.id}`;
+                    const l = labelAt(d, t.kind as Kind, t.id);
+                    const state = l?.show ?? "show";
                     return (
-                      <button
-                        key={id}
-                        type="button"
-                        className={`pt-hit ${selected === `${t.kind}:${t.id}` ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit ${what}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                      <LabelHit
+                        key={key}
+                        what={describe(t.kind as Kind, t.id)}
+                        state={state}
+                        text={l?.text ?? ""}
+                        selected={selected === key}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="ft-quick-tip"
+                        tipShown={tip?.key === key}
+                        tipHandlers={quick.bind(key, state)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[i]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
-                        onClick={() => {
-                          setSelected(`${t.kind}:${t.id}`);
-                          focusField(id);
+                        onOpen={(anchor) => {
+                          setSelected(key);
+                          setBoxAnchor(anchor);
                         }}
+                        onVisibility={(v) => l && setVisibility(t.kind as Kind, t.id, v)}
                       />
                     );
                   })}
+                  <QuickTip id="ft-quick-tip" tip={tip && !(boxAnchor && selected === tip.key) ? tip : null} />
                 </div>
-                <StructureStepper
-                 
-                  vertical
-                  name="Levels"
-                  caption=""
-                  add={{
-                    label: "Split every first-level group into a second level",
-                    title: "Add level",
-                    disabled: blocked || depth >= MAX_DEPTH,
-                    onClick: () => commit(addLevel(e)),
-                  }}
-                  remove={{
-                    label: "Remove the second level",
-                    title: "Remove level",
-                    disabled: blocked || depth <= 1,
-                    onClick: () => commit(removeLevel(e)),
-                  }}
-                />
+                {boxAnchor && selKind && selId && selectedLabel && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={selected ?? ""}
+                    focusField={!coarse}
+                    title={describe(selKind, selId).replace(/^./, (c) => c.toUpperCase())}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedLabel.show} disabled={blocked} onChange={(v) => setVisibility(selKind, selId, v)} />
+                    <p>
+                      {selectedLabel.show === "hidden" && !selectedLabel.text.trim()
+                        ? "No saved answer, so the answers copy will be empty too."
+                        : "Type to change the value. Double-click the label for a pupil space."}
+                    </p>
+                    <label>
+                      Text
+                      <DraftField
+                        key={selected}
+                        onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                        label={`Text of ${describe(selKind, selId)}`}
+                        value={selectedLabel.text}
+                        maxLength={selKind === "category" ? 30 : selKind === "answer" ? 24 : 12}
+                        inputMode={selKind === "total" || selKind === "count" ? "numeric" : "text"}
+                        disabled={blocked}
+                        onCommit={(v) => setText(selKind, selId, v)}
+                      />
+                    </label>
+                    {selectedNode && (
+                      <div className="md-options-actions">
+                        {isLeaf(d, selectedNode.id) ? (
+                          <button type="button" disabled={blocked || depthOf(d, selectedNode.id) >= MAX_DEPTH} onClick={() => commit(splitNode(e, selectedNode.id))}>
+                            Split this group
+                          </button>
+                        ) : (
+                          <button type="button" disabled={blocked} onClick={() => commit(mergeNode(e, selectedNode.id))}>
+                            End the path here
+                          </button>
+                        )}
+                        <button type="button" disabled={blocked || childrenOf(d, selectedNode.parent).length >= MAX_CHILDREN} onClick={() => commit(addSibling(e, selectedNode.parent))}>
+                          Add a branch beside it
+                        </button>
+                        <button
+                          type="button"
+                          disabled={blocked || childrenOf(d, selectedNode.parent).length <= 2}
+                          onClick={() => {
+                            commit(removeLastSibling(e, selectedNode.parent));
+                            setBoxAnchor(null);
+                          }}
+                        >
+                          Remove the last branch here
+                        </button>
+                      </div>
+                    )}
+                  </OptionsBox>
+                )}
               </div>
             </div>
             <EditorFoot
@@ -431,8 +468,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               status={message}
               hint={
                 <EditorHint tool="frequency-tree">
-                  Click an oval or a name on the tree to edit it. Enter applies;
-                  Escape restores.
+                  Click a label to type a new value. Double-click it for a pupil space.
                 </EditorHint>
               }
             >
@@ -450,49 +486,42 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Frequency tree settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Frequency tree settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            {selectedNode && (
-              <section className="panel-card pt-panel" aria-label="Selected group">
-                <h2>Group: {name(selectedNode.id)}</h2>
-                <div className="pt-row">
-                  {isLeaf(d, selectedNode.id) ? (
-                    <button type="button" disabled={blocked || depthOf(d, selectedNode.id) >= MAX_DEPTH} onClick={() => commit(splitNode(e, selectedNode.id))}>
-                      Split this group
-                    </button>
-                  ) : (
-                    <button type="button" disabled={blocked} onClick={() => commit(mergeNode(e, selectedNode.id))}>
-                      End the path here
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    disabled={blocked || childrenOf(d, selectedNode.parent).length >= MAX_CHILDREN}
-                    onClick={() => commit(addSibling(e, selectedNode.parent))}
-                  >
-                    Add a branch beside it
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || childrenOf(d, selectedNode.parent).length <= 2}
-                    onClick={() => {
-                      commit(removeLastSibling(e, selectedNode.parent));
-                      setSelected(null);
-                    }}
-                  >
-                    Remove the last branch here
-                  </button>
-                </div>
-              </section>
-            )}
-            <section className="panel-card pt-panel">
-              <h2>Total and groups</h2>
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="frequency-tree"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every label shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: an empty oval or line for pupils to fill in. Leave out: nothing prints, in either copy.</p>
+                  <p className="pt-note">Each switch sets every label of that kind.</p>
+                </>
+              }
+            >
+              {KINDS.map(({ kind, name: kindName }) => {
+                const value = commonVisibility(labelsOf(d, kind).map((l) => l.show));
+                return value === null ? null : <VisibilitySwitch key={kind} name={kindName} caption={kindName} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} />;
+              })}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a label on the tree for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="frequency-tree"
+              title="Total and groups"
+              icon={GitFork}
+              defaultOpen
+              summary={`${depth} level${depth === 1 ? "" : "s"} · ${d.nodes.length} groups`}
+              help={<p className="pt-note">An empty count is a blank oval with no answer. A group on the tree has its own options: split it, end the path or add a branch.</p>}
+            >
               <div className="pt-branches">
                 <div className={`pt-branch ${selected?.startsWith("total") ? "pt-current" : ""}`}>
                   <span className="pt-note">Total</span>
-                  <span>
+                  <span className="pt-field-wrap">
                     <DraftField
                       id="ft-total"
                       className={selected === "total:total" ? "pt-field-selected" : ""}
@@ -503,7 +532,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                       disabled={blocked}
                       onCommit={(v) => patch((n) => void (n.total.text = v))}
                     />
-                    <HideBox label="Hide the total for pupils" value={d.total} disabled={blocked} onChange={(h) => patch((n) => void (n.total.show = h ? "hidden" : "show"))} />
+                    <StateTag value={d.total} />
                   </span>
                   <span />
                 </div>
@@ -516,7 +545,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                       style={{ paddingLeft: k * 14 }}
                       onFocus={() => setSelected((s) => (s?.endsWith(":" + b.id) ? s : `category:${b.id}`))}
                     >
-                      <span>
+                      <span className="pt-field-wrap">
                         <DraftField
                           id={fieldId("category", b.id)}
                           className={selected === `category:${b.id}` ? "pt-field-selected" : ""}
@@ -526,9 +555,9 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                           disabled={blocked}
                           onCommit={(v) => commit(setCategory(e, b.id, v))}
                         />
-                        <HideBox label={`Hide group name ${name(b.id)} for pupils`} value={b.category} disabled={blocked} onChange={(h) => setNodeLabel(b.id, "category", { show: h ? "hidden" : "show" })} />
+                        <StateTag value={b.category} />
                       </span>
-                      <span>
+                      <span className="pt-field-wrap">
                         <DraftField
                           id={fieldId("count", b.id)}
                           className={selected === `count:${b.id}` ? "pt-field-selected" : ""}
@@ -539,41 +568,33 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                           disabled={blocked}
                           onCommit={(v) => setNodeLabel(b.id, "count", { text: v })}
                         />
-                        <HideBox label={`Hide count for ${name(b.id)}`} value={b.count} disabled={blocked} onChange={(h) => setNodeLabel(b.id, "count", { show: h ? "hidden" : "show" })} />
+                        <StateTag value={b.count} />
                       </span>
-                      <span className="pt-note">{isLeaf(d, b.id) ? "end" : ""}</span>
+                      <span />
                     </div>
                   );
                 })}
               </div>
-              <p className="pt-note">
-                Hide keeps a count as a saved answer and leaves its oval empty for pupils. An empty count is a blank oval with no
-                answer. Click an oval or a name on the tree to select it and change the tree's shape.
-              </p>
+              <div className="pt-add-row">
+                <button type="button" className="pt-link" aria-disabled={blocked || depth >= MAX_DEPTH || undefined} title="Splits every first-level group into a second level" onClick={() => !blocked && depth < MAX_DEPTH && commit(addLevel(e))}>
+                  + Level
+                </button>
+                <button type="button" className="pt-link" aria-disabled={blocked || depth <= 1 || undefined} onClick={() => !blocked && depth > 1 && commit(removeLevel(e))}>
+                  Remove the second level
+                </button>
+              </div>
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.linkLabels} onChange={(ev) => patch((n) => void (n.linkLabels = ev.target.checked))} />
                 Same group names across each level
               </label>
-              <div className="pt-row">
-                <button type="button" disabled={blocked} onClick={() => commit(hideCounts(e))}>
-                  Hide all counts except the total
-                </button>
-                <button type="button" disabled={blocked} onClick={() => commit(hideCounts(e, false))}>
-                  Hide every count
-                </button>
-                <button type="button" disabled={blocked || !hasHidden(e)} onClick={() => commit(showAll(e))}>
-                  Show all
-                </button>
-              </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Work out counts</h2>
-              <p className="pt-note">
-                Fills empty counts that follow from the others: a group is the sum of its branches, and one empty branch is its group
-                minus the rest. Nothing is filled until you press the button, and it can be undone. Filled counts keep their Hide setting.
-              </p>
+            </FoldCard>
+            <FoldCard
+              tool="frequency-tree"
+              title="Work out counts"
+              icon={Calculator}
+              summary="Fills empty counts that follow from the others"
+              help={<p className="pt-note">A group is the sum of its branches, and one empty branch is its group minus the rest. Nothing is filled until you press the button, and it can be undone.</p>}
+            >
               <div className="pt-row">
                 <button
                   type="button"
@@ -587,13 +608,14 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                   Work out missing counts
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Questions</h2>
-              <p className="pt-note">
-                Questions print below the tree with an answer line. To calculate a probability, tick the groups for the top and, if it
-                is not the total, the bottom of the fraction.
-              </p>
+            </FoldCard>
+            <FoldCard
+              tool="frequency-tree"
+              title="Questions"
+              icon={MessageCircleQuestion}
+              summary={d.questions.length ? `${d.questions.length} question${d.questions.length === 1 ? "" : "s"} below the tree` : "None yet"}
+              help={<p className="pt-note">Questions print below the tree with an answer line. To calculate a probability, tick the groups for the top and, if it is not the total, the bottom of the fraction.</p>}
+            >
               {d.questions.map((q, qi) => {
                 const value = questionValue(d, q);
                 return (
@@ -602,9 +624,9 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                       Question ({letter(qi)})
                       <DraftField label={`Question ${qi + 1} text`} value={q.text} maxLength={60} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].text = v))} />
                     </label>
-                    <span>
+                    <span className="pt-field-wrap">
                       <DraftField id={fieldId("answer", q.id)} label={`Answer to question ${qi + 1}`} value={q.answer.text} maxLength={24} disabled={blocked} onCommit={(v) => patch((n) => void (n.questions[qi].answer.text = v))} />
-                      <HideBox label={`Hide answer to question ${qi + 1}`} value={q.answer} disabled={blocked} onChange={(h) => patch((n) => void (n.questions[qi].answer.show = h ? "hidden" : "show"))} />
+                      <StateTag value={q.answer} />
                     </span>
                     <details>
                       <summary>Groups for calculating</summary>
@@ -646,9 +668,14 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                   Add question
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="frequency-tree"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.labelPlace === "branch" ? "Names on the branches" : "Names beside the ovals"} · ${d.nodeShape === "oval" ? "ovals" : "boxes"} · ${d.branchMm} mm branches · ${d.gapMm} mm spacing`}
+              help={<p className="pt-note">Copy for Word carries the physical size shown under the tree; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>}
+            >
               <div className="pt-fields">
                 <label>
                   Group names
@@ -695,21 +722,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                   </select>
                 </label>
               </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click an oval or a name on the tree to edit it. Enter applies; Escape restores. A group can split into 2 or 3 branches,
-                  and paths can stop after the first level: select a group and choose Split this group or End the path here. Nothing is
-                  calculated or filled in for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the tree; preview zoom never changes it. Download PNG (600 ppi) if
-                  your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
