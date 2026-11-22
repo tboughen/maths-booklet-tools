@@ -204,16 +204,22 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
   ["/tools/factor-tree", "Trees and answer lines", ["What pupils see"], ["Complete the trees", "Layout"], 2],
   ["/tools/sample-space", "What pupils see", ["What pupils see"], ["Fill the cells", "Layout"], 2],
   ["/tools/two-way-table", "What pupils see", ["What pupils see"], ["Totals", "Layout"], 2],
+  ["/tools/probability-objects", "Objects", ["What pupils see"], ["Layout"], 2],
+  ["/tools/function-machine", "Machines", ["What pupils see"], ["Work the machines out", "Layout"], 2],
+  ["/tools/bubble-method", "Steps", ["What pupils see"], ["Layout"], 2],
+  ["/tools/written-method", "Method", ["What pupils see"], ["Work the method out", "Layout"], 3],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
+  // One pass per tool on the pattern: allow for the whole list.
+  test.setTimeout(120_000);
   await page.setViewportSize({ width: 1920, height: 1080 });
   for (const [path, selected, left, right] of TREES) {
     await page.goto(path);
@@ -237,9 +243,9 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset), path).toBe(true);
     if (!ONE_COLUMN.has(path)) expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
-    // Sample space and two-way tables keep every field in a folded group: open one to measure it.
+    // Some tools keep every field in a folded group: open one to measure it.
     if (path === "/tools/sample-space") await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
-    if (path === "/tools/two-way-table") await page.getByRole("button", { name: "Layout", exact: true }).click();
+    if (["/tools/two-way-table", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method"].includes(path)) await page.getByRole("button", { name: "Layout", exact: true }).click();
     const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     // Every card in the one column folds (22 Nov 2026), so its headings are the fold rows' 15 px.
@@ -254,6 +260,8 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
 });
 
 test("the tree tools keep one column in a smaller window, three on an upright monitor and finger-sized controls on a phone", async ({ page }) => {
+  // One pass per tool on the pattern: allow for the whole list.
+  test.setTimeout(120_000);
   for (const [path, , left, right, upright] of TREES) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
@@ -272,7 +280,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table"].includes(path) ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
@@ -871,11 +879,7 @@ type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
 const SAVED = "Print every saved answer on the pupil copy";
 const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
-  ["Spinners, dice and bags", "/tools/probability-objects", "Selected label", [], ["Objects"], { under: ["Layout"] }],
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
-  ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps"], { under: ["Layout"] }],
-  ["Function machines", "/tools/function-machine", "Selected item", ["Machines"], ["Work the machines out", "Layout"]],
-  ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
   ["Angle diagrams", "/tools/angles", "Selected angle", [], ["Figure"], PRINT],
   ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
   ["Geometry figures", "/tools/figures", "Selected object", [], ["Add to the figure"], PRINT],
@@ -931,37 +935,42 @@ for (const [tool, path, selected, left, right, { under = [], twoLines = [], long
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-test("Spinners, dice and bags: each object is a named group, and Layout stays in view however many there are", async ({ page }) => {
+test("Spinners, dice and bags: each object is a named group, and Layout stays reachable however many there are", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/probability-objects");
   const group = page.locator(".md-kit fieldset.md-kit-group");
   expect(await group.first().evaluate((el) => [getComputedStyle(el).display, getComputedStyle(el).rowGap])).toEqual(["grid", "8px"]);
-  // The list of objects is the right column on its own, so it can grow without pushing another card away.
+  // One column (22 Nov 2026): the list of objects grows and pushes Layout down; the column scrolls, with a fade.
   for (const name of ["Add a dice", "Add a bag", "Add a spinner"]) await page.getByRole("button", { name, exact: true }).click();
   await expect(group).toHaveCount(4);
   const layout = await chartCard(page, "Layout"), objects = await chartCard(page, "Objects");
-  expect(layout.x).toBeLessThan(objects.x);
-  expect(layout.y + layout.height).toBeLessThan(1080);
+  expect(Math.abs(layout.x - objects.x)).toBeLessThanOrEqual(1);
+  expect(layout.y).toBeGreaterThan(objects.y + objects.height);
+  const stack = page.locator(".inspector-stack.md-kit");
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
 });
 
-test("Bubble method: a tick sits beside its words, and Layout stays in view however many steps there are", async ({ page }) => {
+test("Bubble method: a tick sits beside its words, and Layout stays reachable however many steps there are", async ({ page }) => {
   // The tool once shared a class prefix with Bar modelling, whose label rule stacked every tick over its words.
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/bubble-method");
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
   const label = page.locator(".md-kit .panel-card label").filter({ hasText: "This working has a deliberate error" });
   expect(await label.evaluate((el) => getComputedStyle(el).flexDirection)).toBe("row");
   const tick = (await label.locator("input").boundingBox())!, whole = (await label.boundingBox())!;
   expect(Math.abs(tick.y + tick.height / 2 - (whole.y + whole.height / 2))).toBeLessThanOrEqual(1);
-  // The list of steps is the right column on its own, so it can grow without pushing another card away.
+  // One column (22 Nov 2026): the list of steps grows and pushes Layout down; the column scrolls, with a fade.
   const add = page.getByRole("button", { name: "Add a step", exact: true });
   while (await add.isEnabled()) await add.click();
   await expect(page.locator(".md-kit fieldset.md-kit-group")).toHaveCount(8);
   const layout = await chartCard(page, "Layout"), steps = await chartCard(page, "Steps");
-  expect(layout.x).toBeLessThan(steps.x);
-  expect(layout.y + layout.height).toBeLessThan(1080);
+  expect(Math.abs(layout.x - steps.x)).toBeLessThanOrEqual(1);
+  expect(layout.y).toBeGreaterThan(steps.y + steps.height);
+  const stack = page.locator(".inspector-stack.md-kit");
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
 });
 
-test("Algebra tiles, Function machines and Written methods still fit one screen when they are full", async ({ page }) => {
+test("Algebra tiles, Function machines and Written methods stay usable when they are full", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   const fits = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight);
   const fill = async (name: string) => {
@@ -974,27 +983,29 @@ test("Algebra tiles, Function machines and Written methods still fit one screen 
   await page.locator(".pt-hit").first().click();
   expect(await fits()).toBe(true);
 
+  // Function machines and Written methods are one folding column (22 Nov 2026): a full list may scroll the column, with a fade.
+  const fitsOrFades = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset);
   await page.goto("/tools/function-machine");
   await fill("Add a different machine");
   await fill("Add a box");
-  await page.locator(".pt-hit").first().click();
   expect(await page.locator(".md-kit fieldset.md-kit-group").count()).toBe(3);
-  expect(await fits()).toBe(true);
+  expect(await fitsOrFades()).toBe(true);
 
   // Twelve digits, the most a row holds, give the longest list of small digits: one each and one to carry into.
+  // They sit in the row's options box, which stays inside the window.
   await page.goto("/tools/written-method");
   await page.locator(".pt-hit").first().click();
-  const digits = page.locator("#wm-selected-value");
-  await digits.fill("123456789.123");
-  await digits.press("Enter");
-  await page.locator(".pt-hit").first().click();
-  const small = page.locator(".md-kit .wm-mark input:not([type=checkbox])");
+  await page.keyboard.type("123456789.123");
+  await page.keyboard.press("Enter");
+  const box = page.locator(".md-options-box");
+  const small = box.locator(".wm-mark input:not([type=checkbox])");
   await expect(small).toHaveCount(13);
-  expect(await fits()).toBe(true);
-  // A small digit keeps its narrow field, and a field on its own row has the row to itself.
+  const shown = (await box.boundingBox())!;
+  expect(shown.y + shown.height).toBeLessThanOrEqual(1080);
+  // A small digit keeps its narrow field.
   expect((await small.first().boundingBox())!.width).toBeLessThan(60);
-  const card = (await page.locator('.md-kit .panel-card[aria-label="Selected row"]').boundingBox())!;
-  expect((await digits.boundingBox())!.width).toBeGreaterThan(card.width - 40);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
 
   // Lists side by side share the card evenly and never overlap, at the narrowest two-column window too.
   await page.setViewportSize({ width: 1800, height: 1000 });

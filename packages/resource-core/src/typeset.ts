@@ -47,6 +47,9 @@ export function typesetSymbols(s: string): string {
 }
 
 /** Italic markup for the maths letters in one stretch of plain text (no markup or fractions in it). */
+const UNIT_LETTERS = "(?:mm|cm|m|km|g|kg|mg|ml|cl|l|s|h)[²³]?";
+const COMPOUND_UNIT = new RegExp(`^${UNIT_LETTERS}(\\/${UNIT_LETTERS})?$`);
+
 function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
   const tokens = s.split(/(\s+)/);
   const words = tokens.map((t, i) => ({ t, i })).filter((w) => w.t && !/^\s+$/.test(w.t));
@@ -68,6 +71,11 @@ function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
       out[w.i] = `${lead}*${axis[1]}*-${axis[2]}${tail}`;
       return;
     }
+    // A unit stays upright: any rate (g/cm³, m/s), and a plain unit (g, cm³) after a number. An answer
+    // line's suffix that is only a unit is handled in typesetValue. Density pages printed g in the
+    // maths serif (22 Nov 2026).
+    const unit = core.match(COMPOUND_UNIT);
+    if (unit && (unit[1] || /^[−-]?[\d.,]+$/.test(prev))) return;
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
     if (/^[a-z]{2,3}$/.test(core) && byOperator && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
@@ -238,6 +246,8 @@ const HEADINGS = new Set(["title", "heading", "label", "word", "startBanner", "e
 function typesetValue(v: unknown, key: string, maths = true): unknown {
   if (typeof v === "string") {
     if (!maths) return FLOWING.has(key) ? keepTogether(v) : v;
+    // An answer line's unit suffix ("g", "cm³", "g/cm³") prints upright.
+    if (key === "suffix" && COMPOUND_UNIT.test(v.trim())) return typesetSymbols(v);
     return BODY.has(key) ? (FLOWING.has(key) ? keepTogether(typesetText(v)) : typesetText(v)) : HEADINGS.has(key) ? typesetText(v, false) : v;
   }
   if (Array.isArray(v)) return v.map((x) => typesetValue(x, key, maths));

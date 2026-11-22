@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { verifyCatalogue, questionIdentity } from "../bank/model";
 import { withPerformance } from "../bank/performance";
 import { importMappings, importPupils, paperMappings, parseDelimited, questionLabel, resultsCsv } from "./import";
-import { generateClass, preferredRange, prioritiesFor, accessibility } from "./select";
+import { generateClass, preferredRange, prioritiesFor, accessibility, ratePercentage, CEILING_TOLERANCE } from "./select";
 import { A4, BOTTOM, TOP, blockHeading, layoutPack } from "./layout";
 import { defaults, type AssessmentItem, type Pupil } from "./types";
 import { approvedPresets, assessmentPresets, fullHppPresets } from "./presets";
@@ -200,5 +200,44 @@ describe("deterministic class selection and print limits", () => {
     const long = { ...entry, references: Array.from({ length: 60 }, (_, i) => `Q${i + 1}(a)`), question: { ...entry.question, sourceErrata: [{ note: "Source note ".repeat(60) }] } };
     expect(blockHeading(long, 0, 0, false).length).toBeGreaterThan(10);
     expect(layoutPack([long], null).placements[0].headingHeight).toBeGreaterThan(layoutPack([entry], null).placements[0].headingHeight);
+  });
+});
+
+describe("follow-up difficulty anchored on the failed question", () => {
+  it("never gives a harder question than the one failed unless it warns", () => {
+    // A strong pupil who drops marks on the early, accessible questions only.
+    const early = mappings.filter(i => Number(i.label.match(/\d+/)?.[0]) <= 4);
+    const pupil: Pupil = { identifier: "S001", key: "S001", profile: { strength: "strong" }, scores: Object.fromEntries(mappings.map(i => [questionLabel(i.label), early.includes(i) ? 0 : i.marks])) };
+    const priorities = prioritiesFor(mappings, pupil, bank);
+    expect(priorities.some(p => p.ceiling !== undefined)).toBe(true);
+    const ceilings = new Map(priorities.map(p => [p.code, p.ceiling]));
+    const pack = generateClass(bank, mappings, [pupil], { ...defaults, strength: "strong" }).packs[0];
+    expect(pack.entries.length).toBeGreaterThan(0);
+    for (const entry of pack.entries) {
+      const rate = ratePercentage(entry.question, bank), anchor = Math.max(...entry.codes.map(c => ceilings.get(c) ?? -1));
+      if (rate === undefined || anchor < 0 || rate >= anchor - CEILING_TOLERANCE) continue;
+      expect(pack.warnings.some(w => w.startsWith(entry.question.source))).toBe(true);
+    }
+  });
+  it("never uses a harder question for a skill that has one at or below the failed level", () => {
+    // One pupil per Higher question, failing only that question: no pack may hold a question
+    // harder than the failed one for a skill whose bank has an at-level question.
+    const higher = paperMappings(bank, "1MA1_NOV_2020_3H");
+    for (const failed of higher.slice(0, 8)) {
+      const pupil: Pupil = { identifier: failed.label, key: failed.label, profile: {}, scores: Object.fromEntries(higher.map(i => [questionLabel(i.label), i === failed ? 0 : i.marks])) };
+      const pack = generateClass(bank, higher, [pupil], { ...defaults, tier: "H" }).packs[0];
+      const ceilings = new Map(prioritiesFor(higher, pupil, bank).filter(p => p.ceiling !== undefined).map(p => [p.code, p.ceiling!]));
+      for (const entry of pack.entries) for (const code of entry.codes) {
+        const ceiling = ceilings.get(code), rate = ratePercentage(entry.question, bank);
+        if (ceiling === undefined || rate === undefined || rate >= ceiling - CEILING_TOLERANCE) continue;
+        const alternative = bank.questions.some(q => q.tier === "H" && q.review === "reviewed" && !q.revisionUse && q.codes.includes(code) && (ratePercentage(q, bank) ?? -1) >= ceiling - CEILING_TOLERANCE && !higher.some(i => i.questionId === q.id || i.questionId === q.equivalentId) && layoutPack([{ question: q, codes: [code], references: [], reason: "" }], defaults.pageLimit).valid);
+        expect(alternative, `${failed.label} ${entry.question.id} ${code}`).toBe(false);
+      }
+    }
+  });
+  it("scores a question harder than the ceiling far below one at the failed level", () => {
+    const q = bank.questions.find(q => q.tier === "H")!;
+    const at = { ...q, performance: { kind: "measured" as const, percentage: 72 } }, harder = { ...q, performance: { kind: "measured" as const, percentage: 30 } };
+    expect(accessibility(at, bank, { ...defaults, strength: "strong" }, 0, 70)).toBeGreaterThan(10 * accessibility(harder, bank, { ...defaults, strength: "strong" }, 0, 70));
   });
 });

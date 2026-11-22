@@ -34,7 +34,6 @@ import {
   FILL_NAMES,
   FILLS,
   forView,
-  hasHidden,
   labels,
   layout,
   MAX_CAPTION,
@@ -67,6 +66,15 @@ import { LINK_PREFIX, parseProbabilityObjectsLink, probabilityObjectsLink } from
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { FONT } from "../../packages/function-machine-core/src/maths-text";
+import { Eye, Ruler, Shapes } from "lucide-react";
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-objects:v1");
 /** A label on the diagram: its object and its place on the object. */
 type Address = { object: string; slot: Slot };
@@ -112,6 +120,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -122,6 +131,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -159,11 +170,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -201,6 +214,7 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Address | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null),
     expected = useRef<string | null>(null);
@@ -221,6 +235,12 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
     selectedValue = undefined;
   }
   const slotIndex = (slot: string) => Number(slot.split(":")[1]);
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const reach = useTargetReach(g.hits, (96 / 25.4) * fitted.scale, coarse);
+  const spaceCount = d.objects.reduce((n, o) => n + labels(o).filter((v) => v.show === "hidden").length, 0);
 
   const lastError = useRef("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -278,14 +298,45 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
     const where = o?.type === "dice" && o.view === "cube" ? CUBE_FACES[i] : `${SLOT_NAMES[kind]} ${i + 1}`;
     return `${objectName(a.object)}, ${where}`;
   };
-  function choose(a: Address) {
+  function choose(a: Address, anchor: HTMLElement) {
     setSelected(a);
-    requestAnimationFrame(() => {
-      const field = document.getElementById("po-selected-value") as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  const valueAt = (a: Address) => {
+    const o = d.objects.find((x) => x.id === a.object);
+    try {
+      return o ? slotValue(o, a.slot) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  /** What pupils see of one label: one undo step. A blank label is already a space for pupils. */
+  function setVisibility(a: Address, v: Visibility) {
+    const l = valueAt(a);
+    if (blocked || !l || l.show === v) return;
+    if (v === "hidden" && !l.text) return setMessage("This label is a blank with no answer: pupils already see a space. Type the answer first.");
+    commit(() => setLabel(e, a.object, a.slot, { show: v }), visibilityStep(v, l.text || "blank label"));
+  }
+  /** Every label on one kind of object at once: one undo step. Blank labels stay blank spaces. */
+  function setKind(type: ProbabilityObject["type"], v: Visibility) {
+    commit(() => {
+      const n = structuredClone(e);
+      for (const o of n.document.objects) if (o.type === type) for (const l of labels(o)) l.show = v === "hidden" && !l.text ? "show" : v;
+      return n;
     });
   }
+  function clearSpaces() {
+    commit(() => {
+      const n = structuredClone(e);
+      for (const o of n.document.objects) for (const l of labels(o)) if (l.show === "hidden") l.show = "show";
+      return n;
+    }, "clear pupil spaces");
+  }
+  // The box closes when its label goes (a removed sector or object, a new diagram, or Reset).
+  const selectedDrawn = !!selectedValue;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   // Autosave with protection for another tab's newer draft.
   useEffect(() => {
@@ -526,83 +577,56 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
                   {g.hits.map((h, k) => {
                     const a = { object: h.objectId, slot: h.slot },
-                      o = d.objects.find((x) => x.id === h.objectId);
-                    let v: ReturnType<typeof slotValue> | null = null;
-                    try {
-                      v = o ? slotValue(o, h.slot) : null;
-                    } catch {
-                      v = null;
-                    }
-                    const hiddenHere = view === "pupil" && v?.show === "hidden";
+                      v = valueAt(a),
+                      key = `${h.objectId}:${h.slot}:${k}`;
+                    if (!v) return null;
                     return (
-                      <button
-                        key={`${h.objectId}-${h.slot}-${k}`}
-                        type="button"
-                        className={`pt-hit ${selected?.object === h.objectId && selected.slot === h.slot ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit the ${slotName(a)}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                      <LabelHit
+                        key={key}
+                        what={`the ${slotName(a)}`}
+                        state={v.show}
+                        text={v.text}
+                        selected={selected?.object === h.objectId && selected.slot === h.slot}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="po-quick-tip"
+                        tipShown={tip?.key === key}
+                        tipHandlers={quick.bind(key, v.show)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[k]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(h.x, g.width), top: px(h.y, g.height), width: px(h.width, g.width), height: px(h.height, g.height) }}
-                        onClick={() => choose(a)}
+                        onOpen={(anchor) => choose(a, anchor)}
+                        onVisibility={(nv) => setVisibility(a, nv)}
                       />
                     );
                   })}
+                  <QuickTip id="po-quick-tip" tip={tip && !(boxAnchor && selected && tip.key.startsWith(`${selected.object}:${selected.slot}:`)) ? tip : null} />
                 </div>
-              </div>
-            </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={<EditorHint tool="probability-objects">Click a sector, a dice face or a counter to edit its label. Enter applies; Escape restores.</EditorHint>}
-            ></EditorFoot>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-          </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Spinners, dice and bags settings">
-            <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected label">
-              <h2>{selected && selectedValue ? `Selected: ${slotName(selected)}` : "Selected label"}</h2>
-              {selected && selectedObject && selectedValue ? (
-                <>
-                  <div className="pt-fields">
-                    <label>
-                      Label
-                      <DraftField
-                        key={`${selected.object}-${selected.slot}`}
-                        id="po-selected-value"
-                        label="Selected label"
-                        value={selectedValue.text}
-                        maxLength={MAX_TEXT}
-                        disabled={blocked}
-                        onCommit={(v) => commit(() => setLabel(e, selected.object, selected.slot, { text: v }))}
-                      />
-                    </label>
-                  </div>
-                  <label className="pt-hide" title="Hidden labels are saved answers; pupils see a blank.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedValue.text}
-                      checked={selectedValue.show === "hidden"}
-                      onChange={(ev) => commit(() => setLabel(e, selected.object, selected.slot, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  {!selectedValue.text && <p className="pt-note">This label is blank with no answer. Enter the answer first to hide it.</p>}
+                {boxAnchor && selected && selectedObject && selectedValue && (
+                  <OptionsBox
+                    anchor={boxAnchor}
+                    anchorKey={`${selected.object}:${selected.slot}`}
+                    focusField={!coarse}
+                    title={`The ${slotName(selected)}`}
+                    onClose={() => setBoxAnchor(null)}
+                  >
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedValue.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        Label
+                        <DraftField
+                          key={`${selected.object}-${selected.slot}`}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Text of the ${slotName(selected)}`}
+                          value={selectedValue.text}
+                          maxLength={MAX_TEXT}
+                          disabled={blocked}
+                          onCommit={(v) => commit(() => setLabel(e, selected.object, selected.slot, { text: v }))}
+                        />
+                      </label>
+                    </div>
                   {selectedSector && selectedObject.type === "spinner" && (
                     <>
                       <div className="pt-fields">
@@ -634,7 +658,7 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                       <p className="pt-note">
                         Leave the angle empty to share what is left equally (now {Math.round(sectorAngles(selectedObject)[slotIndex(selected.slot)] * 100) / 100}°).
                       </p>
-                      <div className="pt-row">
+                      <div className="md-options-actions">
                         <button type="button" disabled={blocked || selectedObject.sectors.length >= MAX_SECTORS} onClick={() => commit(() => addSector(e, selectedObject.id, slotIndex(selected.slot)), "add sector")}>
                           Add a sector after it
                         </button>
@@ -658,7 +682,7 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                         )}
                         {numberField(selectedObject, "Counters", selectedGroup.count, 1, MAX_COUNTERS, (x, v) => void ((x as typeof selectedObject).groups[slotIndex(selected.slot)].count = Math.round(v)), selected.slot)}
                       </div>
-                      <div className="pt-row">
+                      <div className="md-options-actions">
                         <button
                           type="button"
                           disabled={blocked || selectedObject.groups.length <= 1}
@@ -671,31 +695,65 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                       </div>
                     </>
                   )}
-                  <p className="pt-note">Write colours as words or letters (Red, R) and give them different fills, so they read in black and white.</p>
-                </>
-              ) : (
-                <p className="pt-note">Click a sector, a dice face or a counter to choose its label.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    commit(() => {
-                      const n = structuredClone(e);
-                      for (const o of n.document.objects) for (const v of labels(o)) v.show = "show";
-                      return n;
-                    }, "show all")
-                  }
-                >
-                  Show all
-                </button>
+                    {!selectedValue.text && <p className="pt-note">This label is a blank with no answer: pupils already see a space.</p>}
+                  </OptionsBox>
+                )}
               </div>
-            </section>
             </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Objects</h2>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={<EditorHint tool="probability-objects">Click a sector, face or counter to type its label. Double-click it for a pupil space.</EditorHint>}
+            ></EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
+          </Panel>
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Spinners, dice and bags settings">
+            <ReturnToDiagram />
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="probability-objects"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Every label shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: a blank for pupils to fill in; the answers copy shows the label. Leave out: nothing prints, not even a blank, in either copy.</p>
+                  <p className="pt-note">An empty label is a blank with no answer, and is always a space. Write colours as words or letters (Red, R) and give them different fills, so they read in black and white.</p>
+                </>
+              }
+            >
+              {(["spinner", "dice", "bag"] as const).map((type) => {
+                const shows = d.objects.filter((o) => o.type === type).flatMap((o) => labels(o).map((v) => v.show));
+                const value = commonVisibility(shows);
+                const name = { spinner: "Spinner sectors", dice: "Dice faces", bag: "Counters" }[type];
+                return value ? <VisibilitySwitch key={type} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(type, v)} /> : null;
+              })}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a sector, face or counter for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="probability-objects"
+              title="Objects"
+              icon={Shapes}
+              defaultOpen
+              summary={d.objects.map((o) => objectName(o.id)).join(", ")}
+            >
               {d.objects.map((o, i) => (
                 <fieldset key={o.id} className="md-kit-group">
                   <legend>{objectName(o.id).replace(/^./, (c) => c.toUpperCase())}</legend>
@@ -881,11 +939,22 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                   </button>
                 ))}
               </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="probability-objects"
+              title="Layout"
+              icon={Ruler}
+              summary={d.lines === "bold" ? "Bold lines" : "Normal lines"}
+              help={
+                <>
+                  <p className="pt-note">
+                    Up to {MAX_OBJECTS} objects side by side: spinners with {MIN_SECTORS} to {MAX_SECTORS} sectors, dice and bags of up to {MAX_COUNTERS} counters. An
+                    empty label is a blank for pupils; a pupil space is a saved answer that only the answers copy prints. Nothing is ever worked out for you.
+                  </p>
+                  <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Lines
@@ -909,17 +978,7 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
                   </select>
                 </label>
               </div>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Up to {MAX_OBJECTS} objects side by side: spinners with {MIN_SECTORS} to {MAX_SECTORS} sectors, dice and bags of up to {MAX_COUNTERS} counters. An
-                  empty label is a blank for pupils; a hidden label is a saved answer that only the answers copy prints. Nothing is ever worked out for you.
-                </p>
-                <p className="pt-note">Copy for Word carries the physical size shown under the diagram; preview zoom never changes it. Download PNG (600 ppi) if your browser blocks copying.</p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -972,6 +1031,7 @@ export default function ProbabilityObjectsPage({ active = true }: { active?: boo
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >
