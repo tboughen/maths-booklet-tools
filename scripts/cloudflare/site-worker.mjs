@@ -1,7 +1,7 @@
 // MathsDock website Worker.
 //
 // Static assets are served directly by Workers Static Assets. Only
-// /bank/assets/* reaches this script (see run_worker_first in wrangler.jsonc).
+// /bank/assets/* and /api/report reach this script (see run_worker_first in wrangler.jsonc).
 // Question-bank PDFs and PNGs, and schemes of work (JSON), are read from the private R2 bucket through the
 // BANK binding, so they sit behind the same Cloudflare Access rule as the rest
 // of /bank instead of on a public R2 custom domain.
@@ -41,24 +41,25 @@ async function signingKeys(team, fetcher, now) {
   return imported;
 }
 
-// Returns true only for a current Access token issued by this team for this application.
+// Returns the token's claims only for a current Access token issued by this team for this application, otherwise null.
 export async function verifyAccessToken(token, settings, { fetcher = fetch, now = Date.now() } = {}) {
-  if (!token || !settings) return false;
+  if (!token || !settings) return null;
   const parts = token.split('.');
-  if (parts.length !== 3) return false;
+  if (parts.length !== 3) return null;
   try {
     const header = decodeJson(parts[0]), claims = decodeJson(parts[1]);
-    if (header.alg !== 'RS256' || !header.kid) return false;
+    if (header.alg !== 'RS256' || !header.kid) return null;
     let key = (await signingKeys(settings.team, fetcher, now)).get(header.kid);
     if (!key) { certCache.expires = 0; key = (await signingKeys(settings.team, fetcher, now)).get(header.kid); }
-    if (!key) return false;
+    if (!key) return null;
     const signed = new TextEncoder().encode(`${parts[0]}.${parts[1]}`);
-    if (!await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, base64url(parts[2]), signed)) return false;
+    if (!await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, base64url(parts[2]), signed)) return null;
     const seconds = now / 1000, audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-    return claims.iss === settings.team && audiences.includes(settings.aud)
+    const valid = claims.iss === settings.team && audiences.includes(settings.aud)
       && typeof claims.exp === 'number' && claims.exp > seconds
       && (claims.nbf === undefined || claims.nbf <= seconds + 60);
-  } catch { return false; }
+    return valid ? claims : null;
+  } catch { return null; }
 }
 
 function objectHeaders(object, extension) {
@@ -105,11 +106,44 @@ export async function serveBankAsset(request, env, options = {}) {
   return new Response(object.body, { status: 200, headers });
 }
 
+// Problem reports from the Question bank become issues in the private bank repository.
+export const reportRepo = 'tboughen/mathsdock-bank';
+const reportLimits = { message: 2000, field: 200 };
+const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+const field = value => typeof value === 'string' ? value.trim().slice(0, reportLimits.field) : '';
+
+export async function submitReport(request, env, { fetcher = fetch, ...options } = {}) {
+  if (request.method !== 'POST') return json(405, { error: 'Method not allowed' });
+  const settings = accessSettings(env);
+  if (!settings) return json(503, { error: 'Staff sign-in is not configured.' });
+  const claims = await verifyAccessToken(request.headers.get('Cf-Access-Jwt-Assertion'), settings, { fetcher, ...options });
+  if (!claims) return json(403, { error: 'Sign in again to send a report.' });
+  if (!env.REPORT_GITHUB_TOKEN) return json(503, { error: 'Problem reports are not set up yet.' });
+  let body;
+  try { body = await request.json(); } catch { return json(400, { error: 'The report could not be read.' }); }
+  const message = typeof body?.message === 'string' ? body.message.trim() : '';
+  if (!message) return json(400, { error: 'Describe the problem before sending.' });
+  if (message.length > reportLimits.message) return json(400, { error: `Keep the description under ${reportLimits.message} characters.` });
+  const source = field(body.source), question = field(body.question);
+  if (!source || !question) return json(400, { error: 'The report must name a question.' });
+  const sender = field(claims.email) || 'unknown sender';
+  const details = [['Question', `${source} (${question})`], ['Showing', field(body.showing)], ['Sparx code', field(body.code)], ['Catalogue', field(body.version)], ['Link', field(body.link)], ['From', sender]]
+    .filter(([, value]) => value).map(([name, value]) => `- **${name}:** ${value}`).join('\n');
+  const response = await fetcher(`https://api.github.com/repos/${reportRepo}/issues`, {
+    method: 'POST',
+    headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${env.REPORT_GITHUB_TOKEN}`, 'Content-Type': 'application/json', 'User-Agent': 'mathsdock-site', 'X-GitHub-Api-Version': '2022-11-28' },
+    body: JSON.stringify({ title: `Question bank report: ${source}`, body: `${message}\n\n${details}` }),
+  });
+  if (!response.ok) return json(502, { error: 'The report could not be sent. Try again later.' });
+  return json(201, { ok: true });
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
     if (pathname.startsWith('/bank/assets/')) return serveBankAsset(request, env);
-    // run_worker_first limits this script to the bank path; anything else is static.
+    if (pathname === '/api/report') return submitReport(request, env);
+    // run_worker_first limits this script to these paths; anything else is static.
     return env.ASSETS ? env.ASSETS.fetch(request) : text(404, 'Not found');
   },
 };

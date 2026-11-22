@@ -21,6 +21,7 @@ import { forgetWork, noteWork } from "../site/recentWork";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
+import { ReportDialog, type ReportDetails } from "./ReportDialog";
 import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, type BankListQuestion, type BankQuestion, type BankRoute, type RoomLayout, type ViewRole } from "./model";
 import { createDetailLoader, fetchCatalogueIndex, type BankIndex, type DetailLoader } from "./catalogueLoader";
 import { withPerformance } from "./performance";
@@ -62,6 +63,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [route,setRoute]=useState<BankRoute>(()=>readRoute(location.search));
   const [search,setSearch]=useState(route.code);
   const [notice,setNotice]=useState("");
+  const [report,setReport]=useState<ReportDetails>();
   const [mode,setMode]=useState(QUESTION_ONLY);
   // Each pane (question, mark scheme, worked solution) keeps its own zoom.
   const [zooms,setZooms]=useState(FIT);
@@ -357,7 +359,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
               <details className="qb-more"><summary aria-label="Question options" title="Question options"><MoreHorizontal size={20}/></summary><div className="qb-more-menu">
                 <a href={assetUrl(question.printPdf)} target="_blank" rel="noreferrer">Source question PDF</a>
                 <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${bankAddress({...route,question:question.id,view:on.includes("question")?questionPane.viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
-                <button onClick={()=>{downloadBlob(new Blob([JSON.stringify({question:question.id,source:question.source,code:route.code,view:viewIndex+1,role,version:catalogue?.version,issue:"Describe the correction here."},null,2)],{type:"application/json"}),`question-feedback-${question.id}.json`);setNotice("Feedback details downloaded. Add a description and keep it with your question-bank notes.");}}>Report a problem</button>
+                <button onClick={e=>{e.currentTarget.closest("details")?.removeAttribute("open");setReport({question:question.id,source:question.source,showing:`${on.map(paneName).join(", ")} · view ${viewIndex+1}`,code:route.code,version:catalogue?.version??"",link:`${location.origin}${bankAddress({...route,question:question.id,view:on.includes("question")?questionPane.viewIndex:route.view})}`});}}>Report a problem</button>
                 {question.equivalentSource&&<p>Also appears as {question.equivalentSource}.</p>}
                 <p>← / → or Page Up / Down: navigate<br/>M: mark scheme · Escape: exit Display<br/>+ / −: zoom · 0: fit · Shift + arrows: pan<br/>Ctrl + wheel or pinch to zoom, drag to pan.<br/>Double-click or double-tap: zoom in or fit.<br/>Swipe to navigate at fit on a touch screen.</p>
               </div></details>
@@ -379,6 +381,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       {!display&&!topicsMode&&hasDraftIntent(draft)&&yourPaper()}
     </main>
     {display&&<button className="qb-exit-display qb-button" onClick={leaveDisplay}><X size={18}/> Exit Display <kbd>Esc</kbd></button>}
+    <ReportDialog details={report} onClose={()=>setReport(undefined)} onSent={()=>{setReport(undefined);setNotice("Thank you. Your report has been sent.");}}/>
     <PaperReviewDialog loadDetails={loadDetails} open={reviewOpen} active={active} entries={entries} version={catalogue?.version||""} showPerformance={showPerformance} onShowPerformance={setShowPerformance} catalogue={catalogue} tier={route.tier} excluded={draft.excluded.length} partsOnly={!!draft.partsOnly} onPartsOnly={value=>dispatchDraft({type:"partsOnly",value})} onClose={()=>setReviewOpen(false)} onRemove={key=>dispatchDraft({type:"exclude",key})} onMove={(key,direction)=>dispatchDraft({type:"move",key,direction,visible:entries.map(e=>e.key)})} onRestore={()=>dispatchDraft({type:"restore"})}/>
 
   </div>;

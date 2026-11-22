@@ -99,6 +99,8 @@
 .qb-export-ready strong { width: 100%; color: #187047; }
 .qb-dialog progress { width: 100%; accent-color: #0f62fe; }
 .qb-dialog .qb-small { font-size: 12px; color: #64778d; margin-top: 20px; margin-bottom: 0; }
+.qb-report-label { display: block; font-weight: 600; margin-bottom: 6px; }
+.qb-report-message { width: 100%; font: inherit; padding: 8px; border: 1px solid #9fb3c8; border-radius: 3px; resize: vertical; }
 .qb-export-error { background: #fff0e8; color: #9b3518; padding: 12px; }
 .spin { animation: qb-spin 1s linear infinite; }
 @keyframes qb-spin { to { transform: rotate(360deg); } }
