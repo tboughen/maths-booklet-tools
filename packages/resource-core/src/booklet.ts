@@ -21,7 +21,7 @@ export const SECTION_TITLES: Record<SectionKind, string> = {
   "check-in": "Check in",
   worked: "Worked example",
   practice: "Practice",
-  diagnostic: "Diagnostic questions",
+  diagnostic: "Multiple choice questions",
   mistake: "Spot the mistake",
   challenge: "Challenge",
   discover: "What do you notice?",
@@ -34,7 +34,7 @@ export const UNNUMBERED: ReadonlySet<SectionKind> = new Set(["worked", "notes"])
  * How a section labels its questions (booklet standard N1, Tim 17 November 2026). Every question in
  * a lesson has a label no other has:
  * - continue (the default): numbers run on from the last numbered section of the lesson, so a
- *   lesson has one run 1, 2, 3… through every cycle, mini whiteboard questions included;
+ *   lesson has one run 1, 2, 3… through every cycle, multiple choice questions included;
  * - restart: numbers start again at 1;
  * - letters: A, B, C…, running on from the last lettered section (check in A to F, From earlier G
  *   and H). Parts of a lettered question print i), ii) so a label never mixes a letter and a number.
@@ -47,7 +47,7 @@ export const sectionSchema = z
     kind: z.enum(SECTION_KINDS),
     /** Printed heading; empty uses the kind's default ("Check in", "Practice"…). */
     title: text(60).default(""),
-    /** One short line under the heading, e.g. "Answer on your mini whiteboard." */
+    /** One short line under the heading, e.g. "Circle the right answer." */
     instruction: text(160).default(""),
     /** Shaded banner printed above the heading, e.g. "Part 1": marks where a teaching cycle starts (START on the right). */
     startBanner: text(60).default(""),

@@ -47,7 +47,7 @@ describe("booklet question labels (N1)", () => {
     section("diagnostic", 2),
   ];
 
-  it("letters the opening and runs one set of numbers through the cycles, mini whiteboard questions included", () => {
+  it("letters the opening and runs one set of numbers through the cycles, multiple choice questions included", () => {
     const b = booklet(pilot);
     expect(lessonLabels(b.document.lessons[0])).toEqual([["A", "B", "C", "D", "E", "F"], ["G", "H"], [null, null], [1, 2, 3, 4, 5, 6], [7, 8], [null, null], [9, 10, 11, 12, 13, 14], [15, 16]]);
     expect(tiles(renderBooklet(b).pages)).toEqual(["A", "B", "C", "D", "E", "F", "G", "H", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]);

@@ -42,7 +42,7 @@ describe("booklet AI prompts", () => {
   });
 
   it("asks for the agreed booklet lesson shape", () => {
-    for (const phrase of ["used **with** the teaching", "From earlier", "Exam-style questions", "(Total for Question 2 is 3 marks)", "Answer on your mini whiteboard.", "Explain …'s mistake.", "at least three unaided questions", "One new step at a time", "The school's method"])
+    for (const phrase of ["used **with** the teaching", "From earlier", "Exam-style questions", "(Total for Question 2 is 3 marks)", "Multiple choice questions", "Explain …'s mistake.", "at least three unaided questions", "One new step at a time", "The school's method"])
       expect(lessonSystem).toContain(phrase);
     expect(planSystem).toContain("From earlier");
   });

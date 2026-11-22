@@ -111,7 +111,7 @@ export const exampleLessonSource = {
     {
       kind: "diagnostic",
       title: "",
-      instruction: "Answer on your mini whiteboard.",
+      instruction: "",
       columns: 2,
       cards: [
         card("Read the movements", t("Between two perfect points a line goes 2 right and 6 up. What is its gradient?"), choose(["2", "3", "6", "{1/3}"], 1)),

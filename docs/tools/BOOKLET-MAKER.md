@@ -26,13 +26,13 @@ and the page downloads pupil and answers PDFs and Word files for the whole bookl
   example as `{1/3}` with the tick box on). Everything else in it prints exactly as before.
 - A lesson has a title, objective code, objective, a one or two sentence key idea (shown in a pale
   card under the lesson heading) and 1 to 12 sections. Section kinds: check in, worked example,
-  practice ("Your turn"), diagnostic questions, spot the mistake, challenge, discover and notes.
+  practice ("Your turn"), multiple choice questions, spot the mistake, challenge, discover and notes.
   Each section has a heading (empty uses the kind's name), an instruction line, one or two cards a
   row, and 1 to 16 cards.
 - Cards use exactly the worksheet item vocabulary (text, answer lines, boxes, tables, diagrams from
   the shared registry, choices and so on). Booklets added three items that worksheets can use too:
   `steps` (numbered "Step 1:" lines for worked examples), `checklist` (tick boxes for self-checks)
-  and choice mode `letters` (circled A to D for diagnostic questions).
+  and choice mode `letters` (circled A to D for multiple choice questions).
 - Worked example and notes cards carry no number tile. Worked example sections are laid out in
   pairs: the left card is the teacher's worked example, the right card is "Our turn" with the same
   steps for the class to do together.
@@ -87,7 +87,7 @@ The prompt asks for, in order:
 4. Worked example beside Our turn, with the same numbered steps (a four-step method such as table,
    coordinates, plot, join where it fits). Our turn keeps the step labels and leaves the work blank.
 5. Your turn: near-identical questions with the same pre-drawn diagram or empty table, help fading.
-6. Diagnostic questions for mini whiteboards: multiple choice A to D, each wrong option built on one
+6. Multiple choice questions (the section heading; never "mini whiteboard"): A to D, each wrong option built on one
    named misconception.
 7. Practice that fades (support given, then bare, then a changed presentation, then reasoning), with
    at least three unaided questions for every case the lesson names.
