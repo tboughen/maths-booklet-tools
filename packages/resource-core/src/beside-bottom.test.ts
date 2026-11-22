@@ -25,7 +25,7 @@ const working = { type: "space", kind: "working", heightMm: 18 };
 const answer = { type: "answerLine", prefix: "x =", suffix: "", answer: "4", inline: false, beside: true };
 // Where the answer line's group is placed inside its row: the translate just before its "x =".
 const answerTop = (svg: string) => {
-  const at = svg.lastIndexOf("<g transform", svg.indexOf('italic">x</tspan> =</text><line'));
+  const at = svg.lastIndexOf("<g transform", svg.search(/italic"[^>]*>x<\/tspan> =<\/text><line/));
   return Number(svg.slice(at).match(/translate\(([\d.]+),([\d.]+)\)/)![2]);
 };
 const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);

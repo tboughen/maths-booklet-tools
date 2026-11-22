@@ -67,7 +67,8 @@ export const documentSchema = z
     branches: z.array(branchSchema).min(2).max(MAX_BRANCHES),
     stageTitles: z.array(plain(24)).max(MAX_DEPTH),
     linkLabels: z.boolean(),
-    endColumn: z.enum(["none", "outcome", "both"]),
+    /** "working" adds each path's multiplication (3/8 × 3/8 =) before the end probability. */
+    endColumn: z.enum(["none", "outcome", "both", "working"]),
     endHeadings: z.array(plain(24)).length(2),
     questions: z.array(questionSchema).max(MAX_QUESTIONS),
     blankStyle: z.enum(["dots", "box"]),
@@ -212,6 +213,22 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // With working shown, an empty end-probability pupil space is the product of its path, in the teacher copy only.
+  for (const leaf of workedEnds(n.document)) leaf.endProbability.text = formatFraction(pathProbability(n.document, leaf.id)!, styleOf(n.document));
+  // With working shown, an end name the pupil copy left as a space prints the path's names in the answer colour,
+  // and a hidden empty end name prints nothing (it has no saved answer).
+  if (n.document.endColumn === "working")
+    for (const leaf of leaves(n.document)) {
+      const l = leaf.endOutcome;
+      if (l.text.trim()) continue;
+      if (l.show === "hidden") l.show = "omit";
+      else if (l.show === "show" && !plainPath(n.document, leaf.id)) {
+        // Names only when every outcome on the path has a value that may print here: never a left-out one.
+        const named = pathTo(n.document, leaf.id).every((p) => p.outcome.show !== "omit" && !!p.outcome.text.trim());
+        l.text = named ? pathName(n.document, leaf.id).slice(0, 24) : "";
+        l.show = named ? "hidden" : "omit";
+      }
+    }
   // A left-out label stays out of the teacher copy too.
   const reveal = (l: Label) => {
     if (l.show !== "hidden") return;
@@ -233,7 +250,23 @@ export function allLabels(d: TreeDocument): Label[] {
   ];
 }
 export const hasHidden = (e: Envelope) =>
-  allLabels(e.document).some((l) => l.show === "hidden" && l.text.trim());
+  allLabels(e.document).some((l) => l.show === "hidden" && l.text.trim()) || workedEnds(e.document).length > 0;
+/** Path ends whose answer the teacher copy works out: working shown, an empty pupil space and a numeric path. */
+function workedEnds(d: TreeDocument): Branch[] {
+  if (d.endColumn !== "working") return [];
+  return leaves(d).filter(
+    (b) => b.endProbability.show === "hidden" && !b.endProbability.text.trim() && pathTo(d, b.id).every((p) => p.probability.show !== "omit") && pathProbability(d, b.id),
+  );
+}
+/** Every outcome on the path prints as text, so its names can print at the end without giving away a pupil space. */
+const plainPath = (d: TreeDocument, id: string) => pathTo(d, id).every((p) => p.outcome.show === "show" && !!p.outcome.text.trim());
+/** With working shown, an empty end outcome prints its path's names (Red, Red) and follows later edits. */
+export function endOutcomeLabel(d: TreeDocument, b: Branch): Label {
+  const l = b.endOutcome;
+  if (d.endColumn !== "working" || l.show !== "show" || l.text.trim()) return l;
+  // A path through a pupil space, a left-out or an empty outcome gets a pupil space, not names that answer it.
+  return plainPath(d, b.id) ? { ...l, text: pathName(d, b.id).slice(0, 24) } : label("", "hidden");
+}
 
 /* ---------- Exact arithmetic ---------- */
 
@@ -363,7 +396,12 @@ export function addSibling(e: Envelope, parent: string | null): Envelope {
   const sub = new Set([last.id]);
   for (const b of d.branches) if (b.parent && sub.has(b.parent)) sub.add(b.id);
   const at = Math.max(...[...sub].map((x) => d.branches.findIndex((b) => b.id === x)));
-  d.branches.splice(at + 1, 0, newBranch(nextId(d), parent));
+  // The new branch is named, never left blank: the name a branch in the same place has elsewhere in this stage,
+  // else "Outcome N". Its probability stays empty (nothing is calculated).
+  const depth = parent === null ? 1 : depthOf(d, parent) + 1;
+  const twin = d.branches.find((b) => b.parent !== parent && depthOf(d, b.id) === depth && siblingIndex(d, b) === group.length);
+  const name = twin?.outcome.text.trim() || `Outcome ${group.length + 1}`;
+  d.branches.splice(at + 1, 0, newBranch(nextId(d), parent, name));
   return validate(n);
 }
 /** The first stage keeps two branches; a later point may keep one. */
@@ -773,26 +811,54 @@ export function layout(e: Envelope) {
   let right = Math.max(...d.branches.map((b) => startX[depth.get(b.id)! - 1] + d.branchMm + 1.5 + labelBox(b.outcome, d.blankStyle, "text").width));
   const headings: { text: string; x: number; y: number }[] = [];
   if (d.endColumn !== "none") {
-    const ow = Math.max(textWidth(d.endHeadings[0]), ...all.map((b) => labelBox(b.endOutcome, d.blankStyle, "text").width), 12);
+    const working = d.endColumn === "working",
+      withProbability = d.endColumn !== "outcome";
+    const ends = all.map((b) => endOutcomeLabel(d, b));
+    const ow = Math.max(textWidth(d.endHeadings[0]), ...ends.map((l) => labelBox(l, d.blankStyle, "text").width), 12);
     const pX = endX + ow + 8;
-    const pw = Math.max(textWidth(d.endHeadings[1]), ...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").width), 8);
-    for (const b of all) {
+    // Working: each probability along the path (a space where it has no value), joined by ×, then = in one column.
+    const opW = textWidth("×") + 2.4;
+    const factorsOf = (b: Branch) => pathTo(d, b.id).map((p) => (p.probability.show === "omit" || (p.probability.show === "show" && !p.probability.text.trim()) ? label("", "hidden") : p.probability));
+    const workW = working
+      ? Math.max(...all.map((b) => factorsOf(b).reduce((w, f, i) => w + labelBox(f, d.blankStyle, "probability").width + (i ? opW : 0), 0)))
+      : 0;
+    const aX = working ? pX + workW + opW : pX;
+    // With working, the answer column is at least a pupil space wide, so the pupil and answer copies print the same size.
+    const pw = Math.max(working ? labelBox(label("", "hidden"), d.blankStyle, "probability").width : textWidth(d.endHeadings[1]), ...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").width), 8);
+    const named = (b: Branch) => pathName(d, b.id);
+    let tallest = 0;
+    all.forEach((b, i) => {
       const y = nodeY.get(b.id)!;
-      placed.push({ label: b.endOutcome, kind: "text", cx: endX, cy: y, align: "start", name: `end outcome for ${pathName(d, b.id)}` });
+      placed.push({ label: ends[i], kind: "text", cx: endX, cy: y, align: "start", name: `end outcome for ${named(b)}` });
       targets.push({ kind: "endOutcome", id: b.id, x: endX - 0.5, y: y - 3, width: ow + 1, height: 6 });
-      if (d.endColumn === "both") {
-        placed.push({ label: b.endProbability, kind: "probability", cx: pX + pw / 2, cy: y, align: "middle", name: `end probability for ${pathName(d, b.id)}` });
-        targets.push({ kind: "endProbability", id: b.id, x: pX - 0.5, y: y - 4.5, width: pw + 1, height: 9 });
+      if (working) {
+        let cx = pX;
+        factorsOf(b).forEach((f, k) => {
+          if (k) {
+            placed.push({ label: label("×"), kind: "text", cx: cx + opW / 2, cy: y, align: "middle", name: `working for ${named(b)}` });
+            cx += opW;
+          }
+          const w = labelBox(f, d.blankStyle, "probability");
+          tallest = Math.max(tallest, w.height);
+          placed.push({ label: f, kind: "probability", cx: cx + w.width / 2, cy: y, align: "middle", name: `working for ${named(b)}` });
+          cx += w.width;
+        });
+        placed.push({ label: label("="), kind: "text", cx: pX + workW + opW / 2, cy: y, align: "middle", name: `working for ${named(b)}` });
       }
-    }
+      if (withProbability) {
+        tallest = Math.max(tallest, labelBox(b.endProbability, d.blankStyle, "probability").height);
+        placed.push({ label: b.endProbability, kind: "probability", cx: aX + pw / 2, cy: y, align: "middle", name: `end probability for ${named(b)}` });
+        targets.push({ kind: "endProbability", id: b.id, x: aX - 0.5, y: y - 4.5, width: pw + 1, height: 9 });
+      }
+    });
     const headY = Math.min(...all.map((b) => nodeY.get(b.id)!)) - d.gapMm / 2 - 2;
     headings.push({ text: d.endHeadings[0], x: endX, y: headY });
-    if (d.endColumn === "both") headings.push({ text: d.endHeadings[1], x: pX + pw / 2, y: headY });
-    right = d.endColumn === "both" ? pX + pw : endX + ow;
+    if (withProbability) headings.push({ text: d.endHeadings[1], x: working ? (pX + aX + pw) / 2 : pX + pw / 2, y: headY });
+    right = withProbability ? aX + pw : endX + ow;
     // Only a drawn probability column can crowd: with endColumn "outcome" its saved text is not printed.
-    const tight = d.endColumn === "both" && all.some((b) => labelBox(b.endProbability, d.blankStyle, "probability").height > d.gapMm - 1);
+    const tight = withProbability && tallest > d.gapMm - 1;
     if (tight) {
-      const need = Math.ceil(Math.max(...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").height)) + 1);
+      const need = Math.ceil(tallest + 1);
       issues.push(`End-column fractions overlap. Increase the path spacing to at least ${Math.min(24, Math.max(need, d.gapMm + 1))} mm.`);
     }
   }

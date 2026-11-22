@@ -36,10 +36,11 @@ export type RatioCell = z.infer<typeof cellSchema>;
 export const cellsSchema = z.array(cellSchema).min(1).max(3);
 /**
  * Heading text: words and units such as "Time (min)", "Speed (m/s)", "Temperature (°C)", "%" or
- * "£" (Tim, 11 and 16 Nov 2026), or a power such as x^2 or 1/x^2. The column widens to fit.
+ * "£" (Tim, 11 and 16 Nov 2026), or a power such as x^2, 1/x^2 or a unit such as "Volume (cm^3)"
+ * (typed ² and ³ become ^2 and ^3). The column widens to fit.
  */
 export const HEADING_MAX = 16;
-export const HEADING_PATTERN = /^[A-Za-z0-9 _/%£°()-]+$|^(?:\d+\/)?[A-Za-z]+\^\d$/;
+export const HEADING_PATTERN = /^(?=.)(?:[A-Za-z0-9 _/%£°()-]*[A-Za-z]\^\d(?!\d))*[A-Za-z0-9 _/%£°()-]*$/;
 export const headingSchema = z
   .object({
     text: z

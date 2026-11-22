@@ -15,19 +15,16 @@
  */
 import { FRACTION } from "./text";
 import { advance } from "./metrics";
+import { UPRIGHT, WORDS } from "./prose-words";
 
 const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
-/** Letter runs that stay upright inside a maths token: function names, units, ordinals and times. */
-const UPRIGHT = new Set(["sin", "cos", "tan", "log", "ln", "exp", "min", "max", "mm", "cm", "km", "kg", "mg", "ml", "cl", "mph", "st", "nd", "rd", "th", "am", "pm"]);
 
 /**
  * Units that can carry a power or a "per": m², cm³, N/m², g/cm³, m/s, km/h, m/min (NP17 compound measures,
  * 21 Nov 2026). Upright after a number and in answer-line suffixes ("Pressure = ...... N/m²").
  */
 const UNIT_WORD = /^(mm|cm|m|km|g|kg|N|s|h|min|l|ml)[²³]?(\/(mm|cm|m|km|s|h|min|hour|l|ml)[²³]?)?$/;
-/** Short English words that can sit beside an operator in prose ("x = 3 or 4") and stay upright. */
-const WORDS = new Set(["an", "as", "at", "be", "by", "do", "if", "in", "is", "it", "of", "on", "or", "so", "to", "up", "we", "and", "are", "but", "can", "for", "has", "its", "not", "the", "was", "who", "why", "how", "all", "any", "one", "two", "six", "ten"]);
 
 /** Character rewrites that are safe anywhere printed text appears, fractions and bold included. */
 export function typesetSymbols(s: string): string {
@@ -39,8 +36,8 @@ export function typesetSymbols(s: string): string {
       .replace(/\+\/-|\+-(?=\s|\d)/g, "±")
       .replace(/\bsqrt\s*(?=[\d(a-zπ])/g, "√")
       .replace(/(?<![A-Za-z])pi(?![A-Za-z-])/g, "π")
-      .replace(/\^\(?2\)?(?!\d)/g, "²")
-      .replace(/\^\(?3\)?(?!\d)/g, "³")
+      .replace(/\^(?:\(2\)|2(?!\d))/g, "²")
+      .replace(/\^(?:\(3\)|3(?!\d))/g, "³")
       // 3 x 4: a lone x between two numbers is a times sign.
       .replace(/(\d) x (?=\d)/g, "$1 × ")
       // A sign: at the start, after a space, a bracket, a slash or an operator, before a number,

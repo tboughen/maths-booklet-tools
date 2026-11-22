@@ -4,6 +4,7 @@ import interItalicUrl from "../../assets/resource-fonts/Inter-Italic.ttf?url";
 import stixUrl from "../../assets/graph-fonts/STIXTwoText-Regular.otf?url";
 import stixItalicUrl from "../../assets/graph-fonts/STIXTwoText-Italic.otf?url";
 import stixMathUrl from "../../assets/graph-fonts/STIXTwoMath-Regular.otf?url";
+import stixLettersUrl from "../../assets/resource-fonts/STIXTwoText-Italic-letters.ttf?url";
 import resvgWasmUrl from "@resvg/resvg-wasm/index_bg.wasm?url";
 import type { DocxFonts, DocxPicture, DocxPictureMaker } from "../../packages/resource-core/src/docx";
 
@@ -28,12 +29,12 @@ async function bytes(url: string): Promise<Uint8Array> {
 
 function load(): Promise<Kit> {
   kit ??= (async () => {
-    const [resvg, regular, semiBold, italic, stix, stixItalic, stixMath] = await Promise.all([
+    const [resvg, regular, semiBold, italic, stix, stixItalic, stixMath, stixLetters] = await Promise.all([
       import("@resvg/resvg-wasm").then(async (m) => {
         await m.initWasm(fetch(resvgWasmUrl));
         return m;
       }),
-      ...[interUrl, interSemiBoldUrl, interItalicUrl, stixUrl, stixItalicUrl, stixMathUrl].map(bytes),
+      ...[interUrl, interSemiBoldUrl, interItalicUrl, stixUrl, stixItalicUrl, stixMathUrl, stixLettersUrl].map(bytes),
     ]);
     const font = { fontBuffers: [stix, stixItalic, stixMath, regular, semiBold, italic], defaultFontFamily: "STIX Two Text" };
     const picture = (svg: string, widthMm: number, heightMm: number): DocxPicture => {
@@ -48,7 +49,7 @@ function load(): Promise<Kit> {
       outlined = outlined.replace(/(<svg\b[^>]*?)\swidth="[^"]+"/, `$1 width="${widthMm}mm"`).replace(/(<svg\b[^>]*?)\sheight="[^"]+"/, `$1 height="${heightMm}mm"`);
       return { svg: outlined, png };
     };
-    return { fonts: { regular, semiBold, italic }, picture };
+    return { fonts: { regular, semiBold, italic, maths: stixLetters }, picture };
   })();
   kit.catch(() => (kit = null));
   return kit;

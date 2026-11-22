@@ -19,6 +19,11 @@ Code: `packages/probability-tree-core` (schema, exact arithmetic, layout, SVG, e
 - Probabilities are text: `a/b` prints as a stacked fraction; decimals, percentages and algebra (`x`, `1 − x`) print as typed.
 - Optional end columns (outcome, probability), stage titles, bold branches for picking out paths, and up to 8
   questions printed below the tree with answer spaces.
+- `endColumn: "working"` (added 21 Nov 2026) prints each path's names, its multiplication (3/8 × 3/8 =) and then the
+  end probability. An empty end outcome prints the path's names and follows later edits. A path probability that is a
+  pupil space, left out or empty is a pupil space in the working too, so the working never gives away a hidden value.
+- **A new tree in the editor opens with working** and a pupil space for every end probability (Tim, 21 Nov 2026).
+  The connector's `create` default is unchanged (no end columns).
 - `linkLabels` (default on) makes an outcome edit apply to the same position across its stage.
 
 ## Editing (the usability pilot, 21 Nov 2026)
@@ -27,10 +32,11 @@ Probability trees are the pilot for the shared editing pattern agreed on 21 Nov 
 
 - **Click** a label on the tree: the options box opens beside it (`src/site/OptionsBox.tsx`) with What pupils see
   (Show / Pupil space / Leave out), its text, and for branches Bold branch, Add branches after this (or End the path
-  here), Add a branch beside it and Remove the last branch here. Every change is live and one undo step; Escape or a
-  press elsewhere closes the box. Enter, with the box focused, moves to the text field.
-- **Double-click** a label, or press **H** with it selected (never while typing in a field), for a pupil space, and
-  again to show the value. The box stays open and shows the new state.
+  here), Add a branch beside it and Remove this branch. Typing comes first (Tim, 21 Nov 2026): the box opens with the
+  cursor in its text, selected, so typing replaces the value; Enter or a press elsewhere keeps it. Escape undoes the
+  typing, and with nothing typed closes the box. Every change is live and one undo step.
+- **Double-click** a label for a pupil space, and again to show the value. The box stays open and shows the new state.
+  There is no keyboard shortcut for it: H types into the text like any letter (teachers rarely use shortcuts).
 - The **What pupils see** card sets every label of a kind at once (outcomes, probabilities, end columns while drawn,
   question answers) and shows Mixed when they differ.
 - The **Branches** card lists the tree stage by stage. Under each point's branches is **+ Branch**; the list ends with
@@ -44,7 +50,9 @@ Probability trees are the pilot for the shared editing pattern agreed on 21 Nov 
 
 ## Explicit actions only
 
-Nothing is filled or calculated implicitly. Each of these is a button (or MCP operation) and is undoable:
+Nothing is filled or calculated implicitly, with one agreed exception: with working shown, an empty end-probability
+pupil space is worked out in the answer copy only (Show answers, answer downloads). It is never saved and never printed
+in the pupil copy, and a teacher's own text wins. Each of these is a button (or MCP operation) and is undoable:
 
 - **Fill from bag**: counts by branch position, with or without replacement; writes unsimplified fractions
   (5/8 then 4/7), as on examination trees. Overwriting existing probabilities asks first.

@@ -74,9 +74,9 @@ const S = SIZE;
 const lh = (size: number) => size * S.lineHeight;
 const base = (size: number) => (lh(size) - size) / 2 + size * 0.82;
 
-function para(src: string, width: number, st: HouseStyle, o: { size?: number; fill?: string; style?: FontStyle; x?: number } = {}): Frag {
+function para(src: string, width: number, st: HouseStyle, o: { size?: number; fill?: string; style?: FontStyle; x?: number; maths?: boolean } = {}): Frag {
   const size = o.size ?? S.body;
-  const lines = wrap(src, size, width, o.style);
+  const lines = wrap(src, size, width, o.style, o.maths);
   return { h: lines.length * lh(size), svg: lines.map((l, i) => textSvg(l, o.x ?? 0, i * lh(size) + base(size), size, o.fill ?? st.ink)).join("") };
 }
 const rect = (x: number, y: number, w: number, h: number, attrs: string) => `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" ${attrs}/>`;
@@ -167,9 +167,14 @@ export const DID_YOU_KNOW = {
   tracking: 0.25,
 } as const;
 /** The box's text lines and heights: `h` is the box, `total` adds the drop line under it. */
-export function didYouKnowBox(fact: string): { lines: number; h: number; total: number } {
+/**
+ * A fact reads maths (powers such as 2^10) when the booklet does, unless it holds a stacked fraction:
+ * the box keeps plain line height, so a fraction stays as typed rather than crowding the lines.
+ */
+export const didYouKnowMaths = (fact: string, maths: boolean) => maths && !/\{[^{}/]{1,12}\/[^{}/]{1,12}\}/.test(fact);
+export function didYouKnowBox(fact: string, maths = false): { lines: number; h: number; total: number } {
   const D = DID_YOU_KNOW;
-  const lines = wrap(fact.trim(), D.size, W - 2 * D.padX).length;
+  const lines = wrap(fact.trim(), D.size, W - 2 * D.padX, "regular", didYouKnowMaths(fact, maths)).length;
   const h = D.padTop + D.labelLine + lines * lh(D.size) + D.padBottom;
   return { lines, h, total: h + D.drop };
 }
@@ -210,14 +215,14 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   }
   if (lesson.didYouKnow.trim()) {
     const D = DID_YOU_KNOW;
-    const b = didYouKnowBox(lesson.didYouKnow);
+    const b = didYouKnowBox(lesson.didYouKnow, doc.notation === "maths");
     y += D.gap;
     out.push(rect(0, y + D.drop, W, b.h, `rx="${D.radius}" fill="${st.tint}"`));
     out.push(rect(D.edge / 2, y + D.edge / 2, W - D.edge, b.h - D.edge, `rx="${D.radius}" fill="white" stroke="${D.edgeColour}" stroke-width="${D.edge}"`));
     out.push(`<g transform="translate(${n(D.padX)},${n(y + D.padTop + (D.labelLine - D.icon) / 2)})">${didYouKnowIcon(D.icon, st.navy)}</g>`);
     const label = textSvg([{ text: D.label, style: "bold" }], D.padX + D.icon + D.iconGap, y + D.padTop + D.labelLine / 2 + D.size * 0.36, D.size, st.navy);
     out.push(label.replace("<text ", `<text letter-spacing="${D.tracking}" `));
-    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX }), 0, y + D.padTop + D.labelLine));
+    out.push(at(para(lesson.didYouKnow.trim(), W - 2 * D.padX, st, { size: D.size, x: D.padX, maths: didYouKnowMaths(lesson.didYouKnow, doc.notation === "maths") }), 0, y + D.padTop + D.labelLine));
     y += b.total;
   }
   return { h: y, svg: out.join("") };
@@ -319,8 +324,8 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
   keyIdeas(keyIdea).forEach((idea, i) => {
     if (i) y += K.ideaGap;
     const f = keyIdeaLines(idea, tw, maths);
-    // Without a fraction the idea prints exactly as a paragraph always has.
-    const svg = f.frac ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
+    // Without a fraction or a power the idea prints exactly as a paragraph always has.
+    const svg = f.frac || f.lines.some((l) => l.some((r) => r.sup)) ? f.lines.map((l, k) => textSvg(l, left, k * f.line + f.first, S.body, st.ink)).join("") : para(idea, tw, st, { x: left }).svg;
     out.push(at({ h: f.h, svg }, 0, y));
     y += f.h;
   });
@@ -560,7 +565,7 @@ export function planNotes(lesson: Lesson, lessonNo: number, words: LessonWords =
     wrap(textSrc, S.body, W - indent).forEach((runs, k) => {
       if (y + lh(S.body) > A4.bottom) fresh();
       const tooWide = lineWidth(runs, S.body) > W - indent + 0.01;
-      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
+      lines.push({ kind: "text", text: runs.map((r) => (r.style === "bold" ? `**${r.text}**` : r.style === "italic" || r.style === "maths" ? `*${r.text}*` : r.text)).join(""), y, size: S.body, indent, bullet: bullet && k === 0, ...(tooWide ? { tooWide } : {}) });
       y += lh(S.body);
     });
   }

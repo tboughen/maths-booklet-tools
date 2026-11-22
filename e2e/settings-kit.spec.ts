@@ -231,11 +231,14 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
       expect(Math.abs(layout.width - chosen.width), path).toBeLessThanOrEqual(1);
     }
     // With something selected the settings were 1,597, 1,531 and 1,157 px long before the kit.
-    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
+    // A one-column stack may scroll (a tree opens with its path-end working, 22 Nov 2026); a fade at its foot then shows there is more.
+    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset), path).toBe(true);
+    if (!ONE_COLUMN.has(path)) expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), path).toBe(true);
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
     const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
-    expect(sizes.heading, path).toContain("600 17px");
+    // Every card in the one column folds (22 Nov 2026), so its headings are the fold rows' 15 px.
+    expect(sizes.heading, path).toContain(ONE_COLUMN.has(path) ? "600 15px" : "600 17px");
   }
   // A Hide tick's label sits 3 px under its field, in a list that is not cut off and scrolls only from 460 px.
   await page.goto("/tools/frequency-tree");

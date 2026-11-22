@@ -152,7 +152,7 @@ describe("worksheet tools", () => {
       answers = await word("answersDocx");
     // A3 landscape (420 x 297 mm in twips), Inter embedded, diagrams as SVG with a PNG fallback.
     expect(pupil.xml).toMatch(/<w:pgSz w:w="23811" w:h="16838" w:orient="landscape"\/>/);
-    expect(Object.keys(pupil.files).filter((f) => f.endsWith(".odttf"))).toHaveLength(3);
+    expect(Object.keys(pupil.files).filter((f) => f.endsWith(".odttf"))).toHaveLength(4);
     expect(Object.keys(pupil.files).some((f) => f.endsWith(".svg"))).toBe(true);
     expect(Object.keys(pupil.files).some((f) => f.endsWith(".png"))).toBe(true);
     // Saved answers print only in the answers file.
@@ -280,7 +280,7 @@ describe("booklet tool", () => {
     expect(answersWord.pages).toBe(full.pages.length);
     expect(pupilWord.start).toBe(1);
     expect(pupilWord.xml).toContain("<w:titlePg/>");
-    expect(Object.keys(pupilWord.files).filter((f) => f.endsWith(".odttf"))).toHaveLength(3);
+    expect(Object.keys(pupilWord.files).filter((f) => f.endsWith(".odttf"))).toHaveLength(4);
     expect(pupilWord.xml).not.toContain("B0125B");
     expect(answersWord.xml).toContain("B0125B");
 

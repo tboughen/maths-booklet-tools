@@ -237,7 +237,9 @@ stays the builders' word for the line after a question.
   live (no Apply or Cancel), one box at a time, never over its label, inside the window, and
   closes on Escape or a press elsewhere. This replaces the 14 Nov "no floating editors" rule for
   small boxes; a large floating form with Apply and Cancel is still out.
-- A double-click on a label, or H with it selected (never while typing), toggles a pupil space.
+- The box opens with the cursor in its text field, text selected: typing replaces the value (typing first, 21 Nov
+  2026). Escape undoes typing, then closes the box. No single-letter shortcuts in the box.
+- A double-click on a label toggles a pupil space.
 - A "What pupils see" card sets a whole kind at once, shows Mixed when labels differ, counts the
   pupil spaces and offers "Clear pupil spaces" (never "Show all", which reads like "Show answers").
 - Card help sits behind a (?) beside the heading (`CardHeading` in `src/site/CardHelp.tsx`), and a
@@ -246,6 +248,17 @@ stays the builders' word for the line after a question.
   and use `touch-action: manipulation` and no text selection, so a double-tap on a board neither
   zooms nor selects. Tools move to this pattern one group at a time; until then the U21 rule (the
   selected object's card comes first) still applies to them.
+
+### Folding cards and the scroll fade (Tim, 22 Nov 2026)
+
+- Every card in a one-column settings stack folds. The main cards (What pupils see, Branches) use
+  `FoldCard defaultOpen` and start open; rarer groups start folded. A folded card shows a one-line summary
+  ("4 pupil spaces", "2 stages · 6 branches"). The browser remembers each teacher's choice.
+- A longer list pushes the cards below it down; the drawing zooms to fit and its print size never changes.
+- The stack scrolls on its own. `useMoreBelow` (`src/site/useMoreBelow.ts`) sets `data-more` while there is
+  more below, and the kit draws a soft fade at the foot of the column.
+- Settings stay on the right, as in Office, Material, Carbon and Figma: the left is for moving between things,
+  the right for the properties of what is open (Tim, 22 Nov 2026).
 
 ## The answers switch
 
