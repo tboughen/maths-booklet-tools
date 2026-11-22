@@ -185,7 +185,7 @@ test("the question sits at the top of the viewer, the search shows one focus rin
   });
   expect(Math.abs(top.gap - top.padding)).toBeLessThan(2);
 
-  const search = page.getByRole("combobox", { name: "Sparx code or topic" });
+  const search = page.getByRole("combobox", { name: "Sparx code, topic or paper" });
   await search.focus();
   expect(await search.evaluate(el => getComputedStyle(el).outlineStyle)).toBe("none");
   expect(await page.locator(".qb-search").evaluate(el => getComputedStyle(el).boxShadow)).not.toBe("none");

@@ -81,7 +81,7 @@ describe("question bank: clearing the search", () => {
   it("shows every question when the search box is emptied and Enter is pressed", async () => {
     mocks.index = {...index(), pilotCodes: ["U1"]};
     await loaded("?code=U1&tier=F");
-    const box = screen.getByRole("combobox", {name: "Sparx code or topic"});
+    const box = screen.getByRole("combobox", {name: "Sparx code, topic or paper"});
     fireEvent.change(box, {target: {value: "  "}});
     await act(async () => fireEvent.submit(box.closest("form")!));
     expect(location.search, "no topic is chosen; other filters stay").toBe("?tier=F");

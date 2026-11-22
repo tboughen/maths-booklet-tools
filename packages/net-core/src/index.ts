@@ -61,7 +61,8 @@ const plain = z
   .string()
   .max(MAX_TEXT)
   .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 || c === "<" || c === ">"), "Use ordinary text without markup.");
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out) keeps the object but prints it on neither copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const textSchema = z.object({ text: plain, show }).strict();
 const coord = z.number().min(0).max(60);
 export const pointSchema = z.tuple([coord, coord]);
@@ -466,6 +467,8 @@ export function forView(e: Envelope, view: View, mark = false): Envelope {
   if (view === "pupil") return e;
   const n = clone(e);
   const open = (o: { show: Text["show"] }, when = true) => {
+    // A left-out object prints on neither copy.
+    if (o.show === "omit") return;
     if (o.show === "hidden" && when && mark) REVEALED.add(o);
     o.show = "show";
   };

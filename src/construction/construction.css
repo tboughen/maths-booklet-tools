@@ -30,7 +30,8 @@
 /* One more class than the settings kit's field rule, so a label's field shares the line with the
    word "Label" and takes what is left of it. */
 .md-kit .cn-inline input:not([type="checkbox"]) {
-  flex: 1 1 8em;
+  flex: 1 1 6em;
+  min-width: 100px;
   width: auto;
 }
 /* The three parts of a scale ("1 cm represents 5 km") read as one line. */
