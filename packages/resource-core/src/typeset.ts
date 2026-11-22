@@ -15,14 +15,12 @@
  */
 import { FRACTION } from "./text";
 import { advance } from "./metrics";
+import { UPRIGHT, WORDS } from "./prose-words";
 
 const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
-/** Letter runs that stay upright inside a maths token: function names, units, ordinals and times. */
-const UPRIGHT = new Set(["sin", "cos", "tan", "log", "ln", "exp", "min", "max", "mm", "cm", "km", "kg", "mg", "ml", "cl", "mph", "st", "nd", "rd", "th", "am", "pm"]);
 
-/** Short English words that can sit beside an operator in prose ("x = 3 or 4") and stay upright. */
-const WORDS = new Set(["an", "as", "at", "be", "by", "do", "if", "in", "is", "it", "of", "on", "or", "so", "to", "up", "we", "and", "are", "but", "can", "for", "has", "its", "not", "the", "was", "who", "why", "how", "all", "any", "one", "two", "six", "ten"]);
+
 
 /** Character rewrites that are safe anywhere printed text appears, fractions and bold included. */
 export function typesetSymbols(s: string): string {

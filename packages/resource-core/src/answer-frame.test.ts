@@ -42,8 +42,8 @@ describe("answer frame with short blanks", () => {
     expect(a[1] - a[0]).toBeCloseTo(FRAME_BLANK, 1);
     expect(b[1] - b[0]).toBeCloseTo(FRAME_BLANK, 1);
     // Maths notation typesets the fixed text too: italic letters.
-    expect(r.pages[0]).toMatch(/font-style="italic">y<\/tspan> =/);
-    expect(r.pages[0]).toMatch(/font-style="italic">x<\/tspan> \+/);
+    expect(r.pages[0]).toMatch(/font-style="italic"[^>]*>y<\/tspan> =/);
+    expect(r.pages[0]).toMatch(/font-style="italic"[^>]*>x<\/tspan> \+/);
     // The whole frame is short: well under the 55 mm the old pair of lines took each.
     expect(b[1] - a[0]).toBeLessThan(55);
   });
