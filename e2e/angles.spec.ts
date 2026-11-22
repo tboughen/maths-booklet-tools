@@ -47,6 +47,28 @@ test("removes an angle's mark and label in one undo step; Escape closes its opti
   expect((await saved(page)).document.angles.map((a: { id: string }) => a.id)).toEqual(["s1", "s2", "s3"]);
 });
 
+test("Delete removes the selected angle's mark and label in one undo step", async ({ page }) => {
+  await boot(page, example("straight-line"));
+  const target = page.getByRole("button", { name: "Select angle 1 (s1)" });
+  await target.click();
+  await target.focus();
+  await page.keyboard.press("Delete");
+  expect((await saved(page)).document.angles.map((a: { id: string }) => a.id)).toEqual(["s2", "s3"]);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.angles.map((a: { id: string }) => a.id)).toEqual(["s1", "s2", "s3"]);
+});
+
+test("a left-out label stays left out when its words are corrected", async ({ page }) => {
+  await boot(page, example("straight-line"));
+  await page.getByRole("button", { name: "Select angle 1 (s1)" }).click();
+  await box(page).getByRole("group", { name: "What pupils see" }).getByRole("button", { name: "Leave out" }).click();
+  const text = box(page).getByRole("textbox", { name: "Text of angle 1" });
+  await text.fill("50");
+  await text.press("Enter");
+  expect(await label(page, "s1")).toEqual({ state: "blank", text: "50", answer: "" });
+  expect(await texts(page)).not.toContain("50°");
+});
+
 test("adds a ray without moving labels to other angles, and refuses a ray past its neighbour", async ({ page }) => {
   await boot(page, example("straight-line"));
   await page.getByRole("button", { name: "Add a ray" }).click();

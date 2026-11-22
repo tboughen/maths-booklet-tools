@@ -744,10 +744,12 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                                 if (!t) a.label.state = "blank";
                                 return;
                               }
+                              // A left-out label keeps what was typed and stays left out; an empty place shows what is typed.
+                              const was = a.label.text;
                               a.label.text = t;
                               // Typing a size or a letter shows it; clearing it leaves the mark only.
                               if (!t && (a.label.state === "value" || a.label.state === "symbol")) a.label.state = "blank";
-                              else if (t && a.label.state === "blank") a.label.state = /\d/.test(t) && !a.label.answer ? "value" : "symbol";
+                              else if (t && a.label.state === "blank" && !was) a.label.state = /\d/.test(t) && !a.label.answer ? "value" : "symbol";
                               else if (t && a.label.state === "value" && !/\d/.test(t)) a.label.state = "symbol";
                               else if (t && a.label.state === "symbol" && /\d/.test(t) && !a.label.answer) a.label.state = "value";
                             }, "edit label")

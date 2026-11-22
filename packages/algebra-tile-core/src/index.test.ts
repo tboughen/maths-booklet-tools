@@ -123,7 +123,10 @@ describe("algebra tiles", () => {
     const out = setItem(blank, "answer", { show: "omit" });
     expect(out.document.answer).toEqual({ text: "", show: "omit" });
     // No dotted answer line on either copy.
-    expect(renderSvg(out)).not.toBe(renderSvg(blank));
+    expect(renderSvg(blank)).toContain('stroke-dasharray="0.3 0.9"');
+    expect(renderSvg(out)).not.toContain('stroke-dasharray="0.3 0.9"');
+    // No "=" before a line that is left out.
+    expect(renderSvg(setItem(setItem(out, "expression", { text: "x + 1" }), "answer", { show: "omit" }))).not.toMatch(/>=</);
     expect(renderSvg(forView(out, "answer", true))).toBe(renderSvg(out));
     // Collecting fills the answer but it stays left out.
     const filled = collect(out).envelope;

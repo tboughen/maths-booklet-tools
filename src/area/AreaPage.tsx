@@ -552,10 +552,12 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                                 if (!t) l.state = "blank";
                                 return;
                               }
+                              // A left-out label keeps what was typed and stays left out; an empty place shows what is typed.
+                              const was = l.text;
                               l.text = t;
                               // Typing a length or a letter shows it; clearing it leaves the place blank.
                               if (!t && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
-                              else if (t && l.state === "blank") l.state = /\d/.test(t) && !l.answer ? "value" : "symbol";
+                              else if (t && l.state === "blank" && !was) l.state = /\d/.test(t) && !l.answer ? "value" : "symbol";
                               else if (t && l.state === "value" && !/\d/.test(t)) l.state = "symbol";
                               else if (t && l.state === "symbol" && /\d/.test(t) && !l.answer) l.state = "value";
                             }, "edit label")

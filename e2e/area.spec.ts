@@ -61,6 +61,17 @@ test("removes a label in one undo step; Escape closes its options", async ({ pag
   expect((await saved(page)).document.labels.map((l: Saved) => l.id)).toContain("e1");
 });
 
+test("Delete removes the selected label in one undo step", async ({ page }) => {
+  await boot(page, example("l-shape"));
+  const target = page.getByRole("button", { name: "Select the label on side 1 (e1)" });
+  await target.click();
+  await target.focus();
+  await page.keyboard.press("Delete");
+  expect((await saved(page)).document.labels.map((l: Saved) => l.id)).not.toContain("e1");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.labels.map((l: Saved) => l.id)).toContain("e1");
+});
+
 test("changes to a sector, keeps the labels it has a place for and warns about radii that cannot be right", async ({ page }) => {
   await boot(page);
   await page.getByRole("combobox", { name: "Start from a shape" }).selectOption("sector");

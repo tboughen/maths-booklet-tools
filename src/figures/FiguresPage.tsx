@@ -257,10 +257,12 @@ function LabelFields({ value, isAngle, name, disabled, onChange, onVisibility, o
                   if (!x) l.state = "blank";
                   return;
                 }
+                // A left-out label keeps what was typed and stays left out; an empty place shows what is typed.
+                const was = l.text;
                 l.text = x;
                 // Typing a size or a letter shows it; clearing it leaves the place blank.
                 if (!x && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
-                else if (x && l.state === "blank") l.state = /\d/.test(x) && !l.answer ? "value" : "symbol";
+                else if (x && l.state === "blank" && !was) l.state = /\d/.test(x) && !l.answer ? "value" : "symbol";
                 else if (x && l.state === "value" && !/\d/.test(x)) l.state = "symbol";
                 else if (x && l.state === "symbol" && /\d/.test(x) && !l.answer) l.state = "value";
               }, "edit label")
@@ -323,6 +325,10 @@ export default function FiguresPage({ active = true }: { active?: boolean }) {
   const spaceCount = allLabels.filter((l) => houseVisibility(l) === "hidden").length;
   const lists = { point: d.points, circle: d.circles, segment: d.segments, angle: d.angles } as const;
   const current = selected && lists[split(selected).kind]?.some((x) => x.id === split(selected).id) ? split(selected) : null;
+  // The box closes when its object goes (a removal, an undo).
+  useEffect(() => {
+    if (boxAnchor && (!current || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, current]);
   const nameOf = (pid: string) => d.points.find((p) => p.id === pid)?.name || pid;
   const describe = (kind: Kind, id: string) => {
     if (kind === "point") return `Point ${nameOf(id)}`;

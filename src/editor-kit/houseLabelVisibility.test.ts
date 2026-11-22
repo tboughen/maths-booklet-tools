@@ -24,5 +24,12 @@ describe("What pupils see for house label states", () => {
     expect(withHouseVisibility(space, "show")).toEqual(l("symbol", "x", "40"));
     expect(withHouseVisibility(l("blank"), "hidden")).toMatch(/Type the answer first/);
     expect(withHouseVisibility(l("blank"), "show")).toMatch(/Type the size/);
+    // A plain letter is not an answer: no answer is invented, and Show brings back the letter.
+    expect(withHouseVisibility(l("symbol", "x"), "hidden")).toMatch(/answer for x/);
+    expect(withHouseVisibility(l("symbol", "x"), "omit")).toEqual(l("blank", "x"));
+    expect(withHouseVisibility(l("blank", "x"), "show")).toEqual(l("symbol", "x"));
+    // A letter with an answer cannot be left out without losing one of them.
+    expect(withHouseVisibility(l("symbol", "x", "40"), "omit")).toMatch(/Clear the answer first/);
+    expect(withHouseVisibility(l("hidden", "x", "40"), "omit")).toMatch(/Clear the answer first/);
   });
 });
