@@ -341,7 +341,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
         <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
         <button className="qb-button qb-primary" type="submit">Find</button>
       </form>
-      <PaperPicker catalogue={catalogue} current={route.paper} onOpen={id=>goPaper(id)}/>
+      <PaperPicker catalogue={catalogue} current={route.paper} onOpen={id=>id===route.paper?app.current?.querySelector<HTMLElement>(".qb-topic h1")?.focus():goPaper(id)}/>
       <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
       </div>
             </>}

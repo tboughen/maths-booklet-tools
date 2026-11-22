@@ -215,6 +215,6 @@ body { background: #f2f5f8; }
   font-size: 1.1rem;
   margin: 0 0 0.75rem;
 }
-.qb-paper-picker { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #213c59; }
+.qb-paper-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: #213c59; }
 .qb-paper-picker > span { white-space: nowrap; }
 .qb-app .qb-source-link { font-size: inherit !important; white-space: normal; padding: 0; color: #0f62fe; text-decoration: underline; text-underline-offset: 3px; }
