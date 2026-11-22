@@ -17,7 +17,6 @@ const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "figures", select: (page) => page.getByRole("button", { name: /^Select side AB / }).click() },
   { tool: "solids", select: (page) => page.getByRole("button", { name: /^Select length p1p2 / }).click() },
   { tool: "nets", select: (page) => page.getByRole("button", { name: "Edit face 1", exact: true }).click() },
-  { tool: "bubble-method", select: (page) => page.getByRole("button", { name: "Edit the left bubble of step 1", exact: true }).click() },
   { tool: "algebra-tiles", select: (page) => page.getByRole("button", { name: /^Edit the term 1/ }).first().click() },
   { tool: "written-method", select: (page) => page.getByRole("button", { name: "Edit the answer", exact: true }).click() },
   { tool: "construction", select: (page) => page.getByRole("button", { name: /^Select point / }).first().click() },

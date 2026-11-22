@@ -204,7 +204,7 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
@@ -213,6 +213,7 @@ const TREES: [string, string, string[], string[], number][] = [
   ["/tools/two-way-table", "What pupils see", ["What pupils see"], ["Totals", "Layout"], 2],
   ["/tools/probability-objects", "Objects", ["What pupils see"], ["Layout"], 2],
   ["/tools/function-machine", "Machines", ["What pupils see"], ["Work the machines out", "Layout"], 2],
+  ["/tools/bubble-method", "Steps", ["What pupils see"], ["Layout"], 2],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -241,7 +242,7 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
     // Some tools keep every field in a folded group: open one to measure it.
     if (path === "/tools/sample-space") await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
-    if (["/tools/two-way-table", "/tools/function-machine"].includes(path)) await page.getByRole("button", { name: "Layout", exact: true }).click();
+    if (["/tools/two-way-table", "/tools/function-machine", "/tools/bubble-method"].includes(path)) await page.getByRole("button", { name: "Layout", exact: true }).click();
     const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     // Every card in the one column folds (22 Nov 2026), so its headings are the fold rows' 15 px.
@@ -274,7 +275,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine"].includes(path) ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
@@ -874,7 +875,6 @@ const SAVED = "Print every saved answer on the pupil copy";
 const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
 const SHARED: [string, string, string, string[], string[], Extra?][] = [
   ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
-  ["Bubble method", "/tools/bubble-method", "Selected item", [], ["Steps"], { under: ["Layout"] }],
   ["Written methods", "/tools/written-method", "Selected row", [], ["Method", "Work the method out", "Layout"]],
   ["Angle diagrams", "/tools/angles", "Selected angle", [], ["Figure"], PRINT],
   ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
@@ -946,21 +946,24 @@ test("Spinners, dice and bags: each object is a named group, and Layout stays re
   expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
 });
 
-test("Bubble method: a tick sits beside its words, and Layout stays in view however many steps there are", async ({ page }) => {
+test("Bubble method: a tick sits beside its words, and Layout stays reachable however many steps there are", async ({ page }) => {
   // The tool once shared a class prefix with Bar modelling, whose label rule stacked every tick over its words.
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/bubble-method");
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
   const label = page.locator(".md-kit .panel-card label").filter({ hasText: "This working has a deliberate error" });
   expect(await label.evaluate((el) => getComputedStyle(el).flexDirection)).toBe("row");
   const tick = (await label.locator("input").boundingBox())!, whole = (await label.boundingBox())!;
   expect(Math.abs(tick.y + tick.height / 2 - (whole.y + whole.height / 2))).toBeLessThanOrEqual(1);
-  // The list of steps is the right column on its own, so it can grow without pushing another card away.
+  // One column (22 Nov 2026): the list of steps grows and pushes Layout down; the column scrolls, with a fade.
   const add = page.getByRole("button", { name: "Add a step", exact: true });
   while (await add.isEnabled()) await add.click();
   await expect(page.locator(".md-kit fieldset.md-kit-group")).toHaveCount(8);
   const layout = await chartCard(page, "Layout"), steps = await chartCard(page, "Steps");
-  expect(layout.x).toBeLessThan(steps.x);
-  expect(layout.y + layout.height).toBeLessThan(1080);
+  expect(Math.abs(layout.x - steps.x)).toBeLessThanOrEqual(1);
+  expect(layout.y).toBeGreaterThan(steps.y + steps.height);
+  const stack = page.locator(".inspector-stack.md-kit");
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
 });
 
 test("Algebra tiles, Function machines and Written methods still fit one screen when they are full", async ({ page }) => {

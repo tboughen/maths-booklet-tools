@@ -176,4 +176,12 @@ describe("bubble method", () => {
       expect(io.printFacts(e).referenceFeatures.textSizesPt.map(Math.round)).toEqual([11]);
     }
   });
+  it("leaves out an item in both copies, with no dotted line, and keeps a blank left out", () => {
+    let e = bm.setSlot(bm.create(), "first:rhs", { show: "omit" });
+    expect(bm.renderSvg(bm.forView(e, "answer", true))).not.toMatch(/>11</);
+    e = bm.setSlot(e, "first:rhs", { text: "" });
+    expect(e.document.first.rhs).toEqual({ text: "", show: "omit" });
+    const dots = (svg: string) => (svg.match(/stroke-dasharray/g) ?? []).length;
+    expect(dots(bm.renderSvg(e))).toBe(dots(bm.renderSvg(bm.setSlot(e, "first:rhs", { show: "show" }))) - 1);
+  });
 });
