@@ -44,7 +44,7 @@ describe("maths letters in the exam-style serif italic", () => {
     expect(titleWordRuns("Make *x* the subject", { bold: true }, true)).toContain('w:ascii="STIX Two Text"');
   });
   it("keeps the words naming an event inside P( ) upright", () => {
-    for (const s of ["P(not red) =", "P(red or blue) =", "P(red)=0.2", "P(red) = 0.2. Work out P(not red)."]) expect(typeset(s).some((r) => r.style === "maths")).toBe(false);
-    expect(typeset("2ab = 6").find((r) => r.text === "ab")?.style).toBe("maths");
+    for (const s of ["P(not red) =", "P(red or blue) =", "P(red)=0.2", "P(red) = 0.2. Work out P(not red).", "P(not red)=0.5", "P(**not** red) ="]) expect(typeset(s).some((r) => r.style === "maths")).toBe(false);
+    for (const s of ["2ab = 6", "P(not red)+ab=1", "Find P(red. Then ab = 3", "UP(ab+1)", "P(red) = 0.2 so ab = 3"]) expect(typeset(s).find((r) => r.text === "ab")?.style, s).toBe("maths");
   });
 });
