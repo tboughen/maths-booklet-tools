@@ -31,7 +31,6 @@ import {
   canonical,
   complete,
   forView,
-  hasHidden,
   isDivision,
   layout,
   MAX_DIGITS,
@@ -59,6 +58,15 @@ import { LINK_PREFIX, parseWrittenMethodLink, writtenMethodLink } from "./links"
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { LabelHit, PupilSpaceHint, QuickTip } from "../site/LabelTargets";
+import { useCoarsePointer, useQuickTip, useTargetReach } from "../site/labelTargetHooks";
+import { commonVisibility, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { FONT } from "../../packages/function-machine-core/src/maths-text";
+import { Calculator, Eye, Ruler, Wand2 } from "lucide-react";
 const STORAGE = copyStorageKey("maths-booklet-tools:written-method:v1");
 type Doc = Envelope["document"];
 /** Place-value column names for the small-digit inputs. */
@@ -118,6 +126,7 @@ function DraftField({
   className,
   inputMode,
   onFocus,
+  onHistory,
 }: {
   id?: string;
   label: string;
@@ -128,6 +137,8 @@ function DraftField({
   className?: string;
   inputMode?: "decimal" | "text";
   onFocus?: () => void;
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
@@ -163,11 +174,13 @@ function DraftField({
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -193,6 +206,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [decimals, setDecimals] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
@@ -211,6 +225,12 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
   const selectedWork = selected ? d.working.find((w) => w.id === selected) : undefined;
   const division = isDivision(d.method);
   const marksOf = (row: string) => d.marks.filter((m) => m.row === row);
+  const stackRef = useMoreBelow<HTMLElement>();
+  const quick = useQuickTip(),
+    tip = quick.tip;
+  const coarse = useCoarsePointer();
+  const reach = useTargetReach(g.hits, (96 / 25.4) * fitted.scale, coarse);
+  const spaceCount = [...rowValues(d), ...d.marks].filter((v) => v.show === "hidden").length;
   /** The columns a row's small digits can go in: every column of the method. */
   const columns = (row: string) => {
     const places = Array.from({ length: g.maxPlace - g.minPlace + 1 }, (_, i) => g.maxPlace - i);
@@ -273,14 +293,42 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
     if (n >= 0) return `number ${n + 1}`;
     return `working row ${d.working.findIndex((w) => w.id === row) + 1}`;
   };
-  function choose(row: string) {
+  function choose(row: string, anchor: HTMLElement) {
     setSelected(row);
-    requestAnimationFrame(() => {
-      const field = document.getElementById("wm-selected-value") as HTMLInputElement | null;
-      field?.focus();
-      field?.select();
+    setBoxAnchor(anchor);
+  }
+  /** What pupils see of one row: one undo step. A blank row is already a space for pupils. */
+  function setVisibility(row: string, v: Visibility) {
+    const l = rowValue(d, row);
+    if (blocked || !l || l.show === v) return;
+    if (v === "hidden" && !l.text) return setMessage("This row is a blank with no answer: pupils already see empty squares. Type its digits first.");
+    commit(() => setRow(e, row, { show: v }), visibilityStep(v, l.text || "blank row"));
+  }
+  type Kind = "numbers" | "working" | "answer" | "marks";
+  const itemsOf = (n: Doc, kind: Kind) =>
+    kind === "numbers"
+      ? n.numbers.map((x) => x.value)
+      : kind === "working"
+        ? n.working.map((w) => w.value)
+        : kind === "answer"
+          ? [n.answer, ...(n.remainder ? [n.remainder] : []), ...(n.extend.text ? [n.extend] : [])]
+          : n.marks;
+  /** Every item of one kind at once: one undo step. Blank rows stay blank spaces. */
+  function setKind(kind: Kind, v: Visibility) {
+    patch((n) => {
+      for (const x of itemsOf(n, kind)) x.show = v === "hidden" && !x.text ? "show" : v;
     });
   }
+  function clearSpaces() {
+    patch((n) => {
+      for (const x of [...rowValues(n), ...n.marks]) if (x.show === "hidden") x.show = "show";
+    });
+  }
+  // The box closes when its row goes (a removed row, a new method or diagram, or Reset).
+  const selectedDrawn = !!selectedValue;
+  useEffect(() => {
+    if (boxAnchor && (!selectedDrawn || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selectedDrawn]);
 
   // Autosave with protection for another tab's newer draft.
   useEffect(() => {
@@ -454,83 +502,54 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
                   <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
-                  {g.hits.map((h) => {
-                    const v = rowValue(d, h.row),
-                      hiddenHere = view === "pupil" && v?.show === "hidden";
+                  {g.hits.map((h, k) => {
+                    const v = rowValue(d, h.row);
+                    if (!v) return null;
                     return (
-                      <button
+                      <LabelHit
                         key={h.row}
-                        type="button"
-                        className={`pt-hit ${selected === h.row ? "pt-selected" : ""} ${hiddenHere ? "pt-hidden-answer" : ""}`}
-                        aria-label={`Edit ${rowName(h.row)}`}
-                        title={hiddenHere ? "Hidden answer (pupils fill this in)" : undefined}
+                        what={rowName(h.row)}
+                        state={v.show}
+                        text={v.text}
+                        selected={selected === h.row}
+                        boxOpen={boxAnchor !== null}
+                        pupilView={view === "pupil"}
+                        tipId="wm-quick-tip"
+                        tipShown={tip?.key === h.row}
+                        tipHandlers={quick.bind(h.row, v.show)}
                         disabled={blocked}
+                        coarse={coarse}
+                        reach={reach[k]}
+                        ghostFontPx={((FONT * 96) / 25.4) * fitted.scale}
                         style={{ left: px(h.x, g.width), top: px(h.y, g.height), width: px(h.width, g.width), height: px(h.height, g.height) }}
-                        onClick={() => choose(h.row)}
+                        onOpen={(anchor) => choose(h.row, anchor)}
+                        onVisibility={(nv) => setVisibility(h.row, nv)}
                       />
                     );
                   })}
+                  <QuickTip id="wm-quick-tip" tip={tip && !(boxAnchor && selected === tip.key) ? tip : null} />
                 </div>
-              </div>
-            </div>
-            <EditorFoot
-              zoom={zoom}
-              onZoom={setZoom}
-              scale={fitted.scale}
-              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
-              status={shownMessage}
-              hint={
-                <EditorHint tool="written-method">Click a row of digits to edit it and its small digits. Enter applies; Escape restores.</EditorHint>
-              }
-            ></EditorFoot>
-            {(issue || notes.length > 0) && (
-              <div className="pt-status" aria-live="polite">
-                {g.issues.map((x) => (
-                  <p key={x} className="pt-error" role="alert">
-                    {x}
-                  </p>
-                ))}
-                {notes.map((x) => (
-                  <p key={x}>Teacher note: {x}</p>
-                ))}
-              </div>
-            )}
-          </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Written method settings">
-            <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected row">
-              <h2>{selected && selectedValue ? `Selected: ${rowName(selected)}` : "Selected row"}</h2>
-              {selected && selectedValue ? (
-                <>
-                  <div className="pt-fields">
-                    <label>
-                      Digits
-                      <DraftField
-                        key={selected}
-                        id="wm-selected-value"
-                        label="Selected row"
-                        value={selectedValue.text}
-                        maxLength={MAX_DIGITS + 2}
-                        inputMode="decimal"
-                        disabled={blocked}
-                        onCommit={(v) => commit(() => setRow(e, selected, { text: v }))}
-                      />
-                    </label>
-                  </div>
-                  <label className="pt-hide" title="Hidden rows are saved answers; pupils see empty squares.">
-                    <input
-                      type="checkbox"
-                      disabled={blocked || !selectedValue.text}
-                      checked={selectedValue.show === "hidden"}
-                      onChange={(ev) => commit(() => setRow(e, selected, { show: ev.target.checked ? "hidden" : "show" }))}
-                    />
-                    Hide for pupils (keep as an answer)
-                  </label>
-                  {!selectedValue.text && <p className="pt-note">This row is blank for pupils. Enter its digits first to hide them as an answer.</p>}
+                {boxAnchor && selected && selectedValue && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={selected} focusField={!coarse} title={rowName(selected).replace(/^the /, "The ").replace(/^(number|working)/, (w) => w[0].toUpperCase() + w.slice(1))} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={selectedValue.show} disabled={blocked} onChange={(v) => setVisibility(selected, v)} />
+                    <div className="pt-fields">
+                      <label>
+                        Digits
+                        <DraftField
+                          key={selected}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Digits of ${rowName(selected)}`}
+                          value={selectedValue.text}
+                          maxLength={MAX_DIGITS + 2}
+                          inputMode="decimal"
+                          disabled={blocked}
+                          onCommit={(v) => commit(() => setRow(e, selected, { text: v }))}
+                        />
+                      </label>
+                    </div>
+                    {!selectedValue.text && <p className="pt-note">This row is a blank with no answer: pupils already see empty squares.</p>}
                   {selectedWork && (
-                    <div className="pt-row">
+                    <div className="md-options-actions">
                       <button type="button" disabled={blocked} onClick={() => commit(() => shiftRow(e, selected, 1), "move row left")}>
                         Move one column left
                       </button>
@@ -549,7 +568,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                     </div>
                   )}
                   {d.method === "add" && d.numbers.length > 2 && d.numbers.some((n) => n.id === selected) && (
-                    <div className="pt-row">
+                    <div className="md-options-actions">
                       <button
                         type="button"
                         disabled={blocked}
@@ -595,19 +614,19 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                           );
                         })}
                       </div>
-                      <label className="pt-hide">
-                        <input
-                          type="checkbox"
-                          disabled={blocked || marksOf(selected).length === 0}
-                          checked={marksOf(selected).length > 0 && marksOf(selected).every((m) => m.show === "hidden")}
-                          onChange={(ev) =>
+                      {marksOf(selected).length > 0 && (
+                        <VisibilitySwitch
+                          name="What pupils see of this row's small digits"
+                          caption="Its small digits"
+                          value={commonVisibility(marksOf(selected).map((m) => m.show)) ?? "mixed"}
+                          disabled={blocked}
+                          onChange={(v) =>
                             patch((n) => {
-                              for (const m of n.marks) if (m.row === selected) m.show = ev.target.checked ? "hidden" : "show";
+                              for (const m of n.marks) if (m.row === selected) m.show = v;
                             })
                           }
                         />
-                        Hide this row&apos;s small digits for pupils
-                      </label>
+                      )}
                       <p className="pt-note">
                         {d.numbers.some((n) => n.id === selected)
                           ? "On a number, a small digit sits before its digit, as a carried remainder or an exchanged ten. Cross out marks an exchange: the digit is struck through and the small digit is its new value."
@@ -615,28 +634,66 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                       </p>
                     </fieldset>
                   )}
-                </>
-              ) : (
-                <p className="pt-note">Click a row of digits to choose it: a number, a working row or the answer.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const v of [...rowValues(n), ...n.marks]) v.show = "show";
-                    })
-                  }
-                >
-                  Show all
-                </button>
+                  </OptionsBox>
+                )}
               </div>
-            </section>
             </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Method</h2>
+            <EditorFoot
+              zoom={zoom}
+              onZoom={setZoom}
+              scale={fitted.scale}
+              size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
+              status={shownMessage}
+              hint={
+                <EditorHint tool="written-method">Click a row of digits to type it and its small digits. Double-click it for a pupil space.</EditorHint>
+              }
+            ></EditorFoot>
+            {(issue || notes.length > 0) && (
+              <div className="pt-status" aria-live="polite">
+                {g.issues.map((x) => (
+                  <p key={x} className="pt-error" role="alert">
+                    {x}
+                  </p>
+                ))}
+                {notes.map((x) => (
+                  <p key={x}>Teacher note: {x}</p>
+                ))}
+              </div>
+            )}
+          </Panel>
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Written method settings">
+            <ReturnToDiagram />
+            {/* One column (the usability pilot, rolled out 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="written-method"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "Everything shows" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
+                <>
+                  <p className="pt-note">Pupil space: empty squares for pupils to fill in; the answers copy shows the digits. Leave out: nothing prints, in either copy.</p>
+                  <p className="pt-note">A blank row has no answer, and is always a space. A row&apos;s own options, its small digits among them, open when you click it.</p>
+                </>
+              }
+            >
+              {(["numbers", "working", "answer", "marks"] as const).map((kind) => {
+                const value = commonVisibility(itemsOf(d, kind).map((x) => x.show));
+                const name = { numbers: "Numbers", working: "Working rows", answer: "Answer", marks: "Small digits" }[kind];
+                return value ? <VisibilitySwitch key={kind} name={name} caption={name} value={value} disabled={blocked} onChange={(v) => setKind(kind, v)} /> : null;
+              })}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={clearSpaces}>
+                Double-click a row of digits for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard
+              tool="written-method"
+              title="Method"
+              icon={Calculator}
+              defaultOpen
+              summary={METHOD_NAMES[d.method]}
+              help={<p className="pt-note">Changing the method keeps the numbers and clears the working, answer and small digits. It can be undone.</p>}
+            >
               <div className="pt-fields">
                 <label>
                   Method
@@ -656,7 +713,6 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                   </select>
                 </label>
               </div>
-              <p className="pt-note">Changing the method keeps the numbers and clears the working, answer and small digits. It can be undone.</p>
               <div className="pt-row">
                 {d.method === "add" && (
                   <button type="button" disabled={blocked || d.numbers.length >= 4} onClick={() => commit(() => addNumber(e), "add number")}>
@@ -675,13 +731,19 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                   Space for a remainder (r …) after the answer
                 </label>
               )}
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Work the method out</h2>
-              <p className="pt-note">
-                Work out fills the answer, the working rows and the small digits from the numbers. What you entered is kept. Nothing
-                happens until you press the button, and it can be undone.
-              </p>
+            </FoldCard>
+            <FoldCard
+              tool="written-method"
+              title="Work the method out"
+              icon={Wand2}
+              summary={hideFilled ? "Fills blanks as pupil spaces" : "Fills blanks for pupils to see"}
+              help={
+                <p className="pt-note">
+                  Work out fills the answer, the working rows and the small digits from the numbers. What you entered is kept. Nothing
+                  happens until you press the button, and it can be undone.
+                </p>
+              }
+            >
               {division && (
                 <label className="pt-hide">
                   <input type="checkbox" disabled={blocked} checked={decimals} onChange={(ev) => setDecimals(ev.target.checked)} />
@@ -690,7 +752,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
               )}
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={hideFilled} onChange={(ev) => setHideFilled(ev.target.checked)} />
-                Hide what it fills (keep as answers)
+                Make what it fills pupil spaces
               </label>
               <div className="pt-row">
                 <button
@@ -709,9 +771,25 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                   Work out
                 </button>
               </div>
-            </section>
-            <section className="panel-card pt-panel">
-              <h2>Layout</h2>
+            </FoldCard>
+            <FoldCard
+              tool="written-method"
+              title="Layout"
+              icon={Ruler}
+              summary={`${d.cellMm} mm squares${d.lines === "bold" ? " · bold lines" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    Digits line up by place value, and decimals line up on the point. An answer that does not follow adds a teacher note;
+                    it is never corrected for you.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown under the method; preview zoom never changes it. Download PNG (600 ppi) if
+                    your browser blocks copying.
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Squares
@@ -738,20 +816,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
                 <input type="checkbox" disabled={blocked} checked={d.intentionalError} onChange={(ev) => patch((n) => void (n.intentionalError = ev.target.checked))} />
                 This method has a deliberate error
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  Click a row to edit its digits and small digits. Enter applies; Escape restores. Digits line up by place value, and
-                  decimals line up on the point. An answer that does not follow adds a teacher note; it is never corrected for you.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown under the method; preview zoom never changes it. Download PNG (600 ppi) if
-                  your browser blocks copying.
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (
@@ -804,6 +869,7 @@ export default function WrittenMethodPage({ active = true }: { active?: boolean 
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
+              setBoxAnchor(null);
               setView("pupil");
             }}
           >

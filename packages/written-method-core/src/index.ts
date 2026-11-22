@@ -33,7 +33,8 @@ export const MAX_MARKS = 60;
 export const MAX_PLACES = 6;
 export const ANSWER_COLOUR = "#b0125b";
 
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out, 22 Nov 2026) keeps the value but prints nothing in either copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const valueSchema = z.object({ text: z.string().max(MAX_DIGITS + 2), show }).strict();
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,23}$/);
 export const numberSchema = z.object({ id, value: valueSchema }).strict();
@@ -248,7 +249,8 @@ export function setRow(e: Envelope, rowId: string, change: { text?: string; show
   if (!v) throw Error(`There is no row ${rowId}.`);
   if (change.text !== undefined) v.text = change.text.trim();
   if (!v.text && change.show === "hidden") throw Error("A blank row cannot hold a hidden answer. Enter the answer, then hide it.");
-  v.show = v.text ? (change.show ?? v.show) : "show";
+  // A blank row keeps a chosen state (show or left out); an emptied hidden row becomes a plain blank.
+  v.show = change.show ?? (!v.text && v.show === "hidden" ? "show" : v.show);
   return validate(n);
 }
 export function setRemainder(e: Envelope, on: boolean): Envelope {
@@ -495,7 +497,8 @@ export function complete(e: Envelope, hidden = true, decimals = false): { envelo
   const put = (v: Value, text: string) => {
     if (v.text) return;
     v.text = text;
-    v.show = visibility;
+    // A left-out blank stays left out once filled.
+    v.show = v.show === "omit" ? "omit" : visibility;
     filled++;
   };
   if (fill.extend !== undefined && fill.extend !== d.extend.text && !d.extend.text) put(d.extend, fill.extend);
@@ -567,6 +570,8 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   if (view === "pupil") return e;
   const n = clone(e);
   for (const v of [...rowValues(n.document), ...n.document.marks]) {
+    // A left-out row or small digit stays out of the teacher copy too.
+    if (v.show === "omit") continue;
     if (mark && v.show === "hidden" && ("place" in v || v.text)) REVEALED.add(v);
     v.show = "show";
   }
