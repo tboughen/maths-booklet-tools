@@ -68,7 +68,12 @@ import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { parseTriangleLink, triangleEditorLink } from "./links";
-import { TriangleFloatingEditor } from "./TriangleFloatingEditor";
+import { OptionsBox } from "../site/OptionsBox";
+import { Eye, GraduationCap, Ruler, Triangle } from "lucide-react";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { FoldCard } from "../site/CardHelp";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
 import { TriangleLabelFields } from "./TriangleLabelFields";
 import { housePreference, setLines } from "../site/houseStyle";
 import {
@@ -89,6 +94,8 @@ import {
   labelDraft,
   applyLabelDraft,
   type LabelDraft as Draft,
+  seesOfLabel,
+  stateFor,
 } from "./labelDraft";
 import { MathsPanel } from "./MathsPanel";
 import { ConstructionPanel } from "./ConstructionPanel";
@@ -263,6 +270,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     handledTouchHistory = useRef<number | null>(null),
     structureControls = useRef<HTMLDivElement>(null),
     draftRef = useRef(draft),
+    draftDirty = useRef(false),
+    reverting = useRef(false),
+    commitSoon = useRef(false),
     committed = useRef(startup.e),
     linkSeen = useRef(""),
     linkPending = useRef(false),
@@ -282,8 +292,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     display = structurePreview ?? dragged ?? e,
     g = layout(display, showAnswers),
     exportMetrics = layout(e),
+    // A label in its box commits as it goes; only a refused one is still pending.
+    labelPending = draft !== null && draftError !== "",
     pendingInput =
-      draft !== null || widthDraft !== null || positionDraft !== null,
+      labelPending || widthDraft !== null || positionDraft !== null,
     labelBlocked =
       busy ||
       recovery !== null ||
@@ -293,7 +305,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       recoveryConfirm ||
       dragged !== null ||
       structure !== null,
-    blocked = labelBlocked || draft !== null;
+    blocked = labelBlocked || labelPending;
   committed.current = e;
   const viewScale =
       zoom === "fit"
@@ -308,6 +320,19 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         : Number(zoom),
     px = (96 / 25.4) * viewScale;
   const labels = allLabels(e),
+    seenGroups = (
+      [
+        ["Side lengths", "edge"],
+        ["Angles", "angle"],
+        ["Vertex names", "vertex"],
+        ["Heights", "height"],
+        ["Areas", "area"],
+      ] as const
+    )
+      .map(([group, kind]) => [group, labels.filter((l) => l.kind === kind).map((l) => l.ref)] as const)
+      .filter(([, refs]) => refs.length),
+    spaces = labels.filter((l) => l.kind !== "caption" && seesOfLabel(l.label) === "hidden").map((l) => l.ref),
+    seenSummary = spaces.length ? `${spaces.length} pupil ${spaces.length === 1 ? "space" : "spaces"}` : "Every label shows",
     chosen = labels.find((v) => v.ref === selected),
     selectedLabel = chosen?.label,
     t = d.triangles.find((t) => t.id === triangleId) ?? d.triangles[0],
@@ -352,7 +377,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   function choose(refs: string[], edit = false) {
     if (blocked && (!edit || labelBlocked)) return;
     if (edit && refs.length === 1 && draftRef.current?.ref === refs[0]) return;
-    if (edit && draftRef.current && !applyDraft()) return;
+    if (edit && draftRef.current && !liveApply()) return;
     if (refs.length > 1) {
       setChoices(refs);
       setEditChoice(edit);
@@ -435,7 +460,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     let source = committed.current;
     if (draftRef.current) {
       if (draftRef.current.ref === ref) return;
-      const next = applyDraft();
+      const next = liveApply();
       if (!next) return;
       source = next;
     }
@@ -446,20 +471,78 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     setSelected(ref);
     setChoices([]);
   }
-  function applyDraft(): Envelope | null {
+  /** The box is live: a change commits as one undo step (a choice at once, typing on Enter or leaving the field).
+   * A refused change keeps the box open with its error, and nothing else can change until it is fixed or put back. */
+  function liveApply(): Envelope | null {
     const current = draftRef.current;
     if (!current || recovery !== null) return null;
     try {
-      const n = applyLabelDraft(committed.current, current);
-      commit(n);
-      closeDraft();
-      return n;
+      const before = committed.current,
+        n = applyLabelDraft(before, current);
+      if (canonical(n) !== canonical(before))
+        commit(n, `edit ${refName(n, current.ref).toLowerCase()}`);
+      const fresh = labelDraft(committed.current, current.ref);
+      draftRef.current = fresh;
+      setDraft(fresh);
+      draftDirty.current = false;
+      setDraftError("");
+      return committed.current;
     } catch (err) {
       setDraftError(errorText(err));
       return null;
     }
   }
+  // The box follows the document: an undo or a change elsewhere shows in it (a refused or unfinished change stays).
+  useEffect(() => {
+    const current = draftRef.current;
+    if (!current || draftDirty.current) return;
+    let fresh: Draft;
+    try {
+      fresh = labelDraft(e, current.ref);
+    } catch {
+      closeDraft();
+      return;
+    }
+    if (JSON.stringify(fresh) !== JSON.stringify(current)) {
+      draftRef.current = fresh;
+      setDraft(fresh);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the document changes
+  }, [e]);
+  useEffect(() => {
+    if (!commitSoon.current) return;
+    commitSoon.current = false;
+    liveApply();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when a choice in the box changes the draft
+  }, [draft]);
+  /** What pupils see of some labels, as one undo step: the settings' group switches and a double-click. */
+  function setSees(refs: string[], v: Visibility, what: string) {
+    if (labelBlocked || labelPending || !refs.length) return;
+    let n = committed.current;
+    for (const ref of refs) {
+      const l = getLabel(n, ref);
+      const state = stateFor(ref, l, v);
+      n = editLabel(n, ref, { state, ...(state === "symbol" && !l.text && !l.shared ? { text: "x" } : {}) });
+    }
+    if (canonical(n) !== canonical(committed.current)) commit(n, visibilityStep(v, what));
+  }
+  /** Double-click: a pupil space, and again back to the value. */
+  function toggleSees(ref: string) {
+    const now = seesOfLabel(getLabel(committed.current, ref));
+    setSees([ref], togglePupilSpace(now), refName(committed.current, ref).toLowerCase());
+  }
+  /** Escape: the box's typing is put back, nothing committed. */
+  function revertDraft() {
+    const current = draftRef.current;
+    if (!current) return;
+    const fresh = labelDraft(committed.current, current.ref);
+    draftRef.current = fresh;
+    setDraft(fresh);
+    draftDirty.current = false;
+    setDraftError("");
+  }
   function updateDraft(update: Partial<Draft>) {
+    draftDirty.current = true;
     setDraft((old) => {
       if (!old) return old;
       const n = { ...old, ...update };
@@ -652,11 +735,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               ?.focus(),
           );
         }
-        return;
-      }
-      if (event.key === "Escape" && draftRef.current) {
-        event.preventDefault();
-        closeDraft();
         return;
       }
       if (
@@ -956,7 +1034,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   ref={resource}
                   style={{ width: g.width * px, height: g.height * px }}
                   onClick={(event) => {
-                    if (event.target === event.currentTarget && !draft)
+                    if (event.target === event.currentTarget && !labelPending)
                       setSelected(null);
                   }}
                 >
@@ -1047,6 +1125,11 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                               (hoverAngle === ref ? " tr-angle-active" : "")
                             }
                             data-tr-anchor={ref}
+                            data-options-anchor
+                            onDoubleClick={(ev) => {
+                              ev.stopPropagation();
+                              toggleSees(ref);
+                            }}
                             role="button"
                             tabIndex={labelBlocked ? -1 : 0}
                             aria-label={"Edit " + refName(e, ref).toLowerCase()}
@@ -1082,7 +1165,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                             }}
                           >
                             <title>
-                              {refName(e, ref)}: click to edit angle
+                              {`${refName(e, ref)}: ${seesOfLabel(a.label) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}`}
                             </title>
                           </polygon>
                         );
@@ -1118,8 +1201,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                             height: a.h * px,
                           }}
                           data-tr-anchor={a.ref}
+                          data-options-anchor
                           aria-label={`Edit ${refName(display, a.ref).toLowerCase()}`}
-                          title={`${refName(display, a.ref)}: click to edit, drag to move label`}
+                          title={`${refName(display, a.ref)}: ${seesOfLabel(getLabel(display, a.ref)) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP} · drag to move`}
+                          onDoubleClick={() => toggleSees(a.ref)}
                           disabled={labelBlocked && !drag.current}
                           onClick={(event) => {
                             if (suppressClick.current) {
@@ -1191,6 +1276,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                             }
                             style={{ left: p.x * px, top: p.y * px }}
                             data-tr-anchor={ref}
+                            data-options-anchor
                             aria-label={"Add " + refName(e, ref).toLowerCase()}
                             title={refName(e, ref)}
                             disabled={labelBlocked}
@@ -1508,7 +1594,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             {pendingInput && (
               <div className="tr-banner" role="status">
                 Finish the pending{" "}
-                {draft
+                {labelPending
                   ? "label"
                   : widthDraft !== null
                     ? "print width"
@@ -1563,14 +1649,25 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               </section>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Triangle settings">
+          <aside className="inspector-stack md-kit md-kit--one" aria-label="Triangle settings">
             <ReturnToDiagram />
-            {/* Two columns in a wide window: what is selected on the left, with the box that edits a label over it,
-                and the worked version, a new triangle and the print size on the right. More tools and the help
-                come last, under the left column. */}
-            <div className="md-kit-cards">
+            {/* One column (the usability pilot): what pupils see, the selected object, then the rarer groups folded.
+                A label's own options open in a box beside the drawing. */}
+            <div className="tr-cards">
             <div>
-            <div className="tr-label-editor-slot" />
+            <FoldCard tool="triangle" title="What pupils see" icon={Eye} defaultOpen summary={seenSummary} help="Each label prints its value, a pupil space or nothing. Click a label on the drawing for its own choice.">
+              {seenGroups.map(([group, refs]) => (
+                <VisibilitySwitch
+                  key={group}
+                  name={group}
+                  caption={group}
+                  disabled={blocked}
+                  value={commonVisibility(refs.map((r) => seesOfLabel(getLabel(e, r)))) ?? "show"}
+                  onChange={(v) => setSees(refs, v, group.toLowerCase())}
+                />
+              ))}
+              <PupilSpaceHint count={spaces.length} disabled={blocked} onClear={() => setSees(spaces, "show", "pupil spaces")} />
+            </FoldCard>
             <section className="panel-card tr-panel">
               <h2>Selected object</h2>
               <label>
@@ -2194,8 +2291,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             )}
             </div>
             <div>
-            <section className="panel-card tr-card" aria-labelledby="tr-card-worked">
-              <h2 id="tr-card-worked">Worked version</h2>
+            <FoldCard tool="triangle" title="Worked version" icon={GraduationCap} summary={hasSavedAnswer ? "Saved answers ready" : "No saved answers yet"}>
               <div className="tr-section-body">
                 <p className="tr-note">
                   Replace this triangle with its worked version, with every saved
@@ -2216,9 +2312,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   </p>
                 )}
               </div>
-            </section>
-            <section className="panel-card tr-card" aria-labelledby="tr-card-start">
-              <h2 id="tr-card-start">Start a new triangle</h2>
+            </FoldCard>
+            <FoldCard tool="triangle" title="Start a new triangle" icon={Triangle} defaultOpen summary="Right-angled, scalene, isosceles or equilateral">
               <div className="tr-section-body">
                 <p className="tr-note">Start a new blank triangle:</p>
                 <div className="tr-two">
@@ -2245,9 +2340,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   ))}
                 </div>
               </div>
-            </section>
-            <section className="panel-card tr-card" aria-labelledby="tr-card-print">
-              <h2 id="tr-card-print">Print size</h2>
+            </FoldCard>
+            <FoldCard tool="triangle" title="Print size" icon={Ruler} summary={`${d.widthCm} cm wide · ${d.fontPt} pt`}>
               <div className="tr-section-body">
                 <label>
                   Print width (cm)
@@ -2351,7 +2445,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   </p>
                 )}
               </div>
-            </section>
+            </FoldCard>
             </div>
             <div>
             <section className="panel-card tr-more">
@@ -2491,15 +2585,57 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
           </RatioDialog>
         )}
         {draft && (
-          <TriangleFloatingEditor
-            anchor={draft.ref}
-            title={`Edit ${refName(e, draft.ref)}`}
-            active={active}
+          <OptionsBox
+            anchor={document.querySelector<HTMLElement>(`[data-tr-anchor="${draft.ref}"]`)}
+            anchorKey={draft.ref}
+            focusField={!coarse?.matches}
+            bounds={document.querySelector<HTMLElement>(".editor-card")}
+            placeBy={resource.current}
+            hidden={!active}
+            title={refName(e, draft.ref)}
+            onClose={(how) => {
+              // A refused change keeps its box until it is fixed or put back with Escape.
+              if (how === "escape") revertDraft();
+              else if (draftDirty.current && !liveApply()) return;
+              closeDraft();
+            }}
           >
             <form
+              className="tr-box"
               onSubmit={(ev) => {
                 ev.preventDefault();
-                applyDraft();
+                liveApply();
+              }}
+              onChange={(ev) => {
+                const t = ev.target as unknown as HTMLInputElement;
+                // A choice commits at once; typing waits for Enter or for the field to be left.
+                if (t.type === "radio" || t.type === "checkbox" || t.tagName === "SELECT") commitSoon.current = true;
+              }}
+              onClickCapture={(ev) => {
+                if ((ev.target as Element).closest("[data-visibility]")) commitSoon.current = true;
+              }}
+              onBlur={(ev) => {
+                const t = ev.target as unknown as HTMLInputElement;
+                if (t.tagName !== "INPUT" || t.type === "radio" || t.type === "checkbox") return;
+                if (reverting.current) {
+                  reverting.current = false;
+                  return;
+                }
+                if (draftDirty.current) liveApply();
+              }}
+              onKeyDown={(ev) => {
+                const t = ev.target as unknown as HTMLInputElement;
+                const typing = t.tagName === "INPUT" && t.type !== "radio" && t.type !== "checkbox";
+                // Enter commits the typing (the form has no submit button, so the browser would not).
+                if (ev.key === "Enter" && typing) {
+                  ev.preventDefault();
+                  liveApply();
+                  return;
+                }
+                if (ev.key !== "Escape" || !draftDirty.current) return;
+                // The field about to lose focus must not commit what Escape put back.
+                reverting.current = typing;
+                revertDraft();
               }}
             >
               <div className="tr-draft-body">
@@ -2531,7 +2667,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                         delete n.document.triangles.find(
                           (t) => "r:" + t.id === draft.ref,
                         )!.area;
-                        commit(n);
+                        commit(n, "remove area label");
                         closeDraft();
                         setSelected(null);
                       }}
@@ -2545,16 +2681,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   </p>
                 )}
               </div>
-              <div className="tr-two tr-draft-actions">
-                <button type="submit" className="tr-primary">
-                  Apply label
-                </button>
-                <button type="button" onClick={closeDraft}>
-                  Cancel label
-                </button>
-              </div>
             </form>
-          </TriangleFloatingEditor>
+          </OptionsBox>
         )}
       </main>
     </div>

@@ -11,6 +11,7 @@ import {
   type Envelope,
   type Label,
 } from "../../packages/triangle-core/src";
+import type { Visibility } from "../editor-kit/visibility";
 
 export type LabelDraft = {
   ref: string;
@@ -42,6 +43,21 @@ export function labelDraft(e: Envelope, ref: string): LabelDraft {
     footName:
       kind === "h" ? e.document.heights.find((h) => h.id === id)!.footName : "",
   };
+}
+
+/** What pupils see of a triangle label (the usability pilot's three words): a given or an unknown shows; a blank
+ * or an answer line is a pupil space; a hidden label is left out. */
+export const seesOfLabel = (l: Label): Visibility =>
+  l.state === "hidden" ? "omit" : l.state === "blank" || l.state === "answer-line" ? "hidden" : "show";
+// This session's last state of each kind for a label, so Show after a pupil space brings back an unknown x, and a
+// pupil space after Show brings back its answer line.
+const lastState = new Map<string, Label["state"]>();
+/** The saved state for a new choice of what pupils see. */
+export function stateFor(ref: string, l: Label, v: Visibility): Label["state"] {
+  const now = seesOfLabel(l);
+  if (now === v) return l.state;
+  lastState.set(`${ref}:${now}`, l.state);
+  return v === "omit" ? "hidden" : (lastState.get(`${ref}:${v}`) ?? (v === "show" ? "value" : "blank"));
 }
 
 export function labelState(

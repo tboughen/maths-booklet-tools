@@ -1,19 +1,15 @@
 import { useId } from "react";
 import {
+  getLabel,
+  textOf,
   isStale,
   type Envelope,
   type Label,
 } from "../../packages/triangle-core/src";
-import { canMarkRight, labelState, type LabelDraft } from "./labelDraft";
+import { canMarkRight, labelState, seesOfLabel, stateFor, type LabelDraft } from "./labelDraft";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
 
 type Choice = { value: string; label: string; disabled?: boolean };
-const states: Choice[] = [
-  { value: "value", label: "Given / expression" },
-  { value: "symbol", label: "Unknown (x)" },
-  { value: "blank", label: "Blank" },
-  { value: "answer-line", label: "Answer line" },
-  { value: "hidden", label: "Hidden" },
-];
 
 export function TriangleChoices({
   legend,
@@ -49,6 +45,14 @@ export function TriangleChoices({
   );
 }
 
+function savedText(e: Envelope, ref: string) {
+  try {
+    return textOf(e, getLabel(e, ref));
+  } catch {
+    return ""; // an area label not made yet
+  }
+}
+
 export function TriangleLabelFields({
   e,
   draft,
@@ -69,22 +73,70 @@ export function TriangleLabelFields({
     right = canMarkRight(e, draft.ref),
     patch = (change: Partial<Label>) =>
       update({ value: { ...draft.value, ...change } });
+  const sees = seesOfLabel(draft.value),
+    blankHeld = !!draft.value.answer || savedText(e, draft.ref) !== "";
   const display = (
     <>
-      <TriangleChoices
-        legend="Label display"
-        value={draft.value.state}
-        options={states}
-        onChange={(state) => update(labelState(draft, state as Label["state"]))}
+      <VisibilitySwitch
+        name="What pupils see"
+        caption="What pupils see"
+        value={sees}
+        help={{ omit: "Nothing prints on the pupil copy. A saved answer still prints in the answers copy." }}
+        onChange={(v) => update(labelState(draft, stateFor(draft.ref, draft.value, v)))}
       />
-      <p className="tr-note">
-        Blank leaves an editable position. Hidden keeps the saved text without
-        printing its label.
-      </p>
+      {sees === "show" && !vertex && (
+        <TriangleChoices
+          legend="Shows"
+          value={draft.value.state}
+          options={[
+            { value: "value", label: "Given / expression" },
+            { value: "symbol", label: "Unknown (x)" },
+          ]}
+          onChange={(state) => update(labelState(draft, state as Label["state"]))}
+        />
+      )}
+      {sees === "hidden" && (
+        <label className="tr-check">
+          <input
+            type="checkbox"
+            checked={draft.value.state === "answer-line"}
+            onChange={(ev) => update(labelState(draft, ev.target.checked ? "answer-line" : "blank"))}
+          />{" "}
+          On an answer line
+        </label>
+      )}
     </>
   );
   return (
     <>
+      <label>
+        {vertex
+          ? "Vertex name"
+          : draft.value.shared
+            ? "Linked label text"
+            : draft.value.state === "symbol"
+              ? "Unknown symbol"
+              : draft.value.state === "value"
+                ? "Value / expression"
+                : "Label text"}
+        <input
+          data-tr-label-text
+          autoComplete="off"
+          value={draft.text}
+          maxLength={vertex ? 8 : caption ? 120 : 40}
+          onChange={(ev) =>
+            update({
+              text: ev.target.value,
+              // A label with nothing in it yet shows what is typed; a pupil space that holds a value stays one.
+              value: {
+                ...draft.value,
+                state: draft.value.state === "blank" && !blankHeld && ev.target.value ? "value" : draft.value.state,
+              },
+            })
+          }
+        />
+      </label>
+      {display}
       {angle && (
         <>
           <TriangleChoices
@@ -105,51 +157,6 @@ export function TriangleLabelFields({
               Shape locks first.
             </p>
           )}
-        </>
-      )}
-      {!vertex && display}
-      <label>
-        {vertex
-          ? "Vertex name"
-          : draft.value.shared
-            ? "Linked label text"
-            : draft.value.state === "symbol"
-              ? "Unknown symbol"
-              : draft.value.state === "value"
-                ? "Value / expression"
-                : "Label text"}
-        <input
-          data-tr-label-text
-          autoComplete="off"
-          value={draft.text}
-          maxLength={vertex ? 8 : caption ? 120 : 40}
-          onChange={(ev) =>
-            update({
-              text: ev.target.value,
-              value: {
-                ...draft.value,
-                state:
-                  draft.value.state === "blank" && ev.target.value
-                    ? "value"
-                    : draft.value.state,
-              },
-            })
-          }
-        />
-      </label>
-      {vertex && (
-        <>
-          {draft.value.state !== "value" && (
-            <p className="tr-note">
-              Name display:{" "}
-              {states.find((s) => s.value === draft.value.state)?.label}. Change
-              it in More label options.
-            </p>
-          )}
-          <details className="tr-inner-section">
-            <summary>More label options</summary>
-            {display}
-          </details>
         </>
       )}
       {!vertex && (

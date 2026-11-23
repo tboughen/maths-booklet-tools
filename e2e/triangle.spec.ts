@@ -34,6 +34,10 @@ const report = resolve(
   staging = join(tmpdir(), "mathsdock-triangle-imports");
 const pageErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
+  // The settings column folds its rarer cards; these tests use them, so they start open.
+  await page.addInitScript(() => {
+    for (const t of ["Worked version", "Print size"]) localStorage.setItem(`mathsdock:fold:triangle:${t}`, "open");
+  });
   const errors: string[] = [];
   pageErrors.set(page, errors);
   page.on("pageerror", (e) => errors.push(e.message));
@@ -86,28 +90,52 @@ async function edit(page: Page, ref: string, text: string, state?: string) {
       exact: true,
     })
     .fill(text);
+  await page.locator(".md-options-box [data-tr-label-text]").press("Enter");
   if (state)
-    await page
-      .getByRole("group", { name: "Label display", exact: true })
-      .getByRole("radio", {
-        name: {
-          value: "Given / expression",
-          symbol: "Unknown (x)",
-          blank: "Blank",
-          "answer-line": "Answer line",
-          hidden: "Hidden",
-        }[state],
-        exact: true,
-      })
-      .check();
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
-  await expect(page.locator(".tr-floating")).toHaveCount(0);
+    await display(page, {
+      value: "Given / expression",
+      symbol: "Unknown (x)",
+      blank: "Blank",
+      "answer-line": "Answer line",
+      hidden: "Hidden",
+    }[state]!);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
+}
+/** The label box is live: Enter commits the typing; Escape then closes it. A refused value keeps the box open. */
+async function applyLabel(page: Page) {
+  const box = page.locator(".md-options-box"),
+    field = box.locator("[data-tr-label-text]");
+  await field.press("Enter");
+  if (await box.getByRole("alert").count()) return;
+  await field.press("Escape");
+  await expect(box).toHaveCount(0);
+}
+/** Escape puts back what was typed (a choice made in the box has already committed) and closes the box. */
+async function cancelLabel(page: Page) {
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
+}
+/** The old five label displays, as the box's What pupils see switch and its follow-up choice. */
+async function display(page: Page, name: string) {
+  const box = page.locator(".md-options-box"),
+    sees = box.getByRole("group", { name: "What pupils see", exact: true });
+  if (name === "Hidden") return sees.getByRole("button", { name: "Leave out", exact: true }).click();
+  if (name === "Blank" || name === "Answer line") {
+    await sees.getByRole("button", { name: "Pupil space", exact: true }).click();
+    return box.getByLabel("On an answer line", { exact: true }).setChecked(name === "Answer line");
+  }
+  await sees.getByRole("button", { name: "Show", exact: true }).click();
+  const shows = box.getByRole("group", { name: "Shows", exact: true });
+  // A vertex name has no Shows choice.
+  await shows.waitFor({ timeout: 1500 }).catch(() => {});
+  if (await shows.count()) await shows.getByRole("radio", { name, exact: true }).check();
 }
 async function section(page: Page, title: string) {
   if (["Calculate a value", "Construct from measurements"].includes(title))
     await section(page, "More tools");
   // U20: common settings are open cards with a heading; rarer ones stay folded.
-  const card = page.locator(`section.tr-card:has(> h2:text-is("${title}"))`);
+  const card = page.locator(`section.md-fold[aria-label="${title}"]`);
   const item = page.locator(
     `details.tr-section:has(> summary:text-is("${title}"))`,
   );
@@ -157,7 +185,7 @@ test("the angle-control overlay is a named group whose edit targets stay reachab
   await expect(targets.first()).toBeFocused();
 });
 
-test("direct edits, symbols, explicit Apply, cancel, history and reload", async ({
+test("direct edits, symbols, live box, Escape, history and reload", async ({
   page,
 }) => {
   await boot(page);
@@ -165,20 +193,19 @@ test("direct edits, symbols, explicit Apply, cancel, history and reload", async 
   await edit(page, "e:AC", "8");
   await edit(page, "e:BC", "x", "symbol");
   const original = canonical(await saved(page));
+  // Escape puts typing back and closes the box.
   await page.locator('[data-tr-anchor="e:AB"]').click();
   await page.locator("[data-tr-label-text]").fill("7");
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await cancelLabel(page);
   expect(canonical(await saved(page))).toBe(original);
+  // Leaving the field commits, as one undo step; the box stays open.
   await page.locator('[data-tr-anchor="e:AB"]').click();
   await page.locator("[data-tr-label-text]").fill("9");
   await page.getByLabel("Preview zoom").focus();
-  await expect(page.locator(".tr-floating")).toHaveCount(1);
-  expect(canonical(await saved(page))).toBe(original);
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
-  await expect(page.locator(".tr-floating")).toHaveCount(0);
-  expect(
-    (await saved(page)).document.edges.find((e) => e.id === "AB")!.label.text,
-  ).toBe("9");
+  await expect(page.locator(".md-options-box")).toHaveCount(1);
+  await expect
+    .poll(async () => (await saved(page)).document.edges.find((e) => e.id === "AB")!.label.text)
+    .toBe("9");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(canonical(await saved(page))).toBe(original);
   await page.getByRole("button", { name: "Redo", exact: true }).click();
@@ -187,13 +214,30 @@ test("direct edits, symbols, explicit Apply, cancel, history and reload", async 
     page.locator('.tr-art [data-triangle-label="e:AB"]'),
   ).toContainText("9 cm");
 });
+test("double-click gives a pupil space and back; What pupils see sets a whole group", async ({ page }) => {
+  await boot(page);
+  await edit(page, "e:AB", "6");
+  const ab = page.locator('.tr-hit[data-tr-anchor="e:AB"]');
+  await ab.dblclick();
+  await expect.poll(async () => (await saved(page)).document.edges.find((e) => e.id === "AB")!.label.state).toBe("blank");
+  await expect(page.locator('.tr-art [data-triangle-label="e:AB"]')).toHaveCount(0);
+  await ab.dblclick();
+  await expect.poll(async () => (await saved(page)).document.edges.find((e) => e.id === "AB")!.label.state).toBe("value");
+  expect((await saved(page)).document.edges.find((e) => e.id === "AB")!.label.text).toBe("6");
+  await page.keyboard.press("Escape");
+  const sides = page.getByRole("group", { name: "Side lengths", exact: true });
+  await sides.getByRole("button", { name: "Leave out", exact: true }).click();
+  expect((await saved(page)).document.edges.every((e) => e.label.state === "hidden")).toBe(true);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect((await saved(page)).document.edges.find((e) => e.id === "AB")!.label.state).toBe("value");
+});
 test("invalid draft stays available, guards actions, and is inert while another tool is active", async ({
   page,
 }) => {
   await boot(page);
   await page.locator('[data-tr-anchor="e:AB"]').click();
   await page.locator("[data-tr-label-text]").fill("1/0");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await page.locator("[data-tr-label-text]").press("Enter");
   await expect(page.getByRole("alert")).toContainText(/zero/);
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
@@ -201,14 +245,18 @@ test("invalid draft stays available, guards actions, and is inert while another 
   await expect(
     page.getByRole("button", { name: "File", exact: true }),
   ).toBeDisabled();
+  // A press elsewhere keeps a refused value's box.
+  await page.locator(".tr-resource").click({ position: { x: 2, y: 2 } });
+  await expect(page.locator(".md-options-box")).toHaveCount(1);
   await switchTool(page, "Graph tool");
-  await expect(page.locator(".tr-floating")).toBeHidden();
+  await expect(page.locator(".md-options-box")).toBeHidden();
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await switchTool(page, "Triangles");
   await expect(page.locator("[data-tr-label-text]")).toHaveValue("1/0");
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await page.locator("[data-tr-label-text]").press("Escape");
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
   expect((await saved(page)).document.edges[0].label.state).toBe("blank");
 });
 for (const ex of examples)
@@ -485,7 +533,7 @@ test("split symbol editing updates both copies and preserves stable angle anchor
     .getByRole("button", { name: "Edit selected label", exact: true })
     .click();
   await page.getByLabel("Linked label text", { exact: true }).fill("θ");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   await expect(page.locator(".tr-art")).toContainText("θ°");
   expect((await saved(page)).document.sharedLabels[0].text).toBe("θ");
   await page
@@ -824,13 +872,13 @@ test("small label editor retains advanced marks and hidden answers and cancels i
   await expect(
     page.getByRole("group", { name: "Equal-side ticks", exact: true }),
   ).toBeHidden();
-  const compact = await page.locator(".tr-floating").boundingBox();
+  const compact = await page.locator(".md-options-box").boundingBox();
   expect(compact!.y + compact!.height).toBeLessThanOrEqual(
     page.viewportSize()!.height,
   );
-  await expect(page.locator(".tr-floating select")).toHaveCount(0);
+  await expect(page.locator(".md-options-box select")).toHaveCount(0);
   await page
-    .locator(".tr-floating summary")
+    .locator(".md-options-box summary")
     .getByText("Saved answer", { exact: true })
     .click();
   await expect(
@@ -838,7 +886,7 @@ test("small label editor retains advanced marks and hidden answers and cancels i
   ).toHaveValue("10");
   await page.getByLabel("Saved answer (optional)", { exact: true }).fill("13");
   await page
-    .locator(".tr-floating summary")
+    .locator(".md-options-box summary")
     .getByText("Presentation and marks", { exact: true })
     .click();
   await page
@@ -846,31 +894,32 @@ test("small label editor retains advanced marks and hidden answers and cancels i
     .getByRole("radio", { name: "2", exact: true })
     .check();
   await page.getByLabel("Dashed side", { exact: true }).check();
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   const edge = (await saved(page)).document.edges.find((x) => x.id === "BC")!;
   expect(edge.label.text).toBe("x");
   expect(edge.label.answer).toBe("13");
   expect(edge.label.answerVisible).toBe(false);
   expect(edge.ticks).toBe(2);
   expect(edge.dashed).toBe(true);
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  // Each change was its own undo step: the answer, the ticks and the dashed side.
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(canonical(await saved(page))).toBe(original);
   await page.locator('[data-tr-anchor="e:BC"]').click();
   await page
-    .locator(".tr-floating summary")
+    .locator(".md-options-box summary")
     .getByText("Label position (mm)", { exact: true })
     .click();
   await page.getByLabel("Horizontal offset", { exact: true }).fill("-70");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   await page
-    .locator(".tr-floating summary")
+    .locator(".md-options-box summary")
     .getByText("Label position (mm)", { exact: true })
     .click();
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(
     page.getByRole("combobox", { name: "Selected object", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await cancelLabel(page);
   expect(canonical(await saved(page))).toBe(original);
 });
 
@@ -929,7 +978,7 @@ test("focused edge editors stay reachable with a reduced viewport and expanded o
       .getByRole("button", { name: "Edit selected label", exact: true })
       .click();
     await page
-      .locator(".tr-floating summary")
+      .locator(".md-options-box summary")
       .getByText(
         ref.startsWith("v:") ? "Label position (mm)" : "Presentation and marks",
         { exact: true },
@@ -937,16 +986,14 @@ test("focused edge editors stay reachable with a reduced viewport and expanded o
       .click();
     await expect
       .poll(async () => {
-        const measured = await page.locator(".tr-floating").boundingBox();
+        const measured = await page.locator(".md-options-box").boundingBox();
         return measured!.y + measured!.height;
       })
       .toBeLessThanOrEqual(501);
-    const bounds = await page.locator(".tr-floating").boundingBox();
+    const bounds = await page.locator(".md-options-box").boundingBox();
     expect(bounds!.y).toBeGreaterThanOrEqual(0);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(501);
-    await page
-      .getByRole("button", { name: "Cancel label", exact: true })
-      .click();
+    await cancelLabel(page);
   }
   await page.screenshot({
     path: join(report, "reduced-viewport.png"),
@@ -987,15 +1034,13 @@ for (const width of [1440, 1100, 1000, 900, 768, 620, 375, 320])
       .getByRole("button", { name: "Edit selected label", exact: true })
       .click();
     await expect(page.locator("[data-tr-label-text]")).toBeFocused();
-    const b = await page.locator(".tr-floating").boundingBox();
+    const b = await page.locator(".md-options-box").boundingBox();
     expect(b!.x).toBeGreaterThanOrEqual(0);
     expect(b!.y).toBeGreaterThanOrEqual(0);
     expect(b!.x + b!.width).toBeLessThanOrEqual(width + 1);
     expect(b!.y + b!.height).toBeLessThanOrEqual(1001);
     await page.screenshot({ path: join(report, `focused-${width}.png`) });
-    await page
-      .getByRole("button", { name: "Cancel label", exact: true })
-      .click();
+    await cancelLabel(page);
     await openResourceMenu(page);
     const menu = await page.getByRole("menu").boundingBox();
     expect(menu!.x).toBeGreaterThanOrEqual(0);
@@ -1052,9 +1097,7 @@ test("vertex names remain directly editable separately from geometric vertex han
     await page
       .getByLabel("Vertex name", { exact: true })
       .fill(id.toLowerCase());
-    await page
-      .getByRole("button", { name: "Apply label", exact: true })
-      .click();
+    await applyLabel(page);
   }
   const after = await saved(page);
   expect(after.document.vertices.map((v) => [v.x, v.y])).toEqual(
@@ -1321,15 +1364,15 @@ test("coarse-pointer editing leaves the keyboard optional and supports deliberat
   await hit.scrollIntoViewIfNeeded();
   const box = (await hit.boundingBox())!;
   await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
-  await expect(page.locator(".tr-floating")).toBeVisible();
+  await expect(page.locator(".md-options-box")).toBeVisible();
   await expect(page.locator("[data-tr-label-text]")).not.toBeFocused();
   await page.locator("[data-tr-label-text]").tap();
   await expect(page.locator("[data-tr-label-text]")).toBeFocused();
   await page.locator("[data-tr-label-text]").fill("7");
-  await page.getByRole("button", { name: "Apply label", exact: true }).tap();
+  await applyLabel(page);
   before = canonical(await saved(page));
   await page.locator('[data-tr-anchor="e:AB"]').tap();
-  await page.getByRole("button", { name: "Cancel label", exact: true }).tap();
+  await cancelLabel(page);
   const handle = page.getByRole("button", {
     name: "Move vertex C",
     exact: true,
@@ -1477,36 +1520,33 @@ test("changed diagram givens require a context reload and revoke unsaved calcula
 });
 
 async function choice(page: Page, group: string, name: string) {
+  if (group === "Label display") return display(page, name);
   await page
     .getByRole("group", { name: group, exact: true })
     .getByRole("radio", { name, exact: true })
     .check();
 }
 
-test("all label-display choices preserve stored content and cancel without affecting answers", async ({
+test("every label-display choice keeps the stored text and answer, each one undoable", async ({
   page,
 }) => {
   const e = example("missing-side"),
     original = canonical(e);
   await boot(page, e);
   await page.locator('[data-tr-anchor="e:BC"]').click();
-  for (const state of [
-    "Given / expression",
-    "Unknown (x)",
-    "Blank",
-    "Answer line",
-    "Hidden",
-  ]) {
-    await choice(page, "Label display", state);
+  for (const state of ["Given / expression", "Blank", "Answer line", "Hidden", "Unknown (x)"]) {
+    await display(page, state);
     await expect(page.locator("[data-tr-label-text]")).toHaveValue("x");
-    expect(canonical(await saved(page))).toBe(original);
+    const l = (await saved(page)).document.edges.find((a) => a.id === "BC")!.label;
+    expect([l.text, l.answer]).toEqual(["x", "10"]);
   }
   await page.screenshot({ path: join(report, "label-controls-desktop.png") });
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await cancelLabel(page);
+  // Back at an unknown x: the saved file is the original again.
   expect(canonical(await saved(page))).toBe(original);
-  await expect(
-    page.getByRole("button", { name: "Undo", exact: true }),
-  ).toBeDisabled();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect((await saved(page)).document.edges.find((a) => a.id === "BC")!.label.state).toBe("hidden");
 });
 
 test("hiding a printed given requires prepared helper inputs to reload before reuse", async ({
@@ -1544,30 +1584,26 @@ test("hiding a printed given requires prepared helper inputs to reload before re
   );
 });
 
-test("visible label choices preserve text, use one history action and never convert units", async ({
+test("visible label choices preserve text, each change one history action, and never convert units", async ({
   page,
 }) => {
   const e = example("missing-side");
   await boot(page, e);
   await page.locator('[data-tr-anchor="e:AB"]').click();
   await expect(page.locator("[data-tr-label-text]")).toBeFocused();
-  await expect(page.locator(".tr-floating select")).toHaveCount(0);
-  await expect(
-    page
-      .getByRole("group", { name: "Label display", exact: true })
-      .getByRole("radio"),
-  ).toHaveCount(5);
-  await choice(page, "Label display", "Unknown (x)");
+  await expect(page.locator(".md-options-box select")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "What pupils see", exact: true }).getByRole("button")).toHaveCount(3);
+  await display(page, "Unknown (x)");
   await expect(page.locator("[data-tr-label-text]")).toHaveValue("6");
   await choice(page, "Unit", "mm");
-  expect(canonical(await saved(page))).toBe(canonical(e));
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   const n = await saved(page),
     label = n.document.edges.find((a) => a.id === "AB")!.label;
   expect(label.text).toBe("6");
   expect(label.unit).toBe("mm");
   expect(label.state).toBe("symbol");
   expect(n.document.vertices).toEqual(e.document.vertices);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(canonical(await saved(page))).toBe(canonical(e));
   await expect(
@@ -1584,10 +1620,10 @@ test("an unlabelled arc exports without an orphan degree sign or editor furnitur
   await page.getByLabel("Show degree symbol", { exact: true }).check();
   await expect(
     page
-      .getByRole("group", { name: "Label display", exact: true })
-      .getByRole("radio", { name: "Blank", exact: true }),
-  ).toBeChecked();
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+      .getByRole("group", { name: "What pupils see", exact: true })
+      .getByRole("button", { name: "Pupil space", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await applyLabel(page);
   const n = await saved(page);
   expect(n.document.angles.find((a) => a.id === "T1-B")!.mark).toBe("arc");
   await expect(
@@ -1614,12 +1650,12 @@ test("explicit None remains independent of label modes, typing, Apply and reopen
   await page.locator('[data-tr-anchor="a:T1-B"]').click();
   await choice(page, "Angle marker", "Arc");
   await choice(page, "Angle marker", "None");
-  await choice(page, "Label display", "Unknown (x)");
+  await display(page, "Unknown (x)");
   await expect(page.locator("[data-tr-label-text]")).toHaveValue("x");
   await page.getByLabel("Show degree symbol", { exact: true }).check();
   await page.locator("[data-tr-label-text]").fill("θ");
   await page.screenshot({ path: join(report, "angle-controls-desktop.png") });
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   await page.reload();
   await page.locator('[data-tr-anchor="a:T1-B"]').click();
   await expect(
@@ -1627,9 +1663,9 @@ test("explicit None remains independent of label modes, typing, Apply and reopen
       .getByRole("group", { name: "Angle marker", exact: true })
       .getByRole("radio", { name: "None", exact: true }),
   ).toBeChecked();
-  await choice(page, "Label display", "Given / expression");
+  await display(page, "Given / expression");
   await page.locator("[data-tr-label-text]").fill("40");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   const a = (await saved(page)).document.angles.find((a) => a.id === "T1-B")!;
   expect(a.mark).toBe("none");
   expect(a.label.text).toBe("40");
@@ -1650,13 +1686,13 @@ test("right-angle choice respects perpendicular geometry and does not install or
       exact: false,
     }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await cancelLabel(page);
   await page.locator('[data-tr-anchor="a:T1-A"]').click();
   await expect(
     page.getByRole("radio", { name: "Right angle", exact: true }),
   ).toBeEnabled();
   await choice(page, "Angle marker", "None");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   const n = await saved(page);
   expect(n.document.triangles[0].rightAt).toBe("A");
   expect(n.document.vertices).toEqual(original.document.vertices);
@@ -1671,7 +1707,7 @@ test("one click transfers a valid draft to the next label and an invalid draft s
   await page.locator('[data-tr-anchor="e:AC"]').click();
   await expect(
     page.getByRole("dialog", {
-      name: `Edit ${refName(create(), "e:AC")}`,
+      name: `${refName(create(), "e:AC")}`,
       exact: true,
     }),
   ).toBeVisible();
@@ -1683,34 +1719,26 @@ test("one click transfers a valid draft to the next label and an invalid draft s
   await page.locator('[data-tr-anchor="e:AB"]').click();
   await expect(
     page.getByRole("dialog", {
-      name: `Edit ${refName(create(), "e:AC")}`,
+      name: `${refName(create(), "e:AC")}`,
       exact: true,
     }),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toContainText(/zero/);
   expect(canonical(await saved(page))).toBe(original);
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await cancelLabel(page);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(canonical(await saved(page))).toBe(canonical(create()));
 });
 
-test("radio arrow keys stay in the draft, and Escape cancels without blur applying", async ({
+test("Escape puts typing back without the blur committing it, and focus returns to the label", async ({
   page,
 }) => {
   await boot(page);
   const original = canonical(await saved(page));
   await page.locator('[data-tr-anchor="e:AB"]').click();
-  const blank = page
-    .getByRole("group", { name: "Label display", exact: true })
-    .getByRole("radio", { name: "Blank", exact: true });
-  await blank.focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(
-    page.getByRole("radio", { name: "Answer line", exact: true }),
-  ).toBeChecked();
-  expect(canonical(await saved(page))).toBe(original);
+  await page.locator("[data-tr-label-text]").fill("12");
   await page.keyboard.press("Escape");
-  await expect(page.locator(".tr-floating")).toHaveCount(0);
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
   expect(canonical(await saved(page))).toBe(original);
   await expect(page.locator('[data-tr-anchor="e:AB"]')).toBeFocused();
 });
@@ -1737,8 +1765,8 @@ test("a visible saved answer is explained while label choices retain its exact d
       .getByLabel("Show answer in saved pupil resource", { exact: true })
       .filter({ visible: true }),
   ).toHaveCount(1);
-  await choice(page, "Label display", "Blank");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await display(page, "Blank");
+  await applyLabel(page);
   const actual = (await saved(page)).document.edges.find(
     (a) => a.id === "BC",
   )!.label;
@@ -1759,9 +1787,12 @@ test("caption units and unusual vertex label styles survive the simplified edito
   await page.locator('[data-tr-anchor="v:A"]').click();
   await expect(page.locator("[data-tr-label-text]")).toBeFocused();
   await expect(
-    page.getByText("Name display: Answer line.", { exact: false }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+    page
+      .getByRole("group", { name: "What pupils see", exact: true })
+      .getByRole("button", { name: "Pupil space", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("On an answer line", { exact: true })).toBeChecked();
+  await applyLabel(page);
   expect(canonical(await saved(page))).toBe(canonical(e));
   await page
     .locator(`[data-tr-anchor="c:${e.document.captions[0].id}"]`)
@@ -1770,7 +1801,7 @@ test("caption units and unusual vertex label styles survive the simplified edito
     page.getByRole("group", { name: "Unit", exact: true }).getByRole("radio"),
   ).toHaveCount(8);
   await choice(page, "Unit", "cm²");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   expect((await saved(page)).document.captions[0].label.unit).toBe("cm²");
 });
 
@@ -1810,10 +1841,10 @@ test("clicking overlapping printed arcs opens a named wedge chooser and only edi
   ).toHaveCount(1);
   await chooser.getByRole("button", { name: named, exact: true }).click();
   await expect(
-    page.getByRole("dialog", { name: `Edit ${named}`, exact: true }),
+    page.getByRole("dialog", { name: `${named}`, exact: true }),
   ).toBeVisible();
   await choice(page, "Angle marker", "Triple arc");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   const n = await saved(page);
   expect(n.document.angles.find((a) => a.id === "T2-A")!.mark).toBe("triple");
   expect(n.document.angles.find((a) => a.id === "T1-A")!.mark).toBe("arc");
@@ -1833,9 +1864,9 @@ test("touch angle choices do not focus the text field or dismiss the draft", asy
   await page.getByRole("radio", { name: "Arc", exact: true }).tap();
   await page.getByLabel("Show degree symbol", { exact: true }).tap();
   await expect(page.locator("[data-tr-label-text]")).not.toBeFocused();
-  await expect(page.locator(".tr-floating")).toBeVisible();
+  await expect(page.locator(".md-options-box")).toBeVisible();
   await page.screenshot({ path: join(report, "angle-touch-375.png") });
-  await page.getByRole("button", { name: "Apply label", exact: true }).tap();
+  await applyLabel(page);
   expect(
     (await saved(page)).document.angles.find((a) => a.id === "T1-B")!.mark,
   ).toBe("arc");
@@ -1866,7 +1897,7 @@ test("wedge targets replace angle rectangles and keyboard activation leaves unma
   await expect(target).toBeFocused();
   await target.press("Enter");
   await expect(
-    page.getByRole("dialog", { name: "Edit Angle ABC", exact: true }),
+    page.getByRole("dialog", { name: "Angle ABC", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(target).toBeFocused();
@@ -1886,7 +1917,7 @@ test("centre area entry cancels cleanly then applies as one undoable edit with r
     .getByRole("button", { name: "Add area of triangle abc", exact: true })
     .click();
   await page.locator("[data-tr-label-text]").fill("24");
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await cancelLabel(page);
   expect(canonical(await saved(page))).toBe(before);
   await page
     .getByRole("button", { name: "Add area of triangle abc", exact: true })
@@ -1898,7 +1929,7 @@ test("centre area entry cancels cleanly then applies as one undoable edit with r
   await expect(
     page.getByRole("group", { name: "Unit", exact: true }).getByRole("radio"),
   ).toHaveCount(4);
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   await expect(page.locator(".tr-art")).toContainText("24 cm²");
   await expect.poll(async () => (await saved(page)).schemaVersion).toBe(2);
   const n = await saved(page);
@@ -1953,9 +1984,7 @@ test("connected centre areas have distinct ownership and triangle-specific calcu
     await target.focus();
     await target.press("Enter");
     await page.locator("[data-tr-label-text]").fill(text);
-    await page
-      .getByRole("button", { name: "Apply label", exact: true })
-      .click();
+    await applyLabel(page);
   }
   const n = await saved(page);
   expect(n.document.triangles.map((t) => t.area?.text)).toEqual(["24", "30"]);
@@ -1983,15 +2012,15 @@ test("area labels remain blank for pupils with saved answers and unknowns round 
   await page.locator(".tr-resource").hover();
   await page.locator('[data-tr-anchor="r:T1"]').focus();
   await page.locator('[data-tr-anchor="r:T1"]').press("Enter");
-  await choice(page, "Label display", "Unknown (x)");
+  await display(page, "Unknown (x)");
   await page.locator("[data-tr-label-text]").fill("A");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await applyLabel(page);
   await expect(page.locator(".tr-art")).toContainText("A cm²");
   await page.locator('[data-tr-anchor="r:T1"]').click();
   await page.getByText("Saved answer", { exact: true }).click();
   await page.getByLabel("Saved answer (optional)", { exact: true }).fill("24");
-  await choice(page, "Label display", "Blank");
-  await page.getByRole("button", { name: "Apply label", exact: true }).click();
+  await display(page, "Blank");
+  await applyLabel(page);
   await expect(page.locator(".tr-art")).not.toContainText("24");
   const n = await saved(page);
   expect(n.document.triangles[0].area?.answer).toBe("24");
@@ -2032,12 +2061,12 @@ test("touch centre area is revealed by selecting its triangle and remains reacha
   await add.tap();
   await expect(page.locator("[data-tr-label-text]")).not.toBeFocused();
   await page.locator("[data-tr-label-text]").fill("x");
-  await choice(page, "Label display", "Unknown (x)");
-  const panel = await page.locator(".tr-floating").boundingBox();
+  await display(page, "Unknown (x)");
+  const panel = await page.locator(".md-options-box").boundingBox();
   expect(panel!.x).toBeGreaterThanOrEqual(0);
   expect(panel!.x + panel!.width).toBeLessThanOrEqual(375);
   await page.screenshot({ path: join(report, "area-touch-375.png") });
-  await page.getByRole("button", { name: "Apply label", exact: true }).tap();
+  await applyLabel(page);
   await expect(page.locator(".tr-art")).toContainText("x cm²");
   await context.close();
 });
@@ -2077,8 +2106,10 @@ test("wedge hover reveals only its own angle and leaves no selected shading behi
       await expect(t).toHaveCSS("fill", transparent);
   await page.screenshot({ path: join(report, "angle-hover.png") });
   await page.mouse.click(x, y);
-  await expect(page.locator(".tr-floating")).toBeVisible();
-  await page.getByRole("button", { name: "Cancel label", exact: true }).click();
+  await expect(page.locator(".md-options-box")).toBeVisible();
+  await cancelLabel(page);
+  // Focus came back to the angle (its ring shows); move it on to see that nothing stays shaded.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.getByRole("heading", { name: "Triangles", exact: true }).hover();
   await clear();
   await page
@@ -2093,7 +2124,7 @@ test("wedge hover reveals only its own angle and leaves no selected shading behi
   await expect(target).not.toHaveCSS("fill", transparent);
   await target.press("Enter");
   await expect(
-    page.getByRole("dialog", { name: "Edit Angle ABC", exact: true }),
+    page.getByRole("dialog", { name: "Angle ABC", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
   expect(canonical(await saved(page))).toBe(canonical(e));

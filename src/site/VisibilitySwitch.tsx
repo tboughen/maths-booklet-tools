@@ -13,6 +13,7 @@ export function VisibilitySwitch({
   onChange,
   caption,
   help,
+  choices = VISIBILITIES,
 }: {
   /** The group's accessible name, e.g. "What pupils see" or "Probabilities". */
   name: string;
@@ -23,6 +24,8 @@ export function VisibilitySwitch({
   caption?: string;
   /** Tooltips that differ from the usual words, e.g. a panel left out still prints its empty grid. */
   help?: Partial<Record<Visibility, string>>;
+  /** The states a label can take, when it cannot take all three (a value-table cell keeps no value to leave out). */
+  choices?: readonly Visibility[];
 }) {
   return (
     <div className="md-visibility" role="group" aria-label={name}>
@@ -33,7 +36,7 @@ export function VisibilitySwitch({
         </span>
       )}
       <span className="md-visibility-buttons">
-        {VISIBILITIES.map((v) => (
+        {choices.map((v) => (
           <button
             key={v}
             type="button"

@@ -615,3 +615,8 @@
 .tr-editor .md-kit .tr-floating.tr-docked {
   display: flex;
 }
+
+/* One settings column (the usability pilot): the card groups sit straight in the column. */
+.tr-cards, .tr-cards > div { display: contents; }
+.tr-box { display: grid; gap: 8px; }
+.tr-box .tr-draft-body { display: grid; gap: 8px; }
