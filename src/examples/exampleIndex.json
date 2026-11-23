@@ -1,0 +1,1402 @@
+[
+ {
+  "id": "graph-1MA1_JUN_2019_2H_Q2",
+  "title": "y = 2x − 3",
+  "description": "Draw from x = −2 to 4. Half-unit x squares, unit y squares.",
+  "tool": "graph"
+ },
+ {
+  "id": "graph-1MA1_NOV_2017_3F_Q13",
+  "title": "y = ½x − 1",
+  "description": "Draw from x = −2 to 3 with half-unit scales. The source includes a table and a graph-reading task.",
+  "tool": "graph"
+ },
+ {
+  "id": "graph-1MA1_NOV_2021_1F_Q18",
+  "title": "y = 2x − 2",
+  "description": "Draw from x = −2 to 3. Half-unit x squares, unit y squares.",
+  "tool": "graph"
+ },
+ {
+  "id": "ratio-simple",
+  "title": "Simple table",
+  "description": "Editable lesson table. Change values and scaling annotations independently.",
+  "tool": "ratio-table"
+ },
+ {
+  "id": "ratio-worked",
+  "title": "Worked scaling step",
+  "description": "Editable lesson table. Change values and scaling annotations independently.",
+  "tool": "ratio-table"
+ },
+ {
+  "id": "ratio-fraction",
+  "title": "Fraction scaffold",
+  "description": "Editable lesson table. Change values and scaling annotations independently.",
+  "tool": "ratio-table"
+ },
+ {
+  "id": "ratio-1MA1_NOV_2017_3F_Q12",
+  "title": "Apple prices",
+  "description": "2.5 kg costs £3.60. Use the unit-price step to find the cost of 3.5 kg.",
+  "tool": "ratio-table"
+ },
+ {
+  "id": "ratio-1MA1_NOV_2021_1F_Q17",
+  "title": "Biscuit recipe: one biscuit",
+  "description": "The recipe makes 12 biscuits. Find the butter, flour and sugar in grams for one biscuit as a first step towards the source question.",
+  "tool": "ratio-table"
+ },
+ {
+  "id": "quadratic-1MA1_JUN_2018_2H_Q5",
+  "title": "June 2018 · Higher 2 · Q5(a–b)",
+  "description": "Complete and plot y = x² − x − 6. The scaffold retains the two supplied values and all pupil blanks.",
+  "tool": "value-table-graph"
+ },
+ {
+  "id": "quadratic-1MA1_NOV_2018_3H_Q3",
+  "title": "November 2018 · Higher 3 · Q3(a–b)",
+  "description": "Complete and plot y = x² + x − 4 with different x/y grid scales. Supplied values and pupil blanks are retained.",
+  "tool": "value-table-graph"
+ },
+ {
+  "id": "quadratic-1MA1_NOV_2021_2H_Q4",
+  "title": "November 2021 · Higher 2 · Q4(a–b)",
+  "description": "Complete and plot y = x² − 2x + 2. The source's given values remain; calculation and plotting are explicit choices.",
+  "tool": "value-table-graph"
+ },
+ {
+  "id": "quadratic-1MA1_NOV_2017_1H_Q7",
+  "title": "November 2017 · Higher 1 · Q7",
+  "description": "Intentional teaching error: correct points for y = x² + 1 are joined with straight segments. The corrected copy uses a smooth curve.",
+  "tool": "value-table-graph"
+ },
+ {
+  "id": "quadratic-1MA1_MOCK_SET_08_1H_Q13",
+  "title": "Mock set 08 · Higher 1 · Q13(a–b)",
+  "description": "Complete and plot y = 2x² + 4x + 1 for −3 ≤ x ≤ 2. The source's supplied values and blanks are retained.",
+  "tool": "value-table-graph"
+ },
+ {
+  "id": "quadratic-fractions",
+  "title": "Fractions",
+  "description": "Exact-fraction teaching example. The supplied value stays visible and other cells remain blank.",
+  "tool": "value-table-graph"
+ },
+ {
+  "id": "cuboid-grey-faces",
+  "title": "Greyscale faces",
+  "description": "Three neutral face tones with black outlines. Calculations are only in the worked choice.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-base-area",
+  "title": "Shaded base area",
+  "description": "One existing face is shaded. The scaffold retains an area answer line; the worked choice supplies the exact area.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-cross-section-face",
+  "title": "Cross-sectional face area",
+  "description": "One existing face is shaded. The scaffold retains an area answer line; the worked choice supplies the exact area.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-layers-1",
+  "title": "One layer",
+  "description": "The attached-image progression, drawn in black. Each small cube has side 1 cm.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-layers-2",
+  "title": "Two layers",
+  "description": "The attached-image progression, drawn in black. Each small cube has side 1 cm.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-layers-3",
+  "title": "Three layers",
+  "description": "The attached-image progression, drawn in black. Each small cube has side 1 cm.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-missing-height",
+  "title": "Missing height",
+  "description": "One dimension is left for pupils. Cube and layer views preserve the answer space.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-1MA1_NOV_2020_2F_Q11",
+  "title": "Volume of a cuboid",
+  "description": "10 × 15 × 4 cm. The scaffold keeps the volume undisclosed.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-1MA1_MOCK_SET_06_3F_Q15",
+  "title": "Twelve 2 cm cubes",
+  "description": "A cube and cuboid, with dimension arrows. The worked cuboid shows 2 cm cubes, each of volume 8 cm³.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-1MA1_MOCK_SET_08_3F_Q13",
+  "title": "Box and 4 cm brick",
+  "description": "32 × 20 × 8 cm box and a 4 cm cube. Cube-grid capacity is worked output; the original question asks about 75 bricks.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-1MA1_JUN_2017_3F_Q12",
+  "title": "Six cubes make a cuboid",
+  "description": "One valid 6 × 4 × 2 cm arrangement of six 2 cm cubes. Other arrangements are possible. Dimensions are blank in the scaffold.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-1MA1_NOV_2019_2H_Q9",
+  "title": "Equal surface areas",
+  "description": "Cube and cuboid with hidden edges. The unknown cube size remains unlabelled; the worked option gives only the known cuboid's measurements.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "cuboid-1MA1_NOV_2018_3H_Q8",
+  "title": "Three face areas",
+  "description": "Areas 27, 45 and 15 cm². Unknown edge lengths remain hidden. The scaffold supports the first step of the original melting question.",
+  "tool": "cuboids"
+ },
+ {
+  "id": "number-line-0",
+  "title": "Mock Set 5 · 3F · Q15(c)",
+  "description": "Show −1 ≤ x < 4 on the number line.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-1",
+  "title": "June 2017 · 1F · Q19(b)",
+  "description": "−3 < t ≤ 2; t is an integer. Adapted integer-solution scaffold; the source has no number-line diagram.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-2",
+  "title": "November 2018 · 3F · Q19(a)",
+  "description": "Show x < 4 on the number line.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-3",
+  "title": "November 2021 · 2F · Q21(a)",
+  "description": "Write down the inequality shown.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-4",
+  "title": "November 2021 · 2F · Q21(b)",
+  "description": "Show −3 ≤ y < 4 on the number line.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-5",
+  "title": "June 2019 · 2F · Q20(b)",
+  "description": "Show the values for −2 < x + 3 ≤ 4.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-6",
+  "title": "November 2019 · 1F · Q19",
+  "description": "Write down the inequality shown.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-7",
+  "title": "Mock set 06 · 1H · Q3(a)",
+  "description": "Show −1 < x ≤ 4 on the number line.",
+  "tool": "number-line"
+ },
+ {
+  "id": "number-line-8",
+  "title": "Mock set 08 · 2H · Q4(a)",
+  "description": "Intentional teaching error: Nadia drew x > −3. Explain what she must change. Source error preserved; the drawn stop is a visual approximation.",
+  "tool": "number-line"
+ },
+ {
+  "id": "venn-one-set",
+  "title": "One set · even numbers",
+  "description": "Membership and complement in a finite universe.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-separate",
+  "title": "Separate sets · even and odd",
+  "description": "Mutually exclusive sets; every member is in exactly one of these sets.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-nested",
+  "title": "B inside A · multiples of 4",
+  "description": "Every multiple of 4 is even. Compare with the overlapping example using the same labels.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-overlap-contrast",
+  "title": "Overlap · multiples of 3",
+  "description": "Keep A as even numbers; change B to multiples of 3 and compare with containment.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-2017",
+  "title": "June 2017 · 3F Q15 / 3H Q1",
+  "description": "Two sets; pupil set labels and member regions remain blank in the scaffold.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-2019",
+  "title": "June 2019 · 3H Q1 / 3F Q24",
+  "description": "Labelled two-set scaffold; two separate members in the intersection.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-2018",
+  "title": "November 2018 · 2H Q1 / 2F Q20",
+  "description": "Three sets with genuinely empty pair-only regions. The central member belongs to all three sets.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-languages",
+  "title": "June 2018 · 3H Q20",
+  "description": "Teaching scaffold adapted from a prose question. Worked copy retains the zero frequency.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-films",
+  "title": "Mock set 07 · 2H Q16",
+  "description": "Film survey from a mock. All eight frequencies are given in the source, so both copies retain them.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-algebra",
+  "title": "Mock set 08 · 1H Q23",
+  "description": "The source gives these algebraic labels. Both copies retain them, without solving or substitution.",
+  "tool": "venn"
+ },
+ {
+  "id": "venn-shading",
+  "title": "Complement of a union",
+  "description": "Original teaching example, not a source-paper shading task.",
+  "tool": "venn"
+ },
+ {
+  "id": "triangle-missing-side",
+  "title": "Missing hypotenuse",
+  "description": "Teaching example: keep x visible while 10 cm stays saved as a hidden answer.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-external-height",
+  "title": "External perpendicular height",
+  "description": "Teaching example: the height meets the extension of AB. The pupil supplies h.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-fractions",
+  "title": "Fractions and surds",
+  "description": "Teaching example: exact fractional lengths and a symbolic missing hypotenuse.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-ssa",
+  "title": "Two possible triangles",
+  "description": "Teaching example: a = 8, b = 12, A = 30°. Sine rule gives two possible B angles. Choose a branch explicitly.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-deliberate-error",
+  "title": "Spot the impossible lengths",
+  "description": "Deliberate teaching error: 3 cm, 4 cm and 9 cm cannot form a triangle. The labels are retained with a teacher warning.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-pythagoras-error",
+  "title": "Pythagoras: identify the hypotenuse",
+  "description": "Triangle only, supporting the source's mistake explanation. AB = 6 cm, AC = 8 cm; B is the right angle. The incorrect written working and enlargement part are not reproduced.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-right-trig",
+  "title": "Right trigonometry: side and angle",
+  "description": "Two separate source triangles: AC = 12 cm, A = 56°; PR = 18 cm, RQ = 15 cm and unknown x at R. Answers use 1 decimal place.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-sine-side",
+  "title": "Sine rule: missing side",
+  "description": "BC = 23.8 cm; B = 26°, C = 34°. AB and the third angle remain blank. Worked side: 15.4 cm, 1 d.p.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-sine-angle",
+  "title": "Sine rule: missing angle",
+  "description": "AC = 12 cm, BC = 8 cm and B = 130°. The supplementary candidate cannot form a triangle. x = 30.7°, 1 d.p.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-cosine-acute",
+  "title": "Cosine rule and area",
+  "description": "AC = 8 cm, AB = 11 cm and A = 72°. BC and area stay unanswered. Worked results: 11.4 cm and 41.8 cm², 3 s.f.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-cosine-obtuse",
+  "title": "Obtuse triangle: area and cosine rule",
+  "description": "AB = 5.6 cm, BC = 12.3 cm and B = 114°. Worked area 31.5 cm², AC = 15.4 cm, both 3 s.f.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-base-height",
+  "title": "Area from base and height",
+  "description": "Adapted triangle-only substep: perpendicular sides 8 cm and 9 cm. Area 36 cm². The full source also asks about a rectangle; its answer 13.5 cm is not this triangle's area.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-inverse-area",
+  "title": "Isosceles triangle from area",
+  "description": "AB = AC = 11 cm, area = 42.5 cm². Source scheme chooses the acute apex and gives ABC = 67.7°. A calculation from bare measurements must offer both apex branches.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-joined-rules",
+  "title": "Joined triangles: sine then cosine",
+  "description": "ABD and BCD share BD. AB = 11.4 cm, CD = 12.5 cm; ABD = 86°, DBC = 109°, BCD = 34°. The concave outline is intentional. Worked AD = 13.1 cm, 3 s.f.",
+  "tool": "triangle"
+ },
+ {
+  "id": "triangle-bisector",
+  "title": "Split triangle: angle-bisector proof",
+  "description": "D lies on BC and BAD = DAC = x°. Both displayed x labels share one stored symbol. The numerical helper does not generate a proof.",
+  "tool": "triangle"
+ },
+ {
+  "id": "algebra-single",
+  "title": "Single bracket",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-double",
+  "title": "Double brackets",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-signed",
+  "title": "Negative terms",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-cubic",
+  "title": "Three terms × two terms",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-factor",
+  "title": "Factorise x²+5x+6",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-negative",
+  "title": "Factorise x²+3x−10",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-common",
+  "title": "Common factor",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-numeric",
+  "title": "Grid method 23 × 47",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-decimal",
+  "title": "Grid method 3.4 × 2.6",
+  "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-source-expand",
+  "title": "Q26(a): expand",
+  "description": "Adapted grid step from November 2018 2F Q26. The original question has no grid.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "algebra-source-factor",
+  "title": "Q26(b): factorise",
+  "description": "Adapted grid step from November 2018 2F Q26. The original question has no grid.",
+  "tool": "expanding-factorising"
+ },
+ {
+  "id": "bar-lesson-R1",
+  "title": "Part-whole: two unequal parts",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R2-P",
+  "title": "Mia and Jack: comparison in equal units",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R2-C",
+  "title": "Mia and Jack: continuous comparison",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R3a",
+  "title": "Four fifths of 45",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R3b",
+  "title": "Three eighths of 48",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R3c",
+  "title": "Six sevenths of 56",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R3d",
+  "title": "Five ninths of 81",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R4",
+  "title": "Fractions with two labels per section",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-lesson-R5",
+  "title": "Eve and Fred: inline ratio 3:5",
+  "description": "New lesson layout based on the supplied mathematical structures. Pupil models retain saved answers without printing them; worked versions are explicit. Calculation lines are entered manually, with no automatic solver.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM01",
+  "title": "BM01 Known total 64, ratio 3 : 5",
+  "description": "Share a known total in a ratio by finding one unit first. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM02",
+  "title": "BM02 Known share 24, ratio 3 : 5",
+  "description": "Work back from one known share to the other share and the total. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM03",
+  "title": "BM03 Known difference 16",
+  "description": "Use the difference between two shares to find one unit. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM04",
+  "title": "BM04 Three shares 2 : 3 : 4",
+  "description": "Share an amount three ways and label each part. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM05",
+  "title": "BM05 Three eighths of 400",
+  "description": "Find a fraction of an amount by splitting the whole into equal parts. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM06",
+  "title": "BM06 Five units and three units",
+  "description": "Compare two quantities in units before any numbers are known. Saved answers stay hidden on the pupil resource.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM07",
+  "title": "BM07 Algebra: three units are x",
+  "description": "A bridge to algebra: three equal units together make x. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM08",
+  "title": "BM08 Fractions, zero and hidden answers",
+  "description": "Check how fractions, zero and hidden answers print before using them with a class. Saved answers stay hidden on the pupil resource.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-BM09",
+  "title": "BM09 Maximum parts and useful print size",
+  "description": "The most parts a bar holds while staying a usable print size. Saved answers stay hidden on the pupil resource.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-H07",
+  "title": "H07 Summer 2024 1H Q7: jars",
+  "description": "The sharing stage only: 15 units stand for 150 jars in 3 : 4 : 8. Use BM05 for the preceding fraction stage. The final percentage uses a ratio table. This 2024 source is retained locally and is not in the published bank.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-H18",
+  "title": "H18 Summer 2024 3H Q10: algebra shares",
+  "description": "x stands for a whole three-unit share. Adapted from bag A only. The eight-unit bag is 8x/3. This 2024 source is retained locally and is not in the published bank.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "bar-source-sharing",
+  "title": "Mock set 7 1H Q1: £60 in 3 : 2 : 5",
+  "description": "Share £60 in the ratio 3 : 2 : 5, straight from the exam question. Saved answers stay hidden until you choose the worked version.",
+  "tool": "bar-model"
+ },
+ {
+  "id": "chart-dual-transport",
+  "title": "June 2017 2F Q3: complete a dual bar chart",
+  "description": "Adapted from the transport question. The girls' Walk bar is left for pupils to draw; its value 3 is chosen for this example and saved as a hidden answer.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-composite-sales",
+  "title": "June 2018 1F Q12: composite bar chart",
+  "description": "Sales of desktop computers, laptops and tablets over three years, on fine graph paper with five small squares per 100.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-vline-cars",
+  "title": "Mock set 8 3F Q8: vertical line chart",
+  "description": "Blue, grey and white cars are shown. Part (b) gives 7 red cars to show on the graph, so the red line is saved as a hidden answer.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-bar-draw",
+  "title": "Draw a bar chart from a table",
+  "description": "Teaching example: blank axes and grid for pupils to draw every bar. The table values are saved as hidden answers.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-pie-snacks",
+  "title": "June 2018 2F Q12: draw a pie chart",
+  "description": "Half-time snacks of 36 football fans. Pupils draw every sector from the starting radius; the frequencies are saved as hidden answers (110°, 170° and 80°).",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-pie-complete",
+  "title": "Complete a pie chart",
+  "description": "Teaching example: 60 pupils' favourite sports with football and tennis drawn. Pupils draw and label the rugby and swimming sectors, saved as hidden answers.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-pictogram-pictures",
+  "title": "November 2019 1F Q6: read and complete a pictogram",
+  "description": "Pictures sold in an art shop, with squares for 8 pictures. Part (b) gives 12 pictures in April, so the April row is saved as a hidden answer.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-pictogram-cycles",
+  "title": "November 2017 3F Q6: complete a pictogram and its key",
+  "description": "Cycles sold, with 20 sold on Tuesday to Thursday. The key (one circle for 4 cycles) and the Friday (8) and Saturday (15) rows are saved as hidden answers.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-scatter-judges",
+  "title": "Mock set 8 3F Q21: plot a point and estimate from a scatter graph",
+  "description": "Scores two judges gave eleven skaters, on 2 mm graph paper. Part (a)'s point (4.6, 3.8), a line of best fit and the reading at 3.7 for part (c) are saved as hidden answers; the line is chosen for this example.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-scatter-plot",
+  "title": "Plot a scatter graph from a table",
+  "description": "Teaching example: hours of revision and test marks for ten pupils, printed in a table above the graph. Every point is saved as a hidden answer for pupils to plot, with one outlier ringed on the answers copy. The test-mark axis starts at 20 with a zig-zag.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-histogram-puzzle",
+  "title": "June 2018 2H Q17: complete a frequency table from a histogram",
+  "description": "Times taken to finish a puzzle, on 2 mm graph paper. The first frequency (4) is given; the other four are saved as hidden answers in the table.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-histogram-complete",
+  "title": "November 2019 2H Q18: complete a histogram",
+  "description": "Heights of the trees in a park. 20% of the 40 trees are between 10 and 12.5 metres, so that bar (frequency 8) is saved as a hidden answer; the total of 40 is worked out from the other bars for this example.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-polygon-plants",
+  "title": "June 2019 3H Q3: draw a frequency polygon",
+  "description": "Heights of 80 plants from the table. Every point of the frequency polygon is saved as a hidden answer for pupils to plot at the class midpoints.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-cumulative-office",
+  "title": "June 2019 2H Q11: complete a cumulative frequency table, draw the graph and estimate",
+  "description": "Times 80 office workers take to get to work. The cumulative frequencies, the curve and the reading at 90 minutes for part (c) are saved as hidden answers. The paper's grid runs on past 80 without a number; here the vertical axis is numbered to 90.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-boxplot-holiday",
+  "title": "June 2017 3H Q9: read a box plot and draw another",
+  "description": "Money spent on holidays. The male students' box plot is printed (values read from the source graph); the female students' plot from the table (60, 180, 300, 350, 650) is saved as a hidden answer for pupils to draw.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-boxplot-heights",
+  "title": "November 2017 1H Q12: draw a box plot and compare",
+  "description": "Heights of Year 11 and Year 7 girls. Year 11's box plot (154, 161, 165, 168, 174, from the table's least height, quartile, median, interquartile range and range) is saved as a hidden answer; Year 7's is printed, with values read from the source graph.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-stemleaf-scores",
+  "title": "November 2017 1F Q10: read a stem-and-leaf diagram",
+  "description": "Jake's scores in 20 games, printed as in the paper, with its key.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-stemleaf-heights",
+  "title": "June 2025 1F Q18: draw a stem-and-leaf diagram",
+  "description": "Heights of 12 children. The ordered diagram (13 | 5 7 8, 14 | 2 4 6 6 7 9, 15 | 0 2 4) and its key are saved as hidden answers: pupils see three ruled rows and an empty key box.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-timeseries-gas",
+  "title": "Mock Set 4 3F Q7: read a time series graph",
+  "description": "Average units of gas used each day, month by month. Values read from the source graph.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-timeseries-quarters",
+  "title": "Draw a time series graph of quarterly sales",
+  "description": "Construct task in the style of the papers: quarters 1 to 4 under each year. Every value is saved as a hidden answer, so pupils see a blank labelled grid.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-polygon-mistakes",
+  "title": "June 2022 3F Q26 style: identify the mistakes in a frequency polygon",
+  "description": "Lengths of string from the table. The polygon is plotted at the upper class bounds and the last point is joined to the first: two mistakes for pupils to write down.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-polygon-compare",
+  "title": "Compare two frequency polygons",
+  "description": "Times taken by boys and girls on one grid with a key. The girls' polygon is saved as hidden answers for pupils to draw.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-timeseries-two",
+  "title": "Compare two time series",
+  "description": "Quarterly sales at two shops on one graph with a key.",
+  "tool": "charts"
+ },
+ {
+  "id": "chart-timeseries-misleading",
+  "title": "June 2019 3F Q27: what is misleading about this time series graph?",
+  "description": "Visitors to a fun park. The vertical axis starts at 6 with no zig-zag, quarter 1 is missing from each year and the points are joined with a curve. Values read from the source graph.",
+  "tool": "charts"
+ },
+ {
+  "id": "tree-two-bags",
+  "title": "November 2018 1F Q27: two bags",
+  "description": "3 red and 7 green balls in the first bag; 5 red and 4 green in the second. Pupils complete the four missing probabilities, then find P(two red). Answers are saved hidden.",
+  "tool": "probability-tree"
+ },
+ {
+  "id": "tree-darts",
+  "title": "June 2018 2H Q15: dependent events",
+  "description": "Win on Saturday 0.45; win on Sunday 0.67 after a win and 0.35 otherwise. Pupils complete the tree, then find P(exactly one win).",
+  "tool": "probability-tree"
+ },
+ {
+  "id": "tree-without-replacement",
+  "title": "Counters without replacement",
+  "description": "Teaching example: 5 red and 3 blue counters, two taken without replacement. Probabilities come from Fill from bag; the outcome and probability columns are saved as hidden answers.",
+  "tool": "probability-tree"
+ },
+ {
+  "id": "tree-unequal",
+  "title": "Unequal tree: up to three attempts",
+  "description": "Teaching example: a path stops after a pass. Each attempt is passed with probability 0.6. Missing probabilities and P(passes within three attempts) are saved hidden.",
+  "tool": "probability-tree"
+ },
+ {
+  "id": "tree-given-that",
+  "title": "Given that: conditional probability",
+  "description": "Teaching example: 4 red and 6 blue counters, two taken without replacement. The paths where the second counter is red are drawn bold for the condition.",
+  "tool": "probability-tree"
+ },
+ {
+  "id": "tree-three-coins",
+  "title": "Three coins",
+  "description": "Teaching example: an equal three-stage tree with outcome and probability columns left for pupils.",
+  "tool": "probability-tree"
+ },
+ {
+  "id": "construction-perpendicular-bisector",
+  "title": "Perpendicular bisector of AB",
+  "description": "AB is 8 cm. Pupils construct the perpendicular bisector with compasses; the arcs and line are the saved answer.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-angle-bisector",
+  "title": "Bisect angle PQR",
+  "description": "Angle PQR is 64° with 8 cm arms. Pupils bisect it with compasses; the arcs and bisector are the saved answer.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-perpendicular-from-point",
+  "title": "Perpendicular from P to the line",
+  "description": "Pupils construct the perpendicular from P to the line AB. The arcs and the perpendicular are the saved answer.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-perpendicular-at-point",
+  "title": "Perpendicular at P on the line",
+  "description": "P is on the line AB. Pupils construct the perpendicular to AB at P; the arcs and line are the saved answer.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-locus-segment",
+  "title": "Points 2 cm from a line segment",
+  "description": "AB is 7 cm. Pupils draw the locus of points 2 cm from AB: two parallel lines joined by semicircles.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-map-equidistant",
+  "title": "June 2017 2F Q16: a point on a map",
+  "description": "1 cm represents 100 metres. T is 250 m from A and equidistant from B and C. The answer shows the 2.5 cm circle about A and the perpendicular bisector of BC.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-bearings-port",
+  "title": "November 2019 1H Q8: bearings scale drawing",
+  "description": "Scale 1 cm represents 4 km. Aleena sails 18 km on a bearing of 070° from P to Q. The answer marks Q 4.5 cm from P with the bearing of Q from L.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-loci-garden",
+  "title": "Where can the tree go?",
+  "description": "A 10 m by 6 m garden at 1 cm to 1 m. The tree is within 3 m of the pond P and closer to AB than to AD. The circle, angle bisector and shaded region are the saved answer.",
+  "tool": "construction"
+ },
+ {
+  "id": "elevations-draw-views",
+  "title": "Draw the plan and elevations",
+  "description": "Six cubes. Pupils draw the plan, front elevation and side elevation on the centimetre grids; the views are saved answers.",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-draw-solid",
+  "title": "Draw the solid from its views",
+  "description": "The plan and elevations are given. Pupils draw the solid on isometric paper; the drawing is the saved answer.",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-steps",
+  "title": "Steps: match the views",
+  "description": "A staircase of 12 cubes. The front elevation is given; pupils draw the plan and side elevation.",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-scale-2cm",
+  "title": "Elevations at 2 cm to one cube",
+  "description": "Pupils draw the front and side elevations with each cube edge 2 cm long.",
+  "tool": "elevations"
+ },
+ {
+  "id": "ftree-coffee",
+  "title": "November 2018 1F Q17: who likes coffee",
+  "description": "80 people; 48 are women, 61 like coffee and 8 of the men do not. Pupils complete the six ovals, then find the probability that a coffee drinker is a woman. Answers are saved hidden.",
+  "tool": "frequency-tree"
+ },
+ {
+  "id": "ftree-lunches",
+  "title": "Mock Set 4 3F Q16: school or packed lunch",
+  "description": "60 children; 32 are boys, 3/4 of the boys have a school lunch and 1/2 of the girls have a packed lunch. Every oval, including the total, is left for pupils.",
+  "tool": "frequency-tree"
+ },
+ {
+  "id": "ftree-handedness",
+  "title": "June 2018 2F Q14: left or right-handed",
+  "description": "45 workers; 22 are male and 16 of the 34 right-handed workers are female. Group names sit beside the ovals, as on this paper.",
+  "tool": "frequency-tree"
+ },
+ {
+  "id": "ftree-text-or-email",
+  "title": "November 2021 2F Q17: text or email",
+  "description": "60 people; 38 are women, 15 of the men prefer email and 60% of the people prefer to text. Group names beside the ovals.",
+  "tool": "frequency-tree"
+ },
+ {
+  "id": "ftree-three-years",
+  "title": "Three groups: languages by year",
+  "description": "120 pupils in Years 9, 10 and 11 each study French or Spanish. Two counts are given in each year; pupils fill the rest and answer a given-that question.",
+  "tool": "frequency-tree"
+ },
+ {
+  "id": "twt-complete",
+  "title": "Complete the table: travel to school",
+  "description": "Pupils complete five empty cells from the totals. Choose the worked version to see them.",
+  "tool": "two-way-table"
+ },
+ {
+  "id": "twt-totals",
+  "title": "Totals only: lunch choices",
+  "description": "Every category is given; pupils find the totals.",
+  "tool": "two-way-table"
+ },
+ {
+  "id": "twt-probability",
+  "title": "Probabilities as fractions",
+  "description": "A probability table with stacked fractions; the missing fractions are hidden answers.",
+  "tool": "two-way-table"
+ },
+ {
+  "id": "angles-straight-line",
+  "title": "Angles on a straight line",
+  "description": "Two rays from a point on a straight line. Two angles are given; pupils work out x.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-point",
+  "title": "Angles round a point",
+  "description": "Four angles round a point, one in algebra. Pupils find y.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-vertically-opposite",
+  "title": "Vertically opposite angles",
+  "description": "Two straight lines cross. One angle is given; pupils find a, b and c.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-algebra-line",
+  "title": "Form and solve an equation",
+  "description": "Angles on a straight line given in algebra. The answer x = 25 belongs in the question's answer space.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-parallel",
+  "title": "Parallel lines: alternate and corresponding angles",
+  "description": "Two parallel lines cut by a transversal. One angle is given; pupils find x and y and give reasons.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-co-interior",
+  "title": "Parallel lines: co-interior angles",
+  "description": "The co-interior pair is shaded for teaching. Pupils find the missing angle.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-z-shape",
+  "title": "Parallel lines: the Z shape",
+  "description": "A grey Z picks out a pair of alternate angles. One is given; pupils find x and say why.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-two-transversals",
+  "title": "Two transversals and a triangle",
+  "description": "Two transversals cross the parallel lines and meet above them. Pupils find x in the triangle.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-regular-polygon",
+  "title": "Interior angle of a regular polygon",
+  "description": "A regular hexagon with equal-side ticks. Pupils work out the interior angle x.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-exterior-angle",
+  "title": "Exterior angle of a regular polygon",
+  "description": "A regular pentagon with one side extended. Pupils work out the exterior angle e.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-polygon-sum",
+  "title": "Angles in an irregular pentagon",
+  "description": "Diagonals from one corner split the pentagon into three triangles. Four angles are given; pupils find x.",
+  "tool": "angles"
+ },
+ {
+  "id": "angles-polygons-meeting",
+  "title": "Two regular polygons meeting",
+  "description": "A regular pentagon and a regular hexagon share a side. Pupils find the angle x between them.",
+  "tool": "angles"
+ },
+ {
+  "id": "area-l-shape",
+  "title": "Compound shape: area",
+  "description": "An L shape with four sides given. Pupils find the two missing sides and the area.",
+  "tool": "area"
+ },
+ {
+  "id": "area-perimeter",
+  "title": "Compound shape: perimeter",
+  "description": "A U shape with the missing lengths left blank. Pupils find the perimeter.",
+  "tool": "area"
+ },
+ {
+  "id": "area-trapezium",
+  "title": "Area of a trapezium",
+  "description": "Parallel sides and the perpendicular height given. Pupils find the area.",
+  "tool": "area"
+ },
+ {
+  "id": "area-triangle",
+  "title": "Area of a triangle",
+  "description": "Base and perpendicular height given; the slanting sides are not needed.",
+  "tool": "area"
+ },
+ {
+  "id": "area-rectangle-semicircle",
+  "title": "Rectangle and semicircle",
+  "description": "A semicircle on the end of a rectangle. Pupils find the area in terms of π.",
+  "tool": "area"
+ },
+ {
+  "id": "area-frame",
+  "title": "Shaded frame",
+  "description": "A rectangle with a rectangular hole. Pupils find the shaded area.",
+  "tool": "area"
+ },
+ {
+  "id": "area-circle",
+  "title": "Circle: area and circumference",
+  "description": "A circle with its radius given. Answers saved in terms of π.",
+  "tool": "area"
+ },
+ {
+  "id": "area-semicircle",
+  "title": "Semicircle: arc length",
+  "description": "A semicircle with its diameter given. Pupils find the length of the arc to 1 decimal place.",
+  "tool": "area"
+ },
+ {
+  "id": "area-sector",
+  "title": "Sector: arc length and area",
+  "description": "A sector with radius and angle given. Pupils find the arc length.",
+  "tool": "area"
+ },
+ {
+  "id": "area-grid",
+  "title": "Counting squares",
+  "description": "An L shape on a centimetre grid at true size. Pupils count squares for the area.",
+  "tool": "area"
+ },
+ {
+  "id": "figures-tangent-cyclic",
+  "title": "Tangent and cyclic quadrilateral",
+  "description": "A, B, C and D on a circle with the tangent SBT and angle ABD given.",
+  "tool": "figures"
+ },
+ {
+  "id": "figures-two-tangents",
+  "title": "Two tangents from a point",
+  "description": "Tangents DA and DC to a circle of radius 5 cm, centre O, with OD dashed.",
+  "tool": "figures"
+ },
+ {
+  "id": "figures-centre-angle",
+  "title": "Angle at the centre",
+  "description": "A, B, C and D on a circle, centre O, with angle AOC = x°.",
+  "tool": "figures"
+ },
+ {
+  "id": "figures-similar-right",
+  "title": "Similar right-angled triangles",
+  "description": "ABC and PQR are similar: matching angles carry matching arcs.",
+  "tool": "figures"
+ },
+ {
+  "id": "figures-parallel-in-triangle",
+  "title": "Parallel lines in a triangle",
+  "description": "ABC and EDC are straight lines and EA is parallel to DB.",
+  "tool": "figures"
+ },
+ {
+  "id": "figures-congruent-four",
+  "title": "Which triangles are congruent?",
+  "description": "Four triangles, each with two angles and a side or two sides and an angle given.",
+  "tool": "figures"
+ },
+ {
+  "id": "solids-plain-cuboid",
+  "title": "Cuboid",
+  "description": "A cuboid with its length, width and height given.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-triangular-prism",
+  "title": "Triangular prism",
+  "description": "A prism with a right-angled triangle cross-section and its three lengths given.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-roof-prism",
+  "title": "Triangular prism, roof shape",
+  "description": "A prism with an isosceles triangle cross-section, like a tent or a roof.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-cylinder",
+  "title": "Cylinder",
+  "description": "An upright cylinder with the back of its base dashed.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-cone",
+  "title": "Cone",
+  "description": "An upright cone with the back of its base dashed.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-square-pyramid",
+  "title": "Square-based pyramid",
+  "description": "A square-based pyramid with its apex above the centre of the base.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-sphere",
+  "title": "Sphere",
+  "description": "A sphere with its equator, the back half dashed.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-plain-hemisphere",
+  "title": "Hemisphere",
+  "description": "A hemisphere with its flat face up.",
+  "tool": "solids",
+  "plain": true
+ },
+ {
+  "id": "solids-triangular-prism",
+  "title": "Triangular prism: angle with the base",
+  "description": "ABCD is a square base; E and F are above B and C, with angle EAB = 35° and a right angle at B.",
+  "tool": "solids"
+ },
+ {
+  "id": "solids-cuboid-diagonal",
+  "title": "Cuboid ABCDEFGH",
+  "description": "A cuboid with its eight corners named, for the angle between a diagonal and a face.",
+  "tool": "solids"
+ },
+ {
+  "id": "solids-square-pyramid",
+  "title": "Square-based pyramid VABCD",
+  "description": "Height 4 cm dotted down the middle, slant height VM = 5 cm to the midpoint of BC, base 6 cm.",
+  "tool": "solids"
+ },
+ {
+  "id": "solids-cylinder-tank",
+  "title": "Cylinder tank",
+  "description": "A cylinder with its diameter and height on arrows, the labels in gaps in the arrows.",
+  "tool": "solids"
+ },
+ {
+  "id": "solids-cone-hemisphere",
+  "title": "Cone on a hemisphere",
+  "description": "A cone on top of a hemisphere of the same diameter: the shared rim's back half is dashed.",
+  "tool": "solids"
+ },
+ {
+  "id": "solids-cone-sculpture",
+  "title": "Cone standing on a hemisphere",
+  "description": "A narrow cone on the flat face of a wider hemisphere, with the slant height and both diameters.",
+  "tool": "solids"
+ },
+ {
+  "id": "ss-dice-sum",
+  "title": "Two dice: complete the totals",
+  "description": "Two fair dice with a few totals given. Pupils complete the rest; the worked version shows every total.",
+  "tool": "sample-space"
+ },
+ {
+  "id": "ss-spinner-product",
+  "title": "Spinner and dice: products",
+  "description": "A four-sided spinner and a dice, multiplied. Every product is a hidden answer.",
+  "tool": "sample-space"
+ },
+ {
+  "id": "ss-coin-dice",
+  "title": "Coin and dice: list the outcomes",
+  "description": "Every outcome of a coin and a dice as a pair. Pupils list them; the worked version shows them all.",
+  "tool": "sample-space"
+ },
+ {
+  "id": "ss-circle-outcomes",
+  "title": "Circle the outcomes",
+  "description": "Differences between two dice, all printed. The differences of 2 are circled on the answers copy only.",
+  "tool": "sample-space"
+ },
+ {
+  "id": "ft-complete-360",
+  "title": "Complete the factor tree: 360",
+  "description": "The first split is given. Pupils finish the tree, circle the primes and write 360 in index form.",
+  "tool": "factor-tree"
+ },
+ {
+  "id": "ft-two-ways-84",
+  "title": "Two different trees for 84",
+  "description": "84 split two ways gives the same primes. Every prime and both answers are hidden.",
+  "tool": "factor-tree"
+ },
+ {
+  "id": "ft-product-of-primes",
+  "title": "Write 600 as a product of primes",
+  "description": "An empty first split and answer line for pupils. The worked version completes the tree.",
+  "tool": "factor-tree"
+ },
+ {
+  "id": "ft-spot-the-mistake",
+  "title": "Spot the mistake: 72",
+  "description": "A pupil's factor tree with a deliberate error: 4 is circled as if it were prime. No warning shows.",
+  "tool": "factor-tree"
+ },
+ {
+  "id": "fm-find-output",
+  "title": "Find the output: input 7",
+  "description": "A two-step machine with 7 going in. The value between the boxes and the output are hidden answers.",
+  "tool": "function-machine"
+ },
+ {
+  "id": "fm-find-input",
+  "title": "Find the input: output 13",
+  "description": "The output is given. The worked version adds the inverse machine beneath, worked back from 13.",
+  "tool": "function-machine"
+ },
+ {
+  "id": "fm-missing-operation",
+  "title": "Complete the machine",
+  "description": "Input 9 gives output 28. The first box is a hidden answer: pupils see an empty box with a dotted line.",
+  "tool": "function-machine"
+ },
+ {
+  "id": "fm-letters",
+  "title": "Function machine with letters",
+  "description": "Input n through × 3 then + 2. The output 3n + 2 is a hidden answer.",
+  "tool": "function-machine"
+ },
+ {
+  "id": "fm-two-machines",
+  "title": "Two machines, the same input",
+  "description": "Here is a different number machine: two machines one above the other, with blank outputs for pupils.",
+  "tool": "function-machine"
+ },
+ {
+  "id": "nets-dot-opposite",
+  "title": "Where does the dot end up?",
+  "description": "A cube net with a dot on one face. The dot on the opposite face is a hidden answer: pupils mark it.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-opposite-letters",
+  "title": "Which face is opposite A?",
+  "description": "A cube net with a letter on every face, for questions about opposite faces.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-which-are-nets",
+  "title": "Which are nets of a cube?",
+  "description": "Three arrangements of six squares, A, B and C. C has a block of four squares, so it does not fold into a cube.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-corners-meet",
+  "title": "Which corner meets P?",
+  "description": "A cube net with letters at four corners: P meets Q and R meets S when it is folded.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-cuboid-lengths",
+  "title": "Net of a cuboid with lengths",
+  "description": "A 4 cm by 2 cm by 3 cm cuboid's net on centimetre squares, with its three lengths labelled.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-draw-cuboid-net",
+  "title": "Draw the net of a cuboid",
+  "description": "An empty grid for pupils. The net of a 3 cm by 2 cm by 1 cm cuboid is the hidden answer.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-complete-cube-net",
+  "title": "Complete the net of a cube",
+  "description": "Four faces of a cube net; the last two squares are hidden answers.",
+  "tool": "nets"
+ },
+ {
+  "id": "nets-name-the-shape",
+  "title": "Name the 3D shape",
+  "description": "Nets of a triangular prism and a square-based pyramid. The names are hidden answers under each net.",
+  "tool": "nets"
+ },
+ {
+  "id": "wm-column-add",
+  "title": "Column addition: 4758 + 2696",
+  "description": "Two four-digit numbers with carries into every column. The worked version shows the carries above the line.",
+  "tool": "written-method"
+ },
+ {
+  "id": "wm-add-decimals",
+  "title": "Adding decimals: 37.25 + 8.6",
+  "description": "Decimals with different numbers of places, lined up on the point.",
+  "tool": "written-method"
+ },
+ {
+  "id": "wm-column-subtract",
+  "title": "Column subtraction: 6003 − 2478",
+  "description": "Exchanging across zeros: the worked version crosses out digits and writes their new values above.",
+  "tool": "written-method"
+ },
+ {
+  "id": "wm-long-multiplication",
+  "title": "Long multiplication: 546 × 43",
+  "description": "Two partial products and their sum, as for 54.6 × 4.3 before the point is placed. Working rows are pupil space.",
+  "tool": "written-method"
+ },
+ {
+  "id": "wm-short-division",
+  "title": "Short division: 2172 ÷ 6",
+  "description": "The bus stop, with the remainder of each step carried small before the next digit.",
+  "tool": "written-method"
+ },
+ {
+  "id": "wm-division-remainder",
+  "title": "Short division with a remainder: 145 ÷ 6",
+  "description": "A division that does not come out: the answer is 24 r 1.",
+  "tool": "written-method"
+ },
+ {
+  "id": "wm-long-division-decimal",
+  "title": "Long division: 846 ÷ 15",
+  "description": "As for 8.46 ÷ 0.15 after multiplying both by 100. A zero is written after the point to keep dividing: 56.4.",
+  "tool": "written-method"
+ },
+ {
+  "id": "po-four-sided",
+  "title": "Fair 4-sided spinner",
+  "description": "A square spinner on its stick, sectors A, B, B and C, as in June 2017 1F Q6 and June 2023 3F Q7.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-six-sectors",
+  "title": "Six equal sectors with an arrow",
+  "description": "A circular spinner with an arrow, numbers repeated, as in Mock Set 5 1F Q5.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-unequal-sectors",
+  "title": "Sectors of different sizes",
+  "description": "A 90° sector marked with a right angle beside two equal sectors, as in June 2024 2F Q11 (\"the spinner has three sections\").",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-dice-and-spinner",
+  "title": "A dice and an 8-sided spinner",
+  "description": "An ordinary dice beside a fair octagonal spinner numbered 1 to 8, as in June 2023 2F Q15.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-bag-of-counters",
+  "title": "A bag of counters",
+  "description": "Four red, three blue and two green counters, labelled R, B and G and shaded so the colours read in black and white.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-complete-the-spinner",
+  "title": "Label the spinner",
+  "description": "Eight equal sectors, three labelled. Pupils label the rest so that P(red) is 1/2 and P(blue) is 1/4: the answers copy shows one way.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-two-spinners",
+  "title": "Two spinners, A and B",
+  "description": "Two fair spinners side by side, captioned A and B, for two-event questions.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "po-biased-dice",
+  "title": "Faces of a dice",
+  "description": "The six faces of a dice numbered 1, 1, 2, 3, 3, 3, in a row. The last face is a hidden answer.",
+  "tool": "probability-objects"
+ },
+ {
+  "id": "bm-subject-one-step",
+  "title": "Change the subject: one step",
+  "description": "Make x the subject of y = x + 7 (A4.08). The bubbles and the new line are hidden answers.",
+  "tool": "bubble-method"
+ },
+ {
+  "id": "bm-subject-two-steps",
+  "title": "Change the subject: two steps",
+  "description": "Make x the subject of y = 3x + 2 (A4.09). The first bubbles are given; the rest are hidden answers, ending in a stacked fraction.",
+  "tool": "bubble-method"
+ },
+ {
+  "id": "bm-subject-formula",
+  "title": "Change the subject: v = u + at",
+  "description": "Make t the subject (A4.09). The first bubble on the right sits under u, the term it takes away.",
+  "tool": "bubble-method"
+ },
+ {
+  "id": "bm-solve-equation",
+  "title": "Solve 4x + 3 = 23",
+  "description": "A two-step equation (A3). Pupils see empty bubbles and blank lines to fill in.",
+  "tool": "bubble-method"
+ },
+ {
+  "id": "bm-inequality",
+  "title": "Solve 2x − 5 < 9",
+  "description": "A linear inequality (A10), balanced in the same way. The sign stays the same throughout.",
+  "tool": "bubble-method"
+ },
+ {
+  "id": "at-collect-two-letters",
+  "title": "Collect like terms: 3a + 2b + a − b",
+  "description": "Strips for a and b, as written. The expression is printed; the simplified answer 4a + b is a hidden answer.",
+  "tool": "algebra-tiles"
+ },
+ {
+  "id": "at-zero-pairs",
+  "title": "Zero pairs: 2x + 3 − x − 1",
+  "description": "The same tiles grouped, positive tiles above negative ones. The zero-pair rings and the answer x + 2 are hidden answers.",
+  "tool": "algebra-tiles"
+ },
+ {
+  "id": "at-squares-and-products",
+  "title": "Squares and products: 2a² + ab − a² + 3ab",
+  "description": "a² and ab tiles have different shapes, so they are not like terms. The answer a² + 4ab is a hidden answer.",
+  "tool": "algebra-tiles"
+ },
+ {
+  "id": "at-a2b-ab2",
+  "title": "a²b and ab²: 2a²b + ab² − a²b + 2ab²",
+  "description": "a²b is an a by a by b block and ab² an a by b by b block, so they never collect together. The answer a²b + 3ab² is hidden.",
+  "tool": "algebra-tiles"
+ },
+ {
+  "id": "at-draw-the-tiles",
+  "title": "Draw the tiles for 2x + 3",
+  "description": "The tiles are a hidden answer: pupils see the expression and a dashed frame to draw them in.",
+  "tool": "algebra-tiles"
+ }
+]

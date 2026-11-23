@@ -2,12 +2,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LayoutGrid } from "lucide-react";
 import type { GalleryExample } from "./galleryCatalogue";
+import { EXAMPLE_PARAM, previewUrl } from "./examplePreviews";
 
-const previews = import.meta.glob<string>("../assets/example-previews/*.svg", {
-  eager: true,
-  query: "?url",
-  import: "default",
-});
 
 /**
  * First in the settings column. Out of sight beside the diagram until a keyboard reaches it; on a
@@ -48,6 +44,26 @@ export function ExampleGallery<T>({
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  // A link such as /tools/solids?example=solids-plain-cylinder (from the Diagram builder search)
+  // opens that example through the page's own "Use this example", so its usual checks and undo apply.
+  const latest = useRef({ examples, onUse, disabled });
+  latest.current = { examples, onUse, disabled };
+  useEffect(() => {
+    if (!active) return;
+    const url = new URL(location.href);
+    const id = url.searchParams.get(EXAMPLE_PARAM);
+    if (!id) return;
+    const { examples: list, onUse: use, disabled: blocked } = latest.current;
+    const example = list.find((item) => item.id === id);
+    if (!example || blocked) return;
+    url.searchParams.delete(EXAMPLE_PARAM);
+    history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+    try {
+      use(example.make(false), example.title);
+    } catch {
+      /* A broken example leaves the page as it was; the gallery shows the same error when chosen. */
+    }
+  }, [active]);
   const trigger = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -94,14 +110,22 @@ export function ExampleGallery<T>({
             <header>
               <div>
                 <h2 id={titleId}>Start from an example</h2>
-                <p>Choose a pupil resource or a worked version.</p>
+                <p>
+                  {examples.some((item) => item.plain)
+                    ? "Plain shapes first, then exam-style examples. Each opens ready to change."
+                    : "Choose a pupil resource or a worked version."}
+                </p>
               </div>
               <button onClick={() => close()}>Close</button>
             </header>
             {[
               {
-                title: "Teaching examples",
-                items: examples.filter((item) => !item.sourceHref),
+                title: "Plain shapes",
+                items: examples.filter((item) => item.plain),
+              },
+              {
+                title: examples.some((item) => item.plain) ? "Exam-style examples" : "Teaching examples",
+                items: examples.filter((item) => !item.sourceHref && !item.plain),
               },
               {
                 title: "Past-paper examples",
@@ -126,9 +150,7 @@ export function ExampleGallery<T>({
                       >
                         <img
                           src={
-                            previews[
-                              `../assets/example-previews/${example.id}.svg`
-                            ]
+                            previewUrl(example.id)
                           }
                           alt={
                             example.alt ??
@@ -176,9 +198,9 @@ export function ExampleGallery<T>({
                                 }
                               }}
                             >
-                              Use this example
+                              {example.plain ? "Use this shape" : "Use this example"}
                             </button>
-                            {example.worked !== false ? (
+                            {example.plain ? null : example.worked !== false ? (
                               <button
                                 disabled={disabled}
                                 onClick={() => {
