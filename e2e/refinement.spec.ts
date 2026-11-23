@@ -244,8 +244,8 @@ for (const [tool, key, paper, stage] of tools) {
         .getByRole("group", { name: "Resource utilities", exact: true })
         .getByRole("button");
       expect(await buttons.allTextContents()).toEqual([
-        "",
-        "",
+        "Undo",
+        "Redo",
         "Examples",
         "Start again",
         "Copy image",
