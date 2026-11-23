@@ -59,7 +59,7 @@ function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
   words.forEach((w, k) => {
     const prev = words[k - 1]?.t ?? "";
     const next = words[k + 1]?.t ?? "";
-    const m = w.t.match(/^([([]*)(.*?)([.,;:?!)\]]*)$/)!;
+    const m = w.t.match(/^([([“‘]*)(.*?)([.,;:?!)\]”’]*)$/)!;
     const [, lead, core, tail] = m;
     if (!core) return;
     const byOperator = OPERATOR_TOKEN.test(prev) || OPERATOR_TOKEN.test(next);

@@ -39,6 +39,8 @@ describe("typesetting typed maths", () => {
     expect(typesetText("A length of 5 m")).toBe("A length of 5 m");
     expect(typesetText("A pressure of 25 N/m² acts")).toBe("A pressure of 25 N/m² acts");
     expect(typesetText("(A) 38p")).toBe("(A) 38p");
+    expect(typesetText("Zac says, “40p is less than 70p.”")).toBe("Zac says, “40p is less than 70p.”");
+    expect(typesetText("‘x is 4’")).toBe("‘*x* is 4’");
     expect(typesetText("Mass of 1 rod =")).toBe("Mass of 1 rod =");
   });
 
