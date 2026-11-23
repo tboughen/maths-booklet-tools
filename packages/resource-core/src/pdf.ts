@@ -55,6 +55,35 @@ export function mathFontForMathLetters(svg: string): string {
   });
 }
 
+/**
+ * A line, or a path that is one straight segment, has no inside, so a browser fills nothing. The
+ * PDF writer still fills it (an SVG fill defaults to black) and PDF viewers paint that zero-area
+ * fill as a solid hairline, so a dotted answer line printed as dots on top of a solid rule. Such
+ * shapes are marked fill="none" so the PDF draws only their stroke, exactly as the browser does.
+ */
+const NUMBER_OR_COMMAND = /[A-Za-z]|[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g;
+/** True when a path's data draws one straight segment: "M x y L x y", "M x y H x", "m x y v y" and so on. */
+export function isOneSegment(d: string): boolean {
+  const t = d.match(NUMBER_OR_COMMAND) ?? [];
+  const isNum = (s: string | undefined) => s !== undefined && /^[-+\d.]/.test(s);
+  if (!/^[Mm]$/.test(t[0] ?? "") || !isNum(t[1]) || !isNum(t[2])) return false;
+  const rest = t.slice(3);
+  if (rest.length === 2 && /^[HhVv]$/.test(rest[0])) return isNum(rest[1]);
+  if (rest.length === 3 && /^[Ll]$/.test(rest[0])) return isNum(rest[1]) && isNum(rest[2]);
+  if (rest.length === 2) return rest.every(isNum); // "M x y x y": an implicit line-to
+  return false;
+}
+export function strokeOnlySegments(svg: string): string {
+  return svg.replace(/<(line|path)\b([^>]*?)(\/?)>/g, (whole, tag: string, attrs: string, close: string) => {
+    if (/\bfill\s*=|\bfill\s*:/.test(attrs)) return whole;
+    if (tag === "path") {
+      const d = attrs.match(/\bd="([^"]*)"/)?.[1];
+      if (d === undefined || !isOneSegment(d)) return whole;
+    }
+    return `<${tag}${attrs} fill="none"${close}>`;
+  });
+}
+
 export function writeWorksheetPdf(
   PDFDocument: PdfConstructor,
   SVGtoPDF: SvgToPdf,
@@ -100,7 +129,7 @@ export function writeWorksheetPdf(
     const width = Number(size[1]) * MM,
       height = Number(size[2]) * MM;
     doc.addPage({ size: [width, height], margin: 0 });
-    SVGtoPDF(doc as never, mathFontForMathLetters(svg), 0, 0, {
+    SVGtoPDF(doc as never, strokeOnlySegments(mathFontForMathLetters(svg)), 0, 0, {
       width,
       height,
       preserveAspectRatio: "none",

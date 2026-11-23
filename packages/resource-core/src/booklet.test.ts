@@ -209,3 +209,27 @@ describe("one lesson on its own", () => {
     }
   });
 });
+
+describe("PDF answer lines are dotted only", () => {
+  it("draws only the stroke of lines and one-segment paths, so no solid rule shows under the dots", async () => {
+    const { strokeOnlySegments, isOneSegment } = await import("./pdf");
+    expect(strokeOnlySegments('<line x1="0" y1="1" x2="9" y2="1" stroke-dasharray="0.05 1.05"/>')).toBe(
+      '<line x1="0" y1="1" x2="9" y2="1" stroke-dasharray="0.05 1.05" fill="none"/>',
+    );
+    expect(strokeOnlySegments('<path d="M7 4H20" stroke-dasharray=".4 .8"/>')).toBe('<path d="M7 4H20" stroke-dasharray=".4 .8" fill="none"/>');
+    // A fill someone chose, and shapes with an inside, are left alone.
+    for (const kept of ['<line x1="0" y1="0" x2="1" y2="1" fill="red"/>', '<path d="M0 0H5V5Z"/>', '<path d="M0 0L5 5L0 5"/>', '<path d="M0 0H5" style="fill:blue"/>'])
+      expect(strokeOnlySegments(kept)).toBe(kept);
+    for (const d of ["M1 2L3 4", "m1,2 l3,4", "M-2.5 6h5", "M1 2V9", "M1 2 3 4", "M1e1 2H.5"]) expect(isOneSegment(d)).toBe(true);
+    for (const d of ["M1 2L3 4L5 6", "M0 0H5V5", "M0 0Q1 1 2 2", "M0 0H5Z", "L1 2"]) expect(isOneSegment(d)).toBe(false);
+  });
+});
+
+describe("PDF print check: dotted lines", () => {
+  it("flags a filled dotted segment and passes a stroked one", async () => {
+    const { FILLED_DASHED_SEGMENT } = await import("./pdf-audit");
+    expect(FILLED_DASHED_SEGMENT.test("0.4 w\n[0.05 1.05] 0 d\n0 7.2 m\n90.75 7.2 l\nB\nQ")).toBe(true);
+    expect(FILLED_DASHED_SEGMENT.test("0.4 w\n[0.05 1.05] 0 d\n0 7.2 m\n90.75 7.2 l\nS\nQ")).toBe(false);
+    expect(FILLED_DASHED_SEGMENT.test("[] 0 d\n0 7.2 m\n90.75 7.2 l\nB\n")).toBe(false);
+  });
+});
