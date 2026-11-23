@@ -59,6 +59,7 @@ import {
   type PresetType,
   type Pt,
   type Solid,
+  outline,
 } from "../../packages/net-core/src";
 import { LINK_PREFIX, parseNetsLink, netsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
@@ -105,6 +106,8 @@ const PRESET_NAMES: Record<PresetType, string> = {
   "triangular-prism": "Triangular prism",
   "square-pyramid": "Square-based pyramid",
   tetrahedron: "Tetrahedron",
+  cylinder: "Cylinder",
+  cone: "Cone",
 };
 /** The numbers each preset takes, with their labels and limits. */
 const PRESET_FIELDS: Record<PresetType, { key: string; label: string; min: number; max: number; step: number }[]> = {
@@ -127,6 +130,14 @@ const PRESET_FIELDS: Record<PresetType, { key: string; label: string; min: numbe
     { key: "slant", label: "Triangle height", min: 0.5, max: 12, step: 0.5 },
   ],
   tetrahedron: [{ key: "side", label: "Side", min: 0.5, max: 12, step: 0.5 }],
+  cylinder: [
+    { key: "radius", label: "Radius", min: 0.5, max: 4, step: 0.5 },
+    { key: "height", label: "Height", min: 0.5, max: 12, step: 0.5 },
+  ],
+  cone: [
+    { key: "radius", label: "Base radius", min: 0.5, max: 6, step: 0.5 },
+    { key: "slant", label: "Slant height", min: 1, max: 12, step: 0.5 },
+  ],
 };
 const MARK_NAMES: Record<Mark, string> = { none: "None", dot: "Dot", cross: "Cross", shade: "Shading" };
 /** The groups in What pupils see: every face, and every letter, mark, corner label and caption that has text. */
@@ -524,7 +535,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                           Y = (y: number) => p.y + y * g.unit;
                         const cells: Pt[] = [];
                         if (adding && net.id === targetNet.id)
-                          for (let i = 0; i < p.across; i++) for (let j = 0; j < p.down; j++) if (!net.faces.some((f) => inside([i + 0.5, j + 0.5], f.points))) cells.push([i, j]);
+                          for (let i = 0; i < p.across; i++) for (let j = 0; j < p.down; j++) if (!net.faces.some((f) => inside([i + 0.5, j + 0.5], outline(f)))) cells.push([i, j]);
                         return (
                           <g key={net.id}>
                             {cells.map(([i, j]) => (
@@ -556,7 +567,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                                 <polygon
                                   key={f.id}
                                   className={`nets-face${isSelected ? " nets-selected" : ""}${hiddenHere ? " nets-hidden-face" : ""}`}
-                                  points={f.points.map((q) => `${X(q[0])},${Y(q[1])}`).join(" ")}
+                                  points={outline(f).map((q) => `${X(q[0])},${Y(q[1])}`).join(" ")}
                                   role="button"
                                   tabIndex={blocked ? -1 : 0}
                                   aria-label={`Edit face ${k + 1}${d.nets.length > 1 ? ` of ${netName(net.id)}` : ""}${words ? `, ${words}` : ""}`}

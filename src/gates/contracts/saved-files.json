@@ -3437,6 +3437,7 @@
               "dual",
               "composite",
               "vline",
+              "line",
               "pie",
               "pictogram",
               "scatter",
@@ -12418,6 +12419,8 @@
                     "triangular-prism",
                     "square-pyramid",
                     "tetrahedron",
+                    "cylinder",
+                    "cone",
                     "other"
                   ]
                 },
@@ -12552,6 +12555,47 @@
                           "show"
                         ],
                         "additionalProperties": false
+                      },
+                      "arcs": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "edge": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 7
+                            },
+                            "centre": {
+                              "type": "array",
+                              "prefixItems": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 60
+                                },
+                                {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 60
+                                }
+                              ],
+                              "items": false,
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "large": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "edge",
+                            "centre",
+                            "large"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [

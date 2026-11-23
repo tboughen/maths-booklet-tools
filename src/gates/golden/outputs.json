@@ -1766,6 +1766,20 @@
    "png600": "3243x1923",
    "pixels": "4df5ea0bfa694280"
   },
+  "charts: chart-plain-line": {
+   "json": "cca341ad5df5334b",
+   "svg": "6fd19fb0fb37e16a",
+   "mm": "130.6x77.6",
+   "png600": "3085x1833",
+   "pixels": "91bf455a6e47608e"
+  },
+  "charts: chart-plain-line (worked)": {
+   "json": "cca341ad5df5334b",
+   "svg": "6fd19fb0fb37e16a",
+   "mm": "130.6x77.6",
+   "png600": "3085x1833",
+   "pixels": "91bf455a6e47608e"
+  },
   "charts: chart-plain-pictogram": {
    "json": "c5fbb3e30c776976",
    "svg": "81b19299f91631e4",
@@ -3222,6 +3236,20 @@
    "png600": "2362x1890",
    "pixels": "4c6449c5acadd3d2"
   },
+  "nets: nets-plain-cone": {
+   "json": "509cc28934240f36",
+   "svg": "0fb8d9ff07b9d0a8",
+   "mm": "120x110",
+   "png600": "2835x2598",
+   "pixels": "7e49c6c564ee6675"
+  },
+  "nets: nets-plain-cone (worked)": {
+   "json": "509cc28934240f36",
+   "svg": "0fb8d9ff07b9d0a8",
+   "mm": "120x110",
+   "png600": "2835x2598",
+   "pixels": "7e49c6c564ee6675"
+  },
   "nets: nets-plain-cube": {
    "json": "b8d5b725a30210f0",
    "svg": "46c6a85880da2a01",
@@ -3249,6 +3277,20 @@
    "mm": "140x90",
    "png600": "3307x2126",
    "pixels": "d94bbd5be1a09ceb"
+  },
+  "nets: nets-plain-cylinder": {
+   "json": "4c75557fab1c90f7",
+   "svg": "8682b7223bd746f4",
+   "mm": "90x100",
+   "png600": "2126x2362",
+   "pixels": "2ed2b48aeaaeb93e"
+  },
+  "nets: nets-plain-cylinder (worked)": {
+   "json": "4c75557fab1c90f7",
+   "svg": "8682b7223bd746f4",
+   "mm": "90x100",
+   "png600": "2126x2362",
+   "pixels": "2ed2b48aeaaeb93e"
   },
   "nets: nets-plain-square-pyramid": {
    "json": "8c8a341581c6feab",
@@ -3487,6 +3529,20 @@
    "mm": "180x23",
    "png600": "4252x543",
    "pixels": "c78a2040f74cf4f2"
+  },
+  "number line: number-line-plain-quarters": {
+   "json": "aa7a726e8009e5eb",
+   "svg": "8fbaaf1c03409085",
+   "mm": "140x26.5",
+   "png600": "3307x626",
+   "pixels": "02faf4d564091be0"
+  },
+  "number line: number-line-plain-quarters (worked)": {
+   "json": "aa7a726e8009e5eb",
+   "svg": "8fbaaf1c03409085",
+   "mm": "140x26.5",
+   "png600": "3307x626",
+   "pixels": "02faf4d564091be0"
   },
   "number line: number-line-plain-tenths": {
    "json": "41e5a3340ae71e14",

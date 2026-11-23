@@ -49,11 +49,11 @@ describe("worksheet stress-test faults", () => {
     expect(svg).not.toContain("1/2");
   });
 
-  it("prints number-line fractions at 10 pt with a negative sign before the bar", () => {
+  it("prints number-line fractions at 11 pt (Tim, 23 Nov 2026) with a negative sign before the bar", () => {
     const e = createNumberLine({ axis: { minimum: "-1", maximum: "1", step: "1/2", numberFormat: "fraction" } });
     const svg = numberLineSvg(e);
     const size = Number(svg.match(/<g font-size="([\d.]+)"/)![1]);
-    expect(size).toBeCloseTo((10 * 25.4) / 72, 3);
+    expect(size).toBeCloseTo((11 * 25.4) / 72, 3);
     expect(texts(svg)).toContain("−");
     expect(svg).not.toMatch(/<g font-size="[\d.]+"><text[^>]*>−/);
   });

@@ -309,6 +309,13 @@
   "plain": true
  },
  {
+  "id": "number-line-plain-quarters",
+  "title": "0 to 1 in quarters",
+  "description": "A number line from 0 to 1 in quarters, with stacked fractions.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
   "id": "number-line-plain-inequality",
   "title": "Inequality x > 2",
   "description": "x > 2 shown with an open circle and an arrow.",
@@ -896,6 +903,13 @@
   "id": "chart-plain-vline",
   "title": "Vertical line chart",
   "description": "A vertical line for each value, for discrete data.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-line",
+  "title": "Line graph",
+  "description": "Two shops' daily sales over a week, as crosses joined by straight lines, with a key.",
   "tool": "charts",
   "plain": true
  },
@@ -2066,6 +2080,20 @@
   "id": "nets-plain-square-pyramid",
   "title": "Square-based pyramid net",
   "description": "The net of a square-based pyramid.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-cylinder",
+  "title": "Cylinder net",
+  "description": "A rectangle as wide as the circumference, with a circle on each long side.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-cone",
+  "title": "Cone net",
+  "description": "A sector for the curved surface, with the circular base touching its arc.",
   "tool": "nets",
   "plain": true
  },

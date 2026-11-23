@@ -583,6 +583,23 @@ export const plainShapes: { id: string; title: string; note: string; make: () =>
     make: () => chart("vline", ["0", "1", "2", "3", "4"], [{ name: "families", fill: "black", values: ["3", "8", "10", "5", "2"] }], { min: "0", max: "12", step: "2", minor: 1 }, { yTitle: "Frequency", xTitle: "Number of pets", grid: "major", key: false, heightMm: 60, barMm: 12 }, true),
   },
   {
+    id: "line",
+    title: "Line graph",
+    note: "Two shops' daily sales over a week, as crosses joined by straight lines, with a key.",
+    make: () =>
+      chart(
+        "line",
+        ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        [
+          { name: "Shop A", fill: "black", values: ["12", "18", "15", "22", "20"] },
+          { name: "Shop B", fill: "black", values: ["8", "10", "14", "12", "16"] },
+        ],
+        { min: "0", max: "25", step: "5", minor: 5 },
+        { yTitle: "Sales", xTitle: "Day", grid: "major", key: true, heightMm: 60, barMm: 12 },
+        true,
+      ),
+  },
+  {
     id: "pie",
     title: "Pie chart",
     note: "A pie chart at true size with each sector labelled.",
