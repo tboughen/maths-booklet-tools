@@ -3488,6 +3488,20 @@
    "png600": "4252x543",
    "pixels": "c78a2040f74cf4f2"
   },
+  "number line: number-line-plain-quarters": {
+   "json": "aa7a726e8009e5eb",
+   "svg": "8fbaaf1c03409085",
+   "mm": "140x26.5",
+   "png600": "3307x626",
+   "pixels": "02faf4d564091be0"
+  },
+  "number line: number-line-plain-quarters (worked)": {
+   "json": "aa7a726e8009e5eb",
+   "svg": "8fbaaf1c03409085",
+   "mm": "140x26.5",
+   "png600": "3307x626",
+   "pixels": "02faf4d564091be0"
+  },
   "number line: number-line-plain-tenths": {
    "json": "41e5a3340ae71e14",
    "svg": "6e348e025c30e6de",

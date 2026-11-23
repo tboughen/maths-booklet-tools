@@ -309,6 +309,13 @@
   "plain": true
  },
  {
+  "id": "number-line-plain-quarters",
+  "title": "0 to 1 in quarters",
+  "description": "A number line from 0 to 1 in quarters, with stacked fractions.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
   "id": "number-line-plain-inequality",
   "title": "Inequality x > 2",
   "description": "x > 2 shown with an open circle and an arrow.",

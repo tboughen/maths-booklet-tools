@@ -22,6 +22,7 @@ export const plainShapes: { id: string; title: string; note: string; make: () =>
     { id: "zero-to-ten", title: "0 to 10", note: "A number line from 0 to 10 in ones.", make: line({ minimum: "0", maximum: "10" }) },
     { id: "negative-ten-to-ten", title: "−10 to 10", note: "A number line from −10 to 10 in ones, for negative numbers.", make: line({ minimum: "-10", maximum: "10" }, null, 18) },
     { id: "tenths", title: "0 to 1 in tenths", note: "A number line from 0 to 1 in steps of 0.1, for decimals.", make: line({ minimum: "0", maximum: "1", step: "0.1" }) },
+    { id: "quarters", title: "0 to 1 in quarters", note: "A number line from 0 to 1 in quarters, with stacked fractions.", make: line({ minimum: "0", maximum: "1", step: "1/4", numberFormat: "fraction" }) },
     { id: "inequality", title: "Inequality x > 2", note: "x > 2 shown with an open circle and an arrow.", make: line({ minimum: "-5", maximum: "5", variable: "x" }, ray("2", "right")) },
     { id: "interval", title: "Interval −1 ≤ x < 3", note: "−1 ≤ x < 3 shown with a closed and an open circle.", make: line({ minimum: "-5", maximum: "5", variable: "x" }, interval("-1", "3", true, false)) },
     { id: "error-interval", title: "Error interval (1 dp)", note: "3.7 to 1 decimal place: 3.65 ≤ x < 3.75 on a line in hundredths.", make: line({ minimum: "3.6", maximum: "3.8", step: "0.01", labelEvery: 5, variable: "x" }, interval("3.65", "3.75", true, false)) },

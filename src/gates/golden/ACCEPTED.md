@@ -1094,3 +1094,8 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - geometry figures: figures-plain-centre-angle: added
 - geometry figures: figures-plain-centre-angle (worked): added
 - and 82 more
+
+## 2026-11-23: Number line: stacked fractions print at 11 pt (Tim, 23 Nov 2026), and the 0 to 1 in quarters plain shape
+
+- number line: number-line-plain-quarters: added
+- number line: number-line-plain-quarters (worked): added

@@ -119,11 +119,11 @@ function secondaryRoom(d: LineDocument) {
 /** Height of a percentage bar (mm). */
 export const BAR_HEIGHT = 8;
 /** Extra room above the line when an arrow label is a stacked fraction (mm). */
-const FRACTION_MARKER_ROOM = 3.6;
+const FRACTION_MARKER_ROOM = 4;
 /** Room under the tick labels for a row of words (mm). */
 const WORD_ROOM = 5.5;
 export const isFractionLabel = (label: string) => label.includes("/");
-export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 + (d.markers?.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : d.markers ? MARKER_AXIS_Y + (d.markers.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const numbersBottom = axisY + (fraction ? 10 : 7), wordY = numbersBottom + 3.6, labelBottom = numbersBottom + (d.words ? WORD_ROOM : 0), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; const plain = d.axis.ends === "plain"; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, wordY, left: 7, right: width - (plain && !d.axis.variable ? 7 : 12), barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
+export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 + (d.markers?.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : d.markers ? MARKER_AXIS_Y + (d.markers.some(k => k.label && isFractionLabel(k.label)) ? FRACTION_MARKER_ROOM : 0) : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const numbersBottom = axisY + (fraction ? 10.5 : 7), wordY = numbersBottom + 3.6, labelBottom = numbersBottom + (d.words ? WORD_ROOM : 0), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; const plain = d.axis.ends === "plain"; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, wordY, left: 7, right: width - (plain && !d.axis.variable ? 7 : 12), barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
 export function position(d: LineDocument, v: string) { const m = metrics(d); return m.left + (valueOf(v) - valueOf(d.axis.minimum)) / (valueOf(d.axis.maximum) - valueOf(d.axis.minimum)) * (m.right - m.left); }
 export function validate(raw: unknown): Envelope {
     const e = envelopeSchema.parse(raw), d = e.document;
@@ -410,8 +410,8 @@ export function displayNumber(d: LineDocument, s: string) {
     return String(Number((Number(q.n) / Number(q.d)).toFixed(6)));
 }
 function esc(s: string) { return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;"); }
-/** Fraction parts print at 10 pt, the house minimum, under 11 pt whole numbers. */
-const PART = FONT * 10 / 11;
+/** Fraction parts print at 11 pt, the same size as whole numbers (Tim, 23 Nov 2026: no type below 11 pt on a number line). */
+const PART = FONT;
 /** The gap between a mixed number's whole part and its stacked fraction (mm). */
 const MIXED_GAP = .6;
 /** Arrow labels print a typed hyphen as a true minus sign. */
@@ -440,8 +440,8 @@ function numberSvg(s: string, x: number, y: number): string { if (s.includes(" "
 } if (!s.includes("/"))
     return `<text x="${x}" y="${y}" text-anchor="middle">${esc(s.replace("-", "−"))}</text>`; const [top, b] = s.split("/"), negative = top.startsWith("-"), n = negative ? top.slice(1) : top, w = numberWidth(n + "/" + b) + 1;
     // A negative fraction prints its minus sign before the bar, as exam papers do: −½, not a minus in the numerator.
-    const sign = negative ? `<text x="${x - w / 2 - .3}" y="${y + .45}" text-anchor="end">−</text>` : "";
-    return `${sign}<g font-size="${PART}"><text x="${x}" y="${y - 1.7}" text-anchor="middle">${n}</text><path d="M${x - w / 2} ${y - .6}h${w}"/><text x="${x}" y="${y + 3.1}" text-anchor="middle">${b}</text></g>`; }
+    const sign = negative ? `<text x="${x - w / 2 - .3}" y="${y + .85}" text-anchor="end">−</text>` : "";
+    return `${sign}<g font-size="${PART}"><text x="${x}" y="${y - 1.3}" text-anchor="middle">${n}</text><path d="M${x - w / 2} ${y - .2}h${w}"/><text x="${x}" y="${y + 3.8}" text-anchor="middle">${b}</text></g>`; }
 /** Saved answers revealed on an answers copy print in the house answer colour. */
 export const NUMBER_LINE_ANSWER_COLOUR = "#b0125b";
 /** What an answers copy reveals: answer-line tick values, a hidden solution and a hidden saved answer. Hidden tick labels stay hidden. */
@@ -495,13 +495,13 @@ export function renderSvg(e: Envelope, showAnswers = false) {
     }
     for (const k of d.markers ?? []) {
         const x = position(d, k.value);
-        art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? isFractionLabel(k.label) ? numberSvg(k.label.replace("−", "-"), markerLabelX(d, k), m.axisY - 12.4) : `<text x="${markerLabelX(d, k)}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(markerLabelText(k.label))}</text>` : ""}</g>`;
+        art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? isFractionLabel(k.label) ? numberSvg(k.label.replace("−", "-"), markerLabelX(d, k), m.axisY - 12.8) : `<text x="${markerLabelX(d, k)}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(markerLabelText(k.label))}</text>` : ""}</g>`;
     }
     for (const w of d.words ?? []) {
         art += `<text data-word="" x="${wordX(d, w)}" y="${m.wordY}" text-anchor="middle">${esc(w.text)}</text>`;
     }
     if (d.secondary) {
-        const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? (bar ? 4.2 : 6.1) : 3.2);
+        const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? (bar ? 4.6 : 6.5) : 3.2);
         secondaryTicks(d).forEach((v, i) => {
             if (!labelled(d, ticks(d)[i])) return;
             const x = position(d, ticks(d)[i]), state = sec.labels[v] ?? "value";
