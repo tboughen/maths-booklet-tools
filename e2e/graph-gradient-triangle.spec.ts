@@ -30,6 +30,10 @@ test("a gradient triangle is added to a line, resized, labelled blank, warned of
 
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByText(/runs off the grid/)).toHaveCount(0);
+  // Undo is a press away from the box beside the graph, so the box closes; the list opens it again.
+  await page.locator(".objects-toggle").click();
+  await page.getByRole("button", { name: /^Select Line 1/ }).click();
+  await expect(page.getByLabel("Gradient triangle starts at x", { exact: true })).not.toHaveValue("4");
   await page.getByRole("button", { name: "Remove gradient triangle" }).click();
   await expect(canvas.locator(".gradient-triangle")).toHaveCount(0);
   await expect.poll(async () => (await saved(page))?.objects?.[0]?.gradientTriangle).toBeUndefined();

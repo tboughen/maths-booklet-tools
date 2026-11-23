@@ -27,7 +27,7 @@ test("direct equation and axis editing retain snapshots and have one control loc
   await open(page);
   const initial = await stored(page);
   await page.getByRole("button", { name: "Draw curve", exact: true }).click();
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page
     .getByRole("button", { name: "Edit equation", exact: true })
     .click();
@@ -97,12 +97,12 @@ test("hidden objects open the same curve and point editors without filling pupil
   });
   await drawn.fill("y = x² + 1");
   await drawn.press("Enter");
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page
     .getByRole("button", { name: "Graph options", exact: true })
     .click();
   await page.getByLabel("Smooth curve", { exact: true }).uncheck();
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await expect(page.locator("[data-curve]")).toHaveCount(0);
   await page
     .getByRole("button", { name: "Select object", exact: true })
@@ -124,7 +124,7 @@ test("hidden objects open the same curve and point editors without filling pupil
   expect((await stored(page)).document.graph.curves[0].equation).toEqual(
     (await stored(page)).document.equation,
   );
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page
     .getByRole("button", { name: "Add point or segment", exact: true })
     .click();
@@ -138,7 +138,7 @@ test("hidden objects open the same curve and point editors without filling pupil
   await expect(
     page.getByRole("textbox", { name: "Point x", exact: true }),
   ).toHaveValue("10");
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await expect(
     page.getByRole("button", { name: "Select point (10, 0)", exact: true }),
   ).toHaveCount(0);
@@ -187,7 +187,7 @@ test("local line and layout controls remain reachable on a 320px screen", async 
   await page
     .getByLabel("Resource layout", { exact: true })
     .selectOption("table");
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page
     .getByRole("button", { name: "Edit equation", exact: true })
     .click();
@@ -269,8 +269,12 @@ test("zero and answer lines survive direct editing, undo, navigation and reload"
 }) => {
   await open(page);
   await fillCell(page, 2, "0");
-  await page.getByRole("button", { name: "Answer line", exact: true }).click();
+  const box = page.locator(".md-options-box");
+  await box.getByRole("button", { name: "Pupil space", exact: true }).click();
+  await box.getByLabel("On an answer line", { exact: true }).check();
   expect((await stored(page)).document.columns[1].y.kind).toBe("answer-line");
+  // Show puts back the value this session kept; Undo steps back through each change.
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect((await stored(page)).document.columns[1].y).toEqual({
     kind: "value",
@@ -322,14 +326,14 @@ test("explicit calculations, true curve and straight-join error remain separate"
     .getByRole("dialog")
     .getByRole("button", { name: "Continue", exact: true })
     .click();
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page
     .getByRole("button", { name: "Plot table values", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Plot entered table pairs", exact: true })
     .click();
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page.getByRole("button", { name: "Draw curve", exact: true }).click();
   await expect(page.locator("[data-curve]")).toHaveCount(1);
   await page
@@ -361,7 +365,7 @@ test("point dragging is one reversible edit and does not overwrite the pupil tab
     .getByRole("button", { name: "Add point or segment", exact: true })
     .click();
   await page.getByRole("button", { name: "Add point", exact: true }).click();
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   const before = await stored(page),
     point = page.getByRole("button", {
       name: "Select point (0, 0)",
@@ -526,10 +530,11 @@ test("bold lines are saved, printed and undoable; the grid keeps its weight (U11
   await expect.poll(async () => (await stored(page))?.document.print.lines).toBe("bold");
 });
 
-test("the selected editor is the first settings card and Close returns focus to its opener (U21)", async ({ page }) => {
+test("the selected editor comes after What pupils see and Close returns focus to its opener (U21)", async ({ page }) => {
   await page.goto("/tools/value-table-graph");
   const stack = page.locator(".inspector-stack").filter({ visible: true }).first();
-  const cards = stack.locator(".panel-card");
+  await expect(stack.locator(".panel-card").first()).toHaveAccessibleName("What pupils see");
+  const cards = stack.locator(".panel-card:not(.md-fold)");
   await expect(cards.first()).toHaveAccessibleName("Selected item");
   const opener = page.getByRole("button", { name: "Table settings", exact: true });
   await opener.click();
@@ -537,4 +542,22 @@ test("the selected editor is the first settings card and Close returns focus to 
   await cards.first().getByRole("button", { name: /^Close/ }).click();
   await expect(cards.first()).toHaveAccessibleName("Selected item");
   await expect(opener).toBeFocused();
+});
+
+test("double-click a y value for a pupil space and again to show it; What pupils see sets every y value", async ({ page }) => {
+  await open(page);
+  await fillCell(page, 2, "4");
+  await page.keyboard.press("Escape");
+  const cell = page.getByRole("button", { name: "Edit y for column 2", exact: true });
+  await cell.dblclick();
+  await expect.poll(async () => (await stored(page)).document.columns[1].y.kind).toBe("blank");
+  await cell.dblclick();
+  await expect.poll(async () => (await stored(page)).document.columns[1].y).toEqual({ kind: "value", value: "4" });
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
+  const ys = page.getByRole("group", { name: "y values", exact: true });
+  await ys.getByRole("button", { name: "Pupil space", exact: true }).click();
+  expect((await stored(page)).document.columns.every((c) => c.y.kind !== "value")).toBe(true);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect((await stored(page)).document.columns[1].y).toEqual({ kind: "value", value: "4" });
 });

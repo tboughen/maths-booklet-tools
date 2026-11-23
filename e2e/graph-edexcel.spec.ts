@@ -120,6 +120,8 @@ test("a point prints its coordinates or a pupil blank, as an undoable edit", asy
   await expect(canvas.locator(".point-coordinates text:not(.text-halo)")).toHaveText(["( ……… , ……… )"]);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(async () => (await saved(page))?.objects[0].coordinates).toBe("show");
+  // Undo is a press away from the box beside the graph, so the box closes; the list opens it again.
+  await page.getByRole("button", { name: /^Select Point 1:/ }).click();
   await select.selectOption("none");
   await expect(canvas.locator(".point-coordinates text")).toHaveCount(0);
   await expect.poll(async () => "coordinates" in ((await saved(page))?.objects[0] ?? {})).toBe(false);

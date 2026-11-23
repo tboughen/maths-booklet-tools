@@ -90,6 +90,17 @@ async function saved(page: Page) {
   return c.parseFile(await readFile((await (await download).path())!, "utf8"));
 }
 async function label(page: Page, text: string) {
+  // A label clicked on the drawing has the live box (Enter commits, Escape closes); one chosen in the settings keeps
+  // its Apply.
+  const box = page.locator(".md-options-box");
+  await box.or(page.getByLabel("Saved label", { exact: true })).first().waitFor();
+  if (await box.count()) {
+    await box.getByLabel("Label text", { exact: true }).fill(text);
+    await box.getByLabel("Label text", { exact: true }).press("Enter");
+    await page.keyboard.press("Escape");
+    await expect(box).toHaveCount(0);
+    return;
+  }
   await page.getByLabel("Saved label", { exact: true }).fill(text);
   await page.getByRole("button", { name: "Apply", exact: true }).click();
 }

@@ -122,7 +122,7 @@ test("quadratic specialist settings preserve direct editing and pupil blanks", a
       .getByRole("complementary")
       .getByRole("textbox", { name: "Range start", exact: true }),
   ).toBeFocused();
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page
     .getByRole("button", { name: "Edit equation", exact: true })
     .click();
@@ -138,7 +138,7 @@ test("quadratic specialist settings preserve direct editing and pupil blanks", a
     ),
   ).toHaveLength(5);
   expect(saved.document.graph.curves).toHaveLength(0);
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await page.keyboard.press("Control+z");
   await expect
     .poll(() =>

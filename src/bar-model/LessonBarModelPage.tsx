@@ -35,6 +35,13 @@ import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { houseModel } from "./house";
 import "./bar-model.css";
+import { OptionsBox } from "../site/OptionsBox";
+import { LiveText } from "../site/LiveText";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { FoldCard } from "../site/CardHelp";
+import { Eye } from "lucide-react";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
 import "../site/settings-kit.css";
 import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
@@ -78,6 +85,13 @@ type Draft =
       overwrite: boolean;
     };
 const error = (e: unknown) => (e instanceof Error ? e.message : String(e));
+/** A label clicked on the drawing: one section's label in one place, or a bar's quantity name. */
+type BoxTarget = { kind: "section"; barId: string; partId: string; slot: v3.Slot } | { kind: "name"; barId: string };
+const boxKey = (t: BoxTarget) => (t.kind === "name" ? `name:${t.barId}` : `section:${t.barId}:${t.partId}:${t.slot}`);
+/** An empty blank is no label at all (every section has one), not a pupil space. */
+const isEmpty = (l: c.Label) => l.state === "blank" && !l.text;
+/** What pupils see of a label: a value prints; blank, ? and an answer line are pupil spaces; hidden is left out. */
+const seesOf = (l: c.Label): Visibility => (l.state === "hidden" ? "omit" : l.state === "value" || isEmpty(l) ? "show" : "hidden");
 const stateNames = {
   value: "Print label",
   blank: "Leave blank",
@@ -182,8 +196,15 @@ export default function LessonBarModelPage({
     dirty = useRef(false),
     file = useRef<HTMLInputElement>(null),
     editor = useRef<HTMLDivElement>(null);
+  const [labelBox, setLabelBox] = useState<BoxTarget | null>(null),
+    [boxError, setBoxError] = useState(""),
+    refusedBox = useRef(false),
+    // This session's last pupil space (blank, ? or line) and shown state of each label, and the labels made pupil
+    // spaces on purpose (typing then never makes them print).
+    lastState = useRef(new Map<string, c.Label["state"]>());
   const blocked =
       !!draft ||
+      (!!labelBox && !!boxError) ||
       !!pending ||
       recovery !== undefined ||
       conflict ||
@@ -228,8 +249,75 @@ export default function LessonBarModelPage({
     dirty.current = true;
     documentHistory.redo();
   }
+  function labelAt(t: BoxTarget, doc = d): c.Label | null {
+    const bar = doc.bars.find((b) => b.id === t.barId);
+    if (!bar) return null;
+    if (t.kind === "name") return bar.name;
+    const part = bar.parts.find((p) => p.id === t.partId);
+    return part ? (part.labels[t.slot] ?? c.label()) : null;
+  }
+  const labelOps = (t: BoxTarget, label: c.Label): api.Operation[] =>
+    t.kind === "name"
+      ? [{ op: "set_quantity_name", barId: t.barId, label }]
+      : [{ op: "set_section_labels", barId: t.barId, partIds: [t.partId], slot: t.slot, label }];
+  /** One undo step for the box's label; false (with the reason shown) when it was refused. */
+  function setBoxLabel(t: BoxTarget, label: c.Label, step: string) {
+    try {
+      commit(api.apply(e, labelOps(t, label)), step);
+      setBoxError("");
+      refusedBox.current = false;
+      return true;
+    } catch (err) {
+      setBoxError(error(err));
+      refusedBox.current = true;
+      return false;
+    }
+  }
+  /** The memory of each label's pupil space belongs to one model: a new model, a file or a recovery starts it again. */
+  function forgetLabelStates() {
+    lastState.current.clear();
+  }
+  function stateFor(key: string, l: c.Label, v: Visibility): c.Label["state"] {
+    const now = seesOf(l);
+    if (now === v) return l.state;
+    lastState.current.set(`${key}:${now}`, l.state);
+    return v === "omit" ? "hidden" : (lastState.current.get(`${key}:${v}`) ?? (v === "show" ? "value" : "line"));
+  }
+  const allTargets = (): BoxTarget[] =>
+    d.bars.flatMap((b) => [
+      ...(isEmpty(b.name) ? [] : [{ kind: "name" as const, barId: b.id }]),
+      ...b.parts.flatMap((p) => v3.slots.filter((slotName) => p.labels[slotName] && !isEmpty(p.labels[slotName]!)).map((slotName) => ({ kind: "section" as const, barId: b.id, partId: p.id, slot: slotName }))),
+    ]);
+  /** What pupils see of several labels, as one undo step. */
+  function setSees(targets: BoxTarget[], v: Visibility, what: string) {
+    if (guard.current) return;
+    const ops = targets.flatMap((t) => {
+      const l = labelAt(t);
+      if (!l || seesOf(l) === v) return [];
+      return labelOps(t, { ...l, state: stateFor(boxKey(t), l, v) });
+    });
+    if (!ops.length) return;
+    try {
+      commit(api.apply(e, ops), visibilityStep(v, what));
+    } catch (err) {
+      setMessage(error(err));
+    }
+  }
+  function openBox(t: BoxTarget) {
+    if (guard.current || refusedBox.current) return;
+    setLabelBox(t);
+    setBoxError("");
+  }
+  function toggleLabel(t: BoxTarget, what: string) {
+    const l = labelAt(t);
+    if (l) setSees([t], togglePupilSpace(seesOf(l)), what);
+  }
+  const sectionTargets = allTargets().filter((t) => t.kind === "section"),
+    nameTargets = allTargets().filter((t) => t.kind === "name"),
+    spaceCount = allTargets().filter((t) => seesOf(labelAt(t)!) === "hidden").length;
   function start(n: Draft) {
     if (guard.current) return;
+    setLabelBox(null);
     setDraftError("");
     setDraft(n);
   }
@@ -459,7 +547,10 @@ export default function LessonBarModelPage({
   }
   function replace(envelope: c.Envelope, title: string, worked = false) {
     if (guard.current) return;
-    if (worked) commit(envelope, "use worked version");
+    if (worked) {
+      forgetLabelStates();
+      commit(envelope, "use worked version");
+    }
     else setPending({ envelope, title });
   }
   function endpointControl(
@@ -652,19 +743,17 @@ export default function LessonBarModelPage({
                           className="bm-hit"
                           disabled={blocked}
                           aria-label={`Edit quantity name for bar ${i + 1}`}
+                          data-options-anchor
+                          data-bm-target={`name:${r.bar.id}`}
+                          title={seesOf(r.bar.name) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}
+                          onDoubleClick={() => toggleLabel({ kind: "name", barId: r.bar.id }, `name of bar ${i + 1}`)}
                           style={{
                             left: 0,
                             top: r.y * px,
                             width: Math.max(4, lessonGeometry.gutter) * px,
                             height: r.height * px,
                           }}
-                          onClick={() =>
-                            start({
-                              kind: "label",
-                              target: { kind: "name", barId: r.bar.id },
-                              label: structuredClone(r.bar.name),
-                            })
-                          }
+                          onClick={() => openBox({ kind: "name", barId: r.bar.id })}
                         />
                         {r.parts.flatMap((p, j) =>
                           v3.slots
@@ -675,6 +764,10 @@ export default function LessonBarModelPage({
                                 className="bm-hit"
                                 disabled={blocked}
                                 aria-label={`Edit bar ${i + 1} section ${j + 1} ${s} label`}
+                                data-options-anchor
+                                data-bm-target={`section:${r.bar.id}:${p.part.id}:${s}`}
+                                title={seesOf(p.part.labels[s] ?? c.label()) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}
+                                onDoubleClick={() => toggleLabel({ kind: "section", barId: r.bar.id, partId: p.part.id, slot: s }, `bar ${i + 1} section ${j + 1} label`)}
                                 style={{
                                   left: p.x * px,
                                   top:
@@ -694,9 +787,12 @@ export default function LessonBarModelPage({
                                             : r.belowSection,
                                         )) * px,
                                 }}
-                                onClick={() =>
-                                  editSection(r.bar.id, p.part.id, s)
-                                }
+                                onClick={() => {
+                                  setSelectedBar(r.bar.id);
+                                  setSelectedParts([p.part.id]);
+                                  setSlot(s);
+                                  openBox({ kind: "section", barId: r.bar.id, partId: p.part.id, slot: s });
+                                }}
                               />
                             )),
                         )}
@@ -802,11 +898,33 @@ export default function LessonBarModelPage({
               <p key={w}>{w}</p>
             ))}
           </Panel>
-          <div className="inspector-stack md-kit">
+          <div className="inspector-stack md-kit md-kit--one">
             <ReturnToDiagram />
-            {/* Two fixed columns on a wide window, so that a card never jumps across as another opens. */}
+            {/* One column (the usability pilot): what pupils see first; a clicked label opens its box beside the
+                drawing. */}
             <div className="md-kit-cards">
             <div>
+            <FoldCard tool="bar-model" title="What pupils see" icon={Eye} defaultOpen summary={spaceCount ? `${spaceCount} pupil ${spaceCount === 1 ? "space" : "spaces"}` : "Every label shows"} help="Each label prints, leaves a pupil space (empty, ? or an answer line) or is left out. Click a label on the drawing for its own choice.">
+              {(
+                [
+                  ["Section labels", sectionTargets],
+                  ["Quantity names", nameTargets],
+                ] as const
+              ).map(([group, ts]) => (
+                <VisibilitySwitch
+                  key={group}
+                  name={group}
+                  caption={group}
+                  disabled={blocked}
+                  value={commonVisibility(ts.map((t) => seesOf(labelAt(t)!))) ?? "show"}
+                  help={{ hidden: "Pupils see a space, a ? or an answer line. The text stays saved." }}
+                  onChange={(v) => setSees(ts, v, group.toLowerCase())}
+                />
+              ))}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={() => setSees(allTargets().filter((t) => seesOf(labelAt(t)!) === "hidden"), "show", "pupil spaces")}>
+                Double-click a label on the drawing for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
             {(recovery !== undefined || conflict) && (
               <Panel>
                 <div
@@ -872,6 +990,7 @@ export default function LessonBarModelPage({
                     : "Use this model"
                 }
                 onConfirm={() => {
+                  forgetLabelStates();
                   commit(pending.envelope, stepName(pending.title));
                   setSelectedBar(pending.envelope.document.bars[0].id);
                   setSelectedParts([]);
@@ -886,6 +1005,80 @@ export default function LessonBarModelPage({
                 />
               </RatioDialog>
             )}
+            {labelBox && labelAt(labelBox) && (() => {
+              const t = labelBox,
+                l = labelAt(t)!,
+                key = boxKey(t),
+                sees = seesOf(l),
+                bi = d.bars.findIndex((b) => b.id === t.barId),
+                title =
+                  t.kind === "name"
+                    ? `Bar ${bi + 1} name`
+                    : `Bar ${bi + 1}, section ${d.bars[bi].parts.findIndex((p) => p.id === t.partId) + 1} (${t.slot})`;
+              return (
+                <OptionsBox
+                  anchor={document.querySelector<HTMLElement>(`[data-bm-target="${key}"]`)}
+                  anchorKey={key}
+                  bounds={document.querySelector<HTMLElement>(".editor-card")}
+                  placeBy={document.querySelector<HTMLElement>(".bm-art")}
+                  hidden={!active || !!pending}
+                  title={title}
+                  onClose={(how) => {
+                    // Escape and Close leave a refused value unsaved; a press elsewhere keeps it, and the box, open.
+                    if (how !== "away") {
+                      setBoxError("");
+                      refusedBox.current = false;
+                    } else if (refusedBox.current) return;
+                    setLabelBox(null);
+                  }}
+                >
+                  <div className="bm-box">
+                    <LiveText
+                      key={key}
+                      label="Label text"
+                      value={l.text}
+                      invalid={!!boxError}
+                      onCommit={(text) =>
+                        setBoxLabel(
+                          t,
+                          // A label with nothing in it yet prints what is typed; a pupil space made on purpose stays one.
+                          { text, state: isEmpty(l) ? "value" : l.state },
+                          `edit ${title.toLowerCase()}`,
+                        )
+                      }
+                      onRevert={() => {
+                        setBoxError("");
+                        refusedBox.current = false;
+                      }}
+                    />
+                    <VisibilitySwitch
+                      name="What pupils see"
+                      caption="What pupils see"
+                      value={sees}
+                      disabled={!!boxError}
+                      help={{ hidden: "Pupils see a space, a ? or an answer line. The text stays saved." }}
+                      onChange={(v) => setBoxLabel(t, { ...l, state: stateFor(key, l, v) }, visibilityStep(v, title.toLowerCase()))}
+                    />
+                    {sees === "hidden" && (
+                      <label>
+                        Pupils see
+                        <select
+                          aria-label="Pupils see"
+                          value={l.state}
+                          disabled={!!boxError}
+                          onChange={(ev) => setBoxLabel(t, { ...l, state: ev.target.value as c.Label["state"] }, `pupil space on ${title.toLowerCase()}`)}
+                        >
+                          <option value="line">An answer line</option>
+                          <option value="question">A question mark</option>
+                          <option value="blank">An empty space</option>
+                        </select>
+                      </label>
+                    )}
+                    {boxError && <p role="alert">{boxError}</p>}
+                  </div>
+                </OptionsBox>
+              );
+            })()}
             {draft && (
               <Panel>
                 <form

@@ -46,7 +46,8 @@ export function OptionsBox({
   /** Kept but out of sight while its page is not the one showing, so a draft in it survives a visit elsewhere. */
   hidden?: boolean;
   title: string;
-  onClose: () => void;
+  /** How it was closed: Escape puts back a refused value, where a press elsewhere keeps it. */
+  onClose: (how: "escape" | "away" | "button") => void;
   children: ReactNode;
 }) {
   const box = useRef<HTMLDivElement>(null);
@@ -88,6 +89,8 @@ export function OptionsBox({
         top = a.bottom + gap + h <= innerHeight - edge ? a.bottom + gap : Math.max(edge, Math.min(a.top - gap - h, innerHeight - edge - h));
       }
     }
+    // A label scrolled out of the window (a phone, with the settings in view) still gets its box inside the window.
+    top = Math.max(edge, Math.min(top, innerHeight - edge - h));
     setPlace((p) => (p && Math.abs(p.left - left) < 0.5 && Math.abs(p.top - top) < 0.5 ? p : { left, top }));
   };
   useLayoutEffect(measure);
@@ -96,12 +99,12 @@ export function OptionsBox({
     addEventListener("scroll", again, true);
     addEventListener("resize", again);
     // The box can grow after it is placed (a note or an error appears, a font arrives), so it is placed again.
-    const grown = new ResizeObserver(again);
-    if (box.current) grown.observe(box.current);
+    const grown = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(again);
+    if (box.current) grown?.observe(box.current);
     return () => {
       removeEventListener("scroll", again, true);
       removeEventListener("resize", again);
-      grown.disconnect();
+      grown?.disconnect();
     };
   });
 
@@ -137,7 +140,7 @@ export function OptionsBox({
       if (modalOpen()) return;
       // A field still being typed in commits first: a field removed with focus never gets its blur.
       if (box.current?.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
-      close.current();
+      close.current("away");
     };
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented || modalOpen()) return;
@@ -146,7 +149,7 @@ export function OptionsBox({
       // A field may have let go of the focus on Escape already (it puts its value back); the label takes it either way.
       const lost = document.activeElement === null || document.activeElement === document.body;
       if ((lost || box.current?.contains(document.activeElement)) && anchor?.isConnected) anchor.focus({ preventScroll: true });
-      close.current();
+      close.current("escape");
     };
     document.addEventListener("pointerdown", away, true);
     document.addEventListener("keydown", escape);
@@ -180,7 +183,7 @@ export function OptionsBox({
     >
       <div className="md-options-head">
         <h2>{title}</h2>
-        <button type="button" className="md-options-close" aria-label="Close options" title="Close (Escape)" onClick={() => close.current()}>
+        <button type="button" className="md-options-close" aria-label="Close options" title="Close (Escape)" onClick={() => close.current("button")}>
           <X size={16} aria-hidden="true" />
         </button>
       </div>
