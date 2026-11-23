@@ -87,7 +87,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
   charts: {
     example,
     worked,
-    kind: "bar, dual (comparative), composite (stacked) or vline (vertical line chart).",
+    kind: "bar, dual (comparative), composite (stacked), vline (vertical line chart) or line (line graph: crosses joined by straight lines, up to 4 series told apart by solid, dashed and dotted lines in the key).",
     categories: "Category labels along the horizontal axis, up to 12.",
     series: "Up to 4 data series (bar and vline draw the first only), one numeric-string value or null (blank) per category, with a fill.",
     axis: "Vertical axis min, max, step and minor divisions; it starts at 0.",

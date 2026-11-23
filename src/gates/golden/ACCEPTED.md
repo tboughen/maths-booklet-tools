@@ -1099,3 +1099,8 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 
 - number line: number-line-plain-quarters: added
 - number line: number-line-plain-quarters (worked): added
+
+## 2026-11-23: Charts: line graph kind and its plain shape (Tim, 23 Nov 2026)
+
+- charts: chart-plain-line: added
+- charts: chart-plain-line (worked): added

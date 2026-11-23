@@ -470,7 +470,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const answerSvg = renderSvg(forView(e, "answer", true));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const series = drawnSeries(e);
-  const line = d.kind === "vline",
+  const line = d.kind === "vline" || d.kind === "line",
     pie = d.kind === "pie",
     pictogram = d.kind === "pictogram",
     scatter = d.kind === "scatter",
@@ -483,7 +483,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     sl = stemleafOf(d),
     timeseries = d.kind === "timeseries",
     ts = timeseriesOf(d),
-    mark = timeseries ? "time" : stemleaf ? "row" : boxplot ? "box plot" : pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : line ? "line" : "bar";
+    mark = timeseries ? "time" : stemleaf ? "row" : boxplot ? "box plot" : pie ? "sector" : pictogram ? "row" : scatter ? "point" : grouped === "histogram" ? "bar" : grouped ? "point" : d.kind === "line" ? "point" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -720,7 +720,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots, stem-and-leaf diagrams and time series graphs."
+          description="Make bar, dual, composite and vertical line charts and line graphs on exam-style axes, pie charts at true size, pictograms, scatter graphs, histograms, frequency polygons, cumulative frequency graphs, box plots, stem-and-leaf diagrams and time series graphs."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>

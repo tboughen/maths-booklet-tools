@@ -3437,6 +3437,7 @@
               "dual",
               "composite",
               "vline",
+              "line",
               "pie",
               "pictogram",
               "scatter",

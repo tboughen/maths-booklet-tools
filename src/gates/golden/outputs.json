@@ -1766,6 +1766,20 @@
    "png600": "3243x1923",
    "pixels": "4df5ea0bfa694280"
   },
+  "charts: chart-plain-line": {
+   "json": "cca341ad5df5334b",
+   "svg": "6fd19fb0fb37e16a",
+   "mm": "130.6x77.6",
+   "png600": "3085x1833",
+   "pixels": "91bf455a6e47608e"
+  },
+  "charts: chart-plain-line (worked)": {
+   "json": "cca341ad5df5334b",
+   "svg": "6fd19fb0fb37e16a",
+   "mm": "130.6x77.6",
+   "png600": "3085x1833",
+   "pixels": "91bf455a6e47608e"
+  },
   "charts: chart-plain-pictogram": {
    "json": "c5fbb3e30c776976",
    "svg": "81b19299f91631e4",

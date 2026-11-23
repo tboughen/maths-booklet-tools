@@ -907,6 +907,13 @@
   "plain": true
  },
  {
+  "id": "chart-plain-line",
+  "title": "Line graph",
+  "description": "Two shops' daily sales over a week, as crosses joined by straight lines, with a key.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
   "id": "chart-plain-pie",
   "title": "Pie chart",
   "description": "A pie chart at true size with each sector labelled.",
