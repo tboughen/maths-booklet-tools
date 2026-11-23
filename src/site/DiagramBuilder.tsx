@@ -1,3 +1,4 @@
+import { flushSync } from "react-dom";
 import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { LayoutGrid, Grid3X3, Tags, Settings2, Star, ZoomIn, X } from "lucide-react";
 import { PageHeading } from "./PageHeading";
@@ -9,6 +10,9 @@ import { finderKeys, focusLeft, useFinderDismiss } from "./toolFinderBehaviour";
 import { useFavouriteToolList } from "./favouriteTools";
 import { catalogue, isNew, searchTool, strands, type StrandId } from "./toolCatalogue";
 import { HOUSE_STYLES, HOUSE_STYLE_NAMES, LINE_WEIGHTS, LINE_WEIGHT_NAMES, type HouseStyle, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { EXAMPLE_PARAM, previewUrl } from "../examples/examplePreviews";
+import { searchExamples, type ExampleIndexEntry } from "../examples/galleryTools";
+import exampleIndexUrl from "../examples/exampleIndex.json?url";
 import "./diagram-builder.css";
 
 type Tool = (typeof bookletTools)[number];
@@ -36,6 +40,30 @@ function save(key: string, value: unknown) {
   }
 }
 const isView = (v: unknown): v is View => VIEWS.some((view) => view.id === v);
+
+/** Examples shown before "Show all": two rows of tiles on a 1920-wide screen. */
+const EXAMPLES_SHOWN = 12;
+let exampleIndexLoad: Promise<ExampleIndexEntry[]> | null = null;
+/** Every tool's gallery examples, fetched once on the first search (a data file, not page code). */
+function useExampleIndex(wanted: boolean) {
+  const [index, setIndex] = useState<ExampleIndexEntry[]>([]);
+  useEffect(() => {
+    if (!wanted) return;
+    let live = true;
+    exampleIndexLoad ??= fetch(exampleIndexUrl)
+      .then((response) => (response.ok ? (response.json() as Promise<ExampleIndexEntry[]>) : []))
+      .catch(() => {
+        exampleIndexLoad = null;
+        return [];
+      });
+    void exampleIndexLoad.then((list) => live && setIndex(list));
+    return () => {
+      live = false;
+    };
+  }, [wanted]);
+  return index;
+}
+
 
 /** The Diagram builder page: every diagram tool as a picture, grouped by GCSE strand. */
 export function DiagramBuilder() {
@@ -92,6 +120,12 @@ export function DiagramBuilder() {
   }
 
   const results = bookletTools.map((tool) => ({ tool, ...searchTool(tool, search) })).filter((r) => r.found);
+  const exampleIndex = useExampleIndex(!!search.trim());
+  const [allExamples, setAllExamples] = useState(false);
+  useEffect(() => setAllExamples(false), [search, strand]);
+  const toolNames = new Map(bookletTools.map((tool) => [tool.id as string, tool.name]));
+  const examples = searchExamples(exampleIndex, search).filter((e) => toolNames.has(e.tool) && (strand === "all" || catalogue[e.tool as Tool["id"]].strand === strand));
+  const shownExamples = allExamples ? examples : examples.slice(0, EXAMPLES_SHOWN);
   const shownStrands = strand === "all" ? strands : strands.filter((s) => s.id === strand);
   const showFavourites = !search && strand === "all";
 
@@ -207,7 +241,9 @@ export function DiagramBuilder() {
         </div>
         {search && (
           <p className="tool-search-status" role="status">
-            {results.length ? `${results.length} ${results.length === 1 ? "tool" : "tools"} found` : "No tools found. Try a teaching topic or clear your search."}
+            {results.length || examples.length
+              ? [examples.length && `${examples.length} ${examples.length === 1 ? "example" : "examples"}`, results.length && `${results.length} ${results.length === 1 ? "tool" : "tools"}`].filter(Boolean).join(" and ") + " found"
+              : "No tools found. Try a teaching topic or clear your search."}
           </p>
         )}
       </div>
@@ -223,6 +259,41 @@ export function DiagramBuilder() {
             <p>Star any tool below and it will wait for you here.</p>
           </section>
         ))}
+        {examples.length > 0 && (
+          <section className="tool-strand tool-examples" aria-labelledby="search-examples">
+            <h2 id="search-examples">Examples to start from<small>{examples.length} {examples.length === 1 ? "example" : "examples"}</small></h2>
+            <div className="tool-grid">
+              {shownExamples.map((e) => {
+                const href = `${pageHref(e.tool as Tool["id"])}?${EXAMPLE_PARAM}=${encodeURIComponent(e.id)}`;
+                const tool = toolNames.get(e.tool);
+                return (
+                  <article key={e.id} className="tool-tile example-tile">
+                    <a className="overview-example-card" href={href} aria-label={`Open ${e.title} in ${tool}`}>
+                      <span className="tool-picture"><img className="overview-tool-preview" src={previewUrl(e.id)} alt="" loading="lazy" /></span>
+                      <span className="tool-tile-text">
+                        <h3>{e.title}{e.plain && <>{" "}<span className="tool-plain">Plain</span></>}</h3>
+                        <span className="tool-match">Opens in {tool}</span>
+                        <span className="tool-tile-description">{e.description}</span>
+                      </span>
+                    </a>
+                  </article>
+                );
+              })}
+            </div>
+            {examples.length > shownExamples.length && (
+              <button
+                type="button"
+                className="tool-examples-more"
+                onClick={(event) => {
+                  // The button goes once every example shows, so focus moves to the first one it revealed.
+                  const grid = event.currentTarget.previousElementSibling;
+                  flushSync(() => setAllExamples(true));
+                  grid?.querySelectorAll<HTMLAnchorElement>("a")[EXAMPLES_SHOWN]?.focus();
+                }}
+              >Show all {examples.length} examples</button>
+            )}
+          </section>
+        )}
         {shownStrands.map((s) => {
           const list = results.filter((r) => catalogue[r.tool.id].strand === s.id);
           if (!list.length) return null;

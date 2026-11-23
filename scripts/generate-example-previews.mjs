@@ -7,7 +7,7 @@ import { Resvg } from '@resvg/resvg-js';
 
 mkdirSync('tmp/usability', { recursive:true });
 // The bar-model editor's own gallery (lesson R1–R5 plus the past-paper cards) lives in barLessonGallery.
-await build({ stdin:{ contents:"export * from './src/examples/galleryCatalogue'; export { barLessonGallery } from './src/examples/barLessonGallery';", resolveDir:process.cwd(), loader:'ts' }, bundle:true, platform:'node', format:'cjs', outfile:'tmp/usability/catalogue.cjs' });
+await build({ stdin:{ contents:"export * from './src/examples/galleryCatalogue'; export { barLessonGallery } from './src/examples/barLessonGallery'; export { exampleIndex } from './src/examples/galleryTools';", resolveDir:process.cwd(), loader:'ts' }, bundle:true, platform:'node', format:'cjs', outfile:'tmp/usability/catalogue.cjs' });
 const catalogue = createRequire(import.meta.url)(resolve('tmp/usability/catalogue.cjs'));
 const directory = resolve('src/assets/example-previews');
 mkdirSync(directory, { recursive:true });
@@ -35,4 +35,6 @@ for (const [group, examples] of Object.entries(catalogue)) {
   }
 }
 writeFileSync(resolve(report,'index.json'),JSON.stringify(records,null,2)+'\n');
+// The Diagram builder search reads this index, so it finds examples without loading every tool.
+writeFileSync(resolve('src/examples/exampleIndex.json'), JSON.stringify(catalogue.exampleIndex(catalogue), null, 1) + '\n');
 console.log(JSON.stringify({ examples:new Set(records.map(r=>r.id)).size, outputs:records.length, directory, report }));

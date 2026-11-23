@@ -64,6 +64,7 @@ import { renderSvg as areaSvg } from "../../packages/area-core/src";
 import { examples as figureExamples } from "../../packages/figure-core/src/examples";
 import { renderSvg as figureSvg } from "../../packages/figure-core/src";
 import { examples as solidExamples } from "../../packages/solid-core/src/examples";
+import { plainShapes as plainSolids } from "../../packages/solid-core/src/plain";
 import { renderSvg as solidSvg } from "../../packages/solid-core/src";
 import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
 import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
@@ -93,6 +94,8 @@ export interface GalleryExample<T> {
   worked?: boolean;
   workedReason?: string;
   workedLabel?: string;
+  /** A plain, common version of the diagram (a triangular prism, a cylinder): shown first, under "Plain shapes". */
+  plain?: boolean;
 }
 const source = (id: string) =>
   `https://mathsdock.co.uk/question-bank?question=${id}`;
@@ -369,14 +372,25 @@ export const figuresGallery = figureExamples.map((example) => ({
   render: (e: Parameters<typeof figureSvg>[0]) => figureSvg(e),
   worked: example.worked,
 }));
-export const solidsGallery = solidExamples.map((example) => ({
+export const solidsGallery = [
+  ...plainSolids.map((shape) => ({
+    id: `solids-plain-${shape.id}`,
+    title: shape.title,
+    description: shape.note,
+    make: shape.make,
+    render: (e: Parameters<typeof solidSvg>[0]) => solidSvg(e),
+    worked: false,
+    plain: true,
+  })),
+  ...solidExamples.map((example) => ({
   id: `solids-${example.id}`,
   title: example.title,
   description: example.note,
   make: example.make,
   render: (e: Parameters<typeof solidSvg>[0]) => solidSvg(e),
   worked: example.worked,
-}));
+})),
+];
 export const sampleSpaceGallery = sampleSpaces.map((example) => ({
   id: `ss-${example.id}`,
   title: example.title,

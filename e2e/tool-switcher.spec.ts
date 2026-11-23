@@ -172,7 +172,8 @@ test("a click in the Diagram builder's search box drops the same finder down, an
   await expect(listFinder(page).locator(".tool-switcher-groups").getByRole("link")).toHaveCount(1);
   await expect(listFinder(page).locator("a.is-first")).toContainText("Triangles");
   await expect(page.locator(".overview-tool-card")).toHaveCount(1);
-  await expect(page.getByRole("status")).toHaveText("1 tool found");
+  // Matching gallery examples come first in the count: "3 examples and 1 tool found".
+  await expect(page.getByRole("status")).toContainText("1 tool found");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/tools\/triangle$/);
   // Going back finds the finder closed.
@@ -227,10 +228,10 @@ test("the finder on the Diagram builder works with the keyboard alone and closes
   // Nor does a second Escape, which empties the box in some browsers.
   await page.keyboard.press("Escape");
   await expect(listFinder(page)).toHaveCount(0);
-  // A click elsewhere closes it too.
+  // A click elsewhere closes it too (beside the page heading: the examples found fill the space below).
   await listSearch(page).fill("angles");
   await expect(listFinder(page)).toBeVisible();
-  await page.mouse.click(1200, 700);
+  await page.mouse.click(1200, 90);
   await expect(listFinder(page)).toHaveCount(0);
   // Clear search puts focus back in the box, so the keys still work.
   await listSearch(page).click();
@@ -276,4 +277,25 @@ test("the finder on the Diagram builder has no serious accessibility violations 
     await page.keyboard.press("Escape");
   }
   expect(found).toEqual([]);
+});
+
+test("the Diagram builder's search shows matching examples from every tool, and one opens in its tool ready to undo", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools");
+  await listSearch(page).fill("triangular prism");
+  await page.keyboard.press("Escape");
+  const examples = page.getByRole("region", { name: /Examples to start from/ });
+  // Plain shapes first, then the exam-style prism and the net from the Nets tool, each saying where it opens.
+  await expect(examples.locator(".example-tile h3").first()).toHaveText("Triangular prism Plain");
+  await expect(examples.getByRole("link", { name: "Open Name the 3D shape in Nets of 3D shapes" })).toBeVisible();
+  await expect(examples.locator("img").first()).toHaveJSProperty("complete", true);
+  expect(await examples.locator("img").evaluateAll((imgs) => imgs.every((img) => (img as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  await expect(page.getByRole("status")).toHaveText(/^\d+ examples and 1 tool found$/);
+  await examples.getByRole("link", { name: "Open Triangular prism in 3D solids" }).click();
+  await expect(page).toHaveURL(/\/tools\/solids$/);
+  await page.getByRole("button", { name: "Use this drawing" }).click();
+  await expect(shown(page).getByRole("button", { name: /^Undo/ })).toHaveAttribute("title", /Undo open Triangular prism/);
+  // The tool's own gallery leads with the same plain shapes.
+  await shown(page).getByRole("button", { name: "Examples" }).click();
+  await expect(page.locator(".example-gallery-group-title")).toHaveText(["Plain shapes", "Exam-style examples"]);
 });

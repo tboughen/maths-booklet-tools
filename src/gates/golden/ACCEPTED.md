@@ -871,3 +871,22 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - ratio table: ratio-simple: pixels 857d13d10142a099 -> 67e40f9d218bbaf2
 - ratio table: ratio-simple (worked): svg e020341b730f4615 -> 4ba4be06fdc6dd27
 - ratio table: ratio-simple (worked): pixels 857d13d10142a099 -> 67e40f9d218bbaf2
+
+## 2026-11-23: Add the eight plain 3D solids shapes (examples first, agreed by Tim 23 Nov 2026); no existing output changed
+
+- 3D solids: solids-plain-cuboid: added
+- 3D solids: solids-plain-cuboid (worked): added
+- 3D solids: solids-plain-triangular-prism: added
+- 3D solids: solids-plain-triangular-prism (worked): added
+- 3D solids: solids-plain-roof-prism: added
+- 3D solids: solids-plain-roof-prism (worked): added
+- 3D solids: solids-plain-cylinder: added
+- 3D solids: solids-plain-cylinder (worked): added
+- 3D solids: solids-plain-cone: added
+- 3D solids: solids-plain-cone (worked): added
+- 3D solids: solids-plain-square-pyramid: added
+- 3D solids: solids-plain-square-pyramid (worked): added
+- 3D solids: solids-plain-sphere: added
+- 3D solids: solids-plain-sphere (worked): added
+- 3D solids: solids-plain-hemisphere: added
+- 3D solids: solids-plain-hemisphere (worked): added

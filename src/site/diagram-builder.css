@@ -27,8 +27,8 @@
 .tool-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 .is-compact .tool-grid, .tool-favourites .tool-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .tool-tile { position: relative; min-width: 0; }
-.tool-tile .overview-tool-card { display: grid; grid-template-rows: auto 1fr; height: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: white; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s, transform .15s; }
-.tool-tile .overview-tool-card:hover, .tool-tile .overview-tool-card:focus-visible { border-color: #1d518c; box-shadow: 0 6px 18px rgba(23,43,77,.14); transform: translateY(-2px); }
+.tool-tile .overview-tool-card, .tool-tile .overview-example-card { display: grid; grid-template-rows: auto 1fr; height: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: white; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.tool-tile .overview-tool-card:hover, .tool-tile .overview-tool-card:focus-visible, .tool-tile .overview-example-card:hover, .tool-tile .overview-example-card:focus-visible { border-color: #1d518c; box-shadow: 0 6px 18px rgba(23,43,77,.14); transform: translateY(-2px); }
 .tool-picture { display: block; aspect-ratio: 4 / 3; padding: 10px; background: var(--db-paper); border-bottom: 1px solid var(--line); }
 .tool-picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .tool-tile-text { display: grid; align-content: start; gap: 4px; padding: 10px 12px 12px; min-width: 0; }
@@ -96,5 +96,10 @@
   .tool-sections h2 { font-size: 19px; }
 }
 @media (hover: none) { .tool-tile-actions { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .tool-tile .overview-tool-card, .tool-tile-actions { transition: none; } .tool-tile .overview-tool-card:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tool-tile .overview-tool-card, .tool-tile .overview-example-card, .tool-tile-actions { transition: none; } .tool-tile .overview-tool-card:hover, .tool-tile .overview-example-card:hover { transform: none; } }
 @media print { .tool-controls, .tool-tile-actions { display: none; } }
+
+/* Examples to start from: every tool's gallery examples that match the search, above the tools. */
+.tool-plain { padding: 1px 5px; border-radius: 3px; background: #e7f0ff; color: #1d4ed8; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.example-tile .tool-picture { background: #fff; }
+.tool-examples-more { margin-top: 12px; }
