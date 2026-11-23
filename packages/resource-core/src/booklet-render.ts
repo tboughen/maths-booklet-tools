@@ -736,10 +736,10 @@ export const RETRIEVAL = {
 export const retrievalQuestionWidth = () => W - RETRIEVAL.strip - RETRIEVAL.gap - RETRIEVAL.num;
 export const retrievalAnswerWidth = () => RETRIEVAL.strip - RETRIEVAL.gap - 1;
 /** Each row's height: the question, writing room and padding, or the answer if it is taller. */
-export function retrievalRowHeights(r: Retrieval): number[] {
+export function retrievalRowHeights(r: Retrieval, maths = false): number[] {
   return r.items.map((it) => {
-    const q = wrap(it.question, S.body, retrievalQuestionWidth()).length * lh(S.body);
-    const a = wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body);
+    const q = wrap(it.question, S.body, retrievalQuestionWidth(), "regular", powersOnly(it.question, maths)).length * lh(S.body);
+    const a = wrap(it.answer, S.body, retrievalAnswerWidth(), "regular", powersOnly(it.answer, maths)).length * lh(S.body);
     return Math.max(q + RETRIEVAL.write, a + 2) + RETRIEVAL.pad * 2;
   });
 }
@@ -762,7 +762,7 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
   out.push(textSvg(parseRuns("Questions", "bold"), x0, y + base(S.body), S.body, st.navy), textSvg(parseRuns("Answers", "bold"), foldX + R.gap, y + base(S.body), S.body, st.navy));
   y += lh(S.body) + 1.5;
   const top = y;
-  const heights = retrievalRowHeights(r);
+  const heights = retrievalRowHeights(r, maths);
   r.items.forEach((it, i) => {
     const h = heights[i];
     out.push(hline(x0, x0 + W, y, st, 0.35));

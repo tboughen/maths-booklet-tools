@@ -74,7 +74,7 @@ const FOOT_ROW = FOOT_TEXT_TOP - A4.footerRule + lh(A4.pageNumber);
 /** Distance from the page's foot to the footer's last (1 pt) paragraph. */
 const FOOTER_DISTANCE = A4.page.height - (A4.footerRule + FOOT_ROW + END_MM);
 
-const lines = (src: string, size: number, width: number, style?: FontStyle) => wrap(src, size, width, style).length;
+const lines = (src: string, size: number, width: number, style?: FontStyle, maths = false) => wrap(src, size, width, style, maths).length;
 
 /** A paragraph of text at one size, with exact line spacing; Word's line is 1 mm longer than measured. */
 function textPara(src: string, size: number, o: { color?: string; bold?: boolean; italic?: boolean; align?: "left" | "center" | "right"; left?: number; right?: number; maths?: boolean } = {}) {
@@ -492,7 +492,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
         true,
       ),
       ...intro.keywords.map((k, i) => {
-        const h = Math.max(lines(k.meaning, S.body, W - ww - 4.8), lines(k.word, S.body, ww - 4.8, "bold")) * lh(S.body) + 2.6;
+        const h = Math.max(lines(k.meaning, S.body, W - ww - 4.8, "regular", powersOnly(k.meaning, doc.notation === "maths")), lines(k.word, S.body, ww - 4.8, "bold")) * lh(S.body) + 2.6;
         return row(
           [
             cell(gap(1.3) + para(runs(k.word, { bold: true, color: st.navy })), { width: ww, borders, margin }),
@@ -529,18 +529,18 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string 
     ],
     { mm: lh(S.body) + 1.5, exact: true },
   );
-  const heights = retrievalRowHeights(r);
+  const heights = retrievalRowHeights(r, maths);
   const rows = r.items.map((it, i) => {
     const h = heights[i];
     const b = { top: line, ...(i === r.items.length - 1 ? { bottom: line } : {}) };
-    const q = wrap(it.question, S.body, qw).length * lh(S.body);
+    const q = wrap(it.question, S.body, qw, "regular", powersOnly(it.question, maths)).length * lh(S.body);
     const write = h - R.pad * 2 - q;
     return row(
       [
         cell(gap(R.pad) + para(runs(String(i + 1), { bold: true, color: st.navy })), { width: R.num, borders: b }),
         cell(gap(R.pad) + para(runs(it.question, {}, "regular", powersOnly(it.question, maths))) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
         cell(gap(END_MM), { width: R.gap - WORD_WRAP_SLACK_MM, borders: { ...b, right: fold } }),
-        cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body))) + para(runs(it.answer, {}, "regular", powersOnly(it.answer, maths))), { width: rightW, margin, borders: { ...b, left: fold } }),
+        cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth(), "regular", powersOnly(it.answer, maths)).length * lh(S.body))) + para(runs(it.answer, {}, "regular", powersOnly(it.answer, maths))), { width: rightW, margin, borders: { ...b, left: fold } }),
       ],
       // Word prints row borders outside an exact row height (probe P1): each row's top rule, and the
       // last row's bottom rule too, come off its height so the table is as tall as the PDF's.
