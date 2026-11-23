@@ -96,6 +96,7 @@ import {
   type LabelDraft as Draft,
   seesOfLabel,
   stateFor,
+  forgetLabelStates,
 } from "./labelDraft";
 import { MathsPanel } from "./MathsPanel";
 import { ConstructionPanel } from "./ConstructionPanel";
@@ -443,6 +444,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     setShowAnswers(false);
   }
   function closeDraft() {
+    reverting.current = false;
     const ref = draftRef.current?.ref;
     draftRef.current = null;
     setDraft(null);
@@ -1663,6 +1665,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   caption={group}
                   disabled={blocked}
                   value={commonVisibility(refs.map((r) => seesOfLabel(getLabel(e, r)))) ?? "show"}
+                  help={{
+                    hidden: "Pupils see spaces to fill in. The answers copy shows saved answers.",
+                    omit: "Nothing prints on the pupil copy. Saved answers still print in the answers copy.",
+                  }}
                   onChange={(v) => setSees(refs, v, group.toLowerCase())}
                 />
               ))}
@@ -2531,6 +2537,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               consumeLink();
             }}
             onConfirm={() => {
+              forgetLabelStates();
               commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);

@@ -6,7 +6,7 @@ import {
   type Envelope,
   type Label,
 } from "../../packages/triangle-core/src";
-import { canMarkRight, labelState, seesOfLabel, stateFor, type LabelDraft } from "./labelDraft";
+import { canMarkRight, chosenAway, labelState, seesOfLabel, stateFor, type LabelDraft } from "./labelDraft";
 import { VisibilitySwitch } from "../site/VisibilitySwitch";
 
 type Choice = { value: string; label: string; disabled?: boolean };
@@ -74,14 +74,18 @@ export function TriangleLabelFields({
     patch = (change: Partial<Label>) =>
       update({ value: { ...draft.value, ...change } });
   const sees = seesOfLabel(draft.value),
-    blankHeld = !!draft.value.answer || savedText(e, draft.ref) !== "";
+    // Only a label with nothing in it yet, never made a pupil space on purpose, shows what is typed.
+    blankHeld = !!draft.value.answer || savedText(e, draft.ref) !== "" || chosenAway(draft.ref);
   const display = (
     <>
       <VisibilitySwitch
         name="What pupils see"
         caption="What pupils see"
         value={sees}
-        help={{ omit: "Nothing prints on the pupil copy. A saved answer still prints in the answers copy." }}
+        help={{
+          hidden: "Pupils see a space to fill in. The answers copy shows the saved answer, if there is one.",
+          omit: "Nothing prints on the pupil copy. A saved answer still prints in the answers copy.",
+        }}
         onChange={(v) => update(labelState(draft, stateFor(draft.ref, draft.value, v)))}
       />
       {sees === "show" && !vertex && (

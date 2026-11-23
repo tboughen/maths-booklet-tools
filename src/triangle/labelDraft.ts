@@ -52,9 +52,19 @@ export const seesOfLabel = (l: Label): Visibility =>
 // This session's last state of each kind for a label, so Show after a pupil space brings back an unknown x, and a
 // pupil space after Show brings back its answer line.
 const lastState = new Map<string, Label["state"]>();
+/** A new diagram starts with no memory of the last one's labels. */
+const away = new Set<string>();
+export const forgetLabelStates = () => {
+  lastState.clear();
+  away.clear();
+};
+/** The teacher made this label a pupil space (or left it out) this session: typing then never makes it print. */
+export const chosenAway = (ref: string) => away.has(ref);
 /** The saved state for a new choice of what pupils see. */
 export function stateFor(ref: string, l: Label, v: Visibility): Label["state"] {
   const now = seesOfLabel(l);
+  if (v === "show") away.delete(ref);
+  else away.add(ref);
   if (now === v) return l.state;
   lastState.set(`${ref}:${now}`, l.state);
   return v === "omit" ? "hidden" : (lastState.get(`${ref}:${v}`) ?? (v === "show" ? "value" : "blank"));

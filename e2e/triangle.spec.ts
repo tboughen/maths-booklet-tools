@@ -2145,3 +2145,15 @@ test("text size and bold lines are saved, printed and undoable; normal lines are
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(async () => (await saved(page)).document.lines).toBe("bold");
 });
+
+test("typing into a label made a pupil space keeps it a pupil space (nothing printed for pupils)", async ({ page }) => {
+  await boot(page);
+  await page.locator('[data-tr-anchor="e:AB"]').click();
+  await display(page, "Blank");
+  await expect.poll(async () => (await saved(page)).document.edges.find((a) => a.id === "AB")!.label.state).toBe("blank");
+  await page.locator("[data-tr-label-text]").fill("5");
+  await page.locator("[data-tr-label-text]").press("Enter");
+  const l = (await saved(page)).document.edges.find((a) => a.id === "AB")!.label;
+  expect([l.state, l.text]).toEqual(["blank", "5"]);
+  await expect(page.locator('.tr-art [data-triangle-label="e:AB"]')).toHaveCount(0);
+});

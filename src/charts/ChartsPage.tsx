@@ -39,6 +39,7 @@ import {
   addSeries,
   axisKind,
   canonical,
+  hasHidden,
   create,
   drawnSeries,
   fillNames,
@@ -108,7 +109,7 @@ import { VisibilitySwitch } from "../site/VisibilitySwitch";
 import { PupilSpaceHint } from "../site/LabelTargets";
 import { FoldCard } from "../site/CardHelp";
 import { Eye } from "lucide-react";
-import { togglePupilSpace, type Visibility } from "../editor-kit/visibility";
+import { commonVisibility, togglePupilSpace, type Visibility } from "../editor-kit/visibility";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
@@ -490,8 +491,21 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const s0Hidden = (ci: number) => d.series[0].values[ci]?.show === "hidden";
 
   // Every value drawn, every value for pupils to draw, or some of each (Show all also shows a hidden key).
-  const chartSees: Visibility | "mixed" =
-    canonical(setAllShown(e, "show")) === canonical(e) ? "show" : canonical(setAllShown(e, "hidden")) === canonical(e) ? "hidden" : "mixed";
+  // Only the values a pupil draws (bars, line points, plotted points): Show all in Data also shows keys and readings.
+  const drawnCells = [...d.series.flatMap((x) => x.values), ...(d.kind === "scatter" ? (d.scatter?.points ?? []) : [])],
+    chartSees: Visibility | "mixed" = commonVisibility(drawnCells.map((c) => (c.show === "hidden" ? "hidden" : "show"))) ?? "show",
+    drawnHidden = drawnCells.filter((c) => c.show === "hidden").length;
+  function setValuesShown(show: "show" | "hidden") {
+    if (blocked) return;
+    const n = structuredClone(e);
+    for (const x of n.document.series) for (const c of x.values) c.show = show;
+    if (n.document.kind === "scatter") for (const p of n.document.scatter?.points ?? []) p.show = show;
+    try {
+      commit(n, show === "hidden" ? "pupils draw every value" : "show every value");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    }
+  }
   /** Double-click a bar, line point or plotted point: pupils draw it, and again it is drawn. */
   function toggleDrawn(seriesIndex: number, category: number, point: boolean) {
     if (blocked) return;
@@ -1098,6 +1112,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             {/* One column (the usability pilot): what pupils see first, then the chart and its data. */}
             <div className="md-kit-cards">
             <div>
+            {drawnCells.length > 0 && (
             <FoldCard tool="charts" title="What pupils see" icon={Eye} defaultOpen summary={chartSees === "show" ? "Every value is drawn" : chartSees === "hidden" ? "Pupils draw every value" : "Pupils draw some values"} help="A value is drawn, or left for pupils to draw (the answers copy draws it). Double-click a bar or point on the chart for its own choice.">
               <VisibilitySwitch
                 name="Values"
@@ -1106,12 +1121,13 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 disabled={blocked}
                 value={chartSees}
                 help={{ hidden: "Pupils draw it. The answers copy draws it." }}
-                onChange={(v) => commit(setAllShown(e, v === "hidden" ? "hidden" : "show"), v === "hidden" ? "pupils draw every value" : "show every value")}
+                onChange={(v) => setValuesShown(v === "hidden" ? "hidden" : "show")}
               />
-              <PupilSpaceHint count={d.series.flatMap((x) => x.values).filter((c) => c.show === "hidden").length + (d.scatter?.points.filter((p) => p.show === "hidden").length ?? 0)} disabled={blocked} onClear={() => commit(setAllShown(e, "show"), "show every value")}>
+              <PupilSpaceHint count={drawnHidden} disabled={blocked} onClear={() => setValuesShown("show")}>
                 Double-click a bar or point on the chart for pupils to draw it.
               </PupilSpaceHint>
             </FoldCard>
+            )}
             <section className="panel-card ch-panel">
               <h2>Chart type</h2>
               <div className="ch-kinds" role="group" aria-label="Chart type">
@@ -1286,7 +1302,20 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     </button>
                   </>
                 )}
-
+                <button
+                  type="button"
+                  disabled={blocked}
+                  onClick={() => commit(setAllShown(e, "hidden"))}
+                >
+                  Hide all (pupils draw)
+                </button>
+                <button
+                  type="button"
+                  disabled={blocked || !hasHidden(e)}
+                  onClick={() => commit(setAllShown(e, "show"))}
+                >
+                  Show all
+                </button>
               </div>
             </section>
             )}

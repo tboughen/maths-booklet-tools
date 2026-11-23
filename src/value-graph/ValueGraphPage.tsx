@@ -642,16 +642,20 @@ export default function ValueGraphPage({
       {label}
     </button>
   );
-  const close = () => {
+  const close = (how?: "escape" | "away" | "button") => {
     if (recoverRaw === null && !busy && !pendingNow.current.size) {
       setSelection(null);
-      // The editor card sits above its opener (U21), so focus the opener after the card has gone.
-      requestAnimationFrame(() => anchor?.focus());
+      // The editor card sits above its opener (U21), so focus the opener after the card has gone. A press
+      // elsewhere keeps the focus where it went.
+      if (how !== "away") requestAnimationFrame(() => anchor?.focus());
     }
   };
   // What pupils see of a y value: the value, or a pupil space (an empty cell, or one on an answer line). A pupil
   // space keeps no value, so this session remembers it and Show puts it back; a cell never calculates by itself.
+  // Kept by column and its x, and forgotten when the equation or the x values change (another file, an example).
   const keptY = useRef(new Map<string, string>());
+  const xsKey = JSON.stringify([d.equation, d.columns.map((c) => [c.id, c.x])]);
+  useEffect(() => keptY.current.clear(), [xsKey]);
   const ySees = (c: (typeof d.columns)[number]): Visibility => (c.y.kind === "value" ? "show" : "hidden");
   function setYSees(ids: string[], v: Visibility, what: string) {
     if (blocked) return;
@@ -749,7 +753,10 @@ export default function ValueGraphPage({
                     choices={["show", "hidden"]}
                     value={ySees(selectedColumn)}
                     disabled={blocked}
-                    help={{ show: keptY.current.has(selectedColumn.id) || selectedColumn.y.kind === "value" ? "Pupils see the value." : "Type the value above, or calculate it." }}
+                    help={{
+                      show: keptY.current.has(selectedColumn.id) || selectedColumn.y.kind === "value" ? "Pupils see the value." : "Type the value above, or calculate it.",
+                      hidden: "Pupils see an empty cell or an answer line. Use worked version for a copy with the values.",
+                    }}
                     onChange={(v) => setYSees([selectedColumn.id], v, `y for column ${d.columns.indexOf(selectedColumn) + 1}`)}
                   />
                   {selectedColumn.y.kind !== "value" && (
@@ -1955,6 +1962,7 @@ export default function ValueGraphPage({
                   caption="y values"
                   choices={["show", "hidden"]}
                   disabled={blocked}
+                  help={{ hidden: "Pupils see empty cells or answer lines. Use worked version for a copy with the values." }}
                   value={commonVisibility(d.columns.map(ySees)) ?? "show"}
                   onChange={(v) => setYSees(d.columns.map((c) => c.id), v, "y values")}
                 />
