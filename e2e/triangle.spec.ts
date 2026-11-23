@@ -2108,7 +2108,8 @@ test("wedge hover reveals only its own angle and leaves no selected shading behi
   await page.mouse.click(x, y);
   await expect(page.locator(".md-options-box")).toBeVisible();
   await cancelLabel(page);
-  // Focus came back to the angle (its ring shows); move it on to see that nothing stays shaded.
+  // Focus comes back to the angle (its ring shows); once it has, move it on to see that nothing stays shaded.
+  await expect(target).toBeFocused();
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.getByRole("heading", { name: "Triangles", exact: true }).hover();
   await clear();
