@@ -7,7 +7,7 @@ const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
 
-test("a wide window sets the settings cards in two fixed columns, with 32 px controls", async ({ page }) => {
+test("Bar models: a wide window sets the settings in one folding column, with 32 px controls", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/bar-model");
   const stack = page.locator(".inspector-stack.md-kit");
@@ -15,17 +15,14 @@ test("a wide window sets the settings cards in two fixed columns, with 32 px con
   const [model, whole, title, examples] = await Promise.all(
     ["Current model", "Whole labels and ranges", "Title and calculations", "Lesson examples"].map((name) => box(page, name)),
   );
-  // Left: the model and its labels. Right: the title, the output and the examples.
-  expect(whole.x).toBe(model.x);
-  expect(examples.x).toBe(title.x);
-  expect(title.x).toBeGreaterThanOrEqual(model.x + model.width);
+  // One column (the usability rollout, 23 Nov 2026), What pupils see first.
+  const seen = (await page.locator('.md-kit section[aria-label="What pupils see"]').first().boundingBox())!;
+  expect([model.x, whole.x, title.x, examples.x]).toEqual([seen.x, seen.x, seen.x, seen.x]);
+  expect(model.y).toBeGreaterThan(seen.y + seen.height);
   expect(whole.y).toBeGreaterThan(model.y + model.height);
-  expect(Math.abs(title.width - model.width)).toBeLessThanOrEqual(1);
   // Nothing is squeezed: the diagram keeps most of the window.
   const stage = (await page.locator(".editor-card").first().boundingBox())!;
   expect(stage.width).toBeGreaterThan(1200);
-  // The settings were 3,369 px long before the kit.
-  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1150);
 
   for (const name of ["Edit quantity name", "Select all sections", "Add bar", "Edit title", "Worked R4"]) {
     const button = (await page.getByRole("button", { name, exact: true }).boundingBox())!;
@@ -37,15 +34,12 @@ test("a wide window sets the settings cards in two fixed columns, with 32 px con
   // The diagram's own buttons are not settings.
   expect((await page.getByRole("button", { name: "+ Section", exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
 
-  // A card stays in its column when another opens or a form appears above it.
+  // A card stays in the column when another opens or a form appears above it.
   await page.getByText("Start a new model", { exact: true }).click();
   await expect(page.getByLabel("Equal sections", { exact: true })).toBeVisible();
-  expect(await box(page, "Title and calculations")).toEqual(title);
-  expect((await box(page, "Current model")).x).toBe(model.x);
+  expect((await box(page, "Title and calculations")).x).toBe(title.x);
   await page.getByRole("button", { name: "Edit quantity name", exact: true }).click();
   await expect(page.getByLabel("Saved label", { exact: true })).toBeFocused();
-  expect(await box(page, "Title and calculations")).toEqual(title);
-  expect((await page.locator(".bm-draft").boundingBox())!.x).toBeLessThan(title.x);
   // What went wrong stands out from the notes around it.
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("button", { name: "Add calculation line", exact: true }).click();
@@ -69,11 +63,9 @@ test("a smaller window keeps one column of settings, and a phone gets finger-siz
   expect(title.x).toBe(model.x);
   expect(title.y).toBeGreaterThan(model.y + model.height);
   expect((await page.getByRole("button", { name: "Edit quantity name", exact: true }).boundingBox())!.height).toBe(32);
-  // Two columns start only where the diagram still has the room it has at 1440.
-  await page.setViewportSize({ width: 1790, height: 900 });
-  expect((await box(page, "Title and calculations")).x).toBe((await box(page, "Current model")).x);
+  // A wide window keeps the one column, and the diagram gets the room.
   await page.setViewportSize({ width: 1800, height: 900 });
-  expect((await box(page, "Title and calculations")).x).toBeGreaterThan((await box(page, "Current model")).x);
+  expect((await box(page, "Title and calculations")).x).toBe((await box(page, "Current model")).x);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1100);
 
   await page.setViewportSize({ width: 375, height: 800 });
