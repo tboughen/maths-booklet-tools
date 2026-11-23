@@ -6,11 +6,11 @@ import type { Provider, Usage } from "./types";
  * Claude scheduled task (see docs/tools/WORKSHEET-AI.md) compares it with:
  *   Anthropic  https://platform.claude.com/docs/en/about-claude/pricing
  *   OpenAI     https://developers.openai.com/api/docs/pricing
- *   Google     https://ai.google.dev/gemini-api/docs/pricing
+ *   Google     https://aistudio.google.com/docs/pricing
  * A worksheet prompt is far below every long-context threshold (200K to 272K tokens), so only the
  * short-context rates are listed. Thinking tokens are billed as output by all three providers.
  */
-export const PRICES_CHECKED = "2026-11-10";
+export const PRICES_CHECKED = "2026-11-23";
 
 export interface Rate {
   /** First day (UTC, YYYY-MM-DD) this rate applies; absent means "until the next dated rate". */
@@ -40,6 +40,8 @@ export const prices: Price[] = [
   claude("claude-sonnet-5-5", 2, 10, 0.1),
   claude("claude-haiku-5-5", 0.1, 0.5, 0.01),
 
+  gpt("gpt-6.2-astra", 8, 0.4, 40),
+  gpt("gpt-6.2-sol", 2, 0.1, 10),
   gpt("gpt-6-astra", 10, 1, 50),
   gpt("gpt-6.1-sol", 2, 0.1, 10),
   gpt("gpt-6.1-terra", 1, 0.05, 5),
@@ -65,6 +67,8 @@ export const prices: Price[] = [
 
   gemini("gemini-4-argon", { input: 2, output: 10, cacheRead: 0.1 }, { from: "2026-12-01", input: 4, output: 20, cacheRead: 0.2 }),
   gemini("gemini-4-carbon", { input: 2, output: 10, cacheRead: 0.1 }, { from: "2026-12-01", input: 4, output: 20, cacheRead: 0.2 }),
+  gemini("gemini-4-neon", { input: 3, output: 15, cacheRead: 0.15 }),
+  gemini("gemini-4-hydrogen", { input: 1.5, output: 7.5, cacheRead: 0.075 }),
   gemini("gemini-3.8-flash", { input: 0.75, output: 3.75, cacheRead: 0.075 }, { from: "2027-01-01", input: 1.5, output: 7.5, cacheRead: 0.15 }),
   gemini("gemini-3.6-flash", { input: 0.75, output: 3.75, cacheRead: 0.075 }, { from: "2027-01-01", input: 1.5, output: 7.5, cacheRead: 0.15 }),
   gemini("gemini-3.5-flash-lite", { input: 0.3, output: 2.5, cacheRead: 0.03 }),
