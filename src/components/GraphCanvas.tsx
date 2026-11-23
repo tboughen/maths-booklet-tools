@@ -85,6 +85,8 @@ import type {
 const PRINT_SIZE = 96 / 2.54 / 60;
 
 interface GraphCanvasProps {
+  /** Double-click on the graph (the Select tool turns an object into one pupils draw). */
+  onDoubleClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
   document: GraphEditorDocument;
   /** 0 fits the graph to its space; 1 draws it at print size. */
   zoom?: number;
@@ -317,6 +319,7 @@ export function GraphCanvas({
   disabled = false,
   zoom = 0,
   onScale,
+  onDoubleClick,
 }: GraphCanvasProps) {
   const fontFamily =
     document.styleProfile === "portable-v1"
@@ -674,7 +677,7 @@ export function GraphCanvas({
   );
 
   return (
-    <div ref={stage} className="graph-stage editor-stage" data-tool={tool}>
+    <div ref={stage} className="graph-stage editor-stage" data-tool={tool} data-options-anchor onDoubleClick={onDoubleClick}>
       <div
         className={`graph-board${compact ? " is-compact" : ""}`}
         style={{

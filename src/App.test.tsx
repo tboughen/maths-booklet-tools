@@ -18,6 +18,8 @@ describe("graph builder", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
+    // The selected object's options open in the box beside the graph, which is placed only once the graph has a size.
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 400, 300));
   });
 
   it("shows integer axis labels when both axes use two squares per unit", async () => {
@@ -445,7 +447,9 @@ describe("graph builder", () => {
     await user.keyboard("{Enter}");
     expect(input).toHaveValue("−3/2");
     await user.click(screen.getByRole("button", { name: "Undo" }));
-    expect(input).toHaveValue("2");
+    // Undo is a press away from the box beside the graph, so it closes; choosing the point opens it again.
+    await selectObject(user, "Point 1");
+    expect(screen.getByRole("textbox", { name: "Point x" })).toHaveValue("2");
   });
   it("uses portable fonts only for new browser documents and keeps an explicit legacy file", () => {
     const first = render(<App />);

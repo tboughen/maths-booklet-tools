@@ -291,6 +291,6 @@ for (const [width, height, why] of [[1920, 1080, "wide"], [900, 1600, "tall but 
     const at = await tall(page);
     expect(at.settings.left).toBeGreaterThanOrEqual(at.card.width);
     expect(at.settings.top).toBeLessThan(at.card.bottom);
-    // Two columns of settings where the settings kit has the room for them, one elsewhere.
-    expect(at.columns).toBe(width >= 1800 ? 2 : 1);
+    // One folding column of settings (the usability rollout, 23 Nov 2026).
+    expect(at.columns).toBe(1);
   });

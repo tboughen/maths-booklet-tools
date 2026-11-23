@@ -19,7 +19,12 @@ import { getExportMetrics } from "./export/svg";
 import { RatioDialog } from "./ratio-table/RatioDialog";
 import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, Eye, X } from "lucide-react";
+import { OptionsBox } from "./site/OptionsBox";
+import { VisibilitySwitch } from "./site/VisibilitySwitch";
+import { PupilSpaceHint } from "./site/LabelTargets";
+import { FoldCard } from "./site/CardHelp";
+import { commonVisibility } from "./editor-kit/visibility";
 import { PageHeading, Panel } from "./site/PageHeading";
 import { AxisSettings } from "./components/AxisSettings";
 import { EquationPanel } from "./components/EquationPanel";
@@ -353,6 +358,49 @@ export default function App({ active = true }: { active?: boolean }) {
     commit(updateObject(document, object));
   }
 
+  // The selected object's options open in the box beside the graph (the usability rollout, 23 Nov 2026).
+  // Choosing an object, by a click, the list or drawing it, opens the box; Escape or Close also clears the selection.
+  const [boxOpen, setBoxOpen] = useState(false);
+  const boxFocus = useRef(false);
+  const lastSelected = useRef(document.selectedObjectId);
+  useEffect(() => {
+    if (document.selectedObjectId && document.selectedObjectId !== lastSelected.current) setBoxOpen(true);
+    lastSelected.current = document.selectedObjectId;
+  }, [document.selectedObjectId]);
+  function closeBox(how: "escape" | "away" | "button") {
+    if (how === "escape") drafts.clear();
+    else if (hasPendingDraft()) return;
+    setBoxOpen(false);
+    boxFocus.current = false;
+    if (how !== "away" && document.selectedObjectId) replaceWithoutHistory({ ...document, selectedObjectId: null });
+  }
+  /** Every object is drawn on both copies, or left for pupils to draw (drawn on the answers copy only). */
+  const pupilsSee = commonVisibility(document.objects.map((o) => (o.answerOnly ? "hidden" : "show")));
+  const drawnByPupils = document.objects.filter((o) => o.answerOnly).length;
+  function setAllAnswerOnly(answerOnly: boolean) {
+    if (locked()) return;
+    const objects = document.objects.map((o) => {
+      if (!!o.answerOnly === answerOnly) return o;
+      const next = { ...o } as GraphObject;
+      if (answerOnly) next.answerOnly = true;
+      else delete next.answerOnly;
+      return next;
+    });
+    commit({ ...document, objects }, answerOnly ? "pupils draw every object" : "draw every object");
+  }
+  /** Double-click an object with the Select tool: pupils draw it, or it is drawn again. */
+  const latestDocument = useRef(document);
+  latestDocument.current = document;
+  function toggleAnswerOnly(id: string) {
+    const current = latestDocument.current;
+    const object = current.objects.find((o) => o.id === id);
+    if (!object || locked()) return;
+    const next = { ...object } as GraphObject;
+    if (object.answerOnly) delete next.answerOnly;
+    else next.answerOnly = true;
+    commit(updateObject(current, next), object.answerOnly ? "draw the object" : "pupils draw the object");
+  }
+
   /** Adds a right-angled triangle, named with the next free letter, for the user to edit. */
   function addShape() {
     if (locked()) return;
@@ -466,7 +514,7 @@ export default function App({ active = true }: { active?: boolean }) {
     setEditingEquationId(object?.id ?? null);
     const opener = globalThis.document.activeElement;
     equationOpener.current =
-      opener instanceof HTMLButtonElement && inspector.current?.contains(opener)
+      opener instanceof HTMLButtonElement && (inspector.current?.contains(opener) || opener.closest(".md-options-box"))
         ? (opener.textContent ?? "").trim()
         : null;
     setEquationOpen(true);
@@ -676,18 +724,59 @@ export default function App({ active = true }: { active?: boolean }) {
                 exporting or changing this graph.
               </p>
             )}
-            <GraphCanvas
-              zoom={previewZoom}
-              onScale={setViewScale}
-              disabled={blocked}
-              document={document}
-              tool={tool}
-              onCommit={(next) => act(() => commit(next))}
-              onSelect={selectObject}
-              onAxisAdjust={(axis, end, delta) =>
-                act(() => commit(adjustAxis(document, axis, end, delta)))
-              }
-            />
+            {/* A press on the graph moves the box to the object pressed rather than closing it (the stage is an options anchor). */}
+              <GraphCanvas
+                zoom={previewZoom}
+                onScale={setViewScale}
+                disabled={blocked}
+                document={document}
+                tool={tool}
+                onCommit={(next) => act(() => commit(next))}
+                onSelect={(id) => {
+                  selectObject(id);
+                  if (id && !locked()) setBoxOpen(true);
+                }}
+                onAxisAdjust={(axis, end, delta) =>
+                  act(() => commit(adjustAxis(document, axis, end, delta)))
+                }
+                onDoubleClick={() => {
+                  // The double-click's first press selected the object under it.
+                  const id = latestDocument.current.selectedObjectId;
+                  if (tool === "select" && id) toggleAnswerOnly(id);
+                }}
+              />
+            {selectedObject && boxOpen && !equationOpen && (
+              <OptionsBox
+                anchor={
+                  globalThis.document.querySelector<SVGElement>(`.graph-stage [data-object-id="${CSS.escape(selectedObject.id)}"]`) ??
+                  globalThis.document.querySelector<SVGElement>(".graph-stage svg")
+                }
+                anchorKey={selectedObject.id}
+                placeBy={globalThis.document.querySelector<HTMLElement>(".graph-stage svg") as HTMLElement | null}
+                bounds={globalThis.document.querySelector<HTMLElement>(".graph-editor .editor-card")}
+                takeFocus={boxFocus.current}
+                title="Selected object"
+                onClose={closeBox}
+              >
+                <div className="graph-box">
+                  <ObjectInspector
+                    drafts={drafts}
+                    disabled={recoveryConflict || copying}
+                    object={selectedObject}
+                    onUpdate={updateSelected}
+                    onDelete={() => commit(deleteSelectedObject(document))}
+                    onEditEquation={openEquationEditor}
+                    bounds={getBounds(document)}
+                    objects={document.objects}
+                    axes={document.axes}
+                    onAdd={(added) => {
+                      if (locked() || !added.length) return;
+                      commit({ ...document, objects: [...document.objects, ...added], selectedObjectId: added[0].id });
+                    }}
+                  />
+                </div>
+              </OptionsBox>
+            )}
             <EditorFoot
               zoom={previewZoom}
               onZoom={setPreviewZoom}
@@ -709,17 +798,40 @@ export default function App({ active = true }: { active?: boolean }) {
 
           <aside
             ref={inspector}
-            className="inspector-stack md-kit"
+            className="inspector-stack md-kit md-kit--one"
             aria-label="Graph settings"
           >
             <ReturnToDiagram />
             {/* On a wide screen: what is selected on the left with the list of objects under it, and the drawing
                 tools, the axes and printing on the right (settings-kit.css). The list comes last, as it always has. */}
+            {/* One folding column (the usability rollout, 23 Nov 2026): what pupils see, the drawing tools,
+                the equation form when it is open, the axes, printing, then the list of objects. */}
             <div className="md-kit-cards">
             <div>
-            {/* The equation form opens only from "Line by equation" or Edit equation, so a first
-                visit shows the drawing tools rather than a form. */}
-            {equationOpen ? (
+            {document.objects.length > 0 && (
+              <FoldCard
+                tool="graph"
+                title="What pupils see"
+                icon={Eye}
+                defaultOpen
+                summary={pupilsSee === "show" ? "Every object is drawn" : pupilsSee === "hidden" ? "Pupils draw every object" : "Pupils draw some objects"}
+                help="An object is drawn, or left for pupils to draw (the answers copy draws it). Double-click an object on the graph for its own choice."
+              >
+                <VisibilitySwitch
+                  name="Objects"
+                  caption="Objects"
+                  choices={["show", "hidden"]}
+                  disabled={blocked}
+                  value={pupilsSee ?? "show"}
+                  help={{ hidden: "Pupils draw it. The answers copy draws it." }}
+                  onChange={(v) => setAllAnswerOnly(v === "hidden")}
+                />
+                <PupilSpaceHint count={drawnByPupils} disabled={blocked} onClear={() => setAllAnswerOnly(false)}>
+                  Double-click a point, line or shape on the graph for pupils to draw it.
+                </PupilSpaceHint>
+              </FoldCard>
+            )}
+            {equationOpen && (
               <EquationPanel
                 key={`${editingEquationId ?? "new"}-${equationRevision}`}
                 disabled={recoveryConflict || copying}
@@ -741,36 +853,14 @@ export default function App({ active = true }: { active?: boolean }) {
                   equationOpener.current = null;
                   if (active && opener)
                     requestAnimationFrame(() =>
-                      [...(inspector.current?.querySelectorAll("button") ?? [])]
+                      // Edit equation is in the box beside the graph, Line by equation in the settings.
+                      [...(inspector.current?.querySelectorAll("button") ?? []), ...globalThis.document.querySelectorAll<HTMLButtonElement>(".md-options-box button")]
                         .find((button) => button.textContent?.trim() === opener)
                         ?.focus(),
                     );
                 }}
               />
-            ) : selectedObject ? (
-              <ObjectInspector
-                drafts={drafts}
-                disabled={recoveryConflict || copying}
-                object={selectedObject}
-                onUpdate={updateSelected}
-                onDelete={() => commit(deleteSelectedObject(document))}
-                onEditEquation={openEquationEditor}
-                bounds={getBounds(document)}
-                objects={document.objects}
-                axes={document.axes}
-                onAdd={(added) => {
-                  if (locked() || !added.length) return;
-                  commit({ ...document, objects: [...document.objects, ...added], selectedObjectId: added[0].id });
-                }}
-              />
-            ) : (
-              <section className="panel-card" aria-label="Selected object">
-                <h2>Selected object</h2>
-                <p>Click a point, line or shape on the graph to edit it here.</p>
-              </section>
             )}
-            </div>
-            <div>
             <fieldset className="graph-control-group" disabled={blocked}>
               <GraphTools
                 tool={tool}
@@ -789,6 +879,8 @@ export default function App({ active = true }: { active?: boolean }) {
                 onFunction={addFunction}
               />
             </fieldset>
+            </div>
+            <div>
             <AxisSettings
               document={document}
               drafts={drafts}
@@ -837,6 +929,8 @@ export default function App({ active = true }: { active?: boolean }) {
                 onSelect={(id) => {
                   if (locked()) return;
                   selectObject(id);
+                  boxFocus.current = true;
+                  setBoxOpen(true);
                   setTool("select");
                   setEquationOpen(false);
                   setEditingEquationId(null);

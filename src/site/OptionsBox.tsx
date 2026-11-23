@@ -99,12 +99,12 @@ export function OptionsBox({
     addEventListener("scroll", again, true);
     addEventListener("resize", again);
     // The box can grow after it is placed (a note or an error appears, a font arrives), so it is placed again.
-    const grown = new ResizeObserver(again);
-    if (box.current) grown.observe(box.current);
+    const grown = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(again);
+    if (box.current) grown?.observe(box.current);
     return () => {
       removeEventListener("scroll", again, true);
       removeEventListener("resize", again);
-      grown.disconnect();
+      grown?.disconnect();
     };
   });
 
