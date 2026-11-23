@@ -516,9 +516,12 @@ export function GraphCanvas({
       return;
     }
     const key = `${Math.round(pointer.x / 8)}:${Math.round(pointer.y / 8)}:${hits.join(",")}`;
+    // The second press of a double-click keeps the object the first press chose, so the double-click acts on it.
     const index =
       cycleRef.current.key === key
-        ? (cycleRef.current.index + 1) % hits.length
+        ? event.detail > 1
+          ? cycleRef.current.index
+          : (cycleRef.current.index + 1) % hits.length
         : 0;
     cycleRef.current = { key, index };
     const id = hits[index];

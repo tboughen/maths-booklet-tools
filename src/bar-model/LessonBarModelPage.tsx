@@ -88,8 +88,10 @@ const error = (e: unknown) => (e instanceof Error ? e.message : String(e));
 /** A label clicked on the drawing: one section's label in one place, or a bar's quantity name. */
 type BoxTarget = { kind: "section"; barId: string; partId: string; slot: v3.Slot } | { kind: "name"; barId: string };
 const boxKey = (t: BoxTarget) => (t.kind === "name" ? `name:${t.barId}` : `section:${t.barId}:${t.partId}:${t.slot}`);
+/** An empty blank is no label at all (every section has one), not a pupil space. */
+const isEmpty = (l: c.Label) => l.state === "blank" && !l.text;
 /** What pupils see of a label: a value prints; blank, ? and an answer line are pupil spaces; hidden is left out. */
-const seesOf = (l: c.Label): Visibility => (l.state === "hidden" ? "omit" : l.state === "value" ? "show" : "hidden");
+const seesOf = (l: c.Label): Visibility => (l.state === "hidden" ? "omit" : l.state === "value" || isEmpty(l) ? "show" : "hidden");
 const stateNames = {
   value: "Print label",
   blank: "Leave blank",
@@ -199,8 +201,7 @@ export default function LessonBarModelPage({
     refusedBox = useRef(false),
     // This session's last pupil space (blank, ? or line) and shown state of each label, and the labels made pupil
     // spaces on purpose (typing then never makes them print).
-    lastState = useRef(new Map<string, c.Label["state"]>()),
-    chosenAway = useRef(new Set<string>());
+    lastState = useRef(new Map<string, c.Label["state"]>());
   const blocked =
       !!draft ||
       (!!labelBox && !!boxError) ||
@@ -272,18 +273,20 @@ export default function LessonBarModelPage({
       return false;
     }
   }
+  /** The memory of each label's pupil space belongs to one model: a new model, a file or a recovery starts it again. */
+  function forgetLabelStates() {
+    lastState.current.clear();
+  }
   function stateFor(key: string, l: c.Label, v: Visibility): c.Label["state"] {
     const now = seesOf(l);
-    if (v === "show") chosenAway.current.delete(key);
-    else chosenAway.current.add(key);
     if (now === v) return l.state;
     lastState.current.set(`${key}:${now}`, l.state);
     return v === "omit" ? "hidden" : (lastState.current.get(`${key}:${v}`) ?? (v === "show" ? "value" : "line"));
   }
   const allTargets = (): BoxTarget[] =>
     d.bars.flatMap((b) => [
-      { kind: "name" as const, barId: b.id },
-      ...b.parts.flatMap((p) => v3.slots.filter((slotName) => p.labels[slotName]).map((slotName) => ({ kind: "section" as const, barId: b.id, partId: p.id, slot: slotName }))),
+      ...(isEmpty(b.name) ? [] : [{ kind: "name" as const, barId: b.id }]),
+      ...b.parts.flatMap((p) => v3.slots.filter((slotName) => p.labels[slotName] && !isEmpty(p.labels[slotName]!)).map((slotName) => ({ kind: "section" as const, barId: b.id, partId: p.id, slot: slotName }))),
     ]);
   /** What pupils see of several labels, as one undo step. */
   function setSees(targets: BoxTarget[], v: Visibility, what: string) {
@@ -544,7 +547,10 @@ export default function LessonBarModelPage({
   }
   function replace(envelope: c.Envelope, title: string, worked = false) {
     if (guard.current) return;
-    if (worked) commit(envelope, "use worked version");
+    if (worked) {
+      forgetLabelStates();
+      commit(envelope, "use worked version");
+    }
     else setPending({ envelope, title });
   }
   function endpointControl(
@@ -984,6 +990,7 @@ export default function LessonBarModelPage({
                     : "Use this model"
                 }
                 onConfirm={() => {
+                  forgetLabelStates();
                   commit(pending.envelope, stepName(pending.title));
                   setSelectedBar(pending.envelope.document.bars[0].id);
                   setSelectedParts([]);
@@ -1017,7 +1024,8 @@ export default function LessonBarModelPage({
                   hidden={!active || !!pending}
                   title={title}
                   onClose={(how) => {
-                    if (how === "escape") {
+                    // Escape and Close leave a refused value unsaved; a press elsewhere keeps it, and the box, open.
+                    if (how !== "away") {
                       setBoxError("");
                       refusedBox.current = false;
                     } else if (refusedBox.current) return;
@@ -1034,7 +1042,7 @@ export default function LessonBarModelPage({
                         setBoxLabel(
                           t,
                           // A label with nothing in it yet prints what is typed; a pupil space made on purpose stays one.
-                          { text, state: l.state === "blank" && !l.text && !chosenAway.current.has(key) ? "value" : l.state },
+                          { text, state: isEmpty(l) ? "value" : l.state },
                           `edit ${title.toLowerCase()}`,
                         )
                       }

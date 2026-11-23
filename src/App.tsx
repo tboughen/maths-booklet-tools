@@ -368,7 +368,8 @@ export default function App({ active = true }: { active?: boolean }) {
     lastSelected.current = document.selectedObjectId;
   }, [document.selectedObjectId]);
   function closeBox(how: "escape" | "away" | "button") {
-    if (how === "escape") drafts.clear();
+    // Escape and Close put back an unfinished field; a press elsewhere keeps it, and the box, open.
+    if (how !== "away") drafts.clear();
     else if (hasPendingDraft()) return;
     setBoxOpen(false);
     boxFocus.current = false;
@@ -734,7 +735,10 @@ export default function App({ active = true }: { active?: boolean }) {
                 onCommit={(next) => act(() => commit(next))}
                 onSelect={(id) => {
                   selectObject(id);
-                  if (id && !locked()) setBoxOpen(true);
+                  if (id && !locked()) {
+                    boxFocus.current = false;
+                    setBoxOpen(true);
+                  }
                 }}
                 onAxisAdjust={(axis, end, delta) =>
                   act(() => commit(adjustAxis(document, axis, end, delta)))
@@ -755,6 +759,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 placeBy={globalThis.document.querySelector<HTMLElement>(".graph-stage svg") as HTMLElement | null}
                 bounds={globalThis.document.querySelector<HTMLElement>(".graph-editor .editor-card")}
                 takeFocus={boxFocus.current}
+                hidden={!active}
                 title="Selected object"
                 onClose={closeBox}
               >
