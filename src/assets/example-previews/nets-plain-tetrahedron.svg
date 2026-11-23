@@ -1,0 +1,9 @@
+<svg width="302.3622" height="302.3622" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <defs/>
+    <path fill="#ffffff" stroke="none" d="M 0 0 L 80 0 L 80 80 L 0 80 Z"/>
+    <path fill="none" stroke="#a9abaa" stroke-width="0.353" d="M 0 0 L 0 80 M 10 0 L 10 80 M 20 0 L 20 80 M 30 0 L 30 80 M 40 0 L 40 80 M 50 0 L 50 80 M 60 0 L 60 80 M 70 0 L 70 80 M 80 0 L 80 80 M 0 0 L 80 0 M 0 10 L 80 10 M 0 20 L 80 20 M 0 30 L 80 30 M 0 40 L 80 40 M 0 50 L 80 50 M 0 60 L 80 60 M 0 70 L 80 70 M 0 80 L 80 80"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 25 35.98 L 55 35.98 L 40 61.96 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 10 61.96 L 40 61.96 L 25 35.98 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 40 61.96 L 70 61.96 L 55 35.98 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 25 35.98 L 55 35.98 L 40 10 Z"/>
+</svg>

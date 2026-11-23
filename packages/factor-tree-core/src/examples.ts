@@ -64,3 +64,10 @@ export const examples: { id: string; title: string; note: string; make: (worked:
     make: () => doc([tree("t1", ["72", ["8", "(2)", "(4)"], ["9", "(3)", "(3)"]], "2 × 4 × 3^2")], true),
   },
 ];
+
+/** Plain shapes: a factor tree for a common number, primes circled and the product of primes left blank. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "sixty", title: "Factor tree for 60", note: "60 split down to its primes, which are circled. The product of primes is left blank.", make: () => doc([tree("t1", ["60", ["6", "(2)", "(3)"], ["10", "(2)", "(5)"]], "")]) },
+  { id: "seventy-two", title: "Factor tree for 72", note: "72 split down to its primes, which are circled. The product of primes is left blank.", make: () => doc([tree("t1", ["72", ["8", "(2)", ["4", "(2)", "(2)"]], ["9", "(3)", "(3)"]], "")]) },
+  { id: "three-sixty", title: "Factor tree for 360", note: "360 split down to its primes, which are circled. The product of primes is left blank.", make: () => doc([tree("t1", ["360", ["36", ["6", "(2)", "(3)"], ["6", "(2)", "(3)"]], ["10", "(2)", "(5)"]], "")]) },
+];

@@ -5,6 +5,7 @@ import {
   lessonExample,
   lessonExampleNames,
 } from "../../packages/bar-model-core/src/examples";
+import { plainShapes as plainBars } from "../../packages/bar-model-core/src/plain";
 export const lessonTitles = {
   R1: "Part-whole: two unequal parts",
   "R2-P": "Mia and Jack: comparison in equal units",
@@ -17,6 +18,15 @@ export const lessonTitles = {
   R5: "Eve and Fred: inline ratio 3:5",
 };
 export const barLessonGallery: GalleryExample<core.Envelope>[] = [
+  ...plainBars.map((shape) => ({
+    id: `bar-plain-${shape.id}`,
+    title: shape.title,
+    description: shape.note,
+    make: shape.make,
+    render: core.renderSvg,
+    worked: false,
+    plain: true,
+  })),
   ...lessonExampleNames.map((name) => ({
     id: `bar-lesson-${name}`,
     title: lessonTitles[name],

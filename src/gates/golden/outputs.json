@@ -296,6 +296,62 @@
    "png600": "921x1004",
    "pixels": "b202353bba390da8"
   },
+  "algebra grid: algebra-plain-common-factor": {
+   "json": "84a6b67de38956d8",
+   "svg": "4f65c604749951b2",
+   "mm": "45x30",
+   "png600": "1063x709",
+   "pixels": "8fc9b4d2576acbcc"
+  },
+  "algebra grid: algebra-plain-common-factor (worked)": {
+   "json": "84a6b67de38956d8",
+   "svg": "4f65c604749951b2",
+   "mm": "45x30",
+   "png600": "1063x709",
+   "pixels": "8fc9b4d2576acbcc"
+  },
+  "algebra grid: algebra-plain-double": {
+   "json": "2e5aebaabfa0db0e",
+   "svg": "4491ef7d059af8ea",
+   "mm": "39x39",
+   "png600": "921x921",
+   "pixels": "eb2c6e0eb2017694"
+  },
+  "algebra grid: algebra-plain-double (worked)": {
+   "json": "2e5aebaabfa0db0e",
+   "svg": "4491ef7d059af8ea",
+   "mm": "39x39",
+   "png600": "921x921",
+   "pixels": "eb2c6e0eb2017694"
+  },
+  "algebra grid: algebra-plain-quadratic": {
+   "json": "9b90099474f397c0",
+   "svg": "2485274d4d5d2c45",
+   "mm": "45x45",
+   "png600": "1063x1063",
+   "pixels": "0dece0295814fea2"
+  },
+  "algebra grid: algebra-plain-quadratic (worked)": {
+   "json": "9b90099474f397c0",
+   "svg": "2485274d4d5d2c45",
+   "mm": "45x45",
+   "png600": "1063x1063",
+   "pixels": "0dece0295814fea2"
+  },
+  "algebra grid: algebra-plain-single": {
+   "json": "844ba4c17b5cd017",
+   "svg": "d17ff293040fb61d",
+   "mm": "39x24",
+   "png600": "921x567",
+   "pixels": "b8fa1cec290de58a"
+  },
+  "algebra grid: algebra-plain-single (worked)": {
+   "json": "844ba4c17b5cd017",
+   "svg": "d17ff293040fb61d",
+   "mm": "39x24",
+   "png600": "921x567",
+   "pixels": "b8fa1cec290de58a"
+  },
   "algebra grid: algebra-signed": {
    "json": "596bbbdc6c863b69",
    "svg": "157196d0fe4a02b8",
@@ -394,6 +450,62 @@
    "png600": "1287x992",
    "pixels": "5be4eba1cae0e828"
   },
+  "algebra tiles: at-plain-negative": {
+   "json": "bf21f66c93658a54",
+   "svg": "16bd803b31a6b7b1",
+   "mm": "48.5x20",
+   "png600": "1146x472",
+   "pixels": "1edb145b1827d67b"
+  },
+  "algebra tiles: at-plain-negative (worked)": {
+   "json": "bf21f66c93658a54",
+   "svg": "16bd803b31a6b7b1",
+   "mm": "48.5x20",
+   "png600": "1146x472",
+   "pixels": "1edb145b1827d67b"
+  },
+  "algebra tiles: at-plain-squares": {
+   "json": "d61a0ab68f9f5205",
+   "svg": "66da615b65a2b870",
+   "mm": "54.5x20",
+   "png600": "1287x472",
+   "pixels": "8d8688650eaeeb81"
+  },
+  "algebra tiles: at-plain-squares (worked)": {
+   "json": "d61a0ab68f9f5205",
+   "svg": "66da615b65a2b870",
+   "mm": "54.5x20",
+   "png600": "1287x472",
+   "pixels": "8d8688650eaeeb81"
+  },
+  "algebra tiles: at-plain-x-and-units": {
+   "json": "92f6c80f2b111304",
+   "svg": "613883a09e4a6aaa",
+   "mm": "48.5x20",
+   "png600": "1146x472",
+   "pixels": "8672d0d613ebed7b"
+  },
+  "algebra tiles: at-plain-x-and-units (worked)": {
+   "json": "92f6c80f2b111304",
+   "svg": "613883a09e4a6aaa",
+   "mm": "48.5x20",
+   "png600": "1146x472",
+   "pixels": "8672d0d613ebed7b"
+  },
+  "algebra tiles: at-plain-zero-pairs": {
+   "json": "232fc4fc762eff71",
+   "svg": "f35a7133fda667aa",
+   "mm": "51.5x39.5",
+   "png600": "1217x933",
+   "pixels": "588b7d6220694970"
+  },
+  "algebra tiles: at-plain-zero-pairs (worked)": {
+   "json": "232fc4fc762eff71",
+   "svg": "f35a7133fda667aa",
+   "mm": "51.5x39.5",
+   "png600": "1217x933",
+   "pixels": "588b7d6220694970"
+  },
   "algebra tiles: at-squares-and-products": {
    "json": "d754bbb3738517ab",
    "svg": "2284819924b2f0fa",
@@ -477,6 +589,132 @@
    "mm": "84x57.4",
    "png600": "1984x1356",
    "pixels": "3493147bd571721a"
+  },
+  "angle diagrams: angles-plain-hexagon": {
+   "json": "348b20d722fe77f7",
+   "svg": "ec904f32f1a88197",
+   "mm": "54x52.3",
+   "png600": "1276x1235",
+   "pixels": "ade4c1a7a9424a9f"
+  },
+  "angle diagrams: angles-plain-hexagon (worked)": {
+   "json": "348b20d722fe77f7",
+   "svg": "ec904f32f1a88197",
+   "mm": "54x52.3",
+   "png600": "1276x1235",
+   "pixels": "ade4c1a7a9424a9f"
+  },
+  "angle diagrams: angles-plain-parallel": {
+   "json": "0c08afd8f342d6bb",
+   "svg": "6dfb61cd1174fe19",
+   "mm": "74x57.9",
+   "png600": "1748x1368",
+   "pixels": "911190792a17a362"
+  },
+  "angle diagrams: angles-plain-parallel (worked)": {
+   "json": "0c08afd8f342d6bb",
+   "svg": "6dfb61cd1174fe19",
+   "mm": "74x57.9",
+   "png600": "1748x1368",
+   "pixels": "911190792a17a362"
+  },
+  "angle diagrams: angles-plain-pentagon": {
+   "json": "d9aec42465e89c57",
+   "svg": "156e5427f8bb3513",
+   "mm": "57.5x54.2",
+   "png600": "1358x1280",
+   "pixels": "b85789dcc85d9f91"
+  },
+  "angle diagrams: angles-plain-pentagon (worked)": {
+   "json": "d9aec42465e89c57",
+   "svg": "156e5427f8bb3513",
+   "mm": "57.5x54.2",
+   "png600": "1358x1280",
+   "pixels": "b85789dcc85d9f91"
+  },
+  "angle diagrams: angles-plain-point": {
+   "json": "33b462f4d8eed2c4",
+   "svg": "9a2dbb79badd8516",
+   "mm": "55.2x56.5",
+   "png600": "1304x1335",
+   "pixels": "c460c2eb19f5a079"
+  },
+  "angle diagrams: angles-plain-point (worked)": {
+   "json": "33b462f4d8eed2c4",
+   "svg": "9a2dbb79badd8516",
+   "mm": "55.2x56.5",
+   "png600": "1304x1335",
+   "pixels": "c460c2eb19f5a079"
+  },
+  "angle diagrams: angles-plain-polygons": {
+   "json": "f4b9dda62f25a485",
+   "svg": "a47a62a2f39d04bf",
+   "mm": "66.7x52.8",
+   "png600": "1576x1247",
+   "pixels": "d7e0896bf0ad474c"
+  },
+  "angle diagrams: angles-plain-polygons (worked)": {
+   "json": "f4b9dda62f25a485",
+   "svg": "a47a62a2f39d04bf",
+   "mm": "66.7x52.8",
+   "png600": "1576x1247",
+   "pixels": "d7e0896bf0ad474c"
+  },
+  "angle diagrams: angles-plain-quadrilateral": {
+   "json": "d8c664406c93a963",
+   "svg": "3b647e5afc74dbd5",
+   "mm": "64x49",
+   "png600": "1512x1157",
+   "pixels": "1c9140779167e934"
+  },
+  "angle diagrams: angles-plain-quadrilateral (worked)": {
+   "json": "d8c664406c93a963",
+   "svg": "3b647e5afc74dbd5",
+   "mm": "64x49",
+   "png600": "1512x1157",
+   "pixels": "1c9140779167e934"
+  },
+  "angle diagrams: angles-plain-straight-line": {
+   "json": "a9789cff9f76295d",
+   "svg": "d05ff450a8b3f96f",
+   "mm": "74x39.9",
+   "png600": "1748x943",
+   "pixels": "2801603a78c2c082"
+  },
+  "angle diagrams: angles-plain-straight-line (worked)": {
+   "json": "a9789cff9f76295d",
+   "svg": "d05ff450a8b3f96f",
+   "mm": "74x39.9",
+   "png600": "1748x943",
+   "pixels": "2801603a78c2c082"
+  },
+  "angle diagrams: angles-plain-triangle": {
+   "json": "5123c478dade29c8",
+   "svg": "30195cf93fe3e779",
+   "mm": "64x47",
+   "png600": "1512x1110",
+   "pixels": "b6e3d4704d20b554"
+  },
+  "angle diagrams: angles-plain-triangle (worked)": {
+   "json": "5123c478dade29c8",
+   "svg": "30195cf93fe3e779",
+   "mm": "64x47",
+   "png600": "1512x1110",
+   "pixels": "b6e3d4704d20b554"
+  },
+  "angle diagrams: angles-plain-vertically-opposite": {
+   "json": "90786f72f0c180aa",
+   "svg": "8391562d6e7bae5f",
+   "mm": "71.7x74.8",
+   "png600": "1694x1767",
+   "pixels": "d62d02ae53506be8"
+  },
+  "angle diagrams: angles-plain-vertically-opposite (worked)": {
+   "json": "90786f72f0c180aa",
+   "svg": "8391562d6e7bae5f",
+   "mm": "71.7x74.8",
+   "png600": "1694x1767",
+   "pixels": "d62d02ae53506be8"
   },
   "angle diagrams: angles-point": {
    "json": "f84d3f6389289bb3",
@@ -659,6 +897,244 @@
    "mm": "79.1x59.3",
    "png600": "1869x1401",
    "pixels": "9f0f6cb8f99699e9"
+  },
+  "area and perimeter: area-plain-circle": {
+   "json": "7cd5836aa769f0f1",
+   "svg": "427a19962534035b",
+   "mm": "64x69",
+   "png600": "1512x1630",
+   "pixels": "54df19a7cf653f4b"
+  },
+  "area and perimeter: area-plain-circle (worked)": {
+   "json": "7cd5836aa769f0f1",
+   "svg": "427a19962534035b",
+   "mm": "64x69",
+   "png600": "1512x1630",
+   "pixels": "54df19a7cf653f4b"
+  },
+  "area and perimeter: area-plain-frame": {
+   "json": "eb6704f8b8b63ae2",
+   "svg": "852c2680c881769f",
+   "mm": "85x60.3",
+   "png600": "2008x1424",
+   "pixels": "161b446677288452"
+  },
+  "area and perimeter: area-plain-frame (worked)": {
+   "json": "eb6704f8b8b63ae2",
+   "svg": "852c2680c881769f",
+   "mm": "85x60.3",
+   "png600": "2008x1424",
+   "pixels": "161b446677288452"
+  },
+  "area and perimeter: area-plain-house": {
+   "json": "8343a9aa9b541500",
+   "svg": "7c88eb61ddf6f1c5",
+   "mm": "63.1x68.3",
+   "png600": "1491x1613",
+   "pixels": "ca1a7dd029a5b0cc"
+  },
+  "area and perimeter: area-plain-house (worked)": {
+   "json": "8343a9aa9b541500",
+   "svg": "7c88eb61ddf6f1c5",
+   "mm": "63.1x68.3",
+   "png600": "1491x1613",
+   "pixels": "ca1a7dd029a5b0cc"
+  },
+  "area and perimeter: area-plain-kite": {
+   "json": "a5ea278c0b5282c9",
+   "svg": "b28975624fc3b502",
+   "mm": "54x79",
+   "png600": "1276x1866",
+   "pixels": "786b906fe79a1b92"
+  },
+  "area and perimeter: area-plain-kite (worked)": {
+   "json": "a5ea278c0b5282c9",
+   "svg": "b28975624fc3b502",
+   "mm": "54x79",
+   "png600": "1276x1866",
+   "pixels": "786b906fe79a1b92"
+  },
+  "area and perimeter: area-plain-l-shape": {
+   "json": "d939d13ed7bdfbdd",
+   "svg": "bba02bca7c300dee",
+   "mm": "84.1x64.3",
+   "png600": "1987x1519",
+   "pixels": "1414bbbdf7ee3bf8"
+  },
+  "area and perimeter: area-plain-l-shape (worked)": {
+   "json": "d939d13ed7bdfbdd",
+   "svg": "bba02bca7c300dee",
+   "mm": "84.1x64.3",
+   "png600": "1987x1519",
+   "pixels": "1414bbbdf7ee3bf8"
+  },
+  "area and perimeter: area-plain-parallelogram": {
+   "json": "5e152a6b8b7a8d5d",
+   "svg": "8d0bb907465b82a8",
+   "mm": "76x46.3",
+   "png600": "1795x1094",
+   "pixels": "107f98798fa90609"
+  },
+  "area and perimeter: area-plain-parallelogram (worked)": {
+   "json": "5e152a6b8b7a8d5d",
+   "svg": "8d0bb907465b82a8",
+   "mm": "76x46.3",
+   "png600": "1795x1094",
+   "pixels": "107f98798fa90609"
+  },
+  "area and perimeter: area-plain-quarter": {
+   "json": "77a62f52f15ed96a",
+   "svg": "671c63e7e06aa084",
+   "mm": "51.8x54.3",
+   "png600": "1224x1283",
+   "pixels": "ebafc3b797e228d4"
+  },
+  "area and perimeter: area-plain-quarter (worked)": {
+   "json": "77a62f52f15ed96a",
+   "svg": "671c63e7e06aa084",
+   "mm": "51.8x54.3",
+   "png600": "1224x1283",
+   "pixels": "ebafc3b797e228d4"
+  },
+  "area and perimeter: area-plain-rectangle": {
+   "json": "4f7235449e369e04",
+   "svg": "a1a0e6f86bf1784b",
+   "mm": "73.1x49.3",
+   "png600": "1727x1165",
+   "pixels": "4d776398e7741b66"
+  },
+  "area and perimeter: area-plain-rectangle (worked)": {
+   "json": "4f7235449e369e04",
+   "svg": "a1a0e6f86bf1784b",
+   "mm": "73.1x49.3",
+   "png600": "1727x1165",
+   "pixels": "4d776398e7741b66"
+  },
+  "area and perimeter: area-plain-rectangle-cut": {
+   "json": "535fb852099ea9a1",
+   "svg": "07634c02e1d6191c",
+   "mm": "81x54.3",
+   "png600": "1913x1283",
+   "pixels": "0e0663d80209a38b"
+  },
+  "area and perimeter: area-plain-rectangle-cut (worked)": {
+   "json": "535fb852099ea9a1",
+   "svg": "07634c02e1d6191c",
+   "mm": "81x54.3",
+   "png600": "1913x1283",
+   "pixels": "0e0663d80209a38b"
+  },
+  "area and perimeter: area-plain-rectangle-semicircle": {
+   "json": "70fda9d29a365dac",
+   "svg": "2e3e87af35d42ff8",
+   "mm": "80.1x48.3",
+   "png600": "1892x1141",
+   "pixels": "89584ee716471e1e"
+  },
+  "area and perimeter: area-plain-rectangle-semicircle (worked)": {
+   "json": "70fda9d29a365dac",
+   "svg": "2e3e87af35d42ff8",
+   "mm": "80.1x48.3",
+   "png600": "1892x1141",
+   "pixels": "89584ee716471e1e"
+  },
+  "area and perimeter: area-plain-rhombus": {
+   "json": "857ef8e9c11585db",
+   "svg": "b88bbac0ca559c8e",
+   "mm": "68x46.3",
+   "png600": "1606x1094",
+   "pixels": "562c62452982fe6d"
+  },
+  "area and perimeter: area-plain-rhombus (worked)": {
+   "json": "857ef8e9c11585db",
+   "svg": "b88bbac0ca559c8e",
+   "mm": "68x46.3",
+   "png600": "1606x1094",
+   "pixels": "562c62452982fe6d"
+  },
+  "area and perimeter: area-plain-sector": {
+   "json": "3c43b895a2212fec",
+   "svg": "81137c7e6dd7ce5e",
+   "mm": "55x52.2",
+   "png600": "1299x1233",
+   "pixels": "70f6d1a7df95fa3d"
+  },
+  "area and perimeter: area-plain-sector (worked)": {
+   "json": "3c43b895a2212fec",
+   "svg": "81137c7e6dd7ce5e",
+   "mm": "55x52.2",
+   "png600": "1299x1233",
+   "pixels": "70f6d1a7df95fa3d"
+  },
+  "area and perimeter: area-plain-semicircle": {
+   "json": "7b8fe8a7f7d57a0e",
+   "svg": "01ba9b147addfc2a",
+   "mm": "68x46.3",
+   "png600": "1606x1094",
+   "pixels": "9277d06de91f758b"
+  },
+  "area and perimeter: area-plain-semicircle (worked)": {
+   "json": "7b8fe8a7f7d57a0e",
+   "svg": "01ba9b147addfc2a",
+   "mm": "68x46.3",
+   "png600": "1606x1094",
+   "pixels": "9277d06de91f758b"
+  },
+  "area and perimeter: area-plain-t-shape": {
+   "json": "0d5546066ed6769b",
+   "svg": "6e07be4d0ea52535",
+   "mm": "79.1x69.5",
+   "png600": "1869x1642",
+   "pixels": "2806de54bd6b8ccd"
+  },
+  "area and perimeter: area-plain-t-shape (worked)": {
+   "json": "0d5546066ed6769b",
+   "svg": "6e07be4d0ea52535",
+   "mm": "79.1x69.5",
+   "png600": "1869x1642",
+   "pixels": "2806de54bd6b8ccd"
+  },
+  "area and perimeter: area-plain-trapezium": {
+   "json": "de016edc5c7579af",
+   "svg": "140aab540572c98a",
+   "mm": "74x53.5",
+   "png600": "1748x1264",
+   "pixels": "f8a374cfb58fe682"
+  },
+  "area and perimeter: area-plain-trapezium (worked)": {
+   "json": "de016edc5c7579af",
+   "svg": "140aab540572c98a",
+   "mm": "74x53.5",
+   "png600": "1748x1264",
+   "pixels": "f8a374cfb58fe682"
+  },
+  "area and perimeter: area-plain-triangle": {
+   "json": "b990dc14c0898cc2",
+   "svg": "52d7b22588629263",
+   "mm": "68x54.3",
+   "png600": "1606x1283",
+   "pixels": "d895d725080d451c"
+  },
+  "area and perimeter: area-plain-triangle (worked)": {
+   "json": "b990dc14c0898cc2",
+   "svg": "52d7b22588629263",
+   "mm": "68x54.3",
+   "png600": "1606x1283",
+   "pixels": "d895d725080d451c"
+  },
+  "area and perimeter: area-plain-u-shape": {
+   "json": "f97da6e5a58f4e5e",
+   "svg": "ee95747a4711e3c6",
+   "mm": "88.2x59.3",
+   "png600": "2083x1401",
+   "pixels": "85086665307e9766"
+  },
+  "area and perimeter: area-plain-u-shape (worked)": {
+   "json": "f97da6e5a58f4e5e",
+   "svg": "ee95747a4711e3c6",
+   "mm": "88.2x59.3",
+   "png600": "2083x1401",
+   "pixels": "85086665307e9766"
   },
   "area and perimeter: area-rectangle-semicircle": {
    "json": "09aa2314a01b0ada",
@@ -912,6 +1388,76 @@
    "png600": "1408x1269",
    "pixels": "6e9fb2c5eb350550"
   },
+  "bubble method: bm-plain-both-sides": {
+   "json": "76faf556802f2b7c",
+   "svg": "7183782dae51d332",
+   "mm": "59.6x75.3",
+   "png600": "1408x1779",
+   "pixels": "ab124ccdf0c9aaf3"
+  },
+  "bubble method: bm-plain-both-sides (worked)": {
+   "json": "76faf556802f2b7c",
+   "svg": "7183782dae51d332",
+   "mm": "59.6x75.3",
+   "png600": "1408x1779",
+   "pixels": "ab124ccdf0c9aaf3"
+  },
+  "bubble method: bm-plain-inequality": {
+   "json": "52c7f201d37aebc3",
+   "svg": "4ac2818e8bc1eb21",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "29a43f87146e781b"
+  },
+  "bubble method: bm-plain-inequality (worked)": {
+   "json": "52c7f201d37aebc3",
+   "svg": "4ac2818e8bc1eb21",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "29a43f87146e781b"
+  },
+  "bubble method: bm-plain-one-step": {
+   "json": "18c6b5d33550ab2a",
+   "svg": "6427b20435dcc231",
+   "mm": "59.6x32.1",
+   "png600": "1408x758",
+   "pixels": "4ed2c8a0be738a59"
+  },
+  "bubble method: bm-plain-one-step (worked)": {
+   "json": "18c6b5d33550ab2a",
+   "svg": "6427b20435dcc231",
+   "mm": "59.6x32.1",
+   "png600": "1408x758",
+   "pixels": "4ed2c8a0be738a59"
+  },
+  "bubble method: bm-plain-subject": {
+   "json": "9358e23346de69b7",
+   "svg": "36a4cb332400d0bd",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "46d9113f69065986"
+  },
+  "bubble method: bm-plain-subject (worked)": {
+   "json": "9358e23346de69b7",
+   "svg": "36a4cb332400d0bd",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "46d9113f69065986"
+  },
+  "bubble method: bm-plain-two-step": {
+   "json": "05c260d74efbf106",
+   "svg": "fe3ff0ea854aa26c",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "9efa77bfffad125f"
+  },
+  "bubble method: bm-plain-two-step (worked)": {
+   "json": "05c260d74efbf106",
+   "svg": "fe3ff0ea854aa26c",
+   "mm": "59.6x53.7",
+   "png600": "1408x1269",
+   "pixels": "9efa77bfffad125f"
+  },
   "bubble method: bm-solve-equation": {
    "json": "e14d8201de81fdfd",
    "svg": "eb8b047b6cec93f6",
@@ -1135,6 +1681,188 @@
    "mm": "104x104",
    "png600": "2457x2457",
    "pixels": "2aebbaf53c15cf53"
+  },
+  "charts: chart-plain-bar": {
+   "json": "45ee08c9f20d831f",
+   "svg": "7357e3b45d0d716a",
+   "mm": "111.8x77.6",
+   "png600": "2641x1833",
+   "pixels": "42535ad4edd29aac"
+  },
+  "charts: chart-plain-bar (worked)": {
+   "json": "45ee08c9f20d831f",
+   "svg": "7357e3b45d0d716a",
+   "mm": "111.8x77.6",
+   "png600": "2641x1833",
+   "pixels": "42535ad4edd29aac"
+  },
+  "charts: chart-plain-boxplot": {
+   "json": "fa8664a15626cfda",
+   "svg": "28e57e62f66f6aa0",
+   "mm": "124.2x47.4",
+   "png600": "2934x1120",
+   "pixels": "42944b591da93cf0"
+  },
+  "charts: chart-plain-boxplot (worked)": {
+   "json": "fa8664a15626cfda",
+   "svg": "28e57e62f66f6aa0",
+   "mm": "124.2x47.4",
+   "png600": "2934x1120",
+   "pixels": "42944b591da93cf0"
+  },
+  "charts: chart-plain-composite": {
+   "json": "f352ed161983e0af",
+   "svg": "c29a7589a1ee7644",
+   "mm": "140.6x81.8",
+   "png600": "3321x1932",
+   "pixels": "79f2d8b85763e5ff"
+  },
+  "charts: chart-plain-composite (worked)": {
+   "json": "f352ed161983e0af",
+   "svg": "c29a7589a1ee7644",
+   "mm": "140.6x81.8",
+   "png600": "3321x1932",
+   "pixels": "79f2d8b85763e5ff"
+  },
+  "charts: chart-plain-cumulative": {
+   "json": "a718dded66e3247a",
+   "svg": "89202a58842ba2ac",
+   "mm": "138.2x137.3",
+   "png600": "3265x3243",
+   "pixels": "dd9d0a8834360e2a"
+  },
+  "charts: chart-plain-cumulative (worked)": {
+   "json": "a718dded66e3247a",
+   "svg": "89202a58842ba2ac",
+   "mm": "138.2x137.3",
+   "png600": "3265x3243",
+   "pixels": "dd9d0a8834360e2a"
+  },
+  "charts: chart-plain-dual": {
+   "json": "288adbf5852632ee",
+   "svg": "6ec040cb492ff54c",
+   "mm": "147.3x81.8",
+   "png600": "3480x1932",
+   "pixels": "a553c3ac9145bf2c"
+  },
+  "charts: chart-plain-dual (worked)": {
+   "json": "288adbf5852632ee",
+   "svg": "6ec040cb492ff54c",
+   "mm": "147.3x81.8",
+   "png600": "3480x1932",
+   "pixels": "a553c3ac9145bf2c"
+  },
+  "charts: chart-plain-histogram": {
+   "json": "e8c2c85019949d52",
+   "svg": "313aa3adff28f2ef",
+   "mm": "137.3x81.4",
+   "png600": "3243x1923",
+   "pixels": "4df5ea0bfa694280"
+  },
+  "charts: chart-plain-histogram (worked)": {
+   "json": "e8c2c85019949d52",
+   "svg": "313aa3adff28f2ef",
+   "mm": "137.3x81.4",
+   "png600": "3243x1923",
+   "pixels": "4df5ea0bfa694280"
+  },
+  "charts: chart-plain-pictogram": {
+   "json": "c5fbb3e30c776976",
+   "svg": "81b19299f91631e4",
+   "mm": "143.4x74",
+   "png600": "3387x1748",
+   "pixels": "9b1ed59b2685e66c"
+  },
+  "charts: chart-plain-pictogram (worked)": {
+   "json": "c5fbb3e30c776976",
+   "svg": "81b19299f91631e4",
+   "mm": "143.4x74",
+   "png600": "3387x1748",
+   "pixels": "9b1ed59b2685e66c"
+  },
+  "charts: chart-plain-pie": {
+   "json": "a539a9620caa3d21",
+   "svg": "9dcb47e69627508c",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "181f97f64306d038"
+  },
+  "charts: chart-plain-pie (worked)": {
+   "json": "a539a9620caa3d21",
+   "svg": "9dcb47e69627508c",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "181f97f64306d038"
+  },
+  "charts: chart-plain-polygon": {
+   "json": "c73682596f3d2d31",
+   "svg": "49a801e58dcdbc13",
+   "mm": "136.3x81.4",
+   "png600": "3220x1923",
+   "pixels": "6fca486640d68ed4"
+  },
+  "charts: chart-plain-polygon (worked)": {
+   "json": "c73682596f3d2d31",
+   "svg": "49a801e58dcdbc13",
+   "mm": "136.3x81.4",
+   "png600": "3220x1923",
+   "pixels": "6fca486640d68ed4"
+  },
+  "charts: chart-plain-scatter": {
+   "json": "e21b428ea3eb7010",
+   "svg": "c3ef5d30a0470063",
+   "mm": "134.9x111.4",
+   "png600": "3187x2631",
+   "pixels": "939c02369e4d59d3"
+  },
+  "charts: chart-plain-scatter (worked)": {
+   "json": "e21b428ea3eb7010",
+   "svg": "c3ef5d30a0470063",
+   "mm": "134.9x111.4",
+   "png600": "3187x2631",
+   "pixels": "939c02369e4d59d3"
+  },
+  "charts: chart-plain-stemleaf": {
+   "json": "4c013cd9410fbfe7",
+   "svg": "cdb8ad08ee10898d",
+   "mm": "124x44",
+   "png600": "2929x1039",
+   "pixels": "929954b45913e9b4"
+  },
+  "charts: chart-plain-stemleaf (worked)": {
+   "json": "4c013cd9410fbfe7",
+   "svg": "cdb8ad08ee10898d",
+   "mm": "124x44",
+   "png600": "2929x1039",
+   "pixels": "929954b45913e9b4"
+  },
+  "charts: chart-plain-timeseries": {
+   "json": "d2dbb3176954722c",
+   "svg": "b63f31677356ab00",
+   "mm": "112.3x62",
+   "png600": "2653x1465",
+   "pixels": "c437a1bb65549298"
+  },
+  "charts: chart-plain-timeseries (worked)": {
+   "json": "d2dbb3176954722c",
+   "svg": "b63f31677356ab00",
+   "mm": "112.3x62",
+   "png600": "2653x1465",
+   "pixels": "c437a1bb65549298"
+  },
+  "charts: chart-plain-vline": {
+   "json": "2c5f7fa69c0ed342",
+   "svg": "d6d67795ed6cd9d6",
+   "mm": "91.8x77.6",
+   "png600": "2169x1833",
+   "pixels": "fd653c81143850f1"
+  },
+  "charts: chart-plain-vline (worked)": {
+   "json": "2c5f7fa69c0ed342",
+   "svg": "d6d67795ed6cd9d6",
+   "mm": "91.8x77.6",
+   "png600": "2169x1833",
+   "pixels": "fd653c81143850f1"
   },
   "charts: chart-polygon-compare": {
    "json": "b879dcfd4ae97b98",
@@ -1416,6 +2144,104 @@
    "png600": "3142x2197",
    "pixels": "53ed9262258b6fd2"
   },
+  "constructions: construction-plain-angle": {
+   "json": "5c77b2dace5e5f06",
+   "svg": "77dd459281b1b2fd",
+   "mm": "123x83.5",
+   "png600": "2906x1972",
+   "pixels": "faa69705b0ac2d2c"
+  },
+  "constructions: construction-plain-angle (worked)": {
+   "json": "5c77b2dace5e5f06",
+   "svg": "77dd459281b1b2fd",
+   "mm": "123x83.5",
+   "png600": "2906x1972",
+   "pixels": "faa69705b0ac2d2c"
+  },
+  "constructions: construction-plain-bearing": {
+   "json": "4b5bcdc419a69a0c",
+   "svg": "00847edac01dd872",
+   "mm": "113x93",
+   "png600": "2669x2197",
+   "pixels": "006c66df6e5ba3a2"
+  },
+  "constructions: construction-plain-bearing (worked)": {
+   "json": "4b5bcdc419a69a0c",
+   "svg": "00847edac01dd872",
+   "mm": "113x93",
+   "png600": "2669x2197",
+   "pixels": "006c66df6e5ba3a2"
+  },
+  "constructions: construction-plain-line": {
+   "json": "f712eacee2ba7cd9",
+   "svg": "3014130aa40a0d4d",
+   "mm": "133x93",
+   "png600": "3142x2197",
+   "pixels": "bcbce97e65665ca3"
+  },
+  "constructions: construction-plain-line (worked)": {
+   "json": "f712eacee2ba7cd9",
+   "svg": "3014130aa40a0d4d",
+   "mm": "133x93",
+   "png600": "3142x2197",
+   "pixels": "bcbce97e65665ca3"
+  },
+  "constructions: construction-plain-locus-line": {
+   "json": "8db1699e8e09c104",
+   "svg": "e3133835fd7632ce",
+   "mm": "133x73",
+   "png600": "3142x1724",
+   "pixels": "5084431376bb20be"
+  },
+  "constructions: construction-plain-locus-line (worked)": {
+   "json": "8db1699e8e09c104",
+   "svg": "e3133835fd7632ce",
+   "mm": "133x73",
+   "png600": "3142x1724",
+   "pixels": "5084431376bb20be"
+  },
+  "constructions: construction-plain-locus-point": {
+   "json": "393bfb4a32d424be",
+   "svg": "3c08b412e5ab6270",
+   "mm": "103x93",
+   "png600": "2433x2197",
+   "pixels": "2408bfd9ff911e23"
+  },
+  "constructions: construction-plain-locus-point (worked)": {
+   "json": "393bfb4a32d424be",
+   "svg": "3c08b412e5ab6270",
+   "mm": "103x93",
+   "png600": "2433x2197",
+   "pixels": "2408bfd9ff911e23"
+  },
+  "constructions: construction-plain-point-and-line": {
+   "json": "4728910ca6e4d350",
+   "svg": "0804b33acd62b301",
+   "mm": "133x93",
+   "png600": "3142x2197",
+   "pixels": "1ab27aefba667d6b"
+  },
+  "constructions: construction-plain-point-and-line (worked)": {
+   "json": "4728910ca6e4d350",
+   "svg": "0804b33acd62b301",
+   "mm": "133x93",
+   "png600": "3142x2197",
+   "pixels": "1ab27aefba667d6b"
+  },
+  "constructions: construction-plain-scale-drawing": {
+   "json": "4e8da3c9b69a6040",
+   "svg": "7fbb2684eeb3d688",
+   "mm": "123x93.9",
+   "png600": "2906x2218",
+   "pixels": "c43dbcf17767d41c"
+  },
+  "constructions: construction-plain-scale-drawing (worked)": {
+   "json": "4e8da3c9b69a6040",
+   "svg": "7fbb2684eeb3d688",
+   "mm": "123x93.9",
+   "png600": "2906x2218",
+   "pixels": "c43dbcf17767d41c"
+  },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12": {
    "json": "5bbeda4788134900",
    "svg": "7a3d6f057d8eaddc",
@@ -1598,6 +2424,62 @@
    "png600": "2362x1443",
    "pixels": "c86796bc8c78bd8d"
   },
+  "cuboids: cuboid-plain-cube": {
+   "json": "e6392b3316b875a4",
+   "svg": "763a42e29a80aae2",
+   "mm": "100x84.64",
+   "png600": "2362x1999",
+   "pixels": "35d3d4480a3863b1"
+  },
+  "cuboids: cuboid-plain-cube (worked)": {
+   "json": "e6392b3316b875a4",
+   "svg": "763a42e29a80aae2",
+   "mm": "100x84.64",
+   "png600": "2362x1999",
+   "pixels": "35d3d4480a3863b1"
+  },
+  "cuboids: cuboid-plain-cubes": {
+   "json": "8b81c32eff533bc2",
+   "svg": "4084ec14055dff94",
+   "mm": "100x61.75",
+   "png600": "2362x1459",
+   "pixels": "038b612fbef74ae5"
+  },
+  "cuboids: cuboid-plain-cubes (worked)": {
+   "json": "8b81c32eff533bc2",
+   "svg": "4084ec14055dff94",
+   "mm": "100x61.75",
+   "png600": "2362x1459",
+   "pixels": "038b612fbef74ae5"
+  },
+  "cuboids: cuboid-plain-cuboid": {
+   "json": "2d03ecbe17a14df5",
+   "svg": "8a4c9b81bf676dec",
+   "mm": "100x56.09",
+   "png600": "2362x1325",
+   "pixels": "70a240e779a50806"
+  },
+  "cuboids: cuboid-plain-cuboid (worked)": {
+   "json": "2d03ecbe17a14df5",
+   "svg": "8a4c9b81bf676dec",
+   "mm": "100x56.09",
+   "png600": "2362x1325",
+   "pixels": "70a240e779a50806"
+  },
+  "cuboids: cuboid-plain-layers": {
+   "json": "c4dbb93402d7ec24",
+   "svg": "3967b6e6f8eb514e",
+   "mm": "100x120.09",
+   "png600": "2362x2837",
+   "pixels": "d471fe24dee5bbfe"
+  },
+  "cuboids: cuboid-plain-layers (worked)": {
+   "json": "c4dbb93402d7ec24",
+   "svg": "3967b6e6f8eb514e",
+   "mm": "100x120.09",
+   "png600": "2362x2837",
+   "pixels": "d471fe24dee5bbfe"
+  },
   "factor trees: ft-complete-360": {
    "json": "711e0eb9205d94f3",
    "svg": "68119ffcc34c2153",
@@ -1611,6 +2493,48 @@
    "mm": "95.6x63.6",
    "png600": "2258x1502",
    "pixels": "2cd3700327eaa88f"
+  },
+  "factor trees: ft-plain-seventy-two": {
+   "json": "de14c5df7679cd3f",
+   "svg": "ee07c03f05d4a2bb",
+   "mm": "80x63.6",
+   "png600": "1890x1502",
+   "pixels": "dd3eb6b53fe2d444"
+  },
+  "factor trees: ft-plain-seventy-two (worked)": {
+   "json": "de14c5df7679cd3f",
+   "svg": "ee07c03f05d4a2bb",
+   "mm": "80x63.6",
+   "png600": "1890x1502",
+   "pixels": "dd3eb6b53fe2d444"
+  },
+  "factor trees: ft-plain-sixty": {
+   "json": "ae76cd2d90226665",
+   "svg": "fa78b2a5f02ed949",
+   "mm": "64.4x50.6",
+   "png600": "1521x1195",
+   "pixels": "ebcecc9c097174cc"
+  },
+  "factor trees: ft-plain-sixty (worked)": {
+   "json": "ae76cd2d90226665",
+   "svg": "fa78b2a5f02ed949",
+   "mm": "64.4x50.6",
+   "png600": "1521x1195",
+   "pixels": "ebcecc9c097174cc"
+  },
+  "factor trees: ft-plain-three-sixty": {
+   "json": "e0c7854a7cda81e9",
+   "svg": "c7e7221d63095005",
+   "mm": "95.6x63.6",
+   "png600": "2258x1502",
+   "pixels": "49113afa3a497c4e"
+  },
+  "factor trees: ft-plain-three-sixty (worked)": {
+   "json": "e0c7854a7cda81e9",
+   "svg": "c7e7221d63095005",
+   "mm": "95.6x63.6",
+   "png600": "2258x1502",
+   "pixels": "49113afa3a497c4e"
   },
   "factor trees: ft-product-of-primes": {
    "json": "ba5a16888eebe492",
@@ -1696,6 +2620,20 @@
    "png600": "3118x1795",
    "pixels": "f652e3f45d9ede45"
   },
+  "frequency trees: ftree-plain-two-levels": {
+   "json": "9f3fa4bd490d22af",
+   "svg": "555193fa03e2c221",
+   "mm": "132x76",
+   "png600": "3118x1795",
+   "pixels": "ab1a0e2ce26cf4bc"
+  },
+  "frequency trees: ftree-plain-two-levels (worked)": {
+   "json": "9f3fa4bd490d22af",
+   "svg": "555193fa03e2c221",
+   "mm": "132x76",
+   "png600": "3118x1795",
+   "pixels": "ab1a0e2ce26cf4bc"
+  },
   "frequency trees: ftree-text-or-email": {
    "json": "8771cde9c8ca7345",
    "svg": "609c996d5434bcec",
@@ -1780,6 +2718,48 @@
    "png600": "2457x367",
    "pixels": "7787504668610856"
   },
+  "function machines: fm-plain-inverse": {
+   "json": "e7f98e10c49e011c",
+   "svg": "8d2e8e56de0853b4",
+   "mm": "110x31",
+   "png600": "2598x732",
+   "pixels": "ff069966365bc009"
+  },
+  "function machines: fm-plain-inverse (worked)": {
+   "json": "e7f98e10c49e011c",
+   "svg": "8d2e8e56de0853b4",
+   "mm": "110x31",
+   "png600": "2598x732",
+   "pixels": "ff069966365bc009"
+  },
+  "function machines: fm-plain-one-step": {
+   "json": "fcc34f9f76dd02b9",
+   "svg": "cfd70857c330d138",
+   "mm": "75x13",
+   "png600": "1772x307",
+   "pixels": "3562fca353a60a7b"
+  },
+  "function machines: fm-plain-one-step (worked)": {
+   "json": "fcc34f9f76dd02b9",
+   "svg": "cfd70857c330d138",
+   "mm": "75x13",
+   "png600": "1772x307",
+   "pixels": "3562fca353a60a7b"
+  },
+  "function machines: fm-plain-two-step": {
+   "json": "528cd0768aa14926",
+   "svg": "a211561171fbcea4",
+   "mm": "110x13",
+   "png600": "2598x307",
+   "pixels": "1bd390d6585c0666"
+  },
+  "function machines: fm-plain-two-step (worked)": {
+   "json": "528cd0768aa14926",
+   "svg": "a211561171fbcea4",
+   "mm": "110x13",
+   "png600": "2598x307",
+   "pixels": "1bd390d6585c0666"
+  },
   "function machines: fm-two-machines": {
    "json": "487ab924f9aaed24",
    "svg": "544b383671f2d410",
@@ -1835,6 +2815,132 @@
    "mm": "107.7x55.1",
    "png600": "2544x1302",
    "pixels": "d3c1f4f6061dfc15"
+  },
+  "geometry figures: figures-plain-centre-angle": {
+   "json": "175c74b2e2f98bb6",
+   "svg": "90ca7f049753bffe",
+   "mm": "64x73.9",
+   "png600": "1512x1746",
+   "pixels": "5133458effa2d756"
+  },
+  "geometry figures: figures-plain-centre-angle (worked)": {
+   "json": "175c74b2e2f98bb6",
+   "svg": "90ca7f049753bffe",
+   "mm": "64x73.9",
+   "png600": "1512x1746",
+   "pixels": "5133458effa2d756"
+  },
+  "geometry figures: figures-plain-chord": {
+   "json": "73b86dec877ee780",
+   "svg": "54f34bb29173f98c",
+   "mm": "64.3x65",
+   "png600": "1519x1535",
+   "pixels": "58754ca2f95e8cae"
+  },
+  "geometry figures: figures-plain-chord (worked)": {
+   "json": "73b86dec877ee780",
+   "svg": "54f34bb29173f98c",
+   "mm": "64.3x65",
+   "png600": "1519x1535",
+   "pixels": "58754ca2f95e8cae"
+  },
+  "geometry figures: figures-plain-congruent-triangles": {
+   "json": "f4df5a9d8b376887",
+   "svg": "eead1e0acd231a95",
+   "mm": "108.1x45.9",
+   "png600": "2554x1084",
+   "pixels": "7ec7a68b19f11e65"
+  },
+  "geometry figures: figures-plain-congruent-triangles (worked)": {
+   "json": "f4df5a9d8b376887",
+   "svg": "eead1e0acd231a95",
+   "mm": "108.1x45.9",
+   "png600": "2554x1084",
+   "pixels": "7ec7a68b19f11e65"
+  },
+  "geometry figures: figures-plain-cyclic-quadrilateral": {
+   "json": "c71099e2380e901e",
+   "svg": "a85329c5aba4e949",
+   "mm": "68.2x75.6",
+   "png600": "1611x1786",
+   "pixels": "bdaa57bae3dc4986"
+  },
+  "geometry figures: figures-plain-cyclic-quadrilateral (worked)": {
+   "json": "c71099e2380e901e",
+   "svg": "a85329c5aba4e949",
+   "mm": "68.2x75.6",
+   "png600": "1611x1786",
+   "pixels": "bdaa57bae3dc4986"
+  },
+  "geometry figures: figures-plain-parallelogram-diagonal": {
+   "json": "d642edfedb61c67c",
+   "svg": "ee9b06356d390a92",
+   "mm": "91.9x50.8",
+   "png600": "2171x1200",
+   "pixels": "52ec34873c7cefcd"
+  },
+  "geometry figures: figures-plain-parallelogram-diagonal (worked)": {
+   "json": "d642edfedb61c67c",
+   "svg": "ee9b06356d390a92",
+   "mm": "91.9x50.8",
+   "png600": "2171x1200",
+   "pixels": "52ec34873c7cefcd"
+  },
+  "geometry figures: figures-plain-same-segment": {
+   "json": "85e8c7b43de66560",
+   "svg": "4b7fb2a51aa54215",
+   "mm": "68.1x72.3",
+   "png600": "1609x1708",
+   "pixels": "4d18be99a01ff100"
+  },
+  "geometry figures: figures-plain-same-segment (worked)": {
+   "json": "85e8c7b43de66560",
+   "svg": "4b7fb2a51aa54215",
+   "mm": "68.1x72.3",
+   "png600": "1609x1708",
+   "pixels": "4d18be99a01ff100"
+  },
+  "geometry figures: figures-plain-similar-triangles": {
+   "json": "e905673911ab35c7",
+   "svg": "66b32ddd3cd16e8c",
+   "mm": "120.3x55.4",
+   "png600": "2842x1309",
+   "pixels": "ece6b9ff70986dc2"
+  },
+  "geometry figures: figures-plain-similar-triangles (worked)": {
+   "json": "e905673911ab35c7",
+   "svg": "66b32ddd3cd16e8c",
+   "mm": "120.3x55.4",
+   "png600": "2842x1309",
+   "pixels": "ece6b9ff70986dc2"
+  },
+  "geometry figures: figures-plain-tangent-radius": {
+   "json": "2616ba51138e3273",
+   "svg": "b1e701ac3d437a71",
+   "mm": "82.3x62",
+   "png600": "1944x1465",
+   "pixels": "7c4202eeb45d0e85"
+  },
+  "geometry figures: figures-plain-tangent-radius (worked)": {
+   "json": "2616ba51138e3273",
+   "svg": "b1e701ac3d437a71",
+   "mm": "82.3x62",
+   "png600": "1944x1465",
+   "pixels": "7c4202eeb45d0e85"
+  },
+  "geometry figures: figures-plain-two-tangents": {
+   "json": "76a34c8de4435fed",
+   "svg": "4c675bc687f6e952",
+   "mm": "61.2x49.9",
+   "png600": "1446x1179",
+   "pixels": "128ff702214168ac"
+  },
+  "geometry figures: figures-plain-two-tangents (worked)": {
+   "json": "76a34c8de4435fed",
+   "svg": "4c675bc687f6e952",
+   "mm": "61.2x49.9",
+   "png600": "1446x1179",
+   "pixels": "128ff702214168ac"
   },
   "geometry figures: figures-similar-right": {
    "json": "71b5d2fc97aedc04",
@@ -1919,6 +3025,104 @@
    "mm": "132.5x161.2",
    "png600": "3130x3808",
    "pixels": "9fa8c511c7cdd661"
+  },
+  "graph: graph-plain-axes": {
+   "json": "358ca5ee7c43d791",
+   "svg": "60b0716eae44bb95",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "240f2852863de2b7"
+  },
+  "graph: graph-plain-axes (worked)": {
+   "json": "358ca5ee7c43d791",
+   "svg": "60b0716eae44bb95",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "240f2852863de2b7"
+  },
+  "graph: graph-plain-first-quadrant": {
+   "json": "654f069049c08b82",
+   "svg": "49cd4f6162eb3bfd",
+   "mm": "118.1x114.4",
+   "png600": "2790x2702",
+   "pixels": "4264cbb6ddb7ee19"
+  },
+  "graph: graph-plain-first-quadrant (worked)": {
+   "json": "654f069049c08b82",
+   "svg": "49cd4f6162eb3bfd",
+   "mm": "118.1x114.4",
+   "png600": "2790x2702",
+   "pixels": "4264cbb6ddb7ee19"
+  },
+  "graph: graph-plain-gradient-triangle": {
+   "json": "b784c95ee0dd43c9",
+   "svg": "4096ff54e0d10cb8",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "2c80133e76b04209"
+  },
+  "graph: graph-plain-gradient-triangle (worked)": {
+   "json": "b784c95ee0dd43c9",
+   "svg": "4096ff54e0d10cb8",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "2c80133e76b04209"
+  },
+  "graph: graph-plain-region": {
+   "json": "d861880bf0237b6f",
+   "svg": "7a7932ab8e2528dd",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "c1e7cc34263adc7c"
+  },
+  "graph: graph-plain-region (worked)": {
+   "json": "d861880bf0237b6f",
+   "svg": "7a7932ab8e2528dd",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "c1e7cc34263adc7c"
+  },
+  "graph: graph-plain-shape": {
+   "json": "d73ab2dbe5d25628",
+   "svg": "8c548e3170f168f5",
+   "mm": "133.9x131.2",
+   "png600": "3163x3099",
+   "pixels": "7dda4f2c5685043d"
+  },
+  "graph: graph-plain-shape (worked)": {
+   "json": "d73ab2dbe5d25628",
+   "svg": "8c548e3170f168f5",
+   "mm": "133.9x131.2",
+   "png600": "3163x3099",
+   "pixels": "7dda4f2c5685043d"
+  },
+  "graph: graph-plain-straight-line": {
+   "json": "b8126fb80888b78b",
+   "svg": "4af1bd3789b2b784",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "f16fe757ff8cea63"
+  },
+  "graph: graph-plain-straight-line (worked)": {
+   "json": "b8126fb80888b78b",
+   "svg": "4af1bd3789b2b784",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "f16fe757ff8cea63"
+  },
+  "graph: graph-plain-two-lines": {
+   "json": "226e97a85d5697b0",
+   "svg": "0dbe9c4ea77c6670",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "50d30fd452ce3bec"
+  },
+  "graph: graph-plain-two-lines (worked)": {
+   "json": "226e97a85d5697b0",
+   "svg": "0dbe9c4ea77c6670",
+   "mm": "113.9x111.2",
+   "png600": "2691x2627",
+   "pixels": "50d30fd452ce3bec"
   },
   "nets: nets-complete-cube-net": {
    "json": "9bdb79bfb126a32e",
@@ -2017,6 +3221,76 @@
    "mm": "100x80",
    "png600": "2362x1890",
    "pixels": "4c6449c5acadd3d2"
+  },
+  "nets: nets-plain-cube": {
+   "json": "b8d5b725a30210f0",
+   "svg": "46c6a85880da2a01",
+   "mm": "100x80",
+   "png600": "2362x1890",
+   "pixels": "cdb6819cde0680f0"
+  },
+  "nets: nets-plain-cube (worked)": {
+   "json": "b8d5b725a30210f0",
+   "svg": "46c6a85880da2a01",
+   "mm": "100x80",
+   "png600": "2362x1890",
+   "pixels": "cdb6819cde0680f0"
+  },
+  "nets: nets-plain-cuboid": {
+   "json": "59776b19b5b1b4c4",
+   "svg": "cfe45cbc9e9443c0",
+   "mm": "140x90",
+   "png600": "3307x2126",
+   "pixels": "d94bbd5be1a09ceb"
+  },
+  "nets: nets-plain-cuboid (worked)": {
+   "json": "59776b19b5b1b4c4",
+   "svg": "cfe45cbc9e9443c0",
+   "mm": "140x90",
+   "png600": "3307x2126",
+   "pixels": "d94bbd5be1a09ceb"
+  },
+  "nets: nets-plain-square-pyramid": {
+   "json": "8c8a341581c6feab",
+   "svg": "fb5813a9c000be0c",
+   "mm": "110x110",
+   "png600": "2598x2598",
+   "pixels": "b6fbc95093f652bb"
+  },
+  "nets: nets-plain-square-pyramid (worked)": {
+   "json": "8c8a341581c6feab",
+   "svg": "fb5813a9c000be0c",
+   "mm": "110x110",
+   "png600": "2598x2598",
+   "pixels": "b6fbc95093f652bb"
+  },
+  "nets: nets-plain-tetrahedron": {
+   "json": "935fc343502a3881",
+   "svg": "324472f5bff7cae6",
+   "mm": "80x80",
+   "png600": "1890x1890",
+   "pixels": "e8333dd4230a978a"
+  },
+  "nets: nets-plain-tetrahedron (worked)": {
+   "json": "935fc343502a3881",
+   "svg": "324472f5bff7cae6",
+   "mm": "80x80",
+   "png600": "1890x1890",
+   "pixels": "e8333dd4230a978a"
+  },
+  "nets: nets-plain-triangular-prism": {
+   "json": "77e1307ba2694258",
+   "svg": "d586a06bbb36fa7e",
+   "mm": "140x150",
+   "png600": "3307x3543",
+   "pixels": "204567e900c06709"
+  },
+  "nets: nets-plain-triangular-prism (worked)": {
+   "json": "77e1307ba2694258",
+   "svg": "d586a06bbb36fa7e",
+   "mm": "140x150",
+   "png600": "3307x3543",
+   "pixels": "204567e900c06709"
   },
   "nets: nets-which-are-nets": {
    "json": "dd53f7074dd16a7a",
@@ -2158,6 +3432,90 @@
    "png600": "3307x969",
    "pixels": "6899e66d26ddfeca"
   },
+  "number line: number-line-plain-error-interval": {
+   "json": "d5008bf090fec976",
+   "svg": "0d702a9c9c47459e",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "41907e062e1c3089"
+  },
+  "number line: number-line-plain-error-interval (worked)": {
+   "json": "d5008bf090fec976",
+   "svg": "0d702a9c9c47459e",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "41907e062e1c3089"
+  },
+  "number line: number-line-plain-inequality": {
+   "json": "d92033f988ff3a8d",
+   "svg": "135a96dc7aa84037",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "6302b8b8211d5786"
+  },
+  "number line: number-line-plain-inequality (worked)": {
+   "json": "d92033f988ff3a8d",
+   "svg": "135a96dc7aa84037",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "6302b8b8211d5786"
+  },
+  "number line: number-line-plain-interval": {
+   "json": "0772062df7227dbd",
+   "svg": "5247c2f5a6f14a45",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "4f928f54b43847ce"
+  },
+  "number line: number-line-plain-interval (worked)": {
+   "json": "0772062df7227dbd",
+   "svg": "5247c2f5a6f14a45",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "4f928f54b43847ce"
+  },
+  "number line: number-line-plain-negative-ten-to-ten": {
+   "json": "a049686527b41f01",
+   "svg": "148becfd135130b3",
+   "mm": "180x23",
+   "png600": "4252x543",
+   "pixels": "c78a2040f74cf4f2"
+  },
+  "number line: number-line-plain-negative-ten-to-ten (worked)": {
+   "json": "a049686527b41f01",
+   "svg": "148becfd135130b3",
+   "mm": "180x23",
+   "png600": "4252x543",
+   "pixels": "c78a2040f74cf4f2"
+  },
+  "number line: number-line-plain-tenths": {
+   "json": "41e5a3340ae71e14",
+   "svg": "6e348e025c30e6de",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "fc391abc4dd39bc3"
+  },
+  "number line: number-line-plain-tenths (worked)": {
+   "json": "41e5a3340ae71e14",
+   "svg": "6e348e025c30e6de",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "fc391abc4dd39bc3"
+  },
+  "number line: number-line-plain-zero-to-ten": {
+   "json": "2453ceb4defacd66",
+   "svg": "e99e704df131e102",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "d12917e41686ffad"
+  },
+  "number line: number-line-plain-zero-to-ten (worked)": {
+   "json": "2453ceb4defacd66",
+   "svg": "e99e704df131e102",
+   "mm": "140x23",
+   "png600": "3307x543",
+   "pixels": "d12917e41686ffad"
+  },
   "plans and elevations: elevations-draw-solid": {
    "json": "18466b2dbad26c01",
    "svg": "f6f88264beff9e7d",
@@ -2185,6 +3543,62 @@
    "mm": "260.4x76",
    "png600": "6151x1795",
    "pixels": "e9f4fda2a07dffa5"
+  },
+  "plans and elevations: elevations-plain-blank-views": {
+   "json": "d134c9c77ffabbb4",
+   "svg": "0c7dec06f5b5ab0e",
+   "mm": "260.4x76",
+   "png600": "6151x1795",
+   "pixels": "2dfd660f8ed94e1d"
+  },
+  "plans and elevations: elevations-plain-blank-views (worked)": {
+   "json": "d134c9c77ffabbb4",
+   "svg": "0c7dec06f5b5ab0e",
+   "mm": "260.4x76",
+   "png600": "6151x1795",
+   "pixels": "2dfd660f8ed94e1d"
+  },
+  "plans and elevations: elevations-plain-l-shape": {
+   "json": "f8b125fb17c093ee",
+   "svg": "367420c1e8c79497",
+   "mm": "260.4x66",
+   "png600": "6151x1559",
+   "pixels": "4001ae3915283c2c"
+  },
+  "plans and elevations: elevations-plain-l-shape (worked)": {
+   "json": "f8b125fb17c093ee",
+   "svg": "367420c1e8c79497",
+   "mm": "260.4x66",
+   "png600": "6151x1559",
+   "pixels": "4001ae3915283c2c"
+  },
+  "plans and elevations: elevations-plain-row": {
+   "json": "3726ee97f850445f",
+   "svg": "b01d8dea8109f407",
+   "mm": "230.4x112.9",
+   "png600": "5443x2667",
+   "pixels": "e04bddcbca0c4ac3"
+  },
+  "plans and elevations: elevations-plain-row (worked)": {
+   "json": "3726ee97f850445f",
+   "svg": "b01d8dea8109f407",
+   "mm": "230.4x112.9",
+   "png600": "5443x2667",
+   "pixels": "e04bddcbca0c4ac3"
+  },
+  "plans and elevations: elevations-plain-steps": {
+   "json": "041113295d671267",
+   "svg": "bb0607ad582f34cf",
+   "mm": "260.4x86",
+   "png600": "6151x2031",
+   "pixels": "35311b852827fd4e"
+  },
+  "plans and elevations: elevations-plain-steps (worked)": {
+   "json": "041113295d671267",
+   "svg": "bb0607ad582f34cf",
+   "mm": "260.4x86",
+   "png600": "6151x2031",
+   "pixels": "35311b852827fd4e"
   },
   "plans and elevations: elevations-scale-2cm": {
    "json": "c943c26b8dfb6660",
@@ -2298,6 +3712,48 @@
    "png600": "3331x3213",
    "pixels": "84d999b102f7811d"
   },
+  "plotting quadratics: quadratic-plain-roots-turning-point": {
+   "json": "713c6cb90e1d0ed0",
+   "svg": "d490b5023df54fc3",
+   "mm": "141x196",
+   "png600": "3331x4630",
+   "pixels": "16cfb83595180c7c"
+  },
+  "plotting quadratics: quadratic-plain-roots-turning-point (worked)": {
+   "json": "713c6cb90e1d0ed0",
+   "svg": "d490b5023df54fc3",
+   "mm": "141x196",
+   "png600": "3331x4630",
+   "pixels": "16cfb83595180c7c"
+  },
+  "plotting quadratics: quadratic-plain-table": {
+   "json": "2f0837207cb95403",
+   "svg": "9daa2f0d993c7efa",
+   "mm": "141x164",
+   "png600": "3331x3874",
+   "pixels": "1846825a519153c8"
+  },
+  "plotting quadratics: quadratic-plain-table (worked)": {
+   "json": "2f0837207cb95403",
+   "svg": "9daa2f0d993c7efa",
+   "mm": "141x164",
+   "png600": "3331x3874",
+   "pixels": "1846825a519153c8"
+  },
+  "plotting quadratics: quadratic-plain-y-equals-x-squared": {
+   "json": "6cd81c027cea9e99",
+   "svg": "751af6eff90fc81f",
+   "mm": "141x164",
+   "png600": "3331x3874",
+   "pixels": "9e0ca4422647119f"
+  },
+  "plotting quadratics: quadratic-plain-y-equals-x-squared (worked)": {
+   "json": "6cd81c027cea9e99",
+   "svg": "751af6eff90fc81f",
+   "mm": "141x164",
+   "png600": "3331x3874",
+   "pixels": "9e0ca4422647119f"
+  },
   "probability trees: tree-darts": {
    "json": "cbf56c04bcacb580",
    "svg": "df58d69bc753d6cb",
@@ -2325,6 +3781,48 @@
    "mm": "99.7x104.3",
    "png600": "2355x2464",
    "pixels": "d1b199dd8dec454a"
+  },
+  "probability trees: tree-plain-independent": {
+   "json": "58812faaea4dc516",
+   "svg": "d9e0cca477012b9c",
+   "mm": "98x73.8",
+   "png600": "2315x1743",
+   "pixels": "c95b9e3b42e43428"
+  },
+  "probability trees: tree-plain-independent (worked)": {
+   "json": "58812faaea4dc516",
+   "svg": "d9e0cca477012b9c",
+   "mm": "98x73.8",
+   "png600": "2315x1743",
+   "pixels": "c95b9e3b42e43428"
+  },
+  "probability trees: tree-plain-three-branches": {
+   "json": "e8d5bc27eac4f834",
+   "svg": "70991d6ec6fa188e",
+   "mm": "92.9x99.6",
+   "png600": "2194x2353",
+   "pixels": "c4dfa9fef9fb1542"
+  },
+  "probability trees: tree-plain-three-branches (worked)": {
+   "json": "e8d5bc27eac4f834",
+   "svg": "70991d6ec6fa188e",
+   "mm": "92.9x99.6",
+   "png600": "2194x2353",
+   "pixels": "c4dfa9fef9fb1542"
+  },
+  "probability trees: tree-plain-without-replacement": {
+   "json": "fa4dc46c667cfbcf",
+   "svg": "22da1dd785057a20",
+   "mm": "98x73.8",
+   "png600": "2315x1743",
+   "pixels": "ab9a57f08dd088c1"
+  },
+  "probability trees: tree-plain-without-replacement (worked)": {
+   "json": "fa4dc46c667cfbcf",
+   "svg": "22da1dd785057a20",
+   "mm": "98x73.8",
+   "png600": "2315x1743",
+   "pixels": "ab9a57f08dd088c1"
   },
   "probability trees: tree-three-coins": {
    "json": "99a7efab9f17b30e",
@@ -2424,6 +3922,62 @@
    "png600": "1306x780",
    "pixels": "b7c4b3083f4ce09b"
   },
+  "ratio table: ratio-plain-best-buy": {
+   "json": "4584c87e536881ce",
+   "svg": "051dc90c18f7499d",
+   "mm": "41.6x33",
+   "png600": "983x780",
+   "pixels": "930f60430a83dc71"
+  },
+  "ratio table: ratio-plain-best-buy (worked)": {
+   "json": "4584c87e536881ce",
+   "svg": "051dc90c18f7499d",
+   "mm": "41.6x33",
+   "png600": "983x780",
+   "pixels": "930f60430a83dc71"
+  },
+  "ratio table: ratio-plain-multiplier": {
+   "json": "c15eb4e133d69afb",
+   "svg": "c46882e66df63370",
+   "mm": "55.29x33",
+   "png600": "1306x780",
+   "pixels": "374ccf8a2192d55d"
+  },
+  "ratio table: ratio-plain-multiplier (worked)": {
+   "json": "c15eb4e133d69afb",
+   "svg": "c46882e66df63370",
+   "mm": "55.29x33",
+   "png600": "1306x780",
+   "pixels": "374ccf8a2192d55d"
+  },
+  "ratio table: ratio-plain-recipe": {
+   "json": "e04d1dd5da9f25d5",
+   "svg": "b25c505f7cb93991",
+   "mm": "63.6x33",
+   "png600": "1502x780",
+   "pixels": "eba21c5f17360a47"
+  },
+  "ratio table: ratio-plain-recipe (worked)": {
+   "json": "e04d1dd5da9f25d5",
+   "svg": "b25c505f7cb93991",
+   "mm": "63.6x33",
+   "png600": "1502x780",
+   "pixels": "eba21c5f17360a47"
+  },
+  "ratio table: ratio-plain-unitary": {
+   "json": "12c647b88c8bb218",
+   "svg": "75f16474e9322d90",
+   "mm": "61.49x43",
+   "png600": "1453x1016",
+   "pixels": "acd0a0045135b8f9"
+  },
+  "ratio table: ratio-plain-unitary (worked)": {
+   "json": "12c647b88c8bb218",
+   "svg": "75f16474e9322d90",
+   "mm": "61.49x43",
+   "png600": "1453x1016",
+   "pixels": "acd0a0045135b8f9"
+  },
   "ratio table: ratio-simple": {
    "json": "dbd0b8e1c472f7ed",
    "svg": "4ba4be06fdc6dd27",
@@ -2493,6 +4047,62 @@
    "mm": "105x70",
    "png600": "2480x1654",
    "pixels": "cc4a244ee3d32570"
+  },
+  "sample space diagrams: ss-plain-coin-dice": {
+   "json": "58f190dc6ab1a2b3",
+   "svg": "8df09bae633435bf",
+   "mm": "126x34",
+   "png600": "2976x803",
+   "pixels": "2d22af601b81a4ca"
+  },
+  "sample space diagrams: ss-plain-coin-dice (worked)": {
+   "json": "58f190dc6ab1a2b3",
+   "svg": "8df09bae633435bf",
+   "mm": "126x34",
+   "png600": "2976x803",
+   "pixels": "2d22af601b81a4ca"
+  },
+  "sample space diagrams: ss-plain-dice-products": {
+   "json": "35111c2b21ba48d8",
+   "svg": "e6b4f878dfc5e82c",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "dec46c15a1611ae7"
+  },
+  "sample space diagrams: ss-plain-dice-products (worked)": {
+   "json": "35111c2b21ba48d8",
+   "svg": "e6b4f878dfc5e82c",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "dec46c15a1611ae7"
+  },
+  "sample space diagrams: ss-plain-dice-sums": {
+   "json": "c4819506e1ce0a16",
+   "svg": "0b17b7ddae3c6b36",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "cc4a244ee3d32570"
+  },
+  "sample space diagrams: ss-plain-dice-sums (worked)": {
+   "json": "c4819506e1ce0a16",
+   "svg": "0b17b7ddae3c6b36",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "cc4a244ee3d32570"
+  },
+  "sample space diagrams: ss-plain-two-spinners": {
+   "json": "459054d0106951b1",
+   "svg": "64d95c9eb4e06586",
+   "mm": "77x52",
+   "png600": "1819x1228",
+   "pixels": "19c674d7908dbce8"
+  },
+  "sample space diagrams: ss-plain-two-spinners (worked)": {
+   "json": "459054d0106951b1",
+   "svg": "64d95c9eb4e06586",
+   "mm": "77x52",
+   "png600": "1819x1228",
+   "pixels": "19c674d7908dbce8"
   },
   "sample space diagrams: ss-spinner-product": {
    "json": "cfd023d32b473bb6",
@@ -2577,6 +4187,90 @@
    "mm": "43.2x43.2",
    "png600": "1020x1020",
    "pixels": "3bcee70d8fd726e0"
+  },
+  "spinners, dice and bags: po-plain-bag-three": {
+   "json": "1b62f455ba2d638a",
+   "svg": "2543421ea6f6d62f",
+   "mm": "47.8x49.2",
+   "png600": "1129x1162",
+   "pixels": "de31f2496b36a809"
+  },
+  "spinners, dice and bags: po-plain-bag-three (worked)": {
+   "json": "1b62f455ba2d638a",
+   "svg": "2543421ea6f6d62f",
+   "mm": "47.8x49.2",
+   "png600": "1129x1162",
+   "pixels": "de31f2496b36a809"
+  },
+  "spinners, dice and bags: po-plain-bag-two": {
+   "json": "b26ac8ee1d03ef35",
+   "svg": "30a6e64051e3679a",
+   "mm": "47.8x39.6",
+   "png600": "1129x935",
+   "pixels": "3902339c0be61859"
+  },
+  "spinners, dice and bags: po-plain-bag-two (worked)": {
+   "json": "b26ac8ee1d03ef35",
+   "svg": "30a6e64051e3679a",
+   "mm": "47.8x39.6",
+   "png600": "1129x935",
+   "pixels": "3902339c0be61859"
+  },
+  "spinners, dice and bags: po-plain-dice": {
+   "json": "561f1b2fb7cf64d6",
+   "svg": "f11bd289236f9d5e",
+   "mm": "27.84x27.84",
+   "png600": "658x658",
+   "pixels": "863103238b18f6f7"
+  },
+  "spinners, dice and bags: po-plain-dice (worked)": {
+   "json": "561f1b2fb7cf64d6",
+   "svg": "f11bd289236f9d5e",
+   "mm": "27.84x27.84",
+   "png600": "658x658",
+   "pixels": "863103238b18f6f7"
+  },
+  "spinners, dice and bags: po-plain-spinner-4": {
+   "json": "3f31c3111aa48013",
+   "svg": "aa1765c63c6ca9f2",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "5bc0eef9b5b3128b"
+  },
+  "spinners, dice and bags: po-plain-spinner-4 (worked)": {
+   "json": "3f31c3111aa48013",
+   "svg": "aa1765c63c6ca9f2",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "5bc0eef9b5b3128b"
+  },
+  "spinners, dice and bags: po-plain-spinner-5": {
+   "json": "47139c54ae98fd85",
+   "svg": "e9ef0e986933e9fb",
+   "mm": "41.24x45.01",
+   "png600": "974x1063",
+   "pixels": "f5c4017f4042333c"
+  },
+  "spinners, dice and bags: po-plain-spinner-5 (worked)": {
+   "json": "47139c54ae98fd85",
+   "svg": "e9ef0e986933e9fb",
+   "mm": "41.24x45.01",
+   "png600": "974x1063",
+   "pixels": "f5c4017f4042333c"
+  },
+  "spinners, dice and bags: po-plain-spinner-unequal": {
+   "json": "bb806a6c439f16af",
+   "svg": "bd3826b32a842a08",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "3399f54a42b29d89"
+  },
+  "spinners, dice and bags: po-plain-spinner-unequal (worked)": {
+   "json": "bb806a6c439f16af",
+   "svg": "bd3826b32a842a08",
+   "mm": "43.2x43.2",
+   "png600": "1020x1020",
+   "pixels": "3399f54a42b29d89"
   },
   "spinners, dice and bags: po-six-sectors": {
    "json": "6eef9cf2e0329dde",
@@ -2760,6 +4454,104 @@
    "png600": "2835x1989",
    "pixels": "5ba66cd29cc03121"
   },
+  "triangles: triangle-plain-area-sine": {
+   "json": "e7aa729a58516b9c",
+   "svg": "1d9a574b086eb5aa",
+   "mm": "120x93.22",
+   "png600": "2835x2202",
+   "pixels": "eb01be45268d6a25"
+  },
+  "triangles: triangle-plain-area-sine (worked)": {
+   "json": "e7aa729a58516b9c",
+   "svg": "1d9a574b086eb5aa",
+   "mm": "120x93.22",
+   "png600": "2835x2202",
+   "pixels": "eb01be45268d6a25"
+  },
+  "triangles: triangle-plain-cosine-rule": {
+   "json": "adcbb175d116a3ce",
+   "svg": "eae7f305c3319492",
+   "mm": "120x83.91",
+   "png600": "2835x1982",
+   "pixels": "ad59316ffbadbe3e"
+  },
+  "triangles: triangle-plain-cosine-rule (worked)": {
+   "json": "adcbb175d116a3ce",
+   "svg": "eae7f305c3319492",
+   "mm": "120x83.91",
+   "png600": "2835x1982",
+   "pixels": "ad59316ffbadbe3e"
+  },
+  "triangles: triangle-plain-equilateral": {
+   "json": "4b44889665321dc3",
+   "svg": "07f57fa407682992",
+   "mm": "120x93.26",
+   "png600": "2835x2203",
+   "pixels": "3505822203b3d5dc"
+  },
+  "triangles: triangle-plain-equilateral (worked)": {
+   "json": "4b44889665321dc3",
+   "svg": "07f57fa407682992",
+   "mm": "120x93.26",
+   "png600": "2835x2203",
+   "pixels": "3505822203b3d5dc"
+  },
+  "triangles: triangle-plain-isosceles": {
+   "json": "3c4700859a492791",
+   "svg": "0cf6fe87f881a1b9",
+   "mm": "120x73.73",
+   "png600": "2835x1742",
+   "pixels": "0c8463a5fb2c4d91"
+  },
+  "triangles: triangle-plain-isosceles (worked)": {
+   "json": "3c4700859a492791",
+   "svg": "0cf6fe87f881a1b9",
+   "mm": "120x73.73",
+   "png600": "2835x1742",
+   "pixels": "0c8463a5fb2c4d91"
+  },
+  "triangles: triangle-plain-pythagoras": {
+   "json": "b97839f5d542e921",
+   "svg": "3c30eea8e2382fc8",
+   "mm": "120x84.21",
+   "png600": "2835x1989",
+   "pixels": "3bcb82a072ef2cc3"
+  },
+  "triangles: triangle-plain-pythagoras (worked)": {
+   "json": "b97839f5d542e921",
+   "svg": "3c30eea8e2382fc8",
+   "mm": "120x84.21",
+   "png600": "2835x1989",
+   "pixels": "3bcb82a072ef2cc3"
+  },
+  "triangles: triangle-plain-sine-rule": {
+   "json": "135901cf3e522775",
+   "svg": "7283f745e305c9d6",
+   "mm": "120x83.91",
+   "png600": "2835x1982",
+   "pixels": "28bde5f540889317"
+  },
+  "triangles: triangle-plain-sine-rule (worked)": {
+   "json": "135901cf3e522775",
+   "svg": "7283f745e305c9d6",
+   "mm": "120x83.91",
+   "png600": "2835x1982",
+   "pixels": "28bde5f540889317"
+  },
+  "triangles: triangle-plain-trigonometry": {
+   "json": "2ab4416a64c5a6cb",
+   "svg": "1933d74ab3e25dc7",
+   "mm": "120x82.71",
+   "png600": "2835x1954",
+   "pixels": "61479ae89e932188"
+  },
+  "triangles: triangle-plain-trigonometry (worked)": {
+   "json": "2ab4416a64c5a6cb",
+   "svg": "1933d74ab3e25dc7",
+   "mm": "120x82.71",
+   "png600": "2835x1954",
+   "pixels": "61479ae89e932188"
+  },
   "triangles: triangle-pythagoras-error": {
    "json": "053e22926f6505f9",
    "svg": "b2031e9c55827a0d",
@@ -2843,6 +4635,48 @@
    "mm": "106x40",
    "png600": "2504x945",
    "pixels": "a9bf9a1c94938cd9"
+  },
+  "two-way tables: twt-plain-three-by-three": {
+   "json": "2437a41206ae9991",
+   "svg": "7bf0311514ee7399",
+   "mm": "106x50",
+   "png600": "2504x1181",
+   "pixels": "4b01014e69e8d884"
+  },
+  "two-way tables: twt-plain-three-by-three (worked)": {
+   "json": "2437a41206ae9991",
+   "svg": "7bf0311514ee7399",
+   "mm": "106x50",
+   "png600": "2504x1181",
+   "pixels": "4b01014e69e8d884"
+  },
+  "two-way tables: twt-plain-three-by-two": {
+   "json": "47852aa0988a29b3",
+   "svg": "0b4d22e64ff7cfb9",
+   "mm": "106x40",
+   "png600": "2504x945",
+   "pixels": "a9bf9a1c94938cd9"
+  },
+  "two-way tables: twt-plain-three-by-two (worked)": {
+   "json": "47852aa0988a29b3",
+   "svg": "0b4d22e64ff7cfb9",
+   "mm": "106x40",
+   "png600": "2504x945",
+   "pixels": "a9bf9a1c94938cd9"
+  },
+  "two-way tables: twt-plain-two-by-two": {
+   "json": "68863f1bcd6773c5",
+   "svg": "efbfee899909e539",
+   "mm": "84x40",
+   "png600": "1984x945",
+   "pixels": "1cf80a6025809624"
+  },
+  "two-way tables: twt-plain-two-by-two (worked)": {
+   "json": "68863f1bcd6773c5",
+   "svg": "efbfee899909e539",
+   "mm": "84x40",
+   "png600": "1984x945",
+   "pixels": "1cf80a6025809624"
   },
   "two-way tables: twt-probability": {
    "json": "6872c2eba7b3dab5",
@@ -2998,6 +4832,62 @@
    "png600": "2835x2519",
    "pixels": "042ec9a3a22aa381"
   },
+  "venn: venn-plain-one-set": {
+   "json": "db8eab17d32580bb",
+   "svg": "c7a1f9a32ec23b74",
+   "mm": "120x85",
+   "png600": "2835x2008",
+   "pixels": "b68f0405d33a6c93"
+  },
+  "venn: venn-plain-one-set (worked)": {
+   "json": "db8eab17d32580bb",
+   "svg": "c7a1f9a32ec23b74",
+   "mm": "120x85",
+   "png600": "2835x2008",
+   "pixels": "b68f0405d33a6c93"
+  },
+  "venn: venn-plain-three-sets": {
+   "json": "d6fe4bca40a2361b",
+   "svg": "46f013912f2e3708",
+   "mm": "120x105",
+   "png600": "2835x2480",
+   "pixels": "dc6a0a233de11064"
+  },
+  "venn: venn-plain-three-sets (worked)": {
+   "json": "d6fe4bca40a2361b",
+   "svg": "46f013912f2e3708",
+   "mm": "120x105",
+   "png600": "2835x2480",
+   "pixels": "dc6a0a233de11064"
+  },
+  "venn: venn-plain-two-sets": {
+   "json": "ed2b35c6cb671b68",
+   "svg": "598bb6d483d59f9d",
+   "mm": "120x85",
+   "png600": "2835x2008",
+   "pixels": "f5b083cced482485"
+  },
+  "venn: venn-plain-two-sets (worked)": {
+   "json": "ed2b35c6cb671b68",
+   "svg": "598bb6d483d59f9d",
+   "mm": "120x85",
+   "png600": "2835x2008",
+   "pixels": "f5b083cced482485"
+  },
+  "venn: venn-plain-two-sets-shaded": {
+   "json": "fabdd5c17c9c65e1",
+   "svg": "636131a20e527b60",
+   "mm": "120x85",
+   "png600": "2835x2008",
+   "pixels": "49d5b4ee1bdb45cc"
+  },
+  "venn: venn-plain-two-sets-shaded (worked)": {
+   "json": "fabdd5c17c9c65e1",
+   "svg": "636131a20e527b60",
+   "mm": "120x85",
+   "png600": "2835x2008",
+   "pixels": "49d5b4ee1bdb45cc"
+  },
   "venn: venn-separate": {
    "json": "15aa7044d2b2a758",
    "svg": "007be83db06a4883",
@@ -3109,6 +4999,90 @@
    "mm": "44x50.1",
    "png600": "1039x1183",
    "pixels": "e02ecf974ed11205"
+  },
+  "written methods: wm-plain-add-decimals": {
+   "json": "847206dfb93058f3",
+   "svg": "0e53063f0728c722",
+   "mm": "44x28.3",
+   "png600": "1039x669",
+   "pixels": "2ca75a554fa22061"
+  },
+  "written methods: wm-plain-add-decimals (worked)": {
+   "json": "847206dfb93058f3",
+   "svg": "0e53063f0728c722",
+   "mm": "44x28.3",
+   "png600": "1039x669",
+   "pixels": "2ca75a554fa22061"
+  },
+  "written methods: wm-plain-column-add": {
+   "json": "68847a9162c106d2",
+   "svg": "546659960a76fb3d",
+   "mm": "37x28.3",
+   "png600": "874x669",
+   "pixels": "3c34eedfc61fbba9"
+  },
+  "written methods: wm-plain-column-add (worked)": {
+   "json": "68847a9162c106d2",
+   "svg": "546659960a76fb3d",
+   "mm": "37x28.3",
+   "png600": "874x669",
+   "pixels": "3c34eedfc61fbba9"
+  },
+  "written methods: wm-plain-column-subtract": {
+   "json": "089d7d9b39523423",
+   "svg": "5c8ba952421654e6",
+   "mm": "30x31.8",
+   "png600": "709x751",
+   "pixels": "58c274094ddfeb37"
+  },
+  "written methods: wm-plain-column-subtract (worked)": {
+   "json": "089d7d9b39523423",
+   "svg": "5c8ba952421654e6",
+   "mm": "30x31.8",
+   "png600": "709x751",
+   "pixels": "58c274094ddfeb37"
+  },
+  "written methods: wm-plain-long-division": {
+   "json": "e7dfdbc5f67b6d94",
+   "svg": "c299397b02d7fd6d",
+   "mm": "36.84x17.8",
+   "png600": "870x420",
+   "pixels": "c46fb33c718614d0"
+  },
+  "written methods: wm-plain-long-division (worked)": {
+   "json": "e7dfdbc5f67b6d94",
+   "svg": "c299397b02d7fd6d",
+   "mm": "36.84x17.8",
+   "png600": "870x420",
+   "pixels": "c46fb33c718614d0"
+  },
+  "written methods: wm-plain-long-multiplication": {
+   "json": "bb84a63135bf6aac",
+   "svg": "285a4f83106a28d5",
+   "mm": "44x50.1",
+   "png600": "1039x1183",
+   "pixels": "631fa52b2621ea98"
+  },
+  "written methods: wm-plain-long-multiplication (worked)": {
+   "json": "bb84a63135bf6aac",
+   "svg": "285a4f83106a28d5",
+   "mm": "44x50.1",
+   "png600": "1039x1183",
+   "pixels": "631fa52b2621ea98"
+  },
+  "written methods: wm-plain-short-division": {
+   "json": "acfec777c97c910d",
+   "svg": "f53f92e5470bd672",
+   "mm": "34.92x17.8",
+   "png600": "825x420",
+   "pixels": "03951157a7b71c55"
+  },
+  "written methods: wm-plain-short-division (worked)": {
+   "json": "acfec777c97c910d",
+   "svg": "f53f92e5470bd672",
+   "mm": "34.92x17.8",
+   "png600": "825x420",
+   "pixels": "03951157a7b71c55"
   },
   "written methods: wm-short-division": {
    "json": "3493b81cebe35dfa",

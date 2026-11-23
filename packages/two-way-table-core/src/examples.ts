@@ -57,3 +57,25 @@ export const examples: { id: string; title: string; note: string; make: (worked:
       ),
   },
 ];
+
+/** Plain shapes: completed two-way tables with totals, shown before the exam-style examples. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "two-by-two",
+    title: "Two-way table, 2 by 2",
+    note: "Two rows and two columns with totals, every cell given.",
+    make: () => table("", ["Likes cats", "Does not"], [["Boys", "12", "8", "20"], ["Girls", "15", "5", "20"]], ["27", "13", "40"]),
+  },
+  {
+    id: "three-by-two",
+    title: "Two-way table, 3 by 2",
+    note: "Two rows and three columns with totals, every cell given.",
+    make: () => table("", ["Walk", "Bus", "Car"], [["Year 7", "18", "25", "9", "52"], ["Year 8", "21", "17", "12", "50"]], ["39", "42", "21", "102"]),
+  },
+  {
+    id: "three-by-three",
+    title: "Two-way table, 3 by 3",
+    note: "Three rows and three columns with totals, every cell given.",
+    make: () => table("", ["French", "German", "Spanish"], [["Year 9", "12", "8", "10", "30"], ["Year 10", "9", "11", "6", "26"], ["Year 11", "14", "5", "9", "28"]], ["35", "24", "25", "84"]),
+  },
+];

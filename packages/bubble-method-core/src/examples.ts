@@ -47,3 +47,13 @@ export const examples: { id: string; title: string; note: string; make: (worked:
     make: (worked) => finish(doc(ln("2x − 5", "9", "<"), [step("?+5", ln("?2x", "?14", "<")), step("?÷2", ln("?x", "?7", "<"))]), worked),
   },
 ];
+
+/** Plain shapes: the first line given, with empty bubbles and blank lines for each step. */
+const blankSteps = (n: number, rel: Relation = "=") => Array.from({ length: n }, () => step("", ln("", "", rel)));
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "one-step", title: "One-step equation", note: "x + 5 = 12, with one empty step.", make: () => doc(ln("x + 5", "12"), blankSteps(1)) },
+  { id: "two-step", title: "Two-step equation", note: "3x + 4 = 19, with two empty steps.", make: () => doc(ln("3x + 4", "19"), blankSteps(2)) },
+  { id: "both-sides", title: "Unknowns on both sides", note: "5x + 3 = 2x + 15, with three empty steps.", make: () => doc(ln("5x + 3", "2x + 15"), blankSteps(3)) },
+  { id: "inequality", title: "An inequality", note: "3x − 2 > 10, with two empty steps.", make: () => doc(ln("3x − 2", "10", ">"), blankSteps(2, ">")) },
+  { id: "subject", title: "Changing the subject", note: "Make x the subject of y = 2x + 5, with two empty steps.", make: () => doc(ln("y", "2x + 5"), blankSteps(2)) },
+];

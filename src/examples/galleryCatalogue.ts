@@ -82,6 +82,28 @@ import { examples as algebraTiles } from "../../packages/algebra-tile-core/src/e
 import { renderSvg as algebraTilesSvg } from "../../packages/algebra-tile-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
 import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
+import { plainShapes as plainCharts } from "../../packages/chart-core/src/examples";
+import { plainShapes as plainVenn } from "../../packages/venn-core/src/examples";
+import { plainShapes as plainTrees } from "../../packages/probability-tree-core/src/examples";
+import { plainShapes as plainFrequencyTrees } from "../../packages/frequency-tree-core/src/examples";
+import { plainShapes as plainTwoWay } from "../../packages/two-way-table-core/src/examples";
+import { plainShapes as plainSampleSpaces } from "../../packages/sample-space-core/src/examples";
+import { plainShapes as plainProbabilityObjects } from "../../packages/probability-objects-core/src/examples";
+import { plainShapes as plainAreas } from "../../packages/area-core/src/examples";
+import { plainShapes as plainAngles } from "../../packages/angle-core/src/examples";
+import { plainShapes as plainTriangles } from "../../packages/triangle-core/src/examples";
+import { plainShapes as plainFigures } from "../../packages/figure-core/src/examples";
+import { plainShapes as plainCuboids } from "../../packages/cuboid-core/src/examples";
+import { plainShapes as plainNets } from "../../packages/net-core/src/examples";
+import { plainShapes as plainElevations } from "../../packages/elevation-core/src/examples";
+import { plainShapes as plainConstructions } from "../../packages/construction-core/src/examples";
+import { plainShapes as plainNumberLines } from "../../packages/number-line-core/src/examples";
+import { plainShapes as plainFactorTrees } from "../../packages/factor-tree-core/src/examples";
+import { plainShapes as plainFunctionMachines } from "../../packages/function-machine-core/src/examples";
+import { plainShapes as plainWrittenMethods } from "../../packages/written-method-core/src/examples";
+import { plainShapes as plainBubbles } from "../../packages/bubble-method-core/src/examples";
+import { plainShapes as plainTiles } from "../../packages/algebra-tile-core/src/examples";
+import { plainAlgebraGrids, plainGraphs, plainQuadratics, plainRatioTables } from "./plainShapes";
 
 export interface GalleryExample<T> {
   id: string;
@@ -97,9 +119,23 @@ export interface GalleryExample<T> {
   /** A plain, common version of the diagram (a triangular prism, a cylinder): shown first, under "Plain shapes". */
   plain?: boolean;
 }
+/** A tool's plain shapes: simple, common versions with every value given, before its exam-style examples. */
+export interface PlainShape<T> {
+  id: string;
+  title: string;
+  note: string;
+  make: () => T;
+}
+function withPlain<T>(prefix: string, plain: PlainShape<T>[], exam: GalleryExample<T>[]): GalleryExample<T>[] {
+  const render = exam[0].render;
+  return [
+    ...plain.map((shape) => ({ id: `${prefix}-plain-${shape.id}`, title: shape.title, description: shape.note, make: shape.make, render, worked: false, plain: true })),
+    ...exam,
+  ];
+}
 const source = (id: string) =>
   `https://mathsdock.co.uk/question-bank?question=${id}`;
-export const graphGallery = graphExamples.map((example) => ({
+const graphGalleryExam = graphExamples.map((example) => ({
   id: `graph-${example.id}`,
   title: example.title,
   description: example.description,
@@ -107,6 +143,7 @@ export const graphGallery = graphExamples.map((example) => ({
   make: example.create,
   render: renderDiagramSvg,
 }));
+export const graphGallery = withPlain("graph", plainGraphs, graphGalleryExam);
 export const ratioGallery = ratioExamples.map((example) => ({
   id: `ratio-${example.id}`,
   title: example.title,
@@ -156,7 +193,7 @@ export function ratioTeachingExample(kind: "simple" | "worked" | "fraction") {
           ],
   });
 }
-export const ratioTeachingGallery = (
+const ratioTeachingGalleryExam = (
   ["simple", "worked", "fraction"] as const
 ).map((kind) => ({
   id: `ratio-${kind}`,
@@ -178,7 +215,8 @@ export const ratioTeachingGallery = (
       ? "This table already shows its scaling step."
       : undefined,
 }));
-export const quadraticGallery = [
+export const ratioTeachingGallery = withPlain("ratio", plainRatioTables, ratioTeachingGalleryExam);
+const quadraticGalleryExam = [
   ...quadraticSources.map((example) => ({
     id: `quadratic-${example.id}`,
     title: example.source,
@@ -198,7 +236,8 @@ export const quadraticGallery = [
     render: quadraticSvg,
   },
 ];
-export const cuboidGallery = cuboids.map((example) => ({
+export const quadraticGallery = withPlain("quadratic", plainQuadratics, quadraticGalleryExam);
+const cuboidGalleryExam = cuboids.map((example) => ({
   id: `cuboid-${example.id}`,
   title: example.title,
   description: example.description,
@@ -207,7 +246,8 @@ export const cuboidGallery = cuboids.map((example) => ({
   render: (resource: ReturnType<typeof example.create>) =>
     cuboidLayout(resource).svg,
 }));
-export const numberLineGallery = lines.map((example, i) => ({
+export const cuboidGallery = withPlain("cuboid", plainCuboids, cuboidGalleryExam);
+const numberLineGalleryExam = lines.map((example, i) => ({
   id: `number-line-${i}`,
   title: example.title,
   description:
@@ -216,7 +256,8 @@ export const numberLineGallery = lines.map((example, i) => ({
   make: (worked: boolean) => lineExample(i, worked),
   render: lineSvg,
 }));
-export const vennGallery = [
+export const numberLineGallery = withPlain("number-line", plainNumberLines, numberLineGalleryExam);
+const vennGalleryExam = [
   ...vennTeaching.filter((example) => example.id !== "reverse-nested"),
   ...venn,
 ].map((example) => ({
@@ -227,7 +268,8 @@ export const vennGallery = [
   make: example.make,
   render: vennSvg,
 }));
-export const triangleGallery = [...triangleTeaching, ...triangles].map(
+export const vennGallery = withPlain("venn", plainVenn, vennGalleryExam);
+const triangleGalleryExam = [...triangleTeaching, ...triangles].map(
   (example) => {
     const worked = allLabels(example.build()).some((item) => item.label.answer);
     return {
@@ -242,6 +284,7 @@ export const triangleGallery = [...triangleTeaching, ...triangles].map(
     };
   },
 );
+export const triangleGallery = withPlain("triangle", plainTriangles, triangleGalleryExam);
 const algebraNames = [
   ["single", "Single bracket"],
   ["double", "Double brackets"],
@@ -255,7 +298,7 @@ const algebraNames = [
   ["source-expand", "Q26(a): expand"],
   ["source-factor", "Q26(b): factorise"],
 ];
-export const algebraGallery = algebraNames.map(([name, title]) => ({
+const algebraGalleryExam = algebraNames.map(([name, title]) => ({
   id: `algebra-${name}`,
   title,
   description: name.startsWith("source-")
@@ -267,7 +310,7 @@ export const algebraGallery = algebraNames.map(([name, title]) => ({
   make: (worked: boolean) => algebraExample(name, worked),
   render: algebraSvg,
 }));
-
+export const algebraGallery = withPlain("algebra", plainAlgebraGrids, algebraGalleryExam);
 const barCards: Record<(typeof bar.exampleNames)[number], { title: string; purpose: string }> = {
   BM01: { title: "Known total 64, ratio 3 : 5", purpose: "Share a known total in a ratio by finding one unit first." },
   BM02: { title: "Known share 24, ratio 3 : 5", purpose: "Work back from one known share to the other share and the total." },
@@ -295,7 +338,7 @@ export const barGallery: GalleryExample<bar.Envelope>[] = bar.exampleNames.map((
   render: bar.renderSvg,
   worked: !["BM06", "BM08", "BM09"].includes(id),
 }));
-export const chartGallery = charts.map((example) => ({
+const chartGalleryExam = charts.map((example) => ({
   id: `chart-${example.id}`,
   title: example.title,
   description: example.note,
@@ -304,7 +347,8 @@ export const chartGallery = charts.map((example) => ({
   render: chartSvg,
   worked: example.worked,
 }));
-export const treeGallery = trees.map((example) => ({
+export const chartGallery = withPlain("chart", plainCharts, chartGalleryExam);
+const treeGalleryExam = trees.map((example) => ({
   id: `tree-${example.id}`,
   title: example.title,
   description: example.note,
@@ -313,7 +357,8 @@ export const treeGallery = trees.map((example) => ({
   render: treeSvg,
   worked: example.worked,
 }));
-export const constructionGallery = constructions.map((example) => ({
+export const treeGallery = withPlain("tree", plainTrees, treeGalleryExam);
+const constructionGalleryExam = constructions.map((example) => ({
   id: `construction-${example.id}`,
   title: example.title,
   description: example.note,
@@ -322,7 +367,8 @@ export const constructionGallery = constructions.map((example) => ({
   render: (e: Parameters<typeof constructionSvg>[0]) => constructionSvg(e),
   worked: example.worked,
 }));
-export const elevationsGallery = elevationExamples.map((example) => ({
+export const constructionGallery = withPlain("construction", plainConstructions, constructionGalleryExam);
+const elevationsGalleryExam = elevationExamples.map((example) => ({
   id: `elevations-${example.id}`,
   title: example.title,
   description: example.note,
@@ -331,7 +377,8 @@ export const elevationsGallery = elevationExamples.map((example) => ({
   render: (e: Parameters<typeof elevationSvg>[0]) => elevationSvg(e),
   worked: example.worked,
 }));
-export const frequencyTreeGallery = frequencyTrees.map((example) => ({
+export const elevationsGallery = withPlain("elevations", plainElevations, elevationsGalleryExam);
+const frequencyTreeGalleryExam = frequencyTrees.map((example) => ({
   id: `ftree-${example.id}`,
   title: example.title,
   description: example.note,
@@ -340,7 +387,8 @@ export const frequencyTreeGallery = frequencyTrees.map((example) => ({
   render: frequencyTreeSvg,
   worked: example.worked,
 }));
-export const twoWayTableGallery = twoWayTables.map((example) => ({
+export const frequencyTreeGallery = withPlain("ftree", plainFrequencyTrees, frequencyTreeGalleryExam);
+const twoWayTableGalleryExam = twoWayTables.map((example) => ({
   id: `twt-${example.id}`,
   title: example.title,
   description: example.note,
@@ -348,7 +396,8 @@ export const twoWayTableGallery = twoWayTables.map((example) => ({
   render: twoWayTableSvg,
   worked: true,
 }));
-export const anglesGallery = angleExamples.map((example) => ({
+export const twoWayTableGallery = withPlain("twt", plainTwoWay, twoWayTableGalleryExam);
+const anglesGalleryExam = angleExamples.map((example) => ({
   id: `angles-${example.id}`,
   title: example.title,
   description: example.note,
@@ -356,7 +405,8 @@ export const anglesGallery = angleExamples.map((example) => ({
   render: (e: Parameters<typeof angleSvg>[0]) => angleSvg(e),
   worked: example.worked,
 }));
-export const areaGallery = areaExamples.map((example) => ({
+export const anglesGallery = withPlain("angles", plainAngles, anglesGalleryExam);
+const areaGalleryExam = areaExamples.map((example) => ({
   id: `area-${example.id}`,
   title: example.title,
   description: example.note,
@@ -364,7 +414,8 @@ export const areaGallery = areaExamples.map((example) => ({
   render: (e: Parameters<typeof areaSvg>[0]) => areaSvg(e),
   worked: example.worked,
 }));
-export const figuresGallery = figureExamples.map((example) => ({
+export const areaGallery = withPlain("area", plainAreas, areaGalleryExam);
+const figuresGalleryExam = figureExamples.map((example) => ({
   id: `figures-${example.id}`,
   title: example.title,
   description: example.note,
@@ -372,6 +423,7 @@ export const figuresGallery = figureExamples.map((example) => ({
   render: (e: Parameters<typeof figureSvg>[0]) => figureSvg(e),
   worked: example.worked,
 }));
+export const figuresGallery = withPlain("figures", plainFigures, figuresGalleryExam);
 export const solidsGallery = [
   ...plainSolids.map((shape) => ({
     id: `solids-plain-${shape.id}`,
@@ -391,7 +443,7 @@ export const solidsGallery = [
   worked: example.worked,
 })),
 ];
-export const sampleSpaceGallery = sampleSpaces.map((example) => ({
+const sampleSpaceGalleryExam = sampleSpaces.map((example) => ({
   id: `ss-${example.id}`,
   title: example.title,
   description: example.note,
@@ -399,7 +451,8 @@ export const sampleSpaceGallery = sampleSpaces.map((example) => ({
   render: sampleSpaceSvg,
   worked: true,
 }));
-export const factorTreeGallery = factorTrees.map((example) => ({
+export const sampleSpaceGallery = withPlain("ss", plainSampleSpaces, sampleSpaceGalleryExam);
+const factorTreeGalleryExam = factorTrees.map((example) => ({
   id: `ft-${example.id}`,
   title: example.title,
   description: example.note,
@@ -407,7 +460,8 @@ export const factorTreeGallery = factorTrees.map((example) => ({
   render: factorTreeSvg,
   worked: true,
 }));
-export const functionMachineGallery = functionMachines.map((example) => ({
+export const factorTreeGallery = withPlain("ft", plainFactorTrees, factorTreeGalleryExam);
+const functionMachineGalleryExam = functionMachines.map((example) => ({
   id: `fm-${example.id}`,
   title: example.title,
   description: example.note,
@@ -415,7 +469,8 @@ export const functionMachineGallery = functionMachines.map((example) => ({
   render: functionMachineSvg,
   worked: true,
 }));
-export const netsGallery = netExamples.map((example) => ({
+export const functionMachineGallery = withPlain("fm", plainFunctionMachines, functionMachineGalleryExam);
+const netsGalleryExam = netExamples.map((example) => ({
   id: `nets-${example.id}`,
   title: example.title,
   description: example.note,
@@ -423,7 +478,8 @@ export const netsGallery = netExamples.map((example) => ({
   render: netsSvg,
   worked: true,
 }));
-export const writtenMethodGallery = writtenMethods.map((example) => ({
+export const netsGallery = withPlain("nets", plainNets, netsGalleryExam);
+const writtenMethodGalleryExam = writtenMethods.map((example) => ({
   id: `wm-${example.id}`,
   title: example.title,
   description: example.note,
@@ -431,7 +487,8 @@ export const writtenMethodGallery = writtenMethods.map((example) => ({
   render: writtenMethodSvg,
   worked: true,
 }));
-export const probabilityObjectsGallery = probabilityObjects.map((example) => ({
+export const writtenMethodGallery = withPlain("wm", plainWrittenMethods, writtenMethodGalleryExam);
+const probabilityObjectsGalleryExam = probabilityObjects.map((example) => ({
   id: `po-${example.id}`,
   title: example.title,
   description: example.note,
@@ -439,7 +496,8 @@ export const probabilityObjectsGallery = probabilityObjects.map((example) => ({
   render: probabilityObjectsSvg,
   worked: true,
 }));
-export const bubbleMethodGallery = bubbleMethods.map((example) => ({
+export const probabilityObjectsGallery = withPlain("po", plainProbabilityObjects, probabilityObjectsGalleryExam);
+const bubbleMethodGalleryExam = bubbleMethods.map((example) => ({
   id: `bm-${example.id}`,
   title: example.title,
   description: example.note,
@@ -447,7 +505,8 @@ export const bubbleMethodGallery = bubbleMethods.map((example) => ({
   render: bubbleMethodSvg,
   worked: true,
 }));
-export const algebraTilesGallery = algebraTiles.map((example) => ({
+export const bubbleMethodGallery = withPlain("bm", plainBubbles, bubbleMethodGalleryExam);
+const algebraTilesGalleryExam = algebraTiles.map((example) => ({
   id: `at-${example.id}`,
   title: example.title,
   description: example.note,
@@ -455,3 +514,4 @@ export const algebraTilesGallery = algebraTiles.map((example) => ({
   render: algebraTilesSvg,
   worked: true,
 }));
+export const algebraTilesGallery = withPlain("at", plainTiles, algebraTilesGalleryExam);

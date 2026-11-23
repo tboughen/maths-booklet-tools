@@ -1,5 +1,54 @@
 [
  {
+  "id": "graph-plain-axes",
+  "title": "Blank axes −5 to 5",
+  "description": "x and y axes from −5 to 5 on centimetre squares.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
+  "id": "graph-plain-first-quadrant",
+  "title": "Blank axes 0 to 10",
+  "description": "The first quadrant only, from 0 to 10 on both axes.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
+  "id": "graph-plain-straight-line",
+  "title": "Straight line y = 2x + 1",
+  "description": "The line y = 2x + 1 drawn on axes from −5 to 5, its equation not printed.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
+  "id": "graph-plain-two-lines",
+  "title": "Two lines crossing",
+  "description": "y = x + 1 and y = 5 − x crossing, for simultaneous equations.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
+  "id": "graph-plain-gradient-triangle",
+  "title": "Gradient triangle on a line",
+  "description": "The line y = 2x − 1 with a gradient triangle, its run and rise left as answer spaces.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
+  "id": "graph-plain-shape",
+  "title": "Shape to transform",
+  "description": "Triangle A on axes from −6 to 6, to reflect, rotate, enlarge or translate.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
+  "id": "graph-plain-region",
+  "title": "Inequality region",
+  "description": "The region y ≥ 1, x < 4 and y ≤ x + 1 shaded, with its boundary lines.",
+  "tool": "graph",
+  "plain": true
+ },
+ {
   "id": "graph-1MA1_JUN_2019_2H_Q2",
   "title": "y = 2x − 3",
   "description": "Draw from x = −2 to 4. Half-unit x squares, unit y squares.",
@@ -16,6 +65,34 @@
   "title": "y = 2x − 2",
   "description": "Draw from x = −2 to 3. Half-unit x squares, unit y squares.",
   "tool": "graph"
+ },
+ {
+  "id": "ratio-plain-multiplier",
+  "title": "Two columns with a multiplier",
+  "description": "3 and 12 scaled up by × 3, with an answer line in the new row.",
+  "tool": "ratio-table",
+  "plain": true
+ },
+ {
+  "id": "ratio-plain-unitary",
+  "title": "Unitary method",
+  "description": "6 pens cost £9: scale down to 1 pen, then up to 4 pens.",
+  "tool": "ratio-table",
+  "plain": true
+ },
+ {
+  "id": "ratio-plain-recipe",
+  "title": "Recipe",
+  "description": "A recipe for 4 people with two ingredients, scaled for 10 people.",
+  "tool": "ratio-table",
+  "plain": true
+ },
+ {
+  "id": "ratio-plain-best-buy",
+  "title": "Best buy",
+  "description": "Two sizes of the same product, 500 g for 240p and 750 g for 330p, to compare.",
+  "tool": "ratio-table",
+  "plain": true
  },
  {
   "id": "ratio-simple",
@@ -46,6 +123,27 @@
   "title": "Biscuit recipe: one biscuit",
   "description": "The recipe makes 12 biscuits. Find the butter, flour and sugar in grams for one biscuit as a first step towards the source question.",
   "tool": "ratio-table"
+ },
+ {
+  "id": "quadratic-plain-table",
+  "title": "Table of values with blank graph paper",
+  "description": "y = x² − 3 for x from −3 to 3: the table blank and the graph paper empty.",
+  "tool": "value-table-graph",
+  "plain": true
+ },
+ {
+  "id": "quadratic-plain-y-equals-x-squared",
+  "title": "Table and curve y = x²",
+  "description": "y = x² with every value in the table, the points plotted and the curve drawn.",
+  "tool": "value-table-graph",
+  "plain": true
+ },
+ {
+  "id": "quadratic-plain-roots-turning-point",
+  "title": "Curve with roots and turning point",
+  "description": "The curve y = x² − 2x − 3 with its roots (−1, 0) and (3, 0) and turning point (1, −4) marked.",
+  "tool": "value-table-graph",
+  "plain": true
  },
  {
   "id": "quadratic-1MA1_JUN_2018_2H_Q5",
@@ -82,6 +180,34 @@
   "title": "Fractions",
   "description": "Exact-fraction teaching example. The supplied value stays visible and other cells remain blank.",
   "tool": "value-table-graph"
+ },
+ {
+  "id": "cuboid-plain-cuboid",
+  "title": "Cuboid",
+  "description": "A cuboid with its width, depth and height given.",
+  "tool": "cuboids",
+  "plain": true
+ },
+ {
+  "id": "cuboid-plain-cube",
+  "title": "Cube",
+  "description": "A cube with its side given.",
+  "tool": "cuboids",
+  "plain": true
+ },
+ {
+  "id": "cuboid-plain-cubes",
+  "title": "Cuboid made of cubes",
+  "description": "A cuboid drawn as 1 cm cubes, for counting cubes.",
+  "tool": "cuboids",
+  "plain": true
+ },
+ {
+  "id": "cuboid-plain-layers",
+  "title": "Cuboid in layers",
+  "description": "A cuboid drawn layer by layer.",
+  "tool": "cuboids",
+  "plain": true
  },
  {
   "id": "cuboid-grey-faces",
@@ -162,6 +288,48 @@
   "tool": "cuboids"
  },
  {
+  "id": "number-line-plain-zero-to-ten",
+  "title": "0 to 10",
+  "description": "A number line from 0 to 10 in ones.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
+  "id": "number-line-plain-negative-ten-to-ten",
+  "title": "−10 to 10",
+  "description": "A number line from −10 to 10 in ones, for negative numbers.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
+  "id": "number-line-plain-tenths",
+  "title": "0 to 1 in tenths",
+  "description": "A number line from 0 to 1 in steps of 0.1, for decimals.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
+  "id": "number-line-plain-inequality",
+  "title": "Inequality x > 2",
+  "description": "x > 2 shown with an open circle and an arrow.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
+  "id": "number-line-plain-interval",
+  "title": "Interval −1 ≤ x < 3",
+  "description": "−1 ≤ x < 3 shown with a closed and an open circle.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
+  "id": "number-line-plain-error-interval",
+  "title": "Error interval (1 dp)",
+  "description": "3.7 to 1 decimal place: 3.65 ≤ x < 3.75 on a line in hundredths.",
+  "tool": "number-line",
+  "plain": true
+ },
+ {
   "id": "number-line-0",
   "title": "Mock Set 5 · 3F · Q15(c)",
   "description": "Show −1 ≤ x < 4 on the number line.",
@@ -214,6 +382,34 @@
   "title": "Mock set 08 · 2H · Q4(a)",
   "description": "Intentional teaching error: Nadia drew x > −3. Explain what she must change. Source error preserved; the drawn stop is a visual approximation.",
   "tool": "number-line"
+ },
+ {
+  "id": "venn-plain-one-set",
+  "title": "One set",
+  "description": "A universal set ξ with one set A, all regions empty.",
+  "tool": "venn",
+  "plain": true
+ },
+ {
+  "id": "venn-plain-two-sets",
+  "title": "Two sets",
+  "description": "Two overlapping sets A and B inside ξ, all regions empty.",
+  "tool": "venn",
+  "plain": true
+ },
+ {
+  "id": "venn-plain-two-sets-shaded",
+  "title": "Two sets, intersection shaded",
+  "description": "Two overlapping sets with A ∩ B shaded.",
+  "tool": "venn",
+  "plain": true
+ },
+ {
+  "id": "venn-plain-three-sets",
+  "title": "Three sets",
+  "description": "Three overlapping sets A, B and C inside ξ, all regions empty.",
+  "tool": "venn",
+  "plain": true
  },
  {
   "id": "venn-one-set",
@@ -280,6 +476,55 @@
   "title": "Complement of a union",
   "description": "Original teaching example, not a source-paper shading task.",
   "tool": "venn"
+ },
+ {
+  "id": "triangle-plain-pythagoras",
+  "title": "Right-angled triangle: Pythagoras",
+  "description": "Two shorter sides given, the hypotenuse x to find.",
+  "tool": "triangle",
+  "plain": true
+ },
+ {
+  "id": "triangle-plain-trigonometry",
+  "title": "Right-angled triangle: trigonometry",
+  "description": "The hypotenuse and one angle given, the opposite side x to find.",
+  "tool": "triangle",
+  "plain": true
+ },
+ {
+  "id": "triangle-plain-sine-rule",
+  "title": "Sine rule",
+  "description": "Two angles and a side given, another side x to find.",
+  "tool": "triangle",
+  "plain": true
+ },
+ {
+  "id": "triangle-plain-cosine-rule",
+  "title": "Cosine rule",
+  "description": "Two sides and the angle between them given, the third side x to find.",
+  "tool": "triangle",
+  "plain": true
+ },
+ {
+  "id": "triangle-plain-area-sine",
+  "title": "Area ½ab sin C",
+  "description": "Two sides and the angle between them given, with an area line.",
+  "tool": "triangle",
+  "plain": true
+ },
+ {
+  "id": "triangle-plain-isosceles",
+  "title": "Isosceles triangle",
+  "description": "An isosceles triangle with its equal sides marked.",
+  "tool": "triangle",
+  "plain": true
+ },
+ {
+  "id": "triangle-plain-equilateral",
+  "title": "Equilateral triangle",
+  "description": "An equilateral triangle with its equal sides marked.",
+  "tool": "triangle",
+  "plain": true
  },
  {
   "id": "triangle-missing-side",
@@ -372,6 +617,34 @@
   "tool": "triangle"
  },
  {
+  "id": "algebra-plain-single",
+  "title": "Single bracket grid",
+  "description": "5(x + 3) in a grid, the products left blank.",
+  "tool": "expanding-factorising",
+  "plain": true
+ },
+ {
+  "id": "algebra-plain-double",
+  "title": "Double bracket grid",
+  "description": "(x + 4)(x + 1) in a grid, the products left blank.",
+  "tool": "expanding-factorising",
+  "plain": true
+ },
+ {
+  "id": "algebra-plain-common-factor",
+  "title": "Factorising grid: common factor",
+  "description": "6x + 15 in the grid, the factor and bracket left blank.",
+  "tool": "expanding-factorising",
+  "plain": true
+ },
+ {
+  "id": "algebra-plain-quadratic",
+  "title": "Factorising a quadratic grid",
+  "description": "x² + 7x + 12: the x headings, x² and 12 given, the rest left blank.",
+  "tool": "expanding-factorising",
+  "plain": true
+ },
+ {
   "id": "algebra-single",
   "title": "Single bracket",
   "description": "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
@@ -436,6 +709,41 @@
   "title": "Q26(b): factorise",
   "description": "Adapted grid step from November 2018 2F Q26. The original question has no grid.",
   "tool": "expanding-factorising"
+ },
+ {
+  "id": "bar-plain-equal-parts",
+  "title": "One bar in equal parts",
+  "description": "A bar of 40 split into five equal parts, for a fraction of an amount.",
+  "tool": "bar-model",
+  "plain": true
+ },
+ {
+  "id": "bar-plain-sharing",
+  "title": "Two bars sharing in a ratio",
+  "description": "Amy and Ben share £30 in the ratio 2 : 3: two bars of equal parts with the total below them.",
+  "tool": "bar-model",
+  "plain": true
+ },
+ {
+  "id": "bar-plain-compare",
+  "title": "Two bars compared",
+  "description": "Ben has 12 more than Amy: the longer bar has an extra part labelled 12.",
+  "tool": "bar-model",
+  "plain": true
+ },
+ {
+  "id": "bar-plain-part-whole",
+  "title": "Part–whole bar",
+  "description": "A whole of 45 above a bar in two parts, one of them 28.",
+  "tool": "bar-model",
+  "plain": true
+ },
+ {
+  "id": "bar-plain-percentage",
+  "title": "Percentage bar",
+  "description": "A bar of £80 in ten equal parts, with 100% below it.",
+  "tool": "bar-model",
+  "plain": true
  },
  {
   "id": "bar-lesson-R1",
@@ -562,6 +870,97 @@
   "title": "Mock set 7 1H Q1: £60 in 3 : 2 : 5",
   "description": "Share £60 in the ratio 3 : 2 : 5, straight from the exam question. Saved answers stay hidden until you choose the worked version.",
   "tool": "bar-model"
+ },
+ {
+  "id": "chart-plain-bar",
+  "title": "Bar chart",
+  "description": "One set of bars with gaps between them, on a frequency axis.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-dual",
+  "title": "Dual bar chart",
+  "description": "Two sets of bars side by side, with a key.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-composite",
+  "title": "Composite bar chart",
+  "description": "Bars split into parts stacked on top of each other, with a key.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-vline",
+  "title": "Vertical line chart",
+  "description": "A vertical line for each value, for discrete data.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-pie",
+  "title": "Pie chart",
+  "description": "A pie chart at true size with each sector labelled.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-pictogram",
+  "title": "Pictogram",
+  "description": "Circles for the counts, with a key.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-scatter",
+  "title": "Scatter graph",
+  "description": "Ten points showing positive correlation, on graph paper.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-timeseries",
+  "title": "Time series graph",
+  "description": "Values month by month joined with straight lines.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-boxplot",
+  "title": "Box plot",
+  "description": "One box plot on a scale, with its five values.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-stemleaf",
+  "title": "Stem-and-leaf diagram",
+  "description": "An ordered stem-and-leaf diagram with its key.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-histogram",
+  "title": "Histogram",
+  "description": "Unequal class widths with frequency density up the side.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-polygon",
+  "title": "Frequency polygon",
+  "description": "Points plotted at the class midpoints and joined with straight lines.",
+  "tool": "charts",
+  "plain": true
+ },
+ {
+  "id": "chart-plain-cumulative",
+  "title": "Cumulative frequency graph",
+  "description": "Cumulative frequencies plotted at the class ends and joined with a smooth curve.",
+  "tool": "charts",
+  "plain": true
  },
  {
   "id": "chart-dual-transport",
@@ -708,6 +1107,27 @@
   "tool": "charts"
  },
  {
+  "id": "tree-plain-independent",
+  "title": "Two events, independent",
+  "description": "Two counters taken with replacement: the same probabilities on both sets of branches.",
+  "tool": "probability-tree",
+  "plain": true
+ },
+ {
+  "id": "tree-plain-without-replacement",
+  "title": "Two picks, without replacement",
+  "description": "Two counters taken without replacement, so the second probabilities depend on the first.",
+  "tool": "probability-tree",
+  "plain": true
+ },
+ {
+  "id": "tree-plain-three-branches",
+  "title": "Three outcomes, then two",
+  "description": "Three branches for the first event and two for the second.",
+  "tool": "probability-tree",
+  "plain": true
+ },
+ {
   "id": "tree-two-bags",
   "title": "November 2018 1F Q27: two bags",
   "description": "3 red and 7 green balls in the first bag; 5 red and 4 green in the second. Pupils complete the four missing probabilities, then find P(two red). Answers are saved hidden.",
@@ -742,6 +1162,55 @@
   "title": "Three coins",
   "description": "Teaching example: an equal three-stage tree with outcome and probability columns left for pupils.",
   "tool": "probability-tree"
+ },
+ {
+  "id": "construction-plain-line",
+  "title": "Line to bisect",
+  "description": "A line AB, 8 cm long.",
+  "tool": "construction",
+  "plain": true
+ },
+ {
+  "id": "construction-plain-angle",
+  "title": "Angle to bisect",
+  "description": "An angle PQR of 64° with 7 cm and 9 cm arms.",
+  "tool": "construction",
+  "plain": true
+ },
+ {
+  "id": "construction-plain-point-and-line",
+  "title": "A point and a line",
+  "description": "A point P above a line AB, for the perpendicular from a point.",
+  "tool": "construction",
+  "plain": true
+ },
+ {
+  "id": "construction-plain-locus-point",
+  "title": "Locus round a point",
+  "description": "The locus of points 3 cm from a point P: a circle.",
+  "tool": "construction",
+  "plain": true
+ },
+ {
+  "id": "construction-plain-locus-line",
+  "title": "Locus from a line",
+  "description": "The locus of points 2 cm from a line AB: two parallel lines joined by semicircles.",
+  "tool": "construction",
+  "plain": true
+ },
+ {
+  "id": "construction-plain-bearing",
+  "title": "A bearing from north",
+  "description": "A north line at A and a bearing of 070° to B, 5 cm away.",
+  "tool": "construction",
+  "plain": true
+ },
+ {
+  "id": "construction-plain-scale-drawing",
+  "title": "Scale drawing",
+  "description": "A 10 m by 6 m rectangle drawn at 1 cm to 1 m, with its scale.",
+  "tool": "construction",
+  "plain": true
  },
  {
   "id": "construction-perpendicular-bisector",
@@ -792,6 +1261,34 @@
   "tool": "construction"
  },
  {
+  "id": "elevations-plain-row",
+  "title": "Row of cubes",
+  "description": "Four cubes in a row, with the plan, front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
+  "id": "elevations-plain-l-shape",
+  "title": "L-shape of cubes",
+  "description": "An L-shape of cubes, with the plan, front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
+  "id": "elevations-plain-steps",
+  "title": "Steps of cubes",
+  "description": "A staircase of cubes, with the plan, front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
+  "id": "elevations-plain-blank-views",
+  "title": "Solid with blank grids for its views",
+  "description": "A solid of cubes beside empty centimetre grids for its plan, front and side elevations.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
   "id": "elevations-draw-views",
   "title": "Draw the plan and elevations",
   "description": "Six cubes. Pupils draw the plan, front elevation and side elevation on the centimetre grids; the views are saved answers.",
@@ -814,6 +1311,13 @@
   "title": "Elevations at 2 cm to one cube",
   "description": "Pupils draw the front and side elevations with each cube edge 2 cm long.",
   "tool": "elevations"
+ },
+ {
+  "id": "ftree-plain-two-levels",
+  "title": "Frequency tree, two levels",
+  "description": "A total of 80 split into two groups, then each group split again, every count given.",
+  "tool": "frequency-tree",
+  "plain": true
  },
  {
   "id": "ftree-coffee",
@@ -846,6 +1350,27 @@
   "tool": "frequency-tree"
  },
  {
+  "id": "twt-plain-two-by-two",
+  "title": "Two-way table, 2 by 2",
+  "description": "Two rows and two columns with totals, every cell given.",
+  "tool": "two-way-table",
+  "plain": true
+ },
+ {
+  "id": "twt-plain-three-by-two",
+  "title": "Two-way table, 3 by 2",
+  "description": "Two rows and three columns with totals, every cell given.",
+  "tool": "two-way-table",
+  "plain": true
+ },
+ {
+  "id": "twt-plain-three-by-three",
+  "title": "Two-way table, 3 by 3",
+  "description": "Three rows and three columns with totals, every cell given.",
+  "tool": "two-way-table",
+  "plain": true
+ },
+ {
   "id": "twt-complete",
   "title": "Complete the table: travel to school",
   "description": "Pupils complete five empty cells from the totals. Choose the worked version to see them.",
@@ -862,6 +1387,69 @@
   "title": "Probabilities as fractions",
   "description": "A probability table with stacked fractions; the missing fractions are hidden answers.",
   "tool": "two-way-table"
+ },
+ {
+  "id": "angles-plain-straight-line",
+  "title": "Angles on a straight line",
+  "description": "One ray from a point on a straight line: one angle given, x to find.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-point",
+  "title": "Angles round a point",
+  "description": "Three angles round a point: two given, x to find.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-vertically-opposite",
+  "title": "Vertically opposite angles",
+  "description": "Two straight lines crossing: one angle given, x opposite it.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-parallel",
+  "title": "Parallel lines and a transversal",
+  "description": "Two parallel lines crossed by a transversal: one angle given, x to find.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-triangle",
+  "title": "Angles in a triangle",
+  "description": "A triangle with two angles given and x to find.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-quadrilateral",
+  "title": "Angles in a quadrilateral",
+  "description": "A quadrilateral with three angles given and x to find.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-pentagon",
+  "title": "Regular pentagon",
+  "description": "A regular pentagon with an exterior angle shown: interior angle x, exterior angle y.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-hexagon",
+  "title": "Regular hexagon",
+  "description": "A regular hexagon with interior angle x.",
+  "tool": "angles",
+  "plain": true
+ },
+ {
+  "id": "angles-plain-polygons",
+  "title": "Regular polygons meeting at a point",
+  "description": "A regular pentagon and hexagon sharing a side: the gap angle x.",
+  "tool": "angles",
+  "plain": true
  },
  {
   "id": "angles-straight-line",
@@ -936,6 +1524,125 @@
   "tool": "angles"
  },
  {
+  "id": "area-plain-rectangle",
+  "title": "Rectangle",
+  "description": "A rectangle with its length and width given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-l-shape",
+  "title": "L shape",
+  "description": "An L shape with four of its sides given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-t-shape",
+  "title": "T shape",
+  "description": "A T shape with four of its sides given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-u-shape",
+  "title": "U shape",
+  "description": "A U shape with four of its sides given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-triangle",
+  "title": "Triangle with a height",
+  "description": "A triangle with its base and perpendicular height given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-parallelogram",
+  "title": "Parallelogram",
+  "description": "A parallelogram with its base and perpendicular height given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-trapezium",
+  "title": "Trapezium",
+  "description": "A trapezium with its parallel sides and height given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-house",
+  "title": "Rectangle and triangle",
+  "description": "A rectangle with a triangle on top.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-rectangle-semicircle",
+  "title": "Rectangle and semicircle",
+  "description": "A rectangle with a semicircle on one end.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-rectangle-cut",
+  "title": "Rectangle with a semicircle cut out",
+  "description": "A rectangle with a semicircle cut out of one side.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-frame",
+  "title": "Frame (rectangle with a hole)",
+  "description": "A rectangle with a smaller rectangle inside it, the frame shaded.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-circle",
+  "title": "Circle",
+  "description": "A circle with its radius given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-semicircle",
+  "title": "Semicircle",
+  "description": "A semicircle with its diameter given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-quarter",
+  "title": "Quarter circle",
+  "description": "A quarter circle with its radius given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-sector",
+  "title": "Sector",
+  "description": "A sector with its radius and angle given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-kite",
+  "title": "Kite",
+  "description": "A kite with a short side and a long side given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
+  "id": "area-plain-rhombus",
+  "title": "Rhombus",
+  "description": "A rhombus with one side given.",
+  "tool": "area",
+  "plain": true
+ },
+ {
   "id": "area-l-shape",
   "title": "Compound shape: area",
   "description": "An L shape with four sides given. Pupils find the two missing sides and the area.",
@@ -994,6 +1701,69 @@
   "title": "Counting squares",
   "description": "An L shape on a centimetre grid at true size. Pupils count squares for the area.",
   "tool": "area"
+ },
+ {
+  "id": "figures-plain-chord",
+  "title": "Circle with a chord",
+  "description": "A circle, centre O, with a chord AB and the radii OA and OB.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-tangent-radius",
+  "title": "Tangent and radius",
+  "description": "A tangent touching a circle at A, with the radius OA meeting it at a right angle.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-two-tangents",
+  "title": "Two tangents from a point",
+  "description": "Tangents PA and PB from a point P outside a circle, centre O.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-centre-angle",
+  "title": "Angle at the centre",
+  "description": "The angle at the centre AOB and the angle at the circumference ACB, standing on the same arc.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-same-segment",
+  "title": "Angles in the same segment",
+  "description": "Angles ACB and ADB standing on the same chord AB.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-cyclic-quadrilateral",
+  "title": "Cyclic quadrilateral",
+  "description": "A quadrilateral ABCD with all four corners on a circle.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-similar-triangles",
+  "title": "Similar triangles",
+  "description": "Two similar triangles, matching angles marked alike.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-congruent-triangles",
+  "title": "Congruent triangles",
+  "description": "Two congruent triangles, equal sides marked with matching ticks.",
+  "tool": "figures",
+  "plain": true
+ },
+ {
+  "id": "figures-plain-parallelogram-diagonal",
+  "title": "Parallelogram with a diagonal",
+  "description": "A parallelogram ABCD with its diagonal AC, parallel sides arrowed, for a congruence proof.",
+  "tool": "figures",
+  "plain": true
  },
  {
   "id": "figures-tangent-cyclic",
@@ -1124,6 +1894,34 @@
   "tool": "solids"
  },
  {
+  "id": "ss-plain-dice-sums",
+  "title": "Two dice, sums",
+  "description": "Two fair dice with every total printed.",
+  "tool": "sample-space",
+  "plain": true
+ },
+ {
+  "id": "ss-plain-dice-products",
+  "title": "Two dice, products",
+  "description": "Two fair dice with every product printed.",
+  "tool": "sample-space",
+  "plain": true
+ },
+ {
+  "id": "ss-plain-coin-dice",
+  "title": "Coin and dice",
+  "description": "Every outcome of a coin and a dice as a pair.",
+  "tool": "sample-space",
+  "plain": true
+ },
+ {
+  "id": "ss-plain-two-spinners",
+  "title": "Two spinners",
+  "description": "Two four-sided spinners with every total printed.",
+  "tool": "sample-space",
+  "plain": true
+ },
+ {
   "id": "ss-dice-sum",
   "title": "Two dice: complete the totals",
   "description": "Two fair dice with a few totals given. Pupils complete the rest; the worked version shows every total.",
@@ -1148,6 +1946,27 @@
   "tool": "sample-space"
  },
  {
+  "id": "ft-plain-sixty",
+  "title": "Factor tree for 60",
+  "description": "60 split down to its primes, which are circled. The product of primes is left blank.",
+  "tool": "factor-tree",
+  "plain": true
+ },
+ {
+  "id": "ft-plain-seventy-two",
+  "title": "Factor tree for 72",
+  "description": "72 split down to its primes, which are circled. The product of primes is left blank.",
+  "tool": "factor-tree",
+  "plain": true
+ },
+ {
+  "id": "ft-plain-three-sixty",
+  "title": "Factor tree for 360",
+  "description": "360 split down to its primes, which are circled. The product of primes is left blank.",
+  "tool": "factor-tree",
+  "plain": true
+ },
+ {
   "id": "ft-complete-360",
   "title": "Complete the factor tree: 360",
   "description": "The first split is given. Pupils finish the tree, circle the primes and write 360 in index form.",
@@ -1170,6 +1989,27 @@
   "title": "Spot the mistake: 72",
   "description": "A pupil's factor tree with a deliberate error: 4 is circled as if it were prime. No warning shows.",
   "tool": "factor-tree"
+ },
+ {
+  "id": "fm-plain-one-step",
+  "title": "One-step machine",
+  "description": "Input 5 through × 3, with the output blank.",
+  "tool": "function-machine",
+  "plain": true
+ },
+ {
+  "id": "fm-plain-two-step",
+  "title": "Two-step machine",
+  "description": "Input 4 through × 2 then + 5, with the output blank.",
+  "tool": "function-machine",
+  "plain": true
+ },
+ {
+  "id": "fm-plain-inverse",
+  "title": "Two-step machine with its inverse",
+  "description": "A two-step machine with output 17, and an inverse machine beneath with its boxes and output blank to work backwards.",
+  "tool": "function-machine",
+  "plain": true
  },
  {
   "id": "fm-find-output",
@@ -1200,6 +2040,41 @@
   "title": "Two machines, the same input",
   "description": "Here is a different number machine: two machines one above the other, with blank outputs for pupils.",
   "tool": "function-machine"
+ },
+ {
+  "id": "nets-plain-cube",
+  "title": "Cube net",
+  "description": "One of the eleven nets of a cube.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-cuboid",
+  "title": "Cuboid net",
+  "description": "The net of a 4 by 2 by 3 cuboid.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-triangular-prism",
+  "title": "Triangular prism net",
+  "description": "The net of a triangular prism.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-square-pyramid",
+  "title": "Square-based pyramid net",
+  "description": "The net of a square-based pyramid.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-tetrahedron",
+  "title": "Tetrahedron net",
+  "description": "The net of a regular tetrahedron.",
+  "tool": "nets",
+  "plain": true
  },
  {
   "id": "nets-dot-opposite",
@@ -1250,6 +2125,48 @@
   "tool": "nets"
  },
  {
+  "id": "wm-plain-column-add",
+  "title": "Column addition",
+  "description": "A three-digit number add a three-digit number, set out in columns: 365 + 278.",
+  "tool": "written-method",
+  "plain": true
+ },
+ {
+  "id": "wm-plain-add-decimals",
+  "title": "Column addition with decimals",
+  "description": "Decimals lined up on the point: 12.5 + 3.75.",
+  "tool": "written-method",
+  "plain": true
+ },
+ {
+  "id": "wm-plain-column-subtract",
+  "title": "Column subtraction with exchanging",
+  "description": "A subtraction that needs exchanging: 523 − 187.",
+  "tool": "written-method",
+  "plain": true
+ },
+ {
+  "id": "wm-plain-long-multiplication",
+  "title": "Long multiplication",
+  "description": "A three-digit number times a two-digit number, with rows for the working: 324 × 26.",
+  "tool": "written-method",
+  "plain": true
+ },
+ {
+  "id": "wm-plain-short-division",
+  "title": "Short division",
+  "description": "The bus stop: 936 ÷ 4.",
+  "tool": "written-method",
+  "plain": true
+ },
+ {
+  "id": "wm-plain-long-division",
+  "title": "Long division",
+  "description": "Long division by a two-digit number: 864 ÷ 16.",
+  "tool": "written-method",
+  "plain": true
+ },
+ {
   "id": "wm-column-add",
   "title": "Column addition: 4758 + 2696",
   "description": "Two four-digit numbers with carries into every column. The worked version shows the carries above the line.",
@@ -1290,6 +2207,48 @@
   "title": "Long division: 846 ÷ 15",
   "description": "As for 8.46 ÷ 0.15 after multiplying both by 100. A zero is written after the point to keep dividing: 56.4.",
   "tool": "written-method"
+ },
+ {
+  "id": "po-plain-spinner-4",
+  "title": "Spinner, 4 equal sections",
+  "description": "A fair circular spinner numbered 1 to 4 with an arrow.",
+  "tool": "probability-objects",
+  "plain": true
+ },
+ {
+  "id": "po-plain-spinner-5",
+  "title": "Spinner, 5 equal sections",
+  "description": "A fair pentagonal spinner numbered 1 to 5 on its stick.",
+  "tool": "probability-objects",
+  "plain": true
+ },
+ {
+  "id": "po-plain-spinner-unequal",
+  "title": "Spinner, unequal sections",
+  "description": "A spinner with a 180° section and two 90° sections.",
+  "tool": "probability-objects",
+  "plain": true
+ },
+ {
+  "id": "po-plain-dice",
+  "title": "Dice",
+  "description": "An ordinary six-sided dice.",
+  "tool": "probability-objects",
+  "plain": true
+ },
+ {
+  "id": "po-plain-bag-two",
+  "title": "Bag of counters, two colours",
+  "description": "Three red and five blue counters, labelled and shaded.",
+  "tool": "probability-objects",
+  "plain": true
+ },
+ {
+  "id": "po-plain-bag-three",
+  "title": "Bag of counters, three colours",
+  "description": "Four red, three blue and two green counters, labelled and shaded.",
+  "tool": "probability-objects",
+  "plain": true
  },
  {
   "id": "po-four-sided",
@@ -1340,6 +2299,41 @@
   "tool": "probability-objects"
  },
  {
+  "id": "bm-plain-one-step",
+  "title": "One-step equation",
+  "description": "x + 5 = 12, with one empty step.",
+  "tool": "bubble-method",
+  "plain": true
+ },
+ {
+  "id": "bm-plain-two-step",
+  "title": "Two-step equation",
+  "description": "3x + 4 = 19, with two empty steps.",
+  "tool": "bubble-method",
+  "plain": true
+ },
+ {
+  "id": "bm-plain-both-sides",
+  "title": "Unknowns on both sides",
+  "description": "5x + 3 = 2x + 15, with three empty steps.",
+  "tool": "bubble-method",
+  "plain": true
+ },
+ {
+  "id": "bm-plain-inequality",
+  "title": "An inequality",
+  "description": "3x − 2 > 10, with two empty steps.",
+  "tool": "bubble-method",
+  "plain": true
+ },
+ {
+  "id": "bm-plain-subject",
+  "title": "Changing the subject",
+  "description": "Make x the subject of y = 2x + 5, with two empty steps.",
+  "tool": "bubble-method",
+  "plain": true
+ },
+ {
   "id": "bm-subject-one-step",
   "title": "Change the subject: one step",
   "description": "Make x the subject of y = x + 7 (A4.08). The bubbles and the new line are hidden answers.",
@@ -1368,6 +2362,34 @@
   "title": "Solve 2x − 5 < 9",
   "description": "A linear inequality (A10), balanced in the same way. The sign stays the same throughout.",
   "tool": "bubble-method"
+ },
+ {
+  "id": "at-plain-x-and-units",
+  "title": "x tiles and unit tiles: 2x + 3",
+  "description": "Two x strips and three unit squares.",
+  "tool": "algebra-tiles",
+  "plain": true
+ },
+ {
+  "id": "at-plain-negative",
+  "title": "Negative tiles: 3x − 2",
+  "description": "Three x strips and two negative unit squares.",
+  "tool": "algebra-tiles",
+  "plain": true
+ },
+ {
+  "id": "at-plain-squares",
+  "title": "x² tiles: x² + 2x + 1",
+  "description": "An x² square, two x strips and a unit square.",
+  "tool": "algebra-tiles",
+  "plain": true
+ },
+ {
+  "id": "at-plain-zero-pairs",
+  "title": "Zero pairs",
+  "description": "2x + 3 − x − 1 grouped, positive tiles above negative ones, with the zero pairs ringed.",
+  "tool": "algebra-tiles",
+  "plain": true
  },
  {
   "id": "at-collect-two-letters",

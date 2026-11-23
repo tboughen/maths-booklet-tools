@@ -47,3 +47,17 @@ export const examples: { id: string; title: string; note: string; make: (worked:
     make: (worked) => finish(doc([machine("m1", "12", ["÷ 4", "+ 6"], "?9"), machine("m2", "12", ["− 3", "× 1/3"], "?3")]), worked),
   },
 ];
+
+/** The inverse machine's operations and output left as pupil blanks; only its input is given. */
+function blankInverse(e: Envelope): Envelope {
+  const inverse = e.document.machines[1];
+  inverse.steps.forEach((s) => (s.op = value("")));
+  inverse.end = value("");
+  return validate(e);
+}
+/** Plain shapes: common machines with the input and operations given and the output blank. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "one-step", title: "One-step machine", note: "Input 5 through × 3, with the output blank.", make: () => doc([machine("m1", "5", ["× 3"], "")]) },
+  { id: "two-step", title: "Two-step machine", note: "Input 4 through × 2 then + 5, with the output blank.", make: () => doc([machine("m1", "4", ["× 2", "+ 5"], "")]) },
+  { id: "inverse", title: "Two-step machine with its inverse", note: "A two-step machine with output 17, and an inverse machine beneath with its boxes and output blank to work backwards.", make: () => blankInverse(addInverse(doc([machine("m1", "", ["× 2", "+ 5"], "17")]), "m1")) },
+];

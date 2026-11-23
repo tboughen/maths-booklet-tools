@@ -651,6 +651,10 @@ export function example(name = "double", worked = false): Envelope {
       expression: "3.4 × 2.6",
       numbers: true,
     },
+    "plain-single": { top: ["x", "+3"], left: ["5"], expression: "5(x+3)" },
+    "plain-double": { top: ["x", "+1"], left: ["x", "+4"], expression: "(x+4)(x+1)" },
+    "plain-common": { top: ["2x", "+5"], left: ["3"], expression: "6x+15", factor: true },
+    "plain-quadratic": { top: ["x", "+4"], left: ["x", "+3"], expression: "x^2+7x+12", factor: true },
     "source-expand": {
       top: ["2x", "-3"],
       left: ["5x", "+2"],

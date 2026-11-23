@@ -108,8 +108,10 @@ test("legacy separate worked documents retain their storage and navigation conte
   await page
     .getByRole("button", { name: "Examples", exact: true })
     .click();
+  // Plain shapes come first and have no worked version.
   await page
     .locator(".example-card")
+    .filter({ has: page.getByRole("button", { name: "Use worked version", exact: true }) })
     .first()
     .getByRole("button", { name: "Use worked version", exact: true })
     .click();

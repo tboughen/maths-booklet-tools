@@ -78,3 +78,13 @@ function addBlankRows(e: Envelope, n: number): Envelope {
   for (let i = 1; i <= n; i++) c.document.working.push({ id: `w${i}`, value: value(), place: 0, kind: "product" });
   return validate(c);
 }
+
+/** Plain shapes: each written method with its numbers set out and the working left as pupil space. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "column-add", title: "Column addition", note: "A three-digit number add a three-digit number, set out in columns: 365 + 278.", make: () => doc("add", ["365", "278"]) },
+  { id: "add-decimals", title: "Column addition with decimals", note: "Decimals lined up on the point: 12.5 + 3.75.", make: () => doc("add", ["12.5", "3.75"]) },
+  { id: "column-subtract", title: "Column subtraction with exchanging", note: "A subtraction that needs exchanging: 523 − 187.", make: () => doc("subtract", ["523", "187"]) },
+  { id: "long-multiplication", title: "Long multiplication", note: "A three-digit number times a two-digit number, with rows for the working: 324 × 26.", make: () => addBlankRows(doc("multiply", ["324", "26"]), 2) },
+  { id: "short-division", title: "Short division", note: "The bus stop: 936 ÷ 4.", make: () => doc("short-division", ["936", "4"]) },
+  { id: "long-division", title: "Long division", note: "Long division by a two-digit number: 864 ÷ 16.", make: () => doc("long-division", ["864", "16"]) },
+];
