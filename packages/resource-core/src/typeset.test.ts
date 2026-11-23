@@ -42,6 +42,8 @@ describe("typesetting typed maths", () => {
     expect(typesetText("Zac says, “40p is less than 70p.”")).toBe("Zac says, “40p is less than 70p.”");
     expect(typesetText("‘x is 4’")).toBe("‘*x* is 4’");
     expect(typesetText("Mass of 1 rod =")).toBe("Mass of 1 rod =");
+    expect(typesetText("Solve 3p + 2 = 11")).toBe("Solve 3*p* + 2 = 11");
+    expect(typesetText("When x = 4, m = 10")).toBe("When *x* = 4, *m* = 10");
   });
 
   it("keeps bold, italic and fractions whole, and gives them symbols only", () => {

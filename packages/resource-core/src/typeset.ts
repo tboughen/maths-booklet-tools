@@ -75,9 +75,9 @@ function italicLetters(s: string, offset = 0, event: boolean[] = []): string {
     // line's suffix that is only a unit is handled in typesetValue. Density pages printed g in the
     // maths serif (22 Nov 2026).
     const unit = core.match(COMPOUND_UNIT);
-    if (unit && (unit[1] || /^[−-]?[\d.,]+$/.test(prev))) return;
-    // An amount in pence (40p, 2.5p) is not maths.
-    if (/^\d+(\.\d+)?p$/.test(core)) return;
+    if (unit && (unit[1] || /^[−-]?[\d.,]*\d$/.test(prev))) return;
+    // An amount in pence (40p, 2.5p) is not maths; beside an operator (3p + 2, 2p = 10) it is algebra.
+    if (/^\d+(\.\d+)?p$/.test(core) && !byOperator) return;
     // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
     if (/^[a-z]{2,3}$/.test(core) && byOperator && !/^[−-]?[\d.,]*\d$/.test(prev) && !event[offset + starts[w.i] + lead.length] && !WORDS.has(core) && !UPRIGHT.has(core)) {
       out[w.i] = `${lead}*${core}*${tail}`;
