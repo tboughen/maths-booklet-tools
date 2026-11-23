@@ -1,5 +1,5 @@
 /** Plain shapes: common bar models with the given values, every other label left for pupils. */
-import { validate, type Annotation, type Bar, type Envelope } from "./v3";
+import { RENDERER_VERSION, validate, type Annotation, type Bar, type Envelope } from "./v3";
 
 type Part = [weight: string, inside: string, fill?: "none" | "blue" | "green"];
 const lab = (text = "") => ({ text, state: text ? ("value" as const) : ("blank" as const) });
@@ -22,7 +22,7 @@ function doc(bars: Bar[], annotations: Annotation[], sourceId: string, caption =
   return validate({
     kind: "bar-model",
     schemaVersion: 3,
-    rendererVersion: "bar-model-3",
+    rendererVersion: RENDERER_VERSION,
     styleProfile: "lesson-v3",
     document: { bars, annotations, presentation: { unitMm: 12, barHeightMm: 12, fontPt: 12, titlePt: 14, output: "grey" }, captions: caption ? [{ id: "caption1", label: lab(caption), alignment: "left", format: "plain" }] : [], sourceId },
   });
