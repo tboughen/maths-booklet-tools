@@ -234,3 +234,8 @@
     flex-direction: column;
   }
 }
+/* The options box beside a cell (wave 2a). */
+.ag-box {
+  display: grid;
+  gap: 8px;
+}

@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
-import { spokenHeading } from "../../packages/ratio-table-core/src/schema";
-import { ArrowDown, Grid3X3, Table2, Trash2 } from "lucide-react";
+import { ArrowDown, Eye, Grid3X3, Trash2 } from "lucide-react";
+import { FoldCard } from "../site/CardHelp";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { commonVisibility, type Visibility } from "../editor-kit/visibility";
+import { cellVisibility, withCellVisibility } from "./cellVisibility";
 import type {
   RatioDocument,
   RatioOperation,
@@ -10,26 +14,6 @@ import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { headingText, headingFromText } from "./headingText";
-
-type RatioCellValue = RatioDocument["rows"][number]["cells"][number];
-type CellType = "number" | "empty" | "answer-line" | "hidden" | "hidden-line";
-const hasValue = (cell: RatioCellValue) =>
-  cell.kind === "number" || cell.kind === "hidden";
-const cellType = (cell: RatioCellValue): CellType =>
-  cell.kind === "hidden" ? (cell.line ? "hidden-line" : "hidden") : cell.kind;
-/**
- * A new cell type keeps the cell's value where the new type has one. Nothing is calculated, and a
- * hidden answer is made only from a value the teacher typed, never from a blank.
- */
-function changeCellType(cell: RatioCellValue, type: CellType): RatioCellValue {
-  const value = cell.kind === "number" || cell.kind === "hidden" ? cell.value : null;
-  if (type === "number") return { kind: "number", value: value ?? "0" };
-  if (type === "hidden" || type === "hidden-line") {
-    if (value === null) return cell;
-    return type === "hidden" ? { kind: "hidden", value } : { kind: "hidden", value, line: true };
-  }
-  return { kind: type };
-}
 
 export function RatioInspector({
   document,
@@ -42,9 +26,17 @@ export function RatioInspector({
   onOperations,
   onAction,
   onFill,
+  onMessage,
+  onOpen,
+  part,
   tools,
   after,
 }: {
+  /** "box": the selected item's options, for the box beside it. "cards": the settings column. */
+  part: "box" | "cards";
+  onMessage: (message: string) => void;
+  /** A Scaling steps button opens that step's box beside it. */
+  onOpen: (anchor: HTMLElement) => void;
   document: RatioDocument;
   selection: RatioSelection;
   inputVersion: number;
@@ -168,83 +160,271 @@ export function RatioInspector({
           : []),
       ]);
   }
-  return (
-    <>
-      <div>
-      <section
-        className="panel-card ratio-selection-panel"
-        aria-label="Selected table item"
-      >
-        <div className="panel-heading">
-          <Table2 size={17} />
-          <h2>
-            {selection?.kind === "cell" && row
-              ? `Row ${rowIndex + 1} · ${spokenHeading(document.headings[selection.column]?.text ?? "")}`
-              : selection?.kind === "heading"
-                ? `Column ${selection.column + 1}`
-                : selection?.kind === "headings"
-                  ? "Edit headings"
-                  : selection?.kind === "step"
-                    ? "Scaling arrow"
-                    : "Edit table"}
-          </h2>
-        </div>
-        {!selection && (
+  function setCellVisibility(rowId: string, column: number, v: Visibility) {
+    const cell = document.rows.find((r) => r.id === rowId)?.cells[column];
+    if (!cell) return;
+    const next = withCellVisibility(cell, v);
+    if (typeof next === "string") return onMessage(next);
+    onAction([{ op: "set_cell", rowId, column: column as 0 | 1 | 2, cell: next }]);
+  }
+  // Every cell that has something to show or a space: a plain empty cell has neither.
+  const cells = document.rows.flatMap((r) => r.cells.map((c, column) => ({ row: r, column, c }))).filter(({ c }) => c.kind !== "empty" || !!c.value);
+  const spaceCount =
+    cells.filter(({ c }) => c.kind === "hidden").length + document.headings.filter((h) => h.hidden).length + document.transitions.filter((t) => t.hidden).length;
+  const settingsCard = (
+    <FoldCard
+      tool="ratio-table"
+      title="Table settings"
+      icon={Grid3X3}
+      defaultOpen
+      summary={`${document.rows.length} rows · ${document.headings.length} column${document.headings.length === 1 ? "" : "s"}`}
+    >
+
+        <label className="ratio-label">
+          Print size
+          <select
+            aria-label="Print size"
+            disabled={pendingInputs}
+            value={document.size}
+            onChange={(event) =>
+              onAction([
+                {
+                  op: "set_size",
+                  size: event.target.value as RatioDocument["size"],
+                },
+              ])
+            }
+          >
+            <option value="standard">Standard · lesson size</option>
+            <option value="large">Large · 120%</option>
+          </select>
+        </label>
+        <label className="ratio-label">
+          Lines
+          <select
+            aria-label="Lines"
+            disabled={pendingInputs}
+            value={document.lines ?? "normal"}
+            onChange={(event) =>
+              onAction([{ op: "set_lines", lines: event.target.value as LineWeight }])
+            }
+          >
+            {LINE_WEIGHTS.map((v) => (
+              <option key={v} value={v}>
+                {LINE_WEIGHT_NAMES[v]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="ratio-label">
+          Annotations
+          <select
+            aria-label="Annotation display"
+            disabled={pendingInputs}
+            value={document.mode}
+            onChange={(event) =>
+              onAction([
+                {
+                  op: "set_annotation_visibility",
+                  mode: event.target.value as RatioDocument["mode"],
+                },
+              ])
+            }
+          >
+            <option value="simple">Simple</option>
+            <option value="annotated">With scaling arrows</option>
+          </select>
+        </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={document.showArrows}
+            disabled={pendingInputs}
+            onChange={(event) =>
+              onAction([
+                {
+                  op: "set_annotation_visibility",
+                  showArrows: event.target.checked,
+                },
+              ])
+            }
+          />
+          Show arrows
+        </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={document.showOperations}
+            disabled={pendingInputs}
+            onChange={(event) =>
+              onAction([
+                {
+                  op: "set_annotation_visibility",
+                  showOperations: event.target.checked,
+                },
+              ])
+            }
+          />
+          Show operation labels
+        </label>
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={document.answerOnly === true}
+            disabled={pendingInputs}
+            onChange={(event) =>
+              onAction([{ op: "set_answer_only", answerOnly: event.target.checked }])
+            }
+          />
+          Answers copy only
+        </label>
+        {document.answerOnly && (
           <p className="panel-note">
-            Click a heading, cell or arrow number and type. Select a curved
-            arrow to change its operation or factor.
+            The pupil copy keeps this table&apos;s space as blank paper. The
+            answers copy prints the whole table in the answer colour.
           </p>
         )}
+        {document.mode === "simple" && (
+          <p className="panel-note">
+            Simple mode hides annotations and keeps your scaling steps for
+            later.
+          </p>
+        )}
+        <p className="panel-note">
+          {document.rows.length} of 6 rows · {document.headings.length} of 3
+          columns
+        </p>
+        <details>
+          <summary>Scaling steps</summary>
+          {document.rows.slice(0, -1).map((row, index) => (
+            <button
+              className="panel-button"
+              disabled={pendingInputs}
+              key={row.id}
+              aria-haspopup="dialog"
+              data-options-anchor=""
+              onClick={(ev) => {
+                onSelect({ kind: "step", from: row.id });
+                onOpen(ev.currentTarget);
+              }}
+            >
+              Row {index + 1} → Row {index + 2}
+              {document.transitions.some((step) => step.from === row.id)
+                ? " · Edit arrow"
+                : " · Add arrow"}
+            </button>
+          ))}
+        </details>
+    </FoldCard>
+  );
+  if (part === "cards") {
+    const all = commonVisibility(cells.map(({ c }) => cellVisibility(c)));
+    return (
+      <>
+        {/* One column (the usability rollout, 22 Nov 2026): what pupils see first, the tools open, the settings folded. */}
+        <FoldCard
+          tool="ratio-table"
+          title="What pupils see"
+          icon={Eye}
+          defaultOpen
+          summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+          help={
+            <p className="panel-note">
+              Show: the value prints on both copies. Pupil space: a blank or a dotted answer line for pupils, with the value in the answers copy. Leave out:
+              printed in neither copy, but kept. Headings and scaling operations can be hidden in their own boxes.
+            </p>
+          }
+        >
+          {all && (
+            <VisibilitySwitch
+              name="Values"
+              caption="Values"
+              value={all}
+              disabled={pendingInputs}
+              onChange={(v) => {
+                let skipped = "";
+                const ops: RatioOperation[] = [];
+                for (const { row: r, column, c } of cells) {
+                  const next = withCellVisibility(c, v);
+                  if (typeof next === "string") skipped ||= next;
+                  else if (JSON.stringify(next) !== JSON.stringify(c)) ops.push({ op: "set_cell", rowId: r.id, column: column as 0 | 1 | 2, cell: next });
+                }
+                if (ops.length) onAction(ops);
+                if (skipped) onMessage(`Some values were left as they were. ${skipped}`);
+              }}
+            />
+          )}
+          <PupilSpaceHint
+            count={spaceCount}
+            disabled={pendingInputs}
+            onClear={() => {
+              const ops: RatioOperation[] = cells.flatMap(({ row: r, column, c }) =>
+                c.kind === "hidden" ? [{ op: "set_cell" as const, rowId: r.id, column: column as 0 | 1 | 2, cell: { kind: "number" as const, value: c.value } }] : [],
+              );
+              if (document.headings.some((h) => h.hidden))
+                ops.push({ op: "set_headings", headings: document.headings.map((h) => {
+                  const { hidden: _hidden, ...rest } = h;
+                  void _hidden;
+                  return rest;
+                }) });
+              for (const t of document.transitions) if (t.hidden) ops.push({ op: "set_transition", transition: { ...t, hidden: false } });
+              if (ops.length) onAction(ops);
+            }}
+          >
+            Double-click a cell for a pupil space.
+          </PupilSpaceHint>
+        </FoldCard>
+        {tools}
+        {settingsCard}
+        {after}
+      </>
+    );
+  }
+  return (
+    <>
         {selection?.kind === "cell" && row && (
           <>
-            <p className="panel-note">
-              Type directly in the selected cell. Numbers, decimals and
-              fractions are supported.
-            </p>
-            <label className="ratio-label">
-              Cell type
-              <select
-                aria-label={`Row ${rowIndex + 1} ${spokenHeading(document.headings[selection.column].text)} cell type`}
-                value={cellType(row.cells[selection.column])}
-                disabled={pendingInputs}
-                onChange={(event) =>
-                  onAction([
-                    {
-                      op: "set_cell",
-                      rowId: row.id,
-                      column: selection.column as 0 | 1 | 2,
-                      cell: changeCellType(
-                        row.cells[selection.column],
-                        event.target.value as CellType,
-                      ),
-                    },
-                  ])
-                }
-              >
-                <option value="number">Value</option>
-                <option value="empty">Empty</option>
-                <option value="answer-line">Answer line</option>
-                <option value="hidden" disabled={!hasValue(row.cells[selection.column])}>
-                  Hidden answer (blank for pupils)
-                </option>
-                <option value="hidden-line" disabled={!hasValue(row.cells[selection.column])}>
-                  Hidden answer on an answer line
-                </option>
-              </select>
-            </label>
-            {row.cells[selection.column].kind === "hidden" ? (
-              <p className="panel-note">
-                Pupils see a blank. The value prints in the answers copy only,
-                in the answer colour.
-              </p>
-            ) : (
-              !hasValue(row.cells[selection.column]) && (
-                <p className="panel-note">
-                  To hide an answer, type it in the cell first, then choose
-                  Hidden answer.
-                </p>
-              )
+            <VisibilitySwitch
+              name="What pupils see"
+              caption="What pupils see"
+              value={cellVisibility(row.cells[selection.column])}
+              disabled={pendingInputs}
+              onChange={(v) => setCellVisibility(row.id, selection.column, v)}
+            />
+            {(row.cells[selection.column].kind === "hidden" || row.cells[selection.column].kind === "answer-line") && (
+              <label className="check-row">
+                <input
+                  type="checkbox"
+                  checked={(() => {
+                    const c = row.cells[selection.column];
+                    return c.kind === "answer-line" || (c.kind === "hidden" && c.line === true);
+                  })()}
+                  disabled={pendingInputs || row.cells[selection.column].kind === "answer-line"}
+                  onChange={(event) => {
+                    const c = row.cells[selection.column];
+                    if (c.kind !== "hidden") return;
+                    onAction([
+                      {
+                        op: "set_cell",
+                        rowId: row.id,
+                        column: selection.column as 0 | 1 | 2,
+                        cell: event.target.checked ? { kind: "hidden", value: c.value, line: true } : { kind: "hidden", value: c.value },
+                      },
+                    ]);
+                  }}
+                />
+                On a dotted answer line
+              </label>
             )}
+            <p className="panel-note">
+              {(() => {
+                const c = row.cells[selection.column];
+                if (c.kind === "hidden") return "Pupils see a space. The value prints in the answers copy only, in the answer colour.";
+                if (c.kind === "answer-line") return "An answer line with no saved answer. Type the answer in the cell to save it for the answers copy.";
+                if (c.kind === "empty") return c.value ? "Left out: kept here, but printed in neither copy." : "Nothing prints here. Type a value in the cell.";
+                return "Type in the cell. Numbers, decimals and fractions are supported.";
+              })()}
+            </p>
           </>
         )}
         {selection?.kind === "heading" && headingControls(selection.column)}
@@ -397,148 +577,6 @@ export function RatioInspector({
             <p className="panel-note">Scaling arrows connect adjacent rows.</p>
           </>
         )}
-      </section>
-      {tools}
-      </div>
-      <div>
-      <section className="panel-card">
-        <div className="panel-heading">
-          <Grid3X3 size={17} />
-          <h2>Table settings</h2>
-        </div>
-        <label className="ratio-label">
-          Print size
-          <select
-            aria-label="Print size"
-            disabled={pendingInputs}
-            value={document.size}
-            onChange={(event) =>
-              onAction([
-                {
-                  op: "set_size",
-                  size: event.target.value as RatioDocument["size"],
-                },
-              ])
-            }
-          >
-            <option value="standard">Standard · lesson size</option>
-            <option value="large">Large · 120%</option>
-          </select>
-        </label>
-        <label className="ratio-label">
-          Lines
-          <select
-            aria-label="Lines"
-            disabled={pendingInputs}
-            value={document.lines ?? "normal"}
-            onChange={(event) =>
-              onAction([{ op: "set_lines", lines: event.target.value as LineWeight }])
-            }
-          >
-            {LINE_WEIGHTS.map((v) => (
-              <option key={v} value={v}>
-                {LINE_WEIGHT_NAMES[v]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="ratio-label">
-          Annotations
-          <select
-            aria-label="Annotation display"
-            disabled={pendingInputs}
-            value={document.mode}
-            onChange={(event) =>
-              onAction([
-                {
-                  op: "set_annotation_visibility",
-                  mode: event.target.value as RatioDocument["mode"],
-                },
-              ])
-            }
-          >
-            <option value="simple">Simple</option>
-            <option value="annotated">With scaling arrows</option>
-          </select>
-        </label>
-        <label className="check-row">
-          <input
-            type="checkbox"
-            checked={document.showArrows}
-            disabled={pendingInputs}
-            onChange={(event) =>
-              onAction([
-                {
-                  op: "set_annotation_visibility",
-                  showArrows: event.target.checked,
-                },
-              ])
-            }
-          />
-          Show arrows
-        </label>
-        <label className="check-row">
-          <input
-            type="checkbox"
-            checked={document.showOperations}
-            disabled={pendingInputs}
-            onChange={(event) =>
-              onAction([
-                {
-                  op: "set_annotation_visibility",
-                  showOperations: event.target.checked,
-                },
-              ])
-            }
-          />
-          Show operation labels
-        </label>
-        <label className="check-row">
-          <input
-            type="checkbox"
-            checked={document.answerOnly === true}
-            disabled={pendingInputs}
-            onChange={(event) =>
-              onAction([{ op: "set_answer_only", answerOnly: event.target.checked }])
-            }
-          />
-          Answers copy only
-        </label>
-        {document.answerOnly && (
-          <p className="panel-note">
-            The pupil copy keeps this table&apos;s space as blank paper. The
-            answers copy prints the whole table in the answer colour.
-          </p>
-        )}
-        {document.mode === "simple" && (
-          <p className="panel-note">
-            Simple mode hides annotations and keeps your scaling steps for
-            later.
-          </p>
-        )}
-        <p className="panel-note">
-          {document.rows.length} of 6 rows · {document.headings.length} of 3
-          columns
-        </p>
-        <details>
-          <summary>Scaling steps</summary>
-          {document.rows.slice(0, -1).map((row, index) => (
-            <button
-              className="panel-button"
-              disabled={pendingInputs}
-              key={row.id}
-              onClick={() => onSelect({ kind: "step", from: row.id })}
-            >
-              Row {index + 1} → Row {index + 2}
-              {document.transitions.some((step) => step.from === row.id)
-                ? " · Edit arrow"
-                : " · Add arrow"}
-            </button>
-          ))}
-        </details>
-      </section>
-      {after}
-      </div>
     </>
   );
 }

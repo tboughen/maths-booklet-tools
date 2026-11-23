@@ -16,6 +16,8 @@ import type {
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
 import { headingText, headingFromText } from "./headingText";
+import { cellValue } from "./cellVisibility";
+import { TARGET_TIP, TARGET_TIP_SPACE } from "../editor-kit/visibility";
 import {
   labelSlot,
   numberWidth,
@@ -53,6 +55,8 @@ export function RatioCanvas({
   removalRowIndex,
   removalColumnIndex,
   onScale,
+  onOpen,
+  onToggleCell,
 }: {
   envelope: RatioEnvelope;
   zoom: number;
@@ -78,6 +82,10 @@ export function RatioCanvas({
   removalColumnIndex: number;
   /** Told the scale the table is drawn at, so the page can show it beside the zoom. */
   onScale?: (scale: number) => void;
+  /** A click on a cell, heading or arrow opens its options box beside it. */
+  onOpen?: (anchor: HTMLElement) => void;
+  /** A double-click on a cell: a pupil space, and again back to the value. */
+  onToggleCell?: (rowId: string, column: number) => void;
 }) {
   const document = envelope.document,
     m = ratioMetrics(document);
@@ -187,6 +195,8 @@ export function RatioCanvas({
               <div
                 key={`heading-${column}-${inputVersion}`}
                 className={`ratio-inline-heading${selection?.kind === "heading" && selection.column === column ? " is-selected" : ""}`}
+                data-options-anchor=""
+                onClick={(ev) => onOpen?.(ev.currentTarget)}
                 style={position(
                   m.tableLeft + column * m.columnWidth + 8,
                   m.tableTop + 10,
@@ -214,6 +224,7 @@ export function RatioCanvas({
                   <button
                     type="button"
                     className={`ratio-row-target${arrowFrom === row.id ? " is-selected" : ""}`}
+                    data-options-anchor=""
                     style={position(
                       m.tableLeft,
                       m.bodyTop + index * 100 + 5,
@@ -236,6 +247,11 @@ export function RatioCanvas({
                       key={`${column}-${inputVersion}`}
                       className={`ratio-inline-cell${selection?.kind === "cell" && selection.rowId === row.id && selection.column === column ? " is-selected" : ""}`}
                       data-cell-kind={cell.kind}
+                      data-left-out={cell.kind === "empty" && cell.value ? "" : undefined}
+                      data-options-anchor=""
+                      title={cell.kind === "hidden" || cell.kind === "answer-line" ? TARGET_TIP_SPACE : TARGET_TIP}
+                      onClick={(ev) => onOpen?.(ev.currentTarget)}
+                      onDoubleClick={() => onToggleCell?.(row.id, column)}
                       style={position(
                         m.tableLeft + column * m.columnWidth + 8,
                         m.bodyTop + index * 100 + 10,
@@ -244,7 +260,7 @@ export function RatioCanvas({
                       )}
                     >
                       <NumberInput
-                        value={cell.kind === "number" || cell.kind === "hidden" ? cell.value : ""}
+                        value={cellValue(cell)}
                         label={`Row ${index + 1} ${spokenHeading(document.headings[column].text)} value`}
                         inputKey={`inline-cell-${row.id}-${column}`}
                         allowEmpty
@@ -271,11 +287,15 @@ export function RatioCanvas({
                               op: "set_cell",
                               rowId: row.id,
                               column: column as 0 | 1 | 2,
-                              // A hidden answer stays hidden when its value is retyped.
+                              // A hidden answer stays hidden when its value is retyped, and a left-out value stays left out.
                               cell: value
                                 ? cell.kind === "hidden"
                                   ? { ...cell, value }
-                                  : { kind: "number", value }
+                                  : cell.kind === "empty" && cell.value
+                                    ? { kind: "empty", value }
+                                    : cell.kind === "answer-line"
+                                      ? { kind: "hidden", value, line: true }
+                                      : { kind: "number", value }
                                 : {
                                     kind:
                                       cell.kind === "answer-line" ||
@@ -339,16 +359,13 @@ export function RatioCanvas({
                         document.showArrows ? 90 : 52,
                       )}
                       aria-label={`Edit scaling arrow ${row + 1} to ${row + 2}, ${laneName}, ${step.operation === "multiply" ? "multiply" : "divide"} by ${step.factor}`}
+                      aria-haspopup="dialog"
+                      data-options-anchor=""
                       disabled={structureDisabled}
-                      onClick={() => {
+                      onClick={(ev) => {
+                        // The box beside the arrow opens with the cursor in its factor field.
                         onSelect({ kind: "step", from: step.from });
-                        requestAnimationFrame(() =>
-                          globalThis.document
-                            .querySelector<HTMLInputElement>(
-                              `[aria-label="Row ${row + 1} scaling factor"]`,
-                            )
-                            ?.focus(),
-                        );
+                        onOpen?.(ev.currentTarget);
                       }}
                     />,
                     ...(document.showOperations && tool === "edit"
@@ -356,6 +373,7 @@ export function RatioCanvas({
                           <div
                             key={`${inputKey}-${inputVersion}`}
                             className={`ratio-inline-factor${side < 0 ? " is-left" : ""}`}
+                            data-options-anchor=""
                             style={position(
                               factorCentre - factorWidth / 2 - 3,
                               m.bodyTop + 50 + row * 100 + 24,

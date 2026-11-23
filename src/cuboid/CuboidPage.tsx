@@ -19,7 +19,7 @@ import {
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   appearance,
   faceNames,
@@ -62,7 +62,14 @@ import {
   copyWord,
   downloadEditable,
 } from "./export";
-import { FloatingEditor } from "./FloatingEditor";
+import { OptionsBox } from "../site/OptionsBox";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Box, Eye, Paintbrush, Printer, Tag } from "lucide-react";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
 import "../site/settings-kit.css";
@@ -79,12 +86,15 @@ function initial() {
   const start = openDraft({ key: STORAGE, parse: parseFile, fresh: newDocument, recoveryMessage: "Saved cuboids need recovery. Download the original data before starting afresh." });
   return { e: start.document, recovery: start.recovery, error: start.message };
 }
-type SettingsCard = "shape" | "labels" | "shading";
-/** Shape, Labels, Shading, with the card for what was clicked moved to the top (U20, U21). */
-function cardOrder(focus: SettingsCard | null): SettingsCard[] {
-  const all: SettingsCard[] = ["shape", "labels", "shading"];
-  return focus ? [focus, ...all.filter((k) => k !== focus)] : all;
-}
+/**
+ * What pupils see of a label, in the one vocabulary: a blank (dotted) label is a pupil space and a hidden one is left
+ * out. What a shown label shows (its dimension, face area or own text) is kept while it is a pupil space or left out.
+ */
+type Shown = "value" | "area" | "text";
+const labelSees = (mode: Label["mode"] | Appearance["area"]["mode"]): Visibility =>
+  mode === "hidden" ? "omit" : mode === "blank" ? "hidden" : "show";
+const isEdge = (k: string) => (axes as readonly string[]).includes(k);
+const KEY_NAMES: Record<Target["key"], string> = { width: "Width", depth: "Depth", height: "Height", front: "Front face", top: "Top face", side: "Side face", area: "Face area" };
 
 export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
@@ -96,7 +106,13 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [selected, setSelected] = useState(startup.e.document.shapes[0].id),
     [labelKey, setLabelKey] = useState<LabelKey>("width"),
     [inline, setInline] = useState<LabelKey | "area" | null>(null),
-    [showHidden, setShowHidden] = useState(false);
+    [showHidden, setShowHidden] = useState(false),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
+  // What each label showed before it became a pupil space or was left out, so Show brings it back exactly.
+  const shownBefore = useRef(new Map<string, Shown>()),
+    [, remembered] = useReducer((n: number) => n + 1, 0);
   const [pending, setPending] = useState<{ title: string; e: Envelope } | null>(
       null,
     ),
@@ -109,17 +125,17 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   const file = useRef<HTMLInputElement>(null),
     current = useRef(history.present);
   current.current = history.present;
-  const inputPending = useCallback(
-    (label: string, value: boolean) =>
-      setDirty((old) => {
-        if (old.has(label) === value) return old;
-        const n = new Set(old);
-        if (value) n.add(label);
-        else n.delete(label);
-        return n;
-      }),
-    [],
-  );
+  // Fields with unapplied text, kept in a ref too: a press elsewhere applies (on blur) and asks the box to close in
+  // the same moment, before the state has rendered.
+  const dirtyNow = useRef(new Set<string>());
+  const inputPending = useCallback((label: string, value: boolean) => {
+    if (dirtyNow.current.has(label) === value) return;
+    const n = new Set(dirtyNow.current);
+    if (value) n.add(label);
+    else n.delete(label);
+    dirtyNow.current = n;
+    setDirty(n);
+  }, []);
   const e = history.present,
     d = e.document,
     s = d.shapes.find((x) => x.id === selected) ?? d.shapes[0],
@@ -183,18 +199,52 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     documentHistory.commit(valid, label);
     setMessage("");
   }
-  function changeShape(update: (shape: Shape) => Shape) {
+  function changeShape(update: (shape: Shape) => Shape, label?: string, id = s.id) {
     const prev = current.current;
     const next = {
       ...prev,
       document: {
         ...prev.document,
         shapes: prev.document.shapes.map((x) =>
-          x.id === s.id ? update(x) : x,
+          x.id === id ? update(x) : x,
         ),
       },
     };
-    commit(next);
+    commit(next, label);
+  }
+  /** What a label shows when it is shown: what it showed last, else its own text, else its dimension or area. */
+  function shownMode(shape: Shape, k: Target["key"]): Shown {
+    const kept = shownBefore.current.get(`${shape.id}:${k}`);
+    const text = k === "area" ? appearance(shape).area.text : shape.labels[k].text;
+    const allowed: Shown[] = isEdge(k) || k === "area" ? ["value", "text"] : ["area", "text"];
+    if (kept && allowed.includes(kept)) return kept;
+    return text.trim() ? "text" : allowed[0];
+  }
+  function seesOf(shape: Shape, k: Target["key"]): Visibility {
+    return labelSees(k === "area" ? appearance(shape).area.mode : shape.labels[k].mode);
+  }
+  /** One shape's labels set to Show, a pupil space or Leave out, in one undo step. */
+  function setSees(shapeId: string, ks: readonly Target["key"][], v: Visibility, what: string) {
+    safe(() =>
+      changeShape(
+        (x) => {
+          let next = x;
+          for (const k of ks) {
+            const was = k === "area" ? appearance(next).area.mode : next.labels[k].mode;
+            if (labelSees(was) === v) continue;
+            if (labelSees(was) === "show") shownBefore.current.set(`${x.id}:${k}`, was as Shown);
+            const mode = v === "hidden" ? "blank" : v === "omit" ? "hidden" : shownMode(next, k);
+            next =
+              k === "area"
+                ? { ...next, appearance: { ...appearance(next), area: { ...appearance(next).area, mode: mode as Appearance["area"]["mode"] } } }
+                : { ...next, labels: { ...next.labels, [k]: { ...next.labels[k], mode: mode as Label["mode"] } } };
+          }
+          return next;
+        },
+        visibilityStep(v, what),
+        shapeId,
+      ),
+    );
   }
   function paint(p: Partial<Appearance>) {
     changeShape((x) => ({ ...x, appearance: { ...appearance(x), ...p } }));
@@ -226,12 +276,12 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   function undo() {
     if (blocked) return;
     documentHistory.undo();
-    setInline(null);
+    closeEditor();
   }
   function redo() {
     if (blocked) return;
     documentHistory.redo();
-    setInline(null);
+    closeEditor();
   }
   function replacement(next: Envelope, title: string) {
     if (blocked) {
@@ -240,6 +290,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       );
       return;
     }
+    closeEditor();
     setPending({ e: next, title });
   }
   // Autosave with protection for another tab's newer draft.
@@ -274,16 +325,16 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if (event.key === "Escape" && !dirty.size) setInline(null);
+      if (event.key === "Escape" && !dirtyNow.current.size) closeEditor();
       if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
+  // A box whose label has gone (a removed cuboid, undo, a label left out) closes.
   useEffect(() => {
-    if (active && inline)
-      document.querySelector<HTMLInputElement>(".cb-inline input")?.focus();
-  }, [inline, selected, active]);
+    if (inline && boxAnchor && !boxAnchor.isConnected) closeEditor();
+  });
   async function run(action: () => Promise<void | string>) {
     if (blocked || issue) return;
     setBusy(true);
@@ -318,20 +369,25 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       />
     );
   }
-  /** The card for the label or area being edited on the diagram comes first (U20, U21). */
-  const focus: SettingsCard | null =
-    inline === null ? null : inline === "area" ? "shading" : "labels";
   function selectShape(id: string) {
     if (blocked) return;
     setSelected(id);
-    setInline(null);
+    closeEditor();
     setShowHidden(false);
   }
-  function editTarget(shapeId: string, k: Target["key"]) {
+  function editTarget(shapeId: string, k: Target["key"], from?: HTMLElement) {
     if (blocked) return;
     setSelected(shapeId);
     if (k !== "area") setLabelKey(k);
     setInline(k);
+    setBoxAnchor(from ?? document.querySelector<HTMLElement>(`[data-cb-anchor="${shapeId}-${k}"]`));
+  }
+  /** Double-click: a pupil space, and again back to what it showed. */
+  function toggleTarget(shapeId: string, k: Target["key"]) {
+    if (blocked) return;
+    const shape = d.shapes.find((x) => x.id === shapeId);
+    if (!shape) return;
+    setSees(shapeId, [k], togglePupilSpace(seesOf(shape, k)), `${KEY_NAMES[k].toLowerCase()} label`);
   }
   function view(value: Shape["view"]) {
     safe(() => patch({ view: value }));
@@ -341,7 +397,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       const next = newShape(`cuboid-${crypto.randomUUID().slice(0, 8)}`);
       commit({ ...e, document: { ...d, shapes: [...d.shapes, next] } });
       setSelected(next.id);
-      setInline(null);
+      closeEditor();
     });
   }
   function removeShape() {
@@ -349,40 +405,60 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       const shapes = d.shapes.filter((x) => x.id !== s.id);
       commit({ ...e, document: { ...d, shapes } });
       setSelected(shapes[0].id);
-      setInline(null);
+      closeEditor();
     });
   }
   const currentTarget = m?.targets.find(
     (t) => t.shapeId === s.id && t.key === inline,
   );
   function closeEditor() {
-    const anchor = `${s.id}-${inline}`;
     setInline(null);
-    requestAnimationFrame(() =>
-      document
-        .querySelector<HTMLElement>(`[data-cb-anchor="${anchor}"]`)
-        ?.focus({ preventScroll: true }),
+    setBoxAnchor(null);
+  }
+  /** The live options box beside a label: what it says, what pupils see, and what it shows. Each change is one undo step. */
+  function labelBox(k: Target["key"]) {
+    const sees = seesOf(s, k),
+      edge = isEdge(k),
+      name = KEY_NAMES[k].toLowerCase();
+    const shows: Shown = k === "area" ? (a.area.mode === "text" ? "text" : sees === "show" ? "value" : shownMode(s, k)) : sees === "show" ? (l.mode as Shown) : shownMode(s, k);
+    const setShows = (next: Shown) =>
+      safe(() => {
+        if (sees !== "show") shownBefore.current.set(`${s.id}:${k}`, next);
+        if (sees !== "show") remembered();
+        else if (k === "area") area({ mode: next as Appearance["area"]["mode"] });
+        else patchLabel({ mode: next });
+      });
+    const computed =
+      k === "area"
+        ? faceAreaLabel({ ...s, appearance: { ...a, area: { ...a.area, mode: "value" } } })
+        : labelText({ ...s, labels: { ...s.labels, [k]: { ...s.labels[k], mode: "area" } } }, k);
+    const typeText = (v: string) => {
+      if (sees !== "show") shownBefore.current.set(`${s.id}:${k}`, "text");
+      const mode = sees === "show" ? { mode: "text" as const } : {};
+      if (k === "area") area({ ...mode, text: v });
+      else patchLabel({ ...mode, text: v });
+    };
+    return (
+      <div className="cb-box">
+        {edge && shows === "value"
+          ? field(`Edit ${k}`, s.dimensions[k as (typeof axes)[number]], (v) => changeShape((x) => setDimension(x, k as (typeof axes)[number], v)))
+          : // A face area is worked out from the dimensions; typing over it makes it the label's own text.
+            field(`Edit ${k === "area" ? "face area" : k}`, shows === "text" ? (k === "area" ? a.area.text : l.text) : computed, (v) => typeText(v))}
+        <VisibilitySwitch name="What pupils see" caption="What pupils see" value={sees} disabled={blocked} onChange={(v) => setSees(s.id, [k], v, `${name} label`)} />
+        <label>
+          Shows{" "}
+          <select aria-label="Shows" value={shows} disabled={blocked} onChange={(ev) => setShows(ev.target.value as Shown)}>
+            <option value={edge || k === "area" ? "value" : "area"}>{edge ? "Dimension" : k === "area" ? "Calculated value" : "Face area"}</option>
+            <option value="text">Own text</option>
+          </select>
+        </label>
+        {sees === "hidden" && <p>Pupils see a dotted line to write on.</p>}
+      </div>
     );
   }
-  const labelValue =
-    inline === "area"
-      ? a.area.mode === "text"
-        ? a.area.text
-        : faceAreaLabel(s)
-      : l.mode === "text"
-        ? l.text
-        : l.mode === "value"
-          ? s.dimensions[labelKey as (typeof axes)[number]]
-          : labelText(s, labelKey);
-  function inlineApply(v: string) {
-    if (inline === "area") {
-      area({ mode: "text", text: v });
-      return;
-    }
-    if (l.mode === "value" && axes.includes(labelKey as (typeof axes)[number]))
-      changeShape((x) => setDimension(x, labelKey as (typeof axes)[number], v));
-    else patchLabel({ mode: "text", text: v });
-  }
+  // What pupils see: the selected cuboid's pupil spaces.
+  const spaces = ([...keys, ...(a.mode === "one" ? (["area"] as const) : [])] as Target["key"][]).filter((k) => seesOf(s, k) === "hidden"),
+    spaceSummary = spaces.length === 0 ? "No pupil spaces" : `${spaces.length} pupil ${spaces.length === 1 ? "space" : "spaces"}`;
   let cubes = "";
   try {
     const c = decomposition(s);
@@ -520,7 +596,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               ref={fitted.ref}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget && !dirty.size)
-                  setInline(null);
+                  closeEditor();
               }}
             >
               {m ? (
@@ -534,7 +610,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     style={{ width: m.width * unit, height: m.height * unit }}
                     onClick={(ev) => {
                       if (ev.target instanceof SVGElement && !dirty.size)
-                        setInline(null);
+                        closeEditor();
                     }}
                   >
                     <div
@@ -545,6 +621,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                       .filter(
                         (t) =>
                           showHidden ||
+                          // The label whose box is open keeps its target, so Leave out leaves the box in place.
+                          (t.shapeId === s.id && t.key === inline) ||
                           (t.key === "area"
                             ? faceAreaLabel(
                                 d.shapes.find((s) => s.id === t.shapeId)!,
@@ -559,7 +637,9 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                           key={`${t.shapeId}-${t.key}`}
                           className="cb-hit"
                           data-cb-anchor={`${t.shapeId}-${t.key}`}
+                          data-options-anchor=""
                           aria-label={`Edit ${t.key} label on ${t.shapeId}`}
+                          title={seesOf(d.shapes.find((x) => x.id === t.shapeId)!, t.key) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}
                           disabled={blocked}
                           style={{
                             left: t.x * unit,
@@ -567,7 +647,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                             width: t.width * unit,
                             height: (t.height ?? 6) * unit,
                           }}
-                          onClick={() => editTarget(t.shapeId, t.key)}
+                          onClick={(ev) => editTarget(t.shapeId, t.key, ev.currentTarget)}
+                          onDoubleClick={() => toggleTarget(t.shapeId, t.key)}
                         />
                       ))}
                   </div>
@@ -597,7 +678,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               }
               status={message}
               hint={
-                <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
+                <EditorHint tool="cuboids">Click a label to edit it. Double-click one for a pupil space.</EditorHint>
               }
             />
             <div className="cb-structure" aria-label="Cuboid structure">
@@ -674,7 +755,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     setRecovery(null);
                     setHistory(createHistory(newDocument()));
                     setSelected("cuboid-1");
-                    setInline(null);
+                    closeEditor();
+                    dirtyNow.current = new Set();
                     setDirty(new Set());
                     setInputEpoch((n) => n + 1);
                     setMessage("");
@@ -706,17 +788,10 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               }}
             />
           </Panel>
-          <aside
-            className="inspector-stack cb-inspector md-kit"
-            aria-label="Cuboid settings"
-          >
+          <aside ref={stackRef} className="inspector-stack cb-inspector md-kit md-kit--one" aria-label="Cuboid settings">
             <ReturnToDiagram />
-            {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top: the top of the
-                left column where there are two, which is where the other tools show what is selected. The cards
-                stay children of one group, so none is rebuilt as the order changes; cuboid.css sets the columns. */}
-            <div className="md-kit-cards cb-cards">
-              <div>
-                {d.shapes.length > 1 && (
+            {/* One folding column (the usability rollout, 22 Nov 2026): What pupils see, the shape, then the rest. */}
+            {d.shapes.length > 1 && (
                   <section className="panel-card cb-pick" aria-label="Cuboids">
                     <label>
                       Selected cuboid{" "}
@@ -735,11 +810,28 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     </label>
                   </section>
                 )}
-                {((cards: Record<SettingsCard, ReactNode>) =>
-                  cardOrder(focus).map((key) => cards[key]))({
-                shape: (
-                  <section key="shape" className="panel-card" aria-labelledby="cb-card-shape">
-                    <h2 id="cb-card-shape">{"Shape"}</h2>
+            <FoldCard tool="cuboids" title="What pupils see" icon={Eye} defaultOpen summary={spaceSummary} help="Each label prints its value, a dotted pupil space or nothing. Click a label on the drawing for its own choice.">
+              {(
+                [
+                  ["Edge labels", ["width", "depth", "height"]],
+                  ["Face labels", ["front", "top", "side"]],
+                  ...(a.mode === "one" ? ([["Shaded face area", ["area"]]] as const) : []),
+                ] as const
+              ).map(([group, ks]) => (
+                <VisibilitySwitch
+                  key={group}
+                  name={group}
+                  caption={group}
+                  disabled={blocked}
+                  value={commonVisibility(ks.map((k) => seesOf(s, k))) ?? "show"}
+                  onChange={(v) => setSees(s.id, ks, v, group.toLowerCase())}
+                />
+              ))}
+              <PupilSpaceHint count={spaces.length} disabled={blocked} onClear={() => setSees(s.id, spaces, "show", "pupil spaces")}>
+                Double-click a label on the drawing for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="cuboids" title="Shape" icon={Box} defaultOpen summary={`${s.dimensions.width} × ${s.dimensions.depth} × ${s.dimensions.height} ${s.unit}`}>
                     <div className="cb-dimensions">
                       {axes.map((axis) =>
                         field(
@@ -895,11 +987,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         {w}
                       </p>
                     ))}
-                  </section>
-                ),
-                labels: (
-                  <section key="labels" className="panel-card" aria-labelledby="cb-card-labels">
-                    <h2 id="cb-card-labels">{focus === "labels" ? `Selected label: ${inline}` : "Labels"}</h2>
+            </FoldCard>
+            <FoldCard tool="cuboids" title="Labels" icon={Tag} summary={`${KEY_NAMES[labelKey]} · position and captions`}>
                     <div className="cb-grid">
                     <label>
                       Edge or face{" "}
@@ -909,7 +998,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         value={labelKey}
                         onChange={(ev) => {
                           setLabelKey(ev.target.value as LabelKey);
-                          setInline(null);
+                          closeEditor();
                         }}
                       >
                         {keys.map((k) => (
@@ -931,13 +1020,13 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                           )
                         }
                       >
-                        <option value="hidden">Hidden</option>
+                        <option value="hidden">Leave out</option>
                         {axes.includes(labelKey as (typeof axes)[number]) ? (
                           <option value="value">Dimension</option>
                         ) : (
                           <option value="area">Face area</option>
                         )}
-                        <option value="blank">Answer line</option>
+                        <option value="blank">Pupil space (dotted line)</option>
                         <option value="text">Custom text</option>
                       </select>
                     </label>
@@ -961,7 +1050,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         </div>
                       )}
                       {check(
-                        "Show editing targets for hidden labels",
+                        "Show editing targets for left-out labels",
                         showHidden,
                         (v) => setShowHidden(v),
                       )}
@@ -980,11 +1069,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         custom labels remain unchanged.
                       </p>
                     </details>
-                  </section>
-                ),
-                shading: (
-                  <section key="shading" className="panel-card" aria-labelledby="cb-card-shading">
-                    <h2 id="cb-card-shading">{focus === "shading" ? "Selected: area label" : "Shading"}</h2>
+            </FoldCard>
+            <FoldCard tool="cuboids" title="Shading" icon={Paintbrush} summary={a.mode === "one" ? "One face" : a.mode === "faces" ? "Grey faces" : "Outline"}>
                     <div className="cb-shade-options" aria-label="Shading style">
                       {(
                         [
@@ -1084,8 +1170,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                               )
                             }
                           >
-                            <option value="hidden">Hidden</option>
-                            <option value="blank">Answer line</option>
+                            <option value="hidden">Leave out</option>
+                            <option value="blank">Pupil space (dotted line)</option>
                             <option value="value">Calculated value</option>
                             <option value="text">Custom text</option>
                           </select>
@@ -1126,12 +1212,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                           )}
                       </>
                     )}
-                  </section>
-                ),
-                })}
-                <section className="panel-card" aria-label="Print settings">
-                  <details>
-                    <summary>Print settings</summary>
+            </FoldCard>
+            <FoldCard tool="cuboids" title="Print settings" icon={Printer} summary={`${d.widthCm} cm wide`}>
                     <p>
                       {m
                         ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
@@ -1162,43 +1244,25 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                       Width before trimming. Images keep their scale and trim unused
                       outer space. Preview zoom does not change printing.
                     </p>
-                  </details>
-                </section>
-              </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
       </main>
-      {inline && currentTarget && (
-        <FloatingEditor
-          active={active && !pending && recovery === null}
-          anchor={`${s.id}-${inline}`}
-          title={inline === "area" ? "Edit face area" : `Edit ${inline}`}
+      {inline && currentTarget && boxAnchor && (
+        <OptionsBox
+          anchor={boxAnchor}
+          anchorKey={`${s.id}-${inline}`}
+          hidden={!active}
+          focusField={!coarse}
+          // Beside the whole drawing, so it never covers another label, and never over the settings.
+          placeBy={boxAnchor.closest<HTMLElement>(".cb-resource")}
+          bounds={boxAnchor.closest<HTMLElement>(".editor-card")}
+          title={KEY_NAMES[inline]}
+          // A refused value keeps the box open, so it stays visible until it is fixed.
+          onClose={() => !dirtyNow.current.size && closeEditor()}
         >
-          {field(
-            inline === "area" ? "Edit face area" : `Edit ${inline}`,
-            labelValue,
-            inlineApply,
-            true,
-          )}
-          <div className="cb-floating-actions">
-            <button
-              onClick={() => {
-                if (inlineField.current?.apply()) closeEditor();
-              }}
-            >
-              Apply
-            </button>
-            <button
-              onClick={() => {
-                inlineField.current?.cancel();
-                closeEditor();
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </FloatingEditor>
+          {labelBox(inline)}
+        </OptionsBox>
       )}
       {active && pending && (
         <ResourceDialog
@@ -1209,7 +1273,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           onConfirm={() => {
             commit(pending.e, stepName(pending.title));
             setSelected(pending.e.document.shapes[0].id);
-            setInline(null);
+            closeEditor();
             setPending(null);
             if (location.hash.includes("cuboids="))
               window.history.replaceState(

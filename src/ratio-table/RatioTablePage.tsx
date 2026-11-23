@@ -27,7 +27,14 @@ import { formatResourceSize } from "../site/resourceSizeFormat";
 import { copyPngToClipboard } from "../export/clipboard";
 import { ratioPrintPng } from "./export";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDown, MousePointer2, Type } from "lucide-react";
+import { ArrowDown, MousePointer2, Type, Wrench } from "lucide-react";
+import { OptionsBox } from "../site/OptionsBox";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { togglePupilSpace } from "../editor-kit/visibility";
+import { cellVisibility, withCellVisibility } from "./cellVisibility";
+import { spokenHeading } from "../../packages/ratio-table-core/src/schema";
 import {
   applyRatioOperations,
   decodeRatio,
@@ -119,6 +126,9 @@ export default function RatioTablePage({
   const [selection, setSelection] = useState<RatioSelection>(null);
   const [selectionActive, setSelectionActive] = useState(false);
   const editor = useRef<HTMLDivElement>(null);
+  const [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
   const [tool, setTool] = useState<"edit" | "arrow">("edit");
   const [arrowFrom, setArrowFrom] = useState<string | null>(null);
   const [pendingInputs, setPendingInputs] = useState<Set<string>>(
@@ -154,6 +164,21 @@ export default function RatioTablePage({
   }, [record]);
   function operations(ops: RatioOperation[]) {
     commit(applyRatioOperations(current.current, ops), operationLabel(ops));
+  }
+  /**
+   * The options box sits beside the whole table, never over it: a box beside one cell would cover the next one, and
+   * the table is typed in like a spreadsheet.
+   */
+  function openBox(from: HTMLElement) {
+    setBoxAnchor(from);
+  }
+  /** Double-click a cell: a pupil space, and again back to the value (one undo step). */
+  function toggleCell(rowId: string, column: number) {
+    const cell = current.current.document.rows.find((r) => r.id === rowId)?.cells[column];
+    if (!cell) return;
+    const next = withCellVisibility(cell, togglePupilSpace(cellVisibility(cell)));
+    if (typeof next === "string") return setMessage(next);
+    attempt(() => operations([{ op: "set_cell", rowId, column: column as 0 | 1 | 2, cell: next }]));
   }
   function attempt(action: () => void) {
     try {
@@ -325,6 +350,8 @@ export default function RatioTablePage({
     function clickAway(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      // The options box sits outside the editor (it floats over the page); pressing in it keeps the selection.
+      if (target.closest(".md-options-box")) return;
       if (
         event.composedPath().includes(editor.current as EventTarget) &&
         target.closest(
@@ -345,6 +372,9 @@ export default function RatioTablePage({
   useEffect(() => {
     if (!selectionActive && !pendingInputs.size) setSelection(null);
   }, [selectionActive, pendingInputs]);
+  useEffect(() => {
+    if (boxAnchor && (!selection || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, selection]);
   function showSelection(next: RatioSelection) {
     setSelection(next);
     setSelectionActive(true);
@@ -461,7 +491,7 @@ export default function RatioTablePage({
     const target = document.rows.find((row) => row.id === step?.to);
     const action = (overwrite = false) =>
       attempt(() => operations([{ op: "fill_next_row", from, overwrite }]));
-    if (target?.cells.some((cell) => cell.kind === "number"))
+    if (target?.cells.some((cell) => cell.kind === "number" || cell.kind === "hidden" || (cell.kind === "empty" && cell.value !== undefined)))
       setPending({
         title: "Replace the next row's values?",
         action: () => action(true),
@@ -718,7 +748,51 @@ export default function RatioTablePage({
                 (row) => row.id === removalRow,
               )}
               removalColumnIndex={removalColumn}
+              onOpen={openBox}
+              onToggleCell={toggleCell}
             />
+            {boxAnchor && selection && (
+              <OptionsBox
+                anchor={boxAnchor}
+                anchorKey={JSON.stringify(selection)}
+                // Out of sight under a confirmation, so it never covers the dialog's buttons.
+                hidden={!active || pending !== null}
+                // A cell or heading is typed in on the table itself, so its box leaves the cursor there.
+                takeFocus={selection.kind === "step"}
+                bounds={globalThis.document.querySelector<HTMLElement>(".ratio-stage")}
+                // Beside the whole table, so it never covers a neighbouring cell; focus still goes back to the cell.
+                placeBy={globalThis.document.querySelector<HTMLElement>(".ratio-canvas-layout")}
+                placeByOnly
+                focusField={!coarse}
+                title={(() => {
+                  if (selection.kind === "cell") {
+                    const i = document.rows.findIndex((r) => r.id === selection.rowId);
+                    return `Row ${i + 1} · ${spokenHeading(document.headings[selection.column]?.text ?? "")}`;
+                  }
+                  if (selection.kind === "heading") return `Column ${selection.column + 1} heading`;
+                  if (selection.kind === "headings") return "Edit headings";
+                  return "Scaling arrow";
+                })()}
+                // A refused draft in the box keeps it open, so the draft stays visible until it is fixed or cancelled.
+                onClose={() => !Array.from(pendingInputs).some((key) => !key.startsWith("inline-")) && setBoxAnchor(null)}
+              >
+                <RatioInspector
+                  part="box"
+                  document={document}
+                  selection={selection}
+                  inputVersion={inputVersion}
+                  pendingInputs={pendingInputs.size > 0}
+                  factorDisabled={Array.from(pendingInputs).some((key) => key.startsWith("inline-factor-"))}
+                  onSelect={selectItem}
+                  onPending={onInputPending}
+                  onOperations={operations}
+                  onAction={(ops) => attempt(() => operations(ops))}
+                  onFill={fill}
+                  onMessage={setMessage}
+                  onOpen={openBox}
+                />
+              </OptionsBox>
+            )}
             <EditorFoot
               zoom={zoom}
               onZoom={setZoom}
@@ -736,8 +810,8 @@ export default function RatioTablePage({
                       : undefined
                   }
                 >
-                  Click a heading, cell or arrow number and type. Click a curved
-                  arrow for its settings.
+                  Click a cell or heading and type; its options open beside it. Double-click a cell for a pupil space. Click a
+                  curved arrow for its settings.
                 </EditorHint>
               }
             >
@@ -763,12 +837,14 @@ export default function RatioTablePage({
               </p>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Ratio-table settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Ratio-table settings">
             <ReturnToDiagram />
-            {/* The group that is switched off during recovery is also the kit's pair of columns: the inspector
-                puts what is selected and the tools in the first, and the table's settings in the second. */}
-            <fieldset disabled={!!recovery} className="ratio-settings md-kit-cards">
+            {/* Switched off during recovery. One folding column: What pupils see, the tools, then the settings. */}
+            <fieldset disabled={!!recovery} className="ratio-settings">
               <RatioInspector
+                part="cards"
+                onMessage={setMessage}
+                onOpen={openBox}
                 document={document}
                 selection={selection}
                 inputVersion={inputVersion}
@@ -782,8 +858,7 @@ export default function RatioTablePage({
                 onAction={(ops) => attempt(() => operations(ops))}
                 onFill={fill}
                 tools={
-                  <section className="panel-card">
-                    <h2>Table tools</h2>
+                  <FoldCard tool="ratio-table" title="Table tools" icon={Wrench} defaultOpen summary={tool === "arrow" ? "Adding an arrow" : "Edit"}>
                     <div
                       className="tool-group"
                       role="group"
@@ -816,6 +891,7 @@ export default function RatioTablePage({
                             kind: "step",
                             from: document.rows[0].id,
                           });
+                          // Rows are picked on the table: no box over it. Click the new arrow for its options.
                           setMessage("");
                         }}
                       >
@@ -826,10 +902,12 @@ export default function RatioTablePage({
                         className="tool-button"
                         disabled={structureDisabled}
                         data-ratio-select
-                        onClick={() => {
+                        data-options-anchor=""
+                        onClick={(ev) => {
                           setTool("edit");
                           setArrowFrom(null);
                           showSelection({ kind: "headings" });
+                          openBox(ev.currentTarget);
                         }}
                       >
                         <Type size={18} />
@@ -841,7 +919,7 @@ export default function RatioTablePage({
                       Edit values on the table. Add and remove rows or columns
                       beside its edges.
                     </p>
-                  </section>
+                  </FoldCard>
                 }
                 after={
                   <>

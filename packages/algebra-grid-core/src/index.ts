@@ -100,7 +100,8 @@ export function expandedExpression(raw: string): bigint[] {
   return p;
 }
 const cellSchema = z
-  .object({ value: z.string().max(32).nullable(), hidden: z.boolean() })
+  // omit (Leave out, 22 Nov 2026): the value is kept but prints in neither copy.
+  .object({ value: z.string().max(32).nullable(), hidden: z.boolean(), omit: z.boolean().optional() })
   .strict();
 const id = z.string().regex(/^[a-z0-9-]{1,48}$/);
 const columnSchema = z
@@ -186,6 +187,8 @@ export function validate(raw: unknown): Envelope {
       } else if (cell.value !== null) cell.value = cellText(d.mode, cell.value);
       if (cell.value === null && cell.hidden)
         throw Error("A blank cell cannot contain a hidden answer.");
+      if (cell.omit && cell.hidden) throw Error("A cell cannot be both a pupil space and left out.");
+      if (!cell.omit || cell.value === null) delete cell.omit;
     }
   }
   if (d.expression)
@@ -246,11 +249,13 @@ export function setCell(
   c: number,
   value: string | null,
   hidden = false,
+  omit = false,
 ) {
   const n = structuredClone(e);
   n.document.rows[r].cells[c] = {
     value: value === "" ? null : value,
-    hidden: !!value && hidden,
+    hidden: !!value && hidden && !omit,
+    ...(value && omit ? { omit: true } : {}),
   };
   n.document.sourceId = null;
   return validate(n);
@@ -741,7 +746,7 @@ function textSvg(
 }
 export function layout(e: Envelope) {
   const d = e.document;
-  const filled = (cell: Cell) => cell.value !== null && !cell.hidden;
+  const filled = (cell: Cell) => cell.value !== null && !cell.hidden && !cell.omit;
   const compactRow = d.compactHeadings && d.rows[0].cells.every(filled);
   const compactColumn =
     d.compactHeadings && d.rows.every((row) => filled(row.cells[0]));
@@ -808,7 +813,7 @@ export function layout(e: Envelope) {
   const issues = cells
     .filter(
       (a) =>
-        a.cell.value && !a.cell.hidden && textWidth(a.cell.value) > a.w - 2.5,
+        a.cell.value && !a.cell.hidden && !a.cell.omit && textWidth(a.cell.value) > a.w - 2.5,
     )
     .map(
       (a) =>
@@ -863,7 +868,7 @@ export function renderSvg(e: Envelope, showAnswers = false) {
   }
   const values = d.gridVisible
     ? g.cells
-        .filter((a) => a.cell.value !== null && (!a.cell.hidden || showAnswers))
+        .filter((a) => a.cell.value !== null && !a.cell.omit && (!a.cell.hidden || showAnswers))
         .map((a) =>
           textSvg(
             a.cell.value!,

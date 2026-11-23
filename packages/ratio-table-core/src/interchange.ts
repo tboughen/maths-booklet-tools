@@ -405,7 +405,8 @@ export function applyRatioOperations(
             "incomplete_row",
             "Enter all source values before filling the next row.",
           );
-        if (!op.overwrite && target.cells.some(known))
+        // A left-out cell keeps its value, so replacing it needs the same confirmation.
+        if (!op.overwrite && target.cells.some((c) => known(c) || (c.kind === "empty" && c.value !== undefined)))
           throw new RatioError(
             "overwrite_required",
             "The next row contains values. Confirm before replacing them.",

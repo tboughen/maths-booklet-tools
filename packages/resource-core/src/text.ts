@@ -29,7 +29,7 @@ export const FRACTION = /\{([^{}/]{1,12})\/([^{}/]{1,12})\}/g;
 export const SUP_SCALE = 0.7;
 export const SUP_RAISE = 0.36;
 /** A power with maths notation on: ^5, ^-2, ^n, or a braced one such as ^{2n} or ^{-1}. */
-const POWER = /\^(?:\{([^{}]{1,8})\}|([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z]))/g;
+const POWER = /\^(?:\{([^{}]{1,8})\}|([−-]?\d{1,3}(?!\d)|[−-]?[a-z](?![a-z])))/g;
 /** Splits each plain run at its powers: the power becomes a raised run in the same style. */
 function powerRuns(runs: Run[]): Run[] {
   const out: Run[] = [];
@@ -171,7 +171,7 @@ export function fracPieces(s: string): { c: string; sup: boolean }[] {
   const t = s.replace(/\*/g, "").replace(/([²³])(?![A-Za-z\d])/g, (c) => (c === "²" ? "^2" : "^3"));
   for (let i = 0; i < t.length; i++) {
     // The same powers as inline text (POWER): ^5, ^-2, ^n, never ^1000 or ^ab.
-    const m = t[i] === "^" ? t.slice(i + 1).match(/^([−-]?\d{1,3}(?!\d)|[−-]?[a-z])(?![a-z])/) : null;
+    const m = t[i] === "^" ? t.slice(i + 1).match(/^([−-]?\d{1,3}(?!\d)|[−-]?[a-z](?![a-z]))/) : null;
     if (m) {
       for (const c of m[1]) out.push({ c, sup: true });
       i += m[1].length;

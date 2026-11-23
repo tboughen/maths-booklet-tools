@@ -10,6 +10,12 @@ import {
   encode,
   layout,
 } from "../packages/cuboid-core/src";
+// The settings column folds its rarer cards; these tests use them, so they start open.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    for (const t of ["Labels", "Shading", "Print settings"]) localStorage.setItem(`mathsdock:fold:cuboids:${t}`, "open");
+  });
+});
 test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 const report = join(
   process.cwd(),
@@ -619,10 +625,9 @@ test("bold lines are saved, printed and undoable; normal lines are not saved (U1
 }) => {
   const saved = async () =>
     (await page.evaluate(() => {
-      const key = Object.keys(localStorage).find((k) => k.includes("cuboid"));
+      const key = Object.keys(localStorage).find((k) => k.startsWith("maths-booklet-tools:cuboids"));
       return key ? localStorage.getItem(key) : null;
     })) ?? "";
-  await page.locator("summary").filter({ hasText: /^Print settings$/ }).click();
   await page.getByLabel("Lines", { exact: true }).selectOption("bold");
   await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
   expect(await resource(page).innerHTML()).toContain('stroke-width="0.375"');

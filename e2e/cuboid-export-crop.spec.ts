@@ -12,6 +12,12 @@ import {
   type Envelope,
 } from "../packages/cuboid-core/src";
 import { examples } from "../packages/cuboid-core/src/examples";
+// The settings column folds its rarer cards; these tests use them, so they start open.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    for (const t of ["Labels", "Shading", "Print settings"]) localStorage.setItem(`mathsdock:fold:cuboids:${t}`, "open");
+  });
+});
 
 test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
@@ -207,7 +213,8 @@ test("tight vector crops preserve every label and shape across the supported lay
     join(report, "crop-cases.json"),
     JSON.stringify(proofs, null, 2),
   );
-  expect(await page.locator('[aria-hidden="true"] svg').count()).toBe(0);
+  // Only the settings cards' own icons are hidden pictures; no drawing is.
+  expect(await page.locator('[aria-hidden="true"]:not(.md-fold-icon) svg').count()).toBe(0);
 });
 
 test("real downloads and both clipboard routes use the same cropped dimensions", async ({

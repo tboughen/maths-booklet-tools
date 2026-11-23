@@ -64,7 +64,7 @@
   margin: 0;
   accent-color: var(--md-blue, #0f62fe);
 }
-.md-options-box :is(button, input:not([type="checkbox"])) {
+.md-options-box :is(button, input:not([type="checkbox"], [type="radio"])) {
   box-sizing: border-box;
   min-height: var(--md-control, 32px);
   border-radius: var(--md-radius, 6px);
@@ -72,7 +72,7 @@
   color: var(--md-ink, #213c59);
   font: 400 var(--md-text-sm, 13px) / 1.2 var(--md-font, Inter, system-ui, sans-serif);
 }
-.md-options-box input:not([type="checkbox"]) {
+.md-options-box input:not([type="checkbox"], [type="radio"]) {
   width: 100%;
   padding: 4px 8px;
   border: 1px solid var(--field-line, #8193a8);
@@ -383,4 +383,19 @@
 }
 .md-kit .md-fold-group > .panel-card.md-fold + .panel-card.md-fold {
   border-top: 1px solid var(--md-line, #dbe3ec);
+}
+/* A choice list in a box is as tall as its fields and buttons (wave 2, 22 Nov 2026). */
+.md-options-box select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--md-control, 32px);
+  padding: 4px 8px;
+  border: 1px solid var(--field-line, #8193a8);
+  border-radius: var(--md-radius, 6px);
+  background: var(--md-paper, #fff);
+  color: var(--md-ink, #213c59);
+  font: 400 var(--md-text-sm, 13px) / 1.2 var(--md-font, Inter, system-ui, sans-serif);
+}
+.md-options-box[hidden] {
+  display: none;
 }

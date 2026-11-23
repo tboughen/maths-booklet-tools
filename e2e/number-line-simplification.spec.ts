@@ -35,10 +35,9 @@ test.beforeEach(async ({ page }) => {
 test("default settings show notation and scale within the inspector with optional sections closed", async ({
   page,
 }) => {
-  // U21: the selection card stays at the top with a short prompt until something is selected.
-  await expect(page.getByRole("region", { name: "Selected item" })).toHaveText(
-    "Selected itemSelect a tick, point or line to edit it here.",
-  );
+  // The usability pilot: What pupils see comes first; a clicked tick, point or line opens its own box.
+  await expect(page.locator(".inspector-stack .panel-card").first()).toHaveAccessibleName("What pupils see");
+  await expect(page.getByRole("region", { name: "Selected item" })).toHaveCount(0);
   await expect(page.getByLabel("First tick", { exact: true })).toBeVisible();
   await expect(
     page.getByLabel("Label every", { exact: true }),
@@ -392,7 +391,8 @@ test("collapsed question settings preserve zero, hidden answers and pupil blanks
   page,
 }) => {
   await page.getByRole("button", { name: "Tick 0", exact: true }).click();
-  await page.getByLabel("Tick label state").selectOption("answer-line");
+  await page.locator(".md-options-box").getByRole("group", { name: "What pupils see", exact: true }).getByRole("button", { name: "Pupil space", exact: true }).click();
+  await page.keyboard.press("Escape");
   await settings(page, "More settings").click();
   await settings(page, "Question and answer").click();
   await page.getByLabel("Answer text", { exact: true }).fill("0");
@@ -410,5 +410,5 @@ test("collapsed question settings preserve zero, hidden answers and pupil blanks
     page.getByLabel("Show answer text", { exact: true }),
   ).not.toBeChecked();
   await page.getByRole("button", { name: "Tick 0", exact: true }).click();
-  await expect(page.getByLabel("Tick label state")).toHaveValue("answer-line");
+  await expect(page.locator(".md-options-box").getByRole("group", { name: "What pupils see", exact: true }).getByRole("button", { name: "Pupil space", exact: true })).toHaveAttribute("aria-pressed", "true");
 });
