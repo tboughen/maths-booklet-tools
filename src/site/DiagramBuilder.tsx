@@ -1,3 +1,4 @@
+import { flushSync } from "react-dom";
 import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { LayoutGrid, Grid3X3, Tags, Settings2, Star, ZoomIn, X } from "lucide-react";
 import { PageHeading } from "./PageHeading";
@@ -270,7 +271,7 @@ export function DiagramBuilder() {
                     <a className="overview-example-card" href={href} aria-label={`Open ${e.title} in ${tool}`}>
                       <span className="tool-picture"><img className="overview-tool-preview" src={previewUrl(e.id)} alt="" loading="lazy" /></span>
                       <span className="tool-tile-text">
-                        <h3>{e.title}{e.plain && <span className="tool-plain">Plain</span>}</h3>
+                        <h3>{e.title}{e.plain && <>{" "}<span className="tool-plain">Plain</span></>}</h3>
                         <span className="tool-match">Opens in {tool}</span>
                         <span className="tool-tile-description">{e.description}</span>
                       </span>
@@ -280,7 +281,16 @@ export function DiagramBuilder() {
               })}
             </div>
             {examples.length > shownExamples.length && (
-              <button type="button" className="tool-examples-more" onClick={() => setAllExamples(true)}>Show all {examples.length} examples</button>
+              <button
+                type="button"
+                className="tool-examples-more"
+                onClick={(event) => {
+                  // The button goes once every example shows, so focus moves to the first one it revealed.
+                  const grid = event.currentTarget.previousElementSibling;
+                  flushSync(() => setAllExamples(true));
+                  grid?.querySelectorAll<HTMLAnchorElement>("a")[EXAMPLES_SHOWN]?.focus();
+                }}
+              >Show all {examples.length} examples</button>
             )}
           </section>
         )}

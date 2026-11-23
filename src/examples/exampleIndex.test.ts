@@ -22,6 +22,13 @@ describe("Diagram builder example index", () => {
     expect(found.map((e) => e.id)).toEqual(expect.arrayContaining(["solids-triangular-prism", "nets-name-the-shape"]));
     expect(found.find((e) => e.id === "nets-name-the-shape")?.tool).toBe("nets");
   });
+  it("puts plain shapes first only when their title matches", () => {
+    // "triangle" is only in the plain prisms' descriptions, so the Triangles tool's titled examples lead.
+    const found = searchExamples(saved, "triangle");
+    expect(found[0].title.toLocaleLowerCase()).toContain("triangle");
+    const prism = found.findIndex((e) => e.id === "solids-plain-triangular-prism");
+    expect(found.slice(prism).every((e) => !e.title.toLocaleLowerCase().includes("triangle"))).toBe(true);
+  });
   it("needs every word searched and ignores case", () => {
     expect(searchExamples(saved, "CYLINDER").some((e) => e.id === "solids-plain-cylinder")).toBe(true);
     expect(searchExamples(saved, "cylinder zebra")).toEqual([]);

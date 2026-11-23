@@ -62,13 +62,13 @@ export function exampleIndex(galleries: Record<string, unknown>): ExampleIndexEn
 }
 
 /**
- * Examples whose title or description holds every word searched. Plain shapes come first, then
- * examples whose title holds every word, then the rest in gallery order.
+ * Examples whose title or description holds every word searched. Those whose title holds every word
+ * come first (plain shapes before the rest), then the others, each in gallery order.
  */
 export function searchExamples(index: ExampleIndexEntry[], query: string): ExampleIndexEntry[] {
   const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   if (!words.length) return [];
-  const rank = (e: ExampleIndexEntry) => (e.plain ? 0 : words.every((w) => e.title.toLocaleLowerCase().includes(w)) ? 1 : 2);
+  const rank = (e: ExampleIndexEntry) => (!words.every((w) => e.title.toLocaleLowerCase().includes(w)) ? 2 : e.plain ? 0 : 1);
   return index
     .filter((e) => words.every((w) => `${e.title} ${e.description}`.toLocaleLowerCase().includes(w)))
     .map((e, order) => ({ e, order, rank: rank(e) }))

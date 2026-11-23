@@ -46,24 +46,31 @@ export function ExampleGallery<T>({
   const [error, setError] = useState("");
   // A link such as /tools/solids?example=solids-plain-cylinder (from the Diagram builder search)
   // opens that example through the page's own "Use this example", so its usual checks and undo apply.
-  const latest = useRef({ examples, onUse, disabled });
-  latest.current = { examples, onUse, disabled };
+  // The address loses the parameter at once, so it is never remembered or reopened later; a page that
+  // is busy (a confirm open, recovery) opens the example as soon as it is free.
+  const latest = useRef({ examples, onUse });
+  latest.current = { examples, onUse };
+  const queued = useRef<string | null>(null);
   useEffect(() => {
     if (!active) return;
     const url = new URL(location.href);
-    const id = url.searchParams.get(EXAMPLE_PARAM);
-    if (!id) return;
-    const { examples: list, onUse: use, disabled: blocked } = latest.current;
-    const example = list.find((item) => item.id === id);
-    if (!example || blocked) return;
-    url.searchParams.delete(EXAMPLE_PARAM);
-    history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+    const asked = url.searchParams.get(EXAMPLE_PARAM);
+    if (asked) {
+      url.searchParams.delete(EXAMPLE_PARAM);
+      history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+      queued.current = asked;
+    }
+    if (!queued.current || disabled) return;
+    const id = queued.current;
+    queued.current = null;
+    const example = latest.current.examples.find((item) => item.id === id);
+    if (!example) return;
     try {
-      use(example.make(false), example.title);
+      latest.current.onUse(example.make(false), example.title);
     } catch {
       /* A broken example leaves the page as it was; the gallery shows the same error when chosen. */
     }
-  }, [active]);
+  }, [active, disabled]);
   const trigger = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
