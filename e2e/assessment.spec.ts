@@ -151,7 +151,7 @@ test("numeric identifiers, pack ranges, page navigation and both downloads work 
   await page.getByRole("button", { name: "Generate class pack", exact: true }).click();
   await expect(page.getByRole("button", { name: "Download class PDF" }).last()).toBeEnabled({ timeout: 60000 });
   await page.getByText("Student details", { exact: true }).click();
-  const rows = page.locator(".af-table").last().locator("tbody tr");
+  const rows = page.locator("details", { has: page.getByText("Student details", { exact: true }) }).locator(".af-table tbody tr");
   const counts = [], marks = [];
   for (const row of await rows.all()) { counts.push(Number(await row.locator("td").nth(1).innerText())); marks.push(Number(await row.locator("td").nth(2).innerText())); }
   const expected = (values: number[]) => Math.min(...values) === Math.max(...values) ? String(values[0]) : `${Math.min(...values)}–${Math.max(...values)}`;
