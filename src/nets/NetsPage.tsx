@@ -59,6 +59,7 @@ import {
   type PresetType,
   type Pt,
   type Solid,
+  outline,
 } from "../../packages/net-core/src";
 import { LINK_PREFIX, parseNetsLink, netsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
@@ -534,7 +535,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                           Y = (y: number) => p.y + y * g.unit;
                         const cells: Pt[] = [];
                         if (adding && net.id === targetNet.id)
-                          for (let i = 0; i < p.across; i++) for (let j = 0; j < p.down; j++) if (!net.faces.some((f) => inside([i + 0.5, j + 0.5], f.points))) cells.push([i, j]);
+                          for (let i = 0; i < p.across; i++) for (let j = 0; j < p.down; j++) if (!net.faces.some((f) => inside([i + 0.5, j + 0.5], outline(f)))) cells.push([i, j]);
                         return (
                           <g key={net.id}>
                             {cells.map(([i, j]) => (
@@ -566,7 +567,7 @@ export default function NetsPage({ active = true }: { active?: boolean }) {
                                 <polygon
                                   key={f.id}
                                   className={`nets-face${isSelected ? " nets-selected" : ""}${hiddenHere ? " nets-hidden-face" : ""}`}
-                                  points={f.points.map((q) => `${X(q[0])},${Y(q[1])}`).join(" ")}
+                                  points={outline(f).map((q) => `${X(q[0])},${Y(q[1])}`).join(" ")}
                                   role="button"
                                   tabIndex={blocked ? -1 : 0}
                                   aria-label={`Edit face ${k + 1}${d.nets.length > 1 ? ` of ${netName(net.id)}` : ""}${words ? `, ${words}` : ""}`}
