@@ -21,5 +21,6 @@ export async function allTools(page: Page) {
 /** A click on plain page text, to move focus out of a field. The tool's name is a button now,
  * so tests click the description under it instead. */
 export async function clickAway(page: Page) {
-  await shown(page).locator(".page-heading > div > p").first().click();
+  // At its start: an options box beside the drawing may float over the rest of the line.
+  await shown(page).locator(".page-heading > div > p").first().click({ position: { x: 4, y: 4 } });
 }

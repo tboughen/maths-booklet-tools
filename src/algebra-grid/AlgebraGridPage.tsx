@@ -45,6 +45,15 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
+import { OptionsBox } from "../site/OptionsBox";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { LiveText } from "../site/LiveText";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Eye, Grid3X3, Ruler } from "lucide-react";
 import "./algebra-grid.css";
 import "../site/settings-kit.css";
 import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
@@ -101,7 +110,9 @@ function initial() {
     };
   }
 }
-type Draft = { r: number; c: number; text: string; hidden: boolean };
+/** What pupils see of a cell: an empty cell is a pupil space with no saved answer. */
+type Cell = Envelope["document"]["rows"][number]["cells"][number];
+const cellSees = (cell: Cell): Visibility => (cell.omit ? "omit" : cell.hidden || cell.value === null ? "hidden" : "show");
 type Replacement = { e: Envelope; title: string; explanation: string };
 export default function AlgebraGridPage({
   active = true,
@@ -125,8 +136,15 @@ export default function AlgebraGridPage({
     [conflict, setConflict] = useState(false),
     [saveState, setSaveState] = useState("Saved on this device"),
     [message, setMessage] = useState(startup.message);
-  const [draft, setDraft] = useState<Draft | null>(null),
-    [field, setField] = useState<{ key: string; value: string } | null>(null),
+  const [cellBox, setCellBox] = useState<{ r: number; c: number } | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
+    [boxError, setBoxError] = useState("");
+  // A typed entry the box refused keeps it open until it is fixed or Escape puts the saved value back. A ref, because
+  // a press elsewhere commits (on blur) and asks the box to close in the same moment.
+  const refused = useRef(false);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
+  const [field, setField] = useState<{ key: string; value: string } | null>(null),
     [questionEditor, setQuestionEditor] = useState(false),
     [inputError, setInputError] = useState(""),
     [pending, setPending] = useState<Replacement | null>(null),
@@ -138,20 +156,24 @@ export default function AlgebraGridPage({
     scroll = useRef<HTMLDivElement>(null),
     expected = useRef(startup.raw),
     linkSeen = useRef(""),
-    draftRef = useRef(draft),
     blockedRef = useRef(false),
     fieldRef = useRef(field),
     documentRef = useRef(e),
     activeRef = useRef(active);
-  draftRef.current = draft;
   fieldRef.current = field;
   documentRef.current = e;
   activeRef.current = active;
   const available = useResourceViewport(scroll);
-  const pendingInput = !!draft || !!field,
+  const pendingInput = !!field || !!boxError,
     blocked =
       pendingInput || recovery !== null || conflict || busy || !!pending;
   blockedRef.current = blocked;
+  // What pupils see: the cells with a value, headings apart from products, and the pupil spaces among them.
+  const withValue = d.rows.flatMap((row, r) => row.cells.flatMap((cell, c) => ((r || c) && cell.value !== null ? [{ r, c }] : []))),
+    headingCells = withValue.filter(({ r, c }) => !r || !c),
+    productCells = withValue.filter(({ r, c }) => r && c),
+    spaceCells = withValue.filter(({ r, c }) => d.rows[r].cells[c].hidden),
+    spaceSummary = spaceCells.length === 0 ? "No pupil spaces" : `${spaceCells.length} pupil ${spaceCells.length === 1 ? "space" : "spaces"}`;
   const issue = exportIssue(e),
     notes = warnings(e),
     scale =
@@ -256,28 +278,58 @@ export default function AlgebraGridPage({
     window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
   }, [active, blocked]);
-  function openCell(r: number, c: number) {
+  /** The live options box beside a cell: each change is one undo step, with no Apply. */
+  function openCell(r: number, c: number, from?: HTMLElement) {
+    if (blocked || refused.current) return;
+    setCellBox({ r, c });
+    setBoxAnchor(from ?? document.querySelector<HTMLElement>(`.ag-editor [data-ag-cell="${r}-${c}"]`));
+    setBoxError("");
+  }
+  function closeBox() {
+    refused.current = false;
+    setCellBox(null);
+    setBoxAnchor(null);
+    setBoxError("");
+  }
+  const cellName = (r: number, c: number) => `row ${r + 1}, column ${c + 1}`;
+  function editCell(r: number, c: number, text: string) {
+    const cell = d.rows[r].cells[c];
+    try {
+      commit(setCell(e, r, c, text.trim() || null, cell.hidden, !!cell.omit), false, `edit ${cellName(r, c)}`);
+      setBoxError("");
+      refused.current = false;
+      return true;
+    } catch (err) {
+      setBoxError(errorText(err));
+      refused.current = true;
+      return false;
+    }
+  }
+  /** Cells set to Show, a pupil space or Leave out, in one undo step. An empty cell is a pupil space already. */
+  function setSees(at: readonly { r: number; c: number }[], v: Visibility, what: string) {
+    if (blocked && !boxError) return;
+    const withValue = at.filter(({ r, c }) => d.rows[r].cells[c].value !== null);
+    if (!withValue.length) {
+      setMessage("Type a value first: an empty cell is a pupil space already.");
+      return;
+    }
+    let n = e;
+    try {
+      for (const { r, c } of withValue) n = setCell(n, r, c, d.rows[r].cells[c].value, v === "hidden", v === "omit");
+      commit(n, false, visibilityStep(v, what));
+    } catch (err) {
+      setMessage(errorText(err));
+    }
+  }
+  /** Double-click: a pupil space, and again back to the value. */
+  function toggleCell(r: number, c: number) {
     if (blocked) return;
     const cell = d.rows[r].cells[c];
-    setInputError("");
-    setDraft({ r, c, text: cell.value ?? "", hidden: cell.hidden });
-  }
-  function applyCell() {
-    if (!draft || recovery !== null || conflict) return;
-    try {
-      commit(
-        setCell(e, draft.r, draft.c, draft.text.trim() || null, draft.hidden),
-      );
-      setDraft(null);
-      setInputError("");
-      restoreCellFocus(draft.r, draft.c);
-    } catch (err) {
-      setInputError(errorText(err));
-    }
+    if (cell.value === null) return;
+    setSees([{ r, c }], togglePupilSpace(cellSees(cell)), cellName(r, c));
   }
   function startField(key: string, value: string) {
     if (
-      draft ||
       busy ||
       pending ||
       recovery !== null ||
@@ -404,16 +456,6 @@ export default function AlgebraGridPage({
       setMessage(errorText(err));
     }
   }
-  function restoreCellFocus(r: number, c: number) {
-    requestAnimationFrame(() => {
-      if (activeRef.current)
-        document
-          .querySelector<HTMLButtonElement>(
-            `.ag-editor [data-ag-cell="${r}-${c}"]`,
-          )
-          ?.focus({ preventScroll: true });
-    });
-  }
   function cancelField() {
     if (questionEditor) {
       requestAnimationFrame(() => {
@@ -432,11 +474,6 @@ export default function AlgebraGridPage({
     setQuestionEditor(false);
     setInputError("");
   }
-  const cancelDraft = () => {
-    if (draft) restoreCellFocus(draft.r, draft.c);
-    setDraft(null);
-    setInputError("");
-  };
   function settingActions(key: string) {
     return field?.key === key ? (
       <div className="ag-setting-actions">
@@ -465,7 +502,7 @@ export default function AlgebraGridPage({
             inputMode="decimal"
             aria-invalid={field?.key === key && !!inputError}
             value={field?.key === key ? field.value : String(value)}
-            disabled={!!draft || (blocked && field?.key !== key)}
+            disabled={blocked && field?.key !== key}
             onChange={(ev) => startField(key, ev.target.value)}
             onKeyDown={(ev) => {
               if (ev.key === "Enter") applyField();
@@ -480,7 +517,7 @@ export default function AlgebraGridPage({
       </div>
     );
   }
-  const dimensionBlocked = !!draft || (blocked && field?.key !== "expression");
+  const dimensionBlocked = blocked && field?.key !== "expression";
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), false, TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(renderSvg(e, true)), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), false, WORKED_STEP) });
   return (
@@ -687,7 +724,9 @@ export default function AlgebraGridPage({
                         key={`${d.rows[a.r].id}:${d.columns[a.c].id}`}
                         className="ag-cell"
                         data-ag-cell={`${a.r}-${a.c}`}
-                        aria-label={`Row ${a.r + 1}, column ${a.c + 1}: ${a.cell.hidden ? "hidden answer" : a.cell.value ? display(a.cell.value) : "blank"}`}
+                        data-options-anchor=""
+                        aria-label={`Row ${a.r + 1}, column ${a.c + 1}: ${a.cell.omit ? "left out" : a.cell.hidden ? "pupil space" : a.cell.value ? display(a.cell.value) : "blank"}`}
+                        title={a.cell.value === null ? "Click to type a value" : cellSees(a.cell) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}
                         disabled={blocked}
                         style={{
                           left: a.x * px,
@@ -695,7 +734,8 @@ export default function AlgebraGridPage({
                           width: a.w * px,
                           height: a.h * px,
                         }}
-                        onClick={() => openCell(a.r, a.c)}
+                        onClick={(ev) => openCell(a.r, a.c, ev.currentTarget)}
+                        onDoubleClick={() => toggleCell(a.r, a.c)}
                       />
                     ))}
                 </div>
@@ -759,8 +799,8 @@ export default function AlgebraGridPage({
               status={message}
               hint={
                 <EditorHint tool="expanding-factorising">
-                  Click a cell or the printed question to edit. Blank cells stay
-                  blank until you choose to fill them.
+                  Click a cell or the printed question to edit. Double-click a cell for a pupil space. Blank
+                  cells stay blank until you choose to fill them.
                 </EditorHint>
               }
             >
@@ -857,12 +897,34 @@ export default function AlgebraGridPage({
               </section>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Algebra grid settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Algebra grid settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card">
-              <h2>Teaching resource</h2>
+            {/* One folding column (the usability rollout, 22 Nov 2026): What pupils see, the task, then the print size. */}
+            <FoldCard tool="algebra-grid" title="What pupils see" icon={Eye} defaultOpen summary={spaceSummary} help="Each cell prints its value, a pupil space or nothing. Click a cell on the grid for its own choice.">
+              {(
+                [
+                  ["Headings", headingCells],
+                  ["Products", productCells],
+                ] as const
+              ).map(
+                ([group, at]) =>
+                  at.length > 0 && (
+                    <VisibilitySwitch
+                      key={group}
+                      name={group}
+                      caption={group}
+                      disabled={blocked}
+                      value={commonVisibility(at.map(({ r, c }) => cellSees(d.rows[r].cells[c]))) ?? "show"}
+                      onChange={(v) => setSees(at, v, `all ${group.toLowerCase()}`)}
+                    />
+                  ),
+              )}
+              {headingCells.length + productCells.length === 0 && <p className="md-kit-note">Type in a cell first.</p>}
+              <PupilSpaceHint count={spaceCells.length} disabled={blocked} onClear={() => setSees(spaceCells, "show", "pupil spaces")}>
+                Double-click a cell for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="algebra-grid" title="Teaching resource" icon={Grid3X3} defaultOpen summary={d.mode === "expand" ? "Expanding" : d.mode === "factorise" ? "Factorising" : "Grid method"}>
               <label>
                 Task
                 <select
@@ -989,11 +1051,8 @@ export default function AlgebraGridPage({
               <p>
                 Calculations use saved entries, including hidden answers.
               </p>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card">
-              <h2>Print size</h2>
+            </FoldCard>
+            <FoldCard tool="algebra-grid" title="Print size" icon={Ruler} summary={`${d.cellMm} mm cells · ${d.paper} ${d.orientation}`}>
               <div className="ag-presets">
                 {[
                   [12, "Compact"],
@@ -1132,13 +1191,11 @@ export default function AlgebraGridPage({
                 </p>
                 <p>
                   Clear removes a value. Hide retains an answer in editable files
-                  and links; it leaves a blank in pupil artwork. Exports always
-                  use pupil visibility.
+                  and links; it leaves a blank in pupil artwork. Leave out keeps it too, but prints it in
+                  neither copy. Exports always use pupil visibility.
                 </p>
               </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {questionEditor && field?.key === "expression" && (
@@ -1172,53 +1229,55 @@ export default function AlgebraGridPage({
             </div>
           </CellEditor>
         )}
-        {draft && (
-          <CellEditor anchor={`${draft.r}-${draft.c}`} active={active}>
-            <strong>
-              Row {draft.r + 1}, column {draft.c + 1}
-            </strong>
-            <label>
-              Cell entry
-              <input
-                aria-label="Cell entry"
-                value={draft.text}
-                aria-invalid={!!inputError}
-                onChange={(ev) => {
-                  setDraft({ ...draft, text: ev.target.value });
-                  setInputError("");
-                }}
-                onKeyDown={(ev) => {
-                  if (ev.key === "Enter") applyCell();
-                  if (ev.key === "Escape") cancelDraft();
-                }}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={draft.hidden}
-                disabled={!draft.text}
-                onChange={(ev) =>
-                  setDraft({ ...draft, hidden: ev.target.checked })
-                }
-              />
-              Hide saved answer from pupils
-            </label>
-            {inputError && <p role="alert">{inputError}</p>}
-            <div className="ag-actions">
-              <button onClick={applyCell}>Apply cell</button>
-              <button onClick={cancelDraft}>Cancel cell</button>
-              <button
-                onClick={() => {
-                  setDraft({ ...draft, text: "", hidden: false });
-                  setInputError("");
-                }}
-              >
-                Clear cell
-              </button>
-            </div>
-          </CellEditor>
-        )}
+        {cellBox && boxAnchor && (() => {
+          const { r, c } = cellBox,
+            cell = d.rows[r].cells[c];
+          return (
+            <OptionsBox
+              anchor={boxAnchor}
+              anchorKey={`${r}-${c}`}
+              hidden={!active}
+              focusField={!coarse}
+              // Beside the whole grid, so it never covers a neighbouring cell, and never over the settings.
+              placeBy={boxAnchor.closest<HTMLElement>(".ag-resource")}
+              bounds={boxAnchor.closest<HTMLElement>(".editor-card")}
+              title={`Row ${r + 1}, column ${c + 1}`}
+              // A refused entry keeps the box open, so it stays visible until it is fixed.
+              onClose={() => !refused.current && closeBox()}
+            >
+              <div className="ag-box">
+                <label>
+                  Cell entry
+                  <LiveText key={`${r}-${c}`} label="Cell entry" value={cell.value ?? ""} invalid={!!boxError} onCommit={(text) => editCell(r, c, text)} onRevert={() => {
+                      refused.current = false;
+                      setBoxError("");
+                    }}
+                  />
+                </label>
+                <VisibilitySwitch
+                  name="What pupils see"
+                  caption="What pupils see"
+                  value={cellSees(cell)}
+                  disabled={(blocked && !boxError) || cell.value === null}
+                  onChange={(v) => setSees([{ r, c }], v, cellName(r, c))}
+                />
+                {cell.value === null && <p>An empty cell is a pupil space. Type a value to keep an answer.</p>}
+                {boxError && <p role="alert">{boxError}</p>}
+                <div className="ag-actions">
+                  <button
+                    type="button"
+                    disabled={cell.value === null}
+                    onClick={() => {
+                      if (editCell(r, c, "")) setBoxError("");
+                    }}
+                  >
+                    Clear cell
+                  </button>
+                </div>
+              </div>
+            </OptionsBox>
+          );
+        })()}
         {pending && active && (
           <RatioDialog
             title={pending.title}

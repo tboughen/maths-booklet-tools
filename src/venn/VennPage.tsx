@@ -43,7 +43,6 @@ import {
   membership,
   renderSvg,
   kinds,
-  visibility,
   type Envelope,
   type Region,
 } from "../../packages/venn-core/src";
@@ -56,6 +55,15 @@ import { houseStyled, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { printPng, downloadImage, copyWord, downloadEditable, downloadBoth } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
+import { LiveText } from "../site/LiveText";
+import { OptionsBox } from "../site/OptionsBox";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
+import { Eye, Paintbrush, Ruler, Shapes, Type, Wrench } from "lucide-react";
 import "./venn.css";
 import "../site/settings-kit.css";
 import { downloadName } from "../export/filenames";
@@ -112,8 +120,15 @@ function initial() {
   const start = openDraft({ key: STORAGE, parse: parseFile, fresh: freshVenn, recoveryMessage: "Saved Venn data needs recovery. Download the original before starting afresh." });
   return { e: start.document, recovery: start.recovery, message: start.message };
 }
+/** The one vocabulary: an answer line is a pupil space drawn as a dotted line. */
+const pupilSees = (v: Region["visibility"]): Visibility => (v === "line" ? "hidden" : v);
+/** Setting a pupil space keeps a dotted line where there was one. */
+const savedVisibility = (v: Visibility, was: Region["visibility"]): Region["visibility"] =>
+  v === "hidden" && was === "line" ? "line" : v;
+type OptionsTarget = { type: "region" | "label" | "definition"; index: number; anchor: string };
+/** The Apply editor is kept only for shading a set expression, which replaces all the shading at once. */
 type Draft = {
-  type: "region" | "label" | "definition" | "expression";
+  type: "expression";
   index: number;
   text: string;
   kind: Region["kind"];
@@ -129,6 +144,14 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     [protectedCopy, setProtectedCopy] = useState(false),
     [helpOpen, setHelpOpen] = useState(false),
     [message, setMessage] = useState(startup.message);
+  const [box, setBox] = useState<OptionsTarget | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
+    [boxError, setBoxError] = useState("");
+  // A typed value the box refused: it keeps the box open until it is fixed or Escape puts the saved value back. A ref,
+  // because a press elsewhere commits (on blur) and asks the box to close in the same moment.
+  const refused = useRef(false);
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
     [selected, setSelected] = useState<number | null>(null),
@@ -171,6 +194,13 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     const name = labelName(index);
     return name[0].toUpperCase() + name.slice(1);
   };
+  // What pupils see: the regions and labels that have something to print.
+  const shownRegions = activeMasks(e).filter((m) => d.regions[m].kind !== "empty" && d.regions[m].text.trim() !== ""),
+    shownLabels = d.labels.slice(0, d.sets + 1).flatMap((l, i) => (l.text.trim() ? [i] : [])),
+    spaceCount =
+      activeMasks(e).filter((m) => pupilSees(d.regions[m].visibility) === "hidden").length +
+      d.labels.slice(0, d.sets + 1).filter((l) => pupilSees(l.visibility) === "hidden").length,
+    seenSummary = spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil ${spaceCount === 1 ? "space" : "spaces"}`;
   function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const valid = validate(next);
@@ -198,7 +228,9 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     title: string,
     explanation = "This replaces the current diagram. You can undo the replacement.",
   ) {
-    if (!blocked) setPending({ e: next, title, explanation });
+    if (blocked) return;
+    closeBox();
+    setPending({ e: next, title, explanation });
   }
   function selectCount(sets: 1 | 2 | 3) {
     if (blocked || sets === d.sets) return;
@@ -250,79 +282,83 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   }
   function open(type: Draft["type"], index: number, anchor: string) {
     if (blocked) return;
-    const r = d.regions[index];
+    closeBox();
     setDraftError("");
-    setDraft({
-      type,
-      index,
-      anchor,
-      title:
-        type === "region"
-          ? regionName(index, e)
-          : type === "label"
-            ? `Edit ${labelName(index)} label`
-            : type === "definition"
-              ? `Edit ${labelName(index)} definition`
-              : "Shade a set expression",
-      text:
-        type === "region"
-          ? r.text
-          : type === "label"
-            ? d.labels[index].text
-            : type === "definition"
-              ? d.definitions[index]
-              : d.sets === 1
-                ? "A'"
-                : "A ∩ B",
-      kind:
-        type === "region" ? (r.kind === "empty" ? "members" : r.kind) : "text",
-      visibility:
-        type === "region"
-          ? r.visibility
-          : type === "label"
-            ? d.labels[index].visibility
-            : "show",
-    });
-    if (type === "region") {
-      setSelected(index);
-    }
+    setDraft({ type, index, anchor, title: "Shade a set expression", text: d.sets === 1 ? "A'" : "A ∩ B", kind: "text", visibility: "show" });
   }
   function applyDraft() {
     if (!draft) return;
     try {
       const n = structuredClone(e);
-      if (draft.type === "region")
-        n.document.regions[draft.index] = {
-          ...d.regions[draft.index],
-          kind: draft.kind,
-          text: draft.text,
-          visibility: draft.visibility,
-        };
-      if (draft.type === "label")
-        n.document.labels[draft.index] = {
-          text: draft.text,
-          visibility: draft.visibility,
-        };
-      if (draft.type === "definition")
-        n.document.definitions[draft.index] = draft.text;
-      if (draft.type === "expression") {
-        const masks = expressionMasks(draft.text, d.sets, activeMasks(e));
-        n.document.regions.forEach((r, i) => {
-          r.shade = masks.includes(i) ? shade : "none";
-        });
-      }
+      const masks = expressionMasks(draft.text, d.sets, activeMasks(e));
+      n.document.regions.forEach((r, i) => {
+        r.shade = masks.includes(i) ? shade : "none";
+      });
       commit(n);
       closeDraft();
-      if (
-        draft.type === "expression" &&
-        expressionMasks(draft.text, d.sets, activeMasks(e)).length === 0
-      )
-        setMessage(
-          "This expression has no region in this layout. All shading has been cleared.",
-        );
+      if (masks.length === 0) setMessage("This expression has no region in this layout. All shading has been cleared.");
     } catch (err) {
       setDraftError(err instanceof Error ? err.message : String(err));
     }
+  }
+  /** The live options box beside a region, label or definition: every change is one undo step, with no Apply. */
+  function openBox(type: OptionsTarget["type"], index: number, anchor: string) {
+    if (blocked || refused.current) return;
+    const el = document.querySelector<HTMLElement>(`[data-vn-anchor="${anchor}"]`);
+    setBox({ type, index, anchor });
+    setBoxAnchor(el);
+    setBoxError("");
+    setSelected(type === "region" ? index : null);
+  }
+  function closeBox() {
+    refused.current = false;
+    setBox(null);
+    setBoxAnchor(null);
+    setBoxError("");
+  }
+  /** One undo step from the box; a refused value is reported in the box and nothing changes. */
+  function boxEdit(update: (n: Envelope["document"]) => void, label?: string) {
+    if (blocked) return false;
+    try {
+      const n = structuredClone(e);
+      update(n.document);
+      commit(n, label);
+      setBoxError("");
+      return true;
+    } catch (err) {
+      setBoxError(err instanceof Error ? err.message : String(err));
+      return false;
+    }
+  }
+  /** A typed value from the box: refused, it keeps the box open (see `refused`). */
+  function typed(commitIt: () => boolean) {
+    const ok = commitIt();
+    refused.current = !ok;
+    return ok;
+  }
+  function reverted() {
+    refused.current = false;
+    setBoxError("");
+  }
+  const regionWords = (mask: number) => regionName(mask, e);
+  function setRegionVisibility(mask: number, v: Visibility) {
+    boxEdit((n) => {
+      n.regions[mask].visibility = savedVisibility(v, n.regions[mask].visibility);
+    }, visibilityStep(v, regionWords(mask)));
+  }
+  function setLabelVisibility(index: number, v: Visibility) {
+    boxEdit((n) => {
+      n.labels[index].visibility = savedVisibility(v, n.labels[index].visibility);
+    }, visibilityStep(v, `${labelName(index)} label`));
+  }
+  /** Double-click: a pupil space, and again back to the content. */
+  function toggleRegion(mask: number) {
+    if (blocked || mode === "shade") return;
+    setRegionVisibility(mask, togglePupilSpace(pupilSees(d.regions[mask].visibility)));
+  }
+  function toggleLabel(index: number) {
+    if (blocked) return;
+    setLabelVisibility(index, togglePupilSpace(pupilSees(d.labels[index].visibility)));
   }
   function chooseRegion(mask: number, anchor: string) {
     if (blocked) return;
@@ -332,7 +368,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         n.regions[mask].shade =
           n.regions[mask].shade === shade ? "none" : shade;
       });
-    else open("region", mask, anchor);
+    else openBox("region", mask, anchor);
   }
   // Autosave with protection for another tab's newer draft.
   const savedText = useMemo(() => canonical(history.present), [history.present]);
@@ -346,6 +382,15 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved Venn data changed in another tab. Download its data before replacing it.");
     },
   });
+  // A box whose region or label has gone (fewer sets, a new layout, undo, shade mode) closes.
+  useEffect(() => {
+    if (!box) return;
+    const gone =
+      mode === "shade" ||
+      !boxAnchor?.isConnected ||
+      (box.type === "region" ? !activeMasks(e).includes(box.index) : box.index > d.sets);
+    if (gone) closeBox();
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -355,6 +400,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         closeDraft();
         return;
       }
+      if (box && event.key === "Escape") return;
       if (handleUndoKeys(event, { undo, redo })) return;
       // U9: Escape deselects; Delete clears the selected region's shading (never a set or region).
       const command = objectKeyCommand(event);
@@ -447,7 +493,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         different states. No automatic solving.
       </p>
       <p>
-        Enter applies; Escape cancels. Save an editable file to keep a
+        Changes apply as you type, each one undo step; Escape closes the box. Save an editable file to keep a
         portable copy. Copy for Word carries the physical size shown above the
         diagram. Download PNG (600 ppi) if your browser blocks copying.
       </p>
@@ -580,7 +626,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               className="vn-scroll editor-stage"
               ref={fitted.ref}
               onClick={(ev) => {
-                if (ev.target === ev.currentTarget && !draft) setSelected(null);
+                if (ev.target === ev.currentTarget && !draft) {
+                  setSelected(null);
+                  closeBox();
+                }
               }}
             >
               <div
@@ -604,7 +653,17 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   ) {
                     const mask = membership(g, x, y);
                     chooseRegion(mask, `region-${mask}`);
-                  } else setSelected(null);
+                  } else {
+                    setSelected(null);
+                    closeBox();
+                  }
+                }}
+                onDoubleClick={(ev) => {
+                  if (blocked || (ev.target as HTMLElement).closest("button")) return;
+                  const r = ev.currentTarget.getBoundingClientRect(),
+                    x = ((ev.clientX - r.left) * g.width) / r.width,
+                    y = ((ev.clientY - r.top) * g.height) / r.height;
+                  if (x > g.box.x && x < g.box.x + g.box.width && y > g.box.y && y < g.box.y + g.box.height) toggleRegion(membership(g, x, y));
                 }}
               >
                 <div
@@ -618,9 +677,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                       key={`r${mask}`}
                       className={`vn-hit ${selected === mask ? "vn-selected" : ""}`}
                       data-vn-anchor={`region-${mask}`}
+                      data-options-anchor=""
                       data-region-hit={mask}
                       aria-label={`${mode === "shade" ? "Shade" : "Edit"} region: ${regionName(mask, e)}`}
-                      title={regionName(mask, e)}
+                      title={mode === "shade" ? regionName(mask, e) : `${regionName(mask, e)} · ${pupilSees(d.regions[mask].visibility) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}`}
                       disabled={busy || recovery !== null}
                       style={{
                         left: `${(p.x / g.width) * 100}%`,
@@ -630,6 +690,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                         ev.stopPropagation();
                         chooseRegion(mask, `region-${mask}`);
                       }}
+                      onDoubleClick={(ev) => {
+                        ev.stopPropagation();
+                        toggleRegion(mask);
+                      }}
                     />
                   );
                 })}
@@ -638,7 +702,9 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     key={`l${i}`}
                     className="vn-hit vn-label-hit"
                     data-vn-anchor={`label-${i}`}
+                    data-options-anchor=""
                     aria-label={`Edit ${labelName(i)} label`}
+                    title={pupilSees(d.labels[i].visibility) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP}
                     disabled={busy || recovery !== null}
                     style={{
                       left: `${(p.x / g.width) * 100}%`,
@@ -646,7 +712,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     }}
                     onClick={(ev) => {
                       ev.stopPropagation();
-                      open("label", i, `label-${i}`);
+                      openBox("label", i, `label-${i}`);
+                    }}
+                    onDoubleClick={(ev) => {
+                      ev.stopPropagation();
+                      toggleLabel(i);
                     }}
                   />
                 ))}
@@ -660,6 +730,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                         key={`d${index}`}
                         className="vn-hit vn-definition-hit"
                         data-vn-anchor={`direct-definition-${index}`}
+                        data-options-anchor=""
                         aria-label={`Edit printed ${labelName(index)} definition`}
                         style={{
                           left: "50%",
@@ -668,11 +739,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                         }}
                         onClick={(ev) => {
                           ev.stopPropagation();
-                          open(
-                            "definition",
-                            index,
-                            `direct-definition-${index}`,
-                          );
+                          openBox("definition", index, `direct-definition-${index}`);
                         }}
                       />
                     ))}
@@ -693,19 +760,14 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                       : undefined
                   }
                 >
-                  Click a region or label to edit it.
+                  Click a region or label to edit it. Double-click one for a pupil space.
                 </EditorHint>
               }
             >
             </EditorFoot>
             {(draft || issue || note.length > 0) && (
               <div className="vn-status" aria-live="polite">
-                {draft && (
-                  <p>
-                    Apply or cancel the open editor before another edit or
-                    export.
-                  </p>
-                )}
+                {draft && <p>Apply or cancel the set expression before another edit or export.</p>}
                 {issue && (
                   <p className="vn-error" role="alert">
                     {issue}
@@ -717,12 +779,51 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Venn diagram settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Venn diagram settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card">
-              <h2>Diagram tools</h2>
+            {/* One folding column: What pupils see, the tools, then the settings. Shade mode swaps the contents for the shading. */}
+            <FoldCard tool="venn" title="What pupils see" icon={Eye} defaultOpen summary={seenSummary} help="Each region and label prints its content, a pupil space or nothing. Click one on the diagram for its own choice.">
+              {shownRegions.length > 0 && (
+                <VisibilitySwitch
+                  name="Regions"
+                  caption="Regions"
+                  disabled={blocked}
+                  value={commonVisibility(shownRegions.map((m) => pupilSees(d.regions[m].visibility))) ?? "show"}
+                  onChange={(v) =>
+                    boxEdit((n) => {
+                      for (const m of shownRegions) n.regions[m].visibility = savedVisibility(v, n.regions[m].visibility);
+                    }, visibilityStep(v, "all regions"))
+                  }
+                />
+              )}
+              {shownLabels.length > 0 && (
+                <VisibilitySwitch
+                  name="Labels"
+                  caption="Labels"
+                  disabled={blocked}
+                  value={commonVisibility(shownLabels.map((i) => pupilSees(d.labels[i].visibility))) ?? "show"}
+                  onChange={(v) =>
+                    boxEdit((n) => {
+                      for (const i of shownLabels) n.labels[i].visibility = savedVisibility(v, n.labels[i].visibility);
+                    }, visibilityStep(v, "all labels"))
+                  }
+                />
+              )}
+              {shownRegions.length + shownLabels.length === 0 && <p className="md-kit-note">Type in a region or label first.</p>}
+              <PupilSpaceHint
+                count={spaceCount}
+                disabled={blocked}
+                onClear={() =>
+                  boxEdit((n) => {
+                    for (const r of n.regions) if (r.visibility === "hidden" || r.visibility === "line") r.visibility = "show";
+                    for (const l of n.labels) if (l.visibility === "hidden" || l.visibility === "line") l.visibility = "show";
+                  }, "clear pupil spaces")
+                }
+              >
+                Double-click a region or label for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="venn" title="Diagram tools" icon={Wrench} defaultOpen summary={`${mode === "shade" ? "Shade" : "Edit"} · ${d.sets} ${d.sets === 1 ? "set" : "sets"}`}>
               <div className="vn-structure">
                 <div
                   className="vn-mode-switch"
@@ -809,11 +910,9 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   ? "Pupil view · exports keep your pupil blanks and hidden answers."
                   : "Answer view · exports reveal saved answers only. Editable files keep the pupil settings."}
               </p>
-            </section>
-            {/* U20: stacked cards, no tabs. Edit mode shows the diagram and its contents; Shade shows shading. */}
+            </FoldCard>
             {mode === "edit" && (
-              <section className="panel-card" aria-labelledby="vn-card-diagram">
-                <h2 id="vn-card-diagram">Diagram</h2>
+              <FoldCard tool="venn" title="Diagram" icon={Shapes} summary={`${d.shape === "ovals" ? "Wider ovals" : "Circles"} · labels and definitions`}>
                 <label>
                   Outline
                   <select
@@ -863,16 +962,19 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     <div className="vn-label-row" key={i}>
                       <button
                         data-vn-anchor={"panel-label-" + i}
+                        data-options-anchor=""
                         disabled={blocked}
-                        onClick={() => open("label", i, "panel-label-" + i)}
+                        onClick={() => openBox("label", i, "panel-label-" + i)}
                       >
                         {panelName(i)}: {l.text || "(empty)"}
                         <small>
                           {l.visibility === "hidden"
-                            ? "Hidden"
+                            ? "Pupil space"
                             : l.visibility === "line"
-                              ? "Answer line"
-                              : "Edit label"}
+                              ? "Pupil space on a dotted line"
+                              : l.visibility === "omit"
+                                ? "Left out"
+                                : "Edit label"}
                         </small>
                       </button>
                     </div>
@@ -895,10 +997,9 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                       className="vn-definition"
                       key={i}
                       data-vn-anchor={"definition-" + i}
+                        data-options-anchor=""
                       disabled={blocked}
-                      onClick={() =>
-                        open("definition", i, "definition-" + i)
-                      }
+                      onClick={() => openBox("definition", i, "definition-" + i)}
                     >
                       {panelName(i)} definition: {text || "Add text"}
                     </button>
@@ -908,11 +1009,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     calculate regions. Geometry is schematic.
                   </p>
                 </details>
-              </section>
+              </FoldCard>
             )}
             {mode === "edit" && (
-              <section className="panel-card" aria-labelledby="vn-card-print">
-                <h2 id="vn-card-print">Print size</h2>
+              <FoldCard tool="venn" title="Print size" icon={Ruler} summary={`${d.widthCm} cm wide · ${d.fontPt} pt`}>
                 <div className="vn-pair">
                   <label>
                     Print width
@@ -972,13 +1072,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                       ))}
                     </select>
                   </label>
-              </section>
+              </FoldCard>
             )}
-            </div>
-            <div>
             {mode === "edit" && (
-              <section className="panel-card" aria-labelledby="vn-card-contents">
-                <h2 id="vn-card-contents">Region contents</h2>
+              <FoldCard tool="venn" title="Region contents" icon={Type} summary={`${activeMasks(e).length} regions`}>
                 <p>
                   Click the diagram or choose a region. Lists, frequencies,
                   fractions, algebra and pupil blanks stay editable.
@@ -988,18 +1085,21 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     <button
                       key={mask}
                       data-vn-anchor={`panel-region-${mask}`}
+                        data-options-anchor=""
                       disabled={blocked}
                       onClick={() => {
-                        open("region", mask, `panel-region-${mask}`);
+                        openBox("region", mask, `panel-region-${mask}`);
                       }}
                     >
                       <span>{regionName(mask, e)}</span>
                       <small>
                         {d.regions[mask].visibility === "hidden"
-                          ? "Hidden saved content"
+                          ? "Pupil space"
                           : d.regions[mask].visibility === "line"
-                            ? "Answer line"
-                            : d.regions[mask].text ||
+                            ? "Pupil space on a dotted line"
+                            : d.regions[mask].visibility === "omit"
+                              ? "Left out"
+                              : d.regions[mask].text ||
                               (d.regions[mask].kind === "members"
                                 ? "Empty member list"
                                 : "Empty space")}
@@ -1008,11 +1108,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   ))}
                 </div>
                 {help}
-              </section>
+              </FoldCard>
             )}
             {mode === "shade" && (
-              <section className="panel-card" aria-labelledby="vn-shading-heading">
-                <h2 id="vn-shading-heading">Region shading</h2>
+              <FoldCard tool="venn" title="Region shading" icon={Paintbrush} defaultOpen summary={shade === "hatch" ? "Monochrome hatching" : "Neutral grey"}>
                 <label>
                   Shading style
                   <select
@@ -1075,10 +1174,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   ))}
                 </div>
                 {help}
-              </section>
+              </FoldCard>
             )}
-            </div>
-            </div>
           </aside>
         </section>
         {recovery !== null && (
@@ -1150,6 +1247,160 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             />
           </RatioDialog>
         )}
+        {box && boxAnchor && (
+          <OptionsBox
+            anchor={boxAnchor}
+            anchorKey={box.anchor}
+            hidden={!active}
+            focusField={!coarse}
+            // Beside the diagram, the box stays over the diagram's card and never covers the settings.
+            // Beside the whole diagram, so it never covers a neighbouring region or label.
+            placeBy={boxAnchor.closest<HTMLElement>(".vn-resource")}
+            bounds={boxAnchor.closest(".vn-resource") ? boxAnchor.closest<HTMLElement>(".editor-card") : null}
+            title={box.type === "region" ? regionName(box.index, e) : `${panelName(box.index)} ${box.type}`}
+            // A refused value keeps the box open, so it stays visible until it is fixed.
+            onClose={() => {
+              if (!refused.current) {
+                closeBox();
+                setSelected(null);
+              }
+            }}
+          >
+            <div className="vn-box">
+              {box.type === "region" && (() => {
+                const r = d.regions[box.index], seen = pupilSees(r.visibility);
+                return (
+                  <>
+                    <label>
+                      Region content
+                      <LiveText
+                        key={box.anchor}
+                        label="Region content"
+                        value={r.text}
+                        multiline={r.kind === "members" || r.kind === "empty"}
+                        invalid={!!boxError}
+                        onRevert={reverted}
+                        onCommit={(text) =>
+                          typed(() => boxEdit((n) => {
+                            n.regions[box.index].text = text;
+                            if (n.regions[box.index].kind === "empty" && text.trim()) n.regions[box.index].kind = "members";
+                          }, `edit ${regionWords(box.index)}`))
+                        }
+                      />
+                    </label>
+                    <label>
+                      Content type
+                      <select
+                        aria-label="Content type"
+                        value={r.kind}
+                        disabled={blocked}
+                        onChange={(ev) =>
+                          boxEdit((n) => {
+                            n.regions[box.index].kind = ev.target.value as Region["kind"];
+                          }, "content type")
+                        }
+                      >
+                        {kinds.map((k) => (
+                          <option key={k} value={k}>
+                            {
+                              {
+                                empty: "Empty space",
+                                members: "Member list",
+                                frequency: "Frequency",
+                                number: "Number or fraction",
+                                algebra: "Algebraic label",
+                                text: "Ordinary text",
+                              }[k]
+                            }
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={seen} disabled={blocked} onChange={(v) => setRegionVisibility(box.index, v)} />
+                    {seen === "hidden" && (
+                      <label className="vn-check">
+                        <input
+                          type="checkbox"
+                          checked={r.visibility === "line"}
+                          disabled={blocked}
+                          onChange={(ev) =>
+                            boxEdit((n) => {
+                              n.regions[box.index].visibility = ev.target.checked ? "line" : "hidden";
+                            }, ev.target.checked ? "dotted answer line" : "plain pupil space")
+                          }
+                        />
+                        On a dotted answer line
+                      </label>
+                    )}
+                    <p className="vn-note">
+                      For members, use commas or new lines (Shift+Enter). An empty member list prints no zero. Empty space keeps any text for later.
+                    </p>
+                  </>
+                );
+              })()}
+              {box.type === "label" && (() => {
+                const l = d.labels[box.index], seen = pupilSees(l.visibility);
+                return (
+                  <>
+                    <label>
+                      Label text
+                      <LiveText
+                        key={box.anchor}
+                        label="Label text"
+                        value={l.text}
+                        invalid={!!boxError}
+                        onRevert={reverted}
+                        onCommit={(text) =>
+                          typed(() => boxEdit((n) => {
+                            n.labels[box.index].text = text;
+                          }, `edit ${labelName(box.index)} label`))
+                        }
+                      />
+                    </label>
+                    <VisibilitySwitch name="What pupils see" caption="What pupils see" value={seen} disabled={blocked} onChange={(v) => setLabelVisibility(box.index, v)} />
+                    {seen === "hidden" && (
+                      <label className="vn-check">
+                        <input
+                          type="checkbox"
+                          checked={l.visibility === "line"}
+                          disabled={blocked}
+                          onChange={(ev) =>
+                            boxEdit((n) => {
+                              n.labels[box.index].visibility = ev.target.checked ? "line" : "hidden";
+                            }, ev.target.checked ? "dotted answer line" : "plain pupil space")
+                          }
+                        />
+                        On a dotted answer line
+                      </label>
+                    )}
+                  </>
+                );
+              })()}
+              {box.type === "definition" && (
+                <label>
+                  Definition text
+                  <LiveText
+                        key={box.anchor}
+                    label="Definition text"
+                    value={d.definitions[box.index]}
+                    invalid={!!boxError}
+                        onRevert={reverted}
+                    onCommit={(text) =>
+                      typed(() => boxEdit((n) => {
+                        n.definitions[box.index] = text;
+                      }, `edit ${labelName(box.index)} definition`))
+                    }
+                  />
+                </label>
+              )}
+              {boxError && (
+                <p className="vn-error" role="alert">
+                  {boxError}
+                </p>
+              )}
+            </div>
+          </OptionsBox>
+        )}
         {draft && (
           <VennFloatingEditor
             active={active && !pending && recovery === null}
@@ -1162,116 +1413,19 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 applyDraft();
               }}
             >
-              {draft.type === "region" && (
-                <label>
-                  Content type
-                  <select
-                    aria-label="Content type"
-                    value={draft.kind}
-                    onChange={(ev) => {
-                      setDraft({
-                        ...draft,
-                        kind: ev.target.value as Region["kind"],
-                      });
-                      setDraftError("");
-                    }}
-                  >
-                    {kinds.map((k) => (
-                      <option key={k} value={k}>
-                        {
-                          {
-                            empty: "Empty space",
-                            members: "Member list",
-                            frequency: "Frequency",
-                            number: "Number or fraction",
-                            algebra: "Algebraic label",
-                            text: "Ordinary text",
-                          }[k]
-                        }
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
               <label>
-                {draft.type === "expression"
-                  ? "Set expression"
-                  : draft.type === "region"
-                    ? "Region content"
-                    : draft.type === "definition"
-                      ? "Definition text"
-                      : "Label text"}
-                {draft.type === "region" && draft.kind === "members" ? (
-                  <textarea
-                    aria-label="Region content"
-                    rows={3}
-                    value={draft.text}
-                    aria-invalid={!!draftError}
-                    onChange={(ev) => {
-                      setDraft({ ...draft, text: ev.target.value });
-                      setDraftError("");
-                    }}
-                    onKeyDown={(ev) => {
-                      if (ev.key === "Enter" && !ev.shiftKey) {
-                        ev.preventDefault();
-                        applyDraft();
-                      }
-                    }}
-                  />
-                ) : (
-                  <input
-                    aria-label={
-                      draft.type === "expression"
-                        ? "Set expression"
-                        : draft.type === "region"
-                          ? "Region content"
-                          : draft.type === "definition"
-                            ? "Definition text"
-                            : "Label text"
-                    }
-                    value={draft.text}
-                    aria-invalid={!!draftError}
-                    onChange={(ev) => {
-                      setDraft({ ...draft, text: ev.target.value });
-                      setDraftError("");
-                    }}
-                  />
-                )}
+                Set expression
+                <input
+                  aria-label="Set expression"
+                  value={draft.text}
+                  aria-invalid={!!draftError}
+                  onChange={(ev) => {
+                    setDraft({ ...draft, text: ev.target.value });
+                    setDraftError("");
+                  }}
+                />
               </label>
-              {(draft.type === "region" || draft.type === "label") && (
-                <label>
-                  Pupil display
-                  <select
-                    aria-label="Pupil display"
-                    value={draft.visibility}
-                    onChange={(ev) =>
-                      setDraft({
-                        ...draft,
-                        visibility: ev.target.value as Region["visibility"],
-                      })
-                    }
-                  >
-                    {visibility.map((v) => (
-                      <option key={v} value={v}>
-                        {v === "show"
-                          ? "Show content"
-                          : v === "hidden"
-                            ? "Hide (retain content)"
-                            : "Pupil answer line"}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              {draft.type === "region" && (
-                <p className="vn-note">
-                  For members, use commas or new lines (Shift+Enter). An empty
-                  member list prints no zero. Empty space retains any text for
-                  later.
-                </p>
-              )}
-              {draft.type === "expression" && (
-                <>
+              <>
                   <div className="vn-expression-buttons">
                     {[
                       ..."ABC".slice(0, d.sets),
@@ -1303,7 +1457,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     Applying replaces the current shading.
                   </p>
                 </>
-              )}
+
               {draftError && (
                 <p className="vn-error" role="alert">
                   {draftError}

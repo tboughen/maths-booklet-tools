@@ -31,6 +31,10 @@ async function boot(page: Page, e: Envelope = create()) {
     },
     [key, canonical(e)],
   );
+  // The settings column folds its rarer cards; these tests use them, so they start open.
+  await page.addInitScript(() => {
+    for (const t of ["Diagram", "Print size", "Region contents"]) localStorage.setItem(`mathsdock:fold:venn:${t}`, "open");
+  });
   await page.goto("/tools/venn");
   await expect(
     page.getByRole("heading", { name: "Venn diagrams", exact: true }),
@@ -219,7 +223,8 @@ test("caption choices, nested label edits, view export and editable-file present
     .getByRole("button", { name: "Edit outer set label", exact: true })
     .click();
   await page.getByLabel("Label text", { exact: true }).fill("Whole");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByLabel("Label text", { exact: true }).press("Enter");
+  await page.keyboard.press("Escape");
   expect((await saved(page)).document.regions).toEqual(
     captioned.document.regions,
   );
@@ -343,15 +348,12 @@ for (const width of [320, 375, 768, 1440])
       .check();
     for (const mask of [0, 1, 3]) {
       await page.locator(`[data-region-hit="${mask}"]`).click();
-      const box = (await page.locator(".vn-floating").boundingBox())!;
+      const box = (await page.locator(".md-options-box").boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(width);
       expect(box.y).toBeGreaterThanOrEqual(0);
       expect(box.y + box.height).toBeLessThanOrEqual(900);
-      await expect(
-        page.getByRole("button", { name: "Apply", exact: true }),
-      ).toBeInViewport();
-      await page.getByRole("button", { name: "Cancel", exact: true }).click();
+      await page.keyboard.press("Escape");
     }
     expect(
       await page.evaluate(
@@ -490,7 +492,8 @@ test("answer-view label overflow is retained and correctable without exposing pu
     .getByRole("button", { name: "Edit inner set label", exact: true })
     .click();
   await page.getByLabel("Label text", { exact: true }).fill("Multiples of 4");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByLabel("Label text", { exact: true }).press("Enter");
+  await page.keyboard.press("Escape");
   await expect(page.getByRole("alert")).toHaveCount(0);
   expect((await saved(page)).document.labels[2].visibility).toBe("hidden");
   await page
@@ -569,12 +572,14 @@ test("single Nested choice reopens reverse-nested files exactly and label edits 
     .getByRole("button", { name: "Edit outer set label", exact: true })
     .click();
   await page.getByLabel("Label text", { exact: true }).fill("Whole");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByLabel("Label text", { exact: true }).press("Enter");
+  await page.keyboard.press("Escape");
   await page
     .getByRole("button", { name: "Edit inner set label", exact: true })
     .click();
   await page.getByLabel("Label text", { exact: true }).fill("Part");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByLabel("Label text", { exact: true }).press("Enter");
+  await page.keyboard.press("Escape");
   const edited = await saved(page);
   expect(edited.document.regions).toEqual(e.document.regions);
   expect(edited.document.labels[2].text).toBe("Whole");
@@ -681,11 +686,10 @@ for (const width of [320, 375, 768, 1440])
     await expect(
       page.getByRole("heading", { name: "Diagram", exact: true }),
     ).toBeVisible();
+    // The options box is live, so it blocks nothing else.
     await page.locator('[data-region-hit="1"]').click();
-    await expect(
-      page.getByRole("button", { name: "Shade", exact: true }),
-    ).toBeDisabled();
-    await expect(answers).toBeDisabled();
+    await expect(page.locator(".md-options-box")).toBeVisible();
+    await expect(answers).toBeEnabled();
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     expect(canonical(await saved(page))).toBe(before);
@@ -709,6 +713,9 @@ for (const width of [320, 1440])
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(() => {
+      for (const t of ["Diagram", "Print size", "Region contents"]) localStorage.setItem(`mathsdock:fold:venn:${t}`, "open");
+    });
     await page.goto("/tools/venn");
     const controls = [
       page.getByRole("button", { name: "Edit", exact: true }),
