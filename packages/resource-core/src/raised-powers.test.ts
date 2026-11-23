@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fracPieces, parseRuns, textSvg, wrap } from "./text";
-import { didYouKnowMaths } from "./booklet-render";
+import { didYouKnowMaths, powersOnly, retrievalRowHeights } from "./booklet-render";
 import { typesetText } from "./typeset";
 import { runs } from "./docx";
 
@@ -48,5 +48,22 @@ describe("a number power followed by a letter", () => {
     expect(sup("10x^6y^3")).toBe("63");
     expect(parseRuns("x^6y", "regular", true).filter((r) => r.sup).map((r) => r.text).join("")).toBe("6");
     expect(sup("x^ab")).toBe("");
+  });
+});
+
+describe("unit pages read powers", () => {
+  it("raises powers on glossary and fold-over text only when the booklet uses maths and the text has no fraction", () => {
+    expect(powersOnly("Simplify m^5 × m^3", true)).toBe(true);
+    expect(powersOnly("Simplify m^5 × m^3", false)).toBe(false);
+    expect(powersOnly("Work out {3/4} of 12", true)).toBe(false);
+  });
+});
+
+describe("fold-over rows measure the maths they print", () => {
+  it("gives a serif-heavy answer the lines it prints on", () => {
+    const r = { title: "Fold", instruction: "", items: [{ question: "Simplify", answer: "2*m**n* + 3*m**n* + 4*m**n* + 5*m**n*" }] };
+    const plain = retrievalRowHeights(r as never)[0];
+    const maths = retrievalRowHeights(r as never, true)[0];
+    expect(maths).toBeGreaterThanOrEqual(plain);
   });
 });

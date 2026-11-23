@@ -172,6 +172,8 @@ export const DID_YOU_KNOW = {
  * the box keeps plain line height, so a fraction stays as typed rather than crowding the lines.
  */
 export const didYouKnowMaths = (fact: string, maths: boolean) => maths && !/\{[^{}/]{1,12}\/[^{}/]{1,12}\}/.test(fact);
+/** Unit pages (glossary, fold-over retrieval) read powers such as m^5 when the booklet uses maths notation; a stacked fraction stays as typed there. */
+export const powersOnly = (text: string, maths: boolean) => maths && !/\{[^{}/]{1,12}\/[^{}/]{1,12}\}/.test(text);
 export function didYouKnowBox(fact: string, maths = false): { lines: number; h: number; total: number } {
   const D = DID_YOU_KNOW;
   const lines = wrap(fact.trim(), D.size, W - 2 * D.padX, "regular", didYouKnowMaths(fact, maths)).length;
@@ -702,7 +704,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
     y += 6.4;
     const rules: string[] = [];
     for (const k of intro.keywords) {
-      const m = para(k.meaning, W - ww - 4.8, st, { x: ww + 2.4 });
+      const m = para(k.meaning, W - ww - 4.8, st, { x: ww + 2.4, maths: powersOnly(k.meaning, doc.notation === "maths") });
       const word = para(k.word, ww - 4.8, st, { x: 2.4, style: "bold", fill: st.navy });
       const h = Math.max(m.h, word.h) + 2.6;
       rules.push(hline(x0, x0 + W, y, st, 0.35));
@@ -734,10 +736,10 @@ export const RETRIEVAL = {
 export const retrievalQuestionWidth = () => W - RETRIEVAL.strip - RETRIEVAL.gap - RETRIEVAL.num;
 export const retrievalAnswerWidth = () => RETRIEVAL.strip - RETRIEVAL.gap - 1;
 /** Each row's height: the question, writing room and padding, or the answer if it is taller. */
-export function retrievalRowHeights(r: Retrieval): number[] {
+export function retrievalRowHeights(r: Retrieval, maths = false): number[] {
   return r.items.map((it) => {
-    const q = wrap(it.question, S.body, retrievalQuestionWidth()).length * lh(S.body);
-    const a = wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body);
+    const q = wrap(it.question, S.body, retrievalQuestionWidth(), "regular", powersOnly(it.question, maths)).length * lh(S.body);
+    const a = wrap(it.answer, S.body, retrievalAnswerWidth(), "regular", powersOnly(it.answer, maths)).length * lh(S.body);
     return Math.max(q + RETRIEVAL.write, a + 2) + RETRIEVAL.pad * 2;
   });
 }
@@ -760,15 +762,15 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
   out.push(textSvg(parseRuns("Questions", "bold"), x0, y + base(S.body), S.body, st.navy), textSvg(parseRuns("Answers", "bold"), foldX + R.gap, y + base(S.body), S.body, st.navy));
   y += lh(S.body) + 1.5;
   const top = y;
-  const heights = retrievalRowHeights(r);
+  const heights = retrievalRowHeights(r, maths);
   r.items.forEach((it, i) => {
     const h = heights[i];
     out.push(hline(x0, x0 + W, y, st, 0.35));
     out.push(textSvg([{ text: String(i + 1), style: "bold" }], x0, y + R.pad + base(S.body), S.body, st.navy));
-    out.push(at(para(it.question, retrievalQuestionWidth(), st), qx, y + R.pad));
+    out.push(at(para(it.question, retrievalQuestionWidth(), st, { maths: powersOnly(it.question, maths) }), qx, y + R.pad));
     const lineY = y + h - R.pad - 1.2;
     out.push(answerRule(qx, foldX - R.gap, lineY, st.ink));
-    const a = para(it.answer, retrievalAnswerWidth(), st);
+    const a = para(it.answer, retrievalAnswerWidth(), st, { maths: powersOnly(it.answer, maths) });
     out.push(at(a, foldX + R.gap, lineY - a.h + 1.2));
     if (maths && [it.question, it.answer].some((t) => /\{[^{}]+\/[^{}]+\}/.test(t)))
       issues.push({ lesson: 0, retrieval: true, page: pageNo, question: i + 1, message: `Fold-over question ${i + 1} has a stacked fraction, which this page prints as typed. Write it another way, such as 3 ÷ 4.` });
