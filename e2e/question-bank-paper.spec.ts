@@ -72,9 +72,9 @@ test.describe("question bank: open a paper", () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/question-bank?bankView=topics&tier=F&calc=no");
     const picker = page.getByRole("form", { name: "Start from a paper" });
-    await picker.getByLabel("Series").selectOption("November 2023");
-    await picker.getByLabel("Paper").selectOption("2");
-    await picker.getByLabel("Tier").selectOption("H");
+    await picker.getByLabel("Paper series").selectOption("November 2023");
+    await picker.getByLabel("Paper number").selectOption("2");
+    await picker.getByLabel("Paper tier").selectOption("H");
     await picker.getByRole("button", { name: "Add paper" }).click();
     await expect(page.getByText("November 2023 2H added to your paper. Filters were cleared so the whole paper shows.")).toBeVisible();
     await expect(page.getByRole("region", { name: "Your paper" }).getByRole("status").first()).toContainText("21 distinct questions · 80 marks");
