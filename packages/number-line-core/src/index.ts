@@ -436,7 +436,8 @@ function numberWidth(s: string): number { if (s.includes(" ")) {
 function numberSvg(s: string, x: number, y: number): string { if (s.includes(" ")) {
     // A mixed number: the whole number at full size beside a stacked fraction, centred as one.
     const [whole, frac] = s.split(" "), left = x - numberWidth(s) / 2, wholeW = textWidth(whole.replace("-", "−"), FONT);
-    return `<text x="${left}" y="${y}">${esc(whole.replace("-", "−"))}</text>` + numberSvg(frac, left + wholeW + MIXED_GAP + numberWidth(frac) / 2, y);
+    // The whole number sits level with the fraction bar, as a mixed number is printed.
+    return `<text x="${left}" y="${y + 1.1}">${esc(whole.replace("-", "−"))}</text>` + numberSvg(frac, left + wholeW + MIXED_GAP + numberWidth(frac) / 2, y);
 } if (!s.includes("/"))
     return `<text x="${x}" y="${y}" text-anchor="middle">${esc(s.replace("-", "−"))}</text>`; const [top, b] = s.split("/"), negative = top.startsWith("-"), n = negative ? top.slice(1) : top, w = numberWidth(n + "/" + b) + 1;
     // A negative fraction prints its minus sign before the bar, as exam papers do: −½, not a minus in the numerator.

@@ -420,7 +420,7 @@ export function moveNet(e: Envelope, netId: string, dx: number, dy: number): Env
   const n = clone(e),
     net = netOf(n.document, netId);
   const shift = (p: Pt): Pt => [r3(p[0] + dx), r3(p[1] + dy)];
-  const pts = [...net.faces.flatMap((f) => f.points), ...net.vertices.map((v) => v.at), ...net.edges.flatMap((v) => [v.from, v.to])];
+  const pts = [...net.faces.flatMap((f) => outline(f)), ...net.vertices.map((v) => v.at), ...net.edges.flatMap((v) => [v.from, v.to])];
   if (pts.some((p) => p[0] + dx < -1e-6 || p[1] + dy < -1e-6)) throw Error("The net is already at the edge of its panel.");
   for (const f of net.faces) {
     f.points = f.points.map(shift);
@@ -745,10 +745,20 @@ export function renderSvg(e: Envelope): string {
     // Edge labels sit beside the edge, on the side away from the face it belongs to.
     for (const v of p.net.edges) {
       if (v.label.show !== "show") continue;
-      const m: Pt = [(v.from[0] + v.to[0]) / 2, (v.from[1] + v.to[1]) / 2];
+      let m: Pt = [(v.from[0] + v.to[0]) / 2, (v.from[1] + v.to[1]) / 2];
       const owner = all.find((f) => f.points.some((q) => samePt(q, v.from)) && f.points.some((q) => samePt(q, v.to)));
       let n = unitVec(-(v.to[1] - v.from[1]), v.to[0] - v.from[0]);
-      if (owner) {
+      // A length on a curved edge sits beside the middle of the arc, pointing away from its centre.
+      const k = owner ? owner.points.findIndex((q, i) => samePt(q, v.from) && samePt(owner.points[(i + 1) % owner.points.length], v.to)) : -1;
+      const arc = owner?.arcs?.find((a) => a.edge === k) ?? (owner ? owner.arcs?.find((a) => samePt(owner.points[a.edge], v.to) && samePt(owner.points[(a.edge + 1) % owner.points.length], v.from)) : undefined);
+      if (owner && arc) {
+        const c = arc.centre,
+          r = Math.hypot(v.from[0] - c[0], v.from[1] - c[1]),
+          start = Math.atan2(v.from[1] - c[1], v.from[0] - c[0]),
+          mid = start + sweep(v.from, v.to, c, arc.large) / 2;
+        m = [c[0] + r * Math.cos(mid), c[1] + r * Math.sin(mid)];
+        n = [Math.cos(mid), Math.sin(mid)];
+      } else if (owner) {
         const c = centre(outline(owner));
         if (n[0] * (m[0] - c[0]) + n[1] * (m[1] - c[1]) < 0) n = [-n[0], -n[1]];
       }
