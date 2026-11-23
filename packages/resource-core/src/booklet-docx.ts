@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -496,7 +496,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
         return row(
           [
             cell(gap(1.3) + para(runs(k.word, { bold: true, color: st.navy })), { width: ww, borders, margin }),
-            cell(gap(1.3) + para(runs(k.meaning)), { width: W - ww, borders, margin }),
+            cell(gap(1.3) + para(runs(k.meaning, {}, "regular", powersOnly(k.meaning, doc.notation === "maths"))), { width: W - ww, borders, margin }),
           ],
           { mm: h - line.width * (i === intro.keywords.length - 1 ? 2 : 1) },
           true,
@@ -538,9 +538,9 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string 
     return row(
       [
         cell(gap(R.pad) + para(runs(String(i + 1), { bold: true, color: st.navy })), { width: R.num, borders: b }),
-        cell(gap(R.pad) + para(runs(it.question)) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
+        cell(gap(R.pad) + para(runs(it.question, {}, "regular", powersOnly(it.question, maths))) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
         cell(gap(END_MM), { width: R.gap - WORD_WRAP_SLACK_MM, borders: { ...b, right: fold } }),
-        cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body))) + para(runs(it.answer)), { width: rightW, margin, borders: { ...b, left: fold } }),
+        cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth()).length * lh(S.body))) + para(runs(it.answer, {}, "regular", powersOnly(it.answer, maths))), { width: rightW, margin, borders: { ...b, left: fold } }),
       ],
       // Word prints row borders outside an exact row height (probe P1): each row's top rule, and the
       // last row's bottom rule too, come off its height so the table is as tall as the PDF's.
