@@ -1,0 +1,16 @@
+<svg width="975.1181" height="554.2942" viewBox="0 0 258 146.657" xmlns="http://www.w3.org/2000/svg">
+    <defs/>
+    <path fill="#ffffff" stroke="none" d="M 0 0 L 258 0 L 258 146.657 L 0 146.657 Z"/>
+    <path fill="none" stroke="#a9abaa" stroke-width="0.353" d="M 0 0 L 0 140 M 10 0 L 10 140 M 20 0 L 20 140 M 30 0 L 30 140 M 40 0 L 40 140 M 50 0 L 50 140 M 60 0 L 60 140 M 70 0 L 70 140 M 80 0 L 80 140 M 90 0 L 90 140 M 100 0 L 100 140 M 110 0 L 110 140 M 120 0 L 120 140 M 130 0 L 130 140 M 140 0 L 140 140 M 0 0 L 140 0 M 0 10 L 140 10 M 0 20 L 140 20 M 0 30 L 140 30 M 0 40 L 140 40 M 0 50 L 140 50 M 0 60 L 140 60 M 0 70 L 140 70 M 0 80 L 140 80 M 0 90 L 140 90 M 0 100 L 140 100 M 0 110 L 140 110 M 0 120 L 140 120 M 0 130 L 140 130 M 0 140 L 140 140"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 10 50 L 40 50 L 40 90 L 10 90 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 40 50 L 80 50 L 80 90 L 40 90 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 80 50 L 130 50 L 130 90 L 80 90 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 10 50 L 40 50 L 40 10 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 10 90 L 40 90 L 40 130 Z"/>
+    <path fill="none" stroke="#a9abaa" stroke-width="0.353" d="M 148 0 L 148 110 M 158 0 L 158 110 M 168 0 L 168 110 M 178 0 L 178 110 M 188 0 L 188 110 M 198 0 L 198 110 M 208 0 L 208 110 M 218 0 L 218 110 M 228 0 L 228 110 M 238 0 L 238 110 M 248 0 L 248 110 M 258 0 L 258 110 M 148 0 L 258 0 M 148 10 L 258 10 M 148 20 L 258 20 M 148 30 L 258 30 M 148 40 L 258 40 M 148 50 L 258 50 M 148 60 L 258 60 M 148 70 L 258 70 M 148 80 L 258 80 M 148 90 L 258 90 M 148 100 L 258 100 M 148 110 L 258 110"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 188 40 L 218 40 L 218 70 L 188 70 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 188 40 L 218 40 L 203 10 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 218 40 L 218 70 L 248 55 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 218 70 L 188 70 L 203 100 Z"/>
+    <path fill="none" stroke="#000000" stroke-width="0.529" stroke-linejoin="round" d="M 188 70 L 188 40 L 158 55 Z"/>
+</svg>

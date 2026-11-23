@@ -28,13 +28,13 @@
             </g>
         </g>
         <g>
-            <path fill="none" stroke="#202020" stroke-width="2" d="M 60 281 L 120 281"/>
+            <path fill="none" stroke="#202020" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5" d="M 60 281 L 120 281"/>
         </g>
         <g>
-            <path fill="none" stroke="#202020" stroke-width="2" d="M 338.925 281 L 398.92502 281"/>
+            <path fill="none" stroke="#202020" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5" d="M 338.925 281 L 398.92502 281"/>
         </g>
         <g>
-            <path fill="none" stroke="#202020" stroke-width="2" d="M 617.85 281 L 677.85 281"/>
+            <path fill="none" stroke="#202020" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5" d="M 617.85 281 L 677.85 281"/>
         </g>
         <g>
             <path fill="none" stroke="#202020" stroke-width="2.6" d="M 177 177 C 205 195 205 235 177 253"/>
