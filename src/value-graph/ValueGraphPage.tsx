@@ -57,7 +57,12 @@ import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages
 import { Field } from "./Field";
 import { equationText } from "../../packages/value-graph-core/src/svg";
 import { parseEquation } from "./equation";
-import { LocalEditor } from "./LocalEditor";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { FoldCard } from "../site/CardHelp";
+import { Eye } from "lucide-react";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
 import "../site/settings-kit.css";
@@ -144,15 +149,20 @@ export default function ValueGraphPage({
     d = envelope.document,
     g = d.graph;
   const blocked = recoverRaw !== null || busy || pendingFields.size > 0;
+  // Mirrors the pending fields at once: a field's blur and the box's close come in the same press.
+  const pendingNow = useRef(new Set<string>());
   const onPending = useCallback(
-    (key: string, value: boolean) =>
+    (key: string, value: boolean) => {
+      if (value) pendingNow.current.add(key);
+      else pendingNow.current.delete(key);
       setPendingFields((previous) => {
         if (previous.has(key) === value) return previous;
         const next = new Set(previous);
         if (value) next.add(key);
         else next.delete(key);
         return next;
-      }),
+      });
+    },
     [],
   );
   const commit = useCallback((next: ValueEnvelope, label?: string) => {
@@ -633,12 +643,34 @@ export default function ValueGraphPage({
     </button>
   );
   const close = () => {
-    if (!blocked) {
+    if (recoverRaw === null && !busy && !pendingNow.current.size) {
       setSelection(null);
       // The editor card sits above its opener (U21), so focus the opener after the card has gone.
       requestAnimationFrame(() => anchor?.focus());
     }
   };
+  // What pupils see of a y value: the value, or a pupil space (an empty cell, or one on an answer line). A pupil
+  // space keeps no value, so this session remembers it and Show puts it back; a cell never calculates by itself.
+  const keptY = useRef(new Map<string, string>());
+  const ySees = (c: (typeof d.columns)[number]): Visibility => (c.y.kind === "value" ? "show" : "hidden");
+  function setYSees(ids: string[], v: Visibility, what: string) {
+    if (blocked) return;
+    const ops: ValueOperation[] = [];
+    for (const c of d.columns.filter((c) => ids.includes(c.id))) {
+      if (ySees(c) === v) continue;
+      if (v === "hidden" && c.y.kind === "value") {
+        keptY.current.set(c.id, c.y.value);
+        ops.push({ op: "set_cell", columnId: c.id, y: { kind: "blank" } });
+      } else if (v === "show" && keptY.current.has(c.id))
+        ops.push({ op: "set_cell", columnId: c.id, y: { kind: "value", value: keptY.current.get(c.id)! } });
+    }
+    if (ops.length) act(() => commit(apply(current.current, ops), visibilityStep(v, what)));
+  }
+  const ySpaces = d.columns.filter((c) => c.y.kind !== "value").map((c) => c.id);
+  function toggleCell(id: string) {
+    const c = d.columns.find((c) => c.id === id);
+    if (c) setYSees([id], togglePupilSpace(ySees(c)), `y for column ${d.columns.indexOf(c) + 1}`);
+  }
   const removeSelectedPoint = () => {
     if (!selectedPoint || !selectedSeries) return;
     const remaining = selectedSeries.points.filter(
@@ -710,29 +742,43 @@ export default function ValueGraphPage({
                 true,
               )}
               {selection.row === "y" && (
+                <>
+                  <VisibilitySwitch
+                    name="What pupils see"
+                    caption="What pupils see"
+                    choices={["show", "hidden"]}
+                    value={ySees(selectedColumn)}
+                    disabled={blocked}
+                    help={{ show: keptY.current.has(selectedColumn.id) || selectedColumn.y.kind === "value" ? "Pupils see the value." : "Type the value above, or calculate it." }}
+                    onChange={(v) => setYSees([selectedColumn.id], v, `y for column ${d.columns.indexOf(selectedColumn) + 1}`)}
+                  />
+                  {selectedColumn.y.kind !== "value" && (
+                    <label className="vg-check">
+                      <input
+                        type="checkbox"
+                        disabled={blocked}
+                        checked={selectedColumn.y.kind === "answer-line"}
+                        onChange={(ev) =>
+                          act(() =>
+                            change([
+                              {
+                                op: "set_cell",
+                                columnId: selectedColumn.id,
+                                y: { kind: ev.target.checked ? "answer-line" : "blank" },
+                              },
+                            ]),
+                          )
+                        }
+                      />{" "}
+                      On an answer line
+                    </label>
+                  )}
                 <div className="vg-actions">
-                  {button("Blank", () =>
-                    change([
-                      {
-                        op: "set_cell",
-                        columnId: selectedColumn.id,
-                        y: { kind: "blank" },
-                      },
-                    ]),
-                  )}
-                  {button("Answer line", () =>
-                    change([
-                      {
-                        op: "set_cell",
-                        columnId: selectedColumn.id,
-                        y: { kind: "answer-line" },
-                      },
-                    ]),
-                  )}
                   <button disabled={blocked} onClick={() => calculate()}>
                     Calculate y
                   </button>
                 </div>
+                </>
               )}
             </>
           )
@@ -1494,6 +1540,8 @@ export default function ValueGraphPage({
                 <div
                   className="vg-paper"
                   ref={drawing}
+                  // A press on the drawing chooses another thing for the box, so it does not close it.
+                  data-options-anchor
                   style={{
                     width: m.width * pxPerMm,
                     height: m.height * pxPerMm,
@@ -1600,6 +1648,8 @@ export default function ValueGraphPage({
                               aria-label={
                                 "Edit " + row + " for column " + (i + 1)
                               }
+                              title={row === "y" ? (c.y.kind === "value" ? TARGET_TIP : TARGET_TIP_SPACE) : undefined}
+                              onDoubleClick={() => row === "y" && toggleCell(c.id)}
                               onClick={(e) =>
                                 choose(
                                   { kind: "cell", id: c.id, row },
@@ -1871,11 +1921,13 @@ export default function ValueGraphPage({
               </p>
             ))}
             {selection && localSelection && (
-              <LocalEditor
+              <OptionsBox
                 anchor={anchor}
+                anchorKey={JSON.stringify(selection)}
+                bounds={document.querySelector<HTMLElement>(".editor-card")}
+                placeBy={drawing.current}
+                hidden={!active || !!pending}
                 title={contextTitle}
-                blocked={blocked}
-                active={active && !pending}
                 onClose={close}
               >
                 <div
@@ -1884,18 +1936,33 @@ export default function ValueGraphPage({
                 >
                   {contextContent()}
                 </div>
-              </LocalEditor>
+              </OptionsBox>
             )}
           </Panel>
           <aside
-            className="inspector-stack md-kit"
+            className="inspector-stack md-kit md-kit--one"
             aria-label="Table and graph settings"
           >
             <ReturnToDiagram />
-            {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. In a wide
-                window it has the left column, and the tools that open it the right. */}
-            <div className="md-kit-cards">
+            {/* One column (the usability pilot): what pupils see, then the editor for a tool's settings (a value on the
+                drawing opens its box beside the drawing), then the tools. */}
+            <div className="vg-cards">
             <div>
+            {m.withTable && (
+              <FoldCard tool="value-graph" title="What pupils see" icon={Eye} defaultOpen summary={ySpaces.length ? `${ySpaces.length} pupil ${ySpaces.length === 1 ? "space" : "spaces"}` : "Every y value shows"} help="Each y value prints, or leaves a pupil space. Click a value on the table for its own choice.">
+                <VisibilitySwitch
+                  name="y values"
+                  caption="y values"
+                  choices={["show", "hidden"]}
+                  disabled={blocked}
+                  value={commonVisibility(d.columns.map(ySees)) ?? "show"}
+                  onChange={(v) => setYSees(d.columns.map((c) => c.id), v, "y values")}
+                />
+                <PupilSpaceHint count={ySpaces.length} disabled={blocked || !ySpaces.some((id) => keptY.current.has(id))} onClear={() => setYSees(ySpaces, "show", "pupil spaces")}>
+                  Double-click a y value on the table for a pupil space.
+                </PupilSpaceHint>
+              </FoldCard>
+            )}
             {selection && !localSelection ? (
               <InspectorEditor
                 title={contextTitle}

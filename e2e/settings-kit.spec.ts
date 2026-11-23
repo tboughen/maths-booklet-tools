@@ -643,16 +643,17 @@ test("Ratio tables uses the kit: one folding column, with what is selected in th
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Table of values uses the kit: the card for what is selected on the left, the tools that open it on the right", async ({ page }) => {
+test("Table of values uses the kit: one column, what pupils see first, then the card a tool opens, then the tools", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/value-table-graph");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const hint = page.locator(".md-kit .panel-card.vg-selected-empty");
-  const [empty, tools] = [(await hint.boundingBox())!, await chartCard(page, "Table and graph")];
-  expect(tools.y).toBe(empty.y);
-  expect(tools.x).toBeGreaterThanOrEqual(empty.x + empty.width);
-  expect(Math.abs(tools.width - empty.width)).toBeLessThanOrEqual(1);
+  const [seen, empty, tools] = [await chartCard(page, "What pupils see"), (await hint.boundingBox())!, await chartCard(page, "Table and graph")];
+  // One column (the usability rollout, 23 Nov 2026).
+  expect([empty.x, tools.x]).toEqual([seen.x, seen.x]);
+  expect(empty.y).toBeGreaterThan(seen.y + seen.height);
+  expect(tools.y).toBeGreaterThan(empty.y + empty.height);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // Each tool opens its card in the left column: the kit's sizes, a gap between one control and the next, nothing
@@ -665,12 +666,12 @@ test("Table of values uses the kit: the card for what is selected on the left, t
     const [open, beside] = [(await editor.boundingBox())!, await chartCard(page, "Table and graph")];
     expect([open.x, open.y], tool).toEqual([empty.x, empty.y]);
     expect(beside.x, tool).toBe(tools.x);
+    expect(beside.y, tool).toBeGreaterThan(open.y + open.height);
     const sizes = await kitSizes(page, twoLines);
     expect(sizes, tool).toMatchObject({ buttons: [32], faded: 0, cut: [] });
     expect(sizes.fields.every((height) => height === 32), `${tool}: ${sizes.fields}`).toBe(true);
     const gaps = await editor.locator(".vg-context-body > *").evaluateAll((all) => all.map((el) => el.getBoundingClientRect()).filter((r) => r.height > 0).map((r, i, rs) => (i ? Math.round(r.top - rs[i - 1].bottom) : 8)));
     expect(gaps.every((gap) => gap === 8), `${tool}: ${gaps}`).toBe(true);
-    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), tool).toBe(true);
   }
   const pair = await Promise.all(twoLines.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
   expect(pair[0]).toBe(pair[1]);
