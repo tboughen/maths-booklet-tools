@@ -1059,8 +1059,8 @@ test("editing guides are on by default, editor only, and turning them off is rem
   const guides = page.getByLabel("Editing guides", { exact: true });
   await expect(guides).toBeChecked();
   await expect(page.locator(".ratio-guides")).toBeVisible();
-  // The guides sit in an editor layer; the rendered resource has none.
-  await expect(page.getByTestId("ratio-preview").locator(".ratio-guides, [stroke-dasharray]")).toHaveCount(0);
+  // The guides sit in an editor layer; the rendered resource has none (its dotted answer lines are not guides).
+  await expect(page.getByTestId("ratio-preview").locator(".ratio-guides, [stroke-dasharray]:not(.ratio-answer-line)")).toHaveCount(0);
   await guides.uncheck();
   await expect(page.locator(".ratio-guides")).toHaveCount(0);
   await page.reload();

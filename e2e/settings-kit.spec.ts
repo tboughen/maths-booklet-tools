@@ -204,7 +204,7 @@ test("Statistical charts keeps one column in a smaller window, three on an uprig
 // The three tree tools. Each: its address, the card a click on the tree opens, the cards on the left, the cards on the
 // right, and how many columns its cards make on an upright monitor (the browser balances them and never splits a card).
 /** Tools whose settings are one narrow column with folded groups (from 21 Nov 2026). */
-const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method"]);
+const ONE_COLUMN = new Set(["/tools/probability-tree", "/tools/frequency-tree", "/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles", "/tools/angles", "/tools/area", "/tools/figures", "/tools/solids", "/tools/nets", "/tools/construction"]);
 const TREES: [string, string, string[], string[], number][] = [
   ["/tools/probability-tree", "Branches", ["What pupils see"], ["Fill probabilities", "Outcome columns", 'Questions and "given that"', "Layout"], 2],
   ["/tools/frequency-tree", "Total and groups", ["What pupils see"], ["Work out counts", "Questions", "Layout"], 2],
@@ -215,6 +215,13 @@ const TREES: [string, string, string[], string[], number][] = [
   ["/tools/function-machine", "Machines", ["What pupils see"], ["Work the machines out", "Layout"], 2],
   ["/tools/bubble-method", "Steps", ["What pupils see"], ["Layout"], 2],
   ["/tools/written-method", "Method", ["What pupils see"], ["Work the method out", "Layout"], 3],
+  ["/tools/algebra-tiles", "Tiles", ["What pupils see"], ["Expression and answer", "Layout"], 2],
+  ["/tools/angles", "Figure", ["What pupils see"], ["Point names", "Printing"], 2],
+  ["/tools/area", "Shape", ["What pupils see"], ["Hole and shading", "Point names", "Printing"], 2],
+  ["/tools/figures", "Add to the figure", ["What pupils see"], ["Shading and captions", "Printing"], 2],
+  ["/tools/solids", "Solids and lines", ["What pupils see"], ["View", "Add to the drawing", "Printing"], 3],
+  ["/tools/nets", "Shape", ["What pupils see"], ["Nets", "Paper"], 2],
+  ["/tools/construction", "Points", ["What pupils see"], ["Lines and marks", "Ruler and compass constructions", "Shaded regions", "Drawing"], 3],
 ];
 
 test("the tree tools use the kit: the tree's own values on the left, what is done with them on the right, all in view", async ({ page }) => {
@@ -225,9 +232,9 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     await page.goto(path);
     const stack = page.locator(".inspector-stack.md-kit");
     await expect(stack).toBeVisible();
-    await page.locator(".pt-hit").first().click();
+    await page.locator(HIT).first().click();
     const chosen = (await page.locator(`.md-kit .panel-card[aria-label="${selected}"]`).boundingBox())!;
-    const layout = await chartCard(page, "Layout");
+    const layout = await chartCard(page, right.at(-1)!);
     for (const name of left) expect((await chartCard(page, name)).x, `${path} ${name}`).toBe(chosen.x);
     if (ONE_COLUMN.has(path)) {
       // One narrow column (the usability pilot): the folded groups sit under the cards, in one card, inset by its border.
@@ -245,7 +252,11 @@ test("the tree tools use the kit: the tree's own values on the left, what is don
     expect((await page.locator(".editor-card").first().boundingBox())!.width, path).toBeGreaterThan(1200);
     // Some tools keep every field in a folded group: open one to measure it.
     if (path === "/tools/sample-space") await page.getByRole("button", { name: "Fill the cells", exact: true }).click();
-    if (["/tools/two-way-table", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method"].includes(path)) await page.getByRole("button", { name: "Layout", exact: true }).click();
+    if (["/tools/two-way-table", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles"].includes(path)) await page.getByRole("button", { name: "Layout", exact: true }).click();
+    if (["/tools/angles", "/tools/area", "/tools/figures", "/tools/solids", "/tools/nets", "/tools/construction"].includes(path)) {
+      await page.keyboard.press("Escape");
+      await page.getByRole("button", { name: path === "/tools/nets" ? "Paper" : path === "/tools/construction" ? "Drawing" : "Printing", exact: true }).click();
+    }
     const sizes = await kitSizes(page);
     expect(sizes, path).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
     // Every card in the one column folds (22 Nov 2026), so its headings are the fold rows' 15 px.
@@ -265,7 +276,7 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
   for (const [path, , left, right, upright] of TREES) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
-    const first = await chartCard(page, left[0]), layout = await chartCard(page, "Layout");
+    const first = await chartCard(page, left[0]), layout = await chartCard(page, right.at(-1)!);
     expect(Math.abs(layout.x - first.x), path).toBeLessThanOrEqual(1);
     expect(layout.y, path).toBeGreaterThan(first.y + first.height);
 
@@ -280,24 +291,22 @@ test("the tree tools keep one column in a smaller window, three on an upright mo
     expect(small, path).toEqual([]);
     // The list of branches is as long as it needs to be: no scrolling inside the scrolling page.
     const lists = await page.locator(".pt-branches").evaluateAll((all) => all.map((el) => el.scrollHeight <= el.clientHeight));
-    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method"].includes(path) ? [] : [true]);
+    expect(lists, path).toEqual(["/tools/factor-tree", "/tools/sample-space", "/tools/two-way-table", "/tools/probability-objects", "/tools/function-machine", "/tools/bubble-method", "/tools/written-method", "/tools/algebra-tiles", "/tools/angles", "/tools/area", "/tools/figures", "/tools/solids", "/tools/nets", "/tools/construction"].includes(path) ? [] : [true]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
   }
 });
 
-test("Plans and elevations uses the kit: the solid on the left with printing under it, the panels on the right", async ({ page }) => {
+test("Plans and elevations uses the kit: one folding column, the solid and the panels open, printing folded", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/elevations");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const solid = (await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!;
-  const printing = await chartCard(page, "Printing"), panels = await chartCard(page, "Panels");
-  expect(printing.x).toBe(solid.x);
-  expect(printing.y).toBeGreaterThan(solid.y + solid.height);
-  expect(panels.x).toBeGreaterThanOrEqual(solid.x + solid.width);
-  expect(panels.y).toBe(solid.y);
-  // The settings were 1,693 px long before the kit. With four panels they are now about 1,000 px in a 967 px column.
-  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1100);
+  const panels = await chartCard(page, "Panels"), printing = await chartCard(page, "Printing");
+  expect(Math.abs(panels.x - solid.x)).toBeLessThanOrEqual(1);
+  expect(panels.y).toBeGreaterThan(solid.y + solid.height - 1);
+  expect(printing.y).toBeGreaterThan(panels.y);
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset)).toBe(true);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The grid of heights stays a small grid, and a square with cubes on it stays marked.
@@ -307,8 +316,7 @@ test("Plans and elevations uses the kit: the solid on the left with printing und
   expect(await filled.boundingBox()).toMatchObject({ height: 32 });
   expect(await filled.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
   expect(await empty.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
-  // The widest solid there can be (six columns) still fits its card at the narrowest two-column window.
-  await page.setViewportSize({ width: 1800, height: 900 });
+  // The widest solid there can be (six columns) still fits its card.
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add a column on the right", exact: true }).click();
   await expect(page.getByRole("button", { name: "Add a column on the right", exact: true })).toBeDisabled();
   const fits = await page.locator(".ev-heights").evaluate((el) => {
@@ -316,16 +324,9 @@ test("Plans and elevations uses the kit: the solid on the left with printing und
     return el.getBoundingClientRect().right <= card.right - parseFloat(cardStyle.paddingRight) - parseFloat(cardStyle.borderRightWidth);
   });
   expect(fits).toBe(true);
-  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.getByRole("button", { name: "Printing", exact: true }).click();
   const sizes = await kitSizes(page);
   expect(sizes).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
-
-  // One column in a smaller window, in the same order.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const [a, b, c] = [(await page.locator('.md-kit .panel-card[aria-label="The solid"]').boundingBox())!, await chartCard(page, "Panels"), await chartCard(page, "Printing")];
-  expect([b.x, c.x]).toEqual([a.x, a.x]);
-  expect(b.y).toBeGreaterThan(a.y);
-  expect(c.y).toBeGreaterThan(b.y);
 
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
@@ -871,69 +872,8 @@ test("Graph tool uses the kit: what is selected on the left with the list of obj
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-// The other tools that share the tree tools' settings classes. Each: its name, its address, the card a click on the
-// diagram fills, the other cards on the left and the cards on the right. Some also have cards that come last in the
-// settings and sit under the left column (`under`), a button whose words need two lines in a narrow column, or
-// settings too long for one screen whatever is done (`longest`, the most they may be).
-type Extra = { under?: string[]; twoLines?: string[]; longest?: number };
-const SAVED = "Print every saved answer on the pupil copy";
-const PRINT: Extra = { under: ["Printing"], twoLines: [SAVED] };
-const SHARED: [string, string, string, string[], string[], Extra?][] = [
-  ["Algebra tiles", "/tools/algebra-tiles", "Selected item", ["Tiles"], ["Expression and answer", "Layout"]],
-  ["Angle diagrams", "/tools/angles", "Selected angle", [], ["Figure"], PRINT],
-  ["Area and perimeter", "/tools/area", "Selected label", [], ["Shape", "Hole and shading"], PRINT],
-  ["Geometry figures", "/tools/figures", "Selected object", [], ["Add to the figure"], PRINT],
-  // Six cards, four of them lists that grow: 2,025 px long before the kit, and still more than one screen.
-  ["Constructions and loci", "/tools/construction", "Selected point", ["Points", "Lines and marks"], ["Ruler and compass constructions", "Shaded regions", "Drawing"], { longest: 1200 }],
-  ["Nets", "/tools/nets", "Selected face", ["Shape"], ["Nets"], { under: ["Paper"] }],
-  ["3D solids", "/tools/solids", "Selected object", ["View"], ["Add to the drawing", "Printing"], { twoLines: [SAVED] }],
-];
 // What a click on the diagram selects, whatever the tool calls it.
 const HIT = ".pt-hit, .ang-hit, .area-hit, .fig-hit, .nets-face";
-
-for (const [tool, path, selected, left, right, { under = [], twoLines = [], longest = 0 } = {}] of SHARED)
-  test(`${tool} uses the kit${longest ? "" : ", with everything in view"}`, async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.goto(path);
-    const stack = page.locator(".inspector-stack.md-kit");
-    await expect(stack).toBeVisible();
-    await page.locator(HIT).first().click();
-    const chosenCard = page.locator(`.md-kit .panel-card[aria-label="${selected}"]`);
-    const chosen = (await chosenCard.boundingBox())!;
-    const first = await chartCard(page, right[0]);
-    const leftCards = await Promise.all(left.map((name) => chartCard(page, name)));
-    for (const [i, card] of leftCards.entries()) expect(card.x, left[i]).toBe(chosen.x);
-    for (const name of right) expect((await chartCard(page, name)).x, name).toBe(first.x);
-    // A card of the third group starts 12 px under the last card of the left column.
-    let foot = Math.max(...[chosen, ...leftCards].map((card) => card.y + card.height));
-    for (const name of under) {
-      const card = await chartCard(page, name);
-      expect(card.x, name).toBe(chosen.x);
-      expect(card.y, name).toBe(foot + 12);
-      foot = card.y + card.height;
-    }
-    expect(first.x).toBeGreaterThanOrEqual(chosen.x + chosen.width);
-    expect(Math.abs(first.width - chosen.width)).toBeLessThanOrEqual(1);
-    expect(await stack.evaluate((el, longest) => el.scrollHeight <= Math.max(el.clientHeight, longest), longest)).toBe(true);
-    expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
-    expect(await kitSizes(page, twoLines)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
-
-    // One column in a smaller window, in the same order.
-    await page.setViewportSize({ width: 1440, height: 900 });
-    const top = (await chosenCard.boundingBox())!;
-    let below = top.y;
-    for (const name of [...left, ...right, ...under]) {
-      const next = await chartCard(page, name);
-      expect(next.x, name).toBe(top.x);
-      expect(next.y, name).toBeGreaterThan(below);
-      below = next.y;
-    }
-
-    // Finger-sized controls on a phone, and the page is no wider than the window.
-    await page.setViewportSize({ width: 375, height: 800 });
-    expect(await tooSmall(page)).toEqual([]);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  });
 
 test("Spinners, dice and bags: each object is a named group, and Layout stays reachable however many there are", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -972,19 +912,19 @@ test("Bubble method: a tick sits beside its words, and Layout stays reachable ho
 
 test("Algebra tiles, Function machines and Written methods stay usable when they are full", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  const fits = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight);
   const fill = async (name: string) => {
     const add = page.getByRole("button", { name, exact: true }).first();
     while (await add.isEnabled()) await add.click();
   };
 
+  // All three are one folding column (22 Nov 2026): a full list may scroll the column, with a fade.
+  const fitsOrFades = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset);
   await page.goto("/tools/algebra-tiles");
   await fill("Add a term");
   await page.locator(".pt-hit").first().click();
-  expect(await fits()).toBe(true);
+  expect(await fitsOrFades()).toBe(true);
+  await page.keyboard.press("Escape");
 
-  // Function machines and Written methods are one folding column (22 Nov 2026): a full list may scroll the column, with a fade.
-  const fitsOrFades = () => page.locator(".inspector-stack.md-kit").evaluate((el) => el.scrollHeight <= el.clientHeight || "more" in el.dataset);
   await page.goto("/tools/function-machine");
   await fill("Add a different machine");
   await fill("Add a box");
@@ -1056,7 +996,7 @@ test("Angle diagrams, Area and perimeter and Geometry figures: short fields keep
   // A caption's Bold tick stays a tick beside the caption's short fields.
   await page.goto("/tools/figures");
   const captions = page.locator(".md-kit .panel-card").filter({ hasText: "Shading and captions" });
-  await captions.locator("summary").click();
+  await page.getByRole("button", { name: "Shading and captions", exact: true }).click();
   await captions.getByRole("button", { name: "Add a caption", exact: true }).click();
   const bold = (await captions.getByRole("checkbox", { name: /Bold/ }).boundingBox())!;
   expect([bold.width, bold.height]).toEqual([16, 16]);
@@ -1066,7 +1006,7 @@ test("Angle diagrams, Area and perimeter and Geometry figures: short fields keep
 test("Constructions and loci: a line's label shares its row, and the selected point's chip is marked", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/construction");
-  // The word "Label", its field and the Hide tick are one row, as they were before the kit.
+  // The word "Label", its field and the Pupil space tick are one row, as they were before the kit.
   const row = page.locator(".md-kit .cn-inline").first();
   const field = (await row.locator("input:not([type=checkbox])").boundingBox())!, whole = (await row.boundingBox())!;
   expect(whole.height).toBeLessThan(40);

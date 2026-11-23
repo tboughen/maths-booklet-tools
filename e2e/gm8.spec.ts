@@ -66,6 +66,26 @@ test("plans and elevations: edits the solid, adds a panel and undoes", async ({ 
   expect(await saved(page, eKey)).toEqual(JSON.parse(eCanonical(eCreate())));
 });
 
+test("plans and elevations: click a panel for its options, double-click for a pupil space, and leave every panel out in one step", async ({ page }) => {
+  await page.goto("/tools/elevations");
+  const state = async (i: number) => (await saved(page, eKey)).document.panels[i].state;
+  const first = page.getByRole("button", { name: /^Edit panel 1 / });
+  await first.click();
+  const box = page.locator(".md-options-box");
+  await expect(box).toContainText("Panel 1");
+  await box.getByRole("group", { name: "What pupils see" }).getByRole("button", { name: "Show" }).click();
+  expect(await state(0)).toBe("drawn");
+  await page.keyboard.press("Escape");
+  await first.dblclick();
+  expect(await state(0)).toBe("answer");
+  await page.getByRole("group", { name: "Panels", exact: true }).getByRole("button", { name: "Leave out" }).click();
+  expect((await saved(page, eKey)).document.panels.every((p: { state: string }) => p.state === "blank")).toBe(true);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(await state(0)).toBe("answer");
+  // The click targets are never part of the printed artwork.
+  expect(await page.getByTestId("elevations-resource").locator("svg button, svg .ev-hit").count()).toBe(0);
+});
+
 test("plans and elevations: refuses to remove the last cube and keeps one size on both copies", async ({ page }) => {
   await page.goto("/tools/elevations");
   await page.getByRole("button", { name: "Remove the back row" }).click();
@@ -79,4 +99,57 @@ test("plans and elevations: refuses to remove the last cube and keeps one size o
   await page.getByLabel("Teacher copy: show answers").check();
   expect(await size.textContent()).toBe(pupilSize);
   expect(eLayout(e, "pupil").width).toBe(eLayout(e, "answer").width);
+});
+
+test("constructions: click a point for its options, double-click for a pupil space, and leave every point label out in one step", async ({ page }) => {
+  await page.goto("/tools/construction");
+  const art = page.getByTestId("construction-resource").locator(".pt-art svg");
+  const label = (i: number) => saved(page, cKey).then((s) => s.document.points[i].label.show);
+  const hit = page.getByRole("button", { name: /^Select point A / });
+  await hit.click();
+  const box = page.locator(".md-options-box");
+  await expect(box).toContainText("Point A");
+  await expect(box.getByRole("textbox", { name: "Point label" })).toBeFocused();
+  await box.getByRole("group", { name: "Its label" }).getByRole("button", { name: "Pupil space" }).click();
+  expect(await label(0)).toBe("hidden");
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+  await page.getByRole("button", { name: /^Select point A / }).dblclick();
+  expect(await label(0)).toBe("show");
+  await page.keyboard.press("Escape");
+  const see = page.getByRole("region", { name: "What pupils see" });
+  await see.getByRole("group", { name: "Point labels" }).getByRole("button", { name: "Leave out" }).click();
+  expect([await label(0), await label(1)]).toEqual(["omit", "omit"]);
+  // A left-out label prints on neither copy.
+  await expect(art.locator("text", { hasText: /^[AB]$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").check();
+  await expect(art.locator("text", { hasText: /^[AB]$/ })).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(art.locator("text", { hasText: /^[AB]$/ })).toHaveCount(2);
+  // The click targets and the box are never part of the printed artwork.
+  expect(await page.getByTestId("construction-resource").locator(".pt-art .md-options-box, .pt-art button").count()).toBe(0);
+});
+
+test("plans and elevations: the options box follows its panel when it moves earlier", async ({ page }) => {
+  await page.goto("/tools/elevations");
+  const panels = async () => (await saved(page, eKey))?.document.panels ?? JSON.parse(eCanonical(eCreate())).document.panels;
+  const second = (await panels())[1];
+  await page.getByRole("button", { name: /^Edit panel 2 / }).click();
+  const box = page.locator(".md-options-box");
+  await box.getByRole("button", { name: "Move panel 2 earlier" }).click();
+  expect((await panels())[0]).toEqual(second);
+  await expect(box).toContainText("Panel 1");
+});
+
+test("constructions: typing in one point's box is kept for that point when another point is pressed", async ({ page }) => {
+  await page.goto("/tools/construction");
+  await page.getByRole("button", { name: /^Select point A / }).click();
+  const box = page.locator(".md-options-box");
+  await box.getByRole("textbox", { name: "Point label" }).fill("P");
+  await page.getByRole("button", { name: /^Select point B / }).click();
+  await expect(box).toContainText("Point B");
+  const points = (await saved(page, cKey)).document.points;
+  expect(points.map((p: { label: { text: string } }) => p.label.text).slice(0, 2)).toEqual(["P", "B"]);
+  await expect(box.getByRole("textbox", { name: "Point label" })).toHaveValue("B");
 });

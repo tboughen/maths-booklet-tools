@@ -33,7 +33,6 @@ import {
   figurePoint,
   FIGURE_NAMES,
   FIGURES,
-  hasHidden,
   hitAnchors,
   irregularCorners,
   layout,
@@ -56,7 +55,6 @@ import {
   type Envelope,
   type Figure,
   type FigureKind,
-  type LabelState,
   type Mark,
   type P,
   type ParallelFigure,
@@ -68,16 +66,18 @@ import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
 import "./angles.css";
 import "../site/settings-kit.css";
+import { FoldCard } from "../site/CardHelp";
+import { useMoreBelow } from "../site/useMoreBelow";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { useCoarsePointer } from "../site/labelTargetHooks";
+import { commonVisibility, TARGET_TIP, TARGET_TIP_SPACE, togglePupilSpace, visibilityStep, visibilityWords, type Visibility } from "../editor-kit/visibility";
+import { houseVisibility, withHouseVisibility } from "../editor-kit/houseLabelVisibility";
+import { Eye, Printer, Tag, Triangle } from "lucide-react";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:angles:v1");
 type View = "pupil" | "answer";
-const STATE_NAMES: Record<LabelState, string> = {
-  value: "Given size",
-  symbol: "Letter",
-  blank: "Blank (arc only)",
-  "answer-line": "Answer line",
-  hidden: "Hidden",
-};
 const MARK_NAMES: Record<Mark, string> = { arc: "Arc", double: "Double arc", triple: "Triple arc", right: "Right-angle mark", none: "No mark" };
 const POINT_NAMES: Record<string, string> = {
   left: "Left end of the line",
@@ -137,7 +137,9 @@ function initial() {
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMode, invalid }: {
+function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMode, invalid, onHistory }: {
+  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
+  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
   label: string;
   value: string;
   onCommit: (value: string) => boolean | void;
@@ -177,11 +179,13 @@ function DraftField({ label, value, onCommit, disabled, maxLength = 24, inputMod
       }}
       onBlur={commit}
       onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
+        if (draft === value && !invalid && onHistory?.(ev)) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           commit();
         }
-        if (ev.key === "Escape") {
+        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
+        if (ev.key === "Escape" && (draft !== value || refused || invalid)) {
           ev.preventDefault();
           ev.stopPropagation();
           setDraft(value);
@@ -208,6 +212,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     [menu, setMenu] = useState<MenuKind | false>(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [drag, setDrag] = useState<{ e: Envelope; label: string } | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null),
@@ -227,6 +232,13 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
   const current = selected && slots.some((s) => s.id === selected) ? selected : null;
   const marked = current ? d.angles.find((a) => a.id === current) : undefined;
   const pxPerMm = (96 / 25.4) * fitted.scale;
+  const stackRef = useMoreBelow<HTMLElement>(),
+    coarse = useCoarsePointer();
+  const spaceCount = d.angles.filter((a) => houseVisibility(a.label) === "hidden").length;
+  // The box closes when its angle goes (a new figure, an undo).
+  useEffect(() => {
+    if (boxAnchor && (!current || !boxAnchor.isConnected)) setBoxAnchor(null);
+  }, [boxAnchor, current]);
 
   function commit(next: Envelope | null | (() => Envelope), label?: string) {
     if (recovery !== null || !next) return false;
@@ -256,6 +268,28 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
       }
       update(a);
     }, label);
+  }
+  /** What pupils see of one angle's label: one undo step. Nothing typed yet gives a message instead. */
+  function setVisibility(id: string, v: Visibility) {
+    const next = withHouseVisibility(d.angles.find((a) => a.id === id)?.label ?? makeAngle(id).label, v);
+    if (typeof next === "string") {
+      setMessage(next);
+      return false;
+    }
+    return setAngle(id, (a) => void (a.label = next), visibilityStep(v, `angle ${slotName(id)}`));
+  }
+  /** Every marked angle at once; one undo step. Angles with nothing typed stay as they are. */
+  function setAll(v: Visibility, only?: Visibility) {
+    let skipped = 0;
+    const ok = patch((n) => {
+      for (const a of n.angles) {
+        if (only && houseVisibility(a.label) !== only) continue;
+        const next = withHouseVisibility(a.label, v);
+        if (typeof next === "string") skipped++;
+        else a.label = next;
+      }
+    }, visibilityStep(v, "all angles"));
+    if (ok && skipped) setMessage(`${skipped === 1 ? "One angle has" : `${skipped} angles have`} nothing typed, so ${skipped === 1 ? "it stays" : "they stay"} as before.`);
   }
   function removeAngle(id: string) {
     if (!d.angles.some((a) => a.id === id)) return;
@@ -328,7 +362,10 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
       // U9: Escape deselects; Delete removes the selected angle's mark and label, as one undo step.
       const command = objectKeyCommand(event);
       if (!command || !current || blocked) return;
-      if (command.kind === "deselect") setSelected(null);
+      if (command.kind === "deselect") {
+        setSelected(null);
+        setBoxAnchor(null);
+      }
       else if (command.kind === "delete" && marked) {
         event.preventDefault();
         removeAngle(current);
@@ -629,10 +666,23 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                       type="button"
                       className={`ang-hit${a.id === current ? " ang-current" : ""}${d.angles.some((x) => x.id === a.id) ? "" : " ang-unmarked"}`}
                       style={{ left: a.at.x * pxPerMm, top: a.at.y * pxPerMm }}
-                      aria-label={`Select ${a.name} (${a.id})`}
+                      aria-label={`Select ${a.name} (${a.id})${(() => {
+                        const m = d.angles.find((x) => x.id === a.id);
+                        const words = m ? visibilityWords(houseVisibility(m.label)) : "";
+                        return words ? `, ${words}` : "";
+                      })()}`}
                       aria-pressed={a.id === current}
+                      aria-haspopup="dialog"
+                      title={d.angles.some((x) => x.id === a.id && houseVisibility(x.label) === "hidden") ? TARGET_TIP_SPACE : TARGET_TIP}
                       disabled={blocked}
-                      onClick={() => setSelected(a.id)}
+                      onClick={(ev) => {
+                        setSelected(a.id);
+                        setBoxAnchor(ev.currentTarget);
+                      }}
+                      onDoubleClick={() => {
+                        const m = d.angles.find((x) => x.id === a.id);
+                        setVisibility(a.id, togglePupilSpace(m ? houseVisibility(m.label) : "omit"));
+                      }}
                     />
                   ))}
                   {handles.map((h) => {
@@ -667,6 +717,102 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                     );
                   })}
                 </div>
+                {boxAnchor && current && (
+                  <OptionsBox anchor={boxAnchor} anchorKey={current} focusField={!coarse} title={slotName(current).replace(/^./, (c) => c.toUpperCase())} onClose={() => setBoxAnchor(null)}>
+                    <VisibilitySwitch
+                      name="What pupils see"
+                      caption="What pupils see"
+                      value={marked ? houseVisibility(marked.label) : "omit"}
+                      disabled={blocked}
+                      onChange={(v) => setVisibility(current, v)}
+                    />
+                    <div className="pt-fields">
+                      <label>
+                        Size or letter
+                        <DraftField
+                          key={`${current}-text`}
+                          onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                          label={`Text of ${slotName(current)}`}
+                          value={marked ? (houseVisibility(marked.label) === "hidden" && marked.label.state !== "symbol" ? marked.label.answer : marked.label.text) : ""}
+                          disabled={blocked}
+                          onCommit={(v) =>
+                            setAngle(current, (a) => {
+                              const t = v.trim();
+                              // A pupil space keeps its words as the saved answer; a letter keeps its own text.
+                              if (houseVisibility(a.label) === "hidden" && a.label.state !== "symbol") {
+                                a.label.answer = t;
+                                if (!t) a.label.state = "blank";
+                                return;
+                              }
+                              // A left-out label keeps what was typed and stays left out; an empty place shows what is typed.
+                              const was = a.label.text;
+                              a.label.text = t;
+                              // Typing a size or a letter shows it; clearing it leaves the mark only.
+                              if (!t && (a.label.state === "value" || a.label.state === "symbol")) a.label.state = "blank";
+                              else if (t && a.label.state === "blank" && !was) a.label.state = /\d/.test(t) && !a.label.answer ? "value" : "symbol";
+                              else if (t && a.label.state === "value" && !/\d/.test(t)) a.label.state = "symbol";
+                              else if (t && a.label.state === "symbol" && /\d/.test(t) && !a.label.answer) a.label.state = "value";
+                            }, "edit label")
+                          }
+                        />
+                      </label>
+                      {marked?.label.state === "symbol" && (
+                        <label>
+                          Saved answer
+                          <DraftField
+                            key={`${current}-answer`}
+                            onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })}
+                            label="Saved answer (answers copy only)"
+                            value={marked.label.answer}
+                            disabled={blocked}
+                            onCommit={(v) => setAngle(current, (a) => void (a.label.answer = v.trim()), "edit answer")}
+                          />
+                        </label>
+                      )}
+                      <label>
+                        Mark
+                        <select aria-label="Angle mark" value={marked?.mark ?? "arc"} disabled={blocked} onChange={(ev) => setAngle(current, (a) => void (a.mark = ev.target.value as Mark), "change mark")}>
+                          {MARKS.map((m) => (
+                            <option key={m} value={m}>
+                              {MARK_NAMES[m]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    {marked && houseVisibility(marked.label) === "hidden" && marked.label.state !== "symbol" && (
+                      <label className="pt-hide">
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={marked.label.state === "answer-line"}
+                          onChange={(ev) => setAngle(current, (a) => void (a.label.state = ev.target.checked ? "answer-line" : "hidden"), "change pupil space")}
+                        />
+                        An answer line (______°) on the pupil copy
+                      </label>
+                    )}
+                    <label className="pt-hide">
+                      <input type="checkbox" disabled={blocked} checked={!!marked?.shade} onChange={(ev) => setAngle(current, (a) => void (a.shade = ev.target.checked), "shade angle")} />
+                      Shade this angle
+                    </label>
+                    {marked && houseVisibility(marked.label) === "hidden" && marked.label.answer && (
+                      <p className="pt-note">The answers copy prints {degrees(marked.label.answer)} here in pink; the pupil copy never shows it.</p>
+                    )}
+                    <p className="pt-note">A size prints with a degree sign (62°, (2x + 10)°); a letter prints as typed.</p>
+                    <div className="md-options-actions">
+                      <button
+                        type="button"
+                        disabled={blocked || !marked}
+                        onClick={() => {
+                          removeAngle(current);
+                          setBoxAnchor(null);
+                        }}
+                      >
+                        Remove mark and label
+                      </button>
+                    </div>
+                  </OptionsBox>
+                )}
               </div>
             </div>
             <EditorFoot
@@ -676,7 +822,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               size={<ResourceSize width={g.width / 10} height={g.height / 10} />}
               status={message}
               hint={
-                <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Drag the round handles to move rays, transversals and corners.</EditorHint>
+                <EditorHint tool="angles">Click an angle to mark and label it. Double-click it for a pupil space. Drag the round handles to move rays, transversals and corners.</EditorHint>
               }
             >
             </EditorFoot>
@@ -693,132 +839,31 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               </div>
             )}
           </Panel>
-          <aside className="inspector-stack md-kit" aria-label="Angle diagram settings">
+          <aside ref={stackRef} className="inspector-stack md-kit md-kit--one" aria-label="Angle diagram settings">
             <ReturnToDiagram />
-            <div className="md-kit-cards">
-            <div>
-            <section className="panel-card pt-panel" aria-label="Selected angle">
-              <h2>{current ? `Angle: ${slotName(current)}` : "Selected angle"}</h2>
-              <div className="pt-fields">
-                <label>
-                  Angle
-                  <select aria-label="Angle to edit" value={current ?? ""} disabled={blocked} onChange={(ev) => setSelected(ev.target.value || null)}>
-                    <option value="">Choose an angle</option>
-                    {slots.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.id}){d.angles.some((a) => a.id === s.id) ? " ✓" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              {current ? (
+            {/* One column (the usability rollout, 22 Nov 2026): the main cards open, the rarer groups folded. */}
+            <FoldCard
+              tool="angles"
+              title="What pupils see"
+              icon={Eye}
+              defaultOpen
+              summary={spaceCount === 0 ? "No pupil spaces" : `${spaceCount} pupil space${spaceCount === 1 ? "" : "s"}`}
+              help={
                 <>
-                  <div className="pt-fields">
-                    <label>
-                      Label
-                      <select
-                        aria-label="Label shows"
-                        value={marked?.label.state ?? "blank"}
-                        disabled={blocked}
-                        onChange={(ev) => {
-                          const state = ev.target.value as LabelState;
-                          if (state === "value" && marked?.label.answer) {
-                            setMessage("A given size prints on both copies, so it cannot keep a saved answer. Clear the saved answer first.");
-                            return;
-                          }
-                          if ((state === "value" || state === "symbol") && !marked?.label.text) {
-                            setMessage(state === "value" ? "Type the given size first, such as 62 or 2x + 10." : "Type the letter first, such as x.");
-                            return;
-                          }
-                          setAngle(current, (a) => void (a.label.state = state), "change label");
-                        }}
-                      >
-                        {(Object.keys(STATE_NAMES) as LabelState[]).map((s) => (
-                          <option key={s} value={s}>
-                            {STATE_NAMES[s]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Text
-                      <DraftField
-                        label="Label text"
-                        value={marked?.label.text ?? ""}
-                        disabled={blocked}
-                        onCommit={(v) =>
-                          setAngle(current, (a) => {
-                            a.label.text = v.trim();
-                            // Typing a size or a letter shows it; clearing it leaves an arc.
-                            if (!a.label.text && (a.label.state === "value" || a.label.state === "symbol")) a.label.state = "blank";
-                            // Typing on a plain arc shows the text; hidden and answer-line labels stay as they are.
-                            else if (a.label.text && a.label.state === "blank") a.label.state = /\d/.test(a.label.text) && !a.label.answer ? "value" : "symbol";
-                          }, "edit label")
-                        }
-                      />
-                    </label>
-                    <label>
-                      Saved answer
-                      <DraftField
-                        label="Saved answer (answers copy only)"
-                        value={marked?.label.answer ?? ""}
-                        disabled={blocked || marked?.label.state === "value"}
-                        onCommit={(v) => setAngle(current, (a) => void (a.label.answer = v.trim()), "edit answer")}
-                      />
-                    </label>
-                    <label>
-                      Mark
-                      <select aria-label="Angle mark" value={marked?.mark ?? "none"} disabled={blocked} onChange={(ev) => setAngle(current, (a) => void (a.mark = ev.target.value as Mark), "change mark")}>
-                        {MARKS.map((m) => (
-                          <option key={m} value={m}>
-                            {MARK_NAMES[m]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <p className="pt-note">A given size prints with a degree sign (62°, (2x + 10)°); a letter prints as typed. A saved answer prints only on the answers copy.</p>
-                  <label className="pt-hide">
-                    <input type="checkbox" disabled={blocked} checked={!!marked?.shade} onChange={(ev) => setAngle(current, (a) => void (a.shade = ev.target.checked), "shade angle")} />
-                    Shade this angle (for teaching pairs of angles)
-                  </label>
-                  {marked?.label.state === "value" && <p className="pt-note">A given size is printed on both copies, so it has no saved answer.</p>}
-                  {marked && marked.label.state !== "value" && marked.label.answer && (
-                    <p className="pt-note">The answers copy prints {degrees(marked.label.answer)} here in pink; the pupil copy never shows it.</p>
-                  )}
-                  <div className="pt-row">
-                    <button type="button" disabled={blocked || !marked} onClick={() => removeAngle(current)}>
-                      Remove mark and label
-                    </button>
-                  </div>
+                  <p className="pt-note">Show: the size or letter prints on both copies. Pupil space: the pupil copy has the mark only, or an answer line; the answers copy prints the answer in pink. Leave out: the mark only, on both copies.</p>
+                  <p className="pt-note">Click an angle to mark it and type its size; click it again for its options.</p>
                 </>
-              ) : (
-                <p className="pt-note">Click an angle on the diagram, or choose one above, to mark and label it.</p>
-              )}
-              <div className="pt-row">
-                <button
-                  type="button"
-                  disabled={blocked || !hasHidden(e)}
-                  onClick={() =>
-                    patch((n) => {
-                      for (const a of n.angles)
-                        if (a.label.state !== "value" && a.label.answer) {
-                          a.label.text = a.label.answer;
-                          a.label.state = "value";
-                          a.label.answer = "";
-                        }
-                    }, "show all")
-                  }
-                >
-                  Print every saved answer on the pupil copy
-                </button>
-              </div>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel" aria-label="Figure">
-              <h2>Figure</h2>
+              }
+            >
+              {(() => {
+                const all = commonVisibility(d.angles.map((a) => houseVisibility(a.label)));
+                return all && <VisibilitySwitch name="Angles" caption="Angles" value={all} disabled={blocked} onChange={(v) => setAll(v)} />;
+              })()}
+              <PupilSpaceHint count={spaceCount} disabled={blocked} onClear={() => setAll("show", "hidden")}>
+                Double-click an angle for a pupil space.
+              </PupilSpaceHint>
+            </FoldCard>
+            <FoldCard tool="angles" title="Figure" icon={Triangle} defaultOpen summary={FIGURE_NAMES[f.type]}>
               <div className="pt-fields">
                 <label>
                   Figure
@@ -1189,11 +1234,14 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                   </details>
                 </>
               )}
-            </section>
-            <section className="panel-card pt-panel" aria-label="Point names">
-              <details>
-                <summary>Point names (A, B, C …)</summary>
-                <p className="pt-note">Letters print upright beside their points, for questions such as “Work out the size of angle ABC”.</p>
+            </FoldCard>
+            <FoldCard
+              tool="angles"
+              title="Point names"
+              icon={Tag}
+              summary={d.names.length ? d.names.map((x) => x.text).join(", ") : "None"}
+              help={<p className="pt-note">Letters print upright beside their points, for questions such as “Work out the size of angle ABC”.</p>}
+            >
                 <div className="pt-fields">
                   {pointIdsOf(d).map((id) => (
                     <label key={id}>
@@ -1213,12 +1261,26 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                     </label>
                   ))}
                 </div>
-              </details>
-            </section>
-            </div>
-            <div>
-            <section className="panel-card pt-panel">
-              <h2>Printing</h2>
+            </FoldCard>
+            <FoldCard
+              tool="angles"
+              title="Printing"
+              icon={Printer}
+              summary={`${d.sizeMm} mm${d.notToScale ? " · not accurately drawn" : ""}`}
+              help={
+                <>
+                  <p className="pt-note">
+                    The drawing never has to match the sizes: exam angle diagrams are not accurately drawn. When given sizes cannot all be right (a
+                    straight line that does not make 180°, unequal vertically opposite or corresponding angles, a polygon’s angle sum) a teacher note
+                    says so. Leave it if the error is deliberate.
+                  </p>
+                  <p className="pt-note">
+                    Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
+                    your browser blocks copying, and print at 100% (actual size).
+                  </p>
+                </>
+              }
+            >
               <div className="pt-fields">
                 <label>
                   Size
@@ -1280,21 +1342,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" disabled={blocked} checked={d.notToScale} onChange={(ev) => patch((n) => void (n.notToScale = ev.target.checked), "not accurately drawn")} />
                 Print “Diagram NOT accurately drawn”
               </label>
-              <details>
-                <summary>Editing and printing help</summary>
-                <p className="pt-note">
-                  The drawing never has to match the sizes: exam angle diagrams are not accurately drawn. When given sizes cannot all be right (a
-                  straight line that does not make 180°, unequal vertically opposite or corresponding angles, a polygon’s angle sum) a teacher note
-                  says so. Leave it if the error is deliberate.
-                </p>
-                <p className="pt-note">
-                  Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if
-                  your browser blocks copying, and print at 100% (actual size).
-                </p>
-              </details>
-            </section>
-            </div>
-            </div>
+            </FoldCard>
           </aside>
         </section>
         {recovery !== null && (

@@ -3,6 +3,7 @@ import { Download, FileSpreadsheet, RotateCcw, X } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { verifyCatalogue, type BankCatalogue } from "../bank/model";
 import { withPerformance } from "../bank/performance";
+import { verifyPartPerformance } from "../bank/partPerformance";
 import { assetUrl, downloadBlob } from "../bank/pdf";
 import { importMappings, importPupils, mappingsCsv, paperMappings, parseDelimited, readSpreadsheet, resultsCsv, type Detection, type ResultOptions } from "./import";
 import { assessmentPresets } from "./presets";
@@ -11,6 +12,7 @@ import { assessmentQuestion, generateClass } from "./select";
 import { exportClass } from "./export";
 import { layoutPack } from "./layout";
 import { Preview } from "./Preview";
+import { AnalysisPanel } from "./AnalysisPanel";
 import "../site/settings-kit.css";
 import "./assessment.css";
 
@@ -41,7 +43,11 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
   const controller = useRef<AbortController | null>(null), revision = useRef(0);
   useEffect(() => {
     const fetchController = new AbortController();
-    fetch(assetUrl("bank/catalogue.json"), { signal: fetchController.signal }).then(response => { if (!response.ok) throw new Error("The question bank could not be loaded."); return response.json(); }).then(data => setCatalogue(withPerformance(verifyCatalogue(data)))).catch(() => { if (!fetchController.signal.aborted) setLoadError("The question bank could not be loaded. Reload to try again."); });
+    fetch(assetUrl("bank/catalogue.json"), { signal: fetchController.signal }).then(response => { if (!response.ok) throw new Error("The question bank could not be loaded."); return response.json(); }).then(async data => {
+      // Part-level rates are optional: without them, whole-question rates are used.
+      const parts = await fetch(assetUrl("bank/performance-parts.json"), { signal: fetchController.signal }).then(r => r.ok ? r.json() : undefined).then(json => json && verifyPartPerformance(json)).catch(() => undefined);
+      setCatalogue({ ...withPerformance(verifyCatalogue(data)), ...(parts ? { partPerformance: parts } : {}) });
+    }).catch(() => { if (!fetchController.signal.aborted) setLoadError("The question bank could not be loaded. Reload to try again."); });
     return () => { fetchController.abort(); controller.current?.abort(); };
   }, []);
   const invalidate = () => { revision.current++; controller.current?.abort(); if (blob || plan) setNeedsRegeneration(true); setPlan(undefined); setBlob(undefined); setError(""); setStatus(""); setBusy(false); };
@@ -135,6 +141,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         <details><summary>Printing help</summary><p>Answers are upside down at the end. Print at actual size; choose duplex or booklet settings in your PDF software.</p>{settings.pageLimit === 1 && <p>Use single-sided printing for one-page packs.</p>}</details>
         <details><summary>Why these questions?</summary>{plan.packs.map(pack => <div key={pack.pupil.key}><h3>{pack.pupil.identifier}</h3><ol>{pack.entries.map(entry => <li key={entry.question.id}>{entry.question.source} — follow-up to {entry.references.join(", ")} · {entry.reason}</li>)}</ol></div>)}</details>
       </Panel>}
+      {catalogue && !importError && items.length > 0 && pupils.length > 0 && <AnalysisPanel catalogue={catalogue} items={items} pupils={pupils} />}
     </div><aside className="af-inspector"><Panel className="af-panel"><h2>Class settings</h2><fieldset disabled={busy}>
       <label>Year<select aria-label="Year" value={settings.year} onChange={e => updateSettings({ year: Number(e.target.value) })}>{[7, 8, 9, 10, 11, 12, 13].map(year => <option key={year}>{year}</option>)}</select></label>
       <label>Tier<select aria-label="Tier" value={settings.tier} onChange={e => updateSettings({ tier: e.target.value as Settings["tier"] })}><option value="H">Higher</option><option value="F">Foundation</option></select></label>

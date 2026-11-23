@@ -43,7 +43,7 @@ test("split hosting displays question/scheme canvases, PNG previews and both rea
   await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();
   await expect(page.locator(".qb-view-error")).toHaveCount(0);
   await page.getByRole("button", {name: "Select question", exact: true}).click();
-  await page.getByRole("combobox", {name: "Sparx code or topic"}).fill("U350");
+  await page.getByRole("combobox", {name: "Sparx code, topic or paper"}).fill("U350");
   await page.getByRole("button", {name: "Find", exact: true}).click();
   await page.getByRole("button", {name: "Select question", exact: true}).click();
   await page.getByRole("navigation", {name: "Main sections"}).getByRole("link", {name: "Paper builder", exact: true}).click();

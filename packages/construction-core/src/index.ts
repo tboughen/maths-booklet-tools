@@ -31,7 +31,8 @@ const plain = (max: number) =>
     .string()
     .max(max)
     .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 || c === "<" || c === ">"), "Use ordinary text without markup.");
-const show = z.enum(["show", "hidden"]);
+/** "omit" (Leave out) keeps a label but prints it on neither copy. */
+const show = z.enum(["show", "hidden", "omit"]);
 export const labelSchema = z.object({ text: plain(40), show }).strict();
 const role = z.enum(["given", "answer"]);
 const id = z.string().regex(/^[A-Za-z][A-Za-z0-9_'-]{0,15}$/, "Use IDs such as A, B2 or pb1-arc1.");
@@ -287,6 +288,8 @@ export function parseFile(text: string) {
   return validate(JSON.parse(text));
 }
 
+/** A left-out label stays out of the answers copy too. */
+const open = (s: Label["show"]): Label["show"] => (s === "omit" ? "omit" : "show");
 /** The answer copy prints every answer object and hidden label; the pupil copy leaves them out. */
 export function forView(e: Envelope, view: View): Envelope {
   if (view === "pupil") return e;
@@ -294,13 +297,13 @@ export function forView(e: Envelope, view: View): Envelope {
     d = n.document;
   for (const p of d.points) {
     p.role = "given";
-    p.label.show = "show";
+    p.label.show = open(p.label.show);
   }
   for (const o of d.objects) {
     o.role = "given";
-    if ("label" in o) o.label.show = "show";
+    if ("label" in o) o.label.show = open(o.label.show);
   }
-  d.caption.show = "show";
+  d.caption.show = open(d.caption.show);
   return n;
 }
 export const hasHidden = (e: Envelope) => {
@@ -972,7 +975,7 @@ function draw(e: Envelope, reserve?: Box) {
       marks.push({ ...c, mark: p.mark });
       extendBox(c.x, c.y, 1.2);
     }
-    if (!p.label.text.trim() || p.label.show === "hidden") continue;
+    if (!p.label.text.trim() || p.label.show !== "show") continue;
     let ang: number;
     if (p.labelAt !== "auto") ang = COMPASS[p.labelAt];
     else {

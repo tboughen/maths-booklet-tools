@@ -38,6 +38,13 @@ resolve and Access would redirect to it after sign-in.
   the Access application, expiry, RS256 signature against the team's certs). If
   `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD` is unset it answers 503, and without a valid
   token 403, so a missing or mistyped Access rule fails closed.
+- `POST /api/report` (Question bank, "Report a problem") also runs in the Worker.
+  It checks the same Access token, then files the description as an issue in the
+  private `tboughen/mathsdock-bank` repository with the question, view, link and
+  the sender's Access email. It needs the Worker secret `REPORT_GITHUB_TOKEN`: a
+  fine-grained token for that repository only, with Issues read and write, set with
+  `npx wrangler secret put REPORT_GITHUB_TOKEN` (and `-c wrangler.preview.jsonc`
+  for preview). Without it the dialog says reports are not set up yet.
 - Responses use `Cache-Control: private, max-age=31536000, immutable`, support
   `Range` (PDF.js) and `HEAD`, and carry `X-Robots-Tag: noindex`.
 

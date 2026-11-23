@@ -1082,3 +1082,68 @@ export const lessonNotesFileName = (booklet: Booklet, lesson: number) => lessonF
 export function lessonFileName(booklet: Booklet, lesson: number, view: View = "pupil"): string {
   return bookletFileName(booklet, view).replace(/_Booklet/, `_Lesson ${lesson + 1 + lessonShift(booklet.document)}`);
 }
+
+/** An empty area on a lesson page that is neither a card nor working or drawing space (booklet standard N21). */
+export interface BookletGap {
+  /** 1-based lesson. */
+  lesson: number;
+  /** The printed page number, after numbering offsets. */
+  page: number;
+  /** foot: below the last card on the page; beside: the empty half of a row that holds one card; inside: blank card height that no working space could take. */
+  kind: "foot" | "beside" | "inside";
+  section?: number;
+  question?: QuestionLabel;
+  /** Size of the empty area in millimetres. */
+  width: number;
+  height: number;
+  message: string;
+}
+
+/** The most empty height a lesson page may leave without a card, in millimetres (booklet standard N21). */
+export const GAP_LIMIT = 20;
+
+/**
+ * Empty areas on each lesson page taller than `limit`, measured from the same page plan the PDF and
+ * Word file are drawn from. Spare height already given to working and drawing spaces is not empty.
+ */
+export function bookletGaps(saved: Booklet, options: Pick<BookletRenderOptions, "numbering" | "view" | "style"> = {}, limit: number = GAP_LIMIT): BookletGap[] {
+  const booklet = typesetForPrint(saved);
+  const doc = booklet.document;
+  const st = styles[options.style ?? "mathsdock"];
+  const quiet: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, maths: doc.notation === "maths" };
+  const plan = planBooklet(booklet, options);
+  const out: BookletGap[] = [];
+  const mm = (v: number) => Math.round(v);
+  plan.pages.forEach((p, pi) => {
+    const page = p.pageNo + (options.numbering?.pageOffset ?? 0);
+    const next = plan.pages[pi + 1];
+    // The next page cannot lend a card when this is the lesson's last page or the next page opens a cycle (a forced break).
+    const forced = p.last || !next || next.blocks.some((b) => b.kind === "banner" && !b.end);
+    const lesson = doc.lessons[p.lesson - 1];
+    const bottom = p.blocks.reduce((m, b) => Math.max(m, b.y + b.h), 0);
+    const foot = A4.bottom - bottom;
+    if (foot > limit)
+      out.push({ lesson: p.lesson, page, kind: "foot", width: W, height: foot, message: `Page ${page} leaves ${mm(foot)} mm empty below its last card (the limit is ${limit} mm). ${forced ? "Give the cards more working space, set a card wide or tall, or add a question." : "Give the cards more working space, set a card wide or tall, add a question, or move a card up from the next page."}` });
+    for (const b of p.blocks) {
+      if (b.kind !== "row") continue;
+      const section = lesson.sections[b.section];
+      const where = { lesson: p.lesson, page, section: b.section + 1, question: b.cards[0].number ?? undefined };
+      if (section.columns === 2 && b.shape.kind === "pair" && b.cards.length === 1 && b.h > limit)
+        out.push({ ...where, kind: "beside", width: BOOKLET_WIDTHS.half, height: b.h, message: `Page ${page}: ${b.cards[0].number !== null ? `question ${b.cards[0].number}` : "a card"} stands alone with a ${mm(b.h)} mm tall empty half row beside it. ${section.cards[b.cards[0].index].tall ? "It is set tall but no cards follow it: add cards after it, or set it wide." : "Set the card wide, add a card beside it, or make it tall beside cards that follow."}` });
+      const measure = (i: number, w: number) => card(section.cards[i], b.cards.find((c) => c.index === i)?.number ?? null, w, quiet, p.extra, 0).h;
+      const tall = b.shape.kind === "tall";
+      let stackBlank = 0;
+      for (const c of placeRow(section, b, b.h, measure)) {
+        const slack = c.h - measure(c.index, c.w);
+        if (!(slack > 0) || growLastSpace(section.cards[c.index], slack)) continue;
+        if (tall && c.slot > 0) stackBlank += slack;
+        if (slack > limit)
+          out.push({ ...where, question: c.number ?? undefined, kind: "inside", width: c.w, height: slack, message: `Page ${page}: ${c.number !== null ? `question ${c.number}` : "a card"} has ${mm(slack)} mm of blank height that no working space can take (drawing spaces do not grow). ${tall && c.slot > 0 ? "Give the stacked cards working spaces, add cards to the stack, or shorten the tall card." : "Give the card a working space, or pair it with a card of similar height."}` });
+      }
+      // Blank shared thinly among a tall card's stack can add up to an empty column.
+      if (tall && stackBlank > limit && !out.some((g) => g.kind === "inside" && g.page === page && b.cards.slice(1).some((c) => (c.number ?? undefined) === g.question)))
+        out.push({ ...where, question: b.cards[1].number ?? undefined, kind: "inside", width: BOOKLET_WIDTHS.half, height: stackBlank, message: `Page ${page}: the cards stacked beside a tall card leave ${mm(stackBlank)} mm blank in all. Give the stacked cards working spaces, add cards to the stack, or shorten the tall card.` });
+    }
+  });
+  return out;
+}

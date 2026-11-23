@@ -151,3 +151,19 @@ describe("teacher notes and explicit marking", () => {
   });
 });
 
+
+describe("left out (omit)", () => {
+  it("prints a left-out face, letter or mark on neither copy, and keeps it saved", () => {
+    let e = core.create({ type: "cube", net: 1, side: 1 });
+    const net = e.document.nets[0];
+    e = core.setFace(e, net.id, "f1", { label: { text: "A", show: "omit" }, mark: { kind: "dot", show: "omit" } });
+    e = core.setFace(e, net.id, "f2", { show: "omit" });
+    for (const view of ["pupil", "answer"] as const) {
+      const svg = core.renderSvg(core.forView(e, view, true));
+      expect(faceCount(svg)).toBe(5);
+      expect(svg).not.toMatch(/>A</);
+      expect(svg).not.toMatch(/<circle/);
+    }
+    expect(e.document.nets[0].faces[0].label).toEqual({ text: "A", show: "omit" });
+  });
+});

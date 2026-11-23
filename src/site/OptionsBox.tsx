@@ -21,7 +21,7 @@ export function OptionsBox({
   children,
 }: {
   /** The click target the box belongs to. */
-  anchor: HTMLElement | null;
+  anchor: HTMLElement | SVGElement | null;
   /** Changes when the box moves to another label, so focus moves in again. */
   anchorKey: string;
   /** Open with the cursor in the text field (the default). False: the box itself takes focus, as on a touch screen. */
