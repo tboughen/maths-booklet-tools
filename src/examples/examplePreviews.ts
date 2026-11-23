@@ -1,6 +1,6 @@
 const previews = import.meta.glob<string>("../assets/example-previews/*.svg", {
   eager: true,
-  query: "?url",
+  query: "?no-inline",
   import: "default",
 });
 
