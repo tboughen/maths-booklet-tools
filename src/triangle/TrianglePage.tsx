@@ -2341,7 +2341,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </div>
               </div>
             </FoldCard>
-            <FoldCard tool="triangle" title="Print size" icon={Ruler} summary={`${d.widthCm} cm wide · ${d.fontPt} pt`}>
+            <FoldCard tool="triangle" title="Print size" icon={Ruler} summary={`${d.widthCm} cm wide · ${d.fontPt ?? TRIANGLE_MIN_PT} pt`}>
               <div className="tr-section-body">
                 <label>
                   Print width (cm)
