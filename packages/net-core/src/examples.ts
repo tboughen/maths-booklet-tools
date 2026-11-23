@@ -161,5 +161,7 @@ export const plainShapes: { id: string; title: string; note: string; make: () =>
   { id: "cuboid", title: "Cuboid net", note: "The net of a 4 by 2 by 3 cuboid.", make: () => doc([net(DEFAULT_PRESETS.cuboid)]) },
   { id: "triangular-prism", title: "Triangular prism net", note: "The net of a triangular prism.", make: () => doc([net(DEFAULT_PRESETS["triangular-prism"])]) },
   { id: "square-pyramid", title: "Square-based pyramid net", note: "The net of a square-based pyramid.", make: () => doc([net(DEFAULT_PRESETS["square-pyramid"])]) },
+  { id: "cylinder", title: "Cylinder net", note: "A rectangle as wide as the circumference, with a circle on each long side.", make: () => doc([net(DEFAULT_PRESETS.cylinder)]) },
+  { id: "cone", title: "Cone net", note: "A sector for the curved surface, with the circular base touching its arc.", make: () => doc([net(DEFAULT_PRESETS.cone)]) },
   { id: "tetrahedron", title: "Tetrahedron net", note: "The net of a regular tetrahedron.", make: () => doc([net(DEFAULT_PRESETS.tetrahedron)]) },
 ];

@@ -3236,6 +3236,20 @@
    "png600": "2362x1890",
    "pixels": "4c6449c5acadd3d2"
   },
+  "nets: nets-plain-cone": {
+   "json": "509cc28934240f36",
+   "svg": "0fb8d9ff07b9d0a8",
+   "mm": "120x110",
+   "png600": "2835x2598",
+   "pixels": "7e49c6c564ee6675"
+  },
+  "nets: nets-plain-cone (worked)": {
+   "json": "509cc28934240f36",
+   "svg": "0fb8d9ff07b9d0a8",
+   "mm": "120x110",
+   "png600": "2835x2598",
+   "pixels": "7e49c6c564ee6675"
+  },
   "nets: nets-plain-cube": {
    "json": "b8d5b725a30210f0",
    "svg": "46c6a85880da2a01",
@@ -3263,6 +3277,20 @@
    "mm": "140x90",
    "png600": "3307x2126",
    "pixels": "d94bbd5be1a09ceb"
+  },
+  "nets: nets-plain-cylinder": {
+   "json": "4c75557fab1c90f7",
+   "svg": "8682b7223bd746f4",
+   "mm": "90x100",
+   "png600": "2126x2362",
+   "pixels": "2ed2b48aeaaeb93e"
+  },
+  "nets: nets-plain-cylinder (worked)": {
+   "json": "4c75557fab1c90f7",
+   "svg": "8682b7223bd746f4",
+   "mm": "90x100",
+   "png600": "2126x2362",
+   "pixels": "2ed2b48aeaaeb93e"
   },
   "nets: nets-plain-square-pyramid": {
    "json": "8c8a341581c6feab",

@@ -105,6 +105,8 @@ const PRESET_NAMES: Record<PresetType, string> = {
   "triangular-prism": "Triangular prism",
   "square-pyramid": "Square-based pyramid",
   tetrahedron: "Tetrahedron",
+  cylinder: "Cylinder",
+  cone: "Cone",
 };
 /** The numbers each preset takes, with their labels and limits. */
 const PRESET_FIELDS: Record<PresetType, { key: string; label: string; min: number; max: number; step: number }[]> = {
@@ -127,6 +129,14 @@ const PRESET_FIELDS: Record<PresetType, { key: string; label: string; min: numbe
     { key: "slant", label: "Triangle height", min: 0.5, max: 12, step: 0.5 },
   ],
   tetrahedron: [{ key: "side", label: "Side", min: 0.5, max: 12, step: 0.5 }],
+  cylinder: [
+    { key: "radius", label: "Radius", min: 0.5, max: 4, step: 0.5 },
+    { key: "height", label: "Height", min: 0.5, max: 12, step: 0.5 },
+  ],
+  cone: [
+    { key: "radius", label: "Base radius", min: 0.5, max: 6, step: 0.5 },
+    { key: "slant", label: "Slant height", min: 1, max: 12, step: 0.5 },
+  ],
 };
 const MARK_NAMES: Record<Mark, string> = { none: "None", dot: "Dot", cross: "Cross", shade: "Shading" };
 /** The groups in What pupils see: every face, and every letter, mark, corner label and caption that has text. */

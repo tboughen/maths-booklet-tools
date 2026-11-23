@@ -1104,3 +1104,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 
 - charts: chart-plain-line: added
 - charts: chart-plain-line (worked): added
+
+## 2026-11-23: Nets: cylinder and cone nets with curved edges, and their plain shapes (Tim, 23 Nov 2026)
+
+- nets: nets-plain-cylinder: added
+- nets: nets-plain-cylinder (worked): added
+- nets: nets-plain-cone: added
+- nets: nets-plain-cone (worked): added

@@ -2084,6 +2084,20 @@
   "plain": true
  },
  {
+  "id": "nets-plain-cylinder",
+  "title": "Cylinder net",
+  "description": "A rectangle as wide as the circumference, with a circle on each long side.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
+  "id": "nets-plain-cone",
+  "title": "Cone net",
+  "description": "A sector for the curved surface, with the circular base touching its arc.",
+  "tool": "nets",
+  "plain": true
+ },
+ {
   "id": "nets-plain-tetrahedron",
   "title": "Tetrahedron net",
   "description": "The net of a regular tetrahedron.",

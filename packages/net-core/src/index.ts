@@ -20,7 +20,7 @@ import { aboutShape } from "../../envelope-core/src/about";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { textWidth } from "../../function-machine-core/src/maths-text";
 import { foldBox, type FoldResult } from "./fold";
-import { presetFaces, squaresNet, type Preset, type Pt } from "./presets";
+import { presetFaces, squaresNet, type Preset, type Pt, type Shape } from "./presets";
 
 export { foldBox } from "./fold";
 export * from "./presets";
@@ -44,7 +44,7 @@ const GRID_COLOUR = "#a9abaa";
 const NET_STROKE = (1.5 * 25.4) / 72;
 const SHADE = "#c6c6c6";
 
-export const SOLIDS = ["cube", "cuboid", "triangular-prism", "square-pyramid", "tetrahedron", "other"] as const;
+export const SOLIDS = ["cube", "cuboid", "triangular-prism", "square-pyramid", "tetrahedron", "cylinder", "cone", "other"] as const;
 export type Solid = (typeof SOLIDS)[number];
 export const SOLID_NAMES: Record<Solid, string> = {
   cube: "cube",
@@ -52,6 +52,8 @@ export const SOLID_NAMES: Record<Solid, string> = {
   "triangular-prism": "triangular prism",
   "square-pyramid": "square-based pyramid",
   tetrahedron: "tetrahedron",
+  cylinder: "cylinder",
+  cone: "cone",
   other: "3D shape",
 };
 export const MARKS = ["none", "dot", "cross", "shade"] as const;
@@ -77,6 +79,13 @@ export const faceSchema = z
     /** A letter or word in the middle of the face; empty text prints nothing. */
     label: textSchema,
     mark: z.object({ kind: z.enum(MARKS), show }).strict(),
+    /**
+     * Curved edges, for cylinder and cone nets. Edge i runs from corner i to the next corner; as an
+     * arc it is part of a circle round `centre`, the short way round unless `large`. A circle is
+     * three corners on it with all three edges arcs; a sector is its centre and two corners with the
+     * edge between those corners an arc. Omitted: every edge is straight.
+     */
+    arcs: z.array(z.object({ edge: z.number().int().min(0).max(MAX_POINTS - 1), centre: pointSchema, large: z.boolean() }).strict()).max(MAX_POINTS).optional(),
   })
   .strict();
 export const vertexSchema = z.object({ at: pointSchema, label: textSchema }).strict();
@@ -160,7 +169,18 @@ export function validate(input: unknown): Envelope {
       if (faces.has(f.id)) throw Error(`The face ID ${f.id} appears twice in one net.`);
       faces.add(f.id);
       f.points = f.points.map(([x, y]) => [r3(x), r3(y)]);
-      if (Math.abs(area(f.points)) < 1e-6) throw Error("A face needs some area: its corners all lie on one line.");
+      if (f.arcs && !f.arcs.length) delete f.arcs;
+      for (const a of f.arcs ?? []) {
+        a.centre = [r3(a.centre[0]), r3(a.centre[1])];
+        if (a.edge >= f.points.length) throw Error("A curved edge must join two of the face's corners.");
+        if (f.arcs!.filter((b) => b.edge === a.edge).length > 1) throw Error("An edge can be curved only once.");
+        const p = f.points[a.edge],
+          q = f.points[(a.edge + 1) % f.points.length],
+          rp = Math.hypot(p[0] - a.centre[0], p[1] - a.centre[1]),
+          rq = Math.hypot(q[0] - a.centre[0], q[1] - a.centre[1]);
+        if (rp < 0.05 || Math.abs(rp - rq) > 0.02) throw Error("A curved edge's two corners must be the same distance from its centre.");
+      }
+      if (Math.abs(area(outline(f))) < 1e-6) throw Error("A face needs some area: its corners all lie on one line.");
       tidy(f.label, "label");
       if (f.mark.kind === "none") f.mark.show = "show";
     }
@@ -200,6 +220,48 @@ function area(pts: readonly Pt[]) {
   });
   return a / 2;
 }
+/** The sweep of a curved edge from p to q round c, in radians (positive is clockwise on the page). */
+function sweep(p: Pt, q: Pt, c: Pt, large: boolean) {
+  let a = Math.atan2(q[1] - c[1], q[0] - c[0]) - Math.atan2(p[1] - c[1], p[0] - c[0]);
+  while (a > Math.PI) a -= 2 * Math.PI;
+  while (a <= -Math.PI) a += 2 * Math.PI;
+  return large ? (a > 0 ? a - 2 * Math.PI : a + 2 * Math.PI) : a;
+}
+/** A face's boundary as a polygon: its corners, with each curved edge traced in steps of at most 5°. */
+export function outline(f: Pick<Face, "points" | "arcs">): Pt[] {
+  if (!f.arcs?.length) return f.points;
+  const out: Pt[] = [];
+  f.points.forEach((p, i) => {
+    out.push(p);
+    const a = f.arcs!.find((x) => x.edge === i);
+    if (!a) return;
+    const q = f.points[(i + 1) % f.points.length],
+      c = a.centre,
+      r = Math.hypot(p[0] - c[0], p[1] - c[1]),
+      start = Math.atan2(p[1] - c[1], p[0] - c[0]),
+      turn = sweep(p, q, c, a.large),
+      steps = Math.max(2, Math.ceil(Math.abs(turn) / (Math.PI / 36)));
+    for (let k = 1; k < steps; k++) out.push([c[0] + r * Math.cos(start + (turn * k) / steps), c[1] + r * Math.sin(start + (turn * k) / steps)]);
+  });
+  return out;
+}
+/** The SVG path of a face in page millimetres, with curved edges as true arcs. */
+export function facePath(f: Pick<Face, "points" | "arcs">, X: (x: number) => number, Y: (y: number) => number, scale: number) {
+  const P = (q: Pt) => `${num(X(q[0]))} ${num(Y(q[1]))}`;
+  let d = `M${P(f.points[0])}`;
+  f.points.forEach((p, i) => {
+    const q = f.points[(i + 1) % f.points.length],
+      a = f.arcs?.find((x) => x.edge === i);
+    // A straight last edge is closed by Z, as before curved edges existed, so straight faces print exactly as they did.
+    if (!a) d += i === f.points.length - 1 ? "" : `L${P(q)}`;
+    else {
+      const turn = sweep(p, q, a.centre, a.large),
+        r = Math.hypot(p[0] - a.centre[0], p[1] - a.centre[1]) * scale;
+      d += `A${num(r)} ${num(r)} 0 ${Math.abs(turn) > Math.PI ? 1 : 0} ${turn > 0 ? 1 : 0} ${P(q)}`;
+    }
+  });
+  return d + "Z";
+}
 /** The centre of a face (its centroid). */
 export function centre(pts: readonly Pt[]): Pt {
   const a = area(pts);
@@ -216,7 +278,7 @@ export function centre(pts: readonly Pt[]): Pt {
 }
 /** Squares the net reaches across and down, with one to spare: the panel size when `size` is 0. */
 export function extent(net: Net) {
-  const pts = [...net.faces.flatMap((f) => f.points), ...net.vertices.map((v) => v.at), ...net.edges.flatMap((v) => [v.from, v.to])];
+  const pts = [...net.faces.flatMap((f) => outline(f)), ...net.vertices.map((v) => v.at), ...net.edges.flatMap((v) => [v.from, v.to])];
   if (!pts.length) return { across: 0, down: 0 };
   return { across: Math.ceil(Math.max(...pts.map((p) => p[0])) - 1e-6) + 1, down: Math.ceil(Math.max(...pts.map((p) => p[1])) - 1e-6) + 1 };
 }
@@ -237,8 +299,8 @@ function merge<T extends object>(target: T, change: Partial<T>) {
   return target;
 }
 export const newFace = (faceId: string, points: Pt[]): Face => ({ id: faceId, points, show: "show", label: text(), mark: { kind: "none", show: "show" } });
-export function facesOf(points: Pt[][]): Face[] {
-  return points.map((p, i) => newFace(`f${i + 1}`, p));
+export function facesOf(shapes: (Pt[] | Shape)[]): Face[] {
+  return shapes.map((s, i) => (Array.isArray(s) ? newFace(`f${i + 1}`, s) : { ...newFace(`f${i + 1}`, s.points), ...(s.arcs ? { arcs: s.arcs } : {}) }));
 }
 export const solidOf = (p: Preset): Solid => p.type;
 export function newNet(netId: string, preset: Preset, caption = ""): Net {
@@ -309,7 +371,7 @@ export function addSquare(e: Envelope, netId: string, x: number, y: number, side
   // Any overlap with a face, sampled across the new square, is refused.
   const samples: Pt[] = [];
   for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) samples.push([x + (side * i) / 8, y + (side * j) / 8]);
-  if (net.faces.some((f) => samples.some((q) => inside(q, f.points)) || inside(centre(f.points), pts))) throw Error("There is already a face there.");
+  if (net.faces.some((f) => samples.some((q) => inside(q, outline(f))) || inside(centre(outline(f)), pts))) throw Error("There is already a face there.");
   net.faces.push(newFace(freshId(net.faces.map((f) => f.id), "f"), pts));
   return validate(n);
 }
@@ -360,7 +422,10 @@ export function moveNet(e: Envelope, netId: string, dx: number, dy: number): Env
   const shift = (p: Pt): Pt => [r3(p[0] + dx), r3(p[1] + dy)];
   const pts = [...net.faces.flatMap((f) => f.points), ...net.vertices.map((v) => v.at), ...net.edges.flatMap((v) => [v.from, v.to])];
   if (pts.some((p) => p[0] + dx < -1e-6 || p[1] + dy < -1e-6)) throw Error("The net is already at the edge of its panel.");
-  for (const f of net.faces) f.points = f.points.map(shift);
+  for (const f of net.faces) {
+    f.points = f.points.map(shift);
+    for (const a of f.arcs ?? []) a.centre = shift(a.centre);
+  }
   for (const v of net.vertices) v.at = shift(v.at);
   for (const v of net.edges) [v.from, v.to] = [shift(v.from), shift(v.to)];
   return validate(n);
@@ -384,7 +449,7 @@ function inside(p: Pt, poly: readonly Pt[]) {
   return c;
 }
 /** The face under a point of the panel, for clicks in the editor. */
-export const faceAt = (net: Net, p: Pt) => net.faces.find((f) => inside(p, f.points)) ?? null;
+export const faceAt = (net: Net, p: Pt) => net.faces.find((f) => inside(p, outline(f))) ?? null;
 
 /* ---------- Folding (explicit) ---------- */
 
@@ -418,7 +483,7 @@ function faceName(net: Net, i: number) {
   return null;
 }
 const list = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
-const FACE_COUNTS: Partial<Record<Solid, number>> = { "triangular-prism": 5, "square-pyramid": 5, tetrahedron: 4 };
+const FACE_COUNTS: Partial<Record<Solid, number>> = { "triangular-prism": 5, "square-pyramid": 5, tetrahedron: 4, cylinder: 3, cone: 2 };
 
 /** Teacher notes: whether each cube or cuboid net folds, which named faces end up opposite and which corner letters meet. Never printed. */
 export function warnings(e: Envelope): string[] {
@@ -618,8 +683,7 @@ export function renderSvg(e: Envelope): string {
   const said: string[] = [];
   for (const p of g.panels) {
     const X = (gx: number) => p.x + gx * u,
-      Y = (gy: number) => p.y + gy * u,
-      P = (q: Pt) => `${num(X(q[0]))} ${num(Y(q[1]))}`;
+      Y = (gy: number) => p.y + gy * u;
     if (d.grid === "squares") {
       const lines: string[] = [];
       for (let i = 0; i <= p.across; i++) lines.push(`M${num(X(i))} ${num(Y(0))}V${num(Y(p.down))}`);
@@ -637,17 +701,17 @@ export function renderSvg(e: Envelope): string {
       const shaded = f.mark.kind === "shade" && f.mark.show === "show";
       const fill = shaded ? (REVEALED.has(f.mark) ? ANSWER_COLOUR : SHADE) : "none";
       const opacity = shaded && REVEALED.has(f.mark) ? ' fill-opacity="0.3"' : "";
-      out.push(`<path d="M${f.points.map(P).join("L")}Z" fill="${fill}"${opacity} stroke="${ink(f)}" stroke-width="${num(NET_STROKE)}" stroke-linejoin="round"/>`);
+      out.push(`<path d="${facePath(f, X, Y, u)}" fill="${fill}"${opacity} stroke="${ink(f)}" stroke-width="${num(NET_STROKE)}" stroke-linejoin="round"/>`);
     }
     for (const f of faces) {
-      const c = centre(f.points),
+      const c = centre(outline(f)),
         cx = X(c[0]),
         cy = Y(c[1]);
       const hasLabel = f.label.show === "show" && !!f.label.text,
         mark = f.mark.show === "show" ? f.mark.kind : "none";
       // Placed from what the face holds on either copy, so the answers copy lies exactly over the pupil copy.
       const both = !!f.label.text && (f.mark.kind === "dot" || f.mark.kind === "cross");
-      const ys = f.points.map((q) => Y(q[1])),
+      const ys = outline(f).map((q) => Y(q[1])),
         short = Math.max(...ys) - Math.min(...ys) < FONT * 2.6;
       const labelAt: Pt = both ? (short ? [cx - textWidth(f.label.text) / 2 - 1.2, cy] : [cx, cy - FONT * 0.2]) : [cx, cy];
       const markAt: Pt = both ? (short ? [cx + 1.6, cy] : [cx, cy + FONT * 0.95]) : [cx, cy];
@@ -665,14 +729,14 @@ export function renderSvg(e: Envelope): string {
     // Corner letters sit outside the net, away from every face at that corner.
     const all = p.net.faces;
     // Every face, shown or hidden, so both copies place labels alike.
-    const mm = all.map((f) => f.points.map((q): Pt => [X(q[0]), Y(q[1])]));
+    const mm = all.map((f) => outline(f).map((q): Pt => [X(q[0]), Y(q[1])]));
     for (const v of p.net.vertices) {
       if (v.label.show !== "show") continue;
       let dx = 0,
         dy = 0;
       for (const f of all)
         if (f.points.some((q) => samePt(q, v.at))) {
-          const c = centre(f.points);
+          const c = centre(outline(f));
           [dx, dy] = [dx + v.at[0] - c[0], dy + v.at[1] - c[1]];
         }
       const at = clearSpot([X(v.at[0]), Y(v.at[1])], unitVec(dx, dy), v.label.text, 0.6, mm);
@@ -685,7 +749,7 @@ export function renderSvg(e: Envelope): string {
       const owner = all.find((f) => f.points.some((q) => samePt(q, v.from)) && f.points.some((q) => samePt(q, v.to)));
       let n = unitVec(-(v.to[1] - v.from[1]), v.to[0] - v.from[0]);
       if (owner) {
-        const c = centre(owner.points);
+        const c = centre(outline(owner));
         if (n[0] * (m[0] - c[0]) + n[1] * (m[1] - c[1]) < 0) n = [-n[0], -n[1]];
       }
       const at = clearSpot([X(m[0]), Y(m[1])], n, v.label.text, 1, mm, false);

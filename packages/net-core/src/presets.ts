@@ -8,9 +8,15 @@
  * - cuboid: the top, the four faces of the strip from left to right, then the bottom;
  * - triangular prism: the three rectangles from left to right, then the top and bottom triangles;
  * - square-based pyramid: the square base, then the triangles above, right, below and left;
- * - tetrahedron: the middle triangle, then the left, right and top triangles.
+ * - tetrahedron: the middle triangle, then the left, right and top triangles;
+ * - cylinder: the curved surface (a rectangle as wide as the circumference), then the top and bottom circles;
+ * - cone: the curved surface (a sector), then the base circle.
  */
 export type Pt = [number, number];
+/** A curved edge: edge i (corner i to the next) is an arc round `centre`, the short way unless `large`. */
+export type Arc = { edge: number; centre: Pt; large: boolean };
+/** A face of a preset: its corners, and its curved edges if it has any. */
+export type Shape = { points: Pt[]; arcs?: Arc[] };
 
 /** Grid cells [column, row] of the 11 nets of a cube: six 1-4-1, three 2-3-1, one 2-2-2 and one 3-3. */
 export const CUBE_NETS: readonly (readonly Pt[])[] = [
@@ -151,33 +157,84 @@ export function tetrahedronNet(side: number): Pt[][] {
   ]);
 }
 
-export const PRESET_TYPES = ["cube", "cuboid", "triangular-prism", "square-pyramid", "tetrahedron"] as const;
+/** A circle as a face: three corners on it, a third of the way round from each other, every edge an arc. */
+function circle(c: Pt, r: number, start: number): Shape {
+  const points = [0, 1, 2].map((k): Pt => [c[0] + r * Math.cos(start + (k * 2 * Math.PI) / 3), c[1] + r * Math.sin(start + (k * 2 * Math.PI) / 3)]);
+  return { points, arcs: [0, 1, 2].map((edge) => ({ edge, centre: c, large: false })) };
+}
+/** Moves shapes so the net's top-left corner sits one square in from the panel's edge, rounding to 0.001. */
+function placedShapes(shapes: Shape[], extent: { minX: number; minY: number }): Shape[] {
+  const dx = 1 - extent.minX,
+    dy = 1 - extent.minY;
+  return shapes.map((s) => ({
+    points: at(s.points, dx, dy),
+    ...(s.arcs ? { arcs: s.arcs.map((a) => ({ ...a, centre: at([a.centre], dx, dy)[0] })) } : {}),
+  }));
+}
+/**
+ * A cylinder of radius r and height h: the curved surface is a rectangle 2πr wide and h tall, with
+ * the top circle touching its top edge and the bottom circle its bottom edge, both at the middle.
+ */
+export function cylinderNet(r: number, h: number): Shape[] {
+  const w = 2 * Math.PI * r;
+  return placedShapes(
+    [{ points: rect(0, 2 * r, w, h) }, circle([w / 2, r], r, Math.PI / 2), circle([w / 2, 3 * r + h], r, -Math.PI / 2)],
+    { minX: 0, minY: 0 },
+  );
+}
+/**
+ * A cone of base radius r and slant height l: the curved surface is a sector of radius l and angle
+ * 360° × r ÷ l, pointing up, with the base circle touching the middle of its arc.
+ */
+export function coneNet(r: number, l: number): Shape[] {
+  if (r >= l) throw Error("A cone's slant height must be longer than its radius.");
+  const angle = (2 * Math.PI * r) / l,
+    down = Math.PI / 2;
+  const A: Pt = [l * Math.cos(down - angle / 2), l * Math.sin(down - angle / 2)],
+    B: Pt = [l * Math.cos(down + angle / 2), l * Math.sin(down + angle / 2)];
+  const sector: Shape = { points: [[0, 0], A, B], arcs: [{ edge: 1, centre: [0, 0], large: angle > Math.PI }] };
+  // The sector's widest point: its arc reaches l to either side once it passes a quarter turn from the bottom.
+  const half = angle > Math.PI ? l : Math.max(Math.abs(A[0]), r);
+  const top = angle > 2 * Math.PI - 1e-9 ? -l : Math.min(0, A[1], angle > Math.PI ? -l * Math.cos(Math.PI - angle / 2) : 0);
+  return placedShapes([sector, circle([0, l + r], r, -Math.PI / 2)], { minX: -half, minY: top });
+}
+
+export const PRESET_TYPES = ["cube", "cuboid", "triangular-prism", "square-pyramid", "tetrahedron", "cylinder", "cone"] as const;
 export type PresetType = (typeof PRESET_TYPES)[number];
 export type Preset =
   | { type: "cube"; net: number; side: number }
   | { type: "cuboid"; length: number; width: number; height: number }
   | { type: "triangular-prism"; a: number; b: number; length: number }
   | { type: "square-pyramid"; base: number; slant: number }
-  | { type: "tetrahedron"; side: number };
+  | { type: "tetrahedron"; side: number }
+  | { type: "cylinder"; radius: number; height: number }
+  | { type: "cone"; radius: number; slant: number };
 export const DEFAULT_PRESETS: Record<PresetType, Preset> = {
   cube: { type: "cube", net: 1, side: 2 },
   cuboid: { type: "cuboid", length: 4, width: 2, height: 3 },
   "triangular-prism": { type: "triangular-prism", a: 3, b: 4, length: 5 },
   "square-pyramid": { type: "square-pyramid", base: 3, slant: 3 },
   tetrahedron: { type: "tetrahedron", side: 3 },
+  cylinder: { type: "cylinder", radius: 1, height: 4 },
+  cone: { type: "cone", radius: 2, slant: 5 },
 };
 /** The faces of a preset (cube nets are numbered 1 to 11). */
-export function presetFaces(p: Preset): Pt[][] {
+export function presetFaces(p: Preset): Shape[] {
+  const flat = (faces: Pt[][]): Shape[] => faces.map((points) => ({ points }));
   switch (p.type) {
     case "cube":
-      return cubeNet(p.net - 1, p.side);
+      return flat(cubeNet(p.net - 1, p.side));
     case "cuboid":
-      return cuboidNet(p.length, p.width, p.height);
+      return flat(cuboidNet(p.length, p.width, p.height));
     case "triangular-prism":
-      return triangularPrismNet(p.a, p.b, p.length);
+      return flat(triangularPrismNet(p.a, p.b, p.length));
     case "square-pyramid":
-      return squarePyramidNet(p.base, p.slant);
+      return flat(squarePyramidNet(p.base, p.slant));
     case "tetrahedron":
-      return tetrahedronNet(p.side);
+      return flat(tetrahedronNet(p.side));
+    case "cylinder":
+      return cylinderNet(p.radius, p.height);
+    case "cone":
+      return coneNet(p.radius, p.slant);
   }
 }
