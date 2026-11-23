@@ -456,21 +456,25 @@ test("Venn diagrams uses the kit: one folding column, with a region's options in
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Number lines uses the kit: drawing and the scale on the left with More settings under them, the second scale on the right", async ({ page }) => {
+test("Number lines uses the kit: one column, what pupils see first, a clicked tick's options in the box beside the drawing", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/number-line");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const more = page.locator(".md-kit .panel-card").filter({ hasText: "More settings" });
-  const cards = async () => [await chartCard(page, "Selected item"), await chartCard(page, "Draw"), await chartCard(page, "Scale"), (await more.boundingBox())!, await chartCard(page, "Second scale")];
-  const [selected, draw, scale, moreBox, second] = await cards();
-  expect(second.y).toBe(selected.y);
-  expect(second.x).toBeGreaterThanOrEqual(selected.x + selected.width);
-  expect(Math.abs(second.width - selected.width)).toBeLessThanOrEqual(1);
-  expect([draw.x, scale.x, moreBox.x]).toEqual([selected.x, selected.x, selected.x]);
-  expect([selected.y, draw.y, scale.y, moreBox.y]).toEqual([selected.y, draw.y, scale.y, moreBox.y].sort((a, b) => a - b));
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  const cards = async () => [await chartCard(page, "What pupils see"), await chartCard(page, "Draw"), await chartCard(page, "Scale"), await chartCard(page, "Second scale"), (await more.boundingBox())!];
+  // One column (the usability rollout, 23 Nov 2026), in the order the cards are read.
+  const first = await cards();
+  expect(Math.max(...first.map((c) => c.x)) - Math.min(...first.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(first.map((c) => c.y)).toEqual([...first.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+  // A tick's options open in the box beside the drawing, never over the settings.
+  await page.getByRole("button", { name: "Tick 3", exact: true }).click();
+  const box = page.locator(".md-options-box");
+  await expect(box).toHaveAttribute("aria-label", "Tick 3");
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
 
   // The three ways to draw share a row, and the one that is on is marked as the kit marks a choice.
   const point = page.getByRole("button", { name: "Point", exact: true });
@@ -489,10 +493,8 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   await step.press("Escape");
   await expect(page.locator(".md-kit .nl-scale-fields [role=alert]")).toHaveCount(0);
 
-  // A second scale with eleven ticks is the long card. It has the right column to itself, so it is still all in view.
   await page.getByRole("button", { name: "Add a second scale", exact: true }).click();
   await expect(page.getByRole("button", { name: "Remove second scale", exact: true })).toBeVisible();
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
 
   // Every part that opens is a row as tall as a control, and what is in it keeps the kit's sizes.
   await stack.evaluate((el) => el.querySelectorAll("details").forEach((d) => { d.open = true; }));
@@ -504,7 +506,7 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   await page.setViewportSize({ width: 1440, height: 900 });
   const column = await cards();
   expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  const order = [column[0], column[1], column[2], column[4], column[3]].map((c) => c.y);
+  const order = column.map((c) => c.y);
   expect(order).toEqual([...order].sort((a, b) => a - b));
 
   // Finger-sized controls and rows on a phone, and the page is no wider than the window.

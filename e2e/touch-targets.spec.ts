@@ -42,8 +42,8 @@ test.describe("on a touch screen", () => {
     const at = { x: tick.x + tick.width / 2 + 18, y: tick.y + tick.height / 2 - 18 };
     expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y) instanceof SVGElement, at)).toBe(true);
     await resource.tap({ position: { x: at.x - origin.x, y: at.y - origin.y } });
-    await expect(page.getByRole("combobox", { name: "Tick label state" })).toBeVisible();
-    await expect(page.locator("label", { hasText: /^Tick 3(?![\d./])/ })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Tick 3", exact: true })).toBeVisible();
+    await expect(page.locator(".md-options-box").getByRole("group", { name: "What pupils see", exact: true })).toBeVisible();
   });
 });
 
@@ -51,7 +51,7 @@ test("with a mouse, a click beside a number-line tick still deselects", async ({
   await page.goto("/tools/number-line");
   const tick = (await page.getByRole("button", { name: "Tick 3", exact: true }).boundingBox())!;
   await page.mouse.click(tick.x + tick.width / 2 + 18, tick.y + tick.height / 2 - 18);
-  await expect(page.getByRole("combobox", { name: "Tick label state" })).toHaveCount(0);
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
 });
 
 test("with a mouse, triangle targets keep their 28 px size", async ({ page }) => {

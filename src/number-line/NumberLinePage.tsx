@@ -10,6 +10,12 @@ import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
+import { OptionsBox } from "../site/OptionsBox";
+import { VisibilitySwitch } from "../site/VisibilitySwitch";
+import { PupilSpaceHint } from "../site/LabelTargets";
+import { FoldCard } from "../site/CardHelp";
+import { Eye } from "lucide-react";
+import { TARGET_TIP, TARGET_TIP_SPACE, commonVisibility, togglePupilSpace, visibilityStep, type Visibility } from "../editor-kit/visibility";
 import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
@@ -198,14 +204,21 @@ export default function NumberLinePage({
   } | null>(null);
   const suppressClick = useRef<string | null>(null);
   current.current = history.present;
+  // Mirrors the pending fields at once: a field's blur and the box's close come in the same press.
+  const dirtyNow = useRef(new Set<string>()),
+    boxAnchor = useRef<HTMLElement | null>(null),
+    byPointer = useRef(true);
   const inputPending = useCallback(
-    (label: string, value: boolean) =>
+    (label: string, value: boolean) => {
+      if (value) dirtyNow.current.add(label);
+      else dirtyNow.current.delete(label);
       setDirty((old) => {
         const n = new Set(old);
         if (value) n.add(label);
         else n.delete(label);
         return old.has(label) === value ? old : n;
-      }),
+      });
+    },
     [],
   );
   const d = history.present.document,
@@ -416,6 +429,40 @@ export default function NumberLinePage({
         ...(included !== undefined ? { included } : {}),
       },
     ]);
+  }
+  // What pupils see of a tick's number: shown, an answer line (the pupil space), or left out.
+  const NL_STATE = { show: "value", hidden: "answer-line", omit: "hidden" } as const;
+  const tickSees = (v: string): Visibility => {
+    const st = d.teaching.labels[labelKey(v)] ?? "value";
+    return st === "answer-line" ? "hidden" : st === "hidden" ? "omit" : "show";
+  };
+  const secondarySees = (v: string): Visibility => {
+    const st = d.secondary?.labels[v] ?? "value";
+    return st === "answer-line" ? "hidden" : st === "hidden" ? "omit" : "show";
+  };
+  function setTickSees(vs: string[], v: Visibility, what: string) {
+    const ops = vs.filter((x) => tickSees(x) !== v).map((x) => ({ op: "set_tick_label" as const, value: x, state: NL_STATE[v] }));
+    if (!ops.length || blocked) return;
+    try {
+      commit(apply(current.current, ops), visibilityStep(v, what));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    }
+  }
+  function setSecondarySees(vs: string[], v: Visibility, what: string) {
+    const ops = vs.filter((x) => secondarySees(x) !== v).map((x) => ({ op: "set_secondary_label" as const, value: x, state: NL_STATE[v] }));
+    if (!ops.length || blocked) return;
+    try {
+      commit(apply(current.current, ops), visibilityStep(v, what));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    }
+  }
+  const numbered = ticks(d).filter((v) => labelled(d, v)),
+    secondNumbered = d.secondary ? secondaryTicks(d).filter((_, i) => labelled(d, ticks(d)[i])) : [],
+    nlSpaces = numbered.filter((v) => tickSees(v) === "hidden").length + secondNumbered.filter((v) => secondarySees(v) === "hidden").length;
+  function toggleTick(v: string) {
+    setTickSees([v], togglePupilSpace(tickSees(v)), `tick ${v}`);
   }
   function tick(v: string) {
     if (blocked) return;
@@ -875,6 +922,20 @@ export default function NumberLinePage({
                   ref={white}
                   className="nl-resource"
                   data-testid="number-line-resource"
+                  // A press on the drawing chooses another thing for the box, so it does not close it; the thing
+                  // pressed or focused is the box's anchor. A box opened by a press takes the focus, one opened by
+                  // Tab leaves it where it is.
+                  data-options-anchor
+                  onPointerDownCapture={(e) => {
+                    boxAnchor.current = (e.target as Element).closest<HTMLElement>("button") ?? white.current;
+                    byPointer.current = true;
+                  }}
+                  onFocusCapture={(e) => {
+                    if (e.target instanceof HTMLButtonElement && boxAnchor.current !== e.target) {
+                      boxAnchor.current = e.target;
+                      byPointer.current = false;
+                    }
+                  }}
                   style={{
                     left: 72,
                     top: 16,
@@ -911,7 +972,9 @@ export default function NumberLinePage({
                       aria-label={`Tick ${v}`}
                       className="nl-hit nl-tick"
                       style={{ left: x, top: tickHitTop }}
+                      title={labelled(d, v) ? (tickSees(v) === "hidden" ? TARGET_TIP_SPACE : TARGET_TIP) : undefined}
                       onClick={() => tick(v)}
+                      onDoubleClick={() => mode === "select" && labelled(d, v) && toggleTick(v)}
                     />
                   ))}
                   {d.axis.variable && (
@@ -1097,26 +1160,72 @@ export default function NumberLinePage({
             )}
           </Panel>
           <aside
-            className="inspector-stack nl-inspector md-kit"
+            className="inspector-stack nl-inspector md-kit md-kit--one"
             aria-label="Number line settings"
           >
             <ReturnToDiagram />
-            <div className="md-kit-cards">
+            {/* One column (the usability pilot): what pupils see first; a clicked tick, point or line opens its box
+                beside the drawing. */}
+            <div className="nl-cards">
             <div>
-            {/* Always mounted, so the cards below stay put as the selection comes and goes (U21). */}
-            <section
-              className="panel-card nl-context"
-              aria-label="Selected item"
-            >
-              {selection ? (
-                <>
-                  <h2>
-                    {selectedEndpoint
+            <FoldCard tool="number-line" title="What pupils see" icon={Eye} defaultOpen summary={nlSpaces ? `${nlSpaces} pupil ${nlSpaces === 1 ? "space" : "spaces"}` : "Every number shows"} help="Each number prints, leaves an answer line for pupils, or is left out. Click a tick on the drawing for its own choice.">
+              <VisibilitySwitch
+                name="Tick numbers"
+                caption="Tick numbers"
+                disabled={blocked}
+                help={{ hidden: "Pupils see answer lines. The answers copy shows the values." }}
+                value={commonVisibility(numbered.map(tickSees)) ?? "show"}
+                onChange={(v) => setTickSees(numbered, v, "tick numbers")}
+              />
+              {d.secondary && (
+                <VisibilitySwitch
+                  name="Second-scale numbers"
+                  caption="Second-scale numbers"
+                  disabled={blocked}
+                  help={{ hidden: "Pupils see answer lines. The answers copy shows the values." }}
+                  value={commonVisibility(secondNumbered.map(secondarySees)) ?? "show"}
+                  onChange={(v) => setSecondarySees(secondNumbered, v, "second-scale numbers")}
+                />
+              )}
+              <PupilSpaceHint
+                count={nlSpaces}
+                disabled={blocked}
+                onClear={() => {
+                  // One undo step for both scales.
+                  const ops = [
+                    ...numbered.filter((v) => tickSees(v) === "hidden").map((v) => ({ op: "set_tick_label" as const, value: v, state: "value" as const })),
+                    ...secondNumbered.filter((v) => secondarySees(v) === "hidden").map((v) => ({ op: "set_secondary_label" as const, value: v, state: "value" as const })),
+                  ];
+                  if (ops.length && !blocked) commit(apply(current.current, ops), visibilityStep("show", "pupil spaces"));
+                }}
+              >
+                Double-click a tick's number for an answer line.
+              </PupilSpaceHint>
+            </FoldCard>
+              {selection && (
+                <OptionsBox
+                  anchor={boxAnchor.current?.isConnected ? boxAnchor.current : null}
+                  anchorKey={selection}
+                  takeFocus={byPointer.current}
+                  bounds={document.querySelector<HTMLElement>(".editor-card")}
+                  placeBy={white.current}
+                  hidden={!active}
+                  title={
+                    selectedEndpoint
                       ? "Endpoint"
                       : selection === "segment" || connection
                         ? "Interval"
-                        : "Selected value"}
-                  </h2>
+                        : selection.startsWith("tick:")
+                          ? `Tick ${selection.slice(5)}`
+                          : selection === "variable"
+                            ? "Variable"
+                            : "Selected value"
+                  }
+                  onClose={() => {
+                    if (!dirtyNow.current.size) setSelection(null);
+                  }}
+                >
+                <div className="nl-box">
                   {selectedEndpoint && (
                     <>
                       <div className="nl-endpoint-fields">
@@ -1238,35 +1347,19 @@ export default function NumberLinePage({
                     field("Variable", d.axis.variable, (v) =>
                       axis("variable", v),
                     )}
-                  {selection.startsWith("tick:") && (
-                    <label>
-                      Tick {selection.slice(5)}{" "}
-                      <select
-                        aria-label="Tick label state"
-                        value={
-                          d.teaching.labels[labelKey(selection.slice(5))] ??
-                          "value"
-                        }
+                  {selection.startsWith("tick:") &&
+                    (labelled(d, selection.slice(5)) ? (
+                      <VisibilitySwitch
+                        name="What pupils see"
+                        caption="What pupils see"
+                        value={tickSees(selection.slice(5))}
                         disabled={blocked}
-                        onChange={(e) =>
-                          safe([
-                            {
-                              op: "set_tick_label",
-                              value: selection.slice(5),
-                              state: e.target.value as
-                                | "value"
-                                | "hidden"
-                                | "answer-line",
-                            },
-                          ])
-                        }
-                      >
-                        <option value="value">Show value</option>
-                        <option value="hidden">Hide value</option>
-                        <option value="answer-line">Pupil answer space</option>
-                      </select>
-                    </label>
-                  )}
+                        help={{ hidden: "Pupils see an answer line. The answers copy shows the value." }}
+                        onChange={(v) => setTickSees([selection.slice(5)], v, `tick ${selection.slice(5)}`)}
+                      />
+                    ) : (
+                      <p>This tick has no number. Every {d.axis.labelEvery === 1 ? "" : `${d.axis.labelEvery}th `}tick is numbered.</p>
+                    ))}
                   {((selection === "segment" && s?.kind === "interval") ||
                     connection) && (
                     <>
@@ -1282,14 +1375,9 @@ export default function NumberLinePage({
                       </button>
                     </>
                   )}
-                </>
-              ) : (
-                <>
-                  <h2>Selected item</h2>
-                  <p>Select a tick, point or line to edit it here.</p>
-                </>
+                </div>
+                </OptionsBox>
               )}
-            </section>
             <section className="panel-card">
               <h2>Draw</h2>
               <div className="nl-draw-actions">
