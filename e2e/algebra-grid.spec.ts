@@ -17,6 +17,10 @@ import {
 } from "../packages/graph-core/src/png-bytes";
 import { editorLink } from "../src/algebra-grid/links";
 import { clickResourceAction } from "./resource-actions";
+// The settings column folds Print size; these tests use it, so it starts open.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("mathsdock:fold:algebra-grid:Print size", "open"));
+});
 
 const KEY = "maths-booklet-tools:algebra-grid:v1";
 const resource = (page: Page) =>
