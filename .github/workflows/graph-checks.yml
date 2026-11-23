@@ -77,8 +77,9 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.website == 'true'
     runs-on: ubuntu-latest
-    # The browser shards and the service check run 12-15 minutes on a normal day.
-    timeout-minutes: 25
+    # The browser shards and the service check run 15-22 minutes on a normal day (shard 2 ran
+    # 17.7 minutes of tests on 19 Nov 2026 and passed 25 minutes in all on 23 Nov).
+    timeout-minutes: 35
     # Output-sensitive checks (export fingerprints, print PNGs, layout fits) run in a pinned
     # Playwright image, so the browser build, system fonts and libraries are the same on every run
     # (improvement list L3). The tag must match @playwright/test in package.json; the digest pins
