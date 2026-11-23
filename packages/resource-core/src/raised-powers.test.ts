@@ -41,3 +41,12 @@ describe("review fixes", () => {
     expect(didYouKnowMaths("1024 = 2^10", false)).toBe(false);
   });
 });
+
+describe("a number power followed by a letter", () => {
+  it("raises the digits in x^6y, inline and in a fraction part", () => {
+    const sup = (s: string) => fracPieces(s).filter((p) => p.sup).map((p) => p.c).join("");
+    expect(sup("10x^6y^3")).toBe("63");
+    expect(parseRuns("x^6y", "regular", true).filter((r) => r.sup).map((r) => r.text).join("")).toBe("6");
+    expect(sup("x^ab")).toBe("");
+  });
+});
