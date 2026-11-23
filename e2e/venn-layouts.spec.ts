@@ -611,7 +611,7 @@ test("combined Examples has plain shapes then teaching, all six verified source 
     await examplesPanel
       .locator(".example-gallery-group-title")
       .allTextContents(),
-  ).toEqual(["Plain shapes", "Teaching examples", "Past-paper examples"]);
+  ).toEqual(["Plain shapes", "Exam-style examples", "Past-paper examples"]);
   await expect(examplesPanel.locator("article")).toHaveCount(15);
   await expect(
     examplesPanel.getByRole("link", {
