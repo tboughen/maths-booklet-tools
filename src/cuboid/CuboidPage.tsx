@@ -125,17 +125,17 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   const file = useRef<HTMLInputElement>(null),
     current = useRef(history.present);
   current.current = history.present;
-  const inputPending = useCallback(
-    (label: string, value: boolean) =>
-      setDirty((old) => {
-        if (old.has(label) === value) return old;
-        const n = new Set(old);
-        if (value) n.add(label);
-        else n.delete(label);
-        return n;
-      }),
-    [],
-  );
+  // Fields with unapplied text, kept in a ref too: a press elsewhere applies (on blur) and asks the box to close in
+  // the same moment, before the state has rendered.
+  const dirtyNow = useRef(new Set<string>());
+  const inputPending = useCallback((label: string, value: boolean) => {
+    if (dirtyNow.current.has(label) === value) return;
+    const n = new Set(dirtyNow.current);
+    if (value) n.add(label);
+    else n.delete(label);
+    dirtyNow.current = n;
+    setDirty(n);
+  }, []);
   const e = history.present,
     d = e.document,
     s = d.shapes.find((x) => x.id === selected) ?? d.shapes[0],
@@ -325,7 +325,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if (event.key === "Escape" && !dirty.size) closeEditor();
+      if (event.key === "Escape" && !dirtyNow.current.size) closeEditor();
       if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
@@ -756,6 +756,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     setHistory(createHistory(newDocument()));
                     setSelected("cuboid-1");
                     closeEditor();
+                    dirtyNow.current = new Set();
                     setDirty(new Set());
                     setInputEpoch((n) => n + 1);
                     setMessage("");
@@ -1258,7 +1259,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           bounds={boxAnchor.closest<HTMLElement>(".editor-card")}
           title={KEY_NAMES[inline]}
           // A refused value keeps the box open, so it stays visible until it is fixed.
-          onClose={() => !dirty.size && closeEditor()}
+          onClose={() => !dirtyNow.current.size && closeEditor()}
         >
           {labelBox(inline)}
         </OptionsBox>

@@ -112,6 +112,15 @@ test("an invalid value stays in the box with its error and never commits", async
   await box.getByLabel("Region content", { exact: true }).press("Enter");
   await expect(box.getByRole("alert")).toHaveCount(0);
   expect((await saved(page)).document.regions[3].text).toBe("1/2");
+  // A refused value typed and then left with a press elsewhere (no Enter) also keeps the box open with its error.
+  await box.getByLabel("Region content", { exact: true }).fill("1/0");
+  await page.getByLabel("Number of sets", { exact: true }).click();
+  await expect(box.getByRole("alert")).toContainText("denominator");
+  await expect(box.getByLabel("Region content", { exact: true })).toHaveValue("1/0");
+  // Another region does not open while it is refused; Escape puts the saved value back and closes the box.
+  await box.getByLabel("Region content", { exact: true }).press("Escape");
+  await expect(box).toHaveCount(0);
+  expect((await saved(page)).document.regions[3].text).toBe("1/2");
 });
 test("double-click a region or label for a pupil space, and again to show it", async ({ page }) => {
   await boot(page, examples.find((x) => x.id === "languages")!.make(true));

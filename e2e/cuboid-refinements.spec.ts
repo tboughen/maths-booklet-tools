@@ -58,6 +58,12 @@ test("the options box is live: Enter commits the width, Undo restores it, Escape
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
+  // A valid value typed and left with a press elsewhere applies and closes the box in one press.
+  await page.getByRole("button", { name: "Edit width label on cuboid-1", exact: true }).click();
+  await page.getByRole("textbox", { name: "Edit width", exact: true }).fill("6");
+  await page.locator(".cb-scroll").click({ position: { x: 4, y: 4 } });
+  await expect(page.getByRole("dialog", { name: "Width", exact: true })).toHaveCount(0);
+  await expect(resource(page)).toContainText("6 cm");
 });
 test("double-click a label for a pupil space and again to show it; Leave out keeps the box", async ({ page }) => {
   const width = page.getByRole("button", { name: "Edit width label on cuboid-1", exact: true });

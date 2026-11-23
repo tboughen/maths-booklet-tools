@@ -22,6 +22,7 @@ export function OptionsBox({
   takeFocus = true,
   bounds,
   placeBy,
+  placeByOnly = false,
   hidden = false,
   title,
   onClose,
@@ -40,6 +41,8 @@ export function OptionsBox({
   /** Sit beside this element (a whole diagram) rather than the anchor, so the box never covers the anchor's
    * neighbours. Focus still goes back to the anchor. */
   placeBy?: HTMLElement | null;
+  /** Place by `placeBy` alone, even with no room round it (a table whose cells are typed in place). */
+  placeByOnly?: boolean;
   /** Kept but out of sight while its page is not the one showing, so a draft in it survives a visit elsewhere. */
   hidden?: boolean;
   title: string;
@@ -69,14 +72,14 @@ export function OptionsBox({
     let left = -1,
       top = 0;
     const whole = placeBy?.isConnected ? placeBy.getBoundingClientRect() : null;
-    if (whole && (whole.width || whole.height)) {
+    if (whole && (whole.width || whole.height) && !placeByOnly) {
       left = side(whole);
       if (left >= 0) top = Math.min(Math.max(edge, whole.top - 4), innerHeight - edge - h);
-      else if (whole.bottom + gap + h <= innerHeight - edge) [left, top] = [across(whole), whole.bottom + gap];
-      else if (whole.top - gap - h >= edge) [left, top] = [across(whole), whole.top - gap - h];
+      else if (whole.bottom + gap >= edge && whole.bottom + gap + h <= innerHeight - edge) [left, top] = [across(whole), whole.bottom + gap];
+      else if (whole.top - gap - h >= edge && whole.top - gap <= innerHeight - edge) [left, top] = [across(whole), whole.top - gap - h];
     }
     if (left < 0) {
-      const a = anchor.getBoundingClientRect();
+      const a = placeByOnly && whole ? whole : anchor.getBoundingClientRect();
       if (!a.width && !a.height) return;
       left = side(a);
       if (left >= 0) top = Math.min(Math.max(edge, a.top - 4), innerHeight - edge - h);

@@ -139,6 +139,9 @@ export default function AlgebraGridPage({
   const [cellBox, setCellBox] = useState<{ r: number; c: number } | null>(null),
     [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [boxError, setBoxError] = useState("");
+  // A typed entry the box refused keeps it open until it is fixed or Escape puts the saved value back. A ref, because
+  // a press elsewhere commits (on blur) and asks the box to close in the same moment.
+  const refused = useRef(false);
   const stackRef = useMoreBelow<HTMLElement>(),
     coarse = useCoarsePointer();
   const [field, setField] = useState<{ key: string; value: string } | null>(null),
@@ -277,12 +280,13 @@ export default function AlgebraGridPage({
   }, [active, blocked]);
   /** The live options box beside a cell: each change is one undo step, with no Apply. */
   function openCell(r: number, c: number, from?: HTMLElement) {
-    if (blocked) return;
+    if (blocked || refused.current) return;
     setCellBox({ r, c });
     setBoxAnchor(from ?? document.querySelector<HTMLElement>(`.ag-editor [data-ag-cell="${r}-${c}"]`));
     setBoxError("");
   }
   function closeBox() {
+    refused.current = false;
     setCellBox(null);
     setBoxAnchor(null);
     setBoxError("");
@@ -293,9 +297,11 @@ export default function AlgebraGridPage({
     try {
       commit(setCell(e, r, c, text.trim() || null, cell.hidden, !!cell.omit), false, `edit ${cellName(r, c)}`);
       setBoxError("");
+      refused.current = false;
       return true;
     } catch (err) {
       setBoxError(errorText(err));
+      refused.current = true;
       return false;
     }
   }
@@ -1237,12 +1243,16 @@ export default function AlgebraGridPage({
               bounds={boxAnchor.closest<HTMLElement>(".editor-card")}
               title={`Row ${r + 1}, column ${c + 1}`}
               // A refused entry keeps the box open, so it stays visible until it is fixed.
-              onClose={() => !boxError && closeBox()}
+              onClose={() => !refused.current && closeBox()}
             >
               <div className="ag-box">
                 <label>
                   Cell entry
-                  <LiveText label="Cell entry" value={cell.value ?? ""} invalid={!!boxError} onCommit={(text) => editCell(r, c, text)} onRevert={() => setBoxError("")} />
+                  <LiveText key={`${r}-${c}`} label="Cell entry" value={cell.value ?? ""} invalid={!!boxError} onCommit={(text) => editCell(r, c, text)} onRevert={() => {
+                      refused.current = false;
+                      setBoxError("");
+                    }}
+                  />
                 </label>
                 <VisibilitySwitch
                   name="What pupils see"

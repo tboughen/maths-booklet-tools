@@ -148,8 +148,13 @@ export const VENN_ANSWER_COLOUR = "#b0125b";
 const inkAnswer = (svg: string, item: object) =>
   REVEALED.has(item) ? svg.replace(/(fill|stroke)="black"/g, `$1="${VENN_ANSWER_COLOUR}"`) : svg;
 export function relationship(e: Envelope) {
-  const a = e.document.labels[1].text || "A",
-    b = e.document.labels[2].text || "B";
+  // A label that is a pupil space or left out never prints its name here either: the set's letter stands in.
+  const name = (i: 1 | 2) => {
+    const l = e.document.labels[i];
+    return l.visibility === "show" && l.text ? l.text : "AB"[i - 1];
+  };
+  const a = name(1),
+    b = name(2);
   if (e.document.sets !== 2) return "";
   if (arrangement(e) === "separate") return `${a} ∩ ${b} = ∅`;
   if (arrangement(e) === "b-inside-a") return `${b} ⊆ ${a}`;

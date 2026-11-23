@@ -147,6 +147,9 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   const [box, setBox] = useState<OptionsTarget | null>(null),
     [boxAnchor, setBoxAnchor] = useState<HTMLElement | null>(null),
     [boxError, setBoxError] = useState("");
+  // A typed value the box refused: it keeps the box open until it is fixed or Escape puts the saved value back. A ref,
+  // because a press elsewhere commits (on blur) and asks the box to close in the same moment.
+  const refused = useRef(false);
   const stackRef = useMoreBelow<HTMLElement>(),
     coarse = useCoarsePointer();
   const [draft, setDraft] = useState<Draft | null>(null),
@@ -300,7 +303,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   }
   /** The live options box beside a region, label or definition: every change is one undo step, with no Apply. */
   function openBox(type: OptionsTarget["type"], index: number, anchor: string) {
-    if (blocked) return;
+    if (blocked || refused.current) return;
     const el = document.querySelector<HTMLElement>(`[data-vn-anchor="${anchor}"]`);
     setBox({ type, index, anchor });
     setBoxAnchor(el);
@@ -308,6 +311,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     setSelected(type === "region" ? index : null);
   }
   function closeBox() {
+    refused.current = false;
     setBox(null);
     setBoxAnchor(null);
     setBoxError("");
@@ -325,6 +329,16 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       setBoxError(err instanceof Error ? err.message : String(err));
       return false;
     }
+  }
+  /** A typed value from the box: refused, it keeps the box open (see `refused`). */
+  function typed(commitIt: () => boolean) {
+    const ok = commitIt();
+    refused.current = !ok;
+    return ok;
+  }
+  function reverted() {
+    refused.current = false;
+    setBoxError("");
   }
   const regionWords = (mask: number) => regionName(mask, e);
   function setRegionVisibility(mask: number, v: Visibility) {
@@ -1246,7 +1260,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             title={box.type === "region" ? regionName(box.index, e) : `${panelName(box.index)} ${box.type}`}
             // A refused value keeps the box open, so it stays visible until it is fixed.
             onClose={() => {
-              if (!boxError) {
+              if (!refused.current) {
                 closeBox();
                 setSelected(null);
               }
@@ -1260,16 +1274,17 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     <label>
                       Region content
                       <LiveText
+                        key={box.anchor}
                         label="Region content"
                         value={r.text}
                         multiline={r.kind === "members" || r.kind === "empty"}
                         invalid={!!boxError}
-                        onRevert={() => setBoxError("")}
+                        onRevert={reverted}
                         onCommit={(text) =>
-                          boxEdit((n) => {
+                          typed(() => boxEdit((n) => {
                             n.regions[box.index].text = text;
                             if (n.regions[box.index].kind === "empty" && text.trim()) n.regions[box.index].kind = "members";
-                          }, `edit ${regionWords(box.index)}`)
+                          }, `edit ${regionWords(box.index)}`))
                         }
                       />
                     </label>
@@ -1330,14 +1345,15 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     <label>
                       Label text
                       <LiveText
+                        key={box.anchor}
                         label="Label text"
                         value={l.text}
                         invalid={!!boxError}
-                        onRevert={() => setBoxError("")}
+                        onRevert={reverted}
                         onCommit={(text) =>
-                          boxEdit((n) => {
+                          typed(() => boxEdit((n) => {
                             n.labels[box.index].text = text;
-                          }, `edit ${labelName(box.index)} label`)
+                          }, `edit ${labelName(box.index)} label`))
                         }
                       />
                     </label>
@@ -1364,14 +1380,15 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 <label>
                   Definition text
                   <LiveText
+                        key={box.anchor}
                     label="Definition text"
                     value={d.definitions[box.index]}
                     invalid={!!boxError}
-                        onRevert={() => setBoxError("")}
+                        onRevert={reverted}
                     onCommit={(text) =>
-                      boxEdit((n) => {
+                      typed(() => boxEdit((n) => {
                         n.definitions[box.index] = text;
-                      }, `edit ${labelName(box.index)} definition`)
+                      }, `edit ${labelName(box.index)} definition`))
                     }
                   />
                 </label>

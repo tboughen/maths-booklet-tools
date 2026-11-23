@@ -170,7 +170,7 @@ export default function RatioTablePage({
    * the table is typed in like a spreadsheet.
    */
   function openBox(from: HTMLElement) {
-    setBoxAnchor(globalThis.document.querySelector<HTMLElement>(".ratio-canvas-layout") ?? from);
+    setBoxAnchor(from);
   }
   /** Double-click a cell: a pupil space, and again back to the value (one undo step). */
   function toggleCell(rowId: string, column: number) {
@@ -491,7 +491,7 @@ export default function RatioTablePage({
     const target = document.rows.find((row) => row.id === step?.to);
     const action = (overwrite = false) =>
       attempt(() => operations([{ op: "fill_next_row", from, overwrite }]));
-    if (target?.cells.some((cell) => cell.kind === "number"))
+    if (target?.cells.some((cell) => cell.kind === "number" || cell.kind === "hidden" || (cell.kind === "empty" && cell.value !== undefined)))
       setPending({
         title: "Replace the next row's values?",
         action: () => action(true),
@@ -755,10 +755,14 @@ export default function RatioTablePage({
               <OptionsBox
                 anchor={boxAnchor}
                 anchorKey={JSON.stringify(selection)}
-                hidden={!active}
+                // Out of sight under a confirmation, so it never covers the dialog's buttons.
+                hidden={!active || pending !== null}
                 // A cell or heading is typed in on the table itself, so its box leaves the cursor there.
                 takeFocus={selection.kind === "step"}
                 bounds={globalThis.document.querySelector<HTMLElement>(".ratio-stage")}
+                // Beside the whole table, so it never covers a neighbouring cell; focus still goes back to the cell.
+                placeBy={globalThis.document.querySelector<HTMLElement>(".ratio-canvas-layout")}
+                placeByOnly
                 focusField={!coarse}
                 title={(() => {
                   if (selection.kind === "cell") {
