@@ -1946,7 +1946,7 @@ export default function ValueGraphPage({
             <ReturnToDiagram />
             {/* One column (the usability pilot): what pupils see, then the editor for a tool's settings (a value on the
                 drawing opens its box beside the drawing), then the tools. */}
-            <div className="vg-cards">
+            <div className="md-kit-cards">
             <div>
             {m.withTable && (
               <FoldCard tool="value-graph" title="What pupils see" icon={Eye} defaultOpen summary={ySpaces.length ? `${ySpaces.length} pupil ${ySpaces.length === 1 ? "space" : "spaces"}` : "Every y value shows"} help="Each y value prints, or leaves a pupil space. Click a value on the table for its own choice.">

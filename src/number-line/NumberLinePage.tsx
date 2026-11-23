@@ -1166,7 +1166,7 @@ export default function NumberLinePage({
             <ReturnToDiagram />
             {/* One column (the usability pilot): what pupils see first; a clicked tick, point or line opens its box
                 beside the drawing. */}
-            <div className="nl-cards">
+            <div className="md-kit-cards">
             <div>
             <FoldCard tool="number-line" title="What pupils see" icon={Eye} defaultOpen summary={nlSpaces ? `${nlSpaces} pupil ${nlSpaces === 1 ? "space" : "spaces"}` : "Every number shows"} help="Each number prints, leaves an answer line for pupils, or is left out. Click a tick on the drawing for its own choice.">
               <VisibilitySwitch

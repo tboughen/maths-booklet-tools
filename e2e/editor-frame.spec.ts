@@ -279,7 +279,8 @@ test("on a tall window a triangle's label editor opens in view, not under the di
   const input = page.locator("[data-tr-label-text]");
   await expect(input).toBeFocused();
   await expect(input).toBeInViewport();
-  expect((await input.boundingBox())!.y).toBeGreaterThanOrEqual((await tall(page)).card.bottom);
+  // The box opens beside the drawing (the usability pilot), wherever the settings are scrolled to.
+  await expect(page.locator(".md-options-box")).toBeInViewport({ ratio: 1 });
 });
 
 for (const [width, height, why] of [[1920, 1080, "wide"], [900, 1600, "tall but narrow"], [1300, 1500, "not tall enough for its width"]] as const)

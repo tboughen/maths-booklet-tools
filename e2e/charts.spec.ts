@@ -349,7 +349,7 @@ test("stem-and-leaf diagrams: rows edit from the diagram, hidden leaves and an e
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(leaves).toHaveValue("2 4 6 6 7 9");
   // Show all prints the diagram and the key.
-  await page.getByRole("button", { name: "Show all" }).click();
+  await page.getByRole("group", { name: "Values", exact: true }).getByRole("button", { name: "Show", exact: true }).click();
   await expect(ink("black")).toHaveCount(3 + 12 + 3);
   await page.getByRole("button", { name: "Add a row at the end" }).click();
   await expect(page.getByLabel("Row 4 stem")).toBeFocused();
@@ -381,7 +381,7 @@ test("time series graphs: values edit from the graph, hidden values stay answers
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(value).toHaveValue("34");
   // Show all prints the graph; relabelling keeps the values and groups.
-  await page.getByRole("button", { name: "Show all" }).click();
+  await page.getByRole("group", { name: "Values", exact: true }).getByRole("button", { name: "Show", exact: true }).click();
   await expect(ink("black")).toHaveCount(12 + 11);
   await page.getByRole("button", { name: "Label as months" }).click();
   await expect(page.getByLabel("Time 2 label")).toHaveValue("Feb");

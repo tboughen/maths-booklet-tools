@@ -1653,7 +1653,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             <ReturnToDiagram />
             {/* One column (the usability pilot): what pupils see, the selected object, then the rarer groups folded.
                 A label's own options open in a box beside the drawing. */}
-            <div className="tr-cards">
+            <div className="md-kit-cards">
             <div>
             <FoldCard tool="triangle" title="What pupils see" icon={Eye} defaultOpen summary={seenSummary} help="Each label prints its value, a pupil space or nothing. Click a label on the drawing for its own choice.">
               {seenGroups.map(([group, refs]) => (

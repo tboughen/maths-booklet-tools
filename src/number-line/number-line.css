@@ -10,6 +10,4 @@
 @media(max-width:900px){.nl-editor .workspace{grid-template-columns:minmax(0,1fr)}.nl-editor .inspector-stack{width:100%}.nl-editor .page-heading{flex-wrap:wrap}}
 .nl-secondary-labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 
-/* One settings column (the usability pilot). */
-.nl-cards, .nl-cards > div { display: contents; }
 .nl-box { display: grid; gap: 8px; }

@@ -124,18 +124,18 @@ const tooSmall = (page: Page) =>
       .map((c) => c.textContent || c.getAttribute("aria-label")),
   );
 
-test("Statistical charts uses the kit: the data in one column and its settings in the other", async ({ page }) => {
+test("Statistical charts uses the kit: one column, what pupils see first, then the chart type, its data and its settings", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/charts");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const type = await chartCard(page, "Chart type"), data = await chartCard(page, "Data"), axes = await chartCard(page, "Axes and grid");
-  expect(data.x).toBe(type.x);
+  // One column (the usability rollout, 23 Nov 2026).
+  const seen = await chartCard(page, "What pupils see");
+  expect([type.x, data.x, axes.x]).toEqual([seen.x, seen.x, seen.x]);
+  expect(type.y).toBeGreaterThan(seen.y + seen.height);
   expect(data.y).toBeGreaterThan(type.y + type.height);
-  expect(axes.x).toBeGreaterThanOrEqual(type.x + type.width);
-  expect(Math.abs(axes.width - type.width)).toBeLessThanOrEqual(1);
-  // The settings were 1,432 px long before the kit. Now they are all in view.
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect(axes.y).toBeGreaterThan(data.y + data.height);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The chart type that is on is marked, and a click moves the mark.
@@ -152,7 +152,7 @@ test("Statistical charts uses the kit: the data in one column and its settings i
   const heading = await page.getByRole("heading", { name: "Chart type", exact: true }).evaluate((el) => getComputedStyle(el).font);
   expect(heading).toContain("600 17px");
 
-  // Every chart type keeps its data on the left and its settings on the right, with nothing cut off.
+  // Every chart type keeps its data and then its settings in the one column, with nothing cut off.
   for (const [kind, left, right] of [
     ["Pie chart", "Data", "Pie chart"],
     ["Pictogram", "Data", "Pictogram"],
@@ -165,8 +165,9 @@ test("Statistical charts uses the kit: the data in one column and its settings i
     ["Time series graph", "Times and values", "Axes and graph paper"],
   ]) {
     await page.getByRole("button", { name: kind, exact: true }).click();
-    expect((await chartCard(page, left)).x, kind).toBe(type.x);
-    expect((await chartCard(page, right)).x, kind).toBe(axes.x);
+    const [l, r] = [await chartCard(page, left), await chartCard(page, right)];
+    expect([l.x, r.x], kind).toEqual([type.x, type.x]);
+    expect(r.y, kind).toBeGreaterThan(l.y);
     const cut = await stack.evaluate((el) =>
       [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
     );
