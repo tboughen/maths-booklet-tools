@@ -58,6 +58,118 @@
    "png600": "1224x1479",
    "pixels": "711157dd8d70c20b"
   },
+  "3D solids: solids-plain-cone": {
+   "json": "f4a72210581f7ba5",
+   "svg": "3c57e2a0eb8f21d0",
+   "mm": "51.8x47.8",
+   "png600": "1224x1129",
+   "pixels": "ecc0344d420d5e67"
+  },
+  "3D solids: solids-plain-cone (worked)": {
+   "json": "f4a72210581f7ba5",
+   "svg": "3c57e2a0eb8f21d0",
+   "mm": "51.8x47.8",
+   "png600": "1224x1129",
+   "pixels": "ecc0344d420d5e67"
+  },
+  "3D solids: solids-plain-cuboid": {
+   "json": "13b2a065d43af1bc",
+   "svg": "b1d48a9f305438cb",
+   "mm": "65.8x47.7",
+   "png600": "1554x1127",
+   "pixels": "3e70e232d8d8c51e"
+  },
+  "3D solids: solids-plain-cuboid (worked)": {
+   "json": "13b2a065d43af1bc",
+   "svg": "b1d48a9f305438cb",
+   "mm": "65.8x47.7",
+   "png600": "1554x1127",
+   "pixels": "3e70e232d8d8c51e"
+  },
+  "3D solids: solids-plain-cylinder": {
+   "json": "c1be65ab86a3ebc1",
+   "svg": "e74abd19b7442474",
+   "mm": "51.8x50.7",
+   "png600": "1224x1198",
+   "pixels": "cc414ac254eccd1e"
+  },
+  "3D solids: solids-plain-cylinder (worked)": {
+   "json": "c1be65ab86a3ebc1",
+   "svg": "e74abd19b7442474",
+   "mm": "51.8x50.7",
+   "png600": "1224x1198",
+   "pixels": "cc414ac254eccd1e"
+  },
+  "3D solids: solids-plain-hemisphere": {
+   "json": "fd79edf5d5eded35",
+   "svg": "fc7ccd1cd3e042cf",
+   "mm": "51.8x31.3",
+   "png600": "1224x739",
+   "pixels": "6a1957cd507589c8"
+  },
+  "3D solids: solids-plain-hemisphere (worked)": {
+   "json": "fd79edf5d5eded35",
+   "svg": "fc7ccd1cd3e042cf",
+   "mm": "51.8x31.3",
+   "png600": "1224x739",
+   "pixels": "6a1957cd507589c8"
+  },
+  "3D solids: solids-plain-roof-prism": {
+   "json": "436f66ae9aad1897",
+   "svg": "32c8324dbced0de6",
+   "mm": "64.5x56.4",
+   "png600": "1524x1332",
+   "pixels": "e1ad3925de4690d3"
+  },
+  "3D solids: solids-plain-roof-prism (worked)": {
+   "json": "436f66ae9aad1897",
+   "svg": "32c8324dbced0de6",
+   "mm": "64.5x56.4",
+   "png600": "1524x1332",
+   "pixels": "e1ad3925de4690d3"
+  },
+  "3D solids: solids-plain-sphere": {
+   "json": "5420789d23c91c99",
+   "svg": "580fc379ab22130b",
+   "mm": "51.8x45",
+   "png600": "1224x1063",
+   "pixels": "2e51269272ebae6e"
+  },
+  "3D solids: solids-plain-sphere (worked)": {
+   "json": "5420789d23c91c99",
+   "svg": "580fc379ab22130b",
+   "mm": "51.8x45",
+   "png600": "1224x1063",
+   "pixels": "2e51269272ebae6e"
+  },
+  "3D solids: solids-plain-square-pyramid": {
+   "json": "f23965036860bdd5",
+   "svg": "e114d29ad8af1c0c",
+   "mm": "51.8x48.3",
+   "png600": "1224x1141",
+   "pixels": "caa6575c797c1e4e"
+  },
+  "3D solids: solids-plain-square-pyramid (worked)": {
+   "json": "f23965036860bdd5",
+   "svg": "e114d29ad8af1c0c",
+   "mm": "51.8x48.3",
+   "png600": "1224x1141",
+   "pixels": "caa6575c797c1e4e"
+  },
+  "3D solids: solids-plain-triangular-prism": {
+   "json": "22c49071fdf50eef",
+   "svg": "e14ea3f4ec2c36f2",
+   "mm": "73.4x58.4",
+   "png600": "1734x1380",
+   "pixels": "281d24ea760dbabc"
+  },
+  "3D solids: solids-plain-triangular-prism (worked)": {
+   "json": "22c49071fdf50eef",
+   "svg": "e14ea3f4ec2c36f2",
+   "mm": "73.4x58.4",
+   "png600": "1734x1380",
+   "pixels": "281d24ea760dbabc"
+  },
   "3D solids: solids-square-pyramid": {
    "json": "5dce0bb9bdf1644a",
    "svg": "c4b958bfb4383ca5",
