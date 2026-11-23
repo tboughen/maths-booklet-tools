@@ -276,7 +276,8 @@ for (const c of cases.filter((c) =>
     } else {
       await page.locator('[data-region-hit="1"]').click();
       await page.getByLabel("Region content", { exact: true }).fill("2");
-      await page.getByRole("button", { name: "Apply", exact: true }).click();
+      // The region box is live: Enter commits the text.
+      await page.getByLabel("Region content", { exact: true }).press("Enter");
       await expect
         .poll(
           async () =>
