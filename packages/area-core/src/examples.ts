@@ -121,6 +121,6 @@ const PLAIN_NOTES: Record<Preset, string> = {
 /** Plain shapes: every built-in shape with typical lengths given, then a kite and a rhombus. */
 export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
   ...PRESETS.map((p) => ({ id: p, title: PRESET_NAMES[p], note: PLAIN_NOTES[p], make: () => starter(p) })),
-  { id: "kite", title: "Kite", note: "A kite with its two pairs of equal sides given.", make: () => quadrilateral([[30, 0], [55, 30], [30, 70], [5, 30]], ["7 cm", "6 cm"]) },
+  { id: "kite", title: "Kite", note: "A kite with a short side and a long side given.", make: () => quadrilateral([[30, 0], [55, 30], [30, 70], [5, 30]], ["6 cm", "7 cm"]) },
   { id: "rhombus", title: "Rhombus", note: "A rhombus with one side given.", make: () => quadrilateral([[0, 0], [40, 0], [64, 32], [24, 32]], ["8 cm"]) },
 ];

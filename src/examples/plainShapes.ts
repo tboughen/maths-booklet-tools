@@ -75,7 +75,7 @@ export const plainRatioTables: Plain<RatioEnvelope>[] = [
   {
     id: "multiplier",
     title: "Two columns with a multiplier",
-    note: "3 and 12 scaled up by × 3, with answer lines for the new row.",
+    note: "3 and 12 scaled up by × 3, with an answer line in the new row.",
     make: () =>
       createRatioTable({
         rows: [
@@ -195,5 +195,5 @@ export const plainAlgebraGrids: Plain<AlgebraEnvelope>[] = [
   { id: "single", title: "Single bracket grid", note: "5(x + 3) in a grid, the products left blank.", make: () => algebraExample("plain-single") },
   { id: "double", title: "Double bracket grid", note: "(x + 4)(x + 1) in a grid, the products left blank.", make: () => algebraExample("plain-double") },
   { id: "common-factor", title: "Factorising grid: common factor", note: "6x + 15 in the grid, the factor and bracket left blank.", make: () => algebraExample("plain-common") },
-  { id: "quadratic", title: "Factorising a quadratic grid", note: "x² + 7x + 12: the x² and 12 given, the rest left blank.", make: () => algebraExample("plain-quadratic") },
+  { id: "quadratic", title: "Factorising a quadratic grid", note: "x² + 7x + 12: the x headings, x² and 12 given, the rest left blank.", make: () => algebraExample("plain-quadratic") },
 ];

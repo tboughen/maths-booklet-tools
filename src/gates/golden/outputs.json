@@ -941,18 +941,18 @@
    "pixels": "ca1a7dd029a5b0cc"
   },
   "area and perimeter: area-plain-kite": {
-   "json": "ee39ecbb9b0188a8",
-   "svg": "c76ec3e3ec2617c1",
+   "json": "a5ea278c0b5282c9",
+   "svg": "b28975624fc3b502",
    "mm": "54x79",
    "png600": "1276x1866",
-   "pixels": "d175ef401827014e"
+   "pixels": "786b906fe79a1b92"
   },
   "area and perimeter: area-plain-kite (worked)": {
-   "json": "ee39ecbb9b0188a8",
-   "svg": "c76ec3e3ec2617c1",
+   "json": "a5ea278c0b5282c9",
+   "svg": "b28975624fc3b502",
    "mm": "54x79",
    "png600": "1276x1866",
-   "pixels": "d175ef401827014e"
+   "pixels": "786b906fe79a1b92"
   },
   "area and perimeter: area-plain-l-shape": {
    "json": "d939d13ed7bdfbdd",
@@ -2719,18 +2719,18 @@
    "pixels": "7787504668610856"
   },
   "function machines: fm-plain-inverse": {
-   "json": "61333eac9de31289",
-   "svg": "bb93da807e84b6ae",
+   "json": "e7f98e10c49e011c",
+   "svg": "8d2e8e56de0853b4",
    "mm": "110x31",
    "png600": "2598x732",
-   "pixels": "2946759f209d2013"
+   "pixels": "ff069966365bc009"
   },
   "function machines: fm-plain-inverse (worked)": {
-   "json": "61333eac9de31289",
-   "svg": "bb93da807e84b6ae",
+   "json": "e7f98e10c49e011c",
+   "svg": "8d2e8e56de0853b4",
    "mm": "110x31",
    "png600": "2598x732",
-   "pixels": "2946759f209d2013"
+   "pixels": "ff069966365bc009"
   },
   "function machines: fm-plain-one-step": {
    "json": "fcc34f9f76dd02b9",

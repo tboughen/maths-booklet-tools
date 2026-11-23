@@ -69,7 +69,7 @@
  {
   "id": "ratio-plain-multiplier",
   "title": "Two columns with a multiplier",
-  "description": "3 and 12 scaled up by × 3, with answer lines for the new row.",
+  "description": "3 and 12 scaled up by × 3, with an answer line in the new row.",
   "tool": "ratio-table",
   "plain": true
  },
@@ -640,7 +640,7 @@
  {
   "id": "algebra-plain-quadratic",
   "title": "Factorising a quadratic grid",
-  "description": "x² + 7x + 12: the x² and 12 given, the rest left blank.",
+  "description": "x² + 7x + 12: the x headings, x² and 12 given, the rest left blank.",
   "tool": "expanding-factorising",
   "plain": true
  },
@@ -1631,7 +1631,7 @@
  {
   "id": "area-plain-kite",
   "title": "Kite",
-  "description": "A kite with its two pairs of equal sides given.",
+  "description": "A kite with a short side and a long side given.",
   "tool": "area",
   "plain": true
  },
@@ -2007,7 +2007,7 @@
  {
   "id": "fm-plain-inverse",
   "title": "Two-step machine with its inverse",
-  "description": "A two-step machine with its inverse machine beneath, left blank to work backwards.",
+  "description": "A two-step machine with output 17, and an inverse machine beneath with its boxes and output blank to work backwards.",
   "tool": "function-machine",
   "plain": true
  },
