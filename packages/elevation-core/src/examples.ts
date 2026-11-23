@@ -38,3 +38,12 @@ export const examples: { id: string; title: string; note: string; sourceId?: str
     make: make([[2, 2], [1, 0]], [panel("isometric"), panel("front", "answer"), panel("side", "answer")], { unitCm: 2 }),
   },
 ];
+
+const drawn = (heights: number[][]) => () => make(heights, [panel("isometric"), panel("plan"), panel("front"), panel("side")])(false);
+/** Plain shapes: simple solids of cubes with every view drawn, and one with blank grids for the views. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "row", title: "Row of cubes", note: "Four cubes in a row, with the plan, front and side elevations drawn.", make: drawn([[1, 1, 1, 1]]) },
+  { id: "l-shape", title: "L-shape of cubes", note: "An L-shape of cubes, with the plan, front and side elevations drawn.", make: drawn([[2, 1, 1], [2, 0, 0]]) },
+  { id: "steps", title: "Steps of cubes", note: "A staircase of cubes, with the plan, front and side elevations drawn.", make: drawn([[1, 2, 3], [1, 2, 3]]) },
+  { id: "blank-views", title: "Solid with blank grids for its views", note: "A solid of cubes beside empty centimetre grids for its plan, front and side elevations.", make: () => make([[2, 1, 1], [3, 0, 0]], [panel("isometric"), panel("plan", "blank"), panel("front", "blank"), panel("side", "blank")])(false) },
+];

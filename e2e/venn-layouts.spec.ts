@@ -598,7 +598,7 @@ test("single Nested choice reopens reverse-nested files exactly and label edits 
   ).not.toBeChecked();
 });
 
-test("combined Examples has teaching first, all six verified source links and no duplicate nesting card", async ({
+test("combined Examples has plain shapes then teaching, all six verified source links and no duplicate nesting card", async ({
   page,
 }) => {
   await boot(page);
@@ -611,8 +611,8 @@ test("combined Examples has teaching first, all six verified source links and no
     await examplesPanel
       .locator(".example-gallery-group-title")
       .allTextContents(),
-  ).toEqual(["Teaching examples", "Past-paper examples"]);
-  await expect(examplesPanel.locator("article")).toHaveCount(11);
+  ).toEqual(["Plain shapes", "Teaching examples", "Past-paper examples"]);
+  await expect(examplesPanel.locator("article")).toHaveCount(15);
   await expect(
     examplesPanel.getByRole("link", {
       name: "View source question",

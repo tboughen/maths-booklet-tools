@@ -105,3 +105,17 @@ export const examples: { id: string; title: string; note: string; worked: boolea
     make: make({ type: "polygons", sides: [5, 6], ticks: 1 }, [find("g", "x", "132")], { sizeMm: 60 }),
   },
 ];
+
+const plain = (figure: Figure, angles: Angle[], extra: Extra = {}) => () => make(figure, angles, extra)(false);
+/** Plain shapes: each kind of angle diagram with sizes given and one letter to find. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "straight-line", title: "Angles on a straight line", note: "One ray from a point on a straight line: one angle given, x to find.", make: plain({ type: "straight-line", rays: [62] }, [given("s1", "62"), find("s2", "x", "")]) },
+  { id: "point", title: "Angles round a point", note: "Three angles round a point: two given, x to find.", make: plain({ type: "point", rays: [20, 140, 250] }, [given("s1", "120"), given("s2", "110"), find("s3", "x", "")], { sizeMm: 60 }) },
+  { id: "vertically-opposite", title: "Vertically opposite angles", note: "Two straight lines crossing: one angle given, x opposite it.", make: plain({ type: "crossing", lines: [15, 70] }, [given("s1", "55"), find("s3", "x", "")]) },
+  { id: "parallel", title: "Parallel lines and a transversal", note: "Two parallel lines crossed by a transversal: one angle given, x to find.", make: plain({ type: "parallel", count: 2, gapMm: 24, crossDeg: 60, arrows: 1 }, [given("p1-ur", "60"), find("p2-ul", "x", "")]) },
+  { id: "triangle", title: "Angles in a triangle", note: "A triangle with two angles given and x to find.", make: plain({ type: "polygon", sides: 3, corners: [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 22, y: 38 }], exterior: [], diagonals: false, ticks: [0, 0, 0] }, [given("i1", "60"), given("i2", "45"), find("i3", "x", "")]) },
+  { id: "quadrilateral", title: "Angles in a quadrilateral", note: "A quadrilateral with three angles given and x to find.", make: plain({ type: "polygon", sides: 4, corners: [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 50, y: 40 }, { x: 8, y: 32 }], exterior: [], diagonals: false, ticks: [0, 0, 0, 0] }, [given("i1", "76"), given("i2", "84"), given("i3", "95"), find("i4", "x", "")]) },
+  { id: "pentagon", title: "Regular pentagon", note: "A regular pentagon with an exterior angle shown: interior angle x, exterior angle y.", make: plain({ type: "polygon", sides: 5, corners: null, exterior: [2], diagonals: false, ticks: [1, 1, 1, 1, 1] }, [find("i1", "x", ""), find("e2", "y", "")], { sizeMm: 50 }) },
+  { id: "hexagon", title: "Regular hexagon", note: "A regular hexagon with interior angle x.", make: plain({ type: "polygon", sides: 6, corners: null, exterior: [], diagonals: false, ticks: [1, 1, 1, 1, 1, 1] }, [find("i2", "x", "")], { sizeMm: 50 }) },
+  { id: "polygons", title: "Regular polygons meeting at a point", note: "A regular pentagon and hexagon sharing a side: the gap angle x.", make: plain({ type: "polygons", sides: [5, 6], ticks: 1 }, [find("g", "x", "")], { sizeMm: 60 }) },
+];

@@ -46,3 +46,11 @@ export const examples: { id: string; title: string; note: string; make: (worked:
     },
   },
 ];
+
+/** Plain shapes: common expressions in tiles, with nothing simplified. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "x-and-units", title: "x tiles and unit tiles: 2x + 3", note: "Two x strips and three unit squares.", make: () => tiles("2x + 3", { long: "x", short: "y" }) },
+  { id: "negative", title: "Negative tiles: 3x − 2", note: "Three x strips and two negative unit squares.", make: () => tiles("3x − 2", { long: "x", short: "y" }) },
+  { id: "squares", title: "x² tiles: x² + 2x + 1", note: "An x² square, two x strips and a unit square.", make: () => tiles("x² + 2x + 1", { long: "x", short: "y" }) },
+  { id: "zero-pairs", title: "Zero pairs", note: "2x + 3 − x − 1 grouped, positive tiles above negative ones, with the zero pairs ringed.", make: () => tiles("2x + 3 − x − 1", { long: "x", short: "y" }, { arrangement: "grouped", zeroPairs: "show" }) },
+];

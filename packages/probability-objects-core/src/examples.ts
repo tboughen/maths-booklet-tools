@@ -94,3 +94,41 @@ export const examples: { id: string; title: string; note: string; make: (worked:
     },
   },
 ];
+
+/** Plain shapes: a single spinner, dice or bag, every label given, shown before the exam-style examples. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "spinner-4", title: "Spinner, 4 equal sections", note: "A fair circular spinner numbered 1 to 4 with an arrow.", make: () => doc([spinner("o1", ["1", "2", "3", "4"])]) },
+  { id: "spinner-5", title: "Spinner, 5 equal sections", note: "A fair pentagonal spinner numbered 1 to 5 on its stick.", make: () => doc([spinner("o1", ["1", "2", "3", "4", "5"], { shape: "polygon", rotation: 0, pointer: "stick", pointerAngle: 25 })]) },
+  {
+    id: "spinner-unequal",
+    title: "Spinner, unequal sections",
+    note: "A spinner with a 180° section and two 90° sections.",
+    make: () => {
+      const s = spinner("o1", ["Red", "Blue", "Green"], { rightAngles: true }) as ReturnType<typeof newSpinner>;
+      s.sectors[0].angle = 180;
+      s.sectors[1].angle = 90;
+      return doc([s]);
+    },
+  },
+  { id: "dice", title: "Dice", note: "An ordinary six-sided dice.", make: () => doc([newDice("o1")]) },
+  {
+    id: "bag-two",
+    title: "Bag of counters, two colours",
+    note: "Three red and five blue counters, labelled and shaded.",
+    make: () => {
+      const bag = newBag("o1");
+      bag.groups = [{ label: v("R"), fill: "none", count: 3 }, { label: v("B"), fill: "grey", count: 5 }];
+      return doc([bag]);
+    },
+  },
+  {
+    id: "bag-three",
+    title: "Bag of counters, three colours",
+    note: "Four red, three blue and two green counters, labelled and shaded.",
+    make: () => {
+      const bag = newBag("o1");
+      bag.groups = [{ label: v("R"), fill: "none", count: 4 }, { label: v("B"), fill: "grey", count: 3 }, { label: v("G"), fill: "hatched", count: 2 }];
+      return doc([bag]);
+    },
+  },
+];

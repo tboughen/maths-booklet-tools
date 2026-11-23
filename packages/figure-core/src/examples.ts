@@ -183,3 +183,103 @@ export const examples: { id: string; title: string; note: string; sourceId: stri
     }),
   },
 ];
+
+const plain = (build: Build) => () => make(build)(false);
+/** Plain shapes: the common circle-theorem and similarity figures, ready to label. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "chord",
+    title: "Circle with a chord",
+    note: "A circle, centre O, with a chord AB and the radii OA and OB.",
+    make: plain((d) => {
+      d.circles = [{ id: "c", centre: "o", r: 28, style: "solid" }];
+      d.points = [point("o", free(0, 0), "O", "dot"), point("a", on("c", 200), "A"), point("b", on("c", 340), "B")];
+      d.segments = [segment("ab", "a", "b"), segment("oa", "o", "a"), segment("ob", "o", "b")];
+    }),
+  },
+  {
+    id: "tangent-radius",
+    title: "Tangent and radius",
+    note: "A tangent touching a circle at A, with the radius OA meeting it at a right angle.",
+    make: plain((d) => {
+      d.circles = [{ id: "c", centre: "o", r: 24, style: "solid" }];
+      d.points = [point("o", free(0, 0), "O", "dot"), point("a", on("c", 270), "A"), point("s", { type: "tangent", at: "a", mm: -36 }, "S"), point("t", { type: "tangent", at: "a", mm: 36 }, "T")];
+      d.segments = [segment("st", "s", "t"), segment("oa", "o", "a")];
+      d.angles = [angle("oat", "a", "t", "o", label(), "right")];
+    }),
+  },
+  {
+    id: "two-tangents",
+    title: "Two tangents from a point",
+    note: "Tangents PA and PB from a point P outside a circle, centre O.",
+    make: plain((d) => {
+      d.circles = [{ id: "c", centre: "o", r: 18, style: "solid" }];
+      d.points = [point("o", free(0, 0), "O", "dot"), point("a", on("c", 60), "A"), point("b", on("c", 300), "B"), point("p", { type: "tangents", a: "a", b: "b" }, "P")];
+      d.segments = [segment("pa", "p", "a"), segment("pb", "p", "b"), segment("oa", "o", "a"), segment("ob", "o", "b")];
+    }),
+  },
+  {
+    id: "centre-angle",
+    title: "Angle at the centre",
+    note: "The angle at the centre AOB and the angle at the circumference ACB, standing on the same arc.",
+    make: plain((d) => {
+      d.circles = [{ id: "c", centre: "o", r: 30, style: "solid" }];
+      d.points = [point("o", free(0, 0), "O", "dot"), point("a", on("c", 210), "A"), point("b", on("c", 330), "B"), point("c1", on("c", 95), "C")];
+      d.segments = [segment("oa", "o", "a"), segment("ob", "o", "b"), segment("ca", "c1", "a"), segment("cb", "c1", "b")];
+      d.angles = [angle("aob", "o", "a", "b", s("x")), angle("acb", "c1", "a", "b", s("y"))];
+    }),
+  },
+  {
+    id: "same-segment",
+    title: "Angles in the same segment",
+    note: "Angles ACB and ADB standing on the same chord AB.",
+    make: plain((d) => {
+      d.circles = [{ id: "c", centre: "o", r: 30, style: "solid" }];
+      d.points = [point("o", free(0, 0)), point("a", on("c", 200), "A"), point("b", on("c", 340), "B"), point("c1", on("c", 70), "C"), point("dd", on("c", 125), "D")];
+      d.segments = [segment("ca", "c1", "a"), segment("cb", "c1", "b"), segment("da", "dd", "a"), segment("db", "dd", "b")];
+      d.angles = [angle("acb", "c1", "a", "b", s("x")), angle("adb", "dd", "a", "b", s("y"))];
+    }),
+  },
+  {
+    id: "cyclic-quadrilateral",
+    title: "Cyclic quadrilateral",
+    note: "A quadrilateral ABCD with all four corners on a circle.",
+    make: plain((d) => {
+      d.circles = [{ id: "c", centre: "o", r: 30, style: "solid" }];
+      d.points = [point("o", free(0, 0)), point("a", on("c", 110), "A"), point("b", on("c", 20), "B"), point("c1", on("c", 290), "C"), point("dd", on("c", 200), "D")];
+      d.segments = [segment("ab", "a", "b"), segment("bc", "b", "c1"), segment("cd", "c1", "dd"), segment("da", "dd", "a")];
+      d.angles = [angle("a", "a", "dd", "b", s("x")), angle("c", "c1", "b", "dd", s("y"))];
+    }),
+  },
+  {
+    id: "similar-triangles",
+    title: "Similar triangles",
+    note: "Two similar triangles, matching angles marked alike.",
+    make: plain((d) => {
+      d.points = [point("a", free(0, 0), "A"), point("b", free(36, 0), "B"), point("c1", free(10, 24), "C"), point("p", free(54, 0), "P"), point("q", free(108, 0), "Q"), point("r", free(69, 36), "R")];
+      d.segments = [segment("ab", "a", "b", v("6 cm")), segment("bc", "b", "c1"), segment("ca", "c1", "a", v("4 cm")), segment("pq", "p", "q", v("9 cm")), segment("qr", "q", "r"), segment("rp", "r", "p", s("x"))];
+      d.angles = [angle("a", "a", "b", "c1"), angle("b", "b", "c1", "a", label(), "double"), angle("p", "p", "q", "r"), angle("q", "q", "r", "p", label(), "double")];
+    }),
+  },
+  {
+    id: "congruent-triangles",
+    title: "Congruent triangles",
+    note: "Two congruent triangles, equal sides marked with matching ticks.",
+    make: plain((d) => {
+      d.points = [point("a", free(0, 0), "A"), point("b", free(40, 0), "B"), point("c1", free(12, 28), "C"), point("p", free(56, 0), "P"), point("q", free(96, 0), "Q"), point("r", free(68, 28), "R")];
+      d.segments = [
+        segment("ab", "a", "b", label(), { ticks: 1 }), segment("bc", "b", "c1", label(), { ticks: 2 }), segment("ca", "c1", "a", label(), { ticks: 3 }),
+        segment("pq", "p", "q", label(), { ticks: 1 }), segment("qr", "q", "r", label(), { ticks: 2 }), segment("rp", "r", "p", label(), { ticks: 3 }),
+      ];
+    }),
+  },
+  {
+    id: "parallelogram-diagonal",
+    title: "Parallelogram with a diagonal",
+    note: "A parallelogram ABCD with its diagonal AC, parallel sides arrowed, for a congruence proof.",
+    make: plain((d) => {
+      d.points = [point("a", free(0, 0), "A"), point("b", free(60, 0), "B"), point("c1", free(80, 32), "C"), point("dd", free(20, 32), "D")];
+      d.segments = [segment("ab", "a", "b", label(), { arrows: 1 }), segment("bc", "b", "c1", label(), { arrows: 2 }), segment("dc", "dd", "c1", label(), { arrows: 1 }), segment("ad", "a", "dd", label(), { arrows: 2 }), segment("ac", "a", "c1", label(), { style: "dashed" })];
+    }),
+  },
+];

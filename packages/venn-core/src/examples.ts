@@ -278,3 +278,20 @@ export const teachingExamples: Example[] = [
       ),
   },
 ];
+
+/** Plain shapes: empty Venn diagrams to fill in, shown before the exam-style examples. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "one-set", title: "One set", note: "A universal set ξ with one set A, all regions empty.", make: () => validate(create(1)) },
+  { id: "two-sets", title: "Two sets", note: "Two overlapping sets A and B inside ξ, all regions empty.", make: () => validate(create(2)) },
+  {
+    id: "two-sets-shaded",
+    title: "Two sets, intersection shaded",
+    note: "Two overlapping sets with A ∩ B shaded.",
+    make: () => {
+      const e = create(2);
+      e.document.regions[3] = { ...e.document.regions[3], shade: "grey" };
+      return validate(e);
+    },
+  },
+  { id: "three-sets", title: "Three sets", note: "Three overlapping sets A, B and C inside ξ, all regions empty.", make: () => validate(create(3)) },
+];

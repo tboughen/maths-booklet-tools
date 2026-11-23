@@ -13,6 +13,16 @@ describe("Diagram builder example index", () => {
     const names = Object.entries(all).filter(([, value]) => Array.isArray(value)).map(([name]) => name);
     expect(names.filter((name) => !(name in galleryTools) && !unshownGalleries.includes(name))).toEqual([]);
   });
+  it("leads every tool's gallery with its plain shapes, which have no worked version", () => {
+    for (const name of Object.keys(galleryTools)) {
+      const examples = all[name] as { id: string; plain?: boolean; worked?: boolean }[];
+      const plain = examples.filter((e) => e.plain);
+      if (name === "ratioGallery") continue; // shown after ratioTeachingGallery, which holds the plain tables
+      expect(plain.length, name).toBeGreaterThan(0);
+      expect(examples.slice(0, plain.length), name).toEqual(plain);
+      expect(plain.every((e) => e.worked === false), name).toBe(true);
+    }
+  });
   it("matches the galleries (run node scripts/generate-example-previews.mjs after changing an example)", () => {
     expect(saved).toEqual(exampleIndex(all));
   });
