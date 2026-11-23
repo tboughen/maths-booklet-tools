@@ -8,7 +8,8 @@ import { withFields } from "../../envelope-core/src/errors";
 /** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
 export const RENDERER_VERSION = "venn-2" as const;
 
-export const visibility = ["show", "hidden", "line"] as const;
+/** "omit" (Leave out, 22 Nov 2026) keeps the content but prints it in neither copy. */
+export const visibility = ["show", "hidden", "line", "omit"] as const;
 export const kinds = [
   "empty",
   "members",
@@ -127,13 +128,13 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   if (view === "pupil") return e;
   const n = structuredClone(e);
   n.document.regions.forEach((r) => {
-    if (r.kind !== "empty" && r.text.trim()) {
+    if (r.kind !== "empty" && r.text.trim() && r.visibility !== "omit") {
       if (mark && r.visibility !== "show") REVEALED.add(r);
       r.visibility = "show";
     }
   });
   n.document.labels.forEach((l) => {
-    if (l.text.trim()) {
+    if (l.text.trim() && l.visibility !== "omit") {
       if (mark && l.visibility !== "show") REVEALED.add(l);
       l.visibility = "show";
     }
@@ -488,6 +489,7 @@ export function geometry(e: Envelope) {
       const l = d.labels[i];
       if (
         l.visibility === "hidden" ||
+        l.visibility === "omit" ||
         (!l.text && l.visibility !== "line")
       )
         return [];
@@ -611,6 +613,7 @@ function content(
     f = g.font;
   if (
     r.visibility === "hidden" ||
+    r.visibility === "omit" ||
     (r.visibility === "show" && (r.kind === "empty" || !r.text.trim()))
   )
     return { svg: "" };
@@ -685,6 +688,7 @@ export function layout(e: Envelope) {
       w = l.visibility === "line" ? 9 : textWidth(l.text, g.font * 1.1) + 2;
     if (
       l.visibility !== "hidden" &&
+      l.visibility !== "omit" &&
       (p.x - w / 2 < 2 ||
         p.x + w / 2 > g.width - 2 ||
         p.y + g.font > g.height - 2)
@@ -701,6 +705,7 @@ export function layout(e: Envelope) {
       if (
         i === innerIndex &&
         l.visibility !== "hidden" &&
+        l.visibility !== "omit" &&
         (l.text || l.visibility === "line")
       ) {
         const font = g.font * 1.1;
@@ -770,7 +775,7 @@ function renderDocument(e: Envelope) {
   const labels = g.labelPoints
     .map((p, i) => {
       const l = d.labels[i];
-      if (l.visibility === "hidden" || (!l.text && l.visibility !== "line"))
+      if (l.visibility === "hidden" || l.visibility === "omit" || (!l.text && l.visibility !== "line"))
         return "";
       const font = g.font * 1.1,
         w = l.visibility === "line" ? 9 : textWidth(l.text, font) + 2;

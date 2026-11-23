@@ -755,6 +755,7 @@ export default function RatioTablePage({
               <OptionsBox
                 anchor={boxAnchor}
                 anchorKey={JSON.stringify(selection)}
+                hidden={!active}
                 // A cell or heading is typed in on the table itself, so its box leaves the cursor there.
                 takeFocus={selection.kind === "step"}
                 bounds={globalThis.document.querySelector<HTMLElement>(".ratio-stage")}

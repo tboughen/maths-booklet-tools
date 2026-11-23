@@ -2614,6 +2614,9 @@
                       },
                       "hidden": {
                         "type": "boolean"
+                      },
+                      "omit": {
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -13698,7 +13701,8 @@
                   "enum": [
                     "show",
                     "hidden",
-                    "line"
+                    "line",
+                    "omit"
                   ]
                 }
               },
@@ -13736,7 +13740,8 @@
                   "enum": [
                     "show",
                     "hidden",
-                    "line"
+                    "line",
+                    "omit"
                   ]
                 },
                 "shade": {

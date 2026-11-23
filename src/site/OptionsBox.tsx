@@ -12,12 +12,17 @@ import "./options-box.css";
  *
  * Click targets that open it carry `data-options-anchor`, so pressing another one moves the box rather than closing it.
  */
+/** The box's text field: the first text input or text area. */
+const FIELD = "input:not([type=checkbox]):not([disabled]), textarea:not([disabled])";
+
 export function OptionsBox({
   anchor,
   anchorKey,
   focusField = true,
   takeFocus = true,
   bounds,
+  placeBy,
+  hidden = false,
   title,
   onClose,
   children,
@@ -32,6 +37,11 @@ export function OptionsBox({
   takeFocus?: boolean;
   /** Keep the box across this element (the editor's drawing area) rather than the whole window, so it never covers the settings. */
   bounds?: HTMLElement | null;
+  /** Sit beside this element (a whole diagram) rather than the anchor, so the box never covers the anchor's
+   * neighbours. Focus still goes back to the anchor. */
+  placeBy?: HTMLElement | null;
+  /** Kept but out of sight while its page is not the one showing, so a draft in it survives a visit elsewhere. */
+  hidden?: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
@@ -41,27 +51,39 @@ export function OptionsBox({
   const close = useRef(onClose);
   close.current = onClose;
 
-  // Beside the label: to its right, else its left, else below it, and always inside the window.
   const measure = () => {
     const el = box.current;
     if (!el || !anchor || !anchor.isConnected) return;
-    const a = anchor.getBoundingClientRect(),
-      w = el.offsetWidth,
+    const w = el.offsetWidth,
       h = el.offsetHeight,
       gap = 8,
       edge = 8;
-    if (!a.width && !a.height) return;
     const b = bounds?.isConnected ? bounds.getBoundingClientRect() : null,
       lo = Math.max(0, b?.left ?? 0) + edge,
       hi = Math.min(innerWidth, b?.right ?? innerWidth) - edge;
-    let left: number, top: number;
-    if (a.right + gap + w <= hi) left = a.right + gap;
-    else if (a.left - gap - w >= lo) left = a.left - gap - w;
-    else left = -1;
-    if (left >= 0) top = Math.min(Math.max(edge, a.top - 4), innerHeight - edge - h);
-    else {
-      left = Math.min(Math.max(lo, a.left), hi - w);
-      top = a.bottom + gap + h <= innerHeight - edge ? a.bottom + gap : Math.max(edge, a.top - gap - h);
+    // Beside the drawing: to its right, else its left, else under or over it where the whole box fits in the window.
+    // With no room round a whole drawing, beside the label itself, else under or over it, always inside the window.
+    const side = (a: DOMRect) =>
+      a.right + gap + w <= hi ? a.right + gap : a.left - gap - w >= lo ? a.left - gap - w : -1;
+    const across = (a: DOMRect) => Math.min(Math.max(lo, a.left), hi - w);
+    let left = -1,
+      top = 0;
+    const whole = placeBy?.isConnected ? placeBy.getBoundingClientRect() : null;
+    if (whole && (whole.width || whole.height)) {
+      left = side(whole);
+      if (left >= 0) top = Math.min(Math.max(edge, whole.top - 4), innerHeight - edge - h);
+      else if (whole.bottom + gap + h <= innerHeight - edge) [left, top] = [across(whole), whole.bottom + gap];
+      else if (whole.top - gap - h >= edge) [left, top] = [across(whole), whole.top - gap - h];
+    }
+    if (left < 0) {
+      const a = anchor.getBoundingClientRect();
+      if (!a.width && !a.height) return;
+      left = side(a);
+      if (left >= 0) top = Math.min(Math.max(edge, a.top - 4), innerHeight - edge - h);
+      else {
+        left = across(a);
+        top = a.bottom + gap + h <= innerHeight - edge ? a.bottom + gap : Math.max(edge, Math.min(a.top - gap - h, innerHeight - edge - h));
+      }
     }
     setPlace((p) => (p && Math.abs(p.left - left) < 0.5 && Math.abs(p.top - top) < 0.5 ? p : { left, top }));
   };
@@ -70,9 +92,13 @@ export function OptionsBox({
     const again = () => measure();
     addEventListener("scroll", again, true);
     addEventListener("resize", again);
+    // The box can grow after it is placed (a note or an error appears, a font arrives), so it is placed again.
+    const grown = new ResizeObserver(again);
+    if (box.current) grown.observe(box.current);
     return () => {
       removeEventListener("scroll", again, true);
       removeEventListener("resize", again);
+      grown.disconnect();
     };
   });
 
@@ -83,7 +109,7 @@ export function OptionsBox({
   // typing replaces the value. A box with no text field takes the focus itself.
   useEffect(() => {
     if (!placed || !takeFocus) return;
-    const field = focusField ? box.current?.querySelector<HTMLInputElement>("input:not([type=checkbox]):not([disabled])") : null;
+    const field = focusField ? box.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(FIELD) : null;
     if (field) {
       field.focus({ preventScroll: true });
       field.select();
@@ -101,6 +127,7 @@ export function OptionsBox({
   }, [anchor]);
 
   useEffect(() => {
+    if (hidden) return;
     const away = (event: PointerEvent) => {
       const t = event.target as Element | null;
       if (!t || box.current?.contains(t) || t.closest("[data-options-anchor]")) return;
@@ -113,7 +140,9 @@ export function OptionsBox({
       if (event.key !== "Escape" || event.defaultPrevented || modalOpen()) return;
       if (document.querySelector('[role="menu"]')) return;
       event.preventDefault();
-      if (box.current?.contains(document.activeElement) && anchor?.isConnected) anchor.focus({ preventScroll: true });
+      // A field may have let go of the focus on Escape already (it puts its value back); the label takes it either way.
+      const lost = document.activeElement === null || document.activeElement === document.body;
+      if ((lost || box.current?.contains(document.activeElement)) && anchor?.isConnected) anchor.focus({ preventScroll: true });
       close.current();
     };
     document.addEventListener("pointerdown", away, true);
@@ -122,7 +151,7 @@ export function OptionsBox({
       document.removeEventListener("pointerdown", away, true);
       document.removeEventListener("keydown", escape);
     };
-  }, [anchor]);
+  }, [anchor, hidden]);
 
   return createPortal(
     <div
@@ -133,10 +162,11 @@ export function OptionsBox({
       tabIndex={-1}
       onFocus={() => (hadFocus.current = true)}
       onBlur={(event) => (hadFocus.current = box.current?.contains(event.relatedTarget as Node | null) ?? false)}
+      hidden={hidden}
       style={place ? { left: place.left, top: place.top } : { visibility: "hidden", left: 0, top: 0 }}
       onKeyDown={(event) => {
         if (event.key === "Enter" && event.target === box.current) {
-          const field = box.current?.querySelector<HTMLInputElement>("input:not([type=checkbox]):not([disabled])");
+          const field = box.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(FIELD);
           if (field) {
             event.preventDefault();
             field.focus();

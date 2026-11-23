@@ -6,6 +6,12 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { create } from "../packages/cuboid-core/src";
 import { examples } from "../packages/cuboid-core/src/examples";
+// The settings column folds its rarer cards; these tests use them, so they start open.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    for (const t of ["Labels", "Shading", "Print settings"]) localStorage.setItem(`mathsdock:fold:cuboids:${t}`, "open");
+  });
+});
 test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 const report = join(
   process.cwd(),
@@ -36,21 +42,42 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/tools/cuboids");
   await expect(resource(page)).toBeVisible();
 });
-test("a valid floating draft can be cancelled without a blur committing it", async ({
+test("the options box is live: Enter commits the width, Undo restores it, Escape closes the box", async ({
   page,
 }) => {
   await page
     .getByRole("button", { name: "Edit width label on cuboid-1", exact: true })
     .click();
-  await page
-    .getByRole("textbox", { name: "Edit width", exact: true })
-    .fill("9");
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Apply", exact: true })).toHaveCount(0);
+  await input(page, "Edit width", "9");
+  await expect(resource(page)).toContainText("9 cm");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(resource(page)).toContainText("4 cm");
-  await expect(resource(page)).not.toContainText("9 cm");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Width", exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
+});
+test("double-click a label for a pupil space and again to show it; Leave out keeps the box", async ({ page }) => {
+  const width = page.getByRole("button", { name: "Edit width label on cuboid-1", exact: true });
+  await width.dblclick();
+  await expect(resource(page)).not.toContainText("4 cm");
+  await expect(resource(page)).toContainText("…");
+  await width.dblclick();
+  await expect(resource(page)).toContainText("4 cm");
+  await width.click();
+  const box = page.getByRole("dialog", { name: "Width", exact: true });
+  await box.getByRole("button", { name: "Leave out", exact: true }).click();
+  await expect(resource(page).locator(".cb-art")).not.toContainText("4 cm");
+  await expect(box).toBeVisible();
+  await box.getByRole("button", { name: "Show", exact: true }).click();
+  await expect(resource(page)).toContainText("4 cm");
+  // The card's switch sets every edge at once, and Clear pupil spaces shows them again.
+  await page.getByRole("group", { name: "Edge labels", exact: true }).getByRole("button", { name: "Pupil space", exact: true }).click();
+  await expect(page.getByText("3 so far.")).toBeVisible();
+  await page.getByRole("button", { name: "Clear pupil spaces", exact: true }).click();
+  await expect(resource(page)).toContainText("4 cm");
 });
 test("invalid floating drafts survive navigation while inactive overlays stay hidden", async ({
   page,
@@ -64,7 +91,7 @@ test("invalid floating drafts survive navigation while inactive overlays stay hi
     page.getByRole("heading", { name: "Graph tool", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("dialog", { name: "Edit width", exact: true }),
+    page.getByRole("dialog", { name: "Width", exact: true }),
   ).not.toBeVisible();
   await switchTool(page, "Cuboids");
   await expect(
@@ -73,34 +100,17 @@ test("invalid floating drafts survive navigation while inactive overlays stay hi
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("textbox", { name: "Edit width", exact: true }).press("Escape");
 });
-test("replacement confirmation hides the non-modal editor and cancellation restores it", async ({
+test("opening an example closes the options box first", async ({
   page,
 }) => {
   await page
     .getByRole("button", { name: "Edit width label on cuboid-1", exact: true })
     .click();
+  await expect(page.getByRole("dialog", { name: "Width", exact: true })).toBeVisible();
   await showExamples(page);
-  await page
-    .locator(".example-card")
-    .filter({
-      has: page.getByRole("heading", { name: "Shaded base area", exact: true }),
-    })
-    .getByRole("button", { name: "Use this example", exact: true })
-    .click();
-  await expect(page.locator("[aria-modal=true]")).toBeVisible();
-  await expect(
-    page.getByRole("dialog", { name: "Edit width", exact: true }),
-  ).not.toBeVisible();
-  await page
-    .locator("[aria-modal=true]")
-    .getByRole("button", { name: "Cancel", exact: true })
-    .click();
-  await expect(
-    page.getByRole("dialog", { name: "Edit width", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Width", exact: true })).toHaveCount(0);
 });
 test("starting afresh after protected recovery clears an invalid draft deliberately", async ({
   page,
@@ -130,7 +140,7 @@ test("starting afresh after protected recovery clears an invalid draft deliberat
   ).toHaveValue("4");
   await other.close();
 });
-test("settings are stacked cards, and clicking a label brings its card to the top (U20)", async ({
+test("settings are one folding column; a clicked label opens its box and the cards stay put", async ({
   page,
 }) => {
   await expect(page.getByRole("tab")).toHaveCount(0);
@@ -138,17 +148,12 @@ test("settings are stacked cards, and clicking a label brings its card to the to
     0,
   );
   const headings = page.locator(".cb-inspector h2");
-  await expect(headings.first()).toHaveText("Shape");
+  await expect(headings).toHaveText(["What pupils see", "Shape", "Labels", "Shading", "Print settings"]);
   await expect(page.getByLabel("Width", { exact: true })).toBeVisible();
-  await expect(
-    page.getByLabel("Label appearance", { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Grey faces", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /^Edit height label/ }).click();
-  await expect(headings.first()).toHaveText("Selected label: height");
-  // Deselecting puts the cards back in their usual order.
+  await expect(page.getByRole("dialog", { name: "Height", exact: true })).toBeVisible();
+  await expect(headings.first()).toHaveText("What pupils see");
   await page.keyboard.press("Escape");
-  await expect(headings.first()).toHaveText("Shape");
   await page.screenshot({
     path: join(report, "compact-desktop.png"),
     fullPage: true,
@@ -169,7 +174,7 @@ test("floating label editors escape the white resource at every viewport and zoo
         })
         .click();
       const editor = page.getByRole("dialog", {
-        name: "Edit height",
+        name: "Height",
         exact: true,
       });
       await expect(editor).toBeVisible();
@@ -177,12 +182,12 @@ test("floating label editors escape the white resource at every viewport and zoo
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(width);
       expect(box!.y + box!.height).toBeLessThanOrEqual(900);
-      expect(await resource(page).locator(".cb-floating").count()).toBe(0);
-      await page.getByRole("button", { name: "Cancel", exact: true }).click();
+      expect(await resource(page).locator(".md-options-box").count()).toBe(0);
+      await page.keyboard.press("Escape");
     }
   }
 });
-test("invalid floating input remains visible, cancels safely and restores focus", async ({
+test("invalid input stays in the box, Escape puts the value back and Escape again closes it", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 700 });
@@ -190,14 +195,13 @@ test("invalid floating input remains visible, cancels safely and restores focus"
     .getByRole("button", { name: "Edit height label on cuboid-1", exact: true })
     .click();
   await input(page, "Edit height", "0");
-  await expect(
-    page.getByRole("textbox", { name: "Edit height", exact: true }),
-  ).toHaveAttribute("aria-invalid", "true");
+  const field = page.getByRole("textbox", { name: "Edit height", exact: true });
+  await expect(field).toHaveAttribute("aria-invalid", "true");
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await page.setViewportSize({ width: 375, height: 300 });
-  const dialog = page.getByRole("dialog", { name: "Edit height", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Height", exact: true });
   await expect
     .poll(async () => {
       const box = await dialog.boundingBox();
@@ -208,18 +212,18 @@ test("invalid floating input remains visible, cancels safely and restores focus"
     path: join(report, "mobile-editor.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(
-    page.getByRole("button", {
-      name: "Edit height label on cuboid-1",
-      exact: true,
-    }),
-  ).toBeFocused();
+  // Escape puts the saved value back and closes the box; focus goes back to the label.
+  await field.focus();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit height label on cuboid-1", exact: true })).toBeFocused();
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
+  await page.getByRole("button", { name: "Edit height label on cuboid-1", exact: true }).click();
+  await expect(field).toHaveValue("2");
 });
-test("a scrolled-away full-height editor docks and retains its invalid draft", async ({
+test("a scrolled-away label keeps its box in the window with its invalid draft", async ({
   page,
 }) => {
   const e = create();
@@ -237,15 +241,10 @@ test("a scrolled-away full-height editor docks and retains its invalid draft", a
   await page.locator(".cb-scroll").evaluate((el) => {
     el.scrollTop = 0;
   });
-  await expect(
-    page.getByText("Editing the selected label; scroll back to see it.", {
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Height", exact: true })).toBeInViewport();
   await expect(
     page.getByRole("textbox", { name: "Edit height", exact: true }),
   ).toHaveValue("bad");
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
 });
 test("greyscale faces retain black grids, stay neutral and mirror correctly", async ({
   page,

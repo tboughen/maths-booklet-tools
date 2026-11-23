@@ -201,3 +201,14 @@ describe("departmental multiplication grids", () => {
     expect(() => parseFile('{"kind":"wrong"}')).toThrow();
   });
 });
+
+describe("Leave out (omit)", () => {
+  it("keeps the value but prints it in neither copy", () => {
+    const e = setCell(create(3, 3), 1, 1, "3x", false, true);
+    expect(e.document.rows[1].cells[1]).toEqual({ value: "3x", hidden: false, omit: true });
+    const blankCell = setCell(e, 1, 1, null);
+    for (const answers of [false, true]) expect(renderSvg(e, answers)).toBe(renderSvg(blankCell, answers));
+    expect(renderSvg(setCell(e, 1, 1, "3x"), false)).not.toBe(renderSvg(blankCell, false));
+    expect(setCell(e, 1, 1, "3x").document.rows[1].cells[1]).toEqual({ value: "3x", hidden: false });
+  });
+});

@@ -49,7 +49,7 @@ test('complete MCP to editor saved-file to MCP revision preserves pupil source',
     await expect.poll(async () => JSON.parse(await page.evaluate(k => localStorage.getItem(k)!, key))).toEqual(made.envelope);
     await page.locator('[data-ag-cell="0-2"]').click();
     await page.getByLabel('Cell entry', { exact: true }).fill('+3');
-    await page.getByRole('button', { name: 'Apply cell', exact: true }).click();
+    await page.getByLabel('Cell entry', { exact: true }).press('Enter');
     const edited = JSON.parse(await page.evaluate(k => localStorage.getItem(k)!, key)) as Envelope;
     expect(edited.document.rows[0].cells[2].value).toBe('+3');
     await page.getByRole('button', { name: 'Undo', exact: true }).click();

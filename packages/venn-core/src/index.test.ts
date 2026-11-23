@@ -5,6 +5,7 @@ import {
   create,
   exportIssue,
   expressionMasks,
+  forView,
   hasThirdData,
   layout,
   membership,
@@ -243,5 +244,21 @@ describe("Venn mathematical and teaching states", () => {
     expect(renderSvg(e)).toContain("&lt;script&gt;");
     expect(() => parseFile(" ".repeat(40001))).toThrow(/large/);
     expect(() => validate({ ...e, rendererVersion: "venn-1" })).toThrow();
+  });
+});
+
+describe("Leave out (omit)", () => {
+  it("keeps the content but prints it in neither copy", () => {
+    const e = create(2);
+    e.document.regions[3] = { ...e.document.regions[3], kind: "members", text: "4,8", visibility: "omit" };
+    e.document.labels[1] = { text: "Evens", visibility: "omit" };
+    const valid = validate(e);
+    expect(valid.document.regions[3].text).toBe("4,8");
+    for (const view of ["pupil", "answer"] as const) {
+      const svg = renderSvg(forView(valid, view));
+      expect(svg).not.toContain("Evens");
+      expect(svg).not.toMatch(/>4,\s?8</);
+      expect(forView(valid, view).document.regions[3].visibility).toBe("omit");
+    }
   });
 });

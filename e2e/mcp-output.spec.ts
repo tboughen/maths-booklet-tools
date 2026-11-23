@@ -131,7 +131,7 @@ test("actual algebra MCP link retains pupil blanks through a mobile edit and Und
     .toEqual(item.envelope);
   await page.locator('[data-ag-cell="0-2"]').click();
   await page.getByLabel("Cell entry", { exact: true }).fill("+3");
-  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
+  await page.getByLabel("Cell entry", { exact: true }).press("Enter");
   await expect
     .poll(
       async () =>
