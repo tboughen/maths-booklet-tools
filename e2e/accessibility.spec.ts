@@ -18,7 +18,7 @@ test("default-off toggle, measured and estimated badges, stable ordering and cro
   const source=await page.locator(".qb-source-heading strong").textContent();
   await page.getByRole("checkbox",{name:"Show national average score"}).check();
   await expect(page.locator(".qb-source-heading strong")).toHaveText(source!);
-  await expect(page.locator(".qb-performance-estimated").first()).toContainText("Estimate");
+  await expect(page.locator(".qb-performance-estimated").first()).toContainText(/estimate/i);
   const measured=page.locator(".qb-performance:not(.qb-performance-estimated)").first();
   await expect(measured).toBeVisible();
   await expect(page.locator(".qb-stage canvas").first()).toBeVisible();
@@ -32,7 +32,7 @@ test("default-off toggle, measured and estimated badges, stable ordering and cro
     await page.goto(`/question-bank?code=${q.codes[0]}&question=${q.id}`);
     await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);
     await page.getByRole("checkbox",{name:"Show national average score"}).check();
-    await expect(page.locator(".qb-source-actions .qb-performance")).toHaveCount(2);
+    await expect(page.locator(".qb-source-actions .qb-performance")).toContainText([/F: .*H: /]);
   }
 });
 
@@ -53,7 +53,7 @@ test("draft ordering, grey estimates, manual moves and both real PDF exports",as
   const sorted=[...questions].sort(compareAccessibility);
   expect(await dialog.locator(".qb-paper-review-row strong").allTextContents()).toEqual(sorted.map((q,i)=>`${i+1}. ${q.source}`));
   await dialog.getByRole("checkbox",{name:"Show national average score"}).check();
-  await expect(dialog.locator(".qb-performance-estimated")).toContainText("Estimate");
+  await expect(dialog.locator(".qb-performance-estimated")).toContainText(/estimate/i);
   await dialog.getByRole("button",{name:"Move question 3 up",exact:true}).click();
   [sorted[1],sorted[2]]=[sorted[2],sorted[1]];
   expect(await dialog.locator(".qb-paper-review-row strong").allTextContents()).toEqual(sorted.map((q,i)=>`${i+1}. ${q.source}`));

@@ -52,6 +52,6 @@ export function performanceSource(question: Pick<BankListQuestion, "set" | "perf
   const score = question.performance;
   if (!score) return {kind: "none", label: "No data", source: "No results for this question"};
   if (score.kind === "estimated") return {kind: "estimate", label: "Estimate", source: "No national results; from position in paper"};
-  if (/^Mock Set/.test(question.set)) return {kind: "mock-sample", label: "Pearson mock sample", source: "Teacher-marked sample in Pearson's mock report"};
+  if (/^Mock Set/.test(question.set)) return {kind: "mock-sample", label: "Pearson mock sample", source: "Teacher-marked sample, Pearson mock report"};
   return {kind: "national", label: "National average", source: `Pearson results, ${question.set} exam`};
 }

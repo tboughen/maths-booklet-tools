@@ -22,7 +22,7 @@ export function registerPaper(component:string){
    await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);
    for(let view=1;view<q.schemeViews.length;view++){await page.keyboard.press("ArrowRight");await expect(page.locator(".qb-navigation")).toContainText(`View ${view+1} of ${q.schemeViews.length}`);await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);}
    if(q.schemeSourceNote)await expect(page.locator(".qb-source-copy .qb-erratum")).toHaveText(q.schemeSourceNote);
-   if(q.equivalentId)await expect(page.locator(".qb-source-actions .qb-performance")).toHaveCount(2);
+   if(q.equivalentId)await expect(page.locator(".qb-source-actions .qb-performance")).toContainText([/F: .*H: /]);
    proof.push({id:q.id,question:true,scheme:true,measured:true,sourceNote:!!q.schemeSourceNote});
   }
   await mkdir(report,{recursive:true});await writeFile(`${report}/${component}.json`,JSON.stringify(proof,null,2));

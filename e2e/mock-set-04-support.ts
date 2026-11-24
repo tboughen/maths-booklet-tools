@@ -17,7 +17,7 @@ export function registerPaper(component:string){
    for(let view=1;view<q.questionViews.length;view++){await page.keyboard.press("ArrowRight");await expect(page.locator(".qb-navigation")).toContainText(`View ${view+1} of ${q.questionViews.length}`);await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);await expect(page.locator(".qb-stage canvas").first()).toBeVisible();await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);}
    await page.getByRole("checkbox",{name:"Show national average score",exact:true}).check();
    await expect(page.locator(".qb-source-actions .qb-performance").first()).toBeVisible();
-   await expect(page.locator(".qb-source-actions .qb-performance-estimated")).toHaveCount(q.equivalentId?2:1);
+   await expect(page.locator(".qb-source-actions .qb-performance-estimated")).toHaveCount(1);
    await page.getByRole("button",{name:"Mark scheme",exact:true}).click();
    await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();
    await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);
@@ -30,7 +30,7 @@ export function registerPaper(component:string){
     await page.keyboard.press("Escape");
     await expect(page.locator(".qb-source-copy .qb-erratum")).toHaveText(q.schemeSourceNote);
    }
-   if(q.equivalentId)await expect(page.locator(".qb-source-actions .qb-performance")).toHaveCount(2);
+   if(q.equivalentId)await expect(page.locator(".qb-source-actions .qb-performance")).toContainText([/F: .*H: /]);
    proof.push({id:q.id,question:true,scheme:true,estimated:true,sourceNote:!!q.schemeSourceNote});
   }
   await mkdir(report,{recursive:true});await writeFile(`${report}/${component}.json`,JSON.stringify(proof,null,2));

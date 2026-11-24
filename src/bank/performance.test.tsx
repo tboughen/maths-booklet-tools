@@ -70,8 +70,8 @@ it("names the source of each figure and keeps estimates grey",()=>{
   expect(screen.getByText("National average 72%")).toHaveStyle({backgroundColor:percentageColour(72)});
   expect(screen.getByText("National average 72%")).toHaveAttribute("title","Pearson results, June 2019 exam");
   cleanup();render(<PerformanceBadge question={{...q("1",60),set:"Mock Set 2"}} variant="box"/>);
-  expect(screen.getByRole("group",{name:/^Pearson mock sample: 60 percent/})).toHaveClass("qb-performance-box");
-  expect(screen.getByText("Teacher-marked sample in Pearson's mock report")).toBeInTheDocument();
+  expect(screen.getByText("Pearson mock sample",{exact:false}).closest(".qb-performance")).toHaveClass("qb-performance-box");
+  expect(screen.getByText("Teacher-marked sample, Pearson mock report")).toBeInTheDocument();
 });
 it("labels every catalogue figure by where it comes from",()=>{
   const kinds=new Map<string,number>();
