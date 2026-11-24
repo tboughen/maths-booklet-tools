@@ -14,9 +14,9 @@ export function registerPaper(component:string){
    await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);
    await expect.poll(()=>page.locator(".qb-stage canvas").evaluateAll(nodes=>nodes.length>0&&nodes.every(n=>(n as HTMLCanvasElement).width>0))).toBe(true);
    await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);
-   await page.getByRole("checkbox",{name:"Show average marks achieved",exact:true}).check();
-   await expect(page.locator(".qb-source-copy .qb-performance").first()).toBeVisible();
-   await expect(page.locator(".qb-source-copy .qb-performance-estimated")).toHaveCount(q.equivalentId?2:1);
+   await page.getByRole("checkbox",{name:"Show national average score",exact:true}).check();
+   await expect(page.locator(".qb-source-actions .qb-performance").first()).toBeVisible();
+   await expect(page.locator(".qb-source-actions .qb-performance-estimated")).toHaveCount(1);
    await page.getByRole("button",{name:"Mark scheme",exact:true}).click();
    await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();
    await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);
@@ -29,7 +29,7 @@ export function registerPaper(component:string){
     await page.keyboard.press("Escape");
     await expect(page.locator(".qb-source-copy .qb-erratum")).toHaveText(q.schemeSourceNote);
    }
-   if(q.equivalentId)await expect(page.locator(".qb-source-copy .qb-performance")).toHaveCount(2);
+   if(q.equivalentId)await expect(page.locator(".qb-source-actions .qb-performance")).toContainText([/F: .*H: /]);
    proof.push({id:q.id,question:true,scheme:true,estimated:true,sourceNote:!!q.schemeSourceNote});
   }
   await mkdir(report,{recursive:true});await writeFile(`${report}/${component}.json`,JSON.stringify(proof,null,2));

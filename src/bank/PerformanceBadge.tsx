@@ -1,13 +1,29 @@
 import type { BankCatalogue, BankListQuestion, Tier } from "./model";
-import { percentageColour } from "./performance";
+import { percentageColour, performanceSource } from "./performance";
 
-export function PerformanceBadge({question, catalogue, tier = "all"}: {question: BankListQuestion; catalogue?: BankCatalogue<BankListQuestion>; tier?: Tier}) {
+/** "chip" is one compact line for lists; "box" is the score box beside Select question. */
+export function PerformanceBadge({question, catalogue, tier = "all", variant = "chip"}: {question: BankListQuestion; catalogue?: BankCatalogue<BankListQuestion>; tier?: Tier; variant?: "chip" | "box"}) {
   const other = tier === "all" && question.equivalentId ? catalogue?.questions.find(q=>q.id===question.equivalentId) : undefined;
   const appearances = other ? [question, other].sort((a,b)=>a.tier.localeCompare(b.tier)) : [question];
-  return <span className="qb-performance-group">{appearances.map(q => {
-    const score = q.performance;
-    if (!score) return <span key={q.id} className="qb-performance qb-performance-estimated">{other?`${q.tier}: `:""}No data</span>;
-    const estimated = score.kind === "estimated", label = `${other?`${q.tier}: `:""}${estimated?"Estimated ":""}${Math.round(score.percentage)}%`;
-    return <span key={q.id} className={`qb-performance${estimated?" qb-performance-estimated":""}`} style={estimated?undefined:{backgroundColor:percentageColour(score.percentage)}} aria-label={`${estimated?"Estimated average":"Average"} marks achieved: ${Math.round(score.percentage)} percent, ${q.tier === "F"?"Foundation":"Higher"} tier`} title={estimated?"Estimated from original question position":"Average percentage of available marks achieved in the original exam"}>{label}</span>;
+  const sources = appearances.map(performanceSource), prefix = (q: BankListQuestion) => other ? `${q.tier}: ` : "";
+  const percent = (q: BankListQuestion) => q.performance ? `${q.performance.kind === "estimated" ? "≈" : ""}${Math.round(q.performance.percentage)}%` : "";
+  if (variant === "box") {
+    // A question on both tiers comes from one sitting, so one box carries both figures when their source matches.
+    const groups = sources.every(s => s.label === sources[0].label && s.source === sources[0].source) ? [appearances] : appearances.map(q => [q]);
+    return <span className="qb-performance-group qb-performance-boxes">{groups.map(group => {
+      const source = performanceSource(group[0]), score = group[0].performance, estimated = !score || score.kind === "estimated", several = group.length > 1;
+      // One figure colours the box; two tiers keep the box neutral and colour each figure, as the tiers often differ widely.
+      const colour = (q: BankListQuestion) => q.performance && q.performance.kind !== "estimated" ? {backgroundColor: percentageColour(q.performance.percentage)} : undefined;
+      return <span key={group[0].id} className={`qb-performance qb-performance-box${estimated?" qb-performance-estimated":""}${several&&!estimated?" qb-performance-box-split":""}`} style={several?undefined:colour(group[0])}>
+        <span className="qb-performance-figure">{score ? group.map((q, i) => <span key={q.id}>{i ? " · " : ""}<b className={several ? "qb-performance-tier" : undefined} style={several ? colour(q) : undefined}>{other ? <><span aria-hidden="true">{q.tier}: </span><span className="sr-only">{q.tier === "F" ? "Foundation" : "Higher"} </span></> : null}{percent(q)}</b></span>) : null} {score && source.kind !== "mock-sample" ? source.label.toLowerCase() : source.label}</span>
+        <span className="qb-performance-source">{source.source}</span>
+      </span>;
+    })}</span>;
+  }
+  return <span className="qb-performance-group">{appearances.map((q, i) => {
+    const score = q.performance, source = sources[i];
+    if (!score) return <span key={q.id} className="qb-performance qb-performance-estimated">{prefix(q)}No data</span>;
+    const estimated = score.kind === "estimated";
+    return <span key={q.id} className={`qb-performance${estimated?" qb-performance-estimated":""}`} style={estimated?undefined:{backgroundColor:percentageColour(score.percentage)}} title={source.source}>{prefix(q)}{source.label} {Math.round(score.percentage)}%</span>;
   })}</span>;
 }

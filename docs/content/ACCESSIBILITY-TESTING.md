@@ -7,11 +7,15 @@ Questions automatically run from most accessible to most challenging within
 each tier. Both-tier lists group Foundation before Higher. A shared crossover
 keeps the existing eligible representative and its direct links.
 
-The average-marks toggle starts off each session. Measured percentages use a
-pastel red, peach, amber, yellow-green and green gradient; estimates are grey.
-The toggle applies to browsing and paper review. Badges are separate from
-question images and PDFs. Shared questions show both labelled tier figures
-when both tiers are selected.
+The "Show national average score" toggle starts off each session. Every figure
+names its source: "National average" (Pearson results for that exam), "Pearson
+mock sample" (Mock Sets 1 and 2, teacher-marked samples in Pearson's mock
+reports) or "Estimate" (no results; from the question's position in the paper,
+Mock Sets 3 to 8). Measured percentages use a pastel red, peach, amber,
+yellow-green and green gradient; estimates are grey with "≈". In the viewer the
+figure is a score box beside Select question; the results list and paper review
+show a compact chip. Neither prints or exports. Shared questions show both
+labelled tier figures when both tiers are selected.
 
 New paper selections are automatically ordered. Manual up/down movement locks
 the teacher's order; further additions append without rearranging that work.
