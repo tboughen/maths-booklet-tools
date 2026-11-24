@@ -11,9 +11,11 @@ export function PerformanceBadge({question, catalogue, tier = "all", variant = "
     // A question on both tiers comes from one sitting, so one box carries both figures when their source matches.
     const groups = sources.every(s => s.label === sources[0].label && s.source === sources[0].source) ? [appearances] : appearances.map(q => [q]);
     return <span className="qb-performance-group qb-performance-boxes">{groups.map(group => {
-      const source = performanceSource(group[0]), score = group[0].performance, estimated = !score || score.kind === "estimated";
-      return <span key={group[0].id} className={`qb-performance qb-performance-box${estimated?" qb-performance-estimated":""}`} style={estimated||!score?undefined:{backgroundColor:percentageColour(score.percentage)}}>
-        <span className="qb-performance-figure">{score ? <b>{group.map(q => `${prefix(q)}${percent(q)}`).join(" · ")}</b> : null} {score && source.kind !== "mock-sample" ? source.label.toLowerCase() : source.label}</span>
+      const source = performanceSource(group[0]), score = group[0].performance, estimated = !score || score.kind === "estimated", several = group.length > 1;
+      // One figure colours the box; two tiers keep the box neutral and colour each figure, as the tiers often differ widely.
+      const colour = (q: BankListQuestion) => q.performance && q.performance.kind !== "estimated" ? {backgroundColor: percentageColour(q.performance.percentage)} : undefined;
+      return <span key={group[0].id} className={`qb-performance qb-performance-box${estimated?" qb-performance-estimated":""}${several&&!estimated?" qb-performance-box-split":""}`} style={several?undefined:colour(group[0])}>
+        <span className="qb-performance-figure">{score ? group.map((q, i) => <span key={q.id}>{i ? " · " : ""}<b className={several ? "qb-performance-tier" : undefined} style={several ? colour(q) : undefined}>{other ? <><span aria-hidden="true">{q.tier}: </span><span className="sr-only">{q.tier === "F" ? "Foundation" : "Higher"} </span></> : null}{percent(q)}</b></span>) : null} {score && source.kind !== "mock-sample" ? source.label.toLowerCase() : source.label}</span>
         <span className="qb-performance-source">{source.source}</span>
       </span>;
     })}</span>;
