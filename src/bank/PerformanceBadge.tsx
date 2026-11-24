@@ -1,13 +1,22 @@
 import type { BankCatalogue, BankListQuestion, Tier } from "./model";
-import { percentageColour } from "./performance";
+import { percentageColour, performanceSource } from "./performance";
 
-export function PerformanceBadge({question, catalogue, tier = "all"}: {question: BankListQuestion; catalogue?: BankCatalogue<BankListQuestion>; tier?: Tier}) {
+/** "chip" is one compact line for lists; "box" is the score box beside Select question. */
+export function PerformanceBadge({question, catalogue, tier = "all", variant = "chip"}: {question: BankListQuestion; catalogue?: BankCatalogue<BankListQuestion>; tier?: Tier; variant?: "chip" | "box"}) {
   const other = tier === "all" && question.equivalentId ? catalogue?.questions.find(q=>q.id===question.equivalentId) : undefined;
   const appearances = other ? [question, other].sort((a,b)=>a.tier.localeCompare(b.tier)) : [question];
-  return <span className="qb-performance-group">{appearances.map(q => {
-    const score = q.performance;
-    if (!score) return <span key={q.id} className="qb-performance qb-performance-estimated">{other?`${q.tier}: `:""}No data</span>;
-    const estimated = score.kind === "estimated", label = `${other?`${q.tier}: `:""}${estimated?"Estimated ":""}${Math.round(score.percentage)}%`;
-    return <span key={q.id} className={`qb-performance${estimated?" qb-performance-estimated":""}`} style={estimated?undefined:{backgroundColor:percentageColour(score.percentage)}} aria-label={`${estimated?"Estimated average":"Average"} marks achieved: ${Math.round(score.percentage)} percent, ${q.tier === "F"?"Foundation":"Higher"} tier`} title={estimated?"Estimated from original question position":"Average percentage of available marks achieved in the original exam"}>{label}</span>;
+  return <span className={`qb-performance-group${variant==="box"?" qb-performance-boxes":""}`}>{appearances.map(q => {
+    const score = q.performance, source = performanceSource(q), prefix = other ? `${q.tier}: ` : "";
+    const tierName = q.tier === "F" ? "Foundation" : "Higher";
+    if (!score) return <span key={q.id} className="qb-performance qb-performance-estimated">{prefix}No data</span>;
+    const estimated = score.kind === "estimated", percent = `${Math.round(score.percentage)}%`;
+    const className = `qb-performance${estimated?" qb-performance-estimated":""}${variant==="box"?" qb-performance-box":""}`;
+    const style = estimated ? undefined : {backgroundColor: percentageColour(score.percentage)};
+    const aria = `${source.label}: ${Math.round(score.percentage)} percent of marks, ${tierName} tier. ${source.source}.`;
+    if (variant === "box") return <span key={q.id} className={className} style={style} role="group" aria-label={aria}>
+      <span className="qb-performance-figure" aria-hidden="true"><b>{prefix}{estimated?"≈":""}{percent}</b> {source.label.toLowerCase()}</span>
+      <span className="qb-performance-source" aria-hidden="true">{source.source}</span>
+    </span>;
+    return <span key={q.id} className={className} style={style} aria-label={aria} title={source.source}>{prefix}{source.label} {percent}</span>;
   })}</span>;
 }

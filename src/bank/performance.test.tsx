@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { PerformanceBadge } from "./PerformanceBadge";
-import { compareAccessibility, estimatePercentage, percentageColour, performanceFor, withPerformance } from "./performance";
+import { compareAccessibility, estimatePercentage, percentageColour, performanceFor, performanceSource, withPerformance } from "./performance";
 import { emptyRoute, filterQuestions, questionIdentity, verifyCatalogue } from "./model";
 import { catalogueCoverage } from "./coverage";
 import { draftEntries, draftReducer, emptyDraft } from "./paper-builder";
@@ -61,12 +61,25 @@ describe("automatic accessibility",()=>{
   });
 });
 
-it("shows measured tier percentages in pastel and estimates in grey",()=>{
+it("names the source of each figure and keeps estimates grey",()=>{
   const estimated={...q("1",46),performance:{kind:"estimated" as const,percentage:46}};
   render(<PerformanceBadge question={estimated}/>);
-  expect(screen.getByText("Estimated 46%")).toHaveClass("qb-performance-estimated");
-  cleanup();render(<PerformanceBadge question={q("1",72)}/>);
-  expect(screen.getByText("72%")).toHaveStyle({backgroundColor:percentageColour(72)});
+  expect(screen.getByText("Estimate 46%")).toHaveClass("qb-performance-estimated");
+  expect(screen.getByText("Estimate 46%")).toHaveAttribute("title","No national results; from position in paper");
+  cleanup();render(<PerformanceBadge question={{...q("1",72),set:"June 2019"}}/>);
+  expect(screen.getByText("National average 72%")).toHaveStyle({backgroundColor:percentageColour(72)});
+  expect(screen.getByText("National average 72%")).toHaveAttribute("title","Pearson results, June 2019 exam");
+  cleanup();render(<PerformanceBadge question={{...q("1",60),set:"Mock Set 2"}} variant="box"/>);
+  expect(screen.getByRole("group",{name:/^Pearson mock sample: 60 percent/})).toHaveClass("qb-performance-box");
+  expect(screen.getByText("Teacher-marked sample in Pearson's mock report")).toBeInTheDocument();
+});
+it("labels every catalogue figure by where it comes from",()=>{
+  const kinds=new Map<string,number>();
+  for(const question of bank.questions){const k=performanceSource(question).kind;kinds.set(k,(kinds.get(k)??0)+1);}
+  expect(kinds.get("none")).toBeUndefined();
+  expect(kinds.get("estimate")).toBe(894);
+  expect(performanceSource(bank.questions.find(q=>q.id==="1MA1_MOCK_SET_06_2H_Q12")!).kind).toBe("estimate");
+  expect(performanceSource(bank.questions.find(q=>q.id==="1MA1_JUN_2017_1H_Q1")!).label).toBe("National average");
 });
 
 it("maintains readable contrast across the complete pastel gradient",()=>{
