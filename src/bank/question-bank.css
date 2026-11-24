@@ -341,10 +341,10 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media print { .qb-performance-group, .qb-performance-toggle-wrap { display: none; } }
 
 .qb-display-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px 16px; padding: 8px 12px; border-bottom: 1px solid #dce4ec; background: #f7f9fc; }
-.qb-display-views { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
-.qb-display-views > span { margin-right: auto; font-weight: 600; color: #253e59; }
+.qb-display-views { flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.qb-display-views > span { display: flex; align-items: center; min-height: 36px; margin-right: auto; font-weight: 600; color: #253e59; }
 @media (max-width: 760px) { .qb-display-actions { padding: 8px; } }
-@media (max-width: 420px) { .qb-display-actions { flex-wrap: wrap-reverse; justify-content: flex-end; } .qb-display-views { flex-basis: 100%; } }
+@media (max-width: 880px) { .qb-display-actions { flex-wrap: wrap-reverse; justify-content: flex-end; } .qb-display-views { flex-basis: 100%; } }
 
 /* Zoom and pan (screen only). The frame holds the stage plus the overview map and the Display zoom bar. */
 .qb-stage-frame { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
