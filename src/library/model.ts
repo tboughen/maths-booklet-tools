@@ -33,7 +33,7 @@ export async function loadLibrary(fetcher: typeof fetch = fetch): Promise<Librar
   const response = await fetcher(`${siteBase()}library-data/library.json`, { cache: "no-cache" });
   if (!response.ok) throw new Error(response.status === 403 ? "Sign in again to see the library." : "The library could not be loaded. Try again in a minute.");
   const list = (await response.json()) as Library;
-  if (list?.schema !== "mathsdock-library-served/1" || !Array.isArray(list.resources)) throw new Error("The library list is in a format this page does not know.");
+  if (list?.schema !== "mathsdock-library-served/1" || !Array.isArray(list.resources) || !Array.isArray(list.years) || !list.years.length) throw new Error("The library list is in a format this page does not know.");
   return list;
 }
 

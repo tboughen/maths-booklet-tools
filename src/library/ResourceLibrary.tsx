@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Check, Copy, Download, LayoutGrid, Map as MapIcon, Search } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
-import { pageHref } from "../site/routes";
+import { pageHref, readPage } from "../site/routes";
 import {
   fileHref, fileLabel, isSchemeUnit, lessonRows, loadLibrary, readState, resourcesFor, searchLibrary, shelfOf, typeNames, unitLabel, unitOf, writeState,
   type Library, type LibraryState, type Resource, type Shelf,
@@ -32,7 +32,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
   // Back and Forward within the page restore its state from the address.
   useEffect(() => {
     if (!active) return;
-    const back = () => { if (location.pathname === pageHref("library")) setStateValue(readState(location.search, savedYear())); };
+    const back = () => { if (readPage() === "library") setStateValue(readState(location.search, savedYear())); };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, [active]);
@@ -141,7 +141,10 @@ function UnitDetail({ list, year, code, title }: { list: Library; year: number; 
       for (const r of items) for (const f of r.files) {
         const response = await fetch(fileHref(f));
         if (!response.ok) throw new Error(f.name);
-        entries[f.name] = new Uint8Array(await response.arrayBuffer());
+        // Two files with one name would overwrite each other in the zip.
+        let name = f.name;
+        for (let n = 2; name in entries; n++) name = f.name.replace(/(\.\w+)$/, `-${n}$1`);
+        entries[name] = new Uint8Array(await response.arrayBuffer());
       }
       const url = URL.createObjectURL(new Blob([zipSync(entries, { level: 0 }) as BlobPart], { type: "application/zip" }));
       const a = document.createElement("a");

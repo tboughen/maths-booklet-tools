@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { checkLibrary, servedLibrary, sourceSchema, servedSchema } from './library.mjs';
@@ -38,7 +38,20 @@ test('problems are named in sentences', () => {
   const r = list.resources[0];
   list.resources.push({ ...r, unit: 'A99', type: 'poster', status: 'done', updated: '24 Nov', files: [{ role: 'pupil', format: 'pdf', path: '../secret.pdf' }, { role: 'pupil', format: 'pdf', path: 'y9/A7/missing.pdf' }] });
   const problems = checkLibrary(list, root).join('\n');
-  for (const words of ['used twice', 'unit A99 is not listed', 'type must be', 'status must be', 'updated must be a date', '../secret.pdf must look like', 'files/y9/A7/missing.pdf is missing', 'two pupil pdf files'])
+  for (const words of ['used twice', 'unit A99 is not listed', 'type must be', 'status must be', 'updated must be a date', '../secret.pdf must look like', 'two pupil pdf files'])
     assert.match(problems, new RegExp(words.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')), words);
   assert.match(checkLibrary({ schema: 'other' }).join(), /must start with/);
+  assert.match(checkLibrary({ schema: sourceSchema, resources: [] }).join(), /needs a "years" list/);
+});
+
+test('a file must sit in its own year and unit folder and be a plain file, not a link', () => {
+  const { root, list } = sample();
+  symlinkSync('/etc/hostname', join(root, 'files', 'y9', 'A7', 'link.pdf'));
+  list.resources[0].files[0].path = 'y9/A7/link.pdf';
+  list.resources[0].files[1].path = 'y8/A7/y9-a7-03-lesson-booklet_answers.pdf';
+  const problems = checkLibrary(list, root).join('\n');
+  assert.match(problems, /link\.pdf is missing or is not a plain file/);
+  assert.match(problems, /must sit in y9\/A7\//);
+  list.resources[0].files[1].path = 'y9/A7/missing.pdf';
+  assert.match(checkLibrary(list, root).join(), /missing\.pdf is missing/);
 });
