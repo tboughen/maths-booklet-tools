@@ -375,7 +375,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
               </div></details>
             </div>}
           </div>
-          {display&&<div className="qb-display-actions" role="group" aria-label="Answer views"><span>{on.map(paneName).join(" · ")}</span>{answerControls}</div>}
+          {display&&<div className="qb-display-actions"><div className="qb-display-views" role="group" aria-label="Answer views"><span>{on.map(paneName).join(" · ")}</span>{answerControls}</div><button className="qb-exit-display qb-button" onClick={leaveDisplay}><X size={18}/> Exit Display <kbd>Esc</kbd></button></div>}
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
           <div className="qb-stage-frame"><div className="qb-panes">{on.map(renderPane)}</div>
@@ -390,7 +390,6 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       </div>}
       {!display&&!topicsMode&&hasDraftIntent(draft)&&yourPaper()}
     </main>
-    {display&&<button className="qb-exit-display qb-button" onClick={leaveDisplay}><X size={18}/> Exit Display <kbd>Esc</kbd></button>}
     <ReportDialog details={report} onClose={()=>setReport(undefined)} onSent={()=>{setReport(undefined);setNotice("Thank you. Your report has been sent.");}}/>
     <PaperReviewDialog loadDetails={loadDetails} open={reviewOpen} active={active} entries={entries} version={catalogue?.version||""} showPerformance={showPerformance} onShowPerformance={setShowPerformance} catalogue={catalogue} tier={route.tier} excluded={draft.excluded.length} partsOnly={!!draft.partsOnly} onPartsOnly={value=>dispatchDraft({type:"partsOnly",value})} onClose={()=>setReviewOpen(false)} onRemove={key=>dispatchDraft({type:"exclude",key})} onMove={(key,direction)=>dispatchDraft({type:"move",key,direction,visible:entries.map(e=>e.key)})} onRestore={()=>dispatchDraft({type:"restore"})}/>
 
