@@ -1,7 +1,7 @@
 // MathsDock website Worker.
 //
 // Static assets are served directly by Workers Static Assets. Only
-// /bank/assets/* and /api/report reach this script (see run_worker_first in wrangler.jsonc).
+// /bank/assets/*, /library-data/* and /api/report reach this script (see run_worker_first in wrangler.jsonc).
 // Question-bank PDFs and PNGs, and schemes of work (JSON), are read from the private R2 bucket through the
 // BANK binding, so they sit behind the same Cloudflare Access rule as the rest
 // of /bank instead of on a public R2 custom domain.
@@ -106,6 +106,36 @@ export async function serveBankAsset(request, env, options = {}) {
   return new Response(object.body, { status: 200, headers });
 }
 
+// Resource library (docs/content/RESOURCE-LIBRARY.md): the list and its files sit in the same private
+// R2 bucket under library/. The list changes with each publish, so it is checked every time; each file
+// sits under its own SHA-256, so it never changes.
+export const libraryListKey = 'library/library.json';
+export const libraryFileKey = /^library\/files\/[a-f0-9]{64}\/([a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx))$/;
+const libraryTypes = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', json: 'application/json; charset=utf-8' };
+
+export async function serveLibrary(request, env, options = {}) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return text(405, 'Method not allowed', { Allow: 'GET, HEAD' });
+  const settings = accessSettings(env);
+  if (!settings) return text(503, 'Staff sign-in is not configured for the resource library.');
+  if (!await verifyAccessToken(request.headers.get('Cf-Access-Jwt-Assertion'), settings, options)) return text(403, 'Staff sign-in is required for the resource library.');
+  const key = new URL(request.url).pathname.replace(/^\/library-data\//, 'library/');
+  const file = libraryFileKey.exec(key);
+  if ((key !== libraryListKey && !file) || !env.BANK) return text(404, 'Not found');
+  const object = request.method === 'HEAD' ? await env.BANK.head(key) : await env.BANK.get(key);
+  if (!object) return text(404, 'Not found');
+  const headers = new Headers({ 'X-Content-Type-Options': 'nosniff', 'X-Robots-Tag': 'noindex, nofollow', ETag: object.httpEtag, 'Content-Length': String(object.size) });
+  if (file) {
+    headers.set('Content-Type', libraryTypes[file[2]]);
+    headers.set('Cache-Control', gatedCache);
+    // PDFs open in the browser; Word files download. Either way the file keeps its readable name.
+    headers.set('Content-Disposition', `${file[2] === 'pdf' ? 'inline' : 'attachment'}; filename="${file[1]}"`);
+  } else {
+    headers.set('Content-Type', libraryTypes.json);
+    headers.set('Cache-Control', 'private, no-cache');
+  }
+  return new Response(request.method === 'HEAD' ? null : object.body, { status: 200, headers });
+}
+
 // Problem reports from the Question bank become issues in the private bank repository.
 export const reportRepo = 'tboughen/mathsdock-bank';
 const reportLimits = { message: 2000, field: 200 };
@@ -144,6 +174,7 @@ export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
     if (pathname.startsWith('/bank/assets/')) return serveBankAsset(request, env);
+    if (pathname.startsWith('/library-data/')) return serveLibrary(request, env);
     if (pathname === '/api/report') return submitReport(request, env);
     // run_worker_first limits this script to these paths; anything else is static.
     return env.ASSETS ? env.ASSETS.fetch(request) : text(404, 'Not found');

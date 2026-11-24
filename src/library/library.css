@@ -1,0 +1,85 @@
+/* Resource library (docs/content/RESOURCE-LIBRARY.md). Years on the left, units in the middle,
+   the chosen unit's resources on the right, as settings sit on the right elsewhere. Pink is for
+   answers (teacher only); amber marks a resource waiting for its check. */
+.resource-library { padding: 20px 24px 40px; max-width: 1880px; margin: 0 auto; }
+.resource-library h2 { font-size: var(--md-text-lg); margin: 0 0 4px; }
+.resource-library h3 { font-size: var(--md-text-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--md-ink-3); margin: 14px 0 8px; }
+.library-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 14px 0 18px; }
+.library-search { flex: 1 1 420px; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; background: var(--md-paper); border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); color: var(--md-ink-3); }
+.library-search:focus-within { outline: 2px solid var(--md-blue); outline-offset: 1px; }
+.library-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: 16px; color: var(--md-ink); }
+.library-search kbd { border: 1px solid var(--md-line-strong); border-radius: var(--md-radius-key); padding: 0 6px; font-size: var(--md-text-xs); }
+.library-views { display: inline-flex; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); overflow: hidden; background: var(--md-paper); }
+.library-views button { display: inline-flex; align-items: center; gap: 6px; min-height: 46px; padding: 0 14px; border: 0; background: none; font: inherit; font-size: var(--md-text-sm); font-weight: 600; color: var(--md-ink-2); cursor: pointer; }
+.library-views button + button { border-left: 1px solid var(--md-line); }
+.library-views button[aria-pressed="true"] { background: var(--md-blue-soft); color: var(--md-navy); }
+.library-message { padding: 24px; background: var(--md-paper); border: 1px solid var(--md-line); border-radius: var(--md-radius-card); }
+.library-hint { color: var(--md-ink-3); font-size: var(--md-text-sm); margin: 0 0 8px; }
+.library-status { font-size: var(--md-text-sm); color: var(--md-ink-2); margin: 8px 0 0; overflow-wrap: anywhere; }
+
+.library-shelves { display: grid; grid-template-columns: 200px minmax(0, 1fr) minmax(380px, 34%); gap: 20px; align-items: start; }
+.library-years { display: grid; gap: 6px; position: sticky; top: 12px; }
+.library-years button { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 14px; background: var(--md-paper); border: 1px solid var(--md-line); border-radius: var(--md-radius); font: inherit; font-weight: 600; color: var(--md-ink); cursor: pointer; }
+.library-years button small { font-weight: 400; color: var(--md-ink-3); }
+.library-years button[aria-pressed="true"] { background: var(--md-navy); border-color: var(--md-navy); color: #fff; }
+.library-years button[aria-pressed="true"] small { color: var(--md-bar-ink-2); }
+.library-section h3 { border-top: 1px dashed var(--md-line-strong); padding-top: 10px; }
+.library-unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.library-unit { display: grid; gap: 2px; text-align: left; padding: 12px 14px; background: var(--md-paper); border: 1px solid var(--md-line); border-radius: var(--md-radius-card); font: inherit; color: var(--md-ink); cursor: pointer; }
+.library-unit:hover { border-color: var(--md-blue); }
+.library-unit[aria-pressed="true"] { outline: 2px solid var(--md-blue); outline-offset: -1px; background: var(--md-blue-soft); }
+.library-unit.is-empty { background: transparent; color: var(--md-ink-3); }
+.library-unit-code { font-weight: 700; color: var(--md-blue); }
+.library-unit.is-empty .library-unit-code { color: var(--md-ink-3); }
+.library-unit-title { font-weight: 600; font-size: var(--md-text-md); }
+.library-unit-meta { font-size: var(--md-text-xs); color: var(--md-ink-3); }
+
+.library-detail, .library-results { background: var(--md-paper); border: 1px solid var(--md-line); border-radius: var(--md-radius-card); padding: 16px 18px; min-width: 0; }
+.library-detail { position: sticky; top: 12px; max-height: calc(100dvh - 24px); overflow: auto; }
+.library-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
+.library-actions button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--md-blue); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-blue); font: inherit; font-size: var(--md-text-sm); font-weight: 600; cursor: pointer; }
+.library-actions button.primary { background: var(--md-blue); color: #fff; }
+.library-rows { list-style: none; margin: 12px 0 0; padding: 0; }
+.library-rows > li { padding: 10px 0; border-top: 1px solid var(--md-line); }
+.library-row-title { margin: 0 0 6px; font-size: var(--md-text-md); }
+.library-row-title b { color: var(--md-navy); }
+.library-link { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--md-blue); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.library-resource { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "type badge updated" "files files files"; gap: 4px 10px; align-items: center; padding: 6px 8px; border-left: 3px solid transparent; border-radius: 4px; }
+.library-resource + .library-resource { margin-top: 4px; }
+.library-resource.is-waiting { border-left-color: var(--md-amber); background: #fff7e8; }
+.library-type { grid-area: type; font-size: var(--md-text-sm); font-weight: 600; color: var(--md-ink-2); }
+.library-files { grid-area: files; display: flex; flex-wrap: wrap; gap: 6px; }
+.library-file { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: var(--md-radius); background: var(--md-blue-soft); color: #1d518c; font-size: var(--md-text-sm); font-weight: 600; text-decoration: none; }
+.library-file:hover { text-decoration: underline; }
+.library-file.is-answers { background: #fde7ef; color: var(--md-pink); }
+.library-badge { grid-area: badge; display: inline-flex; align-items: center; gap: 4px; font-size: var(--md-text-xs); font-weight: 700; white-space: nowrap; }
+.library-badge.is-waiting { color: var(--md-amber); }
+.library-badge.is-ready { color: var(--md-green); }
+.library-updated { grid-area: updated; font-size: var(--md-text-xs); color: var(--md-ink-3); white-space: nowrap; }
+
+.library-legend { display: flex; flex-wrap: wrap; gap: 18px; color: var(--md-ink-2); font-size: var(--md-text-sm); margin: 0 0 8px; }
+.library-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.library-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--md-line); }
+.library-dot.is-booklets { background: var(--md-blue); }
+.library-dot.is-worksheets { background: var(--md-green); }
+.library-dot.is-other { background: var(--md-amber); }
+.library-map-year { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-top: 1px solid var(--md-line); }
+.library-map-year h2 { margin-top: 26px; }
+.library-map-units { display: flex; flex-wrap: wrap; gap: 4px 22px; }
+.library-map-cells { display: flex; flex-wrap: wrap; gap: 6px; }
+.library-map-cell { display: grid; gap: 4px; min-width: 76px; padding: 8px 10px; text-align: left; background: var(--md-paper); border: 1px solid var(--md-line); border-radius: var(--md-radius); font: inherit; font-size: var(--md-text-sm); color: var(--md-ink); cursor: pointer; }
+.library-map-cell:hover { border-color: var(--md-blue); }
+.library-map-cell.is-empty { background: transparent; color: var(--md-ink-3); }
+.library-dots { display: flex; gap: 4px; }
+
+@media (max-width: 1200px) {
+  .library-shelves { grid-template-columns: 170px minmax(0, 1fr); }
+  .library-detail { grid-column: 1 / -1; position: static; max-height: none; }
+}
+@media (max-width: 700px) {
+  .resource-library { padding: 14px 12px 32px; }
+  .library-shelves { grid-template-columns: 1fr; }
+  .library-years { position: static; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .library-map-year { grid-template-columns: 1fr; }
+  .library-map-year h2 { margin-top: 0; }
+}

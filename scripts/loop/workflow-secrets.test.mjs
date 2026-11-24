@@ -1,6 +1,6 @@
 // No credentials in loop context (improvement list L57, docs/AUTONOMOUS-LOOP-POLICY.md section 6).
 // Loop sessions and the workflows that run on pull requests never receive the Cloudflare, R2, Access
-// or Render secrets: only the two manually dispatched deploy workflows may name them. The judges'
+// or Render secrets: only the three manually dispatched deploy workflows may name them. The judges'
 // API key is used only by the two judge workflows and the hand-started prompt evals, and nothing triggered by pull_request_target
 // checks out pull-request code or reads a secret. Read as text, so no YAML parser is needed.
 import { test } from 'node:test';
@@ -10,7 +10,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 const dir = '.github/workflows';
 const workflows = Object.fromEntries(readdirSync(dir).filter(f => /\.ya?ml$/.test(f)).map(f => [f, readFileSync(`${dir}/${f}`, 'utf8')]));
 const DEPLOY_SECRET = /secrets\.(?:CLOUDFLARE_|R2_|CF_ACCESS_|RENDER_)\w*/g;
-const DEPLOYERS = ['cloudflare.yml', 'deploy-mcp.yml'];
+const DEPLOYERS = ['cloudflare.yml', 'deploy-mcp.yml', 'publish-library.yml'];
 const JUDGES = ['judge-panel.yml', 'judge-calibration.yml', 'prompt-evals.yml'];
 
 /** The event names under the top-level `on:` key. */
@@ -43,6 +43,7 @@ test('only the deploy workflows name deploy secrets', () => {
 test('the deploy workflows run only when dispatched by hand, and publishing uses a protected environment', () => {
   for (const f of DEPLOYERS) assert.deepEqual(triggers(workflows[f]), ['workflow_dispatch'], f);
   assert.match(workflows['cloudflare.yml'], /environment: .*mathsdock-production.*mathsdock-preview/);
+  assert.match(workflows['publish-library.yml'], /\n {4}environment: mathsdock-production\n/);
 });
 
 test('the judges\' API key is used only by the judge workflows and the prompt evals', () => {

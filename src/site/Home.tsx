@@ -23,7 +23,7 @@ const pick = (id: "worksheets" | "starters" | "booklets" | "paper-builder") => {
 
 /**
  * Home, the start page (docs/tools/APP-HOUSE-STYLE.md): one search box, the work to carry on
- * with, the seven pages as a row called Tools, and the teacher's favourite diagram tools as much
+ * with, the eight pages as a row called Tools, and the teacher's favourite diagram tools as much
  * smaller picture cards. Card size carries meaning: a bigger card lets you do more.
  */
 export default function Home() {
