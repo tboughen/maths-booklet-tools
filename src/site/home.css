@@ -37,7 +37,7 @@
 .home-meta { font-size: var(--md-text-xs); color: var(--md-ink-3); }
 .home-action { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 28px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); font-size: var(--md-text-sm); font-weight: 500; }
 
-.home-tools { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; }
+.home-tools { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; }
 .home-tool { display: grid; gap: 6px; align-content: start; min-height: 236px; padding: 22px 20px 24px; }
 .home-tool-icon { display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: 12px; border-radius: 14px; background: var(--md-blue-soft); color: var(--md-navy); }
 .home-tool h3 { margin: 0; font-size: var(--md-text-lg); font-weight: 600; letter-spacing: -0.01em; }
@@ -50,12 +50,12 @@
 .home-favourite b { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 6px 8px 7px; font-size: var(--md-text-xs); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .home-favourite b svg { flex: none; color: var(--md-ink-2); }
 
-/* Seven cards to a row need about 1,400 px, with a little less padding below 1,600 px. A portrait monitor and
-   smaller windows have four to a row (four and three), then three, two and one. */
-@media (max-width: 1599px) {
+/* Eight cards to a row need about 1,600 px, with a little less padding below 1,800 px. A portrait monitor and
+   smaller windows have four to a row (two rows of four), then three, two and one. */
+@media (max-width: 1799px) {
   .home-tool { padding-inline: 14px; }
 }
-@media (max-width: 1399px) {
+@media (max-width: 1599px) {
   .home-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .home-tool { min-height: 0; padding-inline: 20px; }
 }

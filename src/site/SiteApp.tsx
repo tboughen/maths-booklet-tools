@@ -23,6 +23,7 @@ import {
   WorksheetPage,
   StarterPage,
   BookletPage,
+  LibraryPage,
   DiagramBuilderPage,
   HomePage,
   sectionName,
@@ -267,6 +268,13 @@ export default function SiteApp() {
             <DocumentChangeContext value={workRecorder("booklets")}>
               <BookletPage active={page === "booklets"} />
             </DocumentChangeContext>
+          </LazyPage>
+        </div>
+      )}
+      {visited.includes("library") && (
+        <div className="site-page" hidden={page !== "library"}>
+          <LazyPage onReady={pageReady}>
+            <LibraryPage active={page === "library"} />
           </LazyPage>
         </div>
       )}

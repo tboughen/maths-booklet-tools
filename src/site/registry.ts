@@ -6,7 +6,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FiguresIcon, WrittenMethodIcon, FunctionMachineIcon, BubbleMethodIcon, AlgebraTilesIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, ProbabilityObjectsIcon, SampleSpaceIcon, SolidsIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon, StarterBuilderIcon } from "./MathsDockIcons";
+import { AnglesIcon, AreaIcon, AssessmentIcon, BarModelIcon, BookletBuilderIcon, ChartsIcon, ConstructionIcon, CuboidsIcon, DiagramBuilderIcon, ElevationsIcon, ExpandingFactorisingIcon, FactorTreeIcon, FiguresIcon, WrittenMethodIcon, FunctionMachineIcon, BubbleMethodIcon, AlgebraTilesIcon, FrequencyTreeIcon, NetsIcon, GraphIcon, NumberLineIcon, PaperBuilderIcon, ProbabilityTreeIcon, QuestionBankIcon, RatioTableIcon, ProbabilityObjectsIcon, SampleSpaceIcon, SolidsIcon, TriangleIcon, TwoWayTableIcon, ValueTableGraphIcon, VennIcon, WorksheetBuilderIcon, StarterBuilderIcon, ResourceLibraryIcon } from "./MathsDockIcons";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -68,6 +68,7 @@ export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPag
 export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
 export const StarterPage = lazyPage(() => import("../starter/StarterPage"));
 export const BookletPage = lazyPage(() => import("../booklet/BookletPage"));
+export const LibraryPage = lazyPage(() => import("../library/ResourceLibrary"));
 /** Home is a page like the rest: its code loads when it is the page opened, not with every tool. */
 export const HomePage = lazyPage(() => import("./Home"));
 /** The Diagram builder page loads on first visit, so Home stays light. */
@@ -89,6 +90,7 @@ export const siteSections = [
   { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: WorksheetBuilderIcon, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs." },
   { id: "starters", name: "Starter builder", href: pageHref("starters"), icon: StarterBuilderIcon, description: "Make a run of six silent starters whose questions keep their type while the numbers change, and print two A5 copies on each A4 sheet." },
   { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookletBuilderIcon, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson." },
+  { id: "library", name: "Resource library", href: pageHref("library"), icon: ResourceLibraryIcon, description: "Find every booklet, A3 worksheet, starter and skill sheet we have made, by year and unit, and send a colleague the link." },
 ] as const;
 export type SectionId = PageId | "paper-builder";
 export function readSection(where: { pathname: string; search: string } = location): SectionId {
@@ -107,6 +109,7 @@ export function pageName(id: PageId): string {
   if (id === "assessment-follow-up") return "Assessment follow-up";
   if (id === "worksheets") return "Worksheet builder";
   if (id === "starters") return "Starter builder";
+  if (id === "library") return "Resource library";
   if (id === "booklets") return "Booklet builder";
   if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
@@ -119,6 +122,7 @@ export function preloadPage(id: PageId) {
   if (id === "worksheets") return WorksheetPage.preload();
   if (id === "starters") return StarterPage.preload();
   if (id === "booklets") return BookletPage.preload();
+  if (id === "library") return LibraryPage.preload();
   if (id === "booklet-tools") return DiagramBuilderPage.preload();
   return bookletTools.find((tool) => tool.id === id)?.component.preload();
 }

@@ -1,0 +1,2553 @@
+{
+ "schema": "mathsdock-library-served/1",
+ "published": "2026-11-24T12:00:00Z",
+ "years": [
+  {
+   "year": 7,
+   "sections": [
+    {
+     "name": "Autumn term",
+     "units": [
+      {
+       "code": "NP1",
+       "title": "Numbers and the number system"
+      },
+      {
+       "code": "NP2",
+       "title": "Calculating"
+      },
+      {
+       "code": "GM1",
+       "title": "Measuring space"
+      },
+      {
+       "code": "NP3",
+       "title": "Checking, approximating and estimating"
+      },
+      {
+       "code": "GM2",
+       "title": "Investigating properties of shapes"
+      },
+      {
+       "code": "SP1",
+       "title": "Measuring data"
+      }
+     ]
+    },
+    {
+     "name": "Spring term",
+     "units": [
+      {
+       "code": "NP4",
+       "title": "Exploring fractions, decimals and percentages"
+      },
+      {
+       "code": "NP5",
+       "title": "Proportional reasoning"
+      },
+      {
+       "code": "NP6",
+       "title": "Exploring fractions, decimals and percentages"
+      },
+      {
+       "code": "NP7",
+       "title": "Calculating"
+      },
+      {
+       "code": "A1",
+       "title": "Algebraic proficiency: tinkering"
+      },
+      {
+       "code": "NP8",
+       "title": "Calculating"
+      },
+      {
+       "code": "A2",
+       "title": "Algebraic proficiency: tinkering part"
+      }
+     ]
+    },
+    {
+     "name": "Summer term",
+     "units": [
+      {
+       "code": "NP9",
+       "title": "Calculating fractions, decimals and percentages"
+      },
+      {
+       "code": "A3",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "SP2",
+       "title": "Presentation of data"
+      }
+     ]
+    },
+    {
+     "name": "Also for Year 7",
+     "units": [
+      {
+       "code": "STARTERS",
+       "title": "Silent starters"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "year": 8,
+   "sections": [
+    {
+     "name": "Autumn term",
+     "units": [
+      {
+       "code": "NP10",
+       "title": "Numbers and the number system"
+      },
+      {
+       "code": "GM3",
+       "title": "Calculating space"
+      },
+      {
+       "code": "SP2",
+       "title": "Presentation of data"
+      },
+      {
+       "code": "SP3",
+       "title": "Understanding risk"
+      }
+     ]
+    },
+    {
+     "name": "Spring term",
+     "units": [
+      {
+       "code": "A4",
+       "title": "Algebraic proficiency: tinkering"
+      },
+      {
+       "code": "NP12",
+       "title": "Compound measures"
+      },
+      {
+       "code": "A5",
+       "title": "Pattern sniffing"
+      },
+      {
+       "code": "GM5",
+       "title": "Mathematical movement"
+      },
+      {
+       "code": "A6",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "GM6",
+       "title": "Calculating space"
+      }
+     ]
+    },
+    {
+     "name": "Summer term",
+     "units": [
+      {
+       "code": "GM7",
+       "title": "Investigating angles"
+      },
+      {
+       "code": "SP4",
+       "title": "Measuring data - grouped"
+      }
+     ]
+    },
+    {
+     "name": "Also for Year 8",
+     "units": [
+      {
+       "code": "AFU",
+       "title": "Assessment follow-up"
+      },
+      {
+       "code": "STARTERS",
+       "title": "Silent starters"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "year": 9,
+   "sections": [
+    {
+     "name": "Autumn term",
+     "units": [
+      {
+       "code": "NP13",
+       "title": "Calculating fractions, decimals and percentages"
+      },
+      {
+       "code": "A8",
+       "title": "Algebraic proficiency: tinkering"
+      },
+      {
+       "code": "SP5",
+       "title": "Understanding risk"
+      }
+     ]
+    },
+    {
+     "name": "Spring term",
+     "units": [
+      {
+       "code": "SP7",
+       "title": "Understanding risk"
+      },
+      {
+       "code": "A7",
+       "title": "Algebraic proficiency: visualising"
+      },
+      {
+       "code": "NP14",
+       "title": "Calculating"
+      },
+      {
+       "code": "GM8",
+       "title": "Visualising and constructing"
+      },
+      {
+       "code": "NP15",
+       "title": "Proportional reasoning"
+      },
+      {
+       "code": "A10",
+       "title": "Solving equations and inequalities"
+      }
+     ]
+    },
+    {
+     "name": "Summer term",
+     "units": [
+      {
+       "code": "GM10",
+       "title": "Calculating space"
+      },
+      {
+       "code": "A11",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "GM11",
+       "title": "Investigating properties of shapes"
+      },
+      {
+       "code": "A12",
+       "title": "Algebraic proficiency: visualising 2"
+      },
+      {
+       "code": "GM12",
+       "title": "Conjecturing"
+      },
+      {
+       "code": "GM13",
+       "title": "Mathematical movement"
+      }
+     ]
+    },
+    {
+     "name": "Also for Year 9",
+     "units": [
+      {
+       "code": "REVIEW",
+       "title": "Review and booster"
+      },
+      {
+       "code": "STARTERS",
+       "title": "Silent starters"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "year": 10,
+   "sections": [
+    {
+     "name": "Autumn term",
+     "units": [
+      {
+       "code": "NP16",
+       "title": "Calculating"
+      },
+      {
+       "code": "A12",
+       "title": "Algebraic proficiency: visualising 2"
+      }
+     ]
+    },
+    {
+     "name": "Spring term",
+     "units": [
+      {
+       "code": "SP6",
+       "title": "Presentation of data"
+      },
+      {
+       "code": "SP8",
+       "title": "Presentation of data"
+      },
+      {
+       "code": "NP17",
+       "title": "Proportional reasoning"
+      },
+      {
+       "code": "A13",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "GM13",
+       "title": "Mathematical movement"
+      },
+      {
+       "code": "A14",
+       "title": "Algebraic proficiency: tinkering"
+      },
+      {
+       "code": "GM14",
+       "title": "Calculating space"
+      }
+     ]
+    },
+    {
+     "name": "Summer term",
+     "units": [
+      {
+       "code": "SP9",
+       "title": "Understanding risk"
+      },
+      {
+       "code": "A15",
+       "title": "Pattern sniffing"
+      },
+      {
+       "code": "GM16",
+       "title": "Mathematical movement"
+      }
+     ]
+    },
+    {
+     "name": "Also for Year 10",
+     "units": [
+      {
+       "code": "STARTERS",
+       "title": "Silent starters"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "year": 11,
+   "sections": [
+    {
+     "name": "Units",
+     "units": [
+      {
+       "code": "NP18",
+       "title": "10.12 Exploring FDP"
+      },
+      {
+       "code": "SP10",
+       "title": "Analysing statistics"
+      },
+      {
+       "code": "A16",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "A17",
+       "title": "Algebraic proficiency: visualising"
+      },
+      {
+       "code": "GM15",
+       "title": "Conjecturing"
+      },
+      {
+       "code": "A18",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "A19",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "GM17",
+       "title": "Investigating properties of shape"
+      },
+      {
+       "code": "SP11",
+       "title": "Analysing statistics (5 lessons)"
+      },
+      {
+       "code": "A20",
+       "title": "Algebraic Proficiency: tinkering"
+      },
+      {
+       "code": "A21",
+       "title": "Solving equations and inequalities"
+      },
+      {
+       "code": "A22",
+       "title": "Algebraic proficiency: visualising"
+      }
+     ]
+    },
+    {
+     "name": "Also for Year 11",
+     "units": [
+      {
+       "code": "MOCK",
+       "title": "Mock revision"
+      },
+      {
+       "code": "STARTERS",
+       "title": "Silent starters"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "resources": [
+  {
+   "id": "y9-a7-unit-booklet",
+   "year": 9,
+   "unit": "A7",
+   "title": "Algebraic proficiency: visualising (Year 9, 10 hours)",
+   "type": "unit-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-unit-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/df806ce341acd20a61ac83f1946375e9be8c7205de81cf1dd8cd3db11601316a/y9-a7-unit-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-unit-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/b366bff6ccb4f4f115a7d69956c6cc1b70aa3eeb398451d97740b02aea8516bd/y9-a7-unit-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-unit-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/1bb2dbce07304091ee72d3ad2f2a76245f9858e8773a8a4de6b1a5f68925589e/y9-a7-unit-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-unit-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/afa6139cf10e123d0f6a0557212569d5331ce6fd5155f832992435330b0eb1ae/y9-a7-unit-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-00-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.00",
+   "title": "Unit start",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-00-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/18124e9bbdae1e7dc22ed65b6c43d787ab2a49343ea8035cac0c92e9383aa463/y9-a7-00-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-00-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/43e5477b3c21bb05594c99b1919044e6e14d4d0fed24ecee4fb3982a0cbb06f9/y9-a7-00-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-00-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/8c7cf491940e45f9427c39554ba2401d623fdf4486fe690949c201d99625fb75/y9-a7-00-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-00-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/347c780605893e675858207cc83e4f39658c67dc4a86a06098b409497e0012cc/y9-a7-00-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-00-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/ad1e390a49d40a87efe82ab9df8c213cf1c8391d9537f1c6b17a5b3f80621794/y9-a7-00-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-01-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.01",
+   "title": "Plot graphs of functions of the form y = mx ± c",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-01-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/61226acecd2b50944b2d63b0cd0e2e90660949fd81e7360be68bb8f2bb116cbe/y9-a7-01-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-01-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/b81152cae3e628d60238d734998850cacdf4af40481e2549f6d42bf7838026fb/y9-a7-01-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-01-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.01",
+   "title": "Plot graphs of functions of the form y = mx ± c",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-01-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/f980429ff76173f3d7dce6406b4cbc795186fc70c71d600e1c23536fe249e7e0/y9-a7-01-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-01-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/ed729ab1a1c0bff122e68445fee21a5053724bd4c2857557d78362d6311c36aa/y9-a7-01-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-01-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/52b44d51dc76dc447c58591ca6445742b8edf2807d72ebb159549f8a4cd07c66/y9-a7-01-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-01-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/31a416f2c7242261ba36be2386bb986394cc9c7b17abf23939f2cde8f4f9cd83/y9-a7-01-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-01-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/82e0de2bbf07262b63264640546c026c01e1c7f02af309fcb357a7ebd48f5a0a/y9-a7-01-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-02-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.02",
+   "title": "Find the gradient of a straight line on a unit grid using 1 across, 'm' up/down",
+   "type": "a3-worksheet",
+   "status": "ready",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-02-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/4c65c8df3332514c3925f8dea831f4809ec4d62bb3929cd4ad233559ff7cbca5/y9-a7-02-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-02-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/520d12554cd50ae688723a8dcd170cb45dfd3c57f633d475161dee9744680c35/y9-a7-02-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-02-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.02",
+   "title": "Find the gradient of a straight line on a unit grid using 1 across, 'm' up/down",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-02-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/7c7f1a4170c48056704e4c01c10dc37798781acb14bf97b5bee861beb568d462/y9-a7-02-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-02-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/35d77c4888c9c51fdf1576e53e9ac6ab362b261f42587581d5d17da4b67376b0/y9-a7-02-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-02-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/5054a1c4676ffd68c28d6cb656507235ce097c3597ef5d61569dc3432e9c5325/y9-a7-02-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-02-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/5394e2c32f3bacbcdc724f95d172e2e183a5442899481f8e5e57388ac7e01c2c/y9-a7-02-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-02-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d99ce5e3a085f15f24b39dd8bfd93c451e4a76b70e4c702b723a27ee74669881/y9-a7-02-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-03-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.03",
+   "title": "Find the gradient of a straight line (positive)",
+   "type": "a3-worksheet",
+   "status": "ready",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-03-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/1001ff5c728d77fe15e5feb6a63c91e62d5464e9941b9651927dd764b7528c6b/y9-a7-03-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-03-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/837a697362229e3f0ccefacb32ac6ad031679d3e8a8fd9d24a9134033a1519ea/y9-a7-03-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-03-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.03",
+   "title": "Find the gradient of a straight line (positive)",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-03-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/8ab5b037d08ac9a4f34693896937bcd6d960665725c226fe08c92546feb3161a/y9-a7-03-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-03-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/2d04889dfdb6b80992a2470bb665a6f62246ed0030226d552bd52c6a51b8ddb0/y9-a7-03-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-03-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/5db6af192104935e0b4adc899e8c4eeeab9c212be32d45082bd73b7f42231e52/y9-a7-03-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-03-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/e9b0f34251ade2ae633098e960abd118a4a2a00f2ce2523c942ae0465b0ec0b7/y9-a7-03-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-03-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/4885a14cad78b52606223808f4ff59e2170ee7d1f94a81c9620c0b3604b8fbda/y9-a7-03-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-04-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.04",
+   "title": "Find the gradient of a straight line (negative)",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-04-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/f76549376b8dcf9dd65fa95bf057a8f11018b8dff5818d308148a75115d776bc/y9-a7-04-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-04-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/18ab5ea5d8cbaaa2604ff81385454b1127c1d53625d92eb1682cae3a01cad73b/y9-a7-04-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-04-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.04",
+   "title": "Find the gradient of a straight line (negative)",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-04-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/fd123423ae7e9a353af2a6a6c408af53e2c7b1e6668868ca9dbaf304b57ddc1f/y9-a7-04-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-04-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/cfd4b2b6b42fb6aaa55780be36ab8099214b58eb47d07140e5ac1fefbf1e311d/y9-a7-04-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-04-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/253c79858f0cff50f75711bf497ddf867d528302602d884b7c9ac18f4bbe1719/y9-a7-04-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-04-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/3c2c6b20bd127e160124be53b22a88907c5d7afe9312dfd56ba7be8323d40169/y9-a7-04-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-04-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/85bf4da609d7cb2bba33b0cefe328a22395c1e0876fd57e76e426f9e9ba9fa52/y9-a7-04-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-05-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.05",
+   "title": "Find the y-intercept of a straight line",
+   "type": "a3-worksheet",
+   "status": "ready",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-05-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/9af1d51d3702f249282aedd061e24641164de39bce1c607655bca2c3aeea096c/y9-a7-05-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-05-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/e03971b054c7051e0dd2e35b84d6631d6fb8f410d06f79411e575abd13003977/y9-a7-05-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-05-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.05",
+   "title": "Find the y-intercept of a straight line",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-05-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/ce5b9fd6679a0d871755788daa179d820818efb233324ffabc45f456c304aa53/y9-a7-05-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-05-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/41b11b6c9d8e5a4f4baa1df1d10735f41ad1b1f6e8a17df96dbfea21a7318b81/y9-a7-05-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-05-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/86c61e035dd0310eab71a29fb94308625a266c7412fc53d855dd7b6922a829ea/y9-a7-05-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-05-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/edea556b6f55b7419d2bfbc602153bbf81e48c4531be5c13c5cb8d120f53740a/y9-a7-05-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-05-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d94c4794118e570af5f3010b16e1c2451745a2a520a0c92af995486a3a4c047e/y9-a7-05-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-06-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.06",
+   "title": "Find the equation of a straight line in the form y = mx ± c",
+   "type": "a3-worksheet",
+   "status": "ready",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-06-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/bfb32b7e5c9acc96e6aec7241b668ff07372defe2ae55714795be51ed73d4572/y9-a7-06-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-06-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/98879d7a02c4b1f25cd07a58211fb587772e6013de2d6187b3ea14023269eeb6/y9-a7-06-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-06-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.06",
+   "title": "Find the equation of a straight line in the form y = mx ± c",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-06-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/c324b6bb71afcba4dddc44555c4e935aa79494de365f88ee4d65fd8ab308a096/y9-a7-06-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-06-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/c9cb33697962f67f1f4be905757c1d9343aaf86fc27bb497fbc1f48645ba97a8/y9-a7-06-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-06-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/85dacdf35835c18f3748854b037abf2413dc79cc8a5a986c3bb683515a6ba63a/y9-a7-06-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-06-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/79a6c1d86ee165b0b5db0afec99347bba28b8f6eb954a50934f80593cfe6ff6b/y9-a7-06-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-06-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d96033d6c97ec3460b781faa6d32cf59c51873a198586c034ac30efd9674c9dc/y9-a7-06-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-07-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.07",
+   "title": "Recognise parallel lines algebraically and graphically",
+   "type": "a3-worksheet",
+   "status": "ready",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-07-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/73c194d691168466af8804269097886a68752890af50b749748bc2262fcc75ab/y9-a7-07-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-07-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a484488105df15fab7f2708489c53234174e192c0bffa5bc4e7883eee61a59fb/y9-a7-07-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-07-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.07",
+   "title": "Recognise parallel lines algebraically and graphically",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-07-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/6dbeba8ae7a65088a6fa45bdf3673af19b227be72e0b4f6074e7fbe4a251c46b/y9-a7-07-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-07-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/3258c7ce00728aa256a01035f1021da29bb685d20baec1cf26f741b4104254ca/y9-a7-07-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-07-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/2e0a89433317c8e06ef8ca38add3fbaf899bf33903fea3d72e11931f79ffbc06/y9-a7-07-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-07-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/912d074b316d4041bfafe2909424fb30535b3eccf3be0a087e31395fbcc055cd/y9-a7-07-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-07-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/c7a4da0d57a2f2e4d52737aaaa86e78bcd0205980e2aed243a3a00858fbd766e/y9-a7-07-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-08-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.08",
+   "title": "Sketch linear graphs",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-08-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/f4d799a209508063247f57af6c13a31cbaa1f6b4fb829b9574cc54234ebc6800/y9-a7-08-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-08-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/93e9de219d61ce2a0c4c62918e11d5c85336acad9ef6418cd3fb20d26f101670/y9-a7-08-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-08-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.08",
+   "title": "Sketch linear graphs",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-08-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/ca054165565909d8424b1e7fd2235e457383cdae119e1baee76d7ac8ec058ee8/y9-a7-08-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-08-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/da92626449eb651883a40807cb07f3358d38396a2fbe098c27233bc678551cff/y9-a7-08-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-08-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/05e47d4094f16c118695f04d0925ed9fddb7a0600ec0ffbdeb85b45caf963614/y9-a7-08-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-08-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/52f84f3636aaa5d7e39d5586510725aa31f0c21d1fbacafbd992ed3a8b5820bd/y9-a7-08-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-08-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/e836079aad0652560ca5963c89b24b06da0bdbafe086135d8c1e59a7839bc998/y9-a7-08-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-09-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.09",
+   "title": "Plot graphs of functions of the form ax ± by = c",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-09-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d16d59b25f7e3d13460be23cccd208de9db3625f7d7cbfadc62c157363ec9962/y9-a7-09-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-09-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a17013e7a02881771a39aec7e325ec07c686bf2408cbe98f241ef4ca414f5770/y9-a7-09-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-09-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.09",
+   "title": "Plot graphs of functions of the form ax ± by = c",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-09-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a5db1a18b7c7168a521bbb59c1444860bc085eace0fd21427b8049afe14df1de/y9-a7-09-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-09-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/f7f323b4766ceba62493c23d00b7c2804a32c9173ada8a5bc0cadbf9b62d81cf/y9-a7-09-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-09-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/67cffb5e650d316fdedd9451ce084233505b647177d4da39d408bff577b77d97/y9-a7-09-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-09-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/7cd3e19ac77761a5c1b8735bb8d30ded9b2e0c050c333a4d97358c05e50ce978/y9-a7-09-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-09-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d4f4521f7101f90fa729ec978017b1e46d016305fee22673ade386e8295235f9/y9-a7-09-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-10-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.10",
+   "title": "Plot and interpret graphs of piece-wise linear functions in real contexts",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-10-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a025b0281f9184ba9515fd3b890414267281779417b7c9a634267711eb217c31/y9-a7-10-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-10-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/1c2ffb404018aee25c453b9691fccb5d649d7dfa9e3f21ff26332a5b356ba1e0/y9-a7-10-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-10-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.10",
+   "title": "Plot and interpret graphs of piece-wise linear functions in real contexts",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-10-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a82d892c93344b35309070c3df9503b0d6d48e8c6b8483befc79ef38c0283f91/y9-a7-10-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-10-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/9417562fb84b2f6a46990e4b38fcb81c6f572e769c0f149f0a6dca4cbf941e9f/y9-a7-10-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-10-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/b164312a54c4aa6dd11fd7741e58dec1ae766647fedd16ebe41ebac4a3f64c1d/y9-a7-10-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-10-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/bdebe4653e91aeb862b12f18358cb4efad43fbaedd34db4597d9df9e4e29c036/y9-a7-10-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-10-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/f58ea31ea21be280093abbf12a90cddabeec368be89d957916f2fbced6f9cef5/y9-a7-10-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-11-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.11",
+   "title": "Plot and interpret distance-time graphs, including approximate solutions to kinematic problems",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-11-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/e218b5146b13daf90972bdcf883814465833632b87ac461dcb9d4e5dd245ae99/y9-a7-11-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-11-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/181a306e79b82f372566836619792fca409a7a682652f59958d5429eea7134fe/y9-a7-11-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-11-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.11",
+   "title": "Plot and interpret distance-time graphs, including approximate solutions to kinematic problems",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-11-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/8ecc0fc47080fe0b86b6fcd56e3427b280ed82c4adf608d9e189ab7cb9ef4aee/y9-a7-11-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-11-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/4ad8bd12abf9f60c5669f0c5484110f4e35f442cbb54a3d4e12db1e8edd9f5a4/y9-a7-11-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-11-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/cdd4bbba8c30b7f770039815f1c9533be9e9913bda5bec7449c03d2ea4b2655b/y9-a7-11-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-11-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/32a61975815d06472d4e52f50dcad12afe28ffbd45fd023eff16b4b06afd29c6/y9-a7-11-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-11-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/2af3346847ca7dbd799dd3ad7349d2735e46bc0ad595221009d160b878a99519/y9-a7-11-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-11b-a3-worksheet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.11b",
+   "title": "Plot and interpret distance-time graphs, including approximate solutions to kinematic problems",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-16",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-11b-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/60640388d6ee18696dd8f0555e6b8e6fe00d0cdee03edf9038c835057bc76f1d/y9-a7-11b-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-11b-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/6f5bb21866a953a0a7999ef9c282d611faefd789756b93f3bbd4bfbceb72aad2/y9-a7-11b-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-a7-11b-lesson-booklet",
+   "year": 9,
+   "unit": "A7",
+   "lesson": "A7.11b",
+   "title": "Plot and interpret distance-time graphs, including approximate solutions to kinematic problems",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-a7-11b-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/7e13880f399e9851c7033bbd8e53e09cc9eea53cd7c3259089b795785fff60c1/y9-a7-11b-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-a7-11b-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/35a14c311e5f706c1b5935de51e8fd44d2c04f32f000d1c99b0142228cfdeaa1/y9-a7-11b-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-a7-11b-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/8bf28053593e5d3760509c7447ec48c5d0defead41f8e775075d2fcea27546e3/y9-a7-11b-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-a7-11b-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/bb82603a3354abe7d7a092e45f6ebb2f80070fe2aa4ee64f8707605953d28a0e/y9-a7-11b-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y9-a7-11b-lesson-booklet_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/cc6200b1d26e831f49cc40f9b635d7c89c0f8cfe8b6fa328343b5e30556a69c8/y9-a7-11b-lesson-booklet_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-unit-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "title": "Understanding risk (Year 9, 8 hours)",
+   "type": "unit-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-unit-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/eabfd26754ea8e53fd78120576497eb5da19027b57c29e435d0c8c54bc824a62/y9-sp7-unit-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-unit-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/7260843330e073b4974409c6a7e3d387ad9ccbea4e2e46fcc9c78895e867ae43/y9-sp7-unit-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-unit-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d40aaa5e174aeb236192eeab0b0490945f7a83b654c5ac3e661e49dd5ea14c58/y9-sp7-unit-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-unit-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/92311ba8f1d9816b23eb8d2238c961338d8699c76172d6309957715426b56944/y9-sp7-unit-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-01-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.01",
+   "title": "List outcomes of combined events using a tree diagram",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-01-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/c85f57d9dda93c60aea73eda91b2cbf3430489b2757ad66c383c12d02589010c/y9-sp7-01-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-01-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/52987116ee2af3bae1d96a117416cc66921869f871c2916756ba8cee59e07083/y9-sp7-01-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-01-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.01",
+   "title": "List outcomes of combined events using a tree diagram",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-01-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/9d7fcc952fc91119b9dbae5713775c6ad189a949ad62552dca6f13f7151e3727/y9-sp7-01-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-01-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/7f3cb724cef01575d12e69296b1d51ec2914019c640ab22eff23762ab3a53ec4/y9-sp7-01-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-01-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/a00f9ee4bab240d2f7f3045df9cd3cdc42470a990f2d3497a8b1d57b7c9a9d8b/y9-sp7-01-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-02-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.02",
+   "title": "Know and use the multiplication law of probability",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-02-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/7fdf1dd10280c5124f376c317521a12c928d9c201a0ae8912d245b01a6fc769a/y9-sp7-02-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-02-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/aee5c87c15c8408ccf60fba69daa9f63744ded38c18e9c3e1cd2f80128cbd42a/y9-sp7-02-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-02-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.02",
+   "title": "Know and use the multiplication law of probability",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-02-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/dfe2bf4d51f7effa39d0c1f19a70142e7b133ae9d64d1b4a8282b6e4e2637a05/y9-sp7-02-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-02-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/aafab775e83c1371931fa076ceb5fa960843b6054ab1c02db5b6dd3d86a4c214/y9-sp7-02-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-02-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/9c170db4027c727c8d07f9375f767b922efc2a5e4281426f6b8041988bd7a318/y9-sp7-02-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-03-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.03",
+   "title": "Know and use the addition law of probability",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-03-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/7878896c0d2cc2d14ac878879b2ce0f708dbd842f68c8e84558926b4aaaf882e/y9-sp7-03-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-03-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/2c413473c472dc7cc3c0ed1e8a54d78d8655eb887017aae87d5145c8f833ce9d/y9-sp7-03-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-03-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.03",
+   "title": "Know and use the addition law of probability",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-03-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/36e6918e3edf3b74343e7dc4240324b63e622fc3454d866c7b285f7c1716ae9b/y9-sp7-03-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-03-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/c7c1f59b1f5376c36e343211f1d17fdaa973e46c4b7ad7aa2f6c49ff158ad43d/y9-sp7-03-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-03-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/e912f9e75742674c587f2a3e3caf3f4387fc0599c95b5119c2ad7d435ffc0a2f/y9-sp7-03-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-04-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.04",
+   "title": "Use a tree diagram to solve simple problems involving independent combined events",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-04-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/ea76ba884aea37563f7450066efe07af7c1cc4a3ea297ead6e69170f4bef0594/y9-sp7-04-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-04-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/8dd99deeb02affb96efd806832a08a4bdd6e7a6e606f073b763c1f94be2410ef/y9-sp7-04-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-04-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.04",
+   "title": "Use a tree diagram to solve simple problems involving independent combined events",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-04-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/b3b8accb3cfe08633c6f9ac14b87dcbb751abd2f7d8ebcfdb4e449832312cd2b/y9-sp7-04-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-04-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/50a9a897d96358096b9ffa5d815071e30ce56484396e7f5849d75f6e93f456a4/y9-sp7-04-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-04-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/bdbb1143cd1d7daca9f804f14bf6fda238581ac9c14d906a2a2926e38b6b9216/y9-sp7-04-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-05-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.05",
+   "title": "Use a tree diagram to solve complex problems involving independent combined events",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-05-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/86262645b8cb8f4de3f3345c63bfa24eae863f8a36c87173b66b15fc78091c3a/y9-sp7-05-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-05-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d3570f28b4362c02b3257f33685380de37d10176b6d59cafdb321ef955058ff1/y9-sp7-05-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-05-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.05",
+   "title": "Use a tree diagram to solve complex problems involving independent combined events",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-05-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/9329c04e948f4881d2beda832b5d3055d6c850c31e4723226cdf7c81ab44d921/y9-sp7-05-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-05-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/e2a3f0df2b820bfe65fe87d5815e16b454b52d30bc500a2d4b82e6aa286ae8ad/y9-sp7-05-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-05-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/5cd1de113068136d1c8be4aa987369e38ea231557bda9fecaeb0d31c100a0a38/y9-sp7-05-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-06-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.06",
+   "title": "Use a tree diagram to solve simple problems involving dependent combined events",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-06-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/abcde1c706c9e793f8499dfc2c2475c3c7c3fe948a0ede62a76a034d196dc64a/y9-sp7-06-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-06-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/594fa77f99e45c8ed0e59382d376e005b8b3bd89b77651154367850dd68f1281/y9-sp7-06-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-06-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.06",
+   "title": "Use a tree diagram to solve simple problems involving dependent combined events",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-06-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/28d82ecd0d173f79e7dc98783fa9ec62969c832b7940d567543a44ff5ba125d4/y9-sp7-06-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-06-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/3354851bc04151805ef3d26a5619a74bef1070d8acf099fbda79c9abf9d9562f/y9-sp7-06-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-06-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/5f91e3b89f712d26a4153281ed500c075c236a96e81e055f133f5eec529b455e/y9-sp7-06-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-07-a3-worksheet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.07",
+   "title": "Use a tree diagram to solve complex problems involving dependent combined events",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-sp7-07-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/5309c7c7ef924ccfb7142c2af17db444513a16040cc293236f085012dddd52dd/y9-sp7-07-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-sp7-07-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/1fe5049ebf586c346ed5424854ed0162c917ed72c2744de3f5ee222d47f91d06/y9-sp7-07-a3-worksheet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-sp7-07-lesson-booklet",
+   "year": 9,
+   "unit": "SP7",
+   "lesson": "SP7.07",
+   "title": "Use a tree diagram to solve complex problems involving dependent combined events",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-sp7-07-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/dc52c6de973d52e2a8aa72538406c19e6c9548d51966c96daedffc4f12c74915/y9-sp7-07-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-sp7-07-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/153fa3ab2489575d310f7286f402cc4583dde1ef43a5e91d1157dcc8d0df494f/y9-sp7-07-lesson-booklet_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y9-sp7-07-lesson-booklet_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/8391bd2a2ab583f38869548b7ed0b477dcad2e3c41f5498a9ce6ecb3008864d0/y9-sp7-07-lesson-booklet_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-run-2-silent-starter-1-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Run 2 silent starter 1",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-20",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-1-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/5cfc8f5b3a8336f2a7359f6f4139dc406f212ff8a7c726d0ffaca0e5dacdc4de/y9-year-9-run-2-silent-starter-1-starter_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-year-9-run-2-silent-starter-1-starter_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/8feade245d0d26b95ff4cde75747c8e34281f3888736743bb87de397ed5bd943/y9-year-9-run-2-silent-starter-1-starter_pupil.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-run-2-silent-starter-2-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Run 2 silent starter 2",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-2-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/f57a26be838250aa6296b82860b646d7356418293d7e09ed7b60ec6563f82da9/y9-year-9-run-2-silent-starter-2-starter_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-year-9-run-2-silent-starter-2-starter_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/077dcc5d366bbfe24a2e9d2423f4ee67bb4087b7ad98b38b5d82d893d75c3ad7/y9-year-9-run-2-silent-starter-2-starter_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-2-starter_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/c968cf3bd314b21e9fddf666fd2137fa6d0ee50bec6e91a90de854f82b6958f0/y9-year-9-run-2-silent-starter-2-starter_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y9-year-9-run-2-silent-starter-2-starter_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/e79d207400564e3cfd7a66e2258d99c3904ffdd9adefd322ee8d85cd4cc9bcd4/y9-year-9-run-2-silent-starter-2-starter_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-run-2-silent-starter-3-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Run 2 silent starter 3",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-3-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/3aafb34b30f18a6dee222d113eaf79f4ed739755001742eb6a5258da3e7e8beb/y9-year-9-run-2-silent-starter-3-starter_pupil.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-run-2-silent-starter-4-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Run 2 silent starter 4",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-4-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a67f98962ec9143d46ea31d6c91f8e0f1f57811493b7c4e0248fc3339542c20c/y9-year-9-run-2-silent-starter-4-starter_pupil.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-run-2-silent-starter-5-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Run 2 silent starter 5",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-5-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/bd431970612b9a4c44273b33a3743abe22afb9760b5e183f789996b9de614b63/y9-year-9-run-2-silent-starter-5-starter_pupil.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-run-2-silent-starter-6-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Run 2 silent starter 6",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-run-2-silent-starter-6-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/9adbcf1d0d9b6b89c83bd4e01155834561b6bd09710d6c09cf11b1532036dbd1/y9-year-9-run-2-silent-starter-6-starter_pupil.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-silent-starter-4-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Silent starter 4",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-18",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-silent-starter-4-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/1d3ede7eee35ac2c5782fa68d52371b7ec25675a3693556613ccb71c95df756b/y9-year-9-silent-starter-4-starter_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-year-9-silent-starter-4-starter_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/5bb16889c6ff8b78ec579602da7883f9017701ea71b6518b70189bba78c502f7/y9-year-9-silent-starter-4-starter_pupil.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-silent-starter-5-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Silent starter 5",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-18",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-year-9-silent-starter-5-starter_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/e8cb9fc21cf312933c4e183b1503d1ffd942a42b9b20673350cbffc1e8a0d02d/y9-year-9-silent-starter-5-starter_pupil.docx"
+    }
+   ]
+  },
+  {
+   "id": "y9-year-9-silent-starter-6-starter",
+   "year": 9,
+   "unit": "STARTERS",
+   "title": "Silent starter 6",
+   "type": "starter",
+   "status": "waiting",
+   "updated": "2026-11-19",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y9-year-9-silent-starter-6-starter_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/fba939f4e4632cdbb55e3c6c5645f23a39fa9f10ed7ee471611c3a8a5db54c39/y9-year-9-silent-starter-6-starter_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y9-year-9-silent-starter-6-starter_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/92a230c98344ef2a517c25218f989d95e6da7040236f0a0fff6d83a4ba4b2b8d/y9-year-9-silent-starter-6-starter_pupil.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-unit-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "title": "Presentation of data (Year 10, 6 hours)",
+   "type": "unit-booklet",
+   "status": "waiting",
+   "updated": "2026-11-22",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-unit-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/8cfbd544ec6e5c8f46b2bb849f2200bafba93dbad615e1131183d84f3e84cc0f/y10-sp8-unit-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y10-sp8-unit-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/8090608f20fd214512f0b8999aabaa8211f14417b1ed0d7d96701844dfb5858f/y10-sp8-unit-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-unit-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a3433d5c90dacd61545ce0359a5daa95385acc06c7812939e3d9b882e482dbb9/y10-sp8-unit-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y10-sp8-unit-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/bafa2a64a02d5306299b881d049487d957674383988558fcbda7a4a95a34171f/y10-sp8-unit-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-01-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.01",
+   "title": "Construct graphs of time series",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-01-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d8c3171617b0747b7af4f829963634b8f175daefdc0d8f6c0c1afff7cce65ffb/y10-sp8-01-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-01-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/df9633a7148fdbe3fdf80fcc158bcdd5cf999ec795a88115f3f6c9fde3d41cd0/y10-sp8-01-lesson-booklet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-02-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.02",
+   "title": "Interpret graphs of time series",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-02-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/ce45acb3db854915d3e4eeb194b5b976c388f9965e8b27b7d2e531620363fe1f/y10-sp8-02-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-02-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/b1fafb08df2e4655560427fe16a53738826a000e1e4e6180aa6b3a07a409f90e/y10-sp8-02-lesson-booklet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-03-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.03",
+   "title": "Construct and interpret compound bar charts",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-21",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-03-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/a012fd25b45e22c65f31317ce1a7c1c090f8b9b0e3a15ece97b47517f59b3f9a/y10-sp8-03-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y10-sp8-03-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/39980922a3a1ee33a2e00498aca2285027e36590555d91645604412942f5e5c4/y10-sp8-03-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-03-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/752eb8588881850e7ab9ce79ca75bcd3c0bf2ea0195777d633d2ecc9657d0fe9/y10-sp8-03-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y10-sp8-03-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/d0a2bad9a4b4b93ef7781d77e9144ce94d8c49a4d45e653dde6917118d88b928/y10-sp8-03-lesson-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-04-a3-worksheet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.04",
+   "title": "Construct and interpret frequency polygons",
+   "type": "a3-worksheet",
+   "status": "waiting",
+   "updated": "2026-11-17",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-04-a3-worksheet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/db78850893c097f8f3aad60c852a14800123e104849eed0c89a30dd03de31d34/y10-sp8-04-a3-worksheet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y10-sp8-04-a3-worksheet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/3c2ab4e772d250272281d094054ec19cce8e92ecaa0e7a56710409dead15fd0e/y10-sp8-04-a3-worksheet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-04-a3-worksheet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/0fa743f9f677a83d2361f160a4c47e5e61ea637c5894d276d2205a2c5028c4be/y10-sp8-04-a3-worksheet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y10-sp8-04-a3-worksheet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/eb98f9e164eddc38fe227fc85555e4a5b0c7bd1605a526b5ddb75913e1d600b7/y10-sp8-04-a3-worksheet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-04-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.04",
+   "title": "Construct and interpret frequency polygons",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-18",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-04-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/c0474c98b350d154b83af61d62f9bad090e61b3023d1588a1137ac650a77c114/y10-sp8-04-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y10-sp8-04-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/c823ad170502f589f9c1cabfa154190bc952fba3e474e803e06d377c1cf0e640/y10-sp8-04-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-04-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/9e1760bbaa3143c9109c249f8c1d130af57de615be173dd820b6ddeba6d4a472/y10-sp8-04-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y10-sp8-04-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/090b294fa3e5336c7f79aa88fae6530d0697ddf78bae5a5c78342bb001a713e1/y10-sp8-04-lesson-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-05-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.05",
+   "title": "Construct and interpret (READ AVERAGES) stem and leaf diagrams *identifying mistakes increasingly occuring*",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-18",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-05-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/93054bc11fb56652036755e6fa11dd12e2440d0b0eb857c0bf93560d5b3fd50f/y10-sp8-05-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y10-sp8-05-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/6c36e690dc2e8e77379aa083d35538692c4a6ab3e2edb26e431dad12f50e41b8/y10-sp8-05-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-05-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/7296bbbd8eb4a5011328988bbf1411cc4f00bc8358892972981bef238e70f349/y10-sp8-05-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y10-sp8-05-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/78297575fa9cdd0297a167e53c1707a30bbbed779a645fb30e86fc38fe98fc66/y10-sp8-05-lesson-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-06-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.06",
+   "title": "Calcuate averages from a stem and leaf diagram (SP4)",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-20",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-06-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d25d5ca161752378f4ba0bedcb6a9580e54ce847e16b3d04b5b4085aad289cb2/y10-sp8-06-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y10-sp8-06-lesson-booklet_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/e6d5ffb3daaa0a6ba9a66ee63ac62c542a19e680dddea1080f0aebb150b13839/y10-sp8-06-lesson-booklet_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-06-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/77421e7d00c117fcf8bef1557c500b149021fd371b1e097053549895be89417a/y10-sp8-06-lesson-booklet_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y10-sp8-06-lesson-booklet_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/f2fcf0b8040741ea9b1ff172fd1bb504ee33807e98cd225421d6223ac283ce57/y10-sp8-06-lesson-booklet_answers.docx"
+    }
+   ]
+  },
+  {
+   "id": "y10-sp8-07-lesson-booklet",
+   "year": 10,
+   "unit": "SP8",
+   "lesson": "SP8.07",
+   "title": "Construct and interpret pie charts and know their appropriate use",
+   "type": "lesson-booklet",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y10-sp8-07-lesson-booklet_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/af8df9ee6239eca4e5e2e1b01ed885356448bc48820559efcd68c13ded3f6900/y10-sp8-07-lesson-booklet_pupil.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y10-sp8-07-lesson-booklet_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/379efca6c3098a879a495f13936359953c0f06cb9e62ab009d29a1598e9eb596/y10-sp8-07-lesson-booklet_answers.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y11-mr1-revision-lesson",
+   "year": 11,
+   "unit": "MOCK",
+   "lesson": "MR1",
+   "title": "Percentage change",
+   "type": "revision-lesson",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y11-mr1-revision-lesson_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/6d37d36abf42d53affe43f77a4f10c4147e6486d137b6b8637bd4747fb438782/y11-mr1-revision-lesson_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y11-mr1-revision-lesson_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/734d5b9bc9722a1232d371b7865898cb17e325ac90c63f2e437cfe1eb4e1cc05/y11-mr1-revision-lesson_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y11-mr1-revision-lesson_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/49f27d987dd51f0268a5fd950e59e9c7747e9ee87f9458a31a67e3b8244929bd/y11-mr1-revision-lesson_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y11-mr1-revision-lesson_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/bff918c79bbd1bebb5a09947ea1f3ffb6bcf9d2f4cf51878d03fc31aee098341/y11-mr1-revision-lesson_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y11-mr1-revision-lesson_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/bd585d3337c8306e6ad595eb5bff77c0ea2f9293cb0629c66c33a47451a17d68/y11-mr1-revision-lesson_teacher-notes.pdf"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "docx",
+     "name": "y11-mr1-revision-lesson_teacher-notes.docx",
+     "bytes": 1000,
+     "href": "library-data/files/cd4ac95707eb935f415363ecbb5cf2f339b4cddc7fe7eba1bf3fa2338f44fcd2/y11-mr1-revision-lesson_teacher-notes.docx"
+    }
+   ]
+  },
+  {
+   "id": "y11-mr2-index-laws-revision-lesson",
+   "year": 11,
+   "unit": "MOCK",
+   "lesson": "MR2",
+   "title": "Index laws",
+   "type": "revision-lesson",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y11-mr2-index-laws-revision-lesson_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/84c88e02e20c091eed6255cfff93614cccb5f0c23102c08d3c42491e15b74250/y11-mr2-index-laws-revision-lesson_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y11-mr2-index-laws-revision-lesson_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/a38c9647d94ef3f02b68cc3a096aa0354accc16be3c73b79e5afa58e120db4ef/y11-mr2-index-laws-revision-lesson_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y11-mr2-index-laws-revision-lesson_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/2de641aa908e33b226651ae65f8e7463dc850097372cfc6afee899c6253913ee/y11-mr2-index-laws-revision-lesson_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y11-mr2-index-laws-revision-lesson_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/37496b442cef317419da64883ab35ce14461b77b7e1856ae74988183aed7278d/y11-mr2-index-laws-revision-lesson_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y11-mr2-index-laws-revision-lesson_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/1b7debce90e634d2d846fe7d2d671d4818234f6bb4a8c0077eea95ca8fe7c136/y11-mr2-index-laws-revision-lesson_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y11-mr3-density-revision-lesson",
+   "year": 11,
+   "unit": "MOCK",
+   "lesson": "MR3",
+   "title": "Density",
+   "type": "revision-lesson",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y11-mr3-density-revision-lesson_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/db6ce4c52aef2f6821b464de6ce783fe249865319bcc31eac54d76983aee878c/y11-mr3-density-revision-lesson_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y11-mr3-density-revision-lesson_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/0a545d5ddad6e03028b33f5876b41a1a40f2b82f4d83e70f8815daa01b436fcd/y11-mr3-density-revision-lesson_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y11-mr3-density-revision-lesson_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/9d7b6bad48f85567dd14b549197e49beff0c1e1dca65eb9775f7b0e3ae3eb5d6/y11-mr3-density-revision-lesson_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y11-mr3-density-revision-lesson_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/f1a5ae51a8e86288294a0941783508adce0ec7eff89b459d8f524c2b10f5e618/y11-mr3-density-revision-lesson_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y11-mr3-density-revision-lesson_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/0a9479d48fc73f844b0155068593e4d0fe825902c46d269651e5d1bdcaa60d40/y11-mr3-density-revision-lesson_teacher-notes.pdf"
+    }
+   ]
+  },
+  {
+   "id": "y11-mr4-reverse-percentages-revision-lesson",
+   "year": 11,
+   "unit": "MOCK",
+   "lesson": "MR4",
+   "title": "Reverse percentages",
+   "type": "revision-lesson",
+   "status": "waiting",
+   "updated": "2026-11-23",
+   "files": [
+    {
+     "role": "pupil",
+     "format": "pdf",
+     "name": "y11-mr4-reverse-percentages-revision-lesson_pupil.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/38ffcb3dc28ef6daacb1c1aeba445fd5e0b791f7a9c7b08a2004d5a60d376177/y11-mr4-reverse-percentages-revision-lesson_pupil.pdf"
+    },
+    {
+     "role": "pupil",
+     "format": "docx",
+     "name": "y11-mr4-reverse-percentages-revision-lesson_pupil.docx",
+     "bytes": 1000,
+     "href": "library-data/files/c4c25e2e74e08f368d4fd5ec9021904e105d5365741364a3503c5c41bde10cc9/y11-mr4-reverse-percentages-revision-lesson_pupil.docx"
+    },
+    {
+     "role": "answers",
+     "format": "pdf",
+     "name": "y11-mr4-reverse-percentages-revision-lesson_answers.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/01eff7660240ac848b728d6b42c926a8e39caa8b7cb0e892525da851ec67d380/y11-mr4-reverse-percentages-revision-lesson_answers.pdf"
+    },
+    {
+     "role": "answers",
+     "format": "docx",
+     "name": "y11-mr4-reverse-percentages-revision-lesson_answers.docx",
+     "bytes": 1000,
+     "href": "library-data/files/ecbbb83bdf56e9a0c2ec325357c342ebe74d335f2c9d4960a6472f59fb3cdf9e/y11-mr4-reverse-percentages-revision-lesson_answers.docx"
+    },
+    {
+     "role": "teacher-notes",
+     "format": "pdf",
+     "name": "y11-mr4-reverse-percentages-revision-lesson_teacher-notes.pdf",
+     "bytes": 1000,
+     "href": "library-data/files/d69ce2ede6403169a628127459dab705d8bb38369b478504d7374d8bc07e672e/y11-mr4-reverse-percentages-revision-lesson_teacher-notes.pdf"
+    }
+   ]
+  }
+ ]
+}

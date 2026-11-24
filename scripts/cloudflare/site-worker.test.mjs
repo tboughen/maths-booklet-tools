@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import worker, { serveBankAsset, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, serveLibrary, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -118,6 +118,36 @@ test('serves a scheme of work as JSON only to signed-in staff', async () => {
   assert.equal(anonymous.status, 403);
   const named = await serveBankAsset(request('bank/assets/schemes/school.json', { 'Cf-Access-Jwt-Assertion': await token() }), { ...env0, BANK }, { fetcher: certs });
   assert.equal(named.status, 404);
+});
+
+test('serves the resource library list and files only to signed-in staff', async () => {
+  const fileKey = `library/files/${'e'.repeat(64)}/y9-a7-03-lesson-booklet_pupil.pdf`, docKey = `library/files/${'f'.repeat(64)}/y9-a7-03-lesson-booklet_pupil.docx`;
+  const stored = { 'library/library.json': '{"schema":"mathsdock-library-served/1"}', [fileKey]: '%PDF', [docKey]: 'PK' };
+  const make = k => k in stored ? { size: stored[k].length, httpEtag: '"t"', body: new Blob([stored[k]]).stream() } : null;
+  const BANK = { async get(k) { return make(k); }, async head(k) { return make(k); } };
+  const signed = { 'Cf-Access-Jwt-Assertion': await token() };
+  const list = await serveLibrary(request('library-data/library.json', signed), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(list.status, 200);
+  assert.equal(list.headers.get('cache-control'), 'private, no-cache');
+  assert.match(list.headers.get('content-type'), /^application\/json/);
+  assert.equal(await list.text(), stored['library/library.json']);
+  const pdf = await serveLibrary(request(fileKey.replace(/^library\//, 'library-data/'), signed), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(pdf.status, 200);
+  assert.equal(pdf.headers.get('cache-control'), gatedCache);
+  assert.equal(pdf.headers.get('content-disposition'), 'inline; filename="y9-a7-03-lesson-booklet_pupil.pdf"');
+  const doc = await serveLibrary(request(docKey.replace(/^library\//, 'library-data/'), signed), { ...env0, BANK }, { fetcher: certs });
+  assert.match(doc.headers.get('content-disposition'), /^attachment;/);
+  assert.match(doc.headers.get('content-type'), /wordprocessingml/);
+  const head = await serveLibrary(request('library-data/library.json', signed, 'HEAD'), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), '');
+  assert.equal((await serveLibrary(request('library-data/library.json'), { ...env0, BANK }, { fetcher: certs })).status, 403);
+  assert.equal((await serveLibrary(request('library-data/library.json', signed), { BANK }, { fetcher: certs })).status, 503);
+  for (const path of ['library-data/files/abc/x.pdf', `library-data/files/${'e'.repeat(64)}/X.PDF`, `library-data/files/${'e'.repeat(64)}/a.exe`, 'library-data/other.json', `library-data/files/${'e'.repeat(64)}/../library.json`])
+    assert.equal((await serveLibrary(request(path, signed), { ...env0, BANK }, { fetcher: certs })).status, 404, path);
+  assert.equal((await serveLibrary(request('library-data/library.json', signed, 'POST'), { ...env0, BANK }, { fetcher: certs })).status, 405);
+  const routed = await worker.fetch(request('library-data/library.json'), { ...env0, BANK, ASSETS: { fetch: async () => new Response('static') } });
+  assert.equal(routed.status, 403);
 });
 
 test('non-bank paths fall through to static assets', async () => {
