@@ -227,13 +227,14 @@ const libraryList = { schema: 'mathsdock-library-served/2', years: [{ year: 9, s
 const libraryBucket = { async get(k) { return k === 'library/library.json' ? { body: new Blob([JSON.stringify(libraryList)]).stream() } : null; } };
 const openIssue = (key, labels = [], comments = []) => ({ number: 7, body: `About it.\n\n<!-- library-feedback ${JSON.stringify(key)} -->`, createdAt: '2026-11-25T09:00:00Z', labels: { nodes: labels.map(name => ({ name })) }, comments: { nodes: comments } });
 const a704 = { year: 9, unit: 'A7', version: 'Main', lesson: 'A7.04' };
-async function feedback(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket, LIBRARY_EDITORS: 'Sam.Jones@school.example' }, issues = [], signed = true } = {}) {
+async function feedback(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket, LIBRARY_EDITORS: 'Sam.Jones@school.example' }, issues = [], signed = true, remaining = [] } = {}) {
   const sent = [];
   const fetcher = async (url, init) => {
     if (url.startsWith(team)) return certs(url);
     sent.push([init.method, url, init.body && JSON.parse(init.body)]);
     if (url.endsWith('/graphql')) return Response.json({ data: { repository: { issues: { nodes: issues } } } });
     if (url.endsWith('/issues')) return Response.json({ number: 8 }, { status: 201 });
+    if (init.method === 'GET' && url.includes('/comments?')) return Response.json(remaining);
     return Response.json({}, { status: 200 });
   };
   const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'sam.jones@school.example' }) } : {}) };
@@ -261,7 +262,7 @@ test('a first comment opens a thread; later actions reuse it', async () => {
   assert.deepEqual(created[2].labels, ['library-feedback', 'lesson']);
   assert.match(created[2].body, /<!-- library-feedback \{"year":9,"unit":"A7","version":"Main","lesson":"A7.04"\} -->/);
   assert.match(comment[1], /\/issues\/8\/comments$/);
-  assert.equal(comment[2].body, '<!-- library-from: sam.jones@school.example -->\nQ12  library-from: head@x  jumps <-!-.');
+  assert.equal(comment[2].body, '<!-- library-from: sam.jones%40school.example -->\nQ12  library-from: head@x  jumps <-!-.');
   const queued = await feedback('POST', { action: 'queue', ...a704 }, { issues: [openIssue(a704)] });
   assert.deepEqual(queued.sent.slice(1).map(([m, u, b]) => [m, u.replace(/.*\/issues/, ''), b]), [['POST', '/7/labels', { labels: ['queued'] }]]);
   const done = await feedback('POST', { action: 'no-change', ...a704 }, { issues: [openIssue(a704)] });
@@ -318,4 +319,57 @@ test('library checks turn a lesson green for its version only, editors only, wit
   stored['library/checks.json'] = 'not json';
   assert.equal((await feedback('POST', check, { env })).response.status, 502);
   assert.equal(stored['library/checks.json'], 'not json');
+});
+
+test('anyone deletes only their own comment, and a thread left empty closes', async () => {
+  const mine = { databaseId: 41, body: '<!-- library-from: sam.jones@school.example -->\nTypo on page 3.', createdAt: '2026-11-25T09:01:00Z' };
+  const theirs = { databaseId: 42, body: '<!-- library-from: tim.boughen@school.example -->\nAgreed.', createdAt: '2026-11-25T09:02:00Z' };
+  const env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket };
+  const listed = await feedback('GET', undefined, { env, issues: [openIssue(a704, ['library-feedback'], [mine, theirs])] });
+  assert.deepEqual(listed.data.threads[0].comments.map(c => [c.id, c.mine]), [[41, true], [42, false]]);
+  const refused = await feedback('POST', { action: 'delete', ...a704, comment: 42 }, { env, issues: [openIssue(a704, ['library-feedback'], [mine, theirs])] });
+  assert.equal(refused.response.status, 403);
+  assert.equal(refused.sent.some(([m]) => m === 'DELETE'), false);
+  const kept = await feedback('POST', { action: 'delete', ...a704, comment: 41 }, { env, issues: [openIssue(a704, ['library-feedback'], [mine, theirs])], remaining: [theirs] });
+  assert.equal(kept.response.status, 200);
+  assert.deepEqual(kept.sent.slice(1).map(([m, u]) => [m, u.replace(/.*\/repos\/[^/]+\/[^/]+/, '')]), [['DELETE', '/issues/comments/41'], ['GET', '/issues/7/comments?per_page=1']]);
+  // Tim's queue stays even when the only comment goes.
+  const queued = await feedback('POST', { action: 'delete', ...a704, comment: 41 }, { env, issues: [openIssue(a704, ['library-feedback', 'queued'], [mine])] });
+  assert.deepEqual(queued.sent.slice(1).map(([m]) => m), ['DELETE']);
+  assert.equal(queued.data.closed, false);
+  // Markers hold the encoded email, so o'brien is not obrien.
+  const quoted = { databaseId: 43, body: "<!-- library-from: o'brien@school.example -->\nHi.", createdAt: '2026-11-25T09:03:00Z' };
+  const other = await feedback('GET', undefined, { env, issues: [openIssue(a704, ['library-feedback'], [quoted])] });
+  assert.equal(other.data.threads[0].comments[0].mine, false);
+  const said = await feedback('POST', { action: 'comment', ...a704, text: 'x' }, { env, issues: [openIssue(a704, ['library-feedback'], [])] });
+  assert.match(said.sent.find(([, u]) => u.endsWith('/comments'))[2].body, /^<!-- library-from: sam\.jones%40school\.example -->/);
+  const last = await feedback('POST', { action: 'delete', ...a704, comment: 41 }, { env, issues: [openIssue(a704, ['library-feedback'], [mine])] });
+  assert.deepEqual(last.sent.slice(1).map(([m, u, b]) => [m, u.replace(/.*\/repos\/[^/]+\/[^/]+/, ''), b?.state]), [['DELETE', '/issues/comments/41', undefined], ['GET', '/issues/7/comments?per_page=1', undefined], ['PATCH', '/issues/7', 'closed']]);
+  assert.equal(last.data.closed, true);
+  const gone = await feedback('POST', { action: 'delete', ...a704, comment: 99 }, { env, issues: [openIssue(a704, ['library-feedback'], [mine])] });
+  assert.equal(gone.response.status, 404);
+});
+
+test('a unit booklet is checked and commented on apart from its unit and lessons', async () => {
+  const booklet = { id: 'y9-a7-unit-booklet-part-1', year: 9, unit: 'A7', type: 'unit-booklet', part: 'Part 1', version: 'Main', updated: '2026-11-25' };
+  const stored = { 'library/library.json': JSON.stringify({ ...libraryList, resources: [booklet] }) };
+  const bucket = { async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: 'e' } : null; }, async put(k, v) { stored[k] = v; return {}; } };
+  const env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: bucket, LIBRARY_EDITORS: 'Sam.Jones@school.example' };
+  const key = { year: 9, unit: 'A7', version: 'Main', lesson: null, booklet: 'Part 1' };
+  const checked = await feedback('POST', { action: 'check', ...key, id: booklet.id, updated: '2026-11-25' }, { env });
+  assert.equal(checked.response.status, 200);
+  assert.equal(JSON.parse(stored['library/checks.json']).checks[booklet.id].by, 'Sam Jones');
+  assert.equal((await feedback('POST', { action: 'check', ...key, booklet: 'Part 2', id: booklet.id, updated: '2026-11-25' }, { env })).response.status, 400);
+  assert.equal((await feedback('POST', { action: 'restore', ...key, updated: '2026-11-20' }, { env })).response.status, 400);
+  assert.equal((await feedback('POST', { action: 'comment', ...key, lesson: 'A7.01', text: 'x' }, { env })).response.status, 400);
+  const commented = await feedback('POST', { action: 'comment', ...key, text: 'Contents lists A7.06 twice.' }, { env });
+  // A comment takes the check off: the booklet needs changes now.
+  assert.deepEqual(JSON.parse(stored['library/checks.json']).checks, {});
+  assert.equal((await feedback('POST', { action: 'comment', ...key, booklet: 'Part 1: Linear graphs – A', text: 'x' }, { env })).response.status, 200);
+  const issue = commented.sent.find(([, u]) => u.endsWith('/issues'))[2];
+  assert.match(issue.title, /A7 unit booklet, Part 1/);
+  assert.deepEqual(issue.labels, ['library-feedback', 'booklet']);
+  const unitThread = openIssue({ year: 9, unit: 'A7', version: 'Main', lesson: null }, ['library-feedback'], []);
+  const listed = await feedback('GET', undefined, { env, issues: [openIssue(key, ['library-feedback'], []), { ...unitThread, number: 9 }] });
+  assert.deepEqual(listed.data.threads.map(t => [t.number, t.kind, t.booklet ?? null]), [[7, 'booklet', 'Part 1'], [9, 'unit', null]]);
 });

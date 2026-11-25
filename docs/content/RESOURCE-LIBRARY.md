@@ -77,11 +77,24 @@ hidden marker naming the year, unit, version and lesson; comments carry the send
 a hidden marker and show only their name. It uses the `REPORT_GITHUB_TOKEN` Worker secret
 (`docs/release/STAFF-SIGN-IN.md`); without it the page says feedback isn't switched on yet.
 
-- **✓ Checked** (editors, on any amber lesson) turns that version green at once and closes any open
-  comments on it. The Worker keeps checks in `library/checks.json` in R2 (`{ id: { updated, by, at } }`);
-  the page shows a booklet ready when its check names its current `updated` date, so a rebuilt lesson
-  goes back to amber by itself. **Undo** removes the check. Publishing never touches this file.
-- **Queue for tonight** adds the label `queued`. **No change needed** comments and closes the issue.
+- **The status switch** (Tim, 25 Nov): every made lesson and every unit booklet has **Waiting ·
+  Changes · Checked**, the lit part in the row's colour, with a line saying who set it. Colleagues who
+  are not editors see only the lit part. **Checked** turns that version green at once and closes its
+  open comments (on a queued lesson it asks first, then cancels the rebuild). The Worker keeps checks in
+  `library/checks.json` in R2 (`{ id: { updated, by, at } }`); the page shows a booklet ready when its
+  check names its current `updated` date, so a rebuilt booklet goes back to amber by itself. Publishing
+  never touches this file. **Changes** opens the comment box and sticks once a comment is sent (on a
+  checked booklet that also takes the check off). **Waiting** is the undo: it removes the check, or,
+  after asking, closes the comments. On screens under 600 px only the lit part keeps its word.
+- **Unit booklets** have their own row above their lessons, keyed by part name (`booklet`: "Part 1",
+  or "Unit booklet" for a unit in one booklet). Their comments are about the booklet's own pages (cover,
+  contents, topic introduction, Know it, Do it) and how the lessons are put together; issues carry the
+  label `booklet`. Comments on the unit's structure stay separate.
+- **Ask for this** on a lesson not made yet opens a thread on it; requests show under "Asked for" in
+  Feedback to act on.
+- **Delete** (anyone, on their own comments): the comment hides at once with Undo, and is deleted after
+  five seconds. A thread left with no comments closes.
+- **Queue for tonight** adds the label `queued`.
 - **Make current again** comments with the date of the earlier version and adds `queued`.
 - Unit comments: **Agree: plan the change** adds `agreed`; **Keep as it is** closes. Unit comments are
   never queued: they wait for Tim's decision in a planning thread.

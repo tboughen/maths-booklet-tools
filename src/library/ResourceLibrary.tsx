@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy, Download, History, LayoutGrid, Map as MapIcon, MessageSquare, Search, X } from "lucide-react";
+import { BookOpen, Check, Clock, Copy, Download, Hand, History, Moon, Pencil, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
-  applyChecks, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
+  applyChecks, bookletName, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
   summary, threadKey, threadMap, typeNames, unitBooklets, unitLabel, unitOf, versionsOf, writeState,
   type Feedback, type FeedbackAction, type LessonRow, type LessonState, type Library, type LibraryFile, type LibraryState, type LibraryUnit, type Resource, type Thread,
 } from "./model";
@@ -292,14 +292,14 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
       </div>
       {fb.off && fb.off !== "Loading feedback…" && <p className="library-hint">{fb.off}</p>}
       {message && <p className="library-status" role="status">{message}</p>}
-      {showUnitBox && <ThreadView year={year} unit={unit.code} version={version} lesson={null} thread={unitThread} />}
+      {showUnitBox && <ThreadView target={{ year, unit: unit.code, version, lesson: null }} thread={unitThread} />}
       {(ranges ?? [{ name: "", start: 0, end: rows.length - 1, from: "", to: "" }]).map((p) => {
         const booklet = booklets.find((b) => (p.name ? b.part === p.name : !b.part)) ?? (ranges ? undefined : booklets[0]);
         if (!booklet) return null;
         return (
           <div key={p.name || "whole"} className="library-part">
             <div className="library-part-head"><span>{p.name ? `${p.name} · ${p.from} to ${p.to}` : "Unit booklet"}</span><Squares rows={rows.slice(p.start, p.end + 1)} /></div>
-            <FileLinks files={booklet.files} />
+            <BookletLine booklet={booklet} year={year} unit={unit.code} version={version} heading={p.name ? "" : unit.title} />
           </div>
         );
       })}
@@ -311,45 +311,159 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
   );
 }
 
-function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: number; unit: string; version: string; part?: string }) {
+type Target = { year: number; unit: string; version: string; lesson: string | null; booklet?: string | null };
+type Ask = null | "waiting" | "checked";
+
+/**
+ * The status switch (Tim, 25 Nov): Waiting (clock) · Changes (pencil, a moon when queued) · Checked (tick), the lit part always in the row's
+ * colour. Editors tap a part to set it; colleagues see the lit part as a label. Changes opens the comment
+ * box and sticks once a comment is sent; Waiting is the undo. On narrow screens only the lit part keeps its word.
+ */
+function StatusSwitch({ status, queued, canAct, busy, label, onPick }: { status: "waiting" | "feedback" | "ready"; queued: boolean; canAct: boolean; busy: boolean; label: string; onPick: (to: "waiting" | "feedback" | "ready") => void }) {
+  const parts = [
+    { to: "waiting", Icon: Clock, word: "Waiting" },
+    { to: "feedback", Icon: queued ? Moon : Pencil, word: "Changes" },
+    { to: "ready", Icon: Check, word: "Checked" },
+  ] as const;
+  if (!canAct) {
+    const on = parts.find((p) => p.to === status)!;
+    return <span className={`library-switch is-label is-${status}`}><span className="on"><on.Icon size={14} aria-hidden="true" />{on.word}</span></span>;
+  }
+  return (
+    <span className={`library-switch is-${status}`} role="group" aria-label={`Status of ${label}`}>
+      {parts.map((p) => (
+        <button key={p.to} type="button" className={p.to === status ? "on" : ""} aria-pressed={p.to === status} disabled={busy} onClick={() => onPick(p.to)}>
+          <p.Icon size={14} aria-hidden="true" /><span className="word">{p.word}</span>
+        </button>
+      ))}
+    </span>
+  );
+}
+
+/**
+ * Everything a made lesson or unit booklet row does with its status: the switch, the line saying who set
+ * it, the confirm before closing comments or cancelling a rebuild, and the comment thread.
+ */
+function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
   const fb = useContext(FeedbackContext);
-  const [open, setOpen] = useState<boolean | null>(null);
-  const [history, setHistory] = useState(false);
-  const r = row.resource;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  // ✓ Checked turns this version green at once (and closes any open comments on it); Undo takes it back.
-  async function tick(action: "check" | "uncheck") {
-    if (!r) return;
-    setBusy(true); setMessage("");
-    try { setMessage(await fb.act({ action, year, unit, version, lesson: row.code, id: r.id, updated: r.updated, close: action === "check" && !!row.thread && !row.thread.queued })); }
+  const [ask, setAsk] = useState<Ask>(null);
+  const [open, setOpen] = useState<boolean | null>(null);
+  const status: "waiting" | "feedback" | "ready" = thread ? "feedback" : r.status;
+  async function run(...actions: FeedbackAction[]) {
+    setBusy(true); setMessage(""); setAsk(null);
+    try { let warning = ""; for (const a of actions) warning = (await fb.act(a)) || warning; setMessage(warning); }
     catch (e) { setMessage((e as Error).message); }
     finally { setBusy(false); }
   }
-  // Open feedback shows straight away; anyone can open an empty thread on a made lesson.
-  const shown = !!row.code && !fb.off && (r || row.thread) && (open ?? !!row.thread);
+  const base = { year: t.year, unit: t.unit, version: t.version, lesson: t.lesson, booklet: t.booklet ?? null, id: r.id, updated: r.updated };
+  const toChecked = (cancelQueued = false) => run({ action: "check", ...base, close: !!thread, cancelQueued });
+  const toWaiting = () => run(...[thread && { action: "no-change", ...base } as FeedbackAction, r.checked && { action: "uncheck", ...base } as FeedbackAction].filter((a): a is FeedbackAction => !!a));
+  function pick(to: "waiting" | "feedback" | "ready") {
+    if (to === status) { if (to === "feedback") setOpen(true); return; }
+    if (to === "feedback") { setOpen(true); setMessage("Write what needs changing and send it: the lesson turns violet once it's sent."); return; }
+    if (to === "ready") { if (thread?.queued) setAsk("checked"); else void toChecked(); return; }
+    if (thread) setAsk("waiting");
+    else if (r.checked) void toWaiting();
+    else setMessage("This booklet was published as ready, so it can't be put back to waiting here. Ask Claude to change it.");
+  }
+  // The Worker takes any check off when a comment arrives, so the colour says Changes after the reload.
+  const onSent = () => setMessage("");
+  const [Icon, words] = thread?.queued ? [Moon, `Queued for tonight · ${thread.comments.length} comment${thread.comments.length === 1 ? "" : "s"}`]
+    : thread ? [Pencil, `Changes asked by ${thread.comments[0]?.who ?? "a colleague"} · ${day(thread.opened)}`]
+    : r.checked ? [Check, `Checked by ${r.checked.by} · ${day(r.checked.at || r.checked.updated)}`]
+    : r.status === "ready" ? [Check, `Ready · ${day(r.updated)}`] : [Clock, `Waiting for a check · made ${day(r.updated)}`];
+  const who = <><Icon size={13} aria-hidden="true" />{words}</>;
+  const confirm = ask && (
+    <div className="library-confirm" role="group" aria-label="Confirm">
+      {ask === "checked" ? <p>This is queued for a rebuild tonight. Mark it Checked and cancel the rebuild?</p> : <p>Close the {thread?.comments.length ?? 0} comment{thread?.comments.length === 1 ? "" : "s"}{thread?.queued ? " and cancel tonight's rebuild" : ""}{r.status === "ready" && !r.checked ? "?" : " and put it back to Waiting?"}</p>}
+      <div className="library-actions">
+        {ask === "checked" ? <button type="button" className="green-fill" onClick={() => toChecked(true)}>Yes, it's fine</button> : <button type="button" className="primary" onClick={toWaiting}>Yes, close them</button>}
+        <button type="button" onClick={() => setAsk(null)}>{ask === "checked" ? "Keep the rebuild" : "Keep the comments"}</button>
+      </div>
+    </div>
+  );
+  return { status, busy, message, confirm, who, pick, onSent, open: open ?? !!thread, setOpen };
+}
+
+function CommentCount({ thread, open, setOpen }: { thread?: Thread; open: boolean; setOpen: (v: boolean) => void }) {
+  const n = thread?.comments.length ?? 0;
+  return <button type="button" className="library-count" aria-expanded={open} aria-label={`${n} comment${n === 1 ? "" : "s"}`} onClick={() => setOpen(!open)}><MessageSquare size={14} aria-hidden="true" />{n}</button>;
+}
+
+function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: number; unit: string; version: string; part?: string }) {
+  const fb = useContext(FeedbackContext);
+  const r = row.resource;
+  const [history, setHistory] = useState(false);
   return (
     <li className={`library-row is-${row.state}`}>
       {part && <p className="library-part-label">{part}</p>}
+      {r && row.code && !fb.off ? <MadeRow t={{ year, unit, version, lesson: row.code }} r={r} thread={row.thread} title={<><b>{row.code}</b> {row.title}</>} history={history} setHistory={setHistory} />
+        : <PlainRow row={row} t={{ year, unit, version, lesson: row.code || null }} history={history} setHistory={setHistory} />}
+    </li>
+  );
+}
+
+function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: Resource; thread?: Thread; title: React.ReactNode; history?: boolean; setHistory?: (v: boolean) => void }) {
+  const fb = useContext(FeedbackContext);
+  const s = useStatus(t, r, thread);
+  const label = t.lesson ?? t.booklet ?? r.title;
+  return (
+    <>
+      <div className="library-row-main">
+        <i className={`library-sq is-${s.status}`} aria-hidden="true" />
+        <span className="library-row-text">
+          <span className="library-row-title">{title}</span>
+          <span className={`library-row-state is-${s.status}`}>{s.who}{setHistory && <>{" · "}<button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button></>}</span>
+        </span>
+        <StatusSwitch status={s.status} queued={!!thread?.queued} canAct={fb.canAct} busy={s.busy} label={label} onPick={s.pick} />
+        <CommentCount thread={thread} open={s.open} setOpen={s.setOpen} />
+      </div>
+      <FileLinks files={r.files} />
+      {history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
+      {s.confirm}
+      {s.message && <p className="library-status" role="status">{s.message}</p>}
+      {s.open && <ThreadView target={t} thread={thread} onSent={s.onSent} />}
+    </>
+  );
+}
+
+/** A lesson not made yet (anyone can ask for it), a starter, or a row when feedback is off. */
+function PlainRow({ row, t, history, setHistory }: { row: LessonRow; t: Target; history: boolean; setHistory: (v: boolean) => void }) {
+  const fb = useContext(FeedbackContext);
+  const r = row.resource;
+  const [open, setOpen] = useState<boolean | null>(null);
+  const canAsk = !r && !!row.code && !fb.off;
+  const shown = canAsk && (open ?? !!row.thread);
+  return (
+    <>
       <div className="library-row-main">
         <i className={`library-sq is-${row.state}`} aria-hidden="true" />
         <span className="library-row-text">
           <span className="library-row-title">{row.code && <b>{row.code}</b>} {row.title}</span>
-          {r && (
-            <span className="library-row-state">
-              {stateNames[row.state]}{r.checked ? ` · checked by ${r.checked.by}` : ""}{fb.canAct && r.checked && <> <button type="button" className="library-link" disabled={busy} onClick={() => tick("uncheck")}>Undo</button></>}{row.thread?.queued ? " · queued for tonight" : ""}{row.state === "feedback" ? ` (current version ${r.status === "ready" ? "ready" : "waiting for check"})` : ""} · {day(r.updated)}{" "}
-              <button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button>
-            </span>
-          )}
+          {r && <span className="library-row-state">{stateNames[r.status]} · {day(r.updated)} <button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button></span>}
+          {!r && row.thread && <span className="library-row-state"><Hand size={13} aria-hidden="true" />Asked for by {row.thread.comments[0]?.who ?? "a colleague"}</span>}
         </span>
-        {fb.canAct && r && row.code && r.status === "waiting" && <button type="button" className="library-chip is-check" disabled={busy} title="You have looked at this version and it needs no changes" onClick={() => tick("check")}><Check size={14} aria-hidden="true" />Checked</button>}
-        {(r || row.thread) && row.code && !fb.off && <button type="button" className="library-chip" aria-expanded={!!shown} onClick={() => setOpen(!shown)}>{row.thread ? `${row.thread.comments.length} comment${row.thread.comments.length === 1 ? "" : "s"}` : "Feedback"}</button>}
+        {canAsk && (row.thread ? <CommentCount thread={row.thread} open={!!shown} setOpen={setOpen} /> : <button type="button" className="library-chip" aria-expanded={!!shown} onClick={() => setOpen(!shown)}><Hand size={14} aria-hidden="true" />Ask for this</button>)}
       </div>
       {r && <FileLinks files={r.files} />}
-      {r && history && <HistoryList resource={r} year={year} unit={unit} version={version} />}
-      {message && <p className="library-status" role="status">{message}</p>}
-      {shown && <ThreadView year={year} unit={unit} version={version} lesson={row.code} thread={row.thread} />}
-    </li>
+      {r && history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
+      {shown && <ThreadView target={t} thread={row.thread} ask />}
+    </>
+  );
+}
+
+/** A unit booklet: its own cover, contents, topic pages and assembly, checked and commented on apart from its lessons. */
+function BookletLine({ booklet, year, unit, version, heading }: { booklet: Resource; year: number; unit: string; version: string; heading: string }) {
+  const fb = useContext(FeedbackContext);
+  const name = bookletName(booklet);
+  const thread = fb.threads.get(threadKey(year, unit, version, null, name));
+  if (fb.off) return <FileLinks files={booklet.files} />;
+  return (
+    <div className={`library-row is-booklet is-${thread ? "feedback" : booklet.status}`}>
+      <MadeRow t={{ year, unit, version, lesson: null, booklet: name }} r={booklet} thread={thread} title={<><BookOpen size={15} aria-hidden="true" /> <b>Unit booklet</b> {heading}</>} />
+    </div>
   );
 }
 
@@ -377,37 +491,58 @@ function HistoryList({ resource: r, year, unit, version }: { resource: Resource;
   );
 }
 
-function ThreadView({ year, unit, version, lesson, thread }: { year: number; unit: string; version: string; lesson: string | null; thread?: Thread }) {
+function ThreadView({ target, thread, onSent, ask = false }: { target: Target; thread?: Thread; onSent?: () => void; ask?: boolean }) {
   const fb = useContext(FeedbackContext);
+  const { year, unit, version, lesson } = target;
+  const booklet = target.booklet ?? null;
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  // A deleted comment hides at once and is only sent after a few seconds, so Undo is instant.
+  const [gone, setGone] = useState<number[]>([]);
+  const timers = useRef(new Map<number, number>());
+  // Closing the comments (or leaving the unit) sends any pending delete at once rather than dropping it.
+  const pending = useRef(new Map<number, () => void>());
+  useEffect(() => () => { for (const [id, t] of timers.current) { window.clearTimeout(t); pending.current.get(id)?.(); } }, []);
   async function run(action: FeedbackAction["action"], done: string) {
     setBusy(true); setMessage("");
-    try { await fb.act({ action, year, unit, version, lesson, text: action === "comment" ? text : undefined }); if (action === "comment") setText(""); setMessage(done); }
+    try { await fb.act({ action, year, unit, version, lesson, booklet, text: action === "comment" ? text : undefined }); if (action === "comment") { setText(""); onSent?.(); } setMessage(done); }
     catch (e) { setMessage((e as Error).message); }
     finally { setBusy(false); }
   }
-  const forUnit = lesson === null;
+  function remove(id: number) {
+    setGone((g) => [...g, id]);
+    const send = () => {
+      timers.current.delete(id); pending.current.delete(id);
+      fb.act({ action: "delete", year, unit, version, lesson, booklet, comment: id }).then(() => setGone((g) => g.filter((x) => x !== id)), (e: Error) => { setGone((g) => g.filter((x) => x !== id)); setMessage(e.message); });
+    };
+    pending.current.set(id, send);
+    timers.current.set(id, window.setTimeout(send, 5000));
+  }
+  function undo(id: number) { window.clearTimeout(timers.current.get(id)); timers.current.delete(id); pending.current.delete(id); setGone((g) => g.filter((x) => x !== id)); }
+  const forUnit = lesson === null && !booklet;
+  const name = forUnit ? "this unit" : booklet ? `the unit booklet${booklet === "Unit booklet" ? "" : ` (${booklet})`}` : lesson;
   return (
-    <div className={`library-thread${forUnit ? " is-unit" : ""}`} role="group" aria-label={forUnit ? "Feedback on this unit" : `Feedback on ${lesson}`}>
+    <div className={`library-thread${forUnit ? " is-unit" : ""}`} role="group" aria-label={forUnit ? "Feedback on this unit" : booklet ? `Feedback on ${name}` : `Feedback on ${lesson}`}>
       {forUnit && <p className="library-thread-label">Unit structure: objectives, lesson order, combining or splitting lessons, where the unit sits</p>}
-      {thread?.comments.length ? thread.comments.map((c, i) => (
-        <div key={i} className="library-comment"><span className="library-who"><b>{c.who}</b> · {day(c.when)}</span><p>{c.text}</p></div>
-      )) : <p className="library-hint">No comments on this {forUnit ? "unit" : "lesson"} yet. Anyone signed in can read them.</p>}
+      {booklet && <p className="library-thread-label">The unit booklet's own pages: cover, contents, topic introduction, Know it, Do it, and how the lessons are put together</p>}
+      {thread?.comments.length ? thread.comments.map((c, i) => c.id !== undefined && gone.includes(c.id)
+        ? <div key={c.id} className="library-comment is-gone"><span className="library-who">Comment deleted · <button type="button" className="library-link" onClick={() => undo(c.id!)}>Undo</button></span></div>
+        : <div key={c.id ?? i} className="library-comment"><span className="library-who"><b>{c.who}</b> · {day(c.when)}{c.mine && c.id !== undefined && <button type="button" className="library-link library-delete" onClick={() => remove(c.id!)} aria-label={`Delete your comment from ${day(c.when)}`}><Trash2 size={12} aria-hidden="true" />Delete</button>}</span><p>{c.text}</p></div>
+      ) : <p className="library-hint">{ask ? "Ask for this lesson to be made: say which class needs it, and by when." : `No comments on ${name} yet. Anyone signed in can read them.`}</p>}
       <label className="library-say">
         <span className="sr-only">Add a comment</span>
-        <textarea rows={2} value={text} maxLength={2000} placeholder={forUnit ? "Suggest a change to how this unit is put together…" : "Add a comment: what to change, and where (page, question)…"} onChange={(e) => setText(e.target.value)} />
+        <textarea rows={2} value={text} maxLength={2000} autoFocus={!thread} placeholder={forUnit ? "Suggest a change to how this unit is put together…" : ask ? "Which class needs it, and by when?" : "Add a comment: what to change, and where (page, question)…"} onChange={(e) => setText(e.target.value)} />
       </label>
       <div className="library-actions">
-        <button type="button" className="primary" disabled={busy || !text.trim()} onClick={() => run("comment", "Comment added.")}>Send</button>
-        {fb.canAct && thread && !forUnit && !thread.queued && <button type="button" className="violet-fill" disabled={busy} onClick={() => run("queue", "Queued for tonight's run.")}>Queue for tonight</button>}
+        <button type="button" className="primary" disabled={busy || !text.trim()} onClick={() => run("comment", ask && !thread ? "Asked. It shows in Feedback to act on." : "Comment added.")}>Send</button>
+        {fb.canAct && thread && !forUnit && !thread.queued && <button type="button" className="violet-fill" disabled={busy} onClick={() => run("queue", "Queued for tonight's run.")}><Moon size={14} aria-hidden="true" />Queue for tonight</button>}
         {fb.canAct && thread && !forUnit && thread.queued && <button type="button" disabled={busy} onClick={() => run("unqueue", "Taken out of the queue.")}>Take out of the queue</button>}
-        {fb.canAct && thread && !forUnit && <button type="button" disabled={busy} onClick={() => run("no-change", "Closed: no change needed.")}>No change needed</button>}
+        {fb.canAct && thread && ask && <button type="button" disabled={busy} onClick={() => run("no-change", "Closed.")}>Close the request</button>}
         {fb.canAct && thread && forUnit && !thread.agreed && <button type="button" disabled={busy} onClick={() => run("agree", "Agreed. Plan the change in a thread with Claude.")}>Agree: plan the change</button>}
         {fb.canAct && thread && forUnit && <button type="button" disabled={busy} onClick={() => run("keep", "Closed: the unit stays as it is.")}>Keep as it is</button>}
       </div>
-      {thread?.queued && <p className="library-toast">Queued for tonight's run. At 10 PM Claude asks Tim whether to run it; if he says yes, the lesson is rebuilt from these comments, comes back here amber, waiting for a check, and the comments are closed.</p>}
+      {thread?.queued && <p className="library-toast">Queued for tonight's run. At 10 PM Claude asks Tim whether to run it; if he says yes, it is rebuilt from these comments, comes back here amber, waiting for a check, and the comments are closed.</p>}
       {forUnit && <p className="library-hint">{thread?.agreed ? "Agreed: waiting to be planned. " : ""}Unit comments never go in the nightly queue: they wait for a decision.</p>}
       {message && <p className="library-status" role="status">{message}</p>}
     </div>
@@ -417,14 +552,16 @@ function ThreadView({ year, unit, version, lesson, thread }: { year: number; uni
 function Drawer({ list, close, open }: { list: Library; close: () => void; open: (year: number, unit: string, version?: string) => void }) {
   const fb = useContext(FeedbackContext);
   const [message, setMessage] = useState("");
-  const lessons = fb.all.filter((t) => t.kind === "lesson"), units = fb.all.filter((t) => t.kind === "unit");
+  const made = (t: Thread) => t.kind === "booklet" || list.resources.some((r) => r.year === t.year && r.unit === t.unit && r.version === t.version && r.lesson === t.lesson);
+  const lessons = fb.all.filter((t) => t.kind !== "unit" && made(t)), asks = fb.all.filter((t) => t.kind === "lesson" && !made(t)), units = fb.all.filter((t) => t.kind === "unit");
   const queued = lessons.filter((t) => t.queued).length;
   const title = (t: Thread) => {
     const u = unitOf(list, t.year, t.unit);
     const name = t.lesson ? u?.lessons?.find((l) => l.code === t.lesson)?.title ?? list.resources.find((r) => r.year === t.year && r.unit === t.unit && r.lesson === t.lesson)?.title ?? "" : u?.title ?? "";
+    if (t.booklet) return `Y${t.year} · ${t.unit} unit booklet${t.booklet === "Unit booklet" ? "" : ` · ${t.booklet}`}${t.version === "Main" ? "" : ` · ${t.version}`}`;
     return `Y${t.year} · ${t.lesson ?? t.unit} ${name}${t.version === "Main" ? "" : ` · ${t.version}`}`;
   };
-  const queue = (t: Thread) => fb.act({ action: "queue", year: t.year, unit: t.unit, version: t.version, lesson: t.lesson });
+  const queue = (t: Thread) => fb.act({ action: "queue", year: t.year, unit: t.unit, version: t.version, lesson: t.lesson, booklet: t.booklet ?? null });
   async function queueAll() {
     setMessage("Queueing…");
     try { for (const t of lessons.filter((x) => !x.queued)) await queue(t); setMessage("All lesson feedback is queued for tonight."); }
@@ -439,8 +576,8 @@ function Drawer({ list, close, open }: { list: Library; close: () => void; open:
         {t.queued && <span className="library-toast">Queued for tonight</span>}
         {t.agreed && <span className="library-toast">Agreed: to plan</span>}
         <span className="library-actions">
-          <button type="button" onClick={() => open(t.year, t.unit, t.version)}>Open {t.kind === "unit" ? "unit" : "lesson"}</button>
-          {fb.canAct && t.kind === "lesson" && !t.queued && <button type="button" className="violet-fill" onClick={() => queue(t).catch((e: Error) => setMessage(e.message))}>Queue for tonight</button>}
+          <button type="button" onClick={() => open(t.year, t.unit, t.version)}>Open {t.kind === "lesson" ? "lesson" : "unit"}</button>
+          {fb.canAct && t.kind !== "unit" && made(t) && !t.queued && <button type="button" className="violet-fill" onClick={() => queue(t).catch((e: Error) => setMessage(e.message))}>Queue for tonight</button>}
         </span>
       </li>
     );
@@ -453,10 +590,13 @@ function Drawer({ list, close, open }: { list: Library; close: () => void; open:
         <h3>Lessons · {lessons.length}</h3>
         {lessons.length ? <ul className="library-items">{lessons.map(item)}</ul> : <p className="library-hint">No lesson feedback is open.</p>}
         {fb.canAct && lessons.some((t) => !t.queued) && <div className="library-actions"><button type="button" className="violet-fill" onClick={queueAll}>Queue all lesson feedback for tonight</button></div>}
+        <h3>Asked for · {asks.length}</h3>
+        <p className="library-hint">Lessons colleagues have asked to be made.</p>
+        {asks.length ? <ul className="library-items">{asks.map(item)}</ul> : <p className="library-hint">Nobody has asked for a lesson.</p>}
         <h3>Unit structure · {units.length}</h3>
         <p className="library-hint">Questions about objectives, order and where units sit. These wait for a decision.</p>
         {units.length ? <ul className="library-items">{units.map(item)}</ul> : <p className="library-hint">No unit comments are open.</p>}
-        <p className="library-hint">Tonight's queue: {queued} lesson{queued === 1 ? "" : "s"}. A scheduled Claude run at about 2 AM works through the queue and publishes each rebuilt lesson as a new version waiting for a check. Earlier versions are kept.</p>
+        <p className="library-hint">Tonight's queue: {queued} lesson{queued === 1 ? "" : "s"}. At 10 PM Claude asks Tim whether to run it; the run publishes each rebuilt lesson as a new version waiting for a check. Earlier versions are kept.</p>
         {message && <p className="library-status" role="status">{message}</p>}
       </div>
     </div>

@@ -93,20 +93,49 @@ test("staff comment on a lesson and the editor queues it, closes it or brings ba
   await expect(drawer).toBeHidden();
 });
 
-test("an editor ticks Checked and the lesson turns green at once, with Undo", async ({ page }) => {
+test("an editor sets the status switch to Checked and the lesson turns green at once, and Waiting undoes it", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   const { main, sent } = await open(page, "/library?year=9&unit=A7", { threads: [] });
   const detail = main.getByRole("complementary", { name: "Unit resources" });
   const a700 = detail.locator(".library-rows > li").filter({ hasText: "A7.00" });
   await expect(a700).toHaveClass(/is-waiting/);
-  await a700.getByRole("button", { name: "Checked" }).click();
+  const status = a700.getByRole("group", { name: "Status of A7.00" });
+  await expect(status.getByRole("button", { name: "Waiting" })).toHaveAttribute("aria-pressed", "true");
+  await status.getByRole("button", { name: "Checked" }).click();
   await expect(a700).toHaveClass(/is-ready/);
-  await expect(a700).toContainText("checked by Tim Boughen");
-  await expect(a700.getByRole("button", { name: "Checked" })).toHaveCount(0);
+  await expect(a700).toContainText("Checked by Tim Boughen");
+  await expect(status.getByRole("button", { name: "Checked" })).toHaveAttribute("aria-pressed", "true");
   expect(sent[0]).toMatchObject({ action: "check", year: 9, unit: "A7", version: "Main", lesson: "A7.00", id: "y9-a7-00-lesson-booklet", updated: "2026-11-22" });
-  await a700.getByRole("button", { name: "Undo" }).click();
+  await status.getByRole("button", { name: "Waiting" }).click();
   await expect(a700).toHaveClass(/is-waiting/);
   await expect.poll(() => sent.map((s) => s.action)).toEqual(["check", "uncheck"]);
+});
+
+test("anyone deletes their own comment with Undo, asks for a lesson not made yet, and a unit booklet has its own switch", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const mine = thread({ comments: [{ id: 5, who: "Tim Boughen", when: "2026-11-25T09:00:00Z", text: "Page 3 typo.", mine: true }, { id: 6, who: "Sam Jones", when: "2026-11-25T09:05:00Z", text: "Agreed." }] });
+  const { main, sent } = await open(page, "/library?year=9&unit=A7", { threads: [mine] });
+  const detail = main.getByRole("complementary", { name: "Unit resources" });
+  const box = detail.getByRole("group", { name: "Feedback on A7.04" });
+  await expect(box.getByRole("button", { name: /Delete your comment/ })).toHaveCount(1);
+  await box.getByRole("button", { name: /Delete your comment/ }).click();
+  await expect(box).toContainText("Comment deleted");
+  await box.getByRole("button", { name: "Undo" }).click();
+  await expect(box).toContainText("Page 3 typo.");
+  await box.getByRole("button", { name: /Delete your comment/ }).click();
+  await expect.poll(() => sent.map((s) => s.action), { timeout: 9000 }).toEqual(["delete"]);
+  expect(sent[0]).toMatchObject({ lesson: "A7.04", comment: 5 });
+  const booklet = detail.locator(".library-row.is-booklet").first();
+  await expect(booklet.getByRole("group", { name: /^Status of / })).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("library-switch.png") });
+  await main.getByRole("navigation", { name: "Years" }).getByRole("button", { name: /^Year 9/ }).click();
+  await main.getByRole("region", { name: "Year 9 units" }).getByRole("button", { name: /^NP14/ }).click();
+  const none = detail.locator(".library-rows > li").filter({ hasText: "NP14.01" });
+  await none.getByRole("button", { name: "Ask for this" }).click();
+  await none.getByRole("textbox", { name: "Add a comment" }).fill("9X need it by Friday.");
+  await none.getByRole("button", { name: "Send" }).click();
+  await expect(none.getByRole("status")).toHaveText("Asked. It shows in Feedback to act on.");
+  expect(sent.at(-1)).toMatchObject({ action: "comment", lesson: "NP14.01", text: "9X need it by Friday." });
 });
 
 test("colleagues who are not editors can comment but not queue, and feedback that is off says so", async ({ page }) => {

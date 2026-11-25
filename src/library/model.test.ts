@@ -76,9 +76,17 @@ describe("Resource library list", () => {
     expect(commented.threads[0]).toMatchObject({ lesson: "A7.01", kind: "lesson", comments: [{ who: "Tim Boughen", text: "Q3 typo" }] });
     const queued = predictFeedback(commented, { action: "queue", ...key }) as Extract<Feedback, { threads: unknown }>;
     expect(queued.threads[0].queued).toBe(true);
-    const checked = predictFeedback(queued, { action: "check", ...key, id: "a", updated: "2026-11-25", close: true }) as Extract<Feedback, { threads: unknown }>;
+    expect((predictFeedback(queued, { action: "check", ...key, id: "a", updated: "2026-11-25", close: true }) as Extract<Feedback, { threads: unknown }>).threads).toHaveLength(1);
+    const checked = predictFeedback(queued, { action: "check", ...key, id: "a", updated: "2026-11-25", close: true, cancelQueued: true }) as Extract<Feedback, { threads: unknown }>;
     expect(checked.threads).toEqual([]);
     expect(checked.checks.a.by).toBe("Tim Boughen");
     expect((predictFeedback(checked, { action: "uncheck", ...key, id: "a" }) as Extract<Feedback, { checks: unknown }>).checks).toEqual({});
+    const two = { ...commented, threads: [{ ...commented.threads[0], comments: [{ id: 1, who: "Tim Boughen", when: "", text: "a", mine: true }, { id: 2, who: "Sam Jones", when: "", text: "b" }] }] } as Feedback;
+    const one = predictFeedback(two, { action: "delete", ...key, comment: 1 }) as Extract<Feedback, { threads: unknown }>;
+    expect(one.threads[0].comments.map((c) => c.id)).toEqual([2]);
+    expect((predictFeedback(one, { action: "delete", ...key, comment: 2 }) as Extract<Feedback, { threads: unknown }>).threads).toEqual([]);
+    const booklet = predictFeedback(old, { action: "comment", year: 9, unit: "A7", version: "Main", lesson: null, booklet: "Part 1", text: "Contents page wrong" }) as Extract<Feedback, { threads: unknown }>;
+    expect(booklet.threads[0]).toMatchObject({ kind: "booklet", booklet: "Part 1", lesson: null });
+    expect(threadMap(booklet.threads).has("9|A7|Main||Part 1")).toBe(true);
   });
 });
