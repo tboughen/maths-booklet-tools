@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Download, History, LayoutGrid, Map as MapIcon, MessageSquare, Search, X } from "lucide-react";
+import { Check, Copy, Download, History, LayoutGrid, Map as MapIcon, MessageSquare, Search, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
-  countState, fileHref, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
+  applyChecks, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
   summary, threadKey, threadMap, typeNames, unitBooklets, unitLabel, unitOf, versionsOf, writeState,
   type Feedback, type FeedbackAction, type LessonRow, type LessonState, type Library, type LibraryFile, type LibraryState, type LibraryUnit, type Resource, type Thread,
 } from "./model";
@@ -27,7 +27,7 @@ const FeedbackContext = createContext<FeedbackTools>({ threads: new Map(), all: 
  * the Map shows the whole scheme as squares.
  */
 export default function ResourceLibrary({ active = true }: { active?: boolean }) {
-  const [list, setList] = useState<Library | null>(null);
+  const [raw, setList] = useState<Library | null>(null);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState<Feedback>({ off: "Loading feedback…" });
   const [drawer, setDrawer] = useState(false);
@@ -60,12 +60,17 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     return () => window.removeEventListener("keydown", key);
   }, [active]);
 
+  // The page changes at once; if the Worker refuses, it goes back and the error shows. The fresh
+  // feedback loads in the background, and a failed reload keeps what the page has.
   const act = useCallback(async (a: FeedbackAction) => {
-    await sendFeedback(a);
-    // A failed reload keeps the threads we have rather than hiding feedback.
-    const next = await loadFeedback();
-    setFeedback((old) => ("off" in next && !("off" in old) ? old : next));
+    let before: Feedback | undefined;
+    setFeedback((old) => { before = old; return predictFeedback(old, a); });
+    try { await sendFeedback(a); }
+    catch (e) { if (before) setFeedback(before); throw e; }
+    loadFeedback().then((next) => setFeedback((old) => ("off" in next && !("off" in old) ? old : next)), () => {});
   }, []);
+  // A booklet an editor has ticked ✓ Checked at its current version shows green everywhere.
+  const list = useMemo(() => (raw ? applyChecks(raw, "off" in feedback ? {} : feedback.checks) : null), [raw, feedback]);
   const tools = useMemo<FeedbackTools>(() => ("off" in feedback
     ? { threads: new Map(), all: [], canAct: false, off: feedback.off, act }
     : { threads: threadMap(feedback.threads), all: feedback.threads, canAct: feedback.canAct, act }), [feedback, act]);
@@ -300,6 +305,16 @@ function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: 
   const [open, setOpen] = useState<boolean | null>(null);
   const [history, setHistory] = useState(false);
   const r = row.resource;
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  // ✓ Checked turns this version green at once (and closes any open comments on it); Undo takes it back.
+  async function tick(action: "check" | "uncheck") {
+    if (!r) return;
+    setBusy(true); setMessage("");
+    try { await fb.act({ action, year, unit, version, lesson: row.code, id: r.id, updated: r.updated, close: action === "check" && !!row.thread }); }
+    catch (e) { setMessage((e as Error).message); }
+    finally { setBusy(false); }
+  }
   // Open feedback shows straight away; anyone can open an empty thread on a made lesson.
   const shown = !!row.code && !fb.off && (r || row.thread) && (open ?? !!row.thread);
   return (
@@ -311,15 +326,17 @@ function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: 
           <span className="library-row-title">{row.code && <b>{row.code}</b>} {row.title}</span>
           {r && (
             <span className="library-row-state">
-              {stateNames[row.state]}{row.thread?.queued ? " · queued for tonight" : ""}{row.state === "feedback" ? ` (current version ${r.status === "ready" ? "ready" : "waiting for check"})` : ""} · {day(r.updated)}{" "}
+              {stateNames[row.state]}{r.checked ? ` · checked by ${r.checked.by}` : ""}{fb.canAct && r.checked && <> <button type="button" className="library-link" disabled={busy} onClick={() => tick("uncheck")}>Undo</button></>}{row.thread?.queued ? " · queued for tonight" : ""}{row.state === "feedback" ? ` (current version ${r.status === "ready" ? "ready" : "waiting for check"})` : ""} · {day(r.updated)}{" "}
               <button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button>
             </span>
           )}
         </span>
+        {fb.canAct && r && row.code && r.status === "waiting" && <button type="button" className="library-chip is-check" disabled={busy} title="You have looked at this version and it needs no changes" onClick={() => tick("check")}><Check size={14} aria-hidden="true" />Checked</button>}
         {(r || row.thread) && row.code && !fb.off && <button type="button" className="library-chip" aria-expanded={!!shown} onClick={() => setOpen(!shown)}>{row.thread ? `${row.thread.comments.length} comment${row.thread.comments.length === 1 ? "" : "s"}` : "Feedback"}</button>}
       </div>
       {r && <FileLinks files={r.files} />}
       {r && history && <HistoryList resource={r} year={year} unit={unit} version={version} />}
+      {message && <p className="library-status" role="status">{message}</p>}
       {shown && <ThreadView year={year} unit={unit} version={version} lesson={row.code} thread={row.thread} />}
     </li>
   );
@@ -379,7 +396,7 @@ function ThreadView({ year, unit, version, lesson, thread }: { year: number; uni
         {fb.canAct && thread && forUnit && !thread.agreed && <button type="button" disabled={busy} onClick={() => run("agree", "Agreed. Plan the change in a thread with Claude.")}>Agree: plan the change</button>}
         {fb.canAct && thread && forUnit && <button type="button" disabled={busy} onClick={() => run("keep", "Closed: the unit stays as it is.")}>Keep as it is</button>}
       </div>
-      {thread?.queued && <p className="library-toast">Queued for tonight's run (about 2 AM). Claude rebuilds the lesson from these comments; by morning it is back here amber, waiting for a check, and the comments are closed.</p>}
+      {thread?.queued && <p className="library-toast">Queued for tonight's run. At 10 PM Claude asks Tim whether to run it; if he says yes, the lesson is rebuilt from these comments, comes back here amber, waiting for a check, and the comments are closed.</p>}
       {forUnit && <p className="library-hint">{thread?.agreed ? "Agreed: waiting to be planned. " : ""}Unit comments never go in the nightly queue: they wait for a decision.</p>}
       {message && <p className="library-status" role="status">{message}</p>}
     </div>

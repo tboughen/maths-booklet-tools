@@ -73,6 +73,7 @@
 .library-actions button, .library-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--md-blue); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-blue); font: inherit; font-size: var(--md-text-sm); font-weight: 600; cursor: pointer; white-space: nowrap; }
 .library-actions button.primary { background: var(--md-blue); color: #fff; }
 .library-actions button.violet, .library-chip { border-color: var(--lib-violet); color: var(--lib-violet); }
+.library-chip.is-check { border-color: var(--lib-ready); color: var(--lib-ready); }
 .library-actions button.violet-fill { border-color: var(--lib-violet); background: var(--lib-violet); color: #fff; }
 .library-actions button:disabled { opacity: .5; cursor: default; }
 .library-part { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border: 1px solid var(--md-line); border-radius: var(--md-radius-card); background: var(--md-page); }

@@ -12,6 +12,8 @@ export type Earlier = { updated: string; note?: string; files: LibraryFile[] };
 export type Resource = {
   id: string; year: number; unit: string; lesson?: string; version: string; part?: string; note?: string;
   title: string; type: ResourceType; status: "ready" | "waiting"; updated: string; files: LibraryFile[]; history: Earlier[];
+  /** Set when an editor ticked ✓ Checked on this version on the page (not in the published list). */
+  checked?: Check;
 };
 export type Part = { name: string; from: string; to: string };
 export type LibraryUnit = { code: string; title: string; lessons?: { code: string; title: string }[]; parts?: Part[] };
@@ -132,15 +134,43 @@ export function writeState(state: LibraryState): string {
   return `?${p}`;
 }
 
+/** An editor's ✓ Checked on one version of a booklet: it stays only while that version is current. */
+export type Check = { updated: string; by: string; at: string };
+export type Checks = Record<string, Check>;
+/** The list as the page shows it: a waiting booklet checked at its current version is ready. */
+export function applyChecks(list: Library, checks: Checks): Library {
+  if (!Object.keys(checks).length) return list;
+  return { ...list, resources: list.resources.map((r) => { const c = checks[r.id]; return c && c.updated === r.updated && r.status === "waiting" ? { ...r, status: "ready", checked: c } : r; }) };
+}
+
 /** Feedback from the Worker. `off` when the Worker has no GitHub token yet. */
-export type Feedback = { threads: Thread[]; canAct: boolean; me: string } | { off: string };
+export type Feedback = { threads: Thread[]; checks: Checks; canAct: boolean; me: string } | { off: string };
 export async function loadFeedback(fetcher: typeof fetch = fetch): Promise<Feedback> {
   const response = await fetcher(`${siteBase()}api/library/feedback`, { cache: "no-store" });
   const body = await response.json().catch(() => ({}));
   if (!response.ok || !Array.isArray(body.threads)) return { off: body.error ?? "Feedback could not be loaded." };
-  return { threads: body.threads, canAct: body.canAct === true, me: String(body.me ?? "") };
+  return { threads: body.threads, checks: body.checks && typeof body.checks === "object" ? body.checks : {}, canAct: body.canAct === true, me: String(body.me ?? "") };
 }
-export type FeedbackAction = { action: "comment" | "queue" | "unqueue" | "no-change" | "restore" | "agree" | "keep"; year: number; unit: string; version: string; lesson?: string | null; text?: string; updated?: string };
+export type FeedbackAction = { action: "comment" | "queue" | "unqueue" | "no-change" | "restore" | "agree" | "keep" | "check" | "uncheck"; year: number; unit: string; version: string; lesson?: string | null; text?: string; updated?: string; id?: string; close?: boolean };
+
+/** What an action does to the feedback the page holds, so the page can show it before the Worker answers. */
+export function predictFeedback(old: Feedback, a: FeedbackAction): Feedback {
+  if ("off" in old) return old;
+  if (a.action === "check" && a.id && a.updated) return { ...old, checks: { ...old.checks, [a.id]: { updated: a.updated, by: old.me, at: new Date().toISOString() } }, threads: a.close ? old.threads.filter((t) => !same(t, a)) : old.threads };
+  if (a.action === "uncheck" && a.id) { const checks = { ...old.checks }; delete checks[a.id]; return { ...old, checks }; }
+  if (a.action === "no-change" || a.action === "keep") return { ...old, threads: old.threads.filter((t) => !same(t, a)) };
+  const lesson = a.lesson ?? null, found = old.threads.find((t) => same(t, a));
+  const thread: Thread = found ?? { number: 0, year: a.year, unit: a.unit, version: a.version, lesson, kind: lesson ? "lesson" : "unit", queued: false, agreed: false, opened: new Date().toISOString(), comments: [] };
+  const note = a.action === "comment" ? a.text?.trim() : a.action === "restore" ? `Make the version of ${a.updated} current again.` : a.action === "agree" ? "Agreed: plan the change." : "";
+  const next: Thread = {
+    ...thread,
+    queued: a.action === "queue" || a.action === "restore" ? true : a.action === "unqueue" ? false : thread.queued,
+    agreed: a.action === "agree" || thread.agreed,
+    comments: note ? [...thread.comments, { who: old.me, when: new Date().toISOString(), text: note }] : thread.comments,
+  };
+  return { ...old, threads: found ? old.threads.map((t) => (t === found ? next : t)) : [next, ...old.threads] };
+}
+const same = (t: Thread, a: FeedbackAction) => t.year === a.year && t.unit === a.unit && t.version === a.version && t.lesson === (a.lesson ?? null);
 export async function sendFeedback(action: FeedbackAction, fetcher: typeof fetch = fetch) {
   const response = await fetcher(`${siteBase()}api/library/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
   if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? "That could not be saved.");

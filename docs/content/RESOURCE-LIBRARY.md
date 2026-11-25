@@ -77,6 +77,10 @@ hidden marker naming the year, unit, version and lesson; comments carry the send
 a hidden marker and show only their name. It uses the `REPORT_GITHUB_TOKEN` Worker secret
 (`docs/release/STAFF-SIGN-IN.md`); without it the page says feedback isn't switched on yet.
 
+- **✓ Checked** (editors, on any amber lesson) turns that version green at once and closes any open
+  comments on it. The Worker keeps checks in `library/checks.json` in R2 (`{ id: { updated, by, at } }`);
+  the page shows a booklet ready when its check names its current `updated` date, so a rebuilt lesson
+  goes back to amber by itself. **Undo** removes the check. Publishing never touches this file.
 - **Queue for tonight** adds the label `queued`. **No change needed** comments and closes the issue.
 - **Make current again** comments with the date of the earlier version and adds `queued`.
 - Unit comments: **Agree: plan the change** adds `agreed`; **Keep as it is** closes. Unit comments are
@@ -87,8 +91,9 @@ a hidden marker and show only their name. It uses the `REPORT_GITHUB_TOKEN` Work
 
 ### The nightly run
 
-A scheduled Claude thread runs at about 2 AM UK time. For each open issue labelled `library-feedback`
-and `queued`, it rebuilds the lesson from the comments to the booklet standard (or, for "Make current
+Nothing runs on its own (Tim, 25 Nov 2026). At about 10 PM UK time Claude checks for open issues
+labelled `library-feedback` and `queued` and, only if there are some, asks Tim on a card. If he says
+run, for each one it rebuilds the lesson from the comments to the booklet standard (or, for "Make current
 again", copies the earlier files forward as the newest version), updates the bank list as above with
 `status: "waiting"`, publishes, comments what changed on the issue and closes it. It posts a summary in
 its thread and the project chat. Nothing is shared as ready until Tim checks it.
