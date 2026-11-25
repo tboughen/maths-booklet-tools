@@ -364,7 +364,7 @@ export function bannerFrag(label: string, end: boolean, st: HouseStyle): Frag {
  * space the heading line already leaves empty, so it never moves anything: pupil and answers pages
  * keep the same layout. Word draws the same text (booklet-docx).
  */
-export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 3, minLabel: 12, tag: "NCETM", arrow: "" } as const;
+export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "" } as const;
 
 /** The chip's label cut to fit `room` mm (the whole chip's width), or null when even a short label cannot fit. */
 export function ncetmChipLabel(label: string, room: number): string | null {
@@ -1055,9 +1055,10 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 
-  doc.lessons.forEach((l, i) => {
+  if (view === "answers") doc.lessons.forEach((l, i) => {
     const links = l.sections.filter((s) => s.ncetm).length;
-    if (links > NCETM_LINKS_PER_LESSON) issues.push({ lesson: i + 1, message: `Lesson ${i + 1} has ${links} NCETM links. Keep it to ${NCETM_LINKS_PER_LESSON} or fewer, so each one earns its place.` });
+    const shown = i + 1 + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc);
+    if (links > NCETM_LINKS_PER_LESSON) issues.push({ lesson: i + 1, message: `Lesson ${shown} has ${links} NCETM links. Keep it to ${NCETM_LINKS_PER_LESSON} or fewer, so each one earns its place.` });
   });
 
   if (doc.retrieval && plan.retrievalPage) {

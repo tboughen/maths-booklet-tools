@@ -53,7 +53,14 @@ export const ncetmSchema = z
     url: z
       .string()
       .max(300)
-      .refine((u) => /^https:\/\/(www\.)?ncetm\.org\.uk\/[^\s"<>]*$/.test(u), "Use an https://www.ncetm.org.uk/ address."),
+      .refine((u) => {
+        try {
+          const url = new URL(u);
+          return url.protocol === "https:" && (url.hostname === "www.ncetm.org.uk" || url.hostname === "ncetm.org.uk") && url.href === u;
+        } catch {
+          return false;
+        }
+      }, "Use an https://www.ncetm.org.uk/ address, written in full."),
   })
   .strict();
 export type NcetmLink = z.infer<typeof ncetmSchema>;

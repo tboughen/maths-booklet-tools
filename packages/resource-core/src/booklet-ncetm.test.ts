@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { planBooklet, renderBooklet } from "./booklet-render";
+import { headingLineRoom, planBooklet, renderBooklet } from "./booklet-render";
 import { writeBookletDocx } from "./booklet-docx";
 
 // NCETM links (Tim, 25 November 2026): one to three optional links a lesson, as a small chip at the
@@ -74,8 +74,19 @@ describe("NCETM links", () => {
   });
 
   it("drops a chip that cannot fit beside a long heading line and says so", () => {
-    const b = booklet([{ kind: "practice", title: "Practice", instruction: "Draw with a ruler and a pencil. Write with a pen. Show your working in the space.", columns: 2, cards: [q("A"), q("B")], ncetm: STAIRS }]);
+    // The longest instruction that still prints beside the heading leaves too little room for a chip.
+    const make = (ins: string) => booklet([{ kind: "practice", title: "Practice", instruction: ins, columns: 2, cards: [q("A"), q("B")], ncetm: STAIRS }]);
+    let ins = "Show";
+    while (headingLineRoom(make(ins + " more").document.lessons[0].sections[0]) > 10) ins += " more";
+    expect(headingLineRoom(make(ins).document.lessons[0].sections[0])).toBeGreaterThan(0);
+    const b = make(ins);
     const r = renderBooklet(b, { view: "answers" });
-    if (!r.pages.join("").includes("<a href")) expect(r.issues.some((i) => /no room for the NCETM link/.test(i.message))).toBe(true);
+    expect(r.pages.join("")).not.toContain("<a href");
+    expect(r.issues.some((i) => /no room for the NCETM link/.test(i.message))).toBe(true);
+  });
+
+  it("rejects addresses that are not written in full", () => {
+    expect(() => lesson([{ label: "Odd", url: "https://www.ncetm.org.uk/a b" }])).toThrow();
+    expect(() => lesson([{ label: "Host", url: "https://www.ncetm.org.uk.evil.com/x" }])).toThrow();
   });
 });
