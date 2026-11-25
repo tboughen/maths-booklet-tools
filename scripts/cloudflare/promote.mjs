@@ -140,7 +140,7 @@ async function main() {
             await metrics.stage('worker-deployment', () => run(root, wrangler, ['deploy', '--config', configuration.config, '--assets', resolve(directory, 'site'), '--message', `MathsDock ${release.releaseId}`]));
           } catch (error) {
             const report = await probeDashboardReads(configuration.name).catch(() => []);
-            save(resolve(output, 'dashboard-reads.json'), report);
+            try { save(resolve(output, 'dashboard-reads.json'), report); } catch { /* keep the deploy error */ }
             throw error;
           }
           return current(configuration);

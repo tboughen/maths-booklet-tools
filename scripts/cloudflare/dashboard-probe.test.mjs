@@ -7,7 +7,7 @@ test('dashboard probe names each refused read without printing the token', async
   const fetcher = async (url, init) => {
     seen.push({ url, auth: init.headers.Authorization });
     if (url.endsWith('/workers/services/mathsdock')) return new Response(JSON.stringify({ result: { default_environment: { environment: 'production', script: { last_deployed_from: 'dash' } } } }));
-    if (url.includes('/workers/domains/records')) return new Response(JSON.stringify({ errors: [{ code: 10000, message: 'Authentication error' }] }), { status: 403 });
+    if (url.includes('/workers/domains/records')) return new Response(JSON.stringify({ errors: [{ code: 10000, message: 'Authentication error' }, { code: 7003, message: 'Could not route to /accounts/acct/workers/domains' }] }), { status: 403 });
     if (url.includes('/schedules')) throw new Error('network down');
     return new Response(JSON.stringify({ result: [] }));
   };
@@ -17,7 +17,7 @@ test('dashboard probe names each refused read without printing the token', async
     const report = await probeDashboardReads('mathsdock', { token: 'secret-token', account: 'acct', fetcher });
     assert.equal(report.length, 7);
     assert.equal(report[0].lastDeployedFrom, 'dash');
-    assert.deepEqual(report.find(r => r.path.startsWith('/workers/domains')).errors, ['10000 Authentication error']);
+    assert.deepEqual(report.find(r => r.path.startsWith('/workers/domains')).errors, ['10000 Authentication error', '7003 Could not route to /accounts/<account>/workers/domains']);
     assert.equal(report.find(r => r.path.endsWith('/schedules')).status, 0);
     assert.ok(seen.every(s => s.auth === 'Bearer secret-token' && s.url.startsWith('https://api.cloudflare.com/client/v4/accounts/acct/')));
     assert.ok(seen.some(s => s.url.includes('/environments/production/bindings')));

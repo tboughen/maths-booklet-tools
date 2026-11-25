@@ -6,10 +6,10 @@ export async function probeDashboardReads(name, { token = process.env.CLOUDFLARE
   const api = `https://api.cloudflare.com/client/v4/accounts/${account}`;
   const get = async path => {
     try {
-      const response = await fetcher(`${api}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetcher(`${api}${path}`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
       const body = await response.json().catch(() => ({}));
-      return { path, status: response.status, errors: (body.errors ?? []).map(e => `${e.code} ${e.message}`), result: body.result };
-    } catch (error) { return { path, status: 0, errors: [String(error.message)] }; }
+      return { path, status: response.status, errors: (body.errors ?? []).map(e => `${e.code} ${String(e.message ?? '').split(account).join('<account>')}`), result: body.result };
+    } catch (error) { return { path, status: 0, errors: [String(error.message).split(account).join('<account>')] }; }
   };
   const service = await get(`/workers/services/${name}`);
   const environment = service.result?.default_environment?.environment ?? 'production';
