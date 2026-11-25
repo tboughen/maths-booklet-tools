@@ -1,6 +1,6 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { resolve, sep } from 'node:path';
@@ -11,7 +11,7 @@ import { sha256, save, repository, run } from './common.mjs';
 import { validateWorkflowOrigin } from './github-trust.mjs';
 import { prepareCatalogueCache, publicationOrigin, validateCatalogueReceipt } from './catalogue-cache.mjs';
 import { watchRun } from './watch-run.mjs';
-import { validateReusableInputs, packageRelease, verifyReusableCatalogue, policyFiles } from './package.mjs';
+import { validateReusableInputs, packageRelease, verifyReusableCatalogue, policyFiles, siteWorkerFiles } from './package.mjs';
 import { git } from './common.mjs';
 
 const roots = [];
@@ -154,12 +154,22 @@ test('reusable catalogue rejects changed bank, transformer, dependencies and run
     assert.throws(() => validateReusableInputs(missing, expected), /Reusable bank inventory/);
   }
 });
+test('the release package carries every module the site Worker imports', () => {
+  const root = resolve(import.meta.dirname, '../..'), seen = new Set(), queue = ['scripts/cloudflare/site-worker.mjs'];
+  while (queue.length) {
+    const file = queue.shift();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    for (const [, spec] of readFileSync(resolve(root, file), 'utf8').matchAll(/^\s*(?:import|export)\b[^'"]*?from\s*['"](\.{1,2}\/[^'"]+)['"]/gm)) queue.push(resolve('/', file, '..', spec).slice(1));
+  }
+  assert.deepEqual([...seen].sort(), [...siteWorkerFiles].sort());
+});
 test('real clean Git/package fixture reuses exact catalogue and rejects altered inputs or bytes', () => {
   const root = temporary(), cache = resolve(root, 'cloudflare-release/package');
   for (const [p, text] of [
     ['.gitignore', 'cloudflare-release\ndist-cloudflare\n'],
     ['public/bank/catalogue.json', '{"questions":[]}'], ['public/bank/assets/example/print.pdf', 'asset-data'],
-    ['package-lock.json', '{"version":1}'], ['wrangler.jsonc', '{}'], ['wrangler.preview.jsonc', '{}'], ['scripts/cloudflare/site-worker.mjs', '// fixture worker'],
+    ['package-lock.json', '{"version":1}'], ['wrangler.jsonc', '{}'], ['wrangler.preview.jsonc', '{}'], ['scripts/cloudflare/site-worker.mjs', '// fixture worker'], ['scripts/cloudflare/library-feedback.mjs', '// fixture worker module'],
     ...policyFiles.map(p => [p, `// fixture ${p}`]),
     ...['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(p => [`scripts/cloudflare/${p}`, '// fixture verifier']),
   ]) { mkdirSync(resolve(root, p, '..'), { recursive: true }); writeFileSync(resolve(root, p), text); }
