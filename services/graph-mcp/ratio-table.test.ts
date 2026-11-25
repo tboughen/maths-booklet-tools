@@ -213,7 +213,8 @@ describe("ratio tools on the shared real MCP service", () => {
         op: "set_cell",
         rowId: "target",
         column: 1,
-        cell: { kind: "empty", value: "2" },
+        // A left-out cell keeps its value (22 Nov 2026), but never an empty one.
+        cell: { kind: "empty", value: "" },
       },
     ]) {
       const invalid = await client.callTool({

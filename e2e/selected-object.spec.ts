@@ -5,14 +5,11 @@ import { expect, test, type Page } from "./release-fixtures";
  * in every editor that has a selection card. The number line's card stays mounted with nothing selected,
  * so the Draw card below does not jump as the selection comes and goes. (Cuboids and the classic bar model
  * show a "Selected …" picker only when there are several shapes or bars; it already sits at the top.)
- * Probability, frequency and factor trees, sample spaces, two-way tables, spinners, function machines, the bubble method, written methods, algebra tiles, angle diagrams, area and perimeter, geometry figures, 3D solids, nets and constructions edit what is selected in the options box
+ * Probability, frequency and factor trees, sample spaces, two-way tables, spinners, function machines, the bubble method, written methods, algebra tiles, angle diagrams, area and perimeter, geometry figures, 3D solids, nets, constructions and ratio tables edit what is selected in the options box
  * beside it instead (the 21–22 Nov 2026 usability pilot); each tool leaves this list as it takes up the box.
  */
-const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
-  { tool: "ratio-table", select: (page) => page.getByRole("button", { name: "Edit headings", exact: true }).click() },
-  { tool: "number-line", select: (page) => page.getByRole("button", { name: "Tick 3", exact: true }).click() },
-  { tool: "triangle" },
-];
+// Number lines and triangles took up the box on 23 Nov 2026; no tool is left on this list.
+const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [];
 
 for (const { tool, select } of tools) {
   test(`${tool}: the selected object's card comes first in the settings`, async ({ page }) => {
@@ -31,18 +28,15 @@ for (const { tool, select } of tools) {
   });
 }
 
-test("number line: the Draw buttons stay put when a selection clears", async ({ page }) => {
+test("number line: the Draw buttons stay put as a tick's box opens and closes", async ({ page }) => {
   await page.goto("/tools/number-line");
-  const card = page.getByRole("region", { name: "Selected item" });
-  await expect(card).toContainText("Select a tick, point or line to edit it here.");
   const point = page.getByRole("button", { name: "Point", exact: true });
   const empty = (await point.boundingBox())!.y;
   await page.getByRole("button", { name: "Tick 3", exact: true }).click();
-  await expect(card.getByRole("combobox", { name: "Tick label state" })).toBeVisible();
-  // Choosing a drawing mode clears the selection; the card stays, so the button does not move away.
-  const selected = (await point.boundingBox())!.y;
-  await point.click();
-  await expect(card).toContainText("Select a tick, point or line to edit it here.");
+  await expect(page.getByRole("dialog", { name: "Tick 3", exact: true })).toBeVisible();
   expect(Math.abs((await point.boundingBox())!.y - empty)).toBeLessThan(1);
-  expect(selected).toBeGreaterThanOrEqual(empty);
+  // Choosing a drawing mode clears the selection and its box.
+  await point.click();
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
+  expect(Math.abs((await point.boundingBox())!.y - empty)).toBeLessThan(1);
 });

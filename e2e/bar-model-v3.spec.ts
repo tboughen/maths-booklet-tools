@@ -64,9 +64,13 @@ test("inside handwriting spaces raise actual bars without changing shared widths
       exact: true,
     })
     .click();
-  await page.getByLabel("Saved label", { exact: true }).fill("1/2");
-  await page.getByLabel("Pupil display", { exact: true }).selectOption("line");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  // The live box: Enter commits the text, then Pupil space (an answer line) is a second undo step.
+  const box = page.locator(".md-options-box");
+  await box.getByLabel("Label text", { exact: true }).fill("1/2");
+  await box.getByLabel("Label text", { exact: true }).press("Enter");
+  await box.getByRole("button", { name: "Pupil space", exact: true }).click();
+  await expect(box.getByLabel("Pupils see", { exact: true })).toHaveValue("line");
+  await page.keyboard.press("Escape");
   const e = await saved(page);
   if (e.schemaVersion !== 3) throw Error();
   expect(v.layout(e).barHeightMm).toBe(20);
@@ -82,6 +86,7 @@ test("inside handwriting spaces raise actual bars without changing shared widths
   expect(v.layout(v.validate(await saved(page))).barHeightMm).toBe(24);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(v.layout(v.validate(await saved(page))).barHeightMm).toBe(20);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(c.canonical(await saved(page))).toBe(c.canonical(before));
 });
@@ -277,9 +282,10 @@ test("inspector headings, text fields and section buttons use the shared editor 
     const s = getComputedStyle(h);
     return [s.fontSize, s.fontWeight, s.lineHeight, s.color].join(" ");
   };
-  await page.goto("/tools/ratio-table");
+  // Ratio tables moved to folding cards (22 Nov 2026); the triangle's Selected object card keeps the shared heading.
+  await page.goto("/tools/triangle");
   const shared = await page
-    .locator(".booklet-editor .panel-heading h2")
+    .locator(".booklet-editor .tr-panel > h2")
     .first()
     .evaluate(font);
   await page.goto("/tools/bar-model");

@@ -241,3 +241,24 @@
     padding: 16px;
   }
 }
+/* The options box beside a region, label or definition (wave 2a). */
+.vn-box {
+  display: grid;
+  gap: 8px;
+}
+.vn-box textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--field-line, #8193a8);
+  border-radius: var(--md-radius, 6px);
+  background: var(--md-paper, #fff);
+  color: var(--md-ink, #213c59);
+  font: inherit;
+  font-size: var(--md-text-sm, 13px);
+  resize: vertical;
+}
+.vn-box :is(input, textarea)[aria-invalid="true"] {
+  border-color: #ad433d;
+}

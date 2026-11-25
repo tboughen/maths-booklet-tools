@@ -20,7 +20,8 @@
     "graph-checks.yml",
     "cloudflare.yml",
     "deploy-mcp.yml",
-    "prompt-evals.yml"
+    "prompt-evals.yml",
+    "publish-library.yml"
   ],
   "spendEstimateUSD": {
     "judgePanelRun": 0.5,

@@ -359,6 +359,9 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
   const original = JSON.parse(
     (await download(page, "Save editable file")).toString(),
   );
+  // The File menu is a press away from the box beside the graph, so the list opens the line's options again.
+  await page.locator(".objects-toggle").click();
+  await page.getByRole("button", { name: /^Select Line 1/ }).click();
   await page
     .getByRole("button", { name: "Edit equation", exact: true })
     .click();
@@ -398,6 +401,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     JSON.parse((await download(page, "Save editable file")).toString())
       .document,
   ).toEqual(original.document);
+  await page.getByRole("button", { name: /^Select Line 1/ }).click();
   const x = page.getByRole("textbox", { name: "Start x", exact: true });
   const before = await x.inputValue();
   await x.fill("1/0");
@@ -420,6 +424,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     JSON.parse((await download(page, "Save editable file")).toString())
       .document,
   ).toEqual(original.document);
+  await page.getByRole("button", { name: /^Select Line 1/ }).click();
   await x.fill("-3/2");
   await x.press("Enter");
   await expect(x).toHaveValue("−3/2");
@@ -568,6 +573,8 @@ test("Graph precise ranges validate supported steps and pointer mapping survives
     return { x: p.x, y: p.y };
   });
   await page.mouse.click(point.x, point.y);
+  // The new point's options open in the box beside the graph; on a phone it sits over the toolbar until closed.
+  await page.keyboard.press("Escape");
   const saved = JSON.parse(
     (await download(page, "Save editable file")).toString(),
   );
@@ -971,6 +978,7 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
   }
   await centre(2.5, 1.5);
   await drag(await screen(2, 1), await screen(3, 2));
+  await clickAway(page); // the box beside the graph can sit over the toolbar
   let saved = JSON.parse(
     (await download(page, "Save editable file")).toString(),
   ).document;
@@ -978,6 +986,7 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
   await page.getByRole("button", { name: "Segment", exact: true }).click();
   await centre(-1.5, 1.5);
   await drag(await screen(-2, 1), await screen(-1, 2));
+  await clickAway(page); // the box beside the graph can sit over the toolbar
   saved = JSON.parse(
     (await download(page, "Save editable file")).toString(),
   ).document;
@@ -995,13 +1004,18 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
     { x: handle!.x + handle!.width / 2, y: handle!.y + handle!.height / 2 },
     await screen(-3, 1),
   );
+  await clickAway(page); // the box beside the graph can sit over the toolbar
   saved = JSON.parse(
     (await download(page, "Save editable file")).toString(),
   ).document;
   expect(saved.objects[1].start).toEqual({ x: -3, y: 1 });
+  // The segment's options open again from the list of objects.
+  if (!(await page.getByRole("button", { name: /^Select Segment/ }).count())) await page.locator(".objects-toggle").click();
+  await page.getByRole("button", { name: /^Select Segment/ }).click();
   await page
     .getByRole("button", { name: "Show equation", exact: true })
     .click();
+  await clickAway(page); // the box would cover the label dragged next
   await page.setViewportSize({ width: 768, height: 1000 });
   await page
     .getByRole("combobox", { name: "Preview zoom", exact: true })
@@ -1014,6 +1028,7 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
     { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 },
     await screen(0, 2),
   );
+  await clickAway(page); // the box beside the graph can sit over the toolbar
   saved = JSON.parse(
     (await download(page, "Save editable file")).toString(),
   ).document;

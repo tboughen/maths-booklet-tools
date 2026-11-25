@@ -552,3 +552,143 @@ export const examples: {
     },
   },
 ];
+
+/**
+ * Plain shapes: each kind of chart in its simplest common form, every value given, for a teacher to
+ * change or turn into pupil spaces. They come before the exam-style examples in the gallery.
+ */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "bar",
+    title: "Bar chart",
+    note: "One set of bars with gaps between them, on a frequency axis.",
+    make: () => chart("bar", ["Red", "Blue", "Green", "Yellow"], [{ name: "pupils", fill: "grey", values: ["6", "9", "4", "7"] }], { min: "0", max: "10", step: "2", minor: 2 }, { yTitle: "Frequency", xTitle: "Favourite colour", grid: "major", key: false, heightMm: 60, barMm: 10 }, true),
+  },
+  {
+    id: "dual",
+    title: "Dual bar chart",
+    note: "Two sets of bars side by side, with a key.",
+    make: () => chart("dual", ["Car", "Bus", "Walk", "Cycle"], [{ name: "boys", fill: "grey", values: ["5", "6", "8", "3"] }, { name: "girls", fill: "hatch", values: ["7", "4", "6", "2"] }], { min: "0", max: "10", step: "1", minor: 1 }, { yTitle: "Frequency", xTitle: "", grid: "major", key: true, heightMm: 70, barMm: 7 }, true),
+  },
+  {
+    id: "composite",
+    title: "Composite bar chart",
+    note: "Bars split into parts stacked on top of each other, with a key.",
+    make: () => chart("composite", ["Year 7", "Year 8", "Year 9"], [{ name: "school dinner", fill: "grey", values: ["60", "50", "40"] }, { name: "packed lunch", fill: "hatch", values: ["40", "60", "70"] }], { min: "0", max: "120", step: "20", minor: 2 }, { yTitle: "Number of pupils", xTitle: "", grid: "major", key: true, heightMm: 70, barMm: 10 }, true),
+  },
+  {
+    id: "vline",
+    title: "Vertical line chart",
+    note: "A vertical line for each value, for discrete data.",
+    make: () => chart("vline", ["0", "1", "2", "3", "4"], [{ name: "families", fill: "black", values: ["3", "8", "10", "5", "2"] }], { min: "0", max: "12", step: "2", minor: 1 }, { yTitle: "Frequency", xTitle: "Number of pets", grid: "major", key: false, heightMm: 60, barMm: 12 }, true),
+  },
+  {
+    id: "line",
+    title: "Line graph",
+    note: "Two shops' daily sales over a week, as crosses joined by straight lines, with a key.",
+    make: () =>
+      chart(
+        "line",
+        ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        [
+          { name: "Shop A", fill: "black", values: ["12", "18", "15", "22", "20"] },
+          { name: "Shop B", fill: "black", values: ["8", "10", "14", "12", "16"] },
+        ],
+        { min: "0", max: "25", step: "5", minor: 5 },
+        { yTitle: "Sales", xTitle: "Day", grid: "major", key: true, heightMm: 60, barMm: 12 },
+        true,
+      ),
+  },
+  {
+    id: "pie",
+    title: "Pie chart",
+    note: "A pie chart at true size with each sector labelled.",
+    make: () => chart("pie", ["football", "tennis", "rugby", "swimming"], [{ name: "pupils", fill: "white", values: ["15", "9", "6", "6"] }], { min: "0", max: "20", step: "5", minor: 1 }, { yTitle: "Frequency", xTitle: "Sport", grid: "none", key: false, heightMm: 60, barMm: 7, pie: { radiusMm: 40, labels: "name" } }, true),
+  },
+  {
+    id: "pictogram",
+    title: "Pictogram",
+    note: "Circles for the counts, with a key.",
+    make: () => chart("pictogram", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], [{ name: "books", fill: "white", values: ["8", "12", "6", "10", "14"] }], { min: "0", max: "16", step: "2", minor: 1 }, { yTitle: "", xTitle: "", grid: "major", key: false, heightMm: 60, barMm: 7, pictogram: { symbol: "circle", symbolMm: 10, key: { value: "4", show: "show" }, unit: "books" } }, true),
+  },
+  {
+    id: "scatter",
+    title: "Scatter graph",
+    note: "Ten points showing positive correlation, on graph paper.",
+    make: () => {
+      const e = create();
+      e.document.kind = "scatter";
+      e.document.scatter = {
+        points: [["1", "25"], ["2", "30"], ["2", "38"], ["3", "40"], ["4", "45"], ["5", "52"], ["5", "48"], ["6", "60"], ["7", "62"], ["8", "70"]].map(([x, y]) => ({ x, y, show: "show" as const, ring: false })),
+        xAxis: { min: "0", max: "10", step: "1", title: "Hours of revision", mm: 100, broken: false },
+        yAxis: { min: "0", max: "80", step: "10", title: "Test mark", mm: 90, broken: false },
+        grid: "fine",
+        minor: 5,
+        readings: [],
+        table: "none",
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "timeseries",
+    title: "Time series graph",
+    note: "Values month by month joined with straight lines.",
+    make: () => {
+      const e = create();
+      e.document.kind = "timeseries";
+      e.document.timeseries = {
+        points: times(MONTHS.slice(0, 6), [], ["12", "15", "20", "26", "30", "34"], false),
+        slotMm: 12,
+        xTitle: "Month",
+        yAxis: { min: "0", max: "40", step: "10", stepMm: 10, title: "Temperature (°C)" },
+        yBreak: false,
+        join: "straight",
+        bridge: false,
+        second: false,
+        names: ["", ""],
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "boxplot",
+    title: "Box plot",
+    note: "One box plot on a scale, with its five values.",
+    make: () => {
+      const e = create();
+      e.document.kind = "boxplot";
+      e.document.boxplot = { rows: [box("Group A", ["10", "18", "24", "30", "42"], false)], axis: { min: "0", max: "50", step: "10", stepMm: 20, title: "Score" }, bandMm: 30, line: "none" };
+      return validate(e);
+    },
+  },
+  {
+    id: "stemleaf",
+    title: "Stem-and-leaf diagram",
+    note: "An ordered stem-and-leaf diagram with its key.",
+    make: () => {
+      const e = create();
+      e.document.kind = "stemleaf";
+      e.document.stemleaf = { rows: stems([["1", "2 5 7"], ["2", "0 3 3 8"], ["3", "1 4 6"], ["4", "2 5"]], false), key: { stem: "2", leaf: "3", represents: "23", show: "show" }, leafMm: 50 };
+      return validate(e);
+    },
+  },
+  {
+    id: "histogram",
+    title: "Histogram",
+    note: "Unequal class widths with frequency density up the side.",
+    make: () => grouped("histogram", [["0", "10", "8"], ["10", "15", "12"], ["15", "20", "15"], ["20", "30", "10"], ["30", "50", "8"]], { variable: "t", xAxis: { min: "0", max: "50", step: "10", stepMm: 20, title: "Time (t minutes)" }, histogram: { yAxis: { min: "0", max: "3", step: "0.5", stepMm: 10, title: "Frequency density" }, fill: "grey" } }, {}, true),
+  },
+  {
+    id: "polygon",
+    title: "Frequency polygon",
+    note: "Points plotted at the class midpoints and joined with straight lines.",
+    make: () => grouped("polygon", [["0", "10", "4"], ["10", "20", "9"], ["20", "30", "14"], ["30", "40", "10"], ["40", "50", "5"]], { variable: "h", xAxis: { min: "0", max: "50", step: "10", stepMm: 20, title: "Height (h cm)" }, polygon: { ...GROUPED_DEFAULTS.polygon, yAxis: { min: "0", max: "15", step: "5", stepMm: 20, title: "Frequency" } } }, {}, true),
+  },
+  {
+    id: "cumulative",
+    title: "Cumulative frequency graph",
+    note: "Cumulative frequencies plotted at the class ends and joined with a smooth curve.",
+    make: () => grouped("cumulative", [["0", "20", "6"], ["20", "40", "14"], ["40", "60", "20"], ["60", "80", "12"], ["80", "100", "8"]], { variable: "t", xAxis: { min: "0", max: "100", step: "20", stepMm: 20, title: "Time (t minutes)" }, table: "cumulative", cumulative: { yAxis: { min: "0", max: "60", step: "10", stepMm: 10, title: "Cumulative frequency" }, curve: "smooth", fromZero: true, crosses: true, readings: [] } }, {}, true),
+  },
+];

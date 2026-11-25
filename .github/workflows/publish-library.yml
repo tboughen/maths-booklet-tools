@@ -1,0 +1,53 @@
+name: Publish the Resource library
+# Uploads the Resource library list and any new files from the private bank repository's library/
+# folder to the private R2 bucket. It changes no website code, so it needs no website release.
+# See docs/content/RESOURCE-LIBRARY.md.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Check the list only, upload nothing
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: mathsdock-library
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: mathsdock-production
+    steps:
+      - name: Require the reviewed main workflow
+        env:
+          REF: ${{ github.ref }}
+        run: test "$REF" = refs/heads/main
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Check out the library from the private bank
+        uses: actions/checkout@v7
+        with:
+          repository: tboughen/mathsdock-bank
+          ref: main
+          path: bank
+          sparse-checkout: library
+          token: ${{ secrets.BANK_READ_TOKEN }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Publish
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = true ]; then node scripts/library/publish.mjs bank/library --dry-run
+          else node scripts/library/publish.mjs bank/library | tee -a "$GITHUB_STEP_SUMMARY"; fi

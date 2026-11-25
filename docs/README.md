@@ -41,6 +41,7 @@ Per-tool records:
 - [Maths Resource Design Guide](content/MATHS-RESOURCE-DESIGN-GUIDE.md) (text copy; the [.docx](content/MATHS-RESOURCE-DESIGN-GUIDE.docx) is the master) and the [lesson resource project instructions](content/RESOURCE-PROJECT-INSTRUCTIONS.md), including the PLAN, FINALISE and PRODUCE commands.
 - [Worksheet renderer](content/WORKSHEET-RENDERER.md): the A3 worksheet document, layout rules and the evidence behind the MathsDock style (wave 3).
 - [Word output for worksheets](content/WORD-OUTPUT.md): how the pupil and answers `.docx` files are built so they cannot reflow, the rendering test and the real-Word check.
+- [Resource library](content/RESOURCE-LIBRARY.md): the page listing every booklet, A3 worksheet, starter and skill sheet by year and unit, its list in the private bank, and how to add and publish resources.
 - [Booklet maker](tools/BOOKLET-MAKER.md): the A4 unit booklet document, its layout and the AI lesson standard.
 - [Silent starter tool](tools/SILENT-STARTER-TOOL.md): runs of six silent starters, A5 cards printed two per A4, and the board view.
 - [Worked solutions: the standard](content/WORKED-SOLUTIONS.md) and [their files and registration](content/WORKED-SOLUTION-REGISTRATION.md).

@@ -9,3 +9,5 @@
 .nl-editor .nl-inspector .nl-field{align-content:start}.nl-line-hit{position:absolute;z-index:1;height:20px;min-height:0;padding:0;border:0;background:transparent;cursor:pointer}.nl-line-hit:focus-visible{outline:2px solid #1764a4;outline-offset:2px}.nl-line-hit:hover{outline:1px dotted #1764a4}
 @media(max-width:900px){.nl-editor .workspace{grid-template-columns:minmax(0,1fr)}.nl-editor .inspector-stack{width:100%}.nl-editor .page-heading{flex-wrap:wrap}}
 .nl-secondary-labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+
+.nl-box { display: grid; gap: 8px; }

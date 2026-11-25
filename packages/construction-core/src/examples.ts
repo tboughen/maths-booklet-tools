@@ -164,3 +164,88 @@ export const examples: {
     },
   },
 ];
+
+/** Plain shapes: the usual starting set-ups, true size, ready for a construction. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "line",
+    title: "Line to bisect",
+    note: "A line AB, 8 cm long.",
+    make: () => {
+      const e = blank(13, 9);
+      e.document.points.push(newPoint("A", 2.5, 4.5), newPoint("B", 10.5, 4.5));
+      e.document.objects.push(segment("AB", "A", "B"));
+      return validate(e);
+    },
+  },
+  {
+    id: "angle",
+    title: "Angle to bisect",
+    note: "An angle PQR of 64° with 7 cm and 9 cm arms.",
+    make: () => {
+      const e = blank(12, 8);
+      const q = { x: 1.5, y: 1.5 };
+      e.document.points.push(newPoint("Q", q.x, q.y, "Q", { mark: "none" }), newPoint("R", q.x + 9, q.y, "R", { mark: "none" }), newPoint("P", q.x + 7 * Math.cos((64 * Math.PI) / 180), q.y + 7 * Math.sin((64 * Math.PI) / 180), "P", { mark: "none" }));
+      e.document.objects.push(segment("QR", "Q", "R"), segment("QP", "Q", "P"));
+      return validate(e);
+    },
+  },
+  {
+    id: "point-and-line",
+    title: "A point and a line",
+    note: "A point P above a line AB, for the perpendicular from a point.",
+    make: () => {
+      const e = blank(13, 9);
+      e.document.points.push(newPoint("A", 1, 4, "A", { mark: "none" }), newPoint("B", 12, 4, "B", { mark: "none" }), newPoint("P", 5.5, 7.3));
+      e.document.objects.push(segment("AB", "A", "B"));
+      return validate(e);
+    },
+  },
+  {
+    id: "locus-point",
+    title: "Locus round a point",
+    note: "The locus of points 3 cm from a point P: a circle.",
+    make: () => {
+      const e = blank(10, 9);
+      e.document.points.push(newPoint("P", 5, 4.5));
+      return validate(forView(locusFromPoint(e, { point: "P", distance: 3, role: "given" }), "pupil"));
+    },
+  },
+  {
+    id: "locus-line",
+    title: "Locus from a line",
+    note: "The locus of points 2 cm from a line AB: two parallel lines joined by semicircles.",
+    make: () => {
+      const e = blank(13, 7);
+      e.document.points.push(newPoint("A", 3, 3.5), newPoint("B", 10, 3.5));
+      e.document.objects.push(segment("AB", "A", "B"));
+      return validate(forView(locusFromSegment(e, { a: "A", b: "B", distance: 2, role: "given" }), "pupil"));
+    },
+  },
+  {
+    id: "bearing",
+    title: "A bearing from north",
+    note: "A north line at A and a bearing of 070° to B, 5 cm away.",
+    make: () => {
+      const e = blank(11, 9);
+      e.document.points.push(newPoint("A", 3, 3, "A", { labelAt: "s" }));
+      e.document.objects.push({ id: "northA", type: "north", at: "A", length: 4.4, role: "given" });
+      const n = pointByBearing(e, { id: "B", from: "A", bearing: 70, distance: 5, role: "given" });
+      n.document.objects.push(segment("AB", "A", "B"), { id: "bearingAB", type: "bearing", from: "A", to: "B", northLine: false, label: label("070°"), role: "given" });
+      return validate(n);
+    },
+  },
+  {
+    id: "scale-drawing",
+    title: "Scale drawing",
+    note: "A 10 m by 6 m rectangle drawn at 1 cm to 1 m, with its scale.",
+    make: () => {
+      const e = blank(12, 8);
+      const d = e.document;
+      d.points.push(newPoint("A", 1, 1, "A", { mark: "none" }), newPoint("B", 11, 1, "B", { mark: "none" }), newPoint("C", 11, 7, "C", { mark: "none" }), newPoint("D", 1, 7, "D", { mark: "none" }));
+      d.objects.push({ id: "garden", type: "polygon", points: ["A", "B", "C", "D"], dash: false, role: "given" });
+      d.caption = label("Scale: 1 cm represents 1 m");
+      return validate(e);
+    },
+  },
+];

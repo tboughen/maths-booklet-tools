@@ -87,7 +87,7 @@ test("overview search matches teaching vocabulary, handles no results and retain
   await page.getByRole("button", { name: "Clear search" }).click();
   await expect(page.locator(".overview-tool-card")).toHaveCount(27);
   await page.getByRole("link", { name: "Maths Dock home" }).click();
-  await expect(page.locator(".home-tool")).toHaveCount(7);
+  await expect(page.locator(".home-tool")).toHaveCount(8);
 });
 
 for (const [tool, key, resource, stage, confirm] of tools) {
@@ -157,7 +157,11 @@ for (const [tool, key, resource, stage, confirm] of tools) {
     const card =
       tool === "value-table-graph"
         ? gallery.locator('[data-example-id="quadratic-1MA1_NOV_2018_3H_Q3"]')
-        : gallery.locator("article").first();
+        : // Plain shapes come first and use "Use this shape", so take the first exam-style card.
+          gallery
+            .locator("article")
+            .filter({ has: page.getByRole("button", { name: "Use this example" }) })
+            .first();
     await expect
       .poll(() =>
         card

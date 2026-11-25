@@ -210,7 +210,7 @@ test("quadratic controls match the clear Graph design and keep exact bounds in a
   await page
     .getByRole("textbox", { name: "Left x endpoint", exact: true })
     .press("Enter");
-  await page.getByRole("button", { name: "Close editor", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (editor|options)$/ }).click();
   await expect
     .poll(() =>
       page.evaluate(

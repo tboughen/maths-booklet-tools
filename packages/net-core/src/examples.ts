@@ -1,5 +1,5 @@
 import { RENDERER_VERSION, forView, newNet, text, validate, type Envelope, type Net } from "./index";
-import { squaresNet, type Preset } from "./presets";
+import { DEFAULT_PRESETS, squaresNet, type Preset } from "./presets";
 
 /** "?F" is a hidden answer. */
 const t = (s: string) => (s.startsWith("?") ? text(s.slice(1), "hidden") : text(s));
@@ -153,4 +153,15 @@ export const examples: { id: string; title: string; note: string; make: (worked:
         worked,
       ),
   },
+];
+
+/** Plain shapes: the net of each solid the tool draws, on centimetre squares. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "cube", title: "Cube net", note: "One of the eleven nets of a cube.", make: () => doc([net(DEFAULT_PRESETS.cube)]) },
+  { id: "cuboid", title: "Cuboid net", note: "The net of a 4 by 2 by 3 cuboid.", make: () => doc([net(DEFAULT_PRESETS.cuboid)]) },
+  { id: "triangular-prism", title: "Triangular prism net", note: "The net of a triangular prism.", make: () => doc([net(DEFAULT_PRESETS["triangular-prism"])]) },
+  { id: "square-pyramid", title: "Square-based pyramid net", note: "The net of a square-based pyramid.", make: () => doc([net(DEFAULT_PRESETS["square-pyramid"])]) },
+  { id: "cylinder", title: "Cylinder net", note: "A rectangle as wide as the circumference, with a circle on each long side.", make: () => doc([net(DEFAULT_PRESETS.cylinder)]) },
+  { id: "cone", title: "Cone net", note: "A sector for the curved surface, with the circular base touching its arc.", make: () => doc([net(DEFAULT_PRESETS.cone)]) },
+  { id: "tetrahedron", title: "Tetrahedron net", note: "The net of a regular tetrahedron.", make: () => doc([net(DEFAULT_PRESETS.tetrahedron)]) },
 ];

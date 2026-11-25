@@ -114,6 +114,8 @@ function cell(e: core.Envelope, v: z.infer<typeof cellEdit>) {
     c,
     v.value,
     v.hidden ?? e.document.rows[r].cells[c].hidden,
+    // Leave out is not in the connector's words yet; a revision keeps it as the teacher set it.
+    !v.hidden && !!e.document.rows[r].cells[c].omit,
   );
 }
 export function create(input: unknown) {

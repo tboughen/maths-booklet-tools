@@ -1,5 +1,5 @@
 import { afterEach, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Page from "./LessonBarModelPage";
 import * as v from "../../packages/bar-model-core/src/v3";
@@ -27,26 +27,19 @@ const open = (e = v.fresh(), history?: History) => {
 };
 const saved = () =>
   JSON.parse(localStorage.getItem("v2-test")!).envelope as v.Envelope;
-it("edits an independent label without losing focus or overwriting another slot", async () => {
+it("edits a label in the box beside the bar without losing focus or overwriting another slot", async () => {
   open();
   const user = userEvent.setup();
   await user.click(
     screen.getByRole("button", { name: "Edit bar 1 section 1 inside label" }),
   );
-  const input = screen.getByLabelText("Saved label");
+  const input = screen.getByLabelText("Label text");
   await user.type(input, "18");
   expect(input).toHaveFocus();
   expect(input).toHaveValue("18");
-  expect(screen.getByRole("button", { name: "Copy image" })).toBeDisabled();
-  await user.click(screen.getByRole("button", { name: "Apply" }));
-  expect(saved().document.bars[0].parts[0].labels.inside.text).toBe("18");
-  await user.selectOptions(screen.getByLabelText("Label position"), "above");
-  await user.click(
-    screen.getAllByRole("button", { name: "Edit above label" })[0],
-  );
-  expect(screen.getByLabelText("Saved label")).toHaveValue("");
-  await user.click(screen.getByRole("button", { name: "Cancel" }));
-  expect(saved().document.bars[0].parts[0].labels.inside.text).toBe("18");
+  await user.keyboard("{Enter}");
+  await waitFor(() => expect(saved().document.bars[0].parts[0].labels.inside).toMatchObject({ text: "18", state: "value" }));
+  expect(saved().document.bars[0].parts[0].labels.above).toBeUndefined();
 });
 it("keeps an invalid relative-length draft and restores with Cancel", async () => {
   open();

@@ -415,3 +415,80 @@ export const example = (key: string) => {
   if (!ex) throw Error("Unknown triangle example.");
   return ex.build();
 };
+
+/** Plain shapes: the common triangles with given lengths and angles and one letter to find. */
+function ticked(kind: "isosceles" | "equilateral", equal: string[]) {
+  const e = create(kind);
+  for (const v of e.document.edges) if (equal.includes(v.from + v.to)) v.ticks = 1;
+  return validate(e);
+}
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "pythagoras",
+    title: "Right-angled triangle: Pythagoras",
+    note: "Two shorter sides given, the hypotenuse x to find.",
+    make: () => {
+      const e = create();
+      edge(e, "A", "B", "6");
+      edge(e, "A", "C", "8");
+      edge(e, "B", "C", "x", "symbol");
+      return validate(e);
+    },
+  },
+  {
+    id: "trigonometry",
+    title: "Right-angled triangle: trigonometry",
+    note: "The hypotenuse and one angle given, the opposite side x to find.",
+    make: () => {
+      const e = create();
+      edge(e, "B", "C", "12");
+      angle(e, "T1", "C", "35");
+      edge(e, "A", "B", "x", "symbol");
+      return validate(e);
+    },
+  },
+  {
+    id: "sine-rule",
+    title: "Sine rule",
+    note: "Two angles and a side given, another side x to find.",
+    make: () => {
+      const e = create("scalene");
+      angle(e, "T1", "A", "48");
+      angle(e, "T1", "B", "62");
+      edge(e, "B", "C", "9");
+      edge(e, "A", "C", "x", "symbol");
+      e.document.notToScale = true;
+      return validate(e);
+    },
+  },
+  {
+    id: "cosine-rule",
+    title: "Cosine rule",
+    note: "Two sides and the angle between them given, the third side x to find.",
+    make: () => {
+      const e = create("scalene");
+      edge(e, "A", "B", "7");
+      edge(e, "A", "C", "10");
+      angle(e, "T1", "A", "52");
+      edge(e, "B", "C", "x", "symbol");
+      e.document.notToScale = true;
+      return validate(e);
+    },
+  },
+  {
+    id: "area-sine",
+    title: "Area ½ab sin C",
+    note: "Two sides and the angle between them given, with an area line.",
+    make: () => {
+      const e = create("scalene");
+      edge(e, "A", "B", "7");
+      edge(e, "A", "C", "10");
+      angle(e, "T1", "A", "52");
+      area(e, "", "answer-line");
+      e.document.notToScale = true;
+      return validate(e);
+    },
+  },
+  { id: "isosceles", title: "Isosceles triangle", note: "An isosceles triangle with its equal sides marked.", make: () => ticked("isosceles", ["AB", "CA"]) },
+  { id: "equilateral", title: "Equilateral triangle", note: "An equilateral triangle with its equal sides marked.", make: () => ticked("equilateral", ["AB", "BC", "CA"]) },
+];

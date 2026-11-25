@@ -136,3 +136,17 @@ export const examples: {
     },
   },
 ];
+
+/** Plain shapes: a frequency tree with every count given, shown before the exam-style examples. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "two-levels",
+    title: "Frequency tree, two levels",
+    note: "A total of 80 split into two groups, then each group split again, every count given.",
+    make: () =>
+      fromNested("80", [
+        { category: "men", count: "32", children: [{ category: "like coffee", count: "24" }, { category: "do not like coffee", count: "8" }] },
+        { category: "women", count: "48", children: [{ category: "like coffee", count: "37" }, { category: "do not like coffee", count: "11" }] },
+      ]),
+  },
+];

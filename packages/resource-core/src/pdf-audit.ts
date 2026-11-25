@@ -94,6 +94,11 @@ function contentText(doc: PDFDocument, contents: unknown): string {
     .join("\n");
 }
 
+/** A dash pattern, then a one-segment path that is filled (B, b, f, F) rather than only stroked (S):
+ * viewers paint that zero-area fill as a solid hairline under the dots (answer lines must be dotted only). */
+const NUM = String.raw`[-+]?(?:\d*\.\d+|\d+\.?)`;
+export const FILLED_DASHED_SEGMENT = new RegExp(String.raw`\[[^\]]+\]\s+${NUM}\s+d\s+${NUM}\s+${NUM}\s+m\s+${NUM}\s+${NUM}\s+l\s+(?:B\*?|b\*?|f\*?|F)\s`);
+
 /** Audits written PDF bytes against the pages that were drawn into them. */
 export async function auditPdf(bytes: Uint8Array, expected: PdfAuditPage[]): Promise<PdfAudit> {
   const problems: string[] = [];
@@ -119,8 +124,10 @@ export async function auditPdf(bytes: Uint8Array, expected: PdfAuditPage[]): Pro
     if (found.images > want.images)
       problems.push(`Page ${i + 1} holds ${found.images} raster image${found.images === 1 ? "" : "s"}; only ${want.images} ${want.images === 1 ? "was" : "were"} drawn. Text or diagrams may have been rasterised.`);
     for (const f of found.fonts) if (!allFonts.includes(f)) allFonts.push(f);
+    const content = contentText(doc, page.node.get(PDFName.of("Contents")));
+    if (FILLED_DASHED_SEGMENT.test(content))
+      problems.push(`Page ${i + 1} has a dotted or dashed line that is also filled, so it prints as dots on top of a solid line. Answer lines must be dotted only.`);
     if (want.text) {
-      const content = contentText(doc, page.node.get(PDFName.of("Contents")));
       if (!found.fonts.length || !/\b(Tj|TJ|'|")\s/.test(content + " ")) problems.push(`Page ${i + 1} has no selectable text; its lettering may have been turned into pictures.`);
     }
   });

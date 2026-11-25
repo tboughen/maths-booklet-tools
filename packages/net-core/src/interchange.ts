@@ -23,6 +23,8 @@ export const presetSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("triangular-prism"), a: len, b: len, length: len }).strict(),
   z.object({ type: z.literal("square-pyramid"), base: len, slant: len }).strict(),
   z.object({ type: z.literal("tetrahedron"), side: len }).strict(),
+  z.object({ type: z.literal("cylinder"), radius: len, height: len }).strict(),
+  z.object({ type: z.literal("cone"), radius: len, slant: len }).strict(),
 ]);
 const markInput = z.union([z.enum(["dot", "cross", "shade"]), z.object({ kind: z.enum(["dot", "cross", "shade"]), hidden: z.boolean().optional() }).strict()]);
 const faceInput = z

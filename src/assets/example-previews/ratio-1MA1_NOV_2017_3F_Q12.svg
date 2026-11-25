@@ -25,7 +25,7 @@
             </g>
         </g>
         <g>
-            <path fill="none" stroke="#202020" stroke-width="2" d="M 347.56805 281 L 407.56805 281"/>
+            <path fill="none" stroke="#202020" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5" d="M 347.56805 281 L 407.56805 281"/>
         </g>
         <g>
             <g>
@@ -33,7 +33,7 @@
             </g>
         </g>
         <g>
-            <path fill="none" stroke="#202020" stroke-width="2" d="M 347.56805 381 L 407.56805 381"/>
+            <path fill="none" stroke="#202020" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 10.5" d="M 347.56805 381 L 407.56805 381"/>
         </g>
         <g>
             <path fill="none" stroke="#202020" stroke-width="2.6" d="M 140.56805 177 C 112.568054 195 112.568054 235 140.56805 253"/>

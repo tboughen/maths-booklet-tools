@@ -44,3 +44,14 @@ export function percentageColour(percentage: number): string {
   const i = Math.min(3, Math.floor(position)), fraction = position-i;
   return `rgb(${stops[i].map((value,j) => Math.round(value+(stops[i+1][j]-value)*fraction)).join(", ")})`;
 }
+
+export type PerformanceSourceKind = "national" | "mock-sample" | "estimate" | "none";
+export interface PerformanceSource { kind: PerformanceSourceKind; label: string; source: string }
+/** Where a question's average comes from, in words a teacher can read. */
+export function performanceSource(question: Pick<BankListQuestion, "set" | "performance">): PerformanceSource {
+  const score = question.performance;
+  if (!score) return {kind: "none", label: "No data", source: "No results for this question"};
+  if (score.kind === "estimated") return {kind: "estimate", label: "Estimate", source: "No national results; from position in paper"};
+  if (/^Mock Set/.test(question.set)) return {kind: "mock-sample", label: "Pearson mock sample", source: "Teacher-marked sample, Pearson mock report"};
+  return {kind: "national", label: "National average", source: `Pearson results, ${question.set} exam`};
+}

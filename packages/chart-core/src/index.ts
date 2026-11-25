@@ -30,13 +30,14 @@ export const RENDERER_VERSION = "charts-1" as const;
  * graphs need a continuous axis and belong in their own tools. Switching kind never
  * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter", "histogram", "polygon", "cumulative", "boxplot", "stemleaf", "timeseries"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "line", "pie", "pictogram", "scatter", "histogram", "polygon", "cumulative", "boxplot", "stemleaf", "timeseries"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
   dual: "Dual bar chart",
   composite: "Composite bar chart",
   vline: "Vertical line chart",
+  line: "Line graph",
   pie: "Pie chart",
   pictogram: "Pictogram",
   scatter: "Scatter graph",
@@ -470,16 +471,18 @@ export function axesLayout(e: Envelope) {
   const widths = d.categories.map((c) => textWidth(c));
   const pairWidth = Math.max(widths[0] ?? 0, ...widths.slice(1).map((w, i) => (w + widths[i]) / 2));
   const bw = d.barMm;
+  // A vertical line chart and a line graph put each value on a vertical grid line.
+  const pointKind = d.kind === "vline" || d.kind === "line";
   const slot =
     d.kind === "dual"
       ? Math.max(bw * series.length + bw, labelWidth + 3)
-      : d.kind === "vline"
+      : pointKind
         ? // Whole grid squares: lines stand on vertical grid lines one square apart
           // (or a whole number of squares when labels need more room).
           Math.max(1, Math.ceil((pairWidth + 1) / major - 1e-6)) * major
         : Math.max(bw * 2, labelWidth + 3);
-  const centreOf = (ci: number) => (d.kind === "vline" ? x0 + slot * (ci + 1) : x0 + slot * (ci + 0.5));
-  const W = slot * (d.categories.length + (d.kind === "vline" ? 1 : 0));
+  const centreOf = (ci: number) => (pointKind ? x0 + slot * (ci + 1) : x0 + slot * (ci + 0.5));
+  const W = slot * (d.categories.length + (pointKind ? 1 : 0));
   const y = (v: number) => y0 + H - ((v - lo) / (hi - lo)) * H;
   const clamp = (v: number) => Math.min(hi, Math.max(lo, v));
   const bars: Bar[] = [],
@@ -491,6 +494,14 @@ export function axesLayout(e: Envelope) {
       const v = values[si][ci],
         cell = s.values[ci],
         drawn = v !== null && cell.show === "show";
+      if (d.kind === "line") {
+        // A line graph marks each value with a cross; width and height 0 mark a point.
+        if (v !== null)
+          bars.push({ series: si, category: ci, x: centre, y: y(clamp(v)), width: 0, height: 0, fill: s.fill, drawn, revealed: revealed(cell) });
+        const py = y(clamp(v ?? 0));
+        targets.push({ series: si, category: ci, x: centre - 2.5, y: py - 2.5, width: 5, height: 5 });
+        return;
+      }
       if (d.kind === "vline") {
         // A vertical line chart draws a single thick line; width 0 marks it.
         const top = y(clamp(Math.max(0, v ?? 0)));
@@ -566,6 +577,33 @@ export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
 
 const fillRef = (f: Fill) =>
   f === "grey" ? "#9a9a9a" : f === "black" ? "#231f20" : f === "white" ? "#ffffff" : `url(#ch-${f})`;
+/** Line graph data sets: solid, dashed, then dotted, so a key tells them apart in black and white. */
+const LINE_DASHES = ["", ` stroke-dasharray="1.6 0.9"`, ` stroke-dasharray="0.35 0.8" stroke-linecap="round"`, ` stroke-dasharray="2.4 0.8 0.4 0.8"`];
+const CROSS = 1;
+const cross = (x: number, y: number, ink: string) =>
+  `<path d="M${n(x - CROSS)},${n(y - CROSS)}L${n(x + CROSS)},${n(y + CROSS)}M${n(x - CROSS)},${n(y + CROSS)}L${n(x + CROSS)},${n(y - CROSS)}" stroke="${ink}" stroke-width="0.35" fill="none"/>`;
+/**
+ * A line graph: a cross at each drawn value, joined to the next category's value by a straight
+ * line. A gap (a blank value) breaks the line. A point or join drawn only for the answers copy
+ * prints in the answer colour.
+ */
+function lineGraphMarks(bars: Bar[]): string[] {
+  const out: string[] = [];
+  const bySeries = new Map<number, Bar[]>();
+  for (const b of bars) if (b.drawn) bySeries.set(b.series, [...(bySeries.get(b.series) ?? []), b]);
+  for (const [si, points] of bySeries) {
+    points.sort((a, b) => a.category - b.category);
+    points.forEach((b, i) => {
+      const next = points[i + 1];
+      if (next && next.category === b.category + 1) {
+        const ink = b.revealed || next.revealed ? CHART_ANSWER_COLOUR : "black";
+        out.push(`<line x1="${n(b.x)}" y1="${n(b.y)}" x2="${n(next.x)}" y2="${n(next.y)}" stroke="${ink}" stroke-width="0.35"${LINE_DASHES[si % LINE_DASHES.length]}/>`);
+      }
+    });
+    for (const b of points) out.push(cross(b.x, b.y, b.revealed ? CHART_ANSWER_COLOUR : "black"));
+  }
+  return out;
+}
 export function renderSvg(e: Envelope): string {
   if (e.document.kind === "pie") return pieSvg(e);
   if (e.document.kind === "pictogram") return pictogramSvg(e);
@@ -594,7 +632,7 @@ export function renderSvg(e: Envelope): string {
     for (let i = 1; p.x + i * g.major <= right + 1e-6; i++) majors.push(`M${n(p.x + i * g.major)},${n(p.y)}V${n(bottom)}`);
     out.push(`<path d="${majors.join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`);
   }
-  if (d.grid === "major" && d.kind === "vline") {
+  if (d.grid === "major" && (d.kind === "vline" || d.kind === "line")) {
     // Square grid: a vertical line every step, the same spacing as the horizontal lines.
     const verticals: string[] = [];
     for (let i = 1; p.x + i * g.major <= right + 1e-6; i++) verticals.push(`M${n(p.x + i * g.major)},${n(p.y)}V${n(bottom)}`);
@@ -606,7 +644,8 @@ export function renderSvg(e: Envelope): string {
     );
   // The grid stays at its usual weight; bold lines apply to everything drawn after it.
   const gridEnd = out.length;
-  for (const b of g.bars) {
+  if (d.kind === "line") out.push(...lineGraphMarks(g.bars));
+  else for (const b of g.bars) {
     // A bar drawn only for the answers copy prints in the answer colour; solid grey or black
     // fills turn pink too, so the outline still shows.
     const ink = b.revealed ? CHART_ANSWER_COLOUR : "black",
@@ -639,7 +678,10 @@ export function renderSvg(e: Envelope): string {
     out.push(text("Key:", k.x + 4, k.y + 2 + FONT * 0.9, "start"));
     const series = drawnSeries(e);
     for (const row of k.rows) {
-      out.push(
+      if (d.kind === "line")
+        out.push(`<line x1="${n(k.x + 3)}" y1="${n(row.y)}" x2="${n(k.x + 13)}" y2="${n(row.y)}" stroke="black" stroke-width="0.35"${LINE_DASHES[row.series % LINE_DASHES.length]}/>`, cross(k.x + 8, row.y, "black"));
+      else
+        out.push(
           `<rect x="${n(k.x + 4)}" y="${n(row.y - 2.5)}" width="8" height="5" fill="${fillRef(series[row.series].fill)}" stroke="black" stroke-width="0.3"/>`,
         );
       out.push(text(row.name, k.x + 15, row.y + FONT * 0.33, "start"));

@@ -13,7 +13,7 @@ describe("A4 booklet renderer", () => {
     // retaken when the example's fractions became stacked, and when maths notation began typesetting
     // typed maths: the objective's y = mx ± c now prints with italic letters, and when ratio-table
     // fraction parts and operation labels rose to the 10 pt house minimum, U111, and when graph axes and grids took the
-    // Edexcel line weights for exam parity, and when short equations, ranges and a short last word began keeping together on one line, and when the graph plot clip began reaching half a line width past the grid, and when a hidden ratio-table operation got a 13 mm answer line (16 Nov 2026), and when graph lines began printing straight through the axis numbers, 16 Nov 2026, and when Tim's marking of the A7.03 pilot gave one run of question numbers, lettered sections, one title line and a two-cell key idea box, 17 Nov 2026, and when lessons took a start block, an end band and a corner lesson badge with stage squares, N11, 18 Nov 2026, and when a maths letter began keeping its movement arrow, "x →", 20 Nov 2026, and when answer lines became Edexcel dotted lines, 20 Nov 2026, and when the glossary and fold-over began reading maths notation, so powers print raised and typeset letters such as the y in y-intercept print in the maths serif, 23 Nov 2026). The PDF pages and the Word files are
+    // Edexcel line weights for exam parity, and when short equations, ranges and a short last word began keeping together on one line, and when the graph plot clip began reaching half a line width past the grid, and when a hidden ratio-table operation got a 13 mm answer line (16 Nov 2026), and when graph lines began printing straight through the axis numbers, 16 Nov 2026, and when Tim's marking of the A7.03 pilot gave one run of question numbers, lettered sections, one title line and a two-cell key idea box, 17 Nov 2026, and when lessons took a start block, an end band and a corner lesson badge with stage squares, N11, 18 Nov 2026, and when a maths letter began keeping its movement arrow, "x →", 20 Nov 2026, and when answer lines became Edexcel dotted lines, 20 Nov 2026, and when the glossary and fold-over began reading maths notation, so powers print raised and typeset letters such as the y in y-intercept print in the maths serif, 23 Nov 2026, and when START moved from the start block to a "Check in" banner with an "End of check in" STOP, N28, 25 Nov 2026). The PDF pages and the Word files are
     // both made from the plan, so any change here moves printed pages: update these only for a
     // deliberate change to the printed booklet.
     const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
@@ -21,18 +21,18 @@ describe("A4 booklet renderer", () => {
     const [a, b] = a7Booklet.document.lessons;
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(a7Booklet, 1);
-    expect(sha(renderBooklet(a7Booklet).pages)).toBe("b6c566d69bd2e3bf2d3e1082afb1585ff8f7a30c75958b52296882da03be4c13");
-    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("5fbb311b27261b5f68659cf40b82351dfd46260575dd8496f479234448975639");
-    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("4721a6bd4ca802f43addcc0d08808bd7996017f883c22602f34e59381cb546d7");
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("7e522f8d8ec8d1da572c105602ccfb7f8b26ce56f7467fc270ead9b12c84d2e7");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("351710bd9c7b34fc7ea4e546fe90a68d71f7b1b30aa1c1fad6f47a4cb068cf28");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("f752c1cb63de8f8ed124d0c5ca19ee5e0383a771d8a02fa860c28950669a8fd2");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
-    expect(sha(whole.pages)).toBe("e486ab00811c9b4c3c3596d6c046959979061041e12c7ae127cf34097264e56d");
+    expect(sha(whole.pages)).toBe("29fff65aaf01d84710ca44608e5c19dbc947d960d901f934d37f5b8bcc4ec2ae");
   });
 
   it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {
     // The example booklet as main saved it on 14 November 2026 (no notation field, ⅓ and ⅔ typed
     // as single characters). These are the hashes main pinned for it (retaken when ratio-table small text rose to
-    // 10 pt, U111, for the Edexcel graph line weights, and when flowing text began keeping short last words, ranges and short equations together, and for the graph plot clip, 15 Nov 2026, and for graph lines printing through the axis numbers, 16 Nov 2026, and for the lesson start block, end band and corner badge, N11, 18 Nov 2026, and for a maths letter keeping its movement arrow, 20 Nov 2026), so plain booklets are otherwise unchanged; the only difference is that ⅓ and ⅔, which printed as gaps, are now reported.
+    // 10 pt, U111, for the Edexcel graph line weights, and when flowing text began keeping short last words, ranges and short equations together, and for the graph plot clip, 15 Nov 2026, and for graph lines printing through the axis numbers, 16 Nov 2026, and for the lesson start block, end band and corner badge, N11, 18 Nov 2026, and for a maths letter keeping its movement arrow, 20 Nov 2026, and for the check-in START and STOP banners, N28, 25 Nov 2026), so plain booklets are otherwise unchanged; the only difference is that ⅓ and ⅔, which printed as gaps, are now reported.
     const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
     const old = validateBooklet(structuredClone(savedBeforeNotation));
     expect(old.document.notation).toBe("plain");
@@ -41,12 +41,12 @@ describe("A4 booklet renderer", () => {
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(old, 1);
     const pupil = renderBooklet(old);
-    expect(sha(pupil.pages)).toBe("3b746cd674a499492c1511a37103fd6a6d7c0f95c46a3ee195bdb05a218f9092");
-    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("3f8b15c1cab5ef170f8d19aafaa109c0c4d5c5edb0891287873f36da1c4b2e4c");
-    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("3582ee2d468bf6ef3f021e972eb6c4083e7ba821bb7899015cceb9fd1267ea5a");
+    expect(sha(pupil.pages)).toBe("c8b7bbbf7bcc66ae41a07788dbecda2bbd75c4d14c505cc99425e9c24a0c112f");
+    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("a4362c94fd9b88a9dde3e14544eea55ac186b27f03c36bc6f8a59ed0be0e4253");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("ffe92f840bcb8f31efd580472eb187ec00ec369ef7dae682197389e5fc49959b");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(56);
-    expect(sha(whole.pages)).toBe("21a8d0f1967f09c0c0a73fc0f32acfcf5f4f3c7a675feef261af777d30cb604f");
+    expect(sha(whole.pages)).toBe("f21de439f82c2f73b38562d4c7650c11efa95ead238e7e7b9a91f37f4a59aed6");
     expect(pupil.issues.length).toBeGreaterThan(0);
     for (const i of pupil.issues) expect(i.message).toMatch(/^Lesson 2, [A-Za-z ]+, question \d+ uses "[⅓⅔]" \(U\+215[34]\)/);
   });
@@ -207,5 +207,29 @@ describe("one lesson on its own", () => {
       expect(ids(r.pages.slice(1))).toEqual(ids(full.pages));
       expect(full.pages[0]).toContain("Page 5");
     }
+  });
+});
+
+describe("PDF answer lines are dotted only", () => {
+  it("draws only the stroke of lines and one-segment paths, so no solid rule shows under the dots", async () => {
+    const { strokeOnlySegments, isOneSegment } = await import("./pdf");
+    expect(strokeOnlySegments('<line x1="0" y1="1" x2="9" y2="1" stroke-dasharray="0.05 1.05"/>')).toBe(
+      '<line x1="0" y1="1" x2="9" y2="1" stroke-dasharray="0.05 1.05" fill="none"/>',
+    );
+    expect(strokeOnlySegments('<path d="M7 4H20" stroke-dasharray=".4 .8"/>')).toBe('<path d="M7 4H20" stroke-dasharray=".4 .8" fill="none"/>');
+    // A fill someone chose, and shapes with an inside, are left alone.
+    for (const kept of ['<line x1="0" y1="0" x2="1" y2="1" fill="red"/>', '<path d="M0 0H5V5Z"/>', '<path d="M0 0L5 5L0 5"/>', '<path d="M0 0H5" style="fill:blue"/>'])
+      expect(strokeOnlySegments(kept)).toBe(kept);
+    for (const d of ["M1 2L3 4", "m1,2 l3,4", "M-2.5 6h5", "M1 2V9", "M1 2 3 4", "M1e1 2H.5"]) expect(isOneSegment(d)).toBe(true);
+    for (const d of ["M1 2L3 4L5 6", "M0 0H5V5", "M0 0Q1 1 2 2", "M0 0H5Z", "L1 2"]) expect(isOneSegment(d)).toBe(false);
+  });
+});
+
+describe("PDF print check: dotted lines", () => {
+  it("flags a filled dotted segment and passes a stroked one", async () => {
+    const { FILLED_DASHED_SEGMENT } = await import("./pdf-audit");
+    expect(FILLED_DASHED_SEGMENT.test("0.4 w\n[0.05 1.05] 0 d\n0 7.2 m\n90.75 7.2 l\nB\nQ")).toBe(true);
+    expect(FILLED_DASHED_SEGMENT.test("0.4 w\n[0.05 1.05] 0 d\n0 7.2 m\n90.75 7.2 l\nS\nQ")).toBe(false);
+    expect(FILLED_DASHED_SEGMENT.test("[] 0 d\n0 7.2 m\n90.75 7.2 l\nB\n")).toBe(false);
   });
 });

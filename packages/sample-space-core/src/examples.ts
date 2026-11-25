@@ -47,3 +47,20 @@ export const examples: { id: string; title: string; note: string; make: (worked:
     },
   },
 ];
+
+/** Plain shapes: completed sample space diagrams, every outcome printed, shown before the exam-style examples. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "dice-sums", title: "Two dice, sums", note: "Two fair dice with every total printed.", make: () => fillCells(create(undefined, undefined, "+", { row: "Dice A", column: "Dice B" }), "sum").envelope },
+  { id: "dice-products", title: "Two dice, products", note: "Two fair dice with every product printed.", make: () => fillCells(create(undefined, undefined, "×", { row: "Dice A", column: "Dice B" }), "product").envelope },
+  {
+    id: "coin-dice",
+    title: "Coin and dice",
+    note: "Every outcome of a coin and a dice as a pair.",
+    make: () => {
+      const e = create(["H", "T"], ["1", "2", "3", "4", "5", "6"], "", { row: "Coin", column: "Dice" });
+      e.document.cellMm = 17;
+      return fillCells(e, "pair").envelope;
+    },
+  },
+  { id: "two-spinners", title: "Two spinners", note: "Two four-sided spinners with every total printed.", make: () => fillCells(create(["1", "2", "3", "4"], ["1", "2", "3", "4"], "+", { row: "Spinner A", column: "Spinner B" }), "sum").envelope },
+];

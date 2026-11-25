@@ -28,6 +28,10 @@ async function boot(page: Page, e?: Envelope) {
       ([k, v]) => localStorage.setItem(k, v),
       [key, canonical(e)],
     );
+  // The settings column folds its rarer cards; these tests use them, so they start open.
+  await page.addInitScript(() => {
+    for (const t of ["Diagram", "Print size", "Region contents"]) localStorage.setItem(`mathsdock:fold:venn:${t}`, "open");
+  });
   await page.goto("/tools/venn");
   await expect(
     page.getByRole("heading", { name: "Venn diagrams", exact: true }),
@@ -48,13 +52,24 @@ async function edit(
   kind = "members",
   display = "show",
 ) {
+  // The options box is live: each change is one undo step, and Escape closes it.
   await page.locator(`[data-region-hit="${mask}"]`).click();
-  await page.getByLabel("Content type", { exact: true }).selectOption(kind);
-  await page.getByLabel("Region content", { exact: true }).fill(text);
-  await page.getByLabel("Pupil display", { exact: true }).selectOption(display);
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
-  await expect(page.locator(".vn-floating")).toHaveCount(0);
+  const box = page.locator(".md-options-box");
+  await box.getByLabel("Content type", { exact: true }).selectOption(kind);
+  await box.getByLabel("Region content", { exact: true }).fill(text);
+  await box.getByLabel("Region content", { exact: true }).press("Enter");
+  await setDisplay(page, display);
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
   await expect(page.locator(".vn-selected")).toHaveCount(0);
+}
+/** Show, a pupil space (hidden), a pupil space on a dotted line (line) or Leave out, in the open box. */
+async function setDisplay(page: Page, display: string) {
+  const box = page.locator(".md-options-box");
+  if (display === "show") return;
+  const word = display === "omit" ? "Leave out" : "Pupil space";
+  await box.getByRole("group", { name: "What pupils see" }).getByRole("button", { name: word, exact: true }).click();
+  if (display === "line") await box.getByRole("checkbox", { name: "On a dotted answer line", exact: true }).check();
 }
 
 test("direct edits, pupil states, history and reload", async ({ page }) => {
@@ -65,8 +80,9 @@ test("direct edits, pupil states, history and reload", async ({ page }) => {
   const doc = await saved(page);
   expect(doc.document.regions[1].text).toBe("0");
   expect(doc.document.regions[3].visibility).toBe("hidden");
+  // The box is live, so the dotted line was the last of its undo steps.
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  expect((await saved(page)).document.regions[2].text).toBe("");
+  expect((await saved(page)).document.regions[2].visibility).toBe("hidden");
   await page.getByRole("button", { name: "Redo", exact: true }).click();
   await page.reload();
   expect((await saved(page)).document.regions).toEqual(doc.document.regions);
@@ -77,22 +93,56 @@ test("direct edits, pupil states, history and reload", async ({ page }) => {
     "",
   );
 });
-test("invalid and unfinished input blocks export, Cancel never commits", async ({
+test("an invalid value stays in the box with its error and never commits", async ({
   page,
 }) => {
   await boot(page);
   await page.locator('[data-region-hit="3"]').click();
-  await page.getByLabel("Content type").selectOption("number");
-  await page.getByLabel("Region content", { exact: true }).fill("1/0");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
-  await expect(page.locator(".vn-floating [role=alert]")).toContainText(
-    "denominator",
-  );
-  await expect(
-    page.getByRole("button", { name: "Copy for Word", exact: true }),
-  ).toBeDisabled();
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  const box = page.locator(".md-options-box");
+  await box.getByLabel("Content type").selectOption("number");
+  await box.getByLabel("Region content", { exact: true }).fill("1/0");
+  await box.getByLabel("Region content", { exact: true }).press("Enter");
+  await expect(box.getByRole("alert")).toContainText("denominator");
+  await expect(box.getByLabel("Region content", { exact: true })).toHaveValue("1/0");
+  // A press elsewhere keeps the box open until the value is fixed.
+  await page.getByLabel("Number of sets", { exact: true }).click();
+  await expect(box).toBeVisible();
   expect((await saved(page)).document.regions[3].text).toBe("");
+  await box.getByLabel("Region content", { exact: true }).fill("1/2");
+  await box.getByLabel("Region content", { exact: true }).press("Enter");
+  await expect(box.getByRole("alert")).toHaveCount(0);
+  expect((await saved(page)).document.regions[3].text).toBe("1/2");
+  // A refused value typed and then left with a press elsewhere (no Enter) also keeps the box open with its error.
+  await box.getByLabel("Region content", { exact: true }).fill("1/0");
+  await page.getByLabel("Number of sets", { exact: true }).click();
+  await expect(box.getByRole("alert")).toContainText("denominator");
+  await expect(box.getByLabel("Region content", { exact: true })).toHaveValue("1/0");
+  // Another region does not open while it is refused; Escape puts the saved value back and closes the box.
+  await box.getByLabel("Region content", { exact: true }).press("Escape");
+  await expect(box).toHaveCount(0);
+  expect((await saved(page)).document.regions[3].text).toBe("1/2");
+});
+test("double-click a region or label for a pupil space, and again to show it", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "languages")!.make(true));
+  await page.locator('[data-region-hit="3"]').dblclick();
+  expect((await saved(page)).document.regions[3].visibility).toBe("hidden");
+  await expect(page.locator('.vn-art [data-region="3"]')).toHaveText("");
+  await page.locator('[data-region-hit="3"]').dblclick();
+  expect((await saved(page)).document.regions[3].visibility).toBe("show");
+  await page.getByRole("button", { name: "Edit set A label", exact: true }).dblclick();
+  expect((await saved(page)).document.labels[1].visibility).toBe("hidden");
+  await page.keyboard.press("Escape");
+  // Leave out keeps the value and prints nothing in either copy.
+  await page.locator('[data-region-hit="3"]').click();
+  await setDisplay(page, "omit");
+  const d = (await saved(page)).document;
+  expect(d.regions[3].visibility).toBe("omit");
+  expect(d.regions[3].text).not.toBe("");
+  const seen = page.getByRole("group", { name: "Labels", exact: true });
+  await expect(seen.getByRole("button", { name: "Pupil space", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Clear pupil spaces", exact: true }).click();
+  expect((await saved(page)).document.labels[1].visibility).toBe("show");
+  expect((await saved(page)).document.regions[3].visibility).toBe("omit");
 });
 test("navigation hides editor but retains draft and work", async ({ page }) => {
   await boot(page);
@@ -101,11 +151,11 @@ test("navigation hides editor but retains draft and work", async ({ page }) => {
     .getByRole("button", { name: "Edit set A label", exact: true })
     .click();
   await page.getByLabel("Label text").fill("French");
-  await switchTool(page, "Ratio tables");
-  await expect(page.locator(".vn-floating")).toBeHidden();
-  await switchTool(page, "Venn diagrams");
-  await expect(page.getByLabel("Label text")).toHaveValue("French");
   await page.getByLabel("Label text").press("Enter");
+  await page.keyboard.press("Escape");
+  await switchTool(page, "Ratio tables");
+  await expect(page.locator(".md-options-box")).toBeHidden();
+  await switchTool(page, "Venn diagrams");
   expect((await saved(page)).document.labels[1].text).toBe("French");
   expect((await saved(page)).document.regions[1].text).toBe("3,9");
   await page.goBack();
@@ -197,7 +247,7 @@ for (const width of [320, 375, 768, 1440])
     ).toBe(true);
     for (const label of ["Edit universe label", "Edit set C label"]) {
       await page.getByRole("button", { name: label, exact: true }).click();
-      const box = await page.locator(".vn-floating").boundingBox();
+      const box = await page.locator(".md-options-box").boundingBox();
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(width);
       expect(box!.y + box!.height).toBeLessThanOrEqual(1000);
@@ -206,12 +256,11 @@ for (const width of [320, 375, 768, 1440])
     await page
       .getByRole("button", { name: "Edit set A label", exact: true })
       .click();
-    await page.getByLabel("Label text").fill("Unfinished");
     await page.screenshot({
       path: resolve(report, `focused-${width}.png`),
       fullPage: true,
     });
-    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.keyboard.press("Escape");
     await page.screenshot({
       path: resolve(report, `editor-${width}.png`),
       fullPage: true,
@@ -464,6 +513,7 @@ test("newline members, stacked cards and direct definition edits", async ({
   await page.getByLabel("Region content", { exact: true }).fill("0\n1/2\n-3");
   await page.getByLabel("Region content", { exact: true }).press("Enter");
   expect((await saved(page)).document.regions[1].text).toBe("0\n1/2\n-3");
+  await page.keyboard.press("Escape");
   // Closing the editor returns focus to the region on the next frame; wait for it before moving focus.
   await expect(page.locator('[data-region-hit="1"]')).toBeFocused();
   // U20: the Diagram and Region contents cards are both shown; there are no tabs.
@@ -482,7 +532,8 @@ test("newline members, stacked cards and direct definition edits", async ({
   await page
     .getByLabel("Definition text", { exact: true })
     .fill("U = {1, 2, 3}");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByLabel("Definition text", { exact: true }).press("Enter");
+  await page.keyboard.press("Escape");
   await page
     .getByRole("button", {
       name: "Edit printed universe definition",
@@ -492,7 +543,8 @@ test("newline members, stacked cards and direct definition edits", async ({
   await page
     .getByLabel("Definition text", { exact: true })
     .fill("U = {1, 2, 3, 4}");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByLabel("Definition text", { exact: true }).press("Enter");
+  await page.keyboard.press("Escape");
   expect((await saved(page)).document.definitions[0]).toBe("U = {1, 2, 3, 4}");
 });
 
@@ -563,18 +615,15 @@ test("largest structure stays editable on a narrow screen", async ({
   // setViewportSize alone can resolve before that frame. Bounds stay exact.
   await expect
     .poll(async () => {
-      const box = (await page.locator(".vn-floating").boundingBox())!;
+      const box = (await page.locator(".md-options-box").boundingBox())!;
       return box.y + box.height;
     })
     .toBeLessThanOrEqual(450);
-  const b = await page.locator(".vn-floating").boundingBox();
+  const b = await page.locator(".md-options-box").boundingBox();
   expect(b!.x).toBeGreaterThanOrEqual(0);
   expect(b!.x + b!.width).toBeLessThanOrEqual(320);
   expect(b!.y + b!.height).toBeLessThanOrEqual(450);
-  await expect(
-    page.getByRole("button", { name: "Apply", exact: true }),
-  ).toBeInViewport();
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.keyboard.press("Escape");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

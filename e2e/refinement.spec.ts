@@ -329,42 +329,34 @@ for (const width of [1280, 375, 320])
       .getByRole("button", { name: "Edit side ab", exact: true })
       .click();
     const editor = page.getByRole("dialog", {
-      name: "Edit Side AB",
+      name: "Side AB",
       exact: true,
     });
     await expect(editor).toBeVisible();
-    expect(
-      await editor.evaluate((el) => !!el.closest(".inspector-stack")),
-    ).toBe(true);
     const panel = await editor.boundingBox(),
       paper = await page.locator(".tr-resource").boundingBox();
-    if (width > 900) expect(panel!.x).toBeGreaterThan(paper!.x + paper!.width);
-    await editor
-      .getByRole("radio", { name: "Unknown (x)", exact: true })
-      .check();
-    await editor.getByRole("textbox").fill("h");
-    const cancel = editor.getByRole("button", {
-      name: "Cancel label",
-      exact: true,
-    });
-    await expect(cancel).toBeInViewport();
+    // The box never covers the label it edits (on a phone it may have no room to avoid it).
+    const label = (await page.getByRole("button", { name: "Edit side ab", exact: true }).boundingBox())!;
+    if (width > 900) expect(
+      panel!.x >= label.x + label.width || panel!.x + panel!.width <= label.x || panel!.y >= label.y + label.height || panel!.y + panel!.height <= label.y,
+    ).toBe(true);
+    void paper;
+    await editor.getByRole("textbox").first().fill("h");
+    await expect(editor).toBeInViewport();
     await page.screenshot({
       path: resolve(report, `visual/triangle-edit-${width}.png`),
     });
-    await cancel.click();
+    // Escape puts typing back: nothing saved.
+    await page.keyboard.press("Escape");
     expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe(
       before,
     );
     await page
       .getByRole("button", { name: "Edit side ab", exact: true })
       .click();
-    await editor
-      .getByRole("radio", { name: "Unknown (x)", exact: true })
-      .check();
-    await editor.getByRole("textbox").fill("h");
-    await editor
-      .getByRole("button", { name: "Apply label", exact: true })
-      .click();
+    await editor.getByRole("textbox").first().fill("h");
+    await editor.getByRole("textbox").first().press("Enter");
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect
       .poll(() => page.evaluate((k) => localStorage.getItem(k), key))

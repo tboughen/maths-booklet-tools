@@ -1,4 +1,4 @@
-import { blank, label, presetShape, validate, type Envelope, type Label, type Preset } from "./index";
+import { blank, label, presetShape, starter, validate, PRESETS, PRESET_NAMES, type Envelope, type Label, type Preset } from "./index";
 
 type Extra = Partial<Omit<Envelope["document"], "labels">>;
 /** An example as pupils see it; the worked version keeps the same file with its answers saved. */
@@ -91,4 +91,36 @@ export const examples: { id: string; title: string; note: string; worked: boolea
       notToScale: false,
     }),
   },
+];
+
+/** A four-sided shape drawn from its corners (mm), with its sides labelled in order. */
+function quadrilateral(corners: [number, number][], sides: string[]): Envelope {
+  const e = blank("rectangle");
+  e.document.shape = { type: "polygon", corners: corners.map(([x, y]) => ({ x, y })), arcs: corners.map(() => "none" as const), heights: [], rightAngles: [] };
+  e.document.labels = sides.flatMap((text, i) => (text ? [given(`e${i + 1}`, text)] : []));
+  return validate(e);
+}
+const PLAIN_NOTES: Record<Preset, string> = {
+  rectangle: "A rectangle with its length and width given.",
+  "l-shape": "An L shape with four of its sides given.",
+  "t-shape": "A T shape with four of its sides given.",
+  "u-shape": "A U shape with four of its sides given.",
+  triangle: "A triangle with its base and perpendicular height given.",
+  parallelogram: "A parallelogram with its base and perpendicular height given.",
+  trapezium: "A trapezium with its parallel sides and height given.",
+  house: "A rectangle with a triangle on top.",
+  "rectangle-semicircle": "A rectangle with a semicircle on one end.",
+  "rectangle-cut": "A rectangle with a semicircle cut out of one side.",
+  frame: "A rectangle with a smaller rectangle inside it, the frame shaded.",
+  circle: "A circle with its radius given.",
+  semicircle: "A semicircle with its diameter given.",
+  quarter: "A quarter circle with its radius given.",
+  sector: "A sector with its radius and angle given.",
+};
+
+/** Plain shapes: every built-in shape with typical lengths given, then a kite and a rhombus. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  ...PRESETS.map((p) => ({ id: p, title: PRESET_NAMES[p], note: PLAIN_NOTES[p], make: () => starter(p) })),
+  { id: "kite", title: "Kite", note: "A kite with a short side and a long side given.", make: () => quadrilateral([[30, 0], [55, 30], [30, 70], [5, 30]], ["6 cm", "7 cm"]) },
+  { id: "rhombus", title: "Rhombus", note: "A rhombus with one side given.", make: () => quadrilateral([[0, 0], [40, 0], [64, 32], [24, 32]], ["8 cm"]) },
 ];

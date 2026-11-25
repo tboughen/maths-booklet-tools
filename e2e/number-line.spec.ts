@@ -108,10 +108,10 @@ test("blank, direct drawing, exact endpoint edit, label blanks and Undo", async 
   await page.getByLabel("Upper endpoint", { exact: true }).press("Enter");
   await expect(resource.locator('circle[data-value="3.5"]')).toHaveCount(1);
   await page.getByRole("button", { name: "Tick 0", exact: true }).click();
-  await page.getByLabel("Tick label state").selectOption("answer-line");
+  await page.locator(".md-options-box").getByRole("group", { name: "What pupils see", exact: true }).getByRole("button", { name: "Pupil space", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Tick 0", exact: true }).click();
-  await expect(page.getByLabel("Tick label state")).toHaveValue("value");
+  await expect(page.locator(".md-options-box").getByRole("group", { name: "What pupils see", exact: true }).getByRole("button", { name: "Show", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.reload();
   await expect(resource.locator('circle[data-value="3.5"]')).toHaveCount(1);
 });

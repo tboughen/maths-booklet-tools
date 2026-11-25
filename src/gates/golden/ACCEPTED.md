@@ -871,3 +871,243 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - ratio table: ratio-simple: pixels 857d13d10142a099 -> 67e40f9d218bbaf2
 - ratio table: ratio-simple (worked): svg e020341b730f4615 -> 4ba4be06fdc6dd27
 - ratio table: ratio-simple (worked): pixels 857d13d10142a099 -> 67e40f9d218bbaf2
+
+## 2026-11-23: Add the eight plain 3D solids shapes (examples first, agreed by Tim 23 Nov 2026); no existing output changed
+
+- 3D solids: solids-plain-cuboid: added
+- 3D solids: solids-plain-cuboid (worked): added
+- 3D solids: solids-plain-triangular-prism: added
+- 3D solids: solids-plain-triangular-prism (worked): added
+- 3D solids: solids-plain-roof-prism: added
+- 3D solids: solids-plain-roof-prism (worked): added
+- 3D solids: solids-plain-cylinder: added
+- 3D solids: solids-plain-cylinder (worked): added
+- 3D solids: solids-plain-cone: added
+- 3D solids: solids-plain-cone (worked): added
+- 3D solids: solids-plain-square-pyramid: added
+- 3D solids: solids-plain-square-pyramid (worked): added
+- 3D solids: solids-plain-sphere: added
+- 3D solids: solids-plain-sphere (worked): added
+- 3D solids: solids-plain-hemisphere: added
+- 3D solids: solids-plain-hemisphere (worked): added
+
+## 2026-11-23: Plain shapes for all tools: new examples only
+
+- graph: graph-plain-axes: added
+- graph: graph-plain-axes (worked): added
+- graph: graph-plain-first-quadrant: added
+- graph: graph-plain-first-quadrant (worked): added
+- graph: graph-plain-straight-line: added
+- graph: graph-plain-straight-line (worked): added
+- graph: graph-plain-two-lines: added
+- graph: graph-plain-two-lines (worked): added
+- graph: graph-plain-gradient-triangle: added
+- graph: graph-plain-gradient-triangle (worked): added
+- graph: graph-plain-shape: added
+- graph: graph-plain-shape (worked): added
+- graph: graph-plain-region: added
+- graph: graph-plain-region (worked): added
+- ratio table: ratio-plain-multiplier: added
+- ratio table: ratio-plain-multiplier (worked): added
+- ratio table: ratio-plain-unitary: added
+- ratio table: ratio-plain-unitary (worked): added
+- ratio table: ratio-plain-recipe: added
+- ratio table: ratio-plain-recipe (worked): added
+- ratio table: ratio-plain-best-buy: added
+- ratio table: ratio-plain-best-buy (worked): added
+- plotting quadratics: quadratic-plain-table: added
+- plotting quadratics: quadratic-plain-table (worked): added
+- plotting quadratics: quadratic-plain-y-equals-x-squared: added
+- plotting quadratics: quadratic-plain-y-equals-x-squared (worked): added
+- plotting quadratics: quadratic-plain-roots-turning-point: added
+- plotting quadratics: quadratic-plain-roots-turning-point (worked): added
+- cuboids: cuboid-plain-cuboid: added
+- cuboids: cuboid-plain-cuboid (worked): added
+- cuboids: cuboid-plain-cube: added
+- cuboids: cuboid-plain-cube (worked): added
+- cuboids: cuboid-plain-cubes: added
+- cuboids: cuboid-plain-cubes (worked): added
+- cuboids: cuboid-plain-layers: added
+- cuboids: cuboid-plain-layers (worked): added
+- number line: number-line-plain-zero-to-ten: added
+- number line: number-line-plain-zero-to-ten (worked): added
+- number line: number-line-plain-negative-ten-to-ten: added
+- number line: number-line-plain-negative-ten-to-ten (worked): added
+- number line: number-line-plain-tenths: added
+- number line: number-line-plain-tenths (worked): added
+- number line: number-line-plain-inequality: added
+- number line: number-line-plain-inequality (worked): added
+- number line: number-line-plain-interval: added
+- number line: number-line-plain-interval (worked): added
+- number line: number-line-plain-error-interval: added
+- number line: number-line-plain-error-interval (worked): added
+- venn: venn-plain-one-set: added
+- venn: venn-plain-one-set (worked): added
+- venn: venn-plain-two-sets: added
+- venn: venn-plain-two-sets (worked): added
+- venn: venn-plain-two-sets-shaded: added
+- venn: venn-plain-two-sets-shaded (worked): added
+- venn: venn-plain-three-sets: added
+- venn: venn-plain-three-sets (worked): added
+- triangles: triangle-plain-pythagoras: added
+- triangles: triangle-plain-pythagoras (worked): added
+- triangles: triangle-plain-trigonometry: added
+- triangles: triangle-plain-trigonometry (worked): added
+- triangles: triangle-plain-sine-rule: added
+- triangles: triangle-plain-sine-rule (worked): added
+- triangles: triangle-plain-cosine-rule: added
+- triangles: triangle-plain-cosine-rule (worked): added
+- triangles: triangle-plain-area-sine: added
+- triangles: triangle-plain-area-sine (worked): added
+- triangles: triangle-plain-isosceles: added
+- triangles: triangle-plain-isosceles (worked): added
+- triangles: triangle-plain-equilateral: added
+- triangles: triangle-plain-equilateral (worked): added
+- algebra grid: algebra-plain-single: added
+- algebra grid: algebra-plain-single (worked): added
+- algebra grid: algebra-plain-double: added
+- algebra grid: algebra-plain-double (worked): added
+- algebra grid: algebra-plain-common-factor: added
+- algebra grid: algebra-plain-common-factor (worked): added
+- algebra grid: algebra-plain-quadratic: added
+- algebra grid: algebra-plain-quadratic (worked): added
+- charts: chart-plain-bar: added
+- charts: chart-plain-bar (worked): added
+- charts: chart-plain-dual: added
+- charts: chart-plain-dual (worked): added
+- charts: chart-plain-composite: added
+- charts: chart-plain-composite (worked): added
+- charts: chart-plain-vline: added
+- charts: chart-plain-vline (worked): added
+- charts: chart-plain-pie: added
+- charts: chart-plain-pie (worked): added
+- charts: chart-plain-pictogram: added
+- charts: chart-plain-pictogram (worked): added
+- charts: chart-plain-scatter: added
+- charts: chart-plain-scatter (worked): added
+- charts: chart-plain-timeseries: added
+- charts: chart-plain-timeseries (worked): added
+- charts: chart-plain-boxplot: added
+- charts: chart-plain-boxplot (worked): added
+- charts: chart-plain-stemleaf: added
+- charts: chart-plain-stemleaf (worked): added
+- charts: chart-plain-histogram: added
+- charts: chart-plain-histogram (worked): added
+- charts: chart-plain-polygon: added
+- charts: chart-plain-polygon (worked): added
+- charts: chart-plain-cumulative: added
+- charts: chart-plain-cumulative (worked): added
+- probability trees: tree-plain-independent: added
+- probability trees: tree-plain-independent (worked): added
+- probability trees: tree-plain-without-replacement: added
+- probability trees: tree-plain-without-replacement (worked): added
+- probability trees: tree-plain-three-branches: added
+- probability trees: tree-plain-three-branches (worked): added
+- frequency trees: ftree-plain-two-levels: added
+- frequency trees: ftree-plain-two-levels (worked): added
+- constructions: construction-plain-line: added
+- constructions: construction-plain-line (worked): added
+- constructions: construction-plain-angle: added
+- constructions: construction-plain-angle (worked): added
+- constructions: construction-plain-point-and-line: added
+- constructions: construction-plain-point-and-line (worked): added
+- constructions: construction-plain-locus-point: added
+- constructions: construction-plain-locus-point (worked): added
+- constructions: construction-plain-locus-line: added
+- constructions: construction-plain-locus-line (worked): added
+- constructions: construction-plain-bearing: added
+- constructions: construction-plain-bearing (worked): added
+- constructions: construction-plain-scale-drawing: added
+- constructions: construction-plain-scale-drawing (worked): added
+- plans and elevations: elevations-plain-row: added
+- plans and elevations: elevations-plain-row (worked): added
+- plans and elevations: elevations-plain-l-shape: added
+- plans and elevations: elevations-plain-l-shape (worked): added
+- plans and elevations: elevations-plain-steps: added
+- plans and elevations: elevations-plain-steps (worked): added
+- plans and elevations: elevations-plain-blank-views: added
+- plans and elevations: elevations-plain-blank-views (worked): added
+- two-way tables: twt-plain-two-by-two: added
+- two-way tables: twt-plain-two-by-two (worked): added
+- two-way tables: twt-plain-three-by-two: added
+- two-way tables: twt-plain-three-by-two (worked): added
+- two-way tables: twt-plain-three-by-three: added
+- two-way tables: twt-plain-three-by-three (worked): added
+- angle diagrams: angles-plain-straight-line: added
+- angle diagrams: angles-plain-straight-line (worked): added
+- angle diagrams: angles-plain-point: added
+- angle diagrams: angles-plain-point (worked): added
+- angle diagrams: angles-plain-vertically-opposite: added
+- angle diagrams: angles-plain-vertically-opposite (worked): added
+- angle diagrams: angles-plain-parallel: added
+- angle diagrams: angles-plain-parallel (worked): added
+- angle diagrams: angles-plain-triangle: added
+- angle diagrams: angles-plain-triangle (worked): added
+- angle diagrams: angles-plain-quadrilateral: added
+- angle diagrams: angles-plain-quadrilateral (worked): added
+- angle diagrams: angles-plain-pentagon: added
+- angle diagrams: angles-plain-pentagon (worked): added
+- angle diagrams: angles-plain-hexagon: added
+- angle diagrams: angles-plain-hexagon (worked): added
+- angle diagrams: angles-plain-polygons: added
+- angle diagrams: angles-plain-polygons (worked): added
+- area and perimeter: area-plain-rectangle: added
+- area and perimeter: area-plain-rectangle (worked): added
+- area and perimeter: area-plain-l-shape: added
+- area and perimeter: area-plain-l-shape (worked): added
+- area and perimeter: area-plain-t-shape: added
+- area and perimeter: area-plain-t-shape (worked): added
+- area and perimeter: area-plain-u-shape: added
+- area and perimeter: area-plain-u-shape (worked): added
+- area and perimeter: area-plain-triangle: added
+- area and perimeter: area-plain-triangle (worked): added
+- area and perimeter: area-plain-parallelogram: added
+- area and perimeter: area-plain-parallelogram (worked): added
+- area and perimeter: area-plain-trapezium: added
+- area and perimeter: area-plain-trapezium (worked): added
+- area and perimeter: area-plain-house: added
+- area and perimeter: area-plain-house (worked): added
+- area and perimeter: area-plain-rectangle-semicircle: added
+- area and perimeter: area-plain-rectangle-semicircle (worked): added
+- area and perimeter: area-plain-rectangle-cut: added
+- area and perimeter: area-plain-rectangle-cut (worked): added
+- area and perimeter: area-plain-frame: added
+- area and perimeter: area-plain-frame (worked): added
+- area and perimeter: area-plain-circle: added
+- area and perimeter: area-plain-circle (worked): added
+- area and perimeter: area-plain-semicircle: added
+- area and perimeter: area-plain-semicircle (worked): added
+- area and perimeter: area-plain-quarter: added
+- area and perimeter: area-plain-quarter (worked): added
+- area and perimeter: area-plain-sector: added
+- area and perimeter: area-plain-sector (worked): added
+- area and perimeter: area-plain-kite: added
+- area and perimeter: area-plain-kite (worked): added
+- area and perimeter: area-plain-rhombus: added
+- area and perimeter: area-plain-rhombus (worked): added
+- geometry figures: figures-plain-chord: added
+- geometry figures: figures-plain-chord (worked): added
+- geometry figures: figures-plain-tangent-radius: added
+- geometry figures: figures-plain-tangent-radius (worked): added
+- geometry figures: figures-plain-two-tangents: added
+- geometry figures: figures-plain-two-tangents (worked): added
+- geometry figures: figures-plain-centre-angle: added
+- geometry figures: figures-plain-centre-angle (worked): added
+- and 82 more
+
+## 2026-11-23: Number line: stacked fractions print at 11 pt (Tim, 23 Nov 2026), and the 0 to 1 in quarters plain shape
+
+- number line: number-line-plain-quarters: added
+- number line: number-line-plain-quarters (worked): added
+
+## 2026-11-23: Charts: line graph kind and its plain shape (Tim, 23 Nov 2026)
+
+- charts: chart-plain-line: added
+- charts: chart-plain-line (worked): added
+
+## 2026-11-23: Nets: cylinder and cone nets with curved edges, and their plain shapes (Tim, 23 Nov 2026)
+
+- nets: nets-plain-cylinder: added
+- nets: nets-plain-cylinder (worked): added
+- nets: nets-plain-cone: added
+- nets: nets-plain-cone (worked): added

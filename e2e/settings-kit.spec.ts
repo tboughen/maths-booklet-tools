@@ -7,7 +7,7 @@ const card = (page: Page, heading: string) =>
   page.locator(".md-kit .site-panel").filter({ has: page.getByRole("heading", { name: heading, exact: true }) });
 const box = async (page: Page, heading: string) => (await card(page, heading).boundingBox())!;
 
-test("a wide window sets the settings cards in two fixed columns, with 32 px controls", async ({ page }) => {
+test("Bar models: a wide window sets the settings in one folding column, with 32 px controls", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/bar-model");
   const stack = page.locator(".inspector-stack.md-kit");
@@ -15,17 +15,14 @@ test("a wide window sets the settings cards in two fixed columns, with 32 px con
   const [model, whole, title, examples] = await Promise.all(
     ["Current model", "Whole labels and ranges", "Title and calculations", "Lesson examples"].map((name) => box(page, name)),
   );
-  // Left: the model and its labels. Right: the title, the output and the examples.
-  expect(whole.x).toBe(model.x);
-  expect(examples.x).toBe(title.x);
-  expect(title.x).toBeGreaterThanOrEqual(model.x + model.width);
+  // One column (the usability rollout, 23 Nov 2026), What pupils see first.
+  const seen = (await page.locator('.md-kit section[aria-label="What pupils see"]').first().boundingBox())!;
+  expect([model.x, whole.x, title.x, examples.x]).toEqual([seen.x, seen.x, seen.x, seen.x]);
+  expect(model.y).toBeGreaterThan(seen.y + seen.height);
   expect(whole.y).toBeGreaterThan(model.y + model.height);
-  expect(Math.abs(title.width - model.width)).toBeLessThanOrEqual(1);
   // Nothing is squeezed: the diagram keeps most of the window.
   const stage = (await page.locator(".editor-card").first().boundingBox())!;
   expect(stage.width).toBeGreaterThan(1200);
-  // The settings were 3,369 px long before the kit.
-  expect(await stack.evaluate((el) => el.scrollHeight)).toBeLessThan(1150);
 
   for (const name of ["Edit quantity name", "Select all sections", "Add bar", "Edit title", "Worked R4"]) {
     const button = (await page.getByRole("button", { name, exact: true }).boundingBox())!;
@@ -37,15 +34,12 @@ test("a wide window sets the settings cards in two fixed columns, with 32 px con
   // The diagram's own buttons are not settings.
   expect((await page.getByRole("button", { name: "+ Section", exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
 
-  // A card stays in its column when another opens or a form appears above it.
+  // A card stays in the column when another opens or a form appears above it.
   await page.getByText("Start a new model", { exact: true }).click();
   await expect(page.getByLabel("Equal sections", { exact: true })).toBeVisible();
-  expect(await box(page, "Title and calculations")).toEqual(title);
-  expect((await box(page, "Current model")).x).toBe(model.x);
+  expect((await box(page, "Title and calculations")).x).toBe(title.x);
   await page.getByRole("button", { name: "Edit quantity name", exact: true }).click();
   await expect(page.getByLabel("Saved label", { exact: true })).toBeFocused();
-  expect(await box(page, "Title and calculations")).toEqual(title);
-  expect((await page.locator(".bm-draft").boundingBox())!.x).toBeLessThan(title.x);
   // What went wrong stands out from the notes around it.
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("button", { name: "Add calculation line", exact: true }).click();
@@ -69,11 +63,9 @@ test("a smaller window keeps one column of settings, and a phone gets finger-siz
   expect(title.x).toBe(model.x);
   expect(title.y).toBeGreaterThan(model.y + model.height);
   expect((await page.getByRole("button", { name: "Edit quantity name", exact: true }).boundingBox())!.height).toBe(32);
-  // Two columns start only where the diagram still has the room it has at 1440.
-  await page.setViewportSize({ width: 1790, height: 900 });
-  expect((await box(page, "Title and calculations")).x).toBe((await box(page, "Current model")).x);
+  // A wide window keeps the one column, and the diagram gets the room.
   await page.setViewportSize({ width: 1800, height: 900 });
-  expect((await box(page, "Title and calculations")).x).toBeGreaterThan((await box(page, "Current model")).x);
+  expect((await box(page, "Title and calculations")).x).toBe((await box(page, "Current model")).x);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1100);
 
   await page.setViewportSize({ width: 375, height: 800 });
@@ -124,18 +116,18 @@ const tooSmall = (page: Page) =>
       .map((c) => c.textContent || c.getAttribute("aria-label")),
   );
 
-test("Statistical charts uses the kit: the data in one column and its settings in the other", async ({ page }) => {
+test("Statistical charts uses the kit: one column, what pupils see first, then the chart type, its data and its settings", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/charts");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const type = await chartCard(page, "Chart type"), data = await chartCard(page, "Data"), axes = await chartCard(page, "Axes and grid");
-  expect(data.x).toBe(type.x);
+  // One column (the usability rollout, 23 Nov 2026).
+  const seen = await chartCard(page, "What pupils see");
+  expect([type.x, data.x, axes.x]).toEqual([seen.x, seen.x, seen.x]);
+  expect(type.y).toBeGreaterThan(seen.y + seen.height);
   expect(data.y).toBeGreaterThan(type.y + type.height);
-  expect(axes.x).toBeGreaterThanOrEqual(type.x + type.width);
-  expect(Math.abs(axes.width - type.width)).toBeLessThanOrEqual(1);
-  // The settings were 1,432 px long before the kit. Now they are all in view.
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect(axes.y).toBeGreaterThan(data.y + data.height);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The chart type that is on is marked, and a click moves the mark.
@@ -152,7 +144,7 @@ test("Statistical charts uses the kit: the data in one column and its settings i
   const heading = await page.getByRole("heading", { name: "Chart type", exact: true }).evaluate((el) => getComputedStyle(el).font);
   expect(heading).toContain("600 17px");
 
-  // Every chart type keeps its data on the left and its settings on the right, with nothing cut off.
+  // Every chart type keeps its data and then its settings in the one column, with nothing cut off.
   for (const [kind, left, right] of [
     ["Pie chart", "Data", "Pie chart"],
     ["Pictogram", "Data", "Pictogram"],
@@ -165,8 +157,9 @@ test("Statistical charts uses the kit: the data in one column and its settings i
     ["Time series graph", "Times and values", "Axes and graph paper"],
   ]) {
     await page.getByRole("button", { name: kind, exact: true }).click();
-    expect((await chartCard(page, left)).x, kind).toBe(type.x);
-    expect((await chartCard(page, right)).x, kind).toBe(axes.x);
+    const [l, r] = [await chartCard(page, left), await chartCard(page, right)];
+    expect([l.x, r.x], kind).toEqual([type.x, type.x]);
+    expect(r.y, kind).toBeGreaterThan(l.y);
     const cut = await stack.evaluate((el) =>
       [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.querySelector("h2")?.textContent),
     );
@@ -335,17 +328,16 @@ test("Plans and elevations uses the kit: one folding column, the solid and the p
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Expanding and factorising uses the kit: the task on the left, the print size on the right, all in view", async ({ page }) => {
+test("Expanding and factorising uses the kit: one folding column, with a cell's options in the box beside the grid", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/expanding-factorising");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
-  const task = await chartCard(page, "Teaching resource"), size = await chartCard(page, "Print size");
-  expect(size.y).toBe(task.y);
-  expect(size.x).toBeGreaterThanOrEqual(task.x + task.width);
-  expect(Math.abs(size.width - task.width)).toBeLessThanOrEqual(1);
-  // The settings were 1,337 px long in a 967 px column before the kit. Now they are all in view.
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  // One column (the usability rollout, 22 Nov 2026), in the order the cards are read; Print size starts folded.
+  await page.getByRole("button", { name: "Print size", exact: true }).click();
+  const column = [await chartCard(page, "What pupils see"), await chartCard(page, "Teaching resource"), await chartCard(page, "Print size")];
+  expect(Math.max(...column.map((c) => c.x)) - Math.min(...column.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The three sizes are choices with their millimetres on a second line, and the one that is on is marked.
@@ -357,7 +349,7 @@ test("Expanding and factorising uses the kit: the task on the left, the print si
   expect(await sizes.nth(1).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(230, 239, 255)");
   expect(await sizes.nth(0).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
   // A button in a row keeps its own width.
-  expect((await page.getByRole("button", { name: "Fill products", exact: true }).boundingBox())!.width).toBeLessThan(task.width / 2);
+  expect((await page.getByRole("button", { name: "Fill products", exact: true }).boundingBox())!.width).toBeLessThan(column[1].width / 2);
 
   // The buttons that apply a typed setting come under its field, at the kit's height.
   const cell = page.getByLabel("Cell size (mm)", { exact: true });
@@ -367,6 +359,14 @@ test("Expanding and factorising uses the kit: the task on the left, the print si
   expect(Math.abs(apply.y - (field.y + field.height) - 8)).toBeLessThanOrEqual(1);
   await page.getByRole("button", { name: "Cancel setting", exact: true }).click();
 
+  // A cell's options open in the box beside the grid, never over the settings, with no Apply.
+  const box = page.locator(".md-options-box");
+  await page.locator('[data-ag-cell="1-1"]').click();
+  await expect(box).toBeVisible();
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await expect(box.getByRole("button", { name: "Apply cell", exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
   // The help is the last thing in the Print size card, and its paragraphs keep a space between them.
   const help = page.locator(".md-kit .panel-card details").filter({ hasText: "Notation and help" });
   expect(await help.locator("summary").evaluate((el) => [getComputedStyle(el).cursor, getComputedStyle(el).fontWeight])).toEqual(["pointer", "500"]);
@@ -375,30 +375,23 @@ test("Expanding and factorising uses the kit: the task on the left, the print si
   const open = await chartCard(page, "Print size");
   expect((await help.boundingBox())!.y + (await help.boundingBox())!.height).toBeLessThanOrEqual(open.y + open.height);
 
-  // One column in a smaller window, in the same order.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const [a, b] = [await chartCard(page, "Teaching resource"), await chartCard(page, "Print size")];
-  expect(b.x).toBe(a.x);
-  expect(b.y).toBeGreaterThan(a.y + a.height);
-
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
   expect(await tooSmall(page)).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Venn diagrams uses the kit: the diagram and its print size on the left, the regions on the right, all in view", async ({ page }) => {
+test("Venn diagrams uses the kit: one folding column, with a region's options in the box beside it", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/venn");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
-  const [tools, diagram, regions, size] = [await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Region contents"), await chartCard(page, "Print size")];
-  expect(regions.y).toBe(tools.y);
-  expect(regions.x).toBeGreaterThanOrEqual(tools.x + tools.width);
-  expect(Math.abs(regions.width - tools.width)).toBeLessThanOrEqual(1);
-  expect([diagram.x, size.x]).toEqual([tools.x, tools.x]);
-  expect(diagram.y).toBeGreaterThan(tools.y + tools.height);
-  expect(size.y).toBeGreaterThan(diagram.y + diagram.height);
+  // One column (the usability rollout, 22 Nov 2026), in the order the cards are read; the rarer cards start folded.
+  const fold = (title: string) => page.locator(".md-kit .md-fold").filter({ has: page.getByRole("button", { name: title, exact: true }) });
+  for (const t of ["Diagram", "Print size", "Region contents"]) await fold(t).getByRole("button", { name: t, exact: true }).click();
+  const column = [await chartCard(page, "What pupils see"), await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Print size"), await chartCard(page, "Region contents")];
+  expect(Math.max(...column.map((c) => c.x)) - Math.min(...column.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // Edit or Shade sits beside the number of sets, level with its field.
@@ -422,36 +415,33 @@ test("Venn diagrams uses the kit: the diagram and its print size on the left, th
   expect(rowBox.height).toBe(32);
   expect(held.x + held.width).toBeGreaterThan(rowBox.x + rowBox.width - 14);
 
-  // With the labels open and three sets, every control keeps the kit's size and the settings are still all in view.
-  // They were 1,060 px long in a 967 px column before the kit, with the labels closed.
+  // With the labels open and three sets, every control keeps the kit's size.
   await page.getByLabel("Number of sets", { exact: true }).selectOption("3");
   const labels = page.locator(".md-kit .panel-card details").filter({ hasText: "Labels and definitions" });
   expect(await labels.locator("summary").evaluate((el) => [getComputedStyle(el).cursor, getComputedStyle(el).fontWeight])).toEqual(["pointer", "500"]);
   await labels.locator("summary").click();
   expect(await kitSizes(page, names)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
   await page.getByLabel("Number of sets", { exact: true }).selectOption("2");
 
-  // The help closes the right column's card, Region contents or Region shading, and stays open from one to the other.
+  // A region's options open in the box beside the diagram, never over the settings; it is live, with no Apply.
+  const box = page.locator(".md-options-box");
+  await page.locator('[data-region-hit="3"]').click();
+  await expect(box).toBeVisible();
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await expect(box.getByRole("button", { name: "Apply", exact: true })).toHaveCount(0);
+  await expect(box.getByLabel("Region content", { exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
+
+  // Shade mode swaps the contents for the shading, and the help travels with it.
   const help = page.locator(".md-kit .panel-card details").filter({ hasText: "Editing and printing help" });
   await help.locator("summary").click();
-  expect(await help.locator("p").evaluateAll((all) => all.map((p) => getComputedStyle(p).marginTop))).toEqual(["6px", "6px"]);
-  const open = await chartCard(page, "Region contents");
-  expect((await help.boundingBox())!.y + (await help.boundingBox())!.height).toBeLessThanOrEqual(open.y + open.height);
   await page.getByRole("button", { name: "Shade", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Print size", exact: true })).toHaveCount(0);
-  const shading = await chartCard(page, "Region shading");
-  expect([shading.x, shading.y]).toEqual([regions.x, regions.y]);
+  await expect(page.getByRole("button", { name: "Print size", exact: true })).toHaveCount(0);
   await expect(page.locator(".md-kit .panel-card").filter({ hasText: "Region shading" }).locator("details[open]")).toContainText("Editing and printing help");
   expect(await kitSizes(page, names)).toMatchObject({ buttons: [32], fields: [32], faded: 0, cut: [] });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await expect(help).toHaveAttribute("open", "");
-
-  // One column in a smaller window, in the order the Tab key takes them at any size.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const column = [await chartCard(page, "Diagram tools"), await chartCard(page, "Diagram"), await chartCard(page, "Print size"), await chartCard(page, "Region contents")];
-  expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
 
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
@@ -459,21 +449,25 @@ test("Venn diagrams uses the kit: the diagram and its print size on the left, th
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Number lines uses the kit: drawing and the scale on the left with More settings under them, the second scale on the right", async ({ page }) => {
+test("Number lines uses the kit: one column, what pupils see first, a clicked tick's options in the box beside the drawing", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/number-line");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const more = page.locator(".md-kit .panel-card").filter({ hasText: "More settings" });
-  const cards = async () => [await chartCard(page, "Selected item"), await chartCard(page, "Draw"), await chartCard(page, "Scale"), (await more.boundingBox())!, await chartCard(page, "Second scale")];
-  const [selected, draw, scale, moreBox, second] = await cards();
-  expect(second.y).toBe(selected.y);
-  expect(second.x).toBeGreaterThanOrEqual(selected.x + selected.width);
-  expect(Math.abs(second.width - selected.width)).toBeLessThanOrEqual(1);
-  expect([draw.x, scale.x, moreBox.x]).toEqual([selected.x, selected.x, selected.x]);
-  expect([selected.y, draw.y, scale.y, moreBox.y]).toEqual([selected.y, draw.y, scale.y, moreBox.y].sort((a, b) => a - b));
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  const cards = async () => [await chartCard(page, "What pupils see"), await chartCard(page, "Draw"), await chartCard(page, "Scale"), await chartCard(page, "Second scale"), (await more.boundingBox())!];
+  // One column (the usability rollout, 23 Nov 2026), in the order the cards are read.
+  const first = await cards();
+  expect(Math.max(...first.map((c) => c.x)) - Math.min(...first.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(first.map((c) => c.y)).toEqual([...first.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
+  // A tick's options open in the box beside the drawing, never over the settings.
+  await page.getByRole("button", { name: "Tick 3", exact: true }).click();
+  const box = page.locator(".md-options-box");
+  await expect(box).toHaveAttribute("aria-label", "Tick 3");
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
 
   // The three ways to draw share a row, and the one that is on is marked as the kit marks a choice.
   const point = page.getByRole("button", { name: "Point", exact: true });
@@ -492,10 +486,8 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   await step.press("Escape");
   await expect(page.locator(".md-kit .nl-scale-fields [role=alert]")).toHaveCount(0);
 
-  // A second scale with eleven ticks is the long card. It has the right column to itself, so it is still all in view.
   await page.getByRole("button", { name: "Add a second scale", exact: true }).click();
   await expect(page.getByRole("button", { name: "Remove second scale", exact: true })).toBeVisible();
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
 
   // Every part that opens is a row as tall as a control, and what is in it keeps the kit's sizes.
   await stack.evaluate((el) => el.querySelectorAll("details").forEach((d) => { d.open = true; }));
@@ -507,7 +499,7 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   await page.setViewportSize({ width: 1440, height: 900 });
   const column = await cards();
   expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  const order = [column[0], column[1], column[2], column[4], column[3]].map((c) => c.y);
+  const order = column.map((c) => c.y);
   expect(order).toEqual([...order].sort((a, b) => a - b));
 
   // Finger-sized controls and rows on a phone, and the page is no wider than the window.
@@ -517,21 +509,16 @@ test("Number lines uses the kit: drawing and the scale on the left with More set
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Cuboids uses the kit: the shape on the left, labels, shading and printing on the right, and a selected label comes top left", async ({ page }) => {
+test("Cuboids uses the kit: one folding column, and a clicked label opens its box beside the drawing", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/cuboids");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
-  const print = page.locator(".md-kit .panel-card").filter({ hasText: "Print settings" });
-  const [shape, labels, shading, printBox] = [await chartCard(page, "Shape"), await chartCard(page, "Labels"), await chartCard(page, "Shading"), (await print.boundingBox())!];
-  expect(labels.y).toBe(shape.y);
-  expect(labels.x).toBeGreaterThanOrEqual(shape.x + shape.width);
-  expect(Math.abs(labels.width - shape.width)).toBeLessThanOrEqual(1);
-  expect([shading.x, printBox.x]).toEqual([labels.x, labels.x]);
-  expect(shading.y).toBeGreaterThan(labels.y + labels.height);
-  expect(printBox.y).toBeGreaterThan(shading.y + shading.height);
-  // The settings filled the 967 px column before the kit, with every part closed.
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  // One column (the usability rollout, 22 Nov 2026), in the order the cards are read; the rarer cards start folded.
+  for (const t of ["Labels", "Shading", "Print settings"]) await page.getByRole("button", { name: t, exact: true }).click();
+  const column = [await chartCard(page, "What pupils see"), await chartCard(page, "Shape"), await chartCard(page, "Labels"), await chartCard(page, "Shading"), await chartCard(page, "Print settings")];
+  expect(Math.max(...column.map((c) => c.x)) - Math.min(...column.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // A list shares its row with the tick or the button that goes with it: level with the list, on one line.
@@ -552,44 +539,18 @@ test("Cuboids uses the kit: the shape on the left, labels, shading and printing 
   expect(await shades.first().evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).boxShadow])).toEqual(["rgb(230, 239, 255)", "none"]);
 
   // Every part open: the kit's sizes throughout, nothing cut.
-  for (const name of ["Cube size and counts", "More shape options", "Position and advanced", "Worked values and captions", "Print settings"])
+  for (const name of ["Cube size and counts", "More shape options", "Position and advanced", "Worked values and captions"])
     await page.locator(".md-kit summary").filter({ hasText: name }).click();
   expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
 
-  // A click on a label brings its card to the top left, where the other tools show what is selected, and the shape
-  // goes to the right. The cards are placed, not rebuilt, so the parts that were open stay open.
-  await page.locator(".md-kit .panel-card").filter({ has: page.getByRole("heading", { name: "Shape", exact: true }) }).evaluate((card) => card.setAttribute("data-kept", ""));
+  // A click on a label opens its box beside the drawing, never over the settings; the cards stay where they are.
+  const box = page.locator(".md-options-box");
   await page.getByRole("button", { name: /^Edit height label/ }).click();
-  const topHeading = page.locator(".md-kit .panel-card h2").first();
-  await expect(topHeading).toHaveText("Selected label: height");
-  const [picked, moved] = [await chartCard(page, "Selected label: height"), await chartCard(page, "Shape")];
-  expect([picked.x, picked.y]).toEqual([shape.x, shape.y]);
-  expect([moved.x, moved.y]).toEqual([labels.x, labels.y]);
-  expect(Math.abs(picked.width - moved.width)).toBeLessThanOrEqual(1);
-  await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(5);
+  await expect(box).toHaveAttribute("aria-label", "Height");
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await expect(page.locator(".md-kit .panel-card h2").first()).toHaveText("What pupils see");
   await page.keyboard.press("Escape");
-  await expect(topHeading).toHaveText("Shape");
-  expect((await chartCard(page, "Shape")).x).toBe(shape.x);
-  await expect(page.locator(".md-kit .panel-card[data-kept]")).toHaveCount(1);
-  await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(5);
-  for (const name of ["Cube size and counts", "More shape options", "Position and advanced", "Worked values and captions", "Print settings"])
-    await page.locator(".md-kit summary").filter({ hasText: name }).click();
-
-  // With a second cuboid, the list that picks one runs across both columns, over the cards.
-  await page.getByRole("button", { name: "Add cuboid", exact: true }).click();
-  const pick = (await page.locator(".md-kit .panel-card").filter({ hasText: "Selected cuboid" }).boundingBox())!;
-  const [under, beside] = [await chartCard(page, "Shape"), await chartCard(page, "Labels")];
-  expect([pick.x, pick.y]).toEqual([shape.x, shape.y]);
-  expect(Math.abs(pick.x + pick.width - (beside.x + beside.width))).toBeLessThanOrEqual(1);
-  expect([under.x, beside.y]).toEqual([shape.x, under.y]);
-  expect(under.y).toBeGreaterThan(pick.y + pick.height);
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
-
-  // One column in a smaller window, in the same order.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const column = [await chartCard(page, "Shape"), await chartCard(page, "Labels"), await chartCard(page, "Shading"), (await print.boundingBox())!];
-  expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+  await expect(page.locator(".md-kit details[open] > summary")).toHaveCount(4);
 
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
@@ -597,72 +558,36 @@ test("Cuboids uses the kit: the shape on the left, labels, shading and printing 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Triangles uses the kit: what is selected on the left with the label box over it, the worked version, a new triangle and the print size on the right", async ({ page }) => {
+test("Triangles uses the kit: one folding column, and a clicked label opens its box beside the drawing", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/triangle");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
+  // One column (the usability rollout, 23 Nov 2026), in the order the cards are read; the rarer cards start folded.
+  for (const t of ["Worked version", "Print size"]) await page.getByRole("button", { name: t, exact: true }).click();
   const more = page.locator(".md-kit .panel-card.tr-more");
-  const [selected, worked, start, print, tools] = [await chartCard(page, "Selected object"), await chartCard(page, "Worked version"), await chartCard(page, "Start a new triangle"), await chartCard(page, "Print size"), (await more.boundingBox())!];
-  expect(worked.y).toBe(selected.y);
-  expect(worked.x).toBeGreaterThanOrEqual(selected.x + selected.width);
-  expect(Math.abs(worked.width - selected.width)).toBeLessThanOrEqual(1);
-  expect([start.x, print.x]).toEqual([worked.x, worked.x]);
-  expect(start.y).toBeGreaterThan(worked.y + worked.height);
-  expect(print.y).toBeGreaterThan(start.y + start.height);
-  // More tools and the help come last in the settings and sit under what is selected.
-  expect(tools.x).toBe(selected.x);
-  expect(tools.y).toBeGreaterThan(selected.y + selected.height);
-  // The settings were 1,093 px long in a 967 px column before the kit.
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  const column = [await chartCard(page, "What pupils see"), await chartCard(page, "Selected object"), await chartCard(page, "Worked version"), await chartCard(page, "Start a new triangle"), await chartCard(page, "Print size"), (await more.boundingBox())!];
+  expect(Math.max(...column.map((c) => c.x)) - Math.min(...column.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
-  // A button with a row to itself is as wide as its words, on one line.
   const use = (await page.getByRole("button", { name: "Use worked version", exact: true }).boundingBox())!;
   expect(use.height).toBe(32);
-  expect(use.width).toBeLessThan(worked.width / 2 + 40);
 
-  // A selected triangle with every part open: the kit's sizes throughout, nothing cut, and still all in view.
+  // A selected triangle with every part open: the kit's sizes throughout, nothing cut.
   await page.getByLabel("Selected object", { exact: true }).selectOption("t:T1");
   for (const name of ["Shape locks", "Precise vertex position", "Captions and diagram notes"])
     await page.locator(".md-kit summary").filter({ hasText: name }).click();
-  // Half a column is too narrow for the longest names, so those buttons take two lines, and a button beside one is as tall.
   const twoLines = ["Reflect horizontally", "Reflect vertically", "Make right angle", "Make equal sides at apex", "Make equilateral", "Release shape locks", "Add perpendicular height from selected vertex"];
   expect(await kitSizes(page, twoLines)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
-  const pair = async (names: string[]) => Promise.all(names.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
-  for (const row of [["Reflect horizontally", "Reflect vertically"], ["Make right angle", "Make equal sides at apex"], ["Make equilateral", "Release shape locks"]]) {
-    const [left, right] = await pair(row);
-    expect(left).toBe(right);
-    expect(left).toBeLessThan(44);
-  }
-  // The name of a part that opens is a row as tall as a control.
-  expect(await page.locator(".md-kit summary").evaluateAll((all) => [...new Set(all.map((s) => Math.round(s.getBoundingClientRect().height)))])).toEqual([32]);
 
-  // A click on a label opens the box that edits it at the top of the left column, over what is selected. It is a
-  // card like the others, and its choices are as tall as a control.
+  // A click on a label opens its box beside the drawing, never over the settings; the cards stay where they are.
+  const box = page.locator(".md-options-box");
   await page.locator('.tr-hit[aria-label="Edit side ab"]').click();
-  const box = page.locator(".md-kit .tr-floating");
-  await expect(box).toBeVisible();
-  const edit = (await box.boundingBox())!;
-  expect([edit.x, edit.y]).toEqual([selected.x, selected.y]);
-  expect(Math.abs(edit.width - selected.width)).toBeLessThanOrEqual(1);
-  expect((await chartCard(page, "Selected object")).y).toBeGreaterThan(edit.y + edit.height);
-  expect(await box.locator(".tr-option").evaluateAll((all) => [...new Set(all.map((o) => o.getBoundingClientRect().height))])).toEqual([32]);
-  expect(await box.locator(":is(button, select, input:not([type=radio], [type=checkbox]))").evaluateAll((all) => [...new Set(all.map((c) => c.getBoundingClientRect().height))])).toEqual([32]);
-  // The button that carries the step on is the filled one.
-  const apply = box.getByRole("button", { name: "Apply label", exact: true });
-  expect(await apply.evaluate((el) => [getComputedStyle(el).color, getComputedStyle(el).backgroundColor === getComputedStyle(el).borderTopColor])).toEqual(["rgb(255, 255, 255)", true]);
-  await box.getByRole("button", { name: "Cancel label", exact: true }).click();
-  await expect(box).toBeHidden();
-  // Under the diagram, outside the settings, the button that confirms a step keeps the tool's filled look.
-  await page.getByRole("button", { name: "Split triangle", exact: true }).click();
-  expect(await page.getByRole("button", { name: "Apply split", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(15, 98, 254)");
-  await page.getByRole("button", { name: "Cancel preview", exact: true }).click();
-
-  // One column in a smaller window, in the order the cards are read.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const column = [await chartCard(page, "Selected object"), await chartCard(page, "Worked version"), await chartCard(page, "Start a new triangle"), await chartCard(page, "Print size"), (await more.boundingBox())!];
-  expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+  await expect(box).toHaveAttribute("aria-label", "Side AB");
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await expect(page.locator(".md-kit .panel-card h2").first()).toHaveText("What pupils see");
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
 
   // Finger-sized controls on a phone, More tools open too, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
@@ -671,53 +596,41 @@ test("Triangles uses the kit: what is selected on the left with the label box ov
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Ratio tables uses the kit: what is selected and the tools on the left, the table's settings on the right", async ({ page }) => {
+test("Ratio tables uses the kit: one folding column, with what is selected in the box beside the table", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/ratio-table");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
-  const selected = page.locator(".md-kit .panel-card.ratio-selection-panel");
-  const [picked, tools, settings] = [(await selected.boundingBox())!, await chartCard(page, "Table tools"), await chartCard(page, "Table settings")];
-  expect(settings.y).toBe(picked.y);
-  expect(settings.x).toBeGreaterThanOrEqual(picked.x + picked.width);
-  expect(Math.abs(settings.width - picked.width)).toBeLessThanOrEqual(1);
-  expect(tools.x).toBe(picked.x);
-  expect(tools.y).toBeGreaterThan(picked.y + picked.height);
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  // One column (the usability rollout, 22 Nov 2026), in the order the cards are read.
+  const column = [await chartCard(page, "What pupils see"), await chartCard(page, "Table tools"), await chartCard(page, "Table settings")];
+  expect(Math.max(...column.map((c) => c.x)) - Math.min(...column.map((c) => c.x))).toBeLessThanOrEqual(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The tool that is on has the kit's mark, and each tool keeps its icon beside its name.
   const edit = page.getByRole("button", { name: "Edit", exact: true });
   await expect(edit).toHaveAttribute("aria-pressed", "true");
   expect(await edit.evaluate((el) => [getComputedStyle(el).backgroundColor, el.getBoundingClientRect().height, el.querySelector("svg") !== null])).toEqual(["rgb(230, 239, 255)", 32, true]);
-
-  // Both headings open, and the list of scaling steps: the kit's sizes throughout, nothing cut, all in view.
-  await page.getByRole("button", { name: "Edit headings", exact: true }).click();
-  await expect(selected.getByRole("heading", { name: "Edit headings", exact: true })).toBeVisible();
-  await page.locator(".md-kit summary").filter({ hasText: "Scaling steps" }).click();
   expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
-  expect(await page.locator(".md-kit summary").evaluateAll((all) => all.map((s) => Math.round(s.getBoundingClientRect().height)))).toEqual([32]);
-  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+
+  // Both headings' options open in the box beside the table, never over the settings.
+  const box = page.locator(".md-options-box");
+  await page.getByRole("button", { name: "Edit headings", exact: true }).click();
+  await expect(box).toHaveAttribute("aria-label", "Edit headings");
+  expect((await box.boundingBox())!.x + (await box.boundingBox())!.width).toBeLessThanOrEqual((await stack.boundingBox())!.x);
+  await page.keyboard.press("Escape");
 
   // A scaling arrow: its operation and its factor share a row and are level.
+  await page.locator(".md-kit summary").filter({ hasText: "Scaling steps" }).click();
   await page.getByRole("button", { name: /^Row 1 → Row 2/ }).click();
-  await expect(selected.getByRole("heading", { name: "Scaling arrow", exact: true })).toBeVisible();
+  await expect(box).toHaveAttribute("aria-label", "Scaling arrow");
   const [operation, factor] = [(await page.getByLabel("Row 1 scaling operation", { exact: true }).boundingBox())!, (await page.getByLabel("Row 1 scaling factor", { exact: true }).boundingBox())!];
   expect(Math.abs(operation.y - factor.y)).toBeLessThanOrEqual(1);
   expect(factor.x).toBeGreaterThan(operation.x + operation.width);
-  expect(await kitSizes(page)).toMatchObject({ buttons: [32], fields: [32], ticks: [16], faded: 0, cut: [] });
   // Once the arrow is on the table, the button that removes it is still red.
-  await selected.getByRole("button", { name: "Add arrow", exact: true }).click();
-  await page.getByRole("button", { name: /^Row 1 → Row 2/ }).click();
-  expect(await selected.getByRole("button", { name: "Remove arrow", exact: true }).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(173, 67, 61)");
-
-  // One column in a smaller window, in the order the cards are read.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const column = [(await selected.boundingBox())!, await chartCard(page, "Table tools"), await chartCard(page, "Table settings")];
-  // The settings are longer than the window here, and scroll: no card is squeezed so that its fields spill out.
-  expect(await page.locator(".md-kit .panel-card").evaluateAll((all) => all.filter((card) => card.scrollHeight > card.clientHeight + 1).length)).toBe(0);
-  expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+  await box.getByRole("button", { name: "Add arrow", exact: true }).click();
+  expect(await box.getByRole("button", { name: "Remove arrow", exact: true }).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(173, 67, 61)");
+  await page.keyboard.press("Escape");
 
   // Finger-sized controls on a phone, and the page is no wider than the window.
   await page.setViewportSize({ width: 375, height: 800 });
@@ -725,16 +638,17 @@ test("Ratio tables uses the kit: what is selected and the tools on the left, the
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Table of values uses the kit: the card for what is selected on the left, the tools that open it on the right", async ({ page }) => {
+test("Table of values uses the kit: one column, what pupils see first, then the card a tool opens, then the tools", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/value-table-graph");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
   const hint = page.locator(".md-kit .panel-card.vg-selected-empty");
-  const [empty, tools] = [(await hint.boundingBox())!, await chartCard(page, "Table and graph")];
-  expect(tools.y).toBe(empty.y);
-  expect(tools.x).toBeGreaterThanOrEqual(empty.x + empty.width);
-  expect(Math.abs(tools.width - empty.width)).toBeLessThanOrEqual(1);
+  const [seen, empty, tools] = [await chartCard(page, "What pupils see"), (await hint.boundingBox())!, await chartCard(page, "Table and graph")];
+  // One column (the usability rollout, 23 Nov 2026).
+  expect([empty.x, tools.x]).toEqual([seen.x, seen.x]);
+  expect(empty.y).toBeGreaterThan(seen.y + seen.height);
+  expect(tools.y).toBeGreaterThan(empty.y + empty.height);
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // Each tool opens its card in the left column: the kit's sizes, a gap between one control and the next, nothing
@@ -747,12 +661,12 @@ test("Table of values uses the kit: the card for what is selected on the left, t
     const [open, beside] = [(await editor.boundingBox())!, await chartCard(page, "Table and graph")];
     expect([open.x, open.y], tool).toEqual([empty.x, empty.y]);
     expect(beside.x, tool).toBe(tools.x);
+    expect(beside.y, tool).toBeGreaterThan(open.y + open.height);
     const sizes = await kitSizes(page, twoLines);
     expect(sizes, tool).toMatchObject({ buttons: [32], faded: 0, cut: [] });
     expect(sizes.fields.every((height) => height === 32), `${tool}: ${sizes.fields}`).toBe(true);
     const gaps = await editor.locator(".vg-context-body > *").evaluateAll((all) => all.map((el) => el.getBoundingClientRect()).filter((r) => r.height > 0).map((r, i, rs) => (i ? Math.round(r.top - rs[i - 1].bottom) : 8)));
     expect(gaps.every((gap) => gap === 8), `${tool}: ${gaps}`).toBe(true);
-    expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight), tool).toBe(true);
   }
   const pair = await Promise.all(twoLines.map(async (name) => (await page.getByRole("button", { name, exact: true }).boundingBox())!.height));
   expect(pair[0]).toBe(pair[1]);
@@ -783,24 +697,19 @@ test("Table of values uses the kit: the card for what is selected on the left, t
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Graph tool uses the kit: what is selected on the left with the list of objects under it, the drawing tools, the axes and printing on the right", async ({ page }) => {
+test("Graph tool uses the kit: one folding column, with what is selected in the box beside the graph", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/tools/graph");
   const stack = page.locator(".inspector-stack.md-kit");
   await expect(stack).toBeVisible();
-  const first = page.locator(".md-kit .panel-card").first();
   const objects = page.locator(".md-kit .panel-card.objects-panel");
   const printing = page.locator(".md-kit .panel-card").filter({ hasText: "Print settings" });
-  await expect(first).toHaveAccessibleName("Selected object");
-  const [empty, tools, axes, print, list] = [(await first.boundingBox())!, await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
-  expect(tools.y).toBe(empty.y);
-  expect(tools.x).toBeGreaterThanOrEqual(empty.x + empty.width);
-  expect(Math.abs(tools.width - empty.width)).toBeLessThanOrEqual(1);
-  expect([axes.x, print.x]).toEqual([tools.x, tools.x]);
-  expect(axes.y).toBeGreaterThan(tools.y + tools.height);
-  expect(print.y).toBeGreaterThan(axes.y + axes.height);
-  expect(list.x).toBe(empty.x);
-  expect(list.y).toBeGreaterThan(empty.y + empty.height);
+  const optionsBox = page.locator(".md-options-box");
+  const cards = async () => [await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
+  // One column (the usability rollout, 23 Nov 2026): the drawing tools, the axes, printing, then the list of objects.
+  const column = await cards();
+  expect(new Set(column.map((c) => c.x)).size).toBe(1);
+  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
   expect((await page.locator(".editor-card").first().boundingBox())!.width).toBeGreaterThan(1200);
 
   // The three drawing tools share a row, and the one that is on has the kit's mark.
@@ -810,59 +719,58 @@ test("Graph tool uses the kit: what is selected on the left with the list of obj
 
   // The kit's sizes: every button and field that shows is 32 px, but for the axis scales, which say two things on
   // two lines. Nothing is cut off, and the settings fit the window.
-  const fits = async (what: string) => {
-    const sizes = await stack.evaluate((el) => {
+  const fits = async (what: string, where = stack) => {
+    const sizes = await where.evaluate((el) => {
       const shown = (all: NodeListOf<HTMLElement>) => [...all].filter((c) => c.getBoundingClientRect().height > 0);
       return {
-        buttons: [...new Set(shown(el.querySelectorAll(".panel-card button")).filter((b) => !b.closest(".scale-options, .objects-list")).map((b) => Math.round(b.getBoundingClientRect().height)))],
-        scales: [...new Set(shown(el.querySelectorAll(".scale-options button")).map((b) => Math.round(b.getBoundingClientRect().height)))],
+        buttons: [...new Set(shown(el.querySelectorAll(".panel-card button")).filter((b) => !b.closest(".scale-options, .objects-list, .md-fold, .md-options-head")).map((b) => Math.round(b.getBoundingClientRect().height)))],
         fields: [...new Set(shown(el.querySelectorAll(".panel-card :is(select, input:not([type=checkbox]))")).map((b) => Math.round(b.getBoundingClientRect().height)))],
-        cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1 || c.scrollHeight > c.clientHeight + 1).length,
-        inView: el.scrollHeight <= el.clientHeight,
+        cut: [...el.querySelectorAll<HTMLElement>(".panel-card")].filter((c) => c.scrollWidth > c.clientWidth + 1).length,
       };
     });
-    expect(sizes, what).toMatchObject({ buttons: [32], scales: [42], cut: 0, inView: true });
+    expect(sizes, what).toMatchObject({ buttons: [32], cut: 0 });
     expect(sizes.fields.every((height) => height === 32), `${what}: ${sizes.fields}`).toBe(true);
   };
   await fits("nothing selected");
+  expect(await stack.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
 
-  // Each thing that can be added opens its card top left, where the hint was, and still fits.
+  // Each thing that can be added opens its options in the box beside the graph, clear of the settings.
   for (const [add, heading] of [["Add shape", "Shape"], ["Shade a region", "Shaded region"], ["Graph through points", "Graph through points"], ["Equation curve", "Equation curve"], ["Add circle", "Circle"], ["Reading lines", "Reading lines"]]) {
     await page.getByRole("button", { name: add, exact: true }).click();
-    await expect(first.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-    const [open, under] = [(await first.boundingBox())!, (await objects.boundingBox())!];
-    expect([open.x, open.y], add).toEqual([empty.x, empty.y]);
-    expect(under.y, add).toBeGreaterThan(open.y + open.height);
-    await fits(add);
+    await expect(optionsBox.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+    await expect(optionsBox).toBeInViewport({ ratio: 1 });
+    const [open, settings] = [(await optionsBox.boundingBox())!, (await stack.boundingBox())!];
+    expect(open.x + open.width, add).toBeLessThanOrEqual(settings.x);
+    await fits(add, optionsBox);
   }
-  // The button that deletes is red, and a field shares its row with the button that uses it, level at the foot.
-  expect(await first.getByRole("button", { name: "Delete reading lines", exact: true }).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(179, 38, 30)");
+  // The button that deletes is red.
+  expect(await optionsBox.getByRole("button", { name: "Delete reading lines", exact: true }).evaluate((el) => getComputedStyle(el).color)).toBe("rgb(179, 38, 30)");
 
-  // The form for a line by its equation: the button that adds the line is the filled one.
+  // The form for a line by its equation opens in the settings: the button that adds the line is the filled one.
   await page.getByRole("button", { name: "Line by equation", exact: true }).click();
-  await expect(first.getByRole("heading", { name: "Line by equation", exact: true })).toBeVisible();
-  expect(await first.getByRole("button", { name: "Add line", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(15, 98, 254)");
+  await expect(optionsBox).toHaveCount(0);
+  const form = stack.locator(".panel-card").filter({ has: page.getByRole("heading", { name: "Line by equation", exact: true }) });
+  expect(await form.getByRole("button", { name: "Add line", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(15, 98, 254)");
   await fits("Line by equation");
-  await first.getByRole("button", { name: "Add line", exact: true }).click();
-  await expect(first.getByRole("heading", { name: "Straight line", exact: true })).toBeVisible();
-  await fits("Straight line");
+  await form.getByRole("button", { name: "Add line", exact: true }).click();
+  await expect(optionsBox.getByRole("heading", { name: "Straight line", exact: true })).toBeVisible();
+  await fits("Straight line", optionsBox);
 
-  // The list of objects opens under what is selected: one row for each, the selected one marked.
+  // The list of objects: one row for each, the selected one marked.
   await objects.getByRole("button", { name: "Objects" }).click();
   const rows = objects.locator(".objects-list button");
   await expect(rows).toHaveCount(7);
   expect(await rows.evaluateAll((all) => all.map((row) => [row.getAttribute("aria-pressed"), getComputedStyle(row).backgroundColor].join(" ")).filter((mark) => mark.startsWith("true")))).toEqual(["true rgb(230, 239, 255)"]);
   expect(await objects.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
 
-  // One column in a smaller window, in the order the cards have always had.
+  // One column in a smaller window too.
   await page.setViewportSize({ width: 1440, height: 900 });
-  const column = [(await first.boundingBox())!, await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
-  expect(new Set(column.map((c) => c.x)).size).toBe(1);
-  expect(column.map((c) => c.y)).toEqual([...column.map((c) => c.y)].sort((a, b) => a - b));
+  const smaller = await cards();
+  expect(new Set(smaller.map((c) => c.x)).size).toBe(1);
 
   // Three columns under the diagram on an upright monitor.
   await page.setViewportSize({ width: 1080, height: 1920 });
-  const upright = [(await first.boundingBox())!, await chartCard(page, "Drawing tools"), await chartCard(page, "Axis scale"), (await printing.boundingBox())!, (await objects.boundingBox())!];
+  const upright = await cards();
   expect(new Set(upright.map((c) => c.x)).size).toBe(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 
@@ -870,6 +778,32 @@ test("Graph tool uses the kit: what is selected on the left with the list of obj
   await page.setViewportSize({ width: 375, height: 800 });
   expect(await tooSmall(page)).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("Graph tool: What pupils see leaves objects for pupils to draw, and a double-click turns one over, undoably", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/tools/graph");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByRole("button", { name: "Line by equation", exact: true }).click();
+  await page.getByRole("button", { name: "Add line", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
+  const seen = page.locator('.md-kit section[aria-label="What pupils see"]');
+  await expect(seen).toContainText("Every object is drawn");
+  // The middle of a straight line's box is on the line.
+  const canvas = page.locator(".graph-canvas");
+  const at = await canvas.evaluate((svg) => {
+    const path = svg.querySelector<SVGGeometryElement>(".graph-straight");
+    const r = path!.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await page.mouse.dblclick(at.x, at.y);
+  await expect(seen).toContainText("Pupils draw every object");
+  await seen.getByRole("button", { name: "Show", exact: true }).click();
+  await expect(seen).toContainText("Every object is drawn");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(seen).toContainText("Pupils draw every object");
 });
 
 // What a click on the diagram selects, whatever the tool calls it.

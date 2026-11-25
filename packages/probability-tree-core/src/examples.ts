@@ -210,3 +210,32 @@ export const examples: {
     },
   },
 ];
+
+/** Plain shapes: common tree diagrams with every probability given, shown before the exam-style examples. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  {
+    id: "independent",
+    title: "Two events, independent",
+    note: "Two counters taken with replacement: the same probabilities on both sets of branches.",
+    make: () => uniform([{ outcomes: ["Red", "Blue"], probabilities: ["3/8", "5/8"] }, { outcomes: ["Red", "Blue"], probabilities: ["3/8", "5/8"] }], { stageTitles: ["First counter", "Second counter"], linkLabels: true }),
+  },
+  {
+    id: "without-replacement",
+    title: "Two picks, without replacement",
+    note: "Two counters taken without replacement, so the second probabilities depend on the first.",
+    make: () =>
+      fromNested(
+        [
+          { outcome: "Red", probability: "3/8", children: [{ outcome: "Red", probability: "2/7" }, { outcome: "Blue", probability: "5/7" }] },
+          { outcome: "Blue", probability: "5/8", children: [{ outcome: "Red", probability: "3/7" }, { outcome: "Blue", probability: "4/7" }] },
+        ],
+        { stageTitles: ["First counter", "Second counter"], linkLabels: true },
+      ),
+  },
+  {
+    id: "three-branches",
+    title: "Three outcomes, then two",
+    note: "Three branches for the first event and two for the second.",
+    make: () => uniform([{ outcomes: ["Red", "Blue", "Green"], probabilities: ["0.2", "0.5", "0.3"] }, { outcomes: ["Pass", "Fail"], probabilities: ["0.6", "0.4"] }], { stageTitles: ["Colour", "Result"], linkLabels: true }),
+  },
+];

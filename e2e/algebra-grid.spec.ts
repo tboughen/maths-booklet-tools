@@ -17,6 +17,10 @@ import {
 } from "../packages/graph-core/src/png-bytes";
 import { editorLink } from "../src/algebra-grid/links";
 import { clickResourceAction } from "./resource-actions";
+// The settings column folds Print size; these tests use it, so it starts open.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("mathsdock:fold:algebra-grid:Print size", "open"));
+});
 
 const KEY = "maths-booklet-tools:algebra-grid:v1";
 const resource = (page: Page) =>
@@ -30,18 +34,14 @@ async function edit(
   text: string,
   hidden = false,
 ) {
+  // The options box is live: Enter commits, each change is one undo step, and Escape closes it.
   await cell(page, r, c).click();
-  await page
-    .getByRole("textbox", { name: "Cell entry", exact: true })
-    .fill(text);
-  if (hidden)
-    await page
-      .getByRole("checkbox", { name: "Hide saved answer from pupils" })
-      .check();
-  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
-  await expect(
-    page.getByRole("dialog", { name: "Edit grid cell" }),
-  ).toHaveCount(0);
+  const box = page.locator(".md-options-box");
+  await box.getByRole("textbox", { name: "Cell entry", exact: true }).fill(text);
+  await box.getByRole("textbox", { name: "Cell entry", exact: true }).press("Enter");
+  if (hidden) await box.getByRole("button", { name: "Pupil space", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveCount(0);
 }
 async function saved(page: Page) {
   return page.evaluate(
@@ -553,7 +553,6 @@ test("edits blank/zero/hidden states, exports pupil visibility and preserves exa
   expect(await saved(page)).toEqual(original);
   await cell(page, 1, 1).click();
   await page.getByRole("button", { name: "Clear cell", exact: true }).click();
-  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
   expect((await saved(page)).document.rows[1].cells[1]).toEqual({
     value: null,
     hidden: false,
@@ -568,20 +567,20 @@ test("invalid drafts guard exports/history, survive navigation, and cancel witho
   const original = await saved(page);
   await cell(page, 0, 2).click();
   await page.getByLabel("Cell entry", { exact: true }).fill("1/");
-  await page.getByRole("button", { name: "Apply cell" }).click();
+  await page.getByLabel("Cell entry", { exact: true }).press("Enter");
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
   await switchTool(page, "Graph tool");
-  await expect(
-    page.getByRole("dialog", { name: "Edit grid cell" }),
-  ).toBeHidden();
+  await expect(page.locator(".md-options-box")).toBeHidden();
   await switchTool(page, "Expanding and factorising");
   await expect(page.getByLabel("Cell entry", { exact: true })).toHaveValue(
     "1/",
   );
-  await page.getByRole("button", { name: "Cancel cell" }).click();
+  // Escape puts the saved value back and closes the box, committing nothing.
+  await page.getByLabel("Cell entry", { exact: true }).press("Escape");
+  await expect(page.locator(".md-options-box")).toHaveCount(0);
   expect(await saved(page)).toEqual(original);
   await page.getByLabel("Cell size (mm)", { exact: true }).fill("0");
   await page.getByRole("button", { name: "Apply setting" }).click();
@@ -765,7 +764,7 @@ for (const width of [1440, 768, 375, 320])
       .selectOption("1");
     await cell(page, 6, 6).click();
     await page.getByLabel("Cell entry", { exact: true }).fill("-12x^2");
-    const dialog = page.getByRole("dialog", { name: "Edit grid cell" });
+    const dialog = page.locator(".md-options-box");
     await expect(dialog).toBeVisible();
     await expect
       .poll(async () => {
@@ -863,6 +862,8 @@ test("keyboard cell editing restores focus and makes one undoable edit", async (
   await expect(page.getByLabel("Cell entry", { exact: true })).toBeFocused();
   await page.getByLabel("Cell entry", { exact: true }).fill("+4");
   await page.keyboard.press("Enter");
+  await expect(cell(page, 0, 2)).toHaveAccessibleName(/\+4/);
+  await page.keyboard.press("Escape");
   await expect(cell(page, 0, 2)).toBeFocused();
   await page.keyboard.press("Control+z");
   await expect(cell(page, 0, 2)).toHaveAccessibleName(/\+3/);
@@ -891,7 +892,7 @@ test("touch gestures commit once and leave undo/redo usable", async ({
   expect((await saved(page)).document.rows).toHaveLength(4);
   await cell(page, 1, 1).tap();
   await page.getByLabel("Cell entry", { exact: true }).fill("x^2");
-  await page.getByRole("button", { name: "Apply cell" }).tap();
+  await page.getByLabel("Cell entry", { exact: true }).press("Enter");
   expect((await saved(page)).document.rows[1].cells[1].value).toBe("x^2");
   await context.close();
 });
@@ -978,8 +979,8 @@ test("hidden/blank headings keep writing space and compact again only after an e
   await edit(page, 2, 0, "0");
   await expect(resource(page).locator("svg")).toHaveAttribute("width", "39mm");
   await cell(page, 0, 2).click();
-  await page.getByLabel("Hide saved answer from pupils").uncheck();
-  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
+  await page.locator(".md-options-box").getByRole("button", { name: "Show", exact: true }).click();
+  await page.keyboard.press("Escape");
   await expect(resource(page).locator("svg")).toHaveAttribute("height", "39mm");
 });
 test("factorising blanks and automatic resizing survive exports and explicit line choices", async ({
@@ -1086,11 +1087,11 @@ test("grid method for numbers: switching task clears algebra with undo, and the 
   await page
     .getByRole("textbox", { name: "Cell entry", exact: true })
     .fill("x");
-  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
+  await page.getByRole("textbox", { name: "Cell entry", exact: true }).press("Enter");
   await expect(
     page.getByRole("alert").filter({ hasText: "Enter a number" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Cancel cell", exact: true }).click();
+  await page.getByRole("textbox", { name: "Cell entry", exact: true }).press("Escape");
   await page
     .getByRole("button", { name: "Use worked version", exact: true })
     .click();

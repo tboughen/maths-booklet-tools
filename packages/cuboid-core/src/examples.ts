@@ -208,3 +208,11 @@ export const examples: Example[] = [
     },
   },
 ];
+
+/** Plain shapes: a cuboid and a cube with lengths given, and cuboids drawn as cubes and layers. */
+export const plainShapes: { id: string; title: string; note: string; make: () => Envelope }[] = [
+  { id: "cuboid", title: "Cuboid", note: "A cuboid with its width, depth and height given.", make: () => resource([shape("cuboid-1", dims("5", "3", "2"))]) },
+  { id: "cube", title: "Cube", note: "A cube with its side given.", make: () => resource([shape("cuboid-1", dims("4", "4", "4"), { cube: true })]) },
+  { id: "cubes", title: "Cuboid made of cubes", note: "A cuboid drawn as 1 cm cubes, for counting cubes.", make: () => resource([shape("cuboid-1", dims("4", "3", "2"), { view: "cubes" })]) },
+  { id: "layers", title: "Cuboid in layers", note: "A cuboid drawn layer by layer.", make: () => resource([shape("cuboid-1", dims("4", "3", "3"), { view: "layers" })]) },
+];

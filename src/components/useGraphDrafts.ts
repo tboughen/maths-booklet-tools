@@ -18,6 +18,10 @@ export function useGraphDrafts() {
     },
     [change],
   );
+  const clear = useCallback(() => {
+    current.current = {};
+    setEntries({});
+  }, []);
   const hasPending = useCallback(
     () => Object.keys(current.current).length > 0,
     [],
@@ -26,6 +30,7 @@ export function useGraphDrafts() {
     entries,
     change,
     cancel,
+    clear,
     edit,
     hasPending,
     pending: Object.keys(entries).length > 0,
