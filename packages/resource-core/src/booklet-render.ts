@@ -513,8 +513,21 @@ function wrapNote(words: NoteWord[], width: number): NoteWord[][] {
   }
   return lines;
 }
-const split = (src: string, tone: NoteWord["tone"], bold = false, maths = false): NoteWord[] =>
-  src.trim().split(/\s+/).filter(Boolean).map((text) => ({ text, tone, bold, runs: parseRuns(text, bold ? "bold" : "regular", maths) }));
+/** Words of one part of a note: the whole part is parsed first, so formatting that spans words (italic, bold, a spaced fraction) survives, then its runs are split at spaces, as wrap() does. */
+function split(src: string, tone: NoteWord["tone"], bold = false, maths = false): NoteWord[] {
+  const words: Line[] = [[]];
+  for (const r of parseRuns(src.trim(), bold ? "bold" : "regular", maths)) {
+    if (r.frac) {
+      words[words.length - 1].push(r);
+      continue;
+    }
+    r.text.split(/(\s+)/).forEach((piece, i) => {
+      if (i % 2 === 1) words.push([]);
+      else if (piece) words[words.length - 1].push({ ...r, text: piece });
+    });
+  }
+  return words.filter((w) => w.length).map((runs) => ({ text: runs.map((r) => r.text).join(""), tone, bold, runs }));
+}
 
 /** The two boxes' wrapped lines, or null when either needs more than two lines or holds a stacked fraction (too tall for the box: write it in words). */
 export function misconceptionLines(m: Misconception, maths = false): { left: NoteWord[][]; right: NoteWord[][] } | null {
@@ -534,8 +547,12 @@ export function pageMisconception(lesson: Lesson, p: { last: boolean; checkInSto
   const problems: { section: number; message: string }[] = [];
   let note: { section: number; lines: NonNullable<ReturnType<typeof misconceptionLines>> } | null = null;
   if (view !== "answers") return { note, problems };
-  for (const b of p.blocks) {
-    if (b.kind !== "section" || b.continued) continue;
+  // A section starts on this page with its heading, or, for a check-in folded into its START banner, with that banner.
+  const folded = checkInBlock(lesson)?.first;
+  const starts = new Set<number>();
+  for (const b of p.blocks) if ((b.kind === "section" && !b.continued) || (b.kind === "banner" && !b.end && b.section === folded)) starts.add(b.section);
+  for (const section of starts) {
+    const b = { section };
     const sec = lesson.sections[b.section];
     if (!sec.misconception) continue;
     const name = sectionTitle(sec);

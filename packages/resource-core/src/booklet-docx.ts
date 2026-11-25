@@ -649,7 +649,7 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
 const wordRunsOf = (parsed: NoteWord["runs"], o: { color: string; sizeMm: number; bold: boolean }) =>
   parsed.map((r) => run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic", maths: r.style === "maths", sup: r.sup })).join("");
 /** A page footer that also carries a misconception (answers copy only): the "Watch for" box, the page number and the "Ask" box, as on the PDF page. */
-function noteFooter(lines: { left: NoteWord[][]; right: NoteWord[][] }): string {
+function noteFooter(lines: { left: NoteWord[][]; right: NoteWord[][] }, st: HouseStyle): string {
   const M = MISCONCEPTION;
   const [lb, rb] = misconceptionBoxes();
   const pitch = M.size * M.pitch;
@@ -659,7 +659,7 @@ function noteFooter(lines: { left: NoteWord[][]; right: NoteWord[][] }): string 
     const body = ls.map((line) => para(line.map((word, i) => { const o = { color: misconceptionToneColour(word.tone), sizeMm: M.size, bold: word.bold }; return (i ? run(" ", o) : "") + wordRunsOf(word.runs, o); }).join(""), { line: pitch, right: -WORD_WRAP_SLACK_MM })).join("");
     return cell(gap(pad) + body, { width: w, shade: M.fill, borders: { top: edge, bottom: edge, right: edge, left: { color: M.edge, width: M.bar } }, margin: { left: M.padX, right: M.padX, top: 0, bottom: 0 }, vAlign: "top" });
   };
-  const o = { color: styles.mathsdock.navy, sizeMm: A4.pageNumber, bold: true };
+  const o = { color: st.navy, sizeMm: A4.pageNumber, bold: true };
   const mid = cell(gap(FOOT_TEXT_TOP - M.top) + para(run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.pageNumber), align: "center" }), { width: rb.x - lb.w });
   const content = table([lb.w, rb.x - lb.w, rb.w], [row([box(lines.left, lb.w), mid, box(lines.right, rb.w)], { mm: M.h, exact: true })]);
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${content}${gap(END_MM)}</w:ftr>`;
@@ -754,7 +754,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
     if (kind.startsWith("note:")) {
       const k = Number(kind.slice(5));
       const id = `rIdNoteFooter${k + 1}`;
-      if (!parts.some((x) => x.id === id)) parts.push({ name: `footer-note${k + 1}.xml`, id, relType: "footer", contentType: footerType, xml: noteFooter(notes[k]) });
+      if (!parts.some((x) => x.id === id)) parts.push({ name: `footer-note${k + 1}.xml`, id, relType: "footer", contentType: footerType, xml: noteFooter(notes[k], st) });
       return id;
     }
     if (kind === "checkin") {

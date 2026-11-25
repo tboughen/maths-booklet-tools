@@ -75,4 +75,21 @@ describe("misconceptions in the answers copy", () => {
     const p = await docx(lesson(SQUARES, FLIP), "pupil");
     expect(Object.keys(p).some((k) => /footer-note/.test(k))).toBe(false);
   });
+
+  it("sees a misconception on a check-in folded into its START banner", () => {
+    const b = booklet([
+      { kind: "check-in", title: "", columns: 2, cards: [q("A"), q("B")], misconception: SQUARES },
+      { kind: "worked", title: "Stage one", columns: 2, startBanner: "Stage 1", cards: tall(2) },
+      { kind: "challenge", instruction: "Show your working.", columns: 2, cards: [q("Challenge A")] },
+    ]);
+    const issues = renderBooklet(b, { view: "answers" }).issues;
+    expect(issues.some((i) => /misconception/i.test(i.message))).toBe(true);
+  });
+
+  it("keeps formatting that spans words and spots a spaced fraction", () => {
+    const lines = misconceptionLines({ ...SQUARES, watch: "the fraction *upside down* here" });
+    const words = lines!.left.flat();
+    expect(words.some((w) => w.text.includes("*"))).toBe(false);
+    expect(misconceptionLines({ ...SQUARES, watch: "writing {a + b/2} wrongly" }, true)).toBeNull();
+  });
 });
