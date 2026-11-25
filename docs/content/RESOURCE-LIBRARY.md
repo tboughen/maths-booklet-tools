@@ -81,8 +81,9 @@ a hidden marker and show only their name. It uses the `REPORT_GITHUB_TOKEN` Work
 - **Make current again** comments with the date of the earlier version and adds `queued`.
 - Unit comments: **Agree: plan the change** adds `agreed`; **Keep as it is** closes. Unit comments are
   never queued: they wait for Tim's decision in a planning thread.
-- If the Worker variable `LIBRARY_EDITORS` (comma-separated emails) is set, only those people can
-  queue and close; everyone can still comment.
+- Only the people named in the Worker secret `LIBRARY_EDITORS` (comma-separated emails, set with
+  `npx wrangler secret put LIBRARY_EDITORS`) can queue, restore and close; without it nobody can.
+  Everyone signed in can comment.
 
 ### The nightly run
 
@@ -103,4 +104,5 @@ its thread and the project chat. Nothing is shared as ready until Tim checks it.
 
 The workflow runs in the `mathsdock-production` environment, which holds the R2 keys. It is never
 dispatched by the autonomous loop (`scripts/loop/config.json`). The served list's schema must match the
-live page: publish a list of a new schema only after the website release that reads it.
+live page: publish a list of a new schema only after the website release that reads it. (The page
+still reads a schema 1 list, so the release can go first.)

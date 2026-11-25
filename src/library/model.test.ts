@@ -52,7 +52,9 @@ describe("Resource library list", () => {
   it("explains a list it cannot load", async () => {
     await expect(loadLibrary(async () => new Response("", { status: 403 }))).rejects.toThrow(/Sign in again/);
     await expect(loadLibrary(async () => new Response("", { status: 500 }))).rejects.toThrow(/could not be loaded/);
-    await expect(loadLibrary(async () => Response.json({ schema: "mathsdock-library-served/1", years: [{}], resources: [] }))).rejects.toThrow(/format/);
+    await expect(loadLibrary(async () => Response.json({ schema: "other", years: [{}], resources: [] }))).rejects.toThrow(/format/);
+    const old = await loadLibrary(async () => Response.json({ ...list, schema: "mathsdock-library-served/1", resources: [{ ...list.resources[0], version: undefined, history: undefined, files: [file("pupil"), { ...file("answers"), role: "teacher-notes" }] }, { ...list.resources[1], type: "a3-worksheet" }] }));
+    expect(old.resources).toEqual([{ ...list.resources[0], files: [file("pupil")] }]);
     await expect(loadLibrary(async () => Response.json(list))).resolves.toEqual(list);
   });
   it("treats feedback that is off or broken as off", async () => {

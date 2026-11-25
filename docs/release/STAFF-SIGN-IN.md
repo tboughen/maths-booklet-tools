@@ -48,8 +48,8 @@ resolve and Access would redirect to it after sign-in.
 - `GET` and `POST /api/library/feedback` (Resource library feedback) check the same
   token and keep staff comments as issues labelled `library-feedback` in the same
   repository, with the same `REPORT_GITHUB_TOKEN` (`docs/content/RESOURCE-LIBRARY.md`).
-  The optional Worker variable `LIBRARY_EDITORS` (comma-separated emails) limits
-  queueing and closing feedback to those people; anyone signed in can comment.
+  The Worker secret `LIBRARY_EDITORS` (comma-separated emails) names who may queue,
+  restore and close feedback; without it nobody can. Anyone signed in can comment.
 - Responses use `Cache-Control: private, max-age=31536000, immutable`, support
   `Range` (PDF.js) and `HEAD`, and carry `X-Robots-Tag: noindex`.
 

@@ -32,6 +32,7 @@ export function checkLibrary(list, root) {
       if (!section.name) problems.push(`A Year ${year.year} section has no name.`);
       for (const unit of section.units) {
         if (!unit.code || !unit.title) problems.push(`A Year ${year.year} unit needs a code and a title.`);
+        if (units.has(`${year.year}/${unit.code}`)) problems.push(`Year ${year.year} lists ${unit.code} twice.`);
         units.set(`${year.year}/${unit.code}`, unit);
         const at = `Year ${year.year} ${unit.code}`, codes = (unit.lessons ?? []).map(l => l.code);
         if (unit.lessons !== undefined && (!Array.isArray(unit.lessons) || unit.lessons.some(l => !lessonCode.test(l?.code ?? '') || !l.title?.trim()))) problems.push(`${at}: each planned lesson needs a code such as A7.03 and a title.`);
@@ -65,8 +66,8 @@ export function checkLibrary(list, root) {
       checkFiles(`${at}, version of ${old.updated}`, r, old.files, root, problems);
     }
   }
-  const versions = new Set(list.resources.map(r => `${r.year}/${r.unit}/${r.version ?? 'Main'}/${r.type}/${r.lesson ?? (r.type === 'unit-booklet' ? r.part ?? '' : r.id)}`));
-  if (versions.size !== list.resources.length) problems.push('Two resources are the same booklet of the same unit, version and lesson.');
+  const versions = new Set(list.resources.map(r => `${r.year}/${r.unit}/${r.version ?? 'Main'}/${r.type === 'unit-booklet' ? `unit/${r.part ?? ''}` : r.lesson ?? r.id}`));
+  if (versions.size !== list.resources.length) problems.push('Two resources are the same booklet of the same unit, version and lesson (one lesson has one booklet).');
   return problems;
 }
 

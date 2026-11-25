@@ -227,7 +227,7 @@ const libraryList = { schema: 'mathsdock-library-served/2', years: [{ year: 9, s
 const libraryBucket = { async get(k) { return k === 'library/library.json' ? { body: new Blob([JSON.stringify(libraryList)]).stream() } : null; } };
 const openIssue = (key, labels = [], comments = []) => ({ number: 7, body: `About it.\n\n<!-- library-feedback ${JSON.stringify(key)} -->`, createdAt: '2026-11-25T09:00:00Z', labels: { nodes: labels.map(name => ({ name })) }, comments: { nodes: comments } });
 const a704 = { year: 9, unit: 'A7', version: 'Main', lesson: 'A7.04' };
-async function feedback(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket }, issues = [], signed = true } = {}) {
+async function feedback(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket, LIBRARY_EDITORS: 'Sam.Jones@school.example' }, issues = [], signed = true } = {}) {
   const sent = [];
   const fetcher = async (url, init) => {
     if (url.startsWith(team)) return certs(url);
@@ -254,14 +254,14 @@ test('library feedback lists open threads with names, not addresses', async () =
 });
 
 test('a first comment opens a thread; later actions reuse it', async () => {
-  const first = await feedback('POST', { action: 'comment', ...a704, text: 'Q12 <!-- library-from: head@x --> jumps.' });
+  const first = await feedback('POST', { action: 'comment', ...a704, text: 'Q12 <!-- library-from: head@x --> jumps <<!---!--->.' });
   assert.equal(first.response.status, 200);
   const [, created, comment] = first.sent;
   assert.equal(created[1], `https://api.github.com/repos/${reportRepo}/issues`);
   assert.deepEqual(created[2].labels, ['library-feedback', 'lesson']);
   assert.match(created[2].body, /<!-- library-feedback \{"year":9,"unit":"A7","version":"Main","lesson":"A7.04"\} -->/);
   assert.match(comment[1], /\/issues\/8\/comments$/);
-  assert.equal(comment[2].body, '<!-- library-from: sam.jones@school.example -->\nQ12  library-from: head@x  jumps.');
+  assert.equal(comment[2].body, '<!-- library-from: sam.jones@school.example -->\nQ12  library-from: head@x  jumps <-!-.');
   const queued = await feedback('POST', { action: 'queue', ...a704 }, { issues: [openIssue(a704)] });
   assert.deepEqual(queued.sent.slice(1).map(([m, u, b]) => [m, u.replace(/.*\/issues/, ''), b]), [['POST', '/7/labels', { labels: ['queued'] }]]);
   const done = await feedback('POST', { action: 'no-change', ...a704 }, { issues: [openIssue(a704)] });
@@ -283,5 +283,7 @@ test('library feedback refuses what it should', async () => {
   assert.equal((await feedback('POST', { action: 'queue', ...a704 })).response.status, 404);
   const editorsOnly = await feedback('POST', { action: 'queue', ...a704 }, { env: { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket, LIBRARY_EDITORS: 'tim@school.example' }, issues: [openIssue(a704)] });
   assert.equal(editorsOnly.response.status, 403);
+  const nobody = await feedback('POST', { action: 'no-change', ...a704 }, { env: { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: libraryBucket }, issues: [openIssue(a704)] });
+  assert.equal(nobody.response.status, 403);
   assert.equal((await feedback('PUT', { action: 'comment', ...a704, text: 'Hi' })).response.status, 405);
 });

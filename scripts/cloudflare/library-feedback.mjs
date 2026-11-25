@@ -4,7 +4,8 @@
 // comments that start with a hidden marker naming the signed-in sender. Tim's actions are labels:
 // "queued" puts a lesson in the nightly run (which rebuilds it, publishes the new version waiting for
 // his check and closes the issue); "agreed" marks a unit comment to plan. "No change needed" and
-// "Keep as it is" close the thread. The Worker needs REPORT_GITHUB_TOKEN (issues read and write).
+// "Keep as it is" close the thread. The Worker needs REPORT_GITHUB_TOKEN (issues read and write)
+// and LIBRARY_EDITORS (comma-separated emails, a secret) for anyone to act; comments need neither.
 export const feedbackRepo = { owner: 'tboughen', name: 'mathsdock-bank' };
 export const feedbackLimits = { text: 2000, threads: 100, comments: 100 };
 const label = 'library-feedback';
@@ -31,10 +32,10 @@ export function feedbackKey(body) {
 }
 const sameKey = (a, b) => a.year === b.year && a.unit === b.unit && a.version === b.version && a.lesson === b.lesson;
 // Hidden markers belong to the Worker alone: a comment cannot forge one.
-const clean = text => String(text).replace(/<!--|-->/g, '').trim();
+const clean = text => { let s = String(text), before; do { before = s; s = s.replace(/<!--|-->/g, ''); } while (s !== before); return s.trim(); };
 const editors = env => String(env.LIBRARY_EDITORS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-/** Anyone signed in may comment; queueing and closing are for the editors, when any are named. */
-export const canAct = (env, email) => { const list = editors(env); return !list.length || list.includes(String(email || '').toLowerCase()); };
+/** Anyone signed in may comment; queueing, restoring and closing are for the named editors only. */
+export const canAct = (env, email) => editors(env).includes(String(email || '').toLowerCase());
 
 function github(env, fetcher) {
   const headers = { Accept: 'application/vnd.github+json', Authorization: `Bearer ${env.REPORT_GITHUB_TOKEN}`, 'Content-Type': 'application/json', 'User-Agent': 'mathsdock-site', 'X-GitHub-Api-Version': '2022-11-28' };
@@ -99,11 +100,12 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
   if (action === 'comment' && !text) return json(400, { error: 'Write a comment before sending.' });
   if (text.length > feedbackLimits.text) return json(400, { error: `Keep the comment under ${feedbackLimits.text} characters.` });
   if (action === 'restore' && !/^\d{4}-\d{2}-\d{2}$/.test(body.updated ?? '')) return json(400, { error: 'Name the version to bring back by its date.' });
-  if (!await knownUnit(env, key)) return json(400, { error: `${key.unit} is not in the library.` });
   const gh = github(env, fetcher);
   const from = `<!-- library-from: ${String(email || '').replace(/[^\w.@+-]/g, '')} -->\n`;
   try {
-    let thread = (await listThreads(env, fetcher)).find(t => sameKey(t, key));
+    if (!await knownUnit(env, key)) return json(400, { error: `${key.unit} is not in the library.` });
+    // Oldest first if two were ever opened at once, as the page shows.
+    let thread = (await listThreads(env, fetcher)).findLast(t => sameKey(t, key));
     if (!thread && action !== 'comment' && action !== 'restore') return json(404, { error: 'That thread is closed or gone. Reload the page.' });
     if (!thread) {
       const where = key.lesson ? `${key.lesson}${key.version === 'Main' ? '' : ` (${key.version})`}` : `${key.unit}${key.version === 'Main' ? '' : ` (${key.version})`} unit structure`;

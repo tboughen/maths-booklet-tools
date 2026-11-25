@@ -62,7 +62,9 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
 
   const act = useCallback(async (a: FeedbackAction) => {
     await sendFeedback(a);
-    setFeedback(await loadFeedback());
+    // A failed reload keeps the threads we have rather than hiding feedback.
+    const next = await loadFeedback();
+    setFeedback((old) => ("off" in next && !("off" in old) ? old : next));
   }, []);
   const tools = useMemo<FeedbackTools>(() => ("off" in feedback
     ? { threads: new Map(), all: [], canAct: false, off: feedback.off, act }
