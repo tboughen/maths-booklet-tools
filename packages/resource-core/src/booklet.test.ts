@@ -21,12 +21,12 @@ describe("A4 booklet renderer", () => {
     const [a, b] = a7Booklet.document.lessons;
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(a7Booklet, 1);
-    expect(sha(renderBooklet(a7Booklet).pages)).toBe("95bcdb6ffa6122c359236cf7e6b2ac888d3fe6f8dcca0276cd441eed49d3b660");
-    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("3a0df5dc2bd1d74c8ca3a0de8d270daa4b84de80faf9cc0ac97c4215b70c0ff9");
-    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("917a00b397729bbeb6f9e5a0d0b9986703439789f70fe2c8d73bc1b0c8ce1781");
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("50fbbbb64fbf81d8388aadb4e78749931d0fa129395fe6b21a328322d040101d");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("c7dcd135a13d529e768035fd8bdb77028193c57acb08e6fe2f9a1dbc3de7ec27");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("0a7ce6c5e1b702fa0c81787c3d64c395b206617f414d5d07da49617bf8e8ed4d");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
-    expect(sha(whole.pages)).toBe("1e4f69d434fc13c1dae0c30a367c87885cb2f0b7a94d907e4767cd5267d3ec87");
+    expect(sha(whole.pages)).toBe("05a9dc631e5cd1ea042a3b2ef5dc9eddf142eec42aefaee681ae0dd4ecc91897");
   });
 
   it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {
@@ -41,12 +41,12 @@ describe("A4 booklet renderer", () => {
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(old, 1);
     const pupil = renderBooklet(old);
-    expect(sha(pupil.pages)).toBe("2a3893cc6b29a20c533318695657f235bf0735a641009874664b46113a6c79e4");
-    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("5014759cb82decbb0167ff07cc265b52d9387e2b8902b9c8f218b257035cea44");
-    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("21365133b11d4b24d2f5723e7f8e90025cd3828749f9216b1f62add7bd58471d");
+    expect(sha(pupil.pages)).toBe("78995abbbb4f7ff87fd8ef10320cec21bba71497e463e58469653da95c8260e2");
+    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("b49061b5843a1b16b8722d6be5bed51bd549e157dc6393d2efb532915077119c");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("cf18c5662da8dd882680f7cb88947463644459575218c669e4a5ce13c427b4ab");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(56);
-    expect(sha(whole.pages)).toBe("f7be3d3da377be987cc7a9976be35bf2fd39f843e828e1e1be02c8e9e5802b5d");
+    expect(sha(whole.pages)).toBe("8ef66fde9c99f48502a30d103dff9b5327a374c966b8e13e04e9f92601ca9c39");
     expect(pupil.issues.length).toBeGreaterThan(0);
     for (const i of pupil.issues) expect(i.message).toMatch(/^Lesson 2, [A-Za-z ]+, question \d+ uses "[⅓⅔]" \(U\+215[34]\)/);
   });

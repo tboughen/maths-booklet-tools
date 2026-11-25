@@ -599,6 +599,12 @@ function page(body: string, label: string, opts: BookletRenderOptions) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${body}</svg>`;
 }
 
+/** The topic introduction's lesson list: the saved lines, or the booklet's own lessons (code and title). */
+export function introLessons(doc: Booklet["document"], intro: Intro): string[] {
+  if (intro.lessons.length) return intro.lessons;
+  return doc.lessons.map((l, i) => `${lessonWords(doc).name} ${i + 1 + lessonShift(doc)}: ${[l.code, l.title].filter((t) => t.trim()).join(" ")}`);
+}
+
 /** The cover's contents heading and the introduction page's title (N30: the topic pages). */
 export const CONTENTS_HEADING = "Inside this booklet";
 export const INTRO_TITLE = "Topic introduction";
@@ -720,6 +726,19 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
       y += h;
     }
     out.push(...rules, rect(x0, top, W, y - top, `fill="none" stroke="${st.rule}" stroke-width="0.35"`), `<line x1="${n(x0 + ww)}" y1="${n(top)}" x2="${n(x0 + ww)}" y2="${n(y)}" stroke="${st.rule}" stroke-width="0.35"/>`);
+  }
+  const lessonLines = introLessons(doc, intro);
+  if (lessonLines.length) {
+    y += 7;
+    out.push(textSvg(parseRuns("Lessons in this topic", "bold"), x0, y + base(A4.heading), A4.heading, st.navy));
+    y += lh(A4.heading) + 1.5;
+    for (const [i, line] of lessonLines.entries()) {
+      const on = intro.highlight.includes(i);
+      const f = para(line, W - 4, st, { x: 2, style: on ? "bold" : "regular", fill: on ? st.navy : st.ink });
+      if (on) out.push(rect(x0, y, W, f.h + 1.2, `rx="1.2" fill="${st.tint}"`));
+      out.push(at(f, x0, y + 0.6));
+      y += f.h + 1.2;
+    }
   }
   if (y > A4.bottom) issues.push({ lesson: 0, page: pageNo, message: `The unit introduction needs ${n(y - A4.bottom)} mm more height: shorten the lists or key words.` });
   return out.join("");
@@ -1008,7 +1027,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   const revisionPageNo = doc.revision ? first + planned.length + (doc.retrieval ? 1 : 0) : null;
   const contents = [
     ...(introPageNo ? [{ label: "", title: INTRO_TITLE, page: introPageNo }] : []),
-    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1 + lessonShift(doc) + (options.numbering?.lessonOffset ?? 0)}`, title: l.title, page: lessonPages[i] })),
+    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1 + lessonShift(doc) + (options.numbering?.lessonOffset ?? 0)}`, title: [l.code, l.title].filter((t) => t.trim()).join(" "), page: lessonPages[i] })),
     ...(doc.retrieval && retrievalPageNo ? [{ label: "", title: doc.retrieval.title, page: retrievalPageNo }] : []),
     ...(doc.revision && revisionPageNo ? [{ label: "", title: doc.revision.title, page: revisionPageNo }] : []),
   ];
@@ -1131,6 +1150,10 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     const pageNo = plan.revisionPage + (options.numbering?.pageOffset ?? 0);
     const r = doc.revision;
     glyphs({ title: r.title, instruction: r.instruction, answers: r.answers }, { lesson: 0, revision: true, page: pageNo }, "The revision page");
+    r.cards.forEach((c, ci) => {
+      glyphs(c, { lesson: 0, revision: true, page: pageNo }, `The revision page, card ${ci + 1}`);
+      if (c.stage) issues.push({ lesson: 0, revision: true, page: pageNo, message: "A revision card has a worksheet stage, which booklets do not print." });
+    });
     const quiet = { ...ctx, issues: [] };
     const L = planRevision(r, (c, w) => card(r.cards[c], null, w, quiet, 0, 0).h, !!ctx.maths);
     if (L.over > 0) issues.push({ lesson: 0, revision: true, page: pageNo, message: `The revision page needs ${n(L.over)} mm more height: it must fit one side, so shorten a card or the answers; text is never shrunk.` });
@@ -1141,7 +1164,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   }
   // The four topic pages (N30): folded A3 needs a multiple of 4 sides, and each lesson opens on a right-hand (odd) page so its stage spreads open together.
   if (doc.revision && !options.numbering) {
-    if (pages.length % 4) issues.push({ lesson: 0, page: pages.length, message: `The booklet has ${pages.length} sides; folded A3 needs a multiple of 4. Use the four topic pages: cover, topic introduction, Know it (fold-over page) and Do it (revision page).` });
+    if (pages.length % 4) issues.push({ lesson: 0, revision: true, page: pages.length, message: `The booklet has ${pages.length} sides; folded A3 needs a multiple of 4. Use the four topic pages: cover, topic introduction, Know it (fold-over page) and Do it (revision page).` });
     plan.lessonPages.forEach((pg, i) => {
       if (pg % 2 === 0) issues.push({ lesson: i + 1, page: pg, message: `Lesson ${i + 1 + lessonShift(doc)} starts on page ${pg}, a left-hand page, so its stage spreads split across a page turn. Every lesson must start on an odd page.` });
     });
@@ -1198,9 +1221,11 @@ export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet
  * topic introduction, the lesson, Know it, Do it: 12 sides for folded A3. Lesson and page numbers
  * are the small booklet's own (pages 1 to 12); the lesson keeps its number in the unit.
  */
-export function topicLessonBooklet(booklet: Booklet, lesson: number): Booklet {
+export function topicLessonBooklet(booklet: Booklet, lesson: number, o: { coverNote?: string } = {}): Booklet {
   const doc = booklet.document;
-  return { ...booklet, document: { ...doc, firstLessonNumber: doc.firstLessonNumber + lesson, lessons: [doc.lessons[lesson]] } };
+  // The topic introduction still lists every lesson of the topic, with this one highlighted.
+  const intro = doc.intro ? { ...doc.intro, lessons: introLessons(doc, doc.intro), highlight: [lesson] } : null;
+  return { ...booklet, document: { ...doc, intro, coverNote: o.coverNote ?? doc.coverNote, firstLessonNumber: doc.firstLessonNumber + lesson, lessons: [doc.lessons[lesson]] } };
 }
 
 /**

@@ -7,7 +7,7 @@ import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
 import {
   A4,
   bookletFileName,
-  bookletSchema,
+  bookletToolSchema,
   columnBoxes,
   fileName,
   isBooklet,
@@ -348,9 +348,10 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     if (!pupil.issues.length) {
       const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderBooklet(booklet, { view: "answers" }).pages }];
       for (const p of await renderedProblems(raster, copies, doc.title, signal)) {
-        const onRetrieval = pupil.retrievalPage !== null && p.page + 1 >= pupil.retrievalPage;
-        const lesson = onRetrieval ? 0 : pupil.lessonPages.reduce((found, first, i) => (first <= p.page + 1 ? i + 1 : found), 0);
-        pupil.issues.push({ lesson, ...(onRetrieval ? { retrieval: true } : {}), page: p.page + 1, message: p.message });
+        const onRevision = pupil.revisionPage !== null && p.page + 1 >= pupil.revisionPage;
+        const onRetrieval = !onRevision && pupil.retrievalPage !== null && p.page + 1 >= pupil.retrievalPage;
+        const lesson = onRetrieval || onRevision ? 0 : pupil.lessonPages.reduce((found, first, i) => (first <= p.page + 1 ? i + 1 : found), 0);
+        pupil.issues.push({ lesson, ...(onRetrieval ? { retrieval: true } : {}), ...(onRevision ? { revision: true } : {}), page: p.page + 1, message: p.message });
       }
     }
     const printReady = pupil.issues.length === 0;
@@ -665,7 +666,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       "create_booklet",
       {
         description: BOOKLET_DESCRIPTION,
-        inputSchema: z.object({ booklet: bookletSchema }).strict(),
+        inputSchema: z.object({ booklet: bookletToolSchema }).strict(),
         outputSchema: bookletOutput,
         annotations,
       },

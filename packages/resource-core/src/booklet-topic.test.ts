@@ -62,6 +62,8 @@ describe("the four topic pages", () => {
     const issues = renderBooklet(booklet({}, 2)).issues.map((i) => i.message);
     expect(issues.some((m) => m.includes("multiple of 4"))).toBe(true);
     expect(issues.some((m) => m.includes("Lesson 2 starts on page 4"))).toBe(true);
+    const four = renderBooklet(booklet({}, 2)).issues.find((i) => i.message.includes("multiple of 4"));
+    expect(issuePlace(four!)).not.toContain("introduction");
     // Booklets without the revision page keep their old shape and are not checked.
     expect(renderBooklet(booklet({ revision: null }, 2)).issues.some((i) => i.message.includes("multiple of 4"))).toBe(false);
   });
@@ -73,11 +75,26 @@ describe("the four topic pages", () => {
     expect(issuePlace(issue!)).toContain("revision page");
   });
 
+  it("checks revision cards for characters the font lacks", () => {
+    const odd = { ...revision, cards: [{ title: "Lesson 1", items: [{ type: "text", text: "Find ⅓ of 6" }] }] };
+    expect(renderBooklet(booklet({ revision: odd, notation: "plain" })).issues.some((i) => i.revision && i.message.includes("⅓"))).toBe(true);
+  });
+
   it("makes a one-lesson topic booklet that keeps the lesson's number in the unit", () => {
     const b = booklet({ firstLessonNumber: 0 }, 3);
     const one = topicLessonBooklet(b, 2);
     expect(planBooklet(one).contents.map((c) => c.label)).toContain("Lesson 2");
     expect(renderBooklet(one).pages).toHaveLength(5);
+    // The topic introduction lists every lesson of the topic, this one highlighted.
+    expect(one.document.intro?.lessons).toHaveLength(3);
+    expect(one.document.intro?.highlight).toEqual([2]);
+    expect(renderBooklet(one).pages[1]).toContain("Lessons in this topic");
+    expect(topicLessonBooklet(b, 0, { coverNote: "Year 8." }).document.coverNote).toBe("Year 8.");
+  });
+
+  it("puts the lesson code before its title on the cover", () => {
+    const b = validateBooklet({ ...booklet(), document: { ...booklet().document, lessons: [{ ...lesson("Notation"), code: "A4.01" }] } });
+    expect(planBooklet(b).contents[1].title).toBe("A4.01 Notation");
   });
 
   it("writes the revision page and Know it headings to Word", async () => {

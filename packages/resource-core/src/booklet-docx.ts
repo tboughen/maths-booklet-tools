@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, INTRO_TITLE, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -505,6 +505,17 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): stri
     ];
     out.push(table([ww, W - ww], rows));
   }
+  // The topic's lessons, this booklet's highlighted (N30), as the SVG page places them.
+  const lessonLines = introLessons(doc, intro);
+  if (lessonLines.length) {
+    out.push(gap(7), para(runs("Lessons in this topic", { bold: true, color: st.navy, sizeMm: A4.heading }), { line: lh(A4.heading) }), gap(1.5));
+    const rows = lessonLines.map((line, i) => {
+      const on = intro.highlight.includes(i);
+      const h = lines(line, S.body, W - 4, on ? "bold" : "regular") * lh(S.body) + 1.2;
+      return row([cell(gap(0.6) + para(runs(line, on ? { bold: true, color: st.navy } : {}), { left: 2 }), { width: W, ...(on ? { shade: st.tint } : {}) })], { mm: h, exact: true });
+    });
+    out.push(table([W], rows));
+  }
   return out.join("");
 }
 
@@ -538,7 +549,7 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string 
     return row(
       [
         cell(gap(R.pad + retrievalHeadHeight(it)) + para(runs(String(i + 1), { bold: true, color: st.navy })), { width: R.num, borders: b }),
-        cell(gap(R.pad) + (it.heading.trim() ? para(titleWordRuns(it.heading, { bold: true, color: st.navy }, maths), { line: lh(S.body), left: -R.num }) + gap(1.6) : "") + para(runs(it.question, {}, "regular", powersOnly(it.question, maths))) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
+        cell(gap(R.pad) + (it.heading?.trim() ? para(titleWordRuns(it.heading, { bold: true, color: st.navy }, maths), { line: lh(S.body), left: -R.num }) + gap(1.6) : "") + para(runs(it.question, {}, "regular", powersOnly(it.question, maths))) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
         cell(gap(END_MM), { width: R.gap - WORD_WRAP_SLACK_MM, borders: { ...b, right: fold } }),
         cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth(), "regular", powersOnly(it.answer, maths)).length * lh(S.body))) + para(runs(it.answer, {}, "regular", powersOnly(it.answer, maths))), { width: rightW, margin, borders: { ...b, left: fold } }),
       ],

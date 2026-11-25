@@ -93,6 +93,10 @@ export const introSchema = z
     /** Where it leads next. */
     next: z.array(text(120)).max(8).default([]),
     keywords: z.array(keyword).max(24).default([]),
+    /** The topic's lessons, listed under the key words (N30). Empty lists the booklet's own lessons. */
+    lessons: z.array(text(120)).max(20).default([]),
+    /** Which of those lines are in this booklet (0-based), printed highlighted; empty highlights none. */
+    highlight: z.array(z.number().int().min(0).max(19)).max(20).default([]),
   })
   .strict();
 
@@ -188,6 +192,20 @@ export const bookletSchema = z
       .describe("The booklet: cover fields, an optional unit introduction and the lessons in order."),
   })
   .strict();
+
+/**
+ * The booklet as the MCP tool advertises it: the revision page's cards are described as "cards as
+ * in a lesson" rather than repeating the whole card schema, to keep the tool list within its byte
+ * budget. Every call is still checked in full by validateBooklet.
+ */
+export const bookletToolSchema = bookletSchema.extend({
+  document: bookletSchema.shape.document.extend({
+    revision: revisionSchema
+      .extend({ cards: z.array(z.record(z.string(), z.unknown())).min(1).max(12).describe("Booklet cards, exactly as in a lesson section's cards.") })
+      .nullable()
+      .default(null),
+  }),
+});
 
 export type Booklet = z.infer<typeof bookletSchema>;
 export type BookletDocument = Booklet["document"];
