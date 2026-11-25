@@ -238,6 +238,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
     switch (op.op) {
       case "set_kind":
         d.kind = op.kind;
+        if (!core.axisKind(op.kind)) delete d.wrongScale;
         break;
       case "set_value": {
         need(op.series < d.series.length && op.category < d.categories.length, "Use an existing series and category index (0-based).");

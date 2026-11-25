@@ -440,6 +440,7 @@ test("a deliberately wrong scale prints as typed, keeps an invalid draft visible
   await field.press("Enter");
   await expect(page.getByRole("alert").filter({ hasText: "at most 12 characters" })).toBeVisible();
   await expect(field).toHaveValue("0, 1, 2, abcdefghijklmnop");
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
   await field.fill(wrong.join(", "));
   await field.press("Enter");
   expect((await saved(page)).document.wrongScale).toEqual(wrong);

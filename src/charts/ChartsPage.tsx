@@ -457,6 +457,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       explanation: string;
     } | null>(null);
   const file = useRef<HTMLInputElement>(null);
+  const [scaleDraftError, setScaleDraftError] = useState<string | null>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view, true),
@@ -469,7 +470,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     (w) => (w < 500 ? 72 : 120),
   );
   const answerSvg = renderSvg(forView(e, "answer", true));
-  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
+  const issue = [...g.issues, workedIssue(answerSvg, e), d.wrongScale ? scaleDraftError : null].filter(Boolean).join(" ");
   const series = drawnSeries(e);
   const line = d.kind === "vline" || d.kind === "line",
     pie = d.kind === "pie",
@@ -1573,11 +1574,13 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     }}
                   />
                   This chart has a deliberately wrong scale
+                  {!d.wrongScale && axisUnreadable(e) && <span className="ch-error"> (fix the axis first)</span>}
                 </label>
                 {d.wrongScale && (
                   <WrongScaleField
                     value={d.wrongScale}
                     disabled={blocked}
+                    onError={setScaleDraftError}
                     onCommit={(v) => patch((n) => void (n.wrongScale = v))}
                   />
                 )}
@@ -1759,7 +1762,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
 
 /** True when the axis start, end or step cannot be read, so a scale cannot be copied yet. */
 function axisUnreadable(e: Envelope) {
-  return axesLayout(e).issues.some((x) => /^Enter a (positive )?number for the axis|^The axis (end|step) must/.test(x));
+  return axesLayout(e).issues.some((x) => /^Enter a (positive )?number for the axis|^The axis (end|step) must|^Use at most 40 axis steps/.test(x));
 }
 
 /** Splits typed scale numbers: semicolons when any are typed (so 1,000 can be written), otherwise commas. Blanks stay. */
@@ -1773,11 +1776,16 @@ function parseWrongScale(text: string): { value: string[] } | { error: string } 
 }
 
 /** The deliberately wrong scale: keeps an invalid draft visible with its specific error instead of discarding it. */
-function WrongScaleField({ value, disabled, onCommit }: { value: string[]; disabled: boolean; onCommit: (v: string[]) => void }) {
+function WrongScaleField({ value, disabled, onCommit, onError }: { value: string[]; disabled: boolean; onCommit: (v: string[]) => void; onError: (error: string | null) => void }) {
   const saved = value.join(value.some((x) => x.includes(",")) ? "; " : ", ");
   const [draft, setDraft] = useState<string | null>(null);
   const parsed = draft === null ? null : parseWrongScale(draft);
   const error = parsed && "error" in parsed ? parsed.error : null;
+  // An invalid draft blocks export (like other invalid fields) until it is fixed or Escape restores the saved scale.
+  useEffect(() => {
+    onError(error);
+    return () => onError(null);
+  }, [error, onError]);
   const commit = () => {
     if (draft === null || !parsed || "error" in parsed) return;
     setDraft(null);
