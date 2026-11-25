@@ -710,6 +710,12 @@ export function introLessons(doc: Booklet["document"], intro: Intro): string[] {
   return doc.lessons.map((l, i) => `${lessonWords(doc).name} ${i + 1 + lessonShift(doc)}: ${[l.code, l.title].filter((t) => t.trim()).join(" ")}`);
 }
 
+/** The cover title: the topic title, and "Part 1 of 2" when the unit prints in parts (N33). */
+export function coverTitle(doc: Booklet["document"]): string {
+  // No-break spaces keep "Part 1 of 2" on one line when the title wraps.
+  return doc.part ? `${doc.title}: Part\u00a0${doc.part.n}\u00a0of\u00a0${doc.part.of}` : doc.title;
+}
+
 /** The cover's contents heading and the introduction page's title (N30: the topic pages). */
 export const CONTENTS_HEADING = "Inside this booklet";
 export const INTRO_TITLE = "Topic introduction";
@@ -728,7 +734,7 @@ function cover(doc: Booklet["document"], contents: { label: string; title: strin
     tx = x0 + tw + 5;
   }
   const groupW = doc.group.trim() ? plainWidth(doc.group, A4.small, "bold") + 6 : 0;
-  const title = para(doc.title, x0 + W - tx - (groupW ? groupW + 4 : 0), st, { size: A4.coverTitle, fill: st.navy, style: "bold" });
+  const title = para(coverTitle(doc), x0 + W - tx - (groupW ? groupW + 4 : 0), st, { size: A4.coverTitle, fill: st.navy, style: "bold" });
   const ty = title.h < 18 ? y + (18 - title.h) / 2 : y - 1;
   out.push(at(title, tx, ty));
   if (groupW) {
@@ -924,7 +930,7 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
  * sharing the page's spare height, then the try-it answers small and upside down at the foot below
  * a dashed line. Exactly one side: anything taller is an issue, never shrunk.
  */
-export const REVISION = { rowGap: 3, answerGap: 3.5, answerSize: A4.small, pairGap: 5 } as const;
+export const REVISION = { rowGap: 3, answerGap: 3.5, answerSize: A4.small, pairGap: 5, oneColumn: 4 } as const;
 export interface RevisionLayout {
   /** Top of the cards. */
   top: number;
@@ -960,14 +966,22 @@ export function planRevision(r: Revision, measure: (card: number, w: number) => 
   const top = A4.top + revisionHeadHeight(r);
   const answers = revisionAnswerLines(r, maths);
   const answersH = answers.length ? R.answerGap + answers.length * lh(R.answerSize) : 0;
-  const rows: { cards: number[]; wide: boolean; natural: number }[] = [];
-  for (let i = 0; i < r.cards.length; i += 2) {
-    const pair = i + 1 < r.cards.length ? [i, i + 1] : [i];
-    const wide = pair.length === 1;
-    const w = wide ? BOOKLET_WIDTHS.full : BOOKLET_WIDTHS.half;
-    rows.push({ cards: pair, wide, natural: Math.max(...pair.map((c) => measure(c, w))) });
+  const roomFor = (n: number) => A4.bottom - answersH - top - R.rowGap * (n - 1);
+  // A few cards (up to REVISION.oneColumn) run one to a row across the page when they fit, so
+  // they share the side instead of leaving tall empty half-width cards (A4 in parts, 25 November 2026).
+  let rows: { cards: number[]; wide: boolean; natural: number }[] = [];
+  if (r.cards.length <= R.oneColumn) {
+    rows = r.cards.map((_, i) => ({ cards: [i], wide: true, natural: measure(i, BOOKLET_WIDTHS.full) }));
+    if (rows.reduce((k, row) => k + row.natural, 0) > roomFor(rows.length)) rows = [];
   }
-  const room = A4.bottom - answersH - top - R.rowGap * (rows.length - 1);
+  if (!rows.length)
+    for (let i = 0; i < r.cards.length; i += 2) {
+      const pair = i + 1 < r.cards.length ? [i, i + 1] : [i];
+      const wide = pair.length === 1;
+      const w = wide ? BOOKLET_WIDTHS.full : BOOKLET_WIDTHS.half;
+      rows.push({ cards: pair, wide, natural: Math.max(...pair.map((c) => measure(c, w))) });
+    }
+  const room = roomFor(rows.length);
   const used = rows.reduce((k, row) => k + row.natural, 0);
   const spare = Math.max(0, room - used) / rows.length;
   let y = top;
@@ -1194,7 +1208,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   const glyphs = (value: unknown, where: Omit<BookletIssue, "message">, place: string) => {
     for (const c of missingCharacters(value)) issues.push({ ...where, message: missingCharacterMessage(place, c) });
   };
-  glyphs({ title: doc.title, code: doc.code, group: doc.group, coverNote: doc.coverNote }, { lesson: 0, page: 1 }, "The cover");
+  glyphs({ title: coverTitle(doc), code: doc.code, group: doc.group, coverNote: doc.coverNote }, { lesson: 0, page: 1 }, "The cover");
   if (doc.intro) glyphs(doc.intro, { lesson: 0, page: 2 }, "The unit introduction");
   glyphs({ lessonName: doc.lessonName, lessonBadge: doc.lessonBadge }, { lesson: 0, page: 1 }, "The lesson name");
   doc.lessons.forEach((l, li) => l.sections.forEach((sec, si) => spanIssues(sec).forEach((message) => issues.push({ lesson: li + 1, section: si + 1, message }))));
@@ -1297,6 +1311,10 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     for (const i of ctx.issues.slice(before)) (i as BookletIssue).revision = true;
   }
   // The four topic pages (N30): folded A3 needs a multiple of 4 sides, and each lesson opens on a right-hand (odd) page so its stage spreads open together.
+  if (!options.numbering) {
+    if (pages.length > doc.maxSides) issues.push({ lesson: 0, page: 1, message: `The booklet has ${pages.length} sides; the photocopier takes at most ${doc.maxSides}. Split the unit into parts at lesson breaks (topicPartBooklet), each part a full booklet with the four topic pages.` });
+    if (doc.part && doc.part.n > doc.part.of) issues.push({ lesson: 0, page: 1, message: `The cover says Part ${doc.part.n} of ${doc.part.of}: the part number is more than the number of parts.` });
+  }
   if (doc.revision && !options.numbering) {
     if (pages.length % 4) issues.push({ lesson: 0, revision: true, page: pages.length, message: `The booklet has ${pages.length} sides; folded A3 needs a multiple of 4. Use the four topic pages: cover, topic introduction, Know it (fold-over page) and Do it (revision page).` });
     plan.lessonPages.forEach((pg, i) => {
@@ -1318,11 +1336,11 @@ function dedupe(list: BookletIssue[]): BookletIssue[] {
   });
 }
 
-/** Guide-style file name: [code]_[title]_Booklet_A4.pdf, with _Answers before _A4. */
+/** Guide-style file name: [code]_[title]_Booklet_A4.pdf, with _Answers before _A4 and _Part 1 of 2 after the title for a part (N33). */
 export function bookletFileName(booklet: Booklet, view: View = "pupil"): string {
   const d = booklet.document;
   const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
-  const parts = [d.code, d.title].map(safe).filter(Boolean);
+  const parts = [d.code, d.title, d.part ? `Part ${d.part.n} of ${d.part.of}` : ""].map(safe).filter(Boolean);
   return `${parts.join("_") || "Booklet"}_Booklet${view === "answers" ? "_Answers" : ""}_A4.pdf`;
 }
 
@@ -1345,7 +1363,7 @@ export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet
   const full = renderBooklet(booklet);
   const doc = booklet.document;
   return {
-    booklet: { ...booklet, document: { ...doc, intro: null, retrieval: null, revision: null, lessons: [doc.lessons[lesson]] } },
+    booklet: { ...booklet, document: { ...doc, intro: null, retrieval: null, revision: null, part: null, lessons: [doc.lessons[lesson]] } },
     numbering: { lessonOffset: lesson, pageOffset: full.lessonPages[lesson] - 2 },
   };
 }
@@ -1359,7 +1377,22 @@ export function topicLessonBooklet(booklet: Booklet, lesson: number, o: { coverN
   const doc = booklet.document;
   // The topic introduction still lists every lesson of the topic, with this one highlighted.
   const intro = doc.intro ? { ...doc.intro, lessons: introLessons(doc, doc.intro), highlight: [lesson] } : null;
-  return { ...booklet, document: { ...doc, intro, coverNote: o.coverNote ?? doc.coverNote, firstLessonNumber: doc.firstLessonNumber + lesson, lessons: [doc.lessons[lesson]] } };
+  return { ...booklet, document: { ...doc, intro, part: null, coverNote: o.coverNote ?? doc.coverNote, firstLessonNumber: doc.firstLessonNumber + lesson, lessons: [doc.lessons[lesson]] } };
+}
+
+/**
+ * Lessons from..to (0-based, inclusive) of a unit as one part of it, a full booklet with the four
+ * topic pages (N33, Tim 25 November 2026: the photocopiers take at most 64 sides). The cover reads
+ * "Part n of m" and lists only this part's lessons; the topic introduction lists the whole unit
+ * with this part's lessons highlighted. Under N33 Know it and Do it in an earlier part cover only
+ * that part's lessons, so pass them in o; left out, the unit's own pages are kept (the last part).
+ */
+export function topicPartBooklet(booklet: Booklet, from: number, to: number, part: { n: number; of: number }, o: { coverNote?: string; retrieval?: Booklet["document"]["retrieval"]; revision?: Booklet["document"]["revision"] } = {}): Booklet {
+  const doc = booklet.document;
+  if (from < 0 || to < from || to >= doc.lessons.length) throw new RangeError(`Lessons ${from} to ${to} are not in this ${doc.lessons.length}-lesson booklet.`);
+  const highlight = Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  const intro = doc.intro ? { ...doc.intro, lessons: introLessons(doc, doc.intro), highlight } : null;
+  return { ...booklet, document: { ...doc, intro, part, retrieval: o.retrieval === undefined ? doc.retrieval : o.retrieval, revision: o.revision === undefined ? doc.revision : o.revision, coverNote: o.coverNote ?? doc.coverNote, firstLessonNumber: doc.firstLessonNumber + from, lessons: doc.lessons.slice(from, to + 1) } };
 }
 
 /**

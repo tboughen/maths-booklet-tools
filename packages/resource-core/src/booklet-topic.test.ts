@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { issuePlace, planBooklet, renderBooklet, topicLessonBooklet } from "./booklet-render";
+import { bookletFileName, issuePlace, planBooklet, renderBooklet, topicLessonBooklet, topicPartBooklet, planRevision } from "./booklet-render";
 import { writeBookletDocx } from "./booklet-docx";
 
 // The four topic pages (BOOKLET-STANDARD N30, Tim 25 November 2026): cover, topic introduction,
@@ -106,5 +106,49 @@ describe("the four topic pages", () => {
     expect(xml).toContain("Inside this booklet");
     expect(xml).toContain("Spot it");
     expect(xml).toContain("Answers, upside down");
+  });
+});
+
+// Units in parts (N33, Tim 25 November 2026): the photocopiers take at most 64 sides.
+describe("a unit in parts", () => {
+  it("makes a part with Part n of m on the cover, its own lessons, and the whole unit highlighted on page 2", () => {
+    const whole = booklet({ firstLessonNumber: 0 }, 6);
+    const p = topicPartBooklet(whole, 2, 5, { n: 2, of: 2 });
+    expect(p.document.lessons.map((l) => l.title)).toEqual(["Lesson title 2", "Lesson title 3", "Lesson title 4", "Lesson title 5"]);
+    expect(p.document.firstLessonNumber).toBe(2);
+    expect(p.document.intro?.lessons).toHaveLength(6);
+    expect(p.document.intro?.highlight).toEqual([2, 3, 4, 5]);
+    const r = renderBooklet(p);
+    expect(r.pages[0].replace(/<[^>]+>/g, "")).toContain("Algebraic proficiency: Part\u00a02\u00a0of\u00a02");
+    expect(r.pages[1]).toContain("Lesson 0: Lesson title 0");
+    expect(r.pages.length % 4).toBe(0);
+    expect(r.issues.filter((i) => /multiple of 4|photocopier|Part/.test(i.message))).toEqual([]);
+    expect(bookletFileName(p)).toBe("A4_Algebraic proficiency_Part 2 of 2_Booklet_A4.pdf");
+    expect(() => topicPartBooklet(whole, 4, 6, { n: 2, of: 2 })).toThrow(RangeError);
+  });
+
+  it("reports a booklet longer than the photocopier takes", () => {
+    const issues = renderBooklet(booklet({ maxSides: 4 }, 2)).issues.map((i) => i.message);
+    expect(issues.some((m) => m.includes("at most 4"))).toBe(true);
+    const over = renderBooklet(booklet({ maxSides: 4 }, 2)).issues.find((i) => i.message.includes("photocopier"));
+    expect(issuePlace(over!)).toContain("cover");
+    expect(renderBooklet(booklet({}, 2)).issues.some((i) => i.message.includes("photocopier"))).toBe(false);
+  });
+
+  it("runs four or fewer revision cards one to a row, and more in pairs", () => {
+    const base = booklet().document.revision!;
+    const four = planRevision({ ...base, cards: base.cards.concat(base.cards[0]) }, () => 30, true);
+    expect(four.rows.map((r) => r.cards.length)).toEqual([1, 1, 1, 1]);
+    const six = planRevision({ ...base, cards: [...base.cards, ...base.cards] }, () => 30, true);
+    expect(six.rows.map((r) => r.cards.length)).toEqual([2, 2, 2]);
+    const tall = planRevision({ ...base, cards: base.cards.concat(base.cards[0]) }, () => 70, true);
+    expect(tall.rows.map((r) => r.cards.length)).toEqual([2, 2]);
+  });
+
+  it("puts Part n of m on the Word cover", async () => {
+    const p = topicPartBooklet(booklet({}, 3), 0, 1, { n: 1, of: 2 });
+    const { bytes } = await writeBookletDocx(p, { view: "pupil", fonts, picture: (s) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) });
+    const zip = unzipSync(bytes);
+    expect(strFromU8(zip["word/document.xml"])).toContain("Part\u00a01\u00a0of\u00a02");
   });
 });

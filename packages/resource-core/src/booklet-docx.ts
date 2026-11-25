@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, headingLineRoom, NCETM_CHIP, ncetmChipLabel } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, coverTitle, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, headingLineRoom, NCETM_CHIP, ncetmChipLabel } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -385,7 +385,7 @@ function cover(doc: Booklet["document"], contents: { label: string; title: strin
   const tx = code ? tileW + 5 : 0;
   const groupW = doc.group.trim() ? plainWidth(doc.group, A4.small, "bold") + 6 : 0;
   const titleW = W - tx - (groupW ? groupW + 4 : 0);
-  const titleH = lines(doc.title, A4.coverTitle, titleW, "bold") * lh(A4.coverTitle);
+  const titleH = lines(coverTitle(doc), A4.coverTitle, titleW, "bold") * lh(A4.coverTitle);
   // SVG: a title shorter than the tile is centred on it; a taller one starts 1 mm above it.
   const svgBottom = Math.max(18, titleH < 18 ? 18 : titleH - 1);
   const rowH = Math.max(18, titleH);
@@ -401,7 +401,7 @@ function cover(doc: Booklet["document"], contents: { label: string; title: strin
   }
   const titleCellW = titleW + WORD_WRAP_SLACK_MM;
   grid.push(titleCellW);
-  cells.push(cell(textPara(doc.title, A4.coverTitle, { color: st.navy, bold: true, right: 0 }), { width: titleCellW, vAlign: titleH < 18 ? "center" : "top" }));
+  cells.push(cell(textPara(coverTitle(doc), A4.coverTitle, { color: st.navy, bold: true, right: 0 }), { width: titleCellW, vAlign: titleH < 18 ? "center" : "top" }));
   if (groupW) {
     grid.push(4 - WORD_WRAP_SLACK_MM, groupW);
     const pill = table([groupW], [row([cell(para(runs(doc.group, { bold: true, color: st.navy, sizeMm: A4.small }), { align: "center", line: lh(A4.small) }), { width: groupW, shade: st.tint, vAlign: "center" })], { mm: 6.4, exact: true })]);
