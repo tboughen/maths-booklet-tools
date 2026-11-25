@@ -121,6 +121,8 @@ export async function makeBooklet(o: MakeOptions, brief: BookletBrief, onProgres
       lessons,
       retrieval: null,
       revision: null,
+      part: null,
+      maxSides: 64,
     },
   };
   return { booklet, plan, flags, usage, failed, model };

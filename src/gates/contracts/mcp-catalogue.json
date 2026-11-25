@@ -1785,6 +1785,40 @@
                       "type": "null"
                     }
                   ]
+                },
+                "part": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9
+                        },
+                        "of": {
+                          "type": "integer",
+                          "minimum": 2,
+                          "maximum": 9
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "of"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxSides": {
+                  "default": 64,
+                  "type": "integer",
+                  "minimum": 4,
+                  "maximum": 400
                 }
               },
               "required": [

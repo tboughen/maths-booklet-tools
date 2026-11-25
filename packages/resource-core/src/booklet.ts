@@ -212,6 +212,14 @@ export const bookletSchema = z
          * then checked to be a multiple of 4 sides with every lesson starting on an odd page.
          */
         revision: revisionSchema.nullable().default(null),
+        /**
+         * Which part of a split unit this booklet is, or null for a whole unit (N33, Tim 25 November
+         * 2026: the photocopiers take at most 64 sides, so a long unit prints as parts). The cover
+         * title then reads "A4 title: Part 1 of 2"; topicPartBooklet makes a part.
+         */
+        part: z.object({ n: z.number().int().min(1).max(9), of: z.number().int().min(2).max(9) }).strict().nullable().default(null),
+        /** The most sides the photocopier can staple (default 64); a longer booklet is reported, and should be split into parts. */
+        maxSides: z.number().int().min(4).max(400).default(64),
       })
       .strict()
       .describe("The booklet: cover fields, an optional unit introduction and the lessons in order."),
