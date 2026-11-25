@@ -1,52 +1,107 @@
-// Resource library (docs/content/RESOURCE-LIBRARY.md): years, units in teaching order, the chosen
-// unit's resources on the right, a search above and a Map view. The list is served behind staff
-// sign-in, so these checks stand in a copy of it (e2e/fixtures/library.json).
+// Resource library (docs/content/RESOURCE-LIBRARY.md): years, units in teaching order with a ring of
+// lesson states, the chosen unit's versions, parts, lessons, history and feedback on the right, a
+// search above and a Map view. The list and feedback are served behind staff sign-in, so these checks
+// stand in a copy of the list (e2e/fixtures/library.json) and a pretend feedback service.
 import { readFileSync } from "node:fs";
 import { test, expect, type Page } from "./release-fixtures";
 
 const fixture = readFileSync(new URL("./fixtures/library.json", import.meta.url), "utf8");
-async function open(page: Page, address = "/library") {
+type Sent = Record<string, unknown>;
+const thread = (over: Sent) => ({ number: 7, year: 9, unit: "A7", version: "Main", lesson: "A7.04", kind: "lesson", queued: false, agreed: false, opened: "2026-11-25T09:00:00Z", comments: [{ who: "Sam Jones", when: "2026-11-25T09:00:00Z", text: "Question 12 needs a whole-number example first." }], ...over });
+async function open(page: Page, address = "/library", { threads = [thread({})] as Sent[], canAct = true, feedback = true } = {}) {
+  const sent: Sent[] = [];
   await page.route("**/library-data/library.json", (route) => route.fulfill({ contentType: "application/json", body: fixture }));
   await page.route("**/library-data/files/**", (route) => route.fulfill({ contentType: "application/pdf", body: "%PDF-1.7" }));
+  await page.route("**/api/library/feedback", async (route) => {
+    if (!feedback) return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Feedback isn't switched on yet." }) });
+    if (route.request().method() === "POST") { sent.push(route.request().postDataJSON()); return route.fulfill({ contentType: "application/json", body: '{"ok":true}' }); }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ threads, canAct, me: "Tim Boughen" }) });
+  });
   await page.goto(address);
-  return page.getByRole("main");
+  return { main: page.getByRole("main"), sent };
 }
 
-test("a year shows its units in teaching order and a unit shows its resources, answers in pink and drafts flagged", async ({ page }) => {
+test("a year shows rings in teaching order and a unit shows its parts, versions, lessons and history", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  const main = await open(page);
+  const { main } = await open(page);
   await expect(main.getByRole("heading", { level: 1, name: "Resource library" })).toBeVisible();
   await main.getByRole("navigation", { name: "Years" }).getByRole("button", { name: /^Year 9/ }).click();
   const units = main.getByRole("region", { name: "Year 9 units" });
-  await expect(units.getByRole("heading", { name: "Spring term" })).toBeVisible();
+  await expect(units.getByRole("heading", { name: "Autumn term (estimate)" })).toBeVisible();
   await expect(units.locator(".library-unit-code").first()).toHaveText("NP13");
-  await expect(units.getByRole("button", { name: /^A8/ })).toHaveClass(/is-empty/);
-  await units.getByRole("button", { name: /^A7/ }).click();
+  await expect(units.getByRole("button", { name: /^NP14/ })).toHaveClass(/is-empty/);
+  const a7 = units.getByRole("button", { name: /^Now A7/ });
+  await expect(a7).toContainText("1 feedback");
+  await expect(a7.locator(".library-pills")).toHaveText("Foundation");
+  await expect(a7.locator("circle.is-feedback")).toHaveCount(1);
+  await expect(units.getByRole("heading", { name: "Also for Year 9" })).toBeVisible();
+  await a7.click();
   await expect(page).toHaveURL(/\/library\?year=9&unit=A7$/);
   const detail = main.getByRole("complementary", { name: "Unit resources" });
   await expect(detail.getByRole("heading", { level: 2 })).toHaveText("A7 Algebraic proficiency: visualising");
-  const rows = detail.locator(".library-rows > li");
-  await expect(rows.first()).toContainText("Whole unit");
-  await expect(rows.nth(1)).toContainText("A7.00");
-  const ready = detail.locator(".library-resource").filter({ hasText: "A3 worksheet" }).filter({ has: page.locator(".is-ready") }).first();
-  await expect(ready).toBeVisible();
-  const waiting = detail.locator(".library-resource.is-waiting").first();
-  await expect(waiting.getByText("Waiting for check")).toBeVisible();
-  expect(await waiting.evaluate((el) => getComputedStyle(el).borderLeftColor)).not.toBe("rgba(0, 0, 0, 0)");
+  await expect(detail.locator(".library-part-head").first()).toContainText("Part 1 · A7.01 to A7.07");
   const answers = detail.getByRole("link", { name: "Answers PDF" }).first();
   expect(await answers.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(176, 18, 91)");
   await expect(answers).toHaveAttribute("href", /^\/library-data\/files\/[a-f0-9]{64}\//);
+  const a704 = detail.locator(".library-rows > li").filter({ hasText: "A7.04" });
+  await expect(a704).toHaveClass(/is-feedback/);
+  await expect(a704.getByRole("group", { name: "Feedback on A7.04" })).toContainText("Sam Jones");
+  await a704.getByRole("button", { name: "1 earlier version" }).click();
+  await expect(a704.locator(".library-history")).toContainText("First booklet version");
+  await expect(detail.locator(".library-part-label")).toHaveText(["Part 1", "Part 2"]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1920);
   await page.screenshot({ path: test.info().outputPath("library-shelves.png") });
 
-  // The link opens the same unit for a colleague; Back returns to the year.
+  await detail.getByRole("group", { name: "Versions" }).getByRole("button", { name: "Foundation" }).click();
+  await expect(page).toHaveURL(/year=9&unit=A7&version=Foundation$/);
+  await expect(detail.locator(".library-rows > li.is-waiting")).toHaveCount(2);
+  await expect(detail).toContainText("Each version sits alongside the main one");
   await page.goBack();
   await expect(page).toHaveURL(/\/library\?year=9$/);
   await expect(detail).toContainText("Choose a unit");
 });
 
-test("search finds resources across years and opens their unit", async ({ page }) => {
-  const main = await open(page);
+test("staff comment on a lesson and the editor queues it, closes it or brings back an earlier version", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const { main, sent } = await open(page, "/library?year=9&unit=A7");
+  const detail = main.getByRole("complementary", { name: "Unit resources" });
+  const a704 = detail.locator(".library-rows > li").filter({ hasText: "A7.04" });
+  const box = a704.getByRole("group", { name: "Feedback on A7.04" });
+  await box.getByRole("textbox", { name: "Add a comment" }).fill("Agreed, page 3.");
+  await box.getByRole("button", { name: "Send" }).click();
+  await expect(box.getByRole("status")).toHaveText("Comment added.");
+  await box.getByRole("button", { name: "Queue for tonight" }).click();
+  await a704.getByRole("button", { name: "1 earlier version" }).click();
+  await a704.getByRole("button", { name: "Make current again" }).click();
+  await expect.poll(() => sent.map((s) => s.action)).toEqual(["comment", "queue", "restore"]);
+  expect(sent[0]).toMatchObject({ year: 9, unit: "A7", version: "Main", lesson: "A7.04", text: "Agreed, page 3." });
+  expect(sent[2]).toMatchObject({ lesson: "A7.04", updated: "2026-11-17" });
+
+  await detail.getByRole("button", { name: "Feedback on this unit" }).click();
+  const unitBox = detail.getByRole("group", { name: "Feedback on this unit" });
+  await expect(unitBox).toContainText("Unit comments never go in the nightly queue");
+  await main.getByRole("button", { name: /Feedback to act on/ }).click();
+  const drawer = page.getByRole("dialog", { name: "Feedback to act on" });
+  await expect(drawer).toContainText("Y9 · A7.04");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+});
+
+test("colleagues who are not editors can comment but not queue, and feedback that is off says so", async ({ page }) => {
+  const { main } = await open(page, "/library?year=9&unit=A7", { canAct: false });
+  const detail = main.getByRole("complementary", { name: "Unit resources" });
+  const box = detail.getByRole("group", { name: "Feedback on A7.04" });
+  await expect(box.getByRole("button", { name: "Send" })).toBeVisible();
+  await expect(box.getByRole("button", { name: "Queue for tonight" })).toHaveCount(0);
+  await page.unroute("**/api/library/feedback");
+  await page.unroute("**/library-data/**");
+  const off = await open(page, "/library?year=9&unit=A7", { feedback: false });
+  await expect(off.main.getByRole("complementary", { name: "Unit resources" })).toContainText("Feedback isn't switched on yet.");
+  await expect(off.main.getByRole("button", { name: /Feedback to act on/ })).toHaveCount(0);
+});
+
+test("search finds booklets across years and opens their unit", async ({ page }) => {
+  const { main } = await open(page);
   await expect(main.getByRole("heading", { level: 2, name: "Year 7" })).toBeVisible();
   await page.keyboard.press("/");
   const box = main.getByRole("searchbox", { name: "Search the library" });
@@ -54,7 +109,7 @@ test("search finds resources across years and opens their unit", async ({ page }
   await page.keyboard.type("pie charts");
   const results = main.getByRole("region", { name: "Search results" });
   await expect(results).toContainText("SP8.07");
-  await expect(results.getByRole("status")).toHaveText(/^\d+ resources? found$/);
+  await expect(results.getByRole("status")).toHaveText(/^\d+ booklets? found$/);
   await results.getByRole("button", { name: /Year 10 · SP8/ }).first().click();
   await expect(page).toHaveURL(/year=10&unit=SP8/);
   await expect(main.getByRole("complementary", { name: "Unit resources" }).getByRole("heading", { level: 2 })).toContainText("SP8");
@@ -62,15 +117,16 @@ test("search finds resources across years and opens their unit", async ({ page }
   await expect(main.getByRole("status")).toContainText("Nothing matches");
 });
 
-test("the Map view shows every year's units with what exists, and opens a unit", async ({ page }) => {
+test("the Map view shows every unit's lessons as squares, one row per version, and opens a unit", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  const main = await open(page, "/library?view=map");
+  const { main } = await open(page, "/library?view=map");
   const map = main.getByRole("region", { name: "Scheme map" });
   await expect(map.getByRole("heading", { level: 2 })).toHaveText(["Year 7", "Year 8", "Year 9", "Year 10", "Year 11"]);
-  await expect(map.getByRole("button", { name: /^SP7 Understanding risk: Booklets, A3 worksheets$/ })).toBeVisible();
-  await expect(map.getByRole("button", { name: /^A8 .*: nothing yet$/ })).toBeVisible();
+  const a7 = map.getByRole("button", { name: /^A7 Algebraic proficiency: visualising: \d+ of \d+ ready/ });
+  await expect(a7.locator(".library-map-version")).toHaveCount(2);
+  await expect(map.getByRole("button", { name: /^NP14 .*: nothing yet$/ })).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("library-map.png") });
-  await map.getByRole("button", { name: /^A7 / }).click();
+  await a7.click();
   await expect(page).toHaveURL(/year=9&unit=A7/);
   await expect(main.getByRole("button", { name: "Shelves" })).toHaveAttribute("aria-pressed", "true");
 });
