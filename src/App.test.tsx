@@ -87,7 +87,7 @@ describe("graph builder", () => {
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByRole("button", { name: /Line 1/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Line 2/ })).toBeInTheDocument();
-  });
+  }, 20_000); // many typed steps; took 3.7-5 s on the release runner, past the 5 s default
 
   it("shows a useful error for an invalid equation", async () => {
     const user = userEvent.setup();
