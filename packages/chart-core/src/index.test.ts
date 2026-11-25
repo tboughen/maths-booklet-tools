@@ -15,6 +15,7 @@ import {
   validate,
 } from "./index";
 import { examples } from "./examples";
+import * as io from "./interchange";
 
 describe("chart core", () => {
   it("round-trips every example through the editable file format", () => {
@@ -126,5 +127,11 @@ describe("chart core", () => {
     e.document.wrongScale = ["0", "2", "4"];
     expect(axesLayout(e).issues.join(" ")).toMatch(/needs 9 numbers/);
     expect(validate(JSON.parse(canonical(e))).document.wrongScale).toEqual(["0", "2", "4"]);
+  });
+  it("sets and removes a deliberately wrong scale through the connector", async () => {
+    const e = io.create({ spec: { kind: "bar", axis: { min: "0", max: "4", step: "1" }, presentation: { wrongScale: ["0", "1", "2", "4", "5"] } } });
+    expect(e.document.wrongScale).toEqual(["0", "1", "2", "4", "5"]);
+    const back = await io.revise({ envelope: e, baseHash: await io.hash(e), operations: [{ op: "set_presentation", presentation: { wrongScale: null } }] });
+    expect(back.document.wrongScale).toBeUndefined();
   });
 });

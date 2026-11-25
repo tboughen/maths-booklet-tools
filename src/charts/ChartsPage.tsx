@@ -1141,6 +1141,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onClick={() =>
                       patch((n) => {
                         n.kind = k;
+                        if (!axisKind(k)) delete n.wrongScale;
                         if (!singleSet(k) && n.series.length < 2) {
                           const two = addSeries({ ...e, document: n });
                           n.series = two.document.series;
@@ -1561,7 +1562,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 <label className="ch-check">
                   <input
                     type="checkbox"
-                    disabled={blocked}
+                    disabled={blocked || (!d.wrongScale && axisUnreadable(e))}
                     checked={!!d.wrongScale}
                     onChange={(ev) => {
                       const on = ev.target.checked;
@@ -1574,24 +1575,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   This chart has a deliberately wrong scale
                 </label>
                 {d.wrongScale && (
-                  <label>
-                    Scale numbers, bottom to top, separated by commas
-                    <DraftField
-                      label="Deliberately wrong scale numbers"
-                      value={d.wrongScale.join(", ")}
-                      maxLength={300}
-                      disabled={blocked}
-                      onCommit={(v) =>
-                        patch(
-                          (n) =>
-                            void (n.wrongScale = v
-                              .split(",")
-                              .map((x) => x.trim())
-                              .filter((x) => x !== "")),
-                        )
-                      }
-                    />
-                  </label>
+                  <WrongScaleField
+                    value={d.wrongScale}
+                    disabled={blocked}
+                    onCommit={(v) => patch((n) => void (n.wrongScale = v))}
+                  />
                 )}
                 {linesControl}
                 <label>
@@ -1766,5 +1754,59 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         )}
       </main>
     </div>
+  );
+}
+
+/** True when the axis start, end or step cannot be read, so a scale cannot be copied yet. */
+function axisUnreadable(e: Envelope) {
+  return axesLayout(e).issues.some((x) => /^Enter a (positive )?number for the axis|^The axis (end|step) must/.test(x));
+}
+
+/** Splits typed scale numbers: semicolons when any are typed (so 1,000 can be written), otherwise commas. Blanks stay. */
+function parseWrongScale(text: string): { value: string[] } | { error: string } {
+  const parts = text.split(text.includes(";") ? ";" : ",").map((x) => x.trim());
+  if (parts.length > 41) return { error: `Use at most 41 scale numbers (there are ${parts.length}).` };
+  const long = parts.find((x) => x.length > 12);
+  if (long !== undefined) return { error: `“${long.slice(0, 16)}…” is too long: each scale number has at most 12 characters.` };
+  if (parts.some((x) => /[<>]/.test(x))) return { error: "Scale numbers cannot contain < or >." };
+  return { value: parts };
+}
+
+/** The deliberately wrong scale: keeps an invalid draft visible with its specific error instead of discarding it. */
+function WrongScaleField({ value, disabled, onCommit }: { value: string[]; disabled: boolean; onCommit: (v: string[]) => void }) {
+  const saved = value.join(value.some((x) => x.includes(",")) ? "; " : ", ");
+  const [draft, setDraft] = useState<string | null>(null);
+  const parsed = draft === null ? null : parseWrongScale(draft);
+  const error = parsed && "error" in parsed ? parsed.error : null;
+  const commit = () => {
+    if (draft === null || !parsed || "error" in parsed) return;
+    setDraft(null);
+    if (parsed.value.join("\u0000") !== value.join("\u0000")) onCommit(parsed.value);
+  };
+  return (
+    <label>
+      Scale numbers, bottom to top, separated by commas (or semicolons)
+      <input
+        aria-label="Deliberately wrong scale numbers"
+        value={draft ?? saved}
+        disabled={disabled}
+        maxLength={600}
+        aria-invalid={error ? true : undefined}
+        onChange={(ev) => setDraft(ev.target.value)}
+        onBlur={commit}
+        onKeyDown={(ev) => {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            commit();
+          }
+          if (ev.key === "Escape") {
+            ev.preventDefault();
+            ev.stopPropagation();
+            setDraft(null);
+          }
+        }}
+      />
+      {error && <span className="ch-error" role="alert">{error}</span>}
+    </label>
   );
 }

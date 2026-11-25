@@ -426,3 +426,26 @@ test("frequency polygon mistakes and a second polygon, and misleading time serie
   expect(doc.timeseries.join).toBe("curve");
   expect(doc.timeseries.points[2].labelShow).toBe("hidden");
 });
+
+test("a deliberately wrong scale prints as typed, keeps an invalid draft visible and undoes", async ({ page }) => {
+  await boot(page);
+  const box = page.getByLabel("This chart has a deliberately wrong scale");
+  await box.check();
+  const field = page.getByLabel("Deliberately wrong scale numbers");
+  const truth = (await saved(page)).document.wrongScale as string[];
+  expect(truth.length).toBeGreaterThan(3);
+  const wrong = [...truth];
+  wrong[3] = "99";
+  await field.fill("0, 1, 2, abcdefghijklmnop");
+  await field.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "at most 12 characters" })).toBeVisible();
+  await expect(field).toHaveValue("0, 1, 2, abcdefghijklmnop");
+  await field.fill(wrong.join(", "));
+  await field.press("Enter");
+  expect((await saved(page)).document.wrongScale).toEqual(wrong);
+  await expect(page.getByTestId("chart-resource").locator("svg text", { hasText: /^99$/ })).toHaveCount(1);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.wrongScale).toEqual(truth);
+  await box.uncheck();
+  expect((await saved(page)).document.wrongScale).toBeUndefined();
+});
