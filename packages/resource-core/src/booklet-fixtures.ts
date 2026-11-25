@@ -5,7 +5,7 @@ import type { Card, Item } from "./schema";
  * Golden booklet: two lessons of an A7 "visualising" unit, written to the standard of the best
  * lesson in the department's A07 booklet (positive gradients): a one-sentence key idea, a short
  * check-in on exactly the prerequisites, a worked example beside a faded "our turn", identical
- * pre-drawn grids for "your turn", lettered mini-whiteboard hinge questions, practice that fades
+ * pre-drawn grids for "your turn", lettered multiple choice hinge questions, practice that fades
  * support, spot the mistake and an open challenge. Every diagram is a MathsDock graph.
  */
 
@@ -111,7 +111,7 @@ export const exampleLessonSource = {
     {
       kind: "diagnostic",
       title: "",
-      instruction: "Answer on your mini whiteboard.",
+      instruction: "",
       columns: 2,
       cards: [
         card("Read the movements", t("Between two perfect points a line goes 2 right and 6 up. What is its gradient?"), choose(["2", "3", "6", "{1/3}"], 1)),
