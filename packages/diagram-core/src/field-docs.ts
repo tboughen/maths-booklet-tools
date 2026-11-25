@@ -186,6 +186,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     steps: "Up to 8 steps, each {bubble or left/right, leftUnder?, rightUnder?, line}: the bubbles, then the line they lead to (blank if left out).",
     intentionalError: "true marks an error-spotting task, so bubbles that differ raise no warning.",
     lines,
+    bubbles: "plain (default): black ovals; house: navy rounded bubbles for house-style booklet pages.",
   },
   "written-method": {
     example,

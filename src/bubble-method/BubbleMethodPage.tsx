@@ -675,7 +675,7 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
               tool="bubble-method"
               title="Layout"
               icon={Ruler}
-              summary={`${d.lines === "bold" ? "Bold" : "Normal"} lines${d.intentionalError ? " · deliberate error" : ""}`}
+              summary={`${d.lines === "bold" ? "Bold" : "Normal"} lines${d.bubbles === "house" ? " · navy bubbles" : ""}${d.intentionalError ? " · deliberate error" : ""}`}
               help={
                 <>
                   <p className="pt-note">
@@ -698,6 +698,23 @@ export default function BubbleMethodPage({ active = true }: { active?: boolean }
                         {LINE_WEIGHT_NAMES[v]}
                       </option>
                     ))}
+                  </select>
+                </label>
+                <label>
+                  Bubbles
+                  <select
+                    aria-label="Bubbles"
+                    value={d.bubbles ?? "plain"}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      patch((n) => {
+                        if (ev.target.value === "house") n.bubbles = "house";
+                        else delete n.bubbles;
+                      })
+                    }
+                  >
+                    <option value="plain">Black ovals</option>
+                    <option value="house">Navy, house style</option>
                   </select>
                 </label>
               </div>
