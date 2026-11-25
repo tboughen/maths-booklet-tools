@@ -11866,6 +11866,13 @@
               "normal",
               "bold"
             ]
+          },
+          "bubbles": {
+            "type": "string",
+            "enum": [
+              "plain",
+              "house"
+            ]
           }
         },
         "required": [

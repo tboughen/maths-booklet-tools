@@ -42,6 +42,11 @@ size (`packages/resource-core/src/bubble-method-item.test.ts` checks both output
 - Typing: sides `3x+2`, `y-2`, `(y-2)/3`, `x^2` print as 3x + 2, y − 2, a stacked fraction, x²; bubbles `-2`, `/3`,
   `x3`, `+5`, `-3x` print as −2, ÷3, ×3, +5, −3x. `lines: "bold"` from the house style. `intentionalError`
   silences the teacher notes.
+- `bubbles: "house"` (25 November 2026, for booklet pages such as the topic revision page and A4.08/A4.09):
+  navy (#173c65) rounded bubbles with navy operations, matching the booklet house style. Lines stay black and
+  hidden answers stay dark pink on the answers copy only, so pupil pages carry no pink. Sizes are unchanged, so
+  pupil space is the same. Left out (plain black ovals) is the default and is never saved. Editor: Layout,
+  Bubbles. Spec and `set_settings` take `bubbles`.
 
 ## Explicit actions only
 

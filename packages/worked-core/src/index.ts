@@ -66,7 +66,11 @@ const RENDERERS = {
   "ratio-table": (e: unknown) => renderRatioSvg(validateRatioEnvelope(e).document),
   "number-line": (e: unknown) => renderNumberLine(validateNumberLine(e)),
   "factor-tree": (e: unknown) => renderFactorTree(validateFactorTree(e)),
-  "bubble-method": (e: unknown) => renderBubbleMethod(validateBubbleMethod(e)),
+  // Worked solutions print black maths (rulebook), so house-style navy bubbles print plain here.
+  "bubble-method": (e: unknown) => {
+    const b = validateBubbleMethod(e);
+    return renderBubbleMethod({ ...b, document: { ...b.document, bubbles: undefined } });
+  },
   "angles": (e: unknown) => renderAngles(validateAngles(e)),
   "area": (e: unknown) => renderArea(validateArea(e)),
   "venn": (e: unknown) => renderVenn(validateVenn(e)),
