@@ -10,6 +10,7 @@ import { promoteRelease } from './deployment.mjs';
 import { downloadTrustedArtifact, verifyWorkflowRun } from './github-trust.mjs';
 import { parseWranglerCors } from './cors-policy.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
+import { probeDashboardReads } from './dashboard-probe.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const options = process.argv.slice(3), action = process.argv[2];
@@ -135,7 +136,13 @@ async function main() {
         inventory: () => inventory(false, true),
         deploy: async () => {
           verifyPackage(directory); validateSource(root, release);
-          await metrics.stage('worker-deployment', () => run(root, wrangler, ['deploy', '--config', configuration.config, '--assets', resolve(directory, 'site'), '--message', `MathsDock ${release.releaseId}`]));
+          try {
+            await metrics.stage('worker-deployment', () => run(root, wrangler, ['deploy', '--config', configuration.config, '--assets', resolve(directory, 'site'), '--message', `MathsDock ${release.releaseId}`]));
+          } catch (error) {
+            const report = await probeDashboardReads(configuration.name).catch(() => []);
+            save(resolve(output, 'dashboard-reads.json'), report);
+            throw error;
+          }
           return current(configuration);
         },
         verifyBytes: () => verifyLiveFiles(directory, release, origin, metrics),
