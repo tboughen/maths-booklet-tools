@@ -1311,7 +1311,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   }
   // The four topic pages (N30): folded A3 needs a multiple of 4 sides, and each lesson opens on a right-hand (odd) page so its stage spreads open together.
   if (!options.numbering) {
-    if (pages.length > doc.maxSides) issues.push({ lesson: 0, page: pages.length, message: `The booklet has ${pages.length} sides; the photocopier takes at most ${doc.maxSides}. Split the unit into parts at lesson breaks (topicPartBooklet), each part a full booklet with the four topic pages.` });
+    if (pages.length > doc.maxSides) issues.push({ lesson: 0, page: 1, message: `The booklet has ${pages.length} sides; the photocopier takes at most ${doc.maxSides}. Split the unit into parts at lesson breaks (topicPartBooklet), each part a full booklet with the four topic pages.` });
     if (doc.part && doc.part.n > doc.part.of) issues.push({ lesson: 0, page: 1, message: `The cover says Part ${doc.part.n} of ${doc.part.of}: the part number is more than the number of parts.` });
   }
   if (doc.revision && !options.numbering) {
@@ -1335,11 +1335,11 @@ function dedupe(list: BookletIssue[]): BookletIssue[] {
   });
 }
 
-/** Guide-style file name: [code]_[title]_Booklet_A4.pdf, with _Answers before _A4. */
+/** Guide-style file name: [code]_[title]_Booklet_A4.pdf, with _Answers before _A4 and _Part 1 of 2 after the title for a part (N33). */
 export function bookletFileName(booklet: Booklet, view: View = "pupil"): string {
   const d = booklet.document;
   const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
-  const parts = [d.code, d.title].map(safe).filter(Boolean);
+  const parts = [d.code, d.title, d.part ? `Part ${d.part.n} of ${d.part.of}` : ""].map(safe).filter(Boolean);
   return `${parts.join("_") || "Booklet"}_Booklet${view === "answers" ? "_Answers" : ""}_A4.pdf`;
 }
 

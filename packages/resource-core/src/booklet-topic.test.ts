@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { issuePlace, planBooklet, renderBooklet, topicLessonBooklet, topicPartBooklet, planRevision } from "./booklet-render";
+import { bookletFileName, issuePlace, planBooklet, renderBooklet, topicLessonBooklet, topicPartBooklet, planRevision } from "./booklet-render";
 import { writeBookletDocx } from "./booklet-docx";
 
 // The four topic pages (BOOKLET-STANDARD N30, Tim 25 November 2026): cover, topic introduction,
@@ -123,12 +123,15 @@ describe("a unit in parts", () => {
     expect(r.pages[1]).toContain("Lesson 0: Lesson title 0");
     expect(r.pages.length % 4).toBe(0);
     expect(r.issues.filter((i) => /multiple of 4|photocopier|Part/.test(i.message))).toEqual([]);
+    expect(bookletFileName(p)).toBe("A4_Algebraic proficiency_Part 2 of 2_Booklet_A4.pdf");
     expect(() => topicPartBooklet(whole, 4, 6, { n: 2, of: 2 })).toThrow(RangeError);
   });
 
   it("reports a booklet longer than the photocopier takes", () => {
     const issues = renderBooklet(booklet({ maxSides: 4 }, 2)).issues.map((i) => i.message);
     expect(issues.some((m) => m.includes("at most 4"))).toBe(true);
+    const over = renderBooklet(booklet({ maxSides: 4 }, 2)).issues.find((i) => i.message.includes("photocopier"));
+    expect(issuePlace(over!)).toContain("cover");
     expect(renderBooklet(booklet({}, 2)).issues.some((i) => i.message.includes("photocopier"))).toBe(false);
   });
 
