@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { validateBooklet, type Booklet } from "./booklet";
-import { A4, BADGE_HEAD, BANNER, BOOKEND, cornerBadge, DID_YOU_KNOW, didYouKnowBox, planBooklet, renderBooklet, sectionStages, stageSquares, unitLabel } from "./booklet-render";
+import { A4, BADGE_HEAD, BANNER, BOOKEND, checkInBlock, cornerBadge, DID_YOU_KNOW, didYouKnowBox, planBooklet, renderBooklet, sectionStages, stageSquares, unitLabel } from "./booklet-render";
 import { styles } from "./style";
 import { writeBookletDocx } from "./booklet-docx";
 
@@ -41,7 +41,9 @@ describe("booklet page finding", () => {
     const b = booklet(cycles);
     const plan = planBooklet(b);
     const banners = plan.pages.flatMap((p, i) => p.blocks.filter((x) => x.kind === "banner").map((x) => ({ page: i, end: x.kind === "banner" && x.end, y: x.y })));
+    // The check-in's own START on the lesson's first page (its STOP is in the footer's place, N28), then the stages.
     expect(banners.map((x) => [x.page, x.end])).toEqual([
+      [0, false],
       [1, false],
       [1, true],
       [2, false],
@@ -54,10 +56,13 @@ describe("booklet page finding", () => {
       expect(last.kind).toBe("banner");
       expect(last.y + last.h).toBeLessThanOrEqual(A4.bottom);
     }
+    expect(plan.pages.map((p) => p.checkInStop)).toEqual([true, false, false]);
     const svg = renderBooklet(b).pages.join("");
-    // Two stage banners each, and the lesson's own START (start block) and STOP (end band), N11.
+    // The check-in's START and STOP (N28), two stage banners each, and the lesson's STOP (end band), N11. The start block has no START.
     expect(svg.match(/>START</g)).toHaveLength(3);
-    expect(svg.match(/>STOP</g)).toHaveLength(3);
+    expect(svg.match(/>STOP</g)).toHaveLength(4);
+    expect(svg).toContain(">Check in<");
+    expect(svg).toContain(">End of check in<");
     expect(svg).toContain("End of stage 1");
     expect(BANNER.h).toBeGreaterThan(0);
   });
@@ -66,9 +71,13 @@ describe("booklet page finding", () => {
     const { bytes } = await writeBookletDocx(booklet(cycles), { view: "pupil", fonts: { regular: new Uint8Array(8), semiBold: new Uint8Array(8), italic: new Uint8Array(8) }, picture: (s) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) });
     const files = unzipSync(bytes);
     const body = strFromU8(files["word/document.xml"]);
-    // Two stage banners and the start block's START; the end band's STOP is in the last page's footer (N11).
+    // The check-in's START and two stage banners; the check-in's STOP is in the first page's footer (N28), the end band's in the last page's (N11).
     expect(body.match(/>START</g)).toHaveLength(3);
     expect(body.match(/>STOP</g)).toHaveLength(2);
+    const checkIn = strFromU8(files["word/footer-checkin.xml"]);
+    expect(checkIn).toContain(">End of check in<");
+    expect(checkIn).toContain(">STOP<");
+    expect(checkIn).toContain(" PAGE ");
     expect(strFromU8(files["word/footer-end1.xml"])).toContain(">STOP<");
     const footer = strFromU8(files["word/footer1.xml"]);
     expect(footer).toContain(`w:jc w:val="center"`);
@@ -81,13 +90,16 @@ describe("booklet lesson bookends", () => {
   const exam = section("practice", 2, { title: "Exam-style question and challenge" });
   const withExam = [...cycles, exam];
 
-  it("opens a lesson with a start block naming the lesson, the unit, the title and START", () => {
+  it("opens a lesson with a start block naming the lesson, the unit and the title; START waits for the check-in (N28)", () => {
     const page = renderBooklet(booklet(withExam)).pages[1];
     expect(page).toContain(">SP8<");
     expect(page).toContain(">Presentation<");
     expect(page).toContain(">Lesson<");
-    expect(page).toContain(">START<");
     expect(page).not.toContain("Start of lesson");
+    // The only START on the first page is the check-in banner's, below the start block.
+    const plan = planBooklet(booklet(withExam));
+    expect(page.match(/>START</g)).toHaveLength(1);
+    expect(plan.pages[0].blocks[1]).toMatchObject({ kind: "banner", section: 0, end: false });
     expect(unitLabel({ ...booklet(withExam).document, title: "SP7 Understanding risk", code: "SP7.06" })).toBe("SP7 Understanding risk");
   });
 
@@ -111,6 +123,31 @@ describe("booklet lesson bookends", () => {
     expect(lit[0]).toBe("1");
     expect(lit).toContain("2");
     expect(plan.pages.filter((p) => p.last)).toHaveLength(1);
+  });
+
+  it("wraps a run of check-in sections in one START and one STOP, without counting it as a stage (N28)", () => {
+    const two = [section("check-in", 2), section("check-in", 1, { title: "From lesson 1" }), section("worked", 2, { startBanner: "Stage 1" }), section("diagnostic", 2, { endBanner: "End of stage 1" })];
+    const plan = planBooklet(booklet(two));
+    const banners = plan.pages[0].blocks.filter((x) => x.kind === "banner").map((x) => x.kind === "banner" && [x.section, x.end]);
+    // START on the first check-in section, with its heading and instruction folded in; STOP in the footer's place.
+    expect(banners).toEqual([[0, false]]);
+    expect(plan.pages[0].checkInStop).toBe(true);
+    expect(plan.pages[0].blocks.filter((x) => x.kind === "section").map((x) => x.kind === "section" && x.section)).toEqual([1]);
+    const first = renderBooklet(booklet(two)).pages[1];
+    expect(first).toContain(">End of check in<");
+    expect(first).toContain(">Page 2<");
+    // Without stages the STOP follows the last check-in card.
+    const plain = planBooklet(booklet([section("check-in", 2), section("check-in", 1), section("practice", 2)]));
+    expect(plain.pages[0].checkInStop).toBe(false);
+    expect(plain.pages[0].blocks.filter((x) => x.kind === "banner").map((x) => x.kind === "banner" && [x.section, x.end])).toEqual([
+      [0, false],
+      [1, true],
+    ]);
+    // Retrieval in a practice section before the first stage still belongs to the check-in.
+    const a7 = [section("check-in", 2), section("practice", 1, { title: "From lesson 1" }), section("worked", 2, { startBanner: "Stage 1" })];
+    expect(checkInBlock(booklet(a7).document.lessons[0])).toEqual({ first: 0, last: 1, stageNext: true });
+    expect(stageSquares(booklet(two).document.lessons[0])).toEqual(["1"]);
+    expect(sectionStages(booklet(two).document.lessons[0])).toEqual([null, null, "1", "1"]);
   });
 
   it("adds C only for work after the last stage's own STOP, and shows no squares without stages", () => {
