@@ -21,11 +21,17 @@ export type LibrarySection = { name: string; estimate?: boolean; units: LibraryU
 export type LibraryYear = { year: number; now?: string; sections: LibrarySection[] };
 export type Library = { schema: "mathsdock-library-served/2"; published: string; years: LibraryYear[]; resources: Resource[] };
 
-/** An open feedback thread (scripts/cloudflare/library-feedback.mjs). A lesson of null is the whole unit. */
-export type Comment = { who: string; when: string; text: string };
-export type Thread = { number: number; year: number; unit: string; version: string; lesson: string | null; kind: "lesson" | "unit"; queued: boolean; agreed: boolean; opened: string; comments: Comment[] };
-export const threadKey = (year: number, unit: string, version: string, lesson: string | null) => `${year}|${unit}|${version}|${lesson ?? ""}`;
-export const threadMap = (threads: Thread[]) => new Map(threads.map((t) => [threadKey(t.year, t.unit, t.version, t.lesson), t]));
+/**
+ * An open feedback thread (scripts/cloudflare/library-feedback.mjs). A lesson of null is the whole unit,
+ * unless `booklet` names a unit booklet (its part, or "Unit booklet"). `mine` marks comments the signed-in
+ * person wrote, which they may delete.
+ */
+export type Comment = { id?: number; who: string; when: string; text: string; mine?: boolean };
+export type Thread = { number: number; year: number; unit: string; version: string; lesson: string | null; booklet?: string | null; kind: "lesson" | "unit" | "booklet"; queued: boolean; agreed: boolean; opened: string; comments: Comment[] };
+export const threadKey = (year: number, unit: string, version: string, lesson: string | null, booklet?: string | null) => `${year}|${unit}|${version}|${lesson ?? ""}|${booklet ?? ""}`;
+export const threadMap = (threads: Thread[]) => new Map(threads.map((t) => [threadKey(t.year, t.unit, t.version, t.lesson, t.booklet), t]));
+/** The name a unit booklet's feedback and checks go by. */
+export const bookletName = (r: Resource) => r.part ?? "Unit booklet";
 
 export const typeNames: Record<ResourceType, string> = {
   "unit-booklet": "Unit booklet",
@@ -151,26 +157,27 @@ export async function loadFeedback(fetcher: typeof fetch = fetch): Promise<Feedb
   if (!response.ok || !Array.isArray(body.threads)) return { off: body.error ?? "Feedback could not be loaded." };
   return { threads: body.threads, checks: body.checks && typeof body.checks === "object" ? body.checks : {}, canAct: body.canAct === true, me: String(body.me ?? "") };
 }
-export type FeedbackAction = { action: "comment" | "queue" | "unqueue" | "no-change" | "restore" | "agree" | "keep" | "check" | "uncheck"; year: number; unit: string; version: string; lesson?: string | null; text?: string; updated?: string; id?: string; close?: boolean };
+export type FeedbackAction = { action: "comment" | "delete" | "queue" | "unqueue" | "no-change" | "restore" | "agree" | "keep" | "check" | "uncheck"; year: number; unit: string; version: string; lesson?: string | null; booklet?: string | null; text?: string; updated?: string; id?: string; close?: boolean; cancelQueued?: boolean; comment?: number };
 
 /** What an action does to the feedback the page holds, so the page can show it before the Worker answers. */
 export function predictFeedback(old: Feedback, a: FeedbackAction): Feedback {
   if ("off" in old) return old;
-  if (a.action === "check" && a.id && a.updated) return { ...old, checks: { ...old.checks, [a.id]: { updated: a.updated, by: old.me, at: new Date().toISOString() } }, threads: a.close ? old.threads.filter((t) => !same(t, a)) : old.threads };
+  if (a.action === "check" && a.id && a.updated) return { ...old, checks: { ...old.checks, [a.id]: { updated: a.updated, by: old.me, at: new Date().toISOString() } }, threads: a.close ? old.threads.filter((t) => !same(t, a) || (t.queued && !a.cancelQueued)) : old.threads };
+  if (a.action === "delete") return { ...old, threads: old.threads.flatMap((t) => { if (!same(t, a)) return [t]; const comments = t.comments.filter((c) => c.id !== a.comment); return comments.length ? [{ ...t, comments }] : []; }) };
   if (a.action === "uncheck" && a.id) { const checks = { ...old.checks }; delete checks[a.id]; return { ...old, checks }; }
   if (a.action === "no-change" || a.action === "keep") return { ...old, threads: old.threads.filter((t) => !same(t, a)) };
-  const lesson = a.lesson ?? null, found = old.threads.find((t) => same(t, a));
-  const thread: Thread = found ?? { number: 0, year: a.year, unit: a.unit, version: a.version, lesson, kind: lesson ? "lesson" : "unit", queued: false, agreed: false, opened: new Date().toISOString(), comments: [] };
+  const lesson = a.lesson ?? null, booklet = a.booklet ?? null, found = old.threads.find((t) => same(t, a));
+  const thread: Thread = found ?? { number: 0, year: a.year, unit: a.unit, version: a.version, lesson, booklet, kind: lesson ? "lesson" : booklet ? "booklet" : "unit", queued: false, agreed: false, opened: new Date().toISOString(), comments: [] };
   const note = a.action === "comment" ? a.text?.trim() : a.action === "restore" ? `Make the version of ${a.updated} current again.` : a.action === "agree" ? "Agreed: plan the change." : "";
   const next: Thread = {
     ...thread,
     queued: a.action === "queue" || a.action === "restore" ? true : a.action === "unqueue" ? false : thread.queued,
     agreed: a.action === "agree" || thread.agreed,
-    comments: note ? [...thread.comments, { who: old.me, when: new Date().toISOString(), text: note }] : thread.comments,
+    comments: note ? [...thread.comments, { who: old.me, when: new Date().toISOString(), text: note, mine: true }] : thread.comments,
   };
   return { ...old, threads: found ? old.threads.map((t) => (t === found ? next : t)) : [next, ...old.threads] };
 }
-const same = (t: Thread, a: FeedbackAction) => t.year === a.year && t.unit === a.unit && t.version === a.version && t.lesson === (a.lesson ?? null);
+const same = (t: Thread, a: FeedbackAction) => t.year === a.year && t.unit === a.unit && t.version === a.version && t.lesson === (a.lesson ?? null) && (t.booklet ?? null) === (a.booklet ?? null);
 export async function sendFeedback(action: FeedbackAction, fetcher: typeof fetch = fetch) {
   const response = await fetcher(`${siteBase()}api/library/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
   const body = await response.json().catch(() => ({}));

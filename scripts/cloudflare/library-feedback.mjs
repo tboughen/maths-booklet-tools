@@ -6,7 +6,9 @@
 // his check and closes the issue); "agreed" marks a unit comment to plan. "No change needed" and
 // "Keep as it is" close the thread. "Checked" turns a lesson's current version green: the Worker
 // keeps each check in library/checks.json in R2 (id -> the version date it was checked at), so a
-// rebuilt lesson goes back to waiting by itself. The Worker needs REPORT_GITHUB_TOKEN (issues read and write)
+// rebuilt lesson goes back to waiting by itself. A unit booklet (its own cover, contents, topic pages
+// and assembly) is checked and commented on like a lesson, keyed by its part name ("booklet"). Anyone
+// may delete a comment they wrote; a thread left with no comments closes. The Worker needs REPORT_GITHUB_TOKEN (issues read and write)
 // and LIBRARY_EDITORS (comma-separated emails, a secret) for anyone to act; comments need neither.
 export const feedbackRepo = { owner: 'tboughen', name: 'mathsdock-bank' };
 export const feedbackLimits = { text: 2000, threads: 100, comments: 100 };
@@ -17,6 +19,7 @@ const lessonCode = /^[A-Z]{1,3}\d+(\.\d+[a-z]?)?$/;
 const versionName = /^[A-Za-z0-9][A-Za-z0-9 ()+&,'-]{0,39}$/;
 const unitCode = /^[A-Z0-9]{1,12}$/;
 const lessonActions = new Set(['queue', 'unqueue', 'no-change', 'restore', 'check', 'uncheck']);
+const bookletActions = new Set(['queue', 'unqueue', 'no-change', 'check', 'uncheck']);
 export const checksKey = 'library/checks.json';
 const resourceId = /^[a-z0-9][a-z0-9-]{0,150}$/;
 const dateText = /^\d{4}-\d{2}-\d{2}$/;
@@ -31,11 +34,14 @@ export function displayName(email) {
 }
 /** The thread a request is about, or null when it is not sound. */
 export function feedbackKey(body) {
-  const year = Number(body?.year), unit = body?.unit, version = body?.version ?? 'Main', lesson = body?.lesson ?? null;
+  const year = Number(body?.year), unit = body?.unit, version = body?.version ?? 'Main', lesson = body?.lesson ?? null, booklet = body?.booklet ?? null;
   if (![7, 8, 9, 10, 11].includes(year) || !unitCode.test(unit ?? '') || !versionName.test(version) || (lesson !== null && !lessonCode.test(lesson))) return null;
-  return { year, unit, version, lesson };
+  if (booklet !== null && (lesson !== null || !versionName.test(booklet))) return null;
+  // Lesson and unit keys stay as they were, so threads opened before unit booklets had rows still match.
+  return booklet === null ? { year, unit, version, lesson } : { year, unit, version, lesson, booklet };
 }
-const sameKey = (a, b) => a.year === b.year && a.unit === b.unit && a.version === b.version && a.lesson === b.lesson;
+const sameKey = (a, b) => a.year === b.year && a.unit === b.unit && a.version === b.version && a.lesson === b.lesson && (a.booklet ?? null) === (b.booklet ?? null);
+const fromEmail = body => fromMarker.exec(body ?? '')?.[1]?.toLowerCase() ?? '';
 // Hidden markers belong to the Worker alone: a comment cannot forge one.
 const clean = text => { let s = String(text), before; do { before = s; s = s.replace(/<!--|-->/g, ''); } while (s !== before); return s.trim(); };
 const editors = env => String(env.LIBRARY_EDITORS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
@@ -54,8 +60,8 @@ function github(env, fetcher) {
 }
 
 /** Every open thread, newest first, with its comments in order. One GraphQL call. */
-export async function listThreads(env, fetcher) {
-  const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:$name){issues(first:${feedbackLimits.threads},states:OPEN,labels:["${label}"],orderBy:{field:CREATED_AT,direction:DESC}){nodes{number body createdAt labels(first:10){nodes{name}} comments(first:${feedbackLimits.comments}){nodes{body createdAt}}}}}}`;
+export async function listThreads(env, fetcher, email = '') {
+  const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:$name){issues(first:${feedbackLimits.threads},states:OPEN,labels:["${label}"],orderBy:{field:CREATED_AT,direction:DESC}){nodes{number body createdAt labels(first:10){nodes{name}} comments(first:${feedbackLimits.comments}){nodes{databaseId body createdAt}}}}}}`;
   const data = await github(env, fetcher).call('POST', 'https://api.github.com/graphql', { query, variables: feedbackRepo });
   const nodes = data?.data?.repository?.issues?.nodes;
   if (!Array.isArray(nodes)) throw new Error('GitHub gave no issues');
@@ -67,9 +73,9 @@ export async function listThreads(env, fetcher) {
     const labels = new Set((issue.labels?.nodes ?? []).map(l => l.name));
     const comments = (issue.comments?.nodes ?? []).map(c => {
       const from = fromMarker.exec(c.body ?? '');
-      return { who: from ? displayName(from[1]) : 'Claude (nightly run)', when: c.createdAt, text: (c.body ?? '').replace(fromMarker, '').trim() };
+      return { id: c.databaseId, who: from ? displayName(from[1]) : 'Claude (nightly run)', when: c.createdAt, text: (c.body ?? '').replace(fromMarker, '').trim(), mine: !!email && fromEmail(c.body) === String(email).toLowerCase() };
     });
-    threads.push({ number: issue.number, ...key, kind: key.lesson ? 'lesson' : 'unit', queued: labels.has('queued'), agreed: labels.has('agreed'), opened: issue.createdAt, comments });
+    threads.push({ number: issue.number, ...key, kind: key.lesson ? 'lesson' : key.booklet ? 'booklet' : 'unit', queued: labels.has('queued'), agreed: labels.has('agreed'), opened: issue.createdAt, comments });
   }
   return threads;
 }
@@ -104,14 +110,16 @@ async function changeChecks(env, change) {
 
 /**
  * GET lists the open threads and whether this person may act on them. POST takes one action:
- * comment {text}, queue, unqueue, no-change, restore {updated} for a lesson; agree, keep for a unit.
+ * comment {text} and delete {comment} for anyone; queue, unqueue, no-change, restore {updated},
+ * check and uncheck {id, updated, close, cancelQueued} for a lesson (a unit booklet: all but restore);
+ * agree, keep for a unit.
  */
 export async function libraryFeedback(request, env, claims, fetcher = fetch) {
   if (!env.REPORT_GITHUB_TOKEN) return json(503, { error: "Feedback isn't switched on yet." });
   const email = claims.email;
   if (request.method === 'GET') {
     try {
-      const [threads, { checks }] = await Promise.all([listThreads(env, fetcher), readChecks(env).catch(() => ({ checks: {} }))]);
+      const [threads, { checks }] = await Promise.all([listThreads(env, fetcher, email), readChecks(env).catch(() => ({ checks: {} }))]);
       return json(200, { threads, checks, canAct: canAct(env, email), me: displayName(email) });
     }
     catch { return json(502, { error: 'Feedback could not be loaded. Try again in a minute.' }); }
@@ -123,27 +131,41 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
   try { body = await request.json(); } catch { return json(400, { error: 'The request could not be read.' }); }
   const key = feedbackKey(body), action = body?.action;
   if (!key) return json(400, { error: 'The request must name a year, unit and version.' });
-  if (action !== 'comment' && !(key.lesson ? lessonActions : unitActions).has(action)) return json(400, { error: 'That action is not known.' });
-  if (action !== 'comment' && !canAct(env, email)) return json(403, { error: 'Only the library editors can do that.' });
+  const isCheck = action === 'check' || action === 'uncheck';
+  if (action !== 'comment' && action !== 'delete' && !(key.lesson ? lessonActions : key.booklet ? bookletActions : unitActions).has(action)) return json(400, { error: 'That action is not known.' });
+  if (action !== 'comment' && action !== 'delete' && !canAct(env, email)) return json(403, { error: 'Only the library editors can do that.' });
+  if (action === 'delete' && !Number.isSafeInteger(body.comment)) return json(400, { error: 'Name the comment to delete.' });
   const text = action === 'comment' ? clean(body.text ?? '') : '';
   if (action === 'comment' && !text) return json(400, { error: 'Write a comment before sending.' });
   if (text.length > feedbackLimits.text) return json(400, { error: `Keep the comment under ${feedbackLimits.text} characters.` });
   if (action === 'restore' && !/^\d{4}-\d{2}-\d{2}$/.test(body.updated ?? '')) return json(400, { error: 'Name the version to bring back by its date.' });
-  if ((action === 'check' || action === 'uncheck') && (!key.lesson || !resourceId.test(body.id ?? '') || !dateText.test(body.updated ?? ''))) return json(400, { error: 'Name the lesson booklet and its version date.' });
+  if (isCheck && (!(key.lesson || key.booklet) || !resourceId.test(body.id ?? '') || !dateText.test(body.updated ?? ''))) return json(400, { error: 'Name the lesson booklet and its version date.' });
   const gh = github(env, fetcher);
   const from = `<!-- library-from: ${String(email || '').replace(/[^\w.@+-]/g, '')} -->\n`;
   try {
     // A check needs no GitHub call unless an open thread on the lesson is to be closed with it.
-    const needThreads = !(action === 'check' || action === 'uncheck') || body.close === true;
-    const [list, threads] = await Promise.all([readList(env), needThreads ? listThreads(env, fetcher) : []]);
+    const needThreads = !isCheck || body.close === true;
+    const [list, threads] = await Promise.all([readList(env), needThreads ? listThreads(env, fetcher, email) : []]);
     if (!knownUnit(list, key)) return json(400, { error: `${key.unit} is not in the library.` });
-    if (action === 'check' || action === 'uncheck') {
+    if (action === 'delete') {
+      // Only the person who wrote a comment can delete it, and only in an open library thread.
+      const thread = threads.find(t => sameKey(t, key) && t.comments.some(c => c.id === body.comment));
+      const comment = thread?.comments.find(c => c.id === body.comment);
+      if (!comment) return json(404, { error: 'That comment is already gone. Reload the page.' });
+      if (!comment.mine) return json(403, { error: 'You can only delete your own comments.' });
+      await gh.call('DELETE', `/issues/comments/${comment.id}`);
+      const closed = thread.comments.length === 1;
+      if (closed) await gh.call('PATCH', `/issues/${thread.number}`, { state: 'closed', state_reason: 'not_planned' });
+      return json(200, { ok: true, closed });
+    }
+    if (isCheck) {
       const resource = list.resources?.find(r => r.id === body.id);
-      if (!resource || resource.year !== key.year || resource.unit !== key.unit || (resource.version ?? 'Main') !== key.version || resource.lesson !== key.lesson) return json(400, { error: 'That booklet is not in the library.' });
+      const matches = key.booklet ? resource?.type === 'unit-booklet' && (resource.part ?? 'Unit booklet') === key.booklet : resource?.lesson === key.lesson;
+      if (!resource || resource.year !== key.year || resource.unit !== key.unit || (resource.version ?? 'Main') !== key.version || !matches) return json(400, { error: 'That booklet is not in the library.' });
       if (resource.updated !== body.updated) return json(409, { error: 'A newer version of this booklet has been published. Reload the page.' });
       const checks = await changeChecks(env, all => { if (action === 'check') all[body.id] = { updated: body.updated, by: displayName(email), at: new Date().toISOString() }; else delete all[body.id]; });
-      // A queued thread stays open: Tim asked for a rebuild. The check is saved whatever GitHub does.
-      const open = action === 'check' && body.close === true ? threads.findLast(t => sameKey(t, key) && !t.queued) : null;
+      // A queued thread stays open unless the editor chose to cancel the rebuild. The check is saved whatever GitHub does.
+      const open = action === 'check' && body.close === true ? threads.findLast(t => sameKey(t, key) && (!t.queued || body.cancelQueued === true)) : null;
       let warning;
       if (open) {
         try { await gh.call('POST', `/issues/${open.number}/comments`, { body: `${from}Checked: no change needed.` }); await gh.call('PATCH', `/issues/${open.number}`, { state: 'closed', state_reason: 'completed' }); }
@@ -155,11 +177,12 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
     let thread = threads.findLast(t => sameKey(t, key));
     if (!thread && action !== 'comment' && action !== 'restore') return json(404, { error: 'That thread is closed or gone. Reload the page.' });
     if (!thread) {
-      const where = key.lesson ? `${key.lesson}${key.version === 'Main' ? '' : ` (${key.version})`}` : `${key.unit}${key.version === 'Main' ? '' : ` (${key.version})`} unit structure`;
+      const v = key.version === 'Main' ? '' : ` (${key.version})`;
+      const where = key.lesson ? `${key.lesson}${v}` : key.booklet ? `${key.unit}${v} unit booklet, ${key.booklet}` : `${key.unit}${key.version === 'Main' ? '' : ` (${key.version})`} unit structure`;
       const issue = await gh.call('POST', '/issues', {
         title: `Library feedback: Year ${key.year} ${where}`,
-        body: `Resource library feedback on Year ${key.year} ${key.unit}, ${key.version} version, ${key.lesson ?? 'the whole unit'}.\n\n<!-- library-feedback ${JSON.stringify(key)} -->`,
-        labels: [label, key.lesson ? 'lesson' : 'unit'],
+        body: `Resource library feedback on Year ${key.year} ${key.unit}, ${key.version} version, ${key.lesson ?? (key.booklet ? `the unit booklet (${key.booklet})` : 'the whole unit')}.\n\n<!-- library-feedback ${JSON.stringify(key)} -->`,
+        labels: [label, key.lesson ? 'lesson' : key.booklet ? 'booklet' : 'unit'],
       });
       thread = { number: issue.number };
     }
