@@ -294,7 +294,7 @@ test('library checks turn a lesson green for its version only, editors only, wit
   const puts = [];
   const bucket = {
     async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: `e${puts.length}` } : null; },
-    async put(k, v, o) { if (o.onlyIf && o.onlyIf.etagMatches !== `e${puts.length}`) return null; puts.push([k, o]); stored[k] = v; return {}; },
+    async put(k, v, o) { const exists = k in stored; if (o.onlyIf instanceof Headers ? exists : o.onlyIf.etagMatches !== `e${puts.length}`) return null; puts.push([k, o]); stored[k] = v; return {}; },
   };
   const env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: bucket, LIBRARY_EDITORS: 'Sam.Jones@school.example' };
   const check = { action: 'check', ...a704, id: booklet.id, updated: '2026-11-25' };
@@ -313,4 +313,9 @@ test('library checks turn a lesson green for its version only, editors only, wit
   assert.equal((await feedback('POST', check, { env: { ...env, LIBRARY_EDITORS: 'tim@school.example' } })).response.status, 403);
   const undone = await feedback('POST', { ...check, action: 'uncheck' }, { env });
   assert.deepEqual(undone.data.checks, {});
+  const queuedStaysOpen = await feedback('POST', { ...check, close: true }, { env, issues: [openIssue(a704, ['library-feedback', 'queued'])] });
+  assert.ok(!queuedStaysOpen.sent.some(([m]) => m === 'PATCH'));
+  stored['library/checks.json'] = 'not json';
+  assert.equal((await feedback('POST', check, { env })).response.status, 502);
+  assert.equal(stored['library/checks.json'], 'not json');
 });

@@ -16,8 +16,8 @@ const day = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : is
 const shortVersion = (v: string) => /\(([^)]+)\)/.exec(v)?.[1] ?? v.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 3);
 const stateNames: Record<LessonState, string> = { none: "Not made yet", waiting: "Waiting for check", feedback: "Feedback to act on", ready: "Ready" };
 
-type FeedbackTools = { threads: Map<string, Thread>; all: Thread[]; canAct: boolean; off?: string; act: (a: FeedbackAction) => Promise<void> };
-const FeedbackContext = createContext<FeedbackTools>({ threads: new Map(), all: [], canAct: false, off: "Loading feedback…", act: async () => {} });
+type FeedbackTools = { threads: Map<string, Thread>; all: Thread[]; canAct: boolean; off?: string; act: (a: FeedbackAction) => Promise<string> };
+const FeedbackContext = createContext<FeedbackTools>({ threads: new Map(), all: [], canAct: false, off: "Loading feedback…", act: async () => "" });
 
 /**
  * Resource library (docs/content/RESOURCE-LIBRARY.md): pick a year, then a unit. Each unit card has a
@@ -60,15 +60,26 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     return () => window.removeEventListener("keydown", key);
   }, [active]);
 
-  // The page changes at once; if the Worker refuses, it goes back and the error shows. The fresh
-  // feedback loads in the background, and a failed reload keeps what the page has.
+  // The page changes at once and the fresh feedback loads in the background. Only the newest load
+  // or action counts, so an older answer never overwrites a newer change. If the Worker refuses,
+  // the page reloads what is really saved (or, if that fails too, goes back) and the error shows.
+  const seq = useRef(0);
+  const reload = useCallback((fallback?: Feedback) => {
+    const n = ++seq.current;
+    loadFeedback().then(
+      (next) => { if (n === seq.current) setFeedback((old) => ("off" in next && !("off" in old) ? fallback ?? old : next)); },
+      () => { if (n === seq.current && fallback) setFeedback(fallback); });
+  }, []);
   const act = useCallback(async (a: FeedbackAction) => {
     let before: Feedback | undefined;
+    seq.current++;
     setFeedback((old) => { before = old; return predictFeedback(old, a); });
-    try { await sendFeedback(a); }
-    catch (e) { if (before) setFeedback(before); throw e; }
-    loadFeedback().then((next) => setFeedback((old) => ("off" in next && !("off" in old) ? old : next)), () => {});
-  }, []);
+    let warning: string;
+    try { warning = await sendFeedback(a); }
+    catch (e) { reload(before); throw e; }
+    reload();
+    return warning;
+  }, [reload]);
   // A booklet an editor has ticked ✓ Checked at its current version shows green everywhere.
   const list = useMemo(() => (raw ? applyChecks(raw, "off" in feedback ? {} : feedback.checks) : null), [raw, feedback]);
   const tools = useMemo<FeedbackTools>(() => ("off" in feedback
@@ -311,7 +322,7 @@ function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: 
   async function tick(action: "check" | "uncheck") {
     if (!r) return;
     setBusy(true); setMessage("");
-    try { await fb.act({ action, year, unit, version, lesson: row.code, id: r.id, updated: r.updated, close: action === "check" && !!row.thread }); }
+    try { setMessage(await fb.act({ action, year, unit, version, lesson: row.code, id: r.id, updated: r.updated, close: action === "check" && !!row.thread && !row.thread.queued })); }
     catch (e) { setMessage((e as Error).message); }
     finally { setBusy(false); }
   }

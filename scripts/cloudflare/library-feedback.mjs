@@ -84,8 +84,11 @@ const knownUnit = (list, key) => !!list?.years?.some(y => y.year === key.year &&
 export async function readChecks(env) {
   const object = await env.BANK?.get(checksKey);
   if (!object) return { checks: {}, etag: null };
-  try { return { checks: JSON.parse(await new Response(object.body).text()).checks ?? {}, etag: object.etag }; }
-  catch { return { checks: {}, etag: object.etag }; }
+  let checks;
+  try { checks = JSON.parse(await new Response(object.body).text()).checks; } catch { checks = null; }
+  // A damaged file is never overwritten: every saved check would be lost.
+  if (!checks || typeof checks !== 'object' || Array.isArray(checks)) throw new Error('library/checks.json cannot be read');
+  return { checks, etag: object.etag };
 }
 // Read, change, write only if nobody wrote in between; one retry covers two editors at once.
 async function changeChecks(env, change) {
@@ -93,7 +96,7 @@ async function changeChecks(env, change) {
     const { checks, etag } = await readChecks(env);
     change(checks);
     const body = JSON.stringify({ schema: 'mathsdock-library-checks/1', checks });
-    const put = await env.BANK.put(checksKey, body, { httpMetadata: { contentType: 'application/json' }, ...(etag ? { onlyIf: { etagMatches: etag } } : {}) });
+    const put = await env.BANK.put(checksKey, body, { httpMetadata: { contentType: 'application/json' }, onlyIf: etag ? { etagMatches: etag } : new Headers({ 'If-None-Match': '*' }) });
     if (put) return checks;
   }
   throw new Error('Checks changed during the write');
@@ -139,9 +142,14 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
       if (!resource || resource.year !== key.year || resource.unit !== key.unit || (resource.version ?? 'Main') !== key.version || resource.lesson !== key.lesson) return json(400, { error: 'That booklet is not in the library.' });
       if (resource.updated !== body.updated) return json(409, { error: 'A newer version of this booklet has been published. Reload the page.' });
       const checks = await changeChecks(env, all => { if (action === 'check') all[body.id] = { updated: body.updated, by: displayName(email), at: new Date().toISOString() }; else delete all[body.id]; });
-      const open = action === 'check' && body.close === true ? threads.findLast(t => sameKey(t, key)) : null;
-      if (open) await Promise.all([gh.call('POST', `/issues/${open.number}/comments`, { body: `${from}Checked: no change needed.` }), gh.call('PATCH', `/issues/${open.number}`, { state: 'closed', state_reason: 'completed' })]);
-      return json(200, { ok: true, checks });
+      // A queued thread stays open: Tim asked for a rebuild. The check is saved whatever GitHub does.
+      const open = action === 'check' && body.close === true ? threads.findLast(t => sameKey(t, key) && !t.queued) : null;
+      let warning;
+      if (open) {
+        try { await gh.call('POST', `/issues/${open.number}/comments`, { body: `${from}Checked: no change needed.` }); await gh.call('PATCH', `/issues/${open.number}`, { state: 'closed', state_reason: 'completed' }); }
+        catch { warning = 'Checked. The comments could not be closed; close them with No change needed.'; }
+      }
+      return json(200, { ok: true, checks, ...(warning ? { warning } : {}) });
     }
     // Oldest first if two were ever opened at once, as the page shows.
     let thread = threads.findLast(t => sameKey(t, key));
@@ -163,9 +171,9 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
       agree: 'Agreed: plan the change.',
       restore: `Make the version of ${body.updated} current again (it comes back as the newest version, waiting for a check).`,
     }[action];
-    // The comment and the label or close go together, so the page waits for one round trip, not two.
+    // The comment first, so a label or close never lands without the note that explains it.
+    if (note) await gh.call('POST', `/issues/${n}/comments`, { body: `${from}${note}` });
     await Promise.all([
-      note && gh.call('POST', `/issues/${n}/comments`, { body: `${from}${note}` }),
       (action === 'queue' || action === 'restore') && gh.call('POST', `/issues/${n}/labels`, { labels: ['queued'] }),
       action === 'unqueue' && gh.call('DELETE', `/issues/${n}/labels/queued`),
       action === 'agree' && gh.call('POST', `/issues/${n}/labels`, { labels: ['agreed'] }),

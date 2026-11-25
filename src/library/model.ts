@@ -173,5 +173,7 @@ export function predictFeedback(old: Feedback, a: FeedbackAction): Feedback {
 const same = (t: Thread, a: FeedbackAction) => t.year === a.year && t.unit === a.unit && t.version === a.version && t.lesson === (a.lesson ?? null);
 export async function sendFeedback(action: FeedbackAction, fetcher: typeof fetch = fetch) {
   const response = await fetcher(`${siteBase()}api/library/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
-  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? "That could not be saved.");
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "That could not be saved.");
+  return typeof body.warning === "string" ? body.warning : "";
 }
