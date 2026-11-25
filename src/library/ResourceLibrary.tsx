@@ -368,16 +368,16 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
     else if (r.checked) void toWaiting();
     else setMessage("This booklet was published as ready, so it can't be put back to waiting here. Ask Claude to change it.");
   }
-  // Sending the first comment on a checked booklet takes the check off, so the colour says Changes.
-  const onSent = () => { if (r.checked && fb.canAct) void fb.act({ action: "uncheck", ...base }).catch(() => undefined); setMessage(""); };
-  const [Icon, words] = r.checked ? [Check, `Checked by ${r.checked.by} · ${day(r.checked.at || r.checked.updated)}`]
-    : thread?.queued ? [Moon, `Queued for tonight · ${thread.comments.length} comment${thread.comments.length === 1 ? "" : "s"}`]
+  // The Worker takes any check off when a comment arrives, so the colour says Changes after the reload.
+  const onSent = () => setMessage("");
+  const [Icon, words] = thread?.queued ? [Moon, `Queued for tonight · ${thread.comments.length} comment${thread.comments.length === 1 ? "" : "s"}`]
     : thread ? [Pencil, `Changes asked by ${thread.comments[0]?.who ?? "a colleague"} · ${day(thread.opened)}`]
+    : r.checked ? [Check, `Checked by ${r.checked.by} · ${day(r.checked.at || r.checked.updated)}`]
     : r.status === "ready" ? [Check, `Ready · ${day(r.updated)}`] : [Clock, `Waiting for a check · made ${day(r.updated)}`];
   const who = <><Icon size={13} aria-hidden="true" />{words}</>;
   const confirm = ask && (
     <div className="library-confirm" role="group" aria-label="Confirm">
-      {ask === "checked" ? <p>This is queued for a rebuild tonight. Mark it Checked and cancel the rebuild?</p> : <p>Close the {thread?.comments.length ?? 0} comment{thread?.comments.length === 1 ? "" : "s"} and put it back to Waiting?</p>}
+      {ask === "checked" ? <p>This is queued for a rebuild tonight. Mark it Checked and cancel the rebuild?</p> : <p>Close the {thread?.comments.length ?? 0} comment{thread?.comments.length === 1 ? "" : "s"}{thread?.queued ? " and cancel tonight's rebuild" : ""}{r.status === "ready" && !r.checked ? "?" : " and put it back to Waiting?"}</p>}
       <div className="library-actions">
         {ask === "checked" ? <button type="button" className="green-fill" onClick={() => toChecked(true)}>Yes, it's fine</button> : <button type="button" className="primary" onClick={toWaiting}>Yes, close them</button>}
         <button type="button" onClick={() => setAsk(null)}>{ask === "checked" ? "Keep the rebuild" : "Keep the comments"}</button>
@@ -501,7 +501,9 @@ function ThreadView({ target, thread, onSent, ask = false }: { target: Target; t
   // A deleted comment hides at once and is only sent after a few seconds, so Undo is instant.
   const [gone, setGone] = useState<number[]>([]);
   const timers = useRef(new Map<number, number>());
-  useEffect(() => () => { for (const t of timers.current.values()) window.clearTimeout(t); }, []);
+  // Closing the comments (or leaving the unit) sends any pending delete at once rather than dropping it.
+  const pending = useRef(new Map<number, () => void>());
+  useEffect(() => () => { for (const [id, t] of timers.current) { window.clearTimeout(t); pending.current.get(id)?.(); } }, []);
   async function run(action: FeedbackAction["action"], done: string) {
     setBusy(true); setMessage("");
     try { await fb.act({ action, year, unit, version, lesson, booklet, text: action === "comment" ? text : undefined }); if (action === "comment") { setText(""); onSent?.(); } setMessage(done); }
@@ -510,12 +512,14 @@ function ThreadView({ target, thread, onSent, ask = false }: { target: Target; t
   }
   function remove(id: number) {
     setGone((g) => [...g, id]);
-    timers.current.set(id, window.setTimeout(() => {
-      timers.current.delete(id);
+    const send = () => {
+      timers.current.delete(id); pending.current.delete(id);
       fb.act({ action: "delete", year, unit, version, lesson, booklet, comment: id }).then(() => setGone((g) => g.filter((x) => x !== id)), (e: Error) => { setGone((g) => g.filter((x) => x !== id)); setMessage(e.message); });
-    }, 5000));
+    };
+    pending.current.set(id, send);
+    timers.current.set(id, window.setTimeout(send, 5000));
   }
-  function undo(id: number) { window.clearTimeout(timers.current.get(id)); timers.current.delete(id); setGone((g) => g.filter((x) => x !== id)); }
+  function undo(id: number) { window.clearTimeout(timers.current.get(id)); timers.current.delete(id); pending.current.delete(id); setGone((g) => g.filter((x) => x !== id)); }
   const forUnit = lesson === null && !booklet;
   const name = forUnit ? "this unit" : booklet ? `the unit booklet${booklet === "Unit booklet" ? "" : ` (${booklet})`}` : lesson;
   return (

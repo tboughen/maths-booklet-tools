@@ -18,6 +18,8 @@ const fromMarker = /^<!-- library-from: ([^\n]*?) -->\n?/;
 const lessonCode = /^[A-Z]{1,3}\d+(\.\d+[a-z]?)?$/;
 const versionName = /^[A-Za-z0-9][A-Za-z0-9 ()+&,'-]{0,39}$/;
 const unitCode = /^[A-Z0-9]{1,12}$/;
+// Part names come from the published list, which allows any one-line name.
+const bookletText = /^[^\p{Cc}<>]{1,80}$/u;
 const lessonActions = new Set(['queue', 'unqueue', 'no-change', 'restore', 'check', 'uncheck']);
 const bookletActions = new Set(['queue', 'unqueue', 'no-change', 'check', 'uncheck']);
 export const checksKey = 'library/checks.json';
@@ -36,12 +38,14 @@ export function displayName(email) {
 export function feedbackKey(body) {
   const year = Number(body?.year), unit = body?.unit, version = body?.version ?? 'Main', lesson = body?.lesson ?? null, booklet = body?.booklet ?? null;
   if (![7, 8, 9, 10, 11].includes(year) || !unitCode.test(unit ?? '') || !versionName.test(version) || (lesson !== null && !lessonCode.test(lesson))) return null;
-  if (booklet !== null && (lesson !== null || !versionName.test(booklet))) return null;
+  if (booklet !== null && (lesson !== null || typeof booklet !== 'string' || !bookletText.test(booklet) || booklet !== booklet.trim())) return null;
   // Lesson and unit keys stay as they were, so threads opened before unit booklets had rows still match.
   return booklet === null ? { year, unit, version, lesson } : { year, unit, version, lesson, booklet };
 }
 const sameKey = (a, b) => a.year === b.year && a.unit === b.unit && a.version === b.version && a.lesson === b.lesson && (a.booklet ?? null) === (b.booklet ?? null);
-const fromEmail = body => fromMarker.exec(body ?? '')?.[1]?.toLowerCase() ?? '';
+// The sender marker holds the encoded, lower-cased sign-in email, so no two emails share a marker.
+const sender = email => encodeURIComponent(String(email || '').toLowerCase());
+const fromEmail = body => { const raw = fromMarker.exec(body ?? '')?.[1] ?? ''; try { return decodeURIComponent(raw).toLowerCase(); } catch { return raw.toLowerCase(); } };
 // Hidden markers belong to the Worker alone: a comment cannot forge one.
 const clean = text => { let s = String(text), before; do { before = s; s = s.replace(/<!--|-->/g, ''); } while (s !== before); return s.trim(); };
 const editors = env => String(env.LIBRARY_EDITORS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
@@ -73,7 +77,7 @@ export async function listThreads(env, fetcher, email = '') {
     const labels = new Set((issue.labels?.nodes ?? []).map(l => l.name));
     const comments = (issue.comments?.nodes ?? []).map(c => {
       const from = fromMarker.exec(c.body ?? '');
-      return { id: c.databaseId, who: from ? displayName(from[1]) : 'Claude (nightly run)', when: c.createdAt, text: (c.body ?? '').replace(fromMarker, '').trim(), mine: !!email && fromEmail(c.body) === String(email).toLowerCase() };
+      return { id: c.databaseId, who: from ? displayName(fromEmail(c.body)) : 'Claude (nightly run)', when: c.createdAt, text: (c.body ?? '').replace(fromMarker, '').trim(), mine: !!email && fromEmail(c.body) === String(email).toLowerCase() };
     });
     threads.push({ number: issue.number, ...key, kind: key.lesson ? 'lesson' : key.booklet ? 'booklet' : 'unit', queued: labels.has('queued'), agreed: labels.has('agreed'), opened: issue.createdAt, comments });
   }
@@ -141,7 +145,7 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
   if (action === 'restore' && !/^\d{4}-\d{2}-\d{2}$/.test(body.updated ?? '')) return json(400, { error: 'Name the version to bring back by its date.' });
   if (isCheck && (!(key.lesson || key.booklet) || !resourceId.test(body.id ?? '') || !dateText.test(body.updated ?? ''))) return json(400, { error: 'Name the lesson booklet and its version date.' });
   const gh = github(env, fetcher);
-  const from = `<!-- library-from: ${String(email || '').replace(/[^\w.@+-]/g, '')} -->\n`;
+  const from = `<!-- library-from: ${sender(email)} -->\n`;
   try {
     // A check needs no GitHub call unless an open thread on the lesson is to be closed with it.
     const needThreads = !isCheck || body.close === true;
@@ -154,7 +158,10 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
       if (!comment) return json(404, { error: 'That comment is already gone. Reload the page.' });
       if (!comment.mine) return json(403, { error: 'You can only delete your own comments.' });
       await gh.call('DELETE', `/issues/comments/${comment.id}`);
-      const closed = thread.comments.length === 1;
+      // Read what is left after the delete (two deletes at once both see the truth), and never close a
+      // thread Tim has queued or agreed: deleting a comment must not cancel his decision.
+      const left = thread.queued || thread.agreed ? null : await gh.call('GET', `/issues/${thread.number}/comments?per_page=1`);
+      const closed = Array.isArray(left) && left.length === 0;
       if (closed) await gh.call('PATCH', `/issues/${thread.number}`, { state: 'closed', state_reason: 'not_planned' });
       return json(200, { ok: true, closed });
     }
@@ -196,6 +203,11 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
     }[action];
     // The comment first, so a label or close never lands without the note that explains it.
     if (note) await gh.call('POST', `/issues/${n}/comments`, { body: `${from}${note}` });
+    // A comment asks for changes, so it takes any check off this booklet's current version.
+    if (action === 'comment' && (key.lesson || key.booklet)) {
+      const resource = list.resources?.find(r => r.year === key.year && r.unit === key.unit && (r.version ?? 'Main') === key.version && (key.booklet ? r.type === 'unit-booklet' && (r.part ?? 'Unit booklet') === key.booklet : r.lesson === key.lesson && r.type !== 'unit-booklet'));
+      if (resource) await changeChecks(env, all => { delete all[resource.id]; }).catch(() => undefined);
+    }
     await Promise.all([
       (action === 'queue' || action === 'restore') && gh.call('POST', `/issues/${n}/labels`, { labels: ['queued'] }),
       action === 'unqueue' && gh.call('DELETE', `/issues/${n}/labels/queued`),

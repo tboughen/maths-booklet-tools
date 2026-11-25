@@ -163,7 +163,7 @@ export type FeedbackAction = { action: "comment" | "delete" | "queue" | "unqueue
 export function predictFeedback(old: Feedback, a: FeedbackAction): Feedback {
   if ("off" in old) return old;
   if (a.action === "check" && a.id && a.updated) return { ...old, checks: { ...old.checks, [a.id]: { updated: a.updated, by: old.me, at: new Date().toISOString() } }, threads: a.close ? old.threads.filter((t) => !same(t, a) || (t.queued && !a.cancelQueued)) : old.threads };
-  if (a.action === "delete") return { ...old, threads: old.threads.flatMap((t) => { if (!same(t, a)) return [t]; const comments = t.comments.filter((c) => c.id !== a.comment); return comments.length ? [{ ...t, comments }] : []; }) };
+  if (a.action === "delete") return { ...old, threads: old.threads.flatMap((t) => { if (!same(t, a)) return [t]; const comments = t.comments.filter((c) => c.id !== a.comment); return comments.length || t.queued || t.agreed ? [{ ...t, comments }] : []; }) };
   if (a.action === "uncheck" && a.id) { const checks = { ...old.checks }; delete checks[a.id]; return { ...old, checks }; }
   if (a.action === "no-change" || a.action === "keep") return { ...old, threads: old.threads.filter((t) => !same(t, a)) };
   const lesson = a.lesson ?? null, booklet = a.booklet ?? null, found = old.threads.find((t) => same(t, a));
