@@ -380,6 +380,25 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "lessons": {
+                          "default": [],
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 120
+                          }
+                        },
+                        "highlight": {
+                          "default": [],
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 19
+                          }
                         }
                       },
                       "additionalProperties": false
@@ -393,7 +412,7 @@
                   "default": 1,
                   "type": "integer",
                   "minimum": 0,
-                  "maximum": 1
+                  "maximum": 20
                 },
                 "lessons": {
                   "minItems": 1,
@@ -1679,6 +1698,11 @@
                               "answer": {
                                 "type": "string",
                                 "maxLength": 80
+                              },
+                              "heading": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 60
                               }
                             },
                             "required": [
@@ -1698,6 +1722,69 @@
                       "type": "null"
                     }
                   ]
+                },
+                "revision": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "default": "Revision",
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "instruction": {
+                          "default": "Read each example, then try the question below it. The answers are upside down at the bottom.",
+                          "type": "string",
+                          "maxLength": 160
+                        },
+                        "cards": {
+                          "minItems": 1,
+                          "maxItems": 12,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {}
+                          },
+                          "description": "Booklet cards, exactly as in a lesson section's cards."
+                        },
+                        "answers": {
+                          "default": [],
+                          "maxItems": 16,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "maxLength": 8
+                              },
+                              "answer": {
+                                "type": "string",
+                                "maxLength": 60
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "answer"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "cards"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -1706,7 +1793,7 @@
                 "lessons"
               ],
               "additionalProperties": false,
-              "description": "The booklet: cover fields, an optional unit introduction and the lessons in order."
+              "description": "The editable content inside an envelope. Change it with operations, not by hand."
             }
           },
           "required": [

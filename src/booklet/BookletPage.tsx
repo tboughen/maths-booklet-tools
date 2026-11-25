@@ -675,7 +675,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <details className="ws-side">
                 <summary>Unit introduction</summary>
                 <label className="ws-check">
-                  <input type="checkbox" checked={d.intro !== null} disabled={blocked} onChange={(e) => patch((x) => void (x.intro = e.target.checked ? { remember: [], learn: [], next: [], keywords: [] } : null))} /> Include a unit introduction page
+                  <input type="checkbox" checked={d.intro !== null} disabled={blocked} onChange={(e) => patch((x) => void (x.intro = e.target.checked ? { remember: [], learn: [], next: [], keywords: [], lessons: [], highlight: [] } : null))} /> Include a unit introduction page
                 </label>
                 {d.intro && (
                   <>

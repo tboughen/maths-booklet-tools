@@ -185,7 +185,7 @@ describe("Word output for booklets", () => {
         // Numbered as in the whole booklet: a lesson file starts at the lesson's first page and has no cover.
         expect(w.document).toContain(`<w:pgNumType w:start="${lesson === undefined ? 1 : full.lessonPages[lesson]}"/>`);
         expect(w.document.includes("<w:titlePg/>")).toBe(lesson === undefined);
-        expect(w.document.includes("Contents")).toBe(lesson === undefined);
+        expect(w.document.includes("Inside this booklet")).toBe(lesson === undefined);
       }
     }
   });

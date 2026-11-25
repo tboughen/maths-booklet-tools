@@ -120,6 +120,7 @@ export async function makeBooklet(o: MakeOptions, brief: BookletBrief, onProgres
       firstLessonNumber: 1,
       lessons,
       retrieval: null,
+      revision: null,
     },
   };
   return { booklet, plan, flags, usage, failed, model };
@@ -133,7 +134,7 @@ export function planFromBooklet(b: Booklet): BookletPlan {
     flags: "",
     title: d.title,
     coverNote: d.coverNote,
-    intro: d.intro ?? { remember: [], learn: [], next: [], keywords: [] },
+    intro: d.intro ?? { remember: [], learn: [], next: [], keywords: [], lessons: [], highlight: [] },
     lessons: d.lessons.map((l) => ({ title: l.title, code: l.code, objective: l.objective, keyIdea: l.keyIdea, plan: l.teacherNotes || `Teach ${l.objective || l.title}.` })),
   };
 }

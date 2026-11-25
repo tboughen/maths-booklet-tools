@@ -118,10 +118,21 @@ export const introSchema = z
     /** Where it leads next. */
     next: z.array(text(120)).max(8).default([]),
     keywords: z.array(keyword).max(24).default([]),
+    /** The topic's lessons, listed under the key words (N30). Empty lists the booklet's own lessons. */
+    lessons: z.array(text(120)).max(20).default([]),
+    /** Which of those lines are in this booklet (0-based), printed highlighted; empty highlights none. */
+    highlight: z.array(z.number().int().min(0).max(19)).max(20).default([]),
   })
   .strict();
 
-const retrievalItem = z.object({ question: text(160), answer: text(80) }).strict();
+const retrievalItem = z
+  .object({
+    question: text(160),
+    answer: text(80),
+    /** A heading printed above this question, starting a block such as "Words: say what each word means" (Know it, N30). */
+    heading: text(60).default(""),
+  })
+  .strict();
 
 /**
  * The fold-over retrieval page at the back of a full unit booklet (BOOKLET-STANDARD N12, Tim 18
@@ -137,6 +148,25 @@ export const retrievalSchema = z
   })
   .strict();
 export type Retrieval = z.infer<typeof retrievalSchema>;
+
+const revisionAnswer = z.object({ label: text(8), answer: text(60) }).strict();
+
+/**
+ * The "Do it" revision page on the back cover (BOOKLET-STANDARD N30, Tim 25 November 2026): the whole
+ * topic on one side. One card per lesson, in two columns: the school method worked over several
+ * lines, a "Watch out" and a "Try it" question like the example. The try-it answers print small and
+ * upside down at the foot in BOTH copies, so pupils check themselves: that is the page's purpose.
+ */
+export const revisionSchema = z
+  .object({
+    title: text(60).default("Revision"),
+    instruction: text(160).default("Read each example, then try the question below it. The answers are upside down at the bottom."),
+    cards: z.array(cardSchema).min(1).max(12),
+    /** The try-it answers, e.g. { label: "1", answer: "m^2 n^3" }, printed upside down at the foot. */
+    answers: z.array(revisionAnswer).max(16).default([]),
+  })
+  .strict();
+export type Revision = z.infer<typeof revisionSchema>;
 
 export const bookletSchema = z
   .object({
@@ -171,16 +201,36 @@ export const bookletSchema = z
           .describe("maths (every new booklet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper (x^2 as x², a true minus, <= as ≤, sqrt as √, pi as π, letters used as maths in italic). plain: text prints as typed."),
         /** The unit introduction page, or null for none. Its key words are the unit's glossary (N12). */
         intro: introSchema.nullable().default(null),
-        /** The printed number of the first lesson: 0 when a unit opens with a "get ready" lesson 0 of earlier skills. */
-        firstLessonNumber: z.number().int().min(0).max(1).default(1),
+        /** The printed number of the first lesson: 0 when a unit opens with a "get ready" lesson 0 of earlier skills; higher in a booklet that holds one later lesson of a unit (topicLessonBooklet). */
+        firstLessonNumber: z.number().int().min(0).max(20).default(1),
         lessons: z.array(lessonSchema).min(1).max(16),
         /** The fold-over retrieval page printed last, or null for none (N12, full unit booklets). */
         retrieval: retrievalSchema.nullable().default(null),
+        /**
+         * The "Do it" revision page printed last, on the back cover, or null for none (N30). With
+         * an introduction and a fold-over page it completes the four topic pages: the booklet is
+         * then checked to be a multiple of 4 sides with every lesson starting on an odd page.
+         */
+        revision: revisionSchema.nullable().default(null),
       })
       .strict()
       .describe("The booklet: cover fields, an optional unit introduction and the lessons in order."),
   })
   .strict();
+
+/**
+ * The booklet as the MCP tool advertises it: the revision page's cards are described as "cards as
+ * in a lesson" rather than repeating the whole card schema, to keep the tool list within its byte
+ * budget. Every call is still checked in full by validateBooklet.
+ */
+export const bookletToolSchema = bookletSchema.extend({
+  document: bookletSchema.shape.document.extend({
+    revision: revisionSchema
+      .extend({ cards: z.array(z.record(z.string(), z.unknown())).min(1).max(12).describe("Booklet cards, exactly as in a lesson section's cards.") })
+      .nullable()
+      .default(null),
+  }),
+});
 
 export type Booklet = z.infer<typeof bookletSchema>;
 export type BookletDocument = Booklet["document"];
@@ -246,7 +296,8 @@ export function validateBooklet(input: unknown): Booklet {
 export const resolveLesson = (lesson: Lesson): Lesson => ({ ...lesson, sections: lesson.sections.map((s) => ({ ...s, cards: s.cards.map(resolveCard) })) });
 
 export function resolveBookletDiagrams(b: Booklet): Booklet {
-  return { ...b, document: { ...b.document, lessons: b.document.lessons.map(resolveLesson) } };
+  const r = b.document.revision;
+  return { ...b, document: { ...b.document, lessons: b.document.lessons.map(resolveLesson), revision: r ? { ...r, cards: r.cards.map(resolveCard) } : r } };
 }
 
 /** Every card of a lesson with its section, for editors and checks. */
