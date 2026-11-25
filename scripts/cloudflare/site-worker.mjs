@@ -1,3 +1,4 @@
+import { libraryFeedback } from './library-feedback.mjs';
 // MathsDock website Worker.
 //
 // Static assets are served directly by Workers Static Assets. Only
@@ -170,12 +171,22 @@ export async function submitReport(request, env, { fetcher = fetch, ...options }
   return json(201, { ok: true });
 }
 
+// Resource library feedback: staff comments and Tim's actions, kept as issues in the bank repository.
+export async function serveLibraryFeedback(request, env, { fetcher = fetch, ...options } = {}) {
+  const settings = accessSettings(env);
+  if (!settings) return json(503, { error: 'Staff sign-in is not configured.' });
+  const claims = await verifyAccessToken(request.headers.get('Cf-Access-Jwt-Assertion'), settings, { fetcher, ...options });
+  if (!claims) return json(403, { error: 'Sign in again to see feedback.' });
+  return libraryFeedback(request, env, claims, fetcher);
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
     if (pathname.startsWith('/bank/assets/')) return serveBankAsset(request, env);
     if (pathname.startsWith('/library-data/')) return serveLibrary(request, env);
     if (pathname === '/api/report') return submitReport(request, env);
+    if (pathname === '/api/library/feedback') return serveLibraryFeedback(request, env);
     // run_worker_first limits this script to these paths; anything else is static.
     return env.ASSETS ? env.ASSETS.fetch(request) : text(404, 'Not found');
   },
