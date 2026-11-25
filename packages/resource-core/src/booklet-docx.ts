@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -152,7 +152,8 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
   const text =
     (unit ? textPara(unit, START_SIZES.unit, { color: "#ffffff", bold: true, right: 0 }) + gap(START_SIZES.gap) : "") +
     textPara(lesson.title, START_SIZES.title, { color: "#ffffff", bold: true, right: 0 });
-  const tag = para(run(B.start, { bold: true, color: "#ffffff", sizeMm: pt(14) }), { align: "right", line: lh(pt(14)), right: B.startPad });
+  // No START here (N28): the check-in banner carries it.
+  const tag = para("", { align: "right", line: lh(pt(14)), right: B.startPad });
   const out = [
     table(
       [B.startPad, B.tile, 5, tw_ + WORD_WRAP_SLACK_MM, tagW - WORD_WRAP_SLACK_MM],
@@ -237,11 +238,15 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths
 }
 
 /** A cycle banner: one navy row, the label in white bold on the left and START or STOP on the right. */
-function banner(label: string, end: boolean, st: HouseStyle): string {
+function banner(label: string, end: boolean, st: HouseStyle, note = ""): string {
   const o = { bold: true, color: "#ffffff", sizeMm: S.body };
   const tag = end ? BANNER.end : BANNER.start;
   const room = W - 2 * BANNER.pad - plainWidth(tag, S.body, "bold") - 6;
-  const text = para(runs(fitLine(label, S.body, room, "bold"), o) + tab(o) + run(tag, o), { line: lh(S.body), left: BANNER.pad, right: BANNER.pad, tabs: [{ pos: W - BANNER.pad, align: "right" }] });
+  const shown = fitLine(label, S.body, room, "bold");
+  // The check-in's instruction follows its label in regular weight, at the PDF's place (N28).
+  const noteRuns = note ? tab(o) + runs(note, { ...o, bold: false, sizeMm: A4.small }) : "";
+  const noteTab = note ? [{ pos: BANNER.pad + plainWidth(shown, S.body, "bold") + BANNER.noteGap, align: "left" as const }] : [];
+  const text = para(runs(shown, o) + noteRuns + tab(o) + run(tag, o), { line: lh(S.body), left: BANNER.pad, right: BANNER.pad, tabs: [...noteTab, { pos: W - BANNER.pad, align: "right" }] });
   return table([W], [row([cell(text, { width: W, shade: st.navy, vAlign: "center" })], { mm: BANNER.h, exact: true })]);
 }
 
@@ -275,7 +280,9 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
     }
     const section = lesson.sections[block.section];
     if (block.kind === "banner") {
-      out.push(banner(block.end ? section.endBanner : section.startBanner, block.end, st));
+      const labels = sectionBanners(lesson)[block.section];
+      const note = !block.end && checkInBlock(lesson)?.first === block.section ? (checkInNote(lesson) ?? "") : "";
+      out.push(banner(block.end ? labels.end : labels.start, block.end, st, note));
       cursor = block.y + block.h;
       continue;
     }
@@ -644,6 +651,24 @@ function endBandFooter(number: number, st: HouseStyle, words: LessonWords = LESS
   const band = table([3, B.endTile, 3, restW], [row([navy(gap(END_MM), 3), navy(linesTile([{ text: String(number), size, color: st.navy }], B.endTile, B.endTile, "#ffffff"), B.endTile), navy(gap(END_MM), 3), navy(text, restW)], { mm: B.endH, exact: true })]);
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${band}${gap(END_MM)}</w:ftr>`;
 }
+/** "End of check in" STOP in the footer of a lesson's first page (N28): a stage banner with the page number centred. */
+function checkInFooter(st: HouseStyle): string {
+  const o = { bold: true, color: "#ffffff", sizeMm: S.body };
+  const num = { ...o, sizeMm: A4.pageNumber };
+  const text = para(run(CHECK_IN.end, o) + tab(o) + run("Page ", num) + `<w:fldSimple w:instr=" PAGE ">${run("1", num)}</w:fldSimple>` + tab(o) + run(BANNER.end, o), {
+    line: lh(A4.pageNumber),
+    left: BANNER.pad,
+    right: BANNER.pad,
+    tabs: [
+      { pos: W / 2, align: "center" },
+      { pos: W - BANNER.pad, align: "right" },
+    ],
+  });
+  const band = table([W], [row([cell(text, { width: W, shade: st.navy, vAlign: "center" })], { mm: BANNER.h, exact: true })]);
+  return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${band}${gap(END_MM)}</w:ftr>`;
+}
+/** Distance from the page's foot to the check-in footer's last paragraph, so its band's top is at BOOKEND.endTop. */
+const CHECK_IN_FOOTER_DISTANCE = A4.page.height - (BOOKEND.endTop + BANNER.h + END_MM);
 /** Distance from the page's foot to the end band footer's last (1 pt) paragraph, so the band's top is at BOOKEND.endTop. */
 const END_FOOTER_DISTANCE = A4.page.height - (BOOKEND.endTop + BOOKEND.endH + END_MM);
 /** On a lesson's last page the text area stops at the end band's top (2 mm below the layout's 281 mm, not WORD_FOOT_MM), so the band never overlaps it. */
@@ -672,7 +697,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
     if (doc.intro) pages.push({ xml: gap(COVER_DROP) + introPage(doc, doc.intro, st), footer: "page" });
   }
   const lessonOffset = (numbering?.lessonOffset ?? 0) + lessonShift(doc);
-  for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : "page" });
+  for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : p.checkInStop ? "checkin" : "page" });
   if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st, doc.notation === "maths"), footer: "page" });
   if (doc.revision && plan.revisionPage) {
     ctx.where = { lesson: 0, page: plan.revisionPage };
@@ -687,6 +712,10 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   const endFooters = new Map<string, string>();
   const footerId = (kind: string) => {
     if (kind === "page") return "rIdFooter1";
+    if (kind === "checkin") {
+      if (!parts.some((x) => x.id === "rIdCheckInFooter")) parts.push({ name: "footer-checkin.xml", id: "rIdCheckInFooter", relType: "footer", contentType: footerType, xml: checkInFooter(st) });
+      return "rIdCheckInFooter";
+    }
     if (!endFooters.has(kind)) {
       const k = endFooters.size + 1;
       const id = `rIdEndFooter${k}`;
@@ -697,11 +726,11 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   };
   const firstPage = numbering ? plan.pages[0].pageNo + numbering.pageOffset : 1;
   const P = A4.page;
-  // A lesson's last page is a Word section of its own, so its footer can be the end band.
+  // A lesson's last page is a Word section of its own, so its footer can be the end band; so is a first page whose footer is the check-in's STOP (N28).
   const sectPr = (kind: string, first: boolean) =>
     `<w:sectPr><w:footerReference w:type="default" r:id="${footerId(kind)}"/>${first && !numbering ? `<w:footerReference w:type="first" r:id="rIdFooter2"/>` : ""}` +
     `<w:type w:val="nextPage"/><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
-    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
+    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : kind === "checkin" ? CHECK_IN_FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
     `${first ? `<w:pgNumType w:start="${firstPage}"/>` : ""}<w:cols w:space="0"/>${first && !numbering ? "<w:titlePg/>" : ""}<w:docGrid w:linePitch="360"/></w:sectPr>`;
   let body = "";
   let first = true;
