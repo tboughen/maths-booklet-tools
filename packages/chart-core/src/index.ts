@@ -111,6 +111,9 @@ export const envelopeSchema = z
           .strict(),
         xTitle: plain(40),
         yTitle: plain(40),
+        /** Deliberate error: the scale numbers printed instead of the even ones, bottom to top, one per axis step
+         * (for "what is wrong with this chart?" questions). Absent means the true scale. Bars still use the true scale. */
+        wrongScale: z.array(plain(12)).max(41).optional(),
         grid: z.enum(gridChoices),
         key: z.boolean(),
         heightMm: z.number().int().min(25).max(140),
@@ -461,7 +464,11 @@ export function axesLayout(e: Envelope) {
     });
 
   const ticks = Array.from({ length: count + 1 }, (_, i) => lo + i * st);
-  const tickWidth = Math.max(...ticks.map((t) => textWidth(formatNumber(t))));
+  const wrong = d.wrongScale;
+  if (wrong && wrong.length !== ticks.length)
+    issues.push(`The deliberately wrong scale needs ${ticks.length} numbers, one for each axis number from the bottom (it has ${wrong.length}).`);
+  const tickLabel = (t: number, i: number) => (wrong && wrong.length === ticks.length ? wrong[i]! : formatNumber(t));
+  const tickWidth = Math.max(...ticks.map((t, i) => textWidth(tickLabel(t, i))));
   const yTitle = wrap(d.yTitle, 18);
   const yTitleWidth = Math.max(0, ...yTitle.map((l) => textWidth(l)));
   const x0 = MARGIN + (yTitle.length ? yTitleWidth + 3 : 0) + tickWidth + 2.5;
@@ -559,7 +566,7 @@ export function axesLayout(e: Envelope) {
     plot: { x: x0, y: y0, width: W, height: H },
     centres: d.categories.map((_, ci) => centreOf(ci)),
     slot,
-    ticks: ticks.map((t) => ({ value: t, y: y(t) })),
+    ticks: ticks.map((t, i) => ({ value: t, label: tickLabel(t, i), y: y(t) })),
     major,
     minor,
     yTitle,
@@ -665,7 +672,7 @@ export function renderSvg(e: Envelope): string {
   out.push(
     `<path d="${g.ticks.map((t) => `M${n(p.x - 1.5)},${n(t.y)}H${n(p.x)}`).join("")}" stroke="black" stroke-width="0.3" fill="none"/>`,
   );
-  for (const t of g.ticks) out.push(text(formatNumber(t.value), p.x - 2.2, t.y + FONT * 0.33, "end"));
+  for (const t of g.ticks) out.push(text(t.label, p.x - 2.2, t.y + FONT * 0.33, "end"));
   const midY = p.y + p.height / 2 - ((g.yTitle.length - 1) * FONT * 1.15) / 2;
   g.yTitle.forEach((line, i) => out.push(text(line, 2, midY + i * FONT * 1.15 + FONT * 0.33, "start")));
   d.categories.forEach((c, i) => out.push(text(c, g.centres[i], g.labelY)));

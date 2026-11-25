@@ -113,4 +113,18 @@ describe("chart core", () => {
     e.document.categories[0] = "<b>";
     expect(() => validate(e)).toThrow(/category labels/);
   });
+  it("prints a deliberately wrong scale but keeps bars on the true scale", () => {
+    const e = create();
+    e.document.axis = { min: "0", max: "8", step: "1", minor: 1 };
+    const truth = axesLayout(e);
+    e.document.wrongScale = ["0", "1", "2", "4", "5", "6", "7", "8", "9"];
+    const g = axesLayout(e);
+    expect(g.issues).toEqual([]);
+    expect(g.ticks.map((t) => t.label)).toEqual(e.document.wrongScale);
+    expect(g.ticks.map((t) => t.y)).toEqual(truth.ticks.map((t) => t.y));
+    expect(renderSvg(validate(e))).toContain(">4<");
+    e.document.wrongScale = ["0", "2", "4"];
+    expect(axesLayout(e).issues.join(" ")).toMatch(/needs 9 numbers/);
+    expect(validate(JSON.parse(canonical(e))).document.wrongScale).toEqual(["0", "2", "4"]);
+  });
 });

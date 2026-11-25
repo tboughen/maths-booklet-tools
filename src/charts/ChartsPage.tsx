@@ -49,6 +49,7 @@ import {
   kindNames,
   kinds,
   layout,
+  axesLayout,
   MAX_CATEGORIES,
   MAX_SERIES,
   minorChoices,
@@ -1557,6 +1558,41 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onCommit={(v) => patch((n) => void (n.xTitle = v))}
                   />
                 </label>
+                <label className="ch-check">
+                  <input
+                    type="checkbox"
+                    disabled={blocked}
+                    checked={!!d.wrongScale}
+                    onChange={(ev) => {
+                      const on = ev.target.checked;
+                      patch((n) => {
+                        if (on) n.wrongScale = axesLayout(e).ticks.map((t) => t.label);
+                        else delete n.wrongScale;
+                      });
+                    }}
+                  />
+                  This chart has a deliberately wrong scale
+                </label>
+                {d.wrongScale && (
+                  <label>
+                    Scale numbers, bottom to top, separated by commas
+                    <DraftField
+                      label="Deliberately wrong scale numbers"
+                      value={d.wrongScale.join(", ")}
+                      maxLength={300}
+                      disabled={blocked}
+                      onCommit={(v) =>
+                        patch(
+                          (n) =>
+                            void (n.wrongScale = v
+                              .split(",")
+                              .map((x) => x.trim())
+                              .filter((x) => x !== "")),
+                        )
+                      }
+                    />
+                  </label>
+                )}
                 {linesControl}
                 <label>
                   Chart height (mm)
