@@ -30,6 +30,8 @@ const presentation = z
   .object({
     xTitle: z.string().max(40).optional(),
     yTitle: z.string().max(40).optional(),
+    /** Deliberately wrong vertical scale numbers, bottom to top; null removes them. */
+    wrongScale: z.array(z.string().max(12)).max(41).nullable().optional(),
     grid: z.enum(core.gridChoices).optional(),
     key: z.boolean().optional(),
     heightMm: z.number().int().min(25).max(140).optional(),
@@ -90,8 +92,10 @@ const presentation = z
 type Presentation = z.infer<typeof presentation>;
 /** Pie, pictogram and scatter settings merge field by field with the current ones; everything else replaces. */
 function present(d: core.ChartDocument, p: Presentation) {
-  const { pie, pictogram, scatter, grouped, boxplot, stemleaf, timeseries, ...rest } = p;
+  const { pie, pictogram, scatter, grouped, boxplot, stemleaf, timeseries, wrongScale, ...rest } = p;
   Object.assign(d, rest);
+  if (wrongScale === null) delete d.wrongScale;
+  else if (wrongScale) d.wrongScale = wrongScale;
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
   if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
   if (scatter) {
@@ -234,6 +238,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
     switch (op.op) {
       case "set_kind":
         d.kind = op.kind;
+        if (!core.axisKind(op.kind)) delete d.wrongScale;
         break;
       case "set_value": {
         need(op.series < d.series.length && op.category < d.categories.length, "Use an existing series and category index (0-based).");

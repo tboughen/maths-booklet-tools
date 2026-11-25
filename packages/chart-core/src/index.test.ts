@@ -15,6 +15,7 @@ import {
   validate,
 } from "./index";
 import { examples } from "./examples";
+import * as io from "./interchange";
 
 describe("chart core", () => {
   it("round-trips every example through the editable file format", () => {
@@ -112,5 +113,25 @@ describe("chart core", () => {
     const e = create() as unknown as { document: { categories: string[] } };
     e.document.categories[0] = "<b>";
     expect(() => validate(e)).toThrow(/category labels/);
+  });
+  it("prints a deliberately wrong scale but keeps bars on the true scale", () => {
+    const e = create();
+    e.document.axis = { min: "0", max: "8", step: "1", minor: 1 };
+    const truth = axesLayout(e);
+    e.document.wrongScale = ["0", "1", "2", "4", "5", "6", "7", "8", "9"];
+    const g = axesLayout(e);
+    expect(g.issues).toEqual([]);
+    expect(g.ticks.map((t) => t.label)).toEqual(e.document.wrongScale);
+    expect(g.ticks.map((t) => t.y)).toEqual(truth.ticks.map((t) => t.y));
+    expect(renderSvg(validate(e))).toContain(">4<");
+    e.document.wrongScale = ["0", "2", "4"];
+    expect(axesLayout(e).issues.join(" ")).toMatch(/needs 9 numbers/);
+    expect(validate(JSON.parse(canonical(e))).document.wrongScale).toEqual(["0", "2", "4"]);
+  });
+  it("sets and removes a deliberately wrong scale through the connector", async () => {
+    const e = io.create({ spec: { kind: "bar", axis: { min: "0", max: "4", step: "1" }, presentation: { wrongScale: ["0", "1", "2", "4", "5"] } } });
+    expect(e.document.wrongScale).toEqual(["0", "1", "2", "4", "5"]);
+    const back = await io.revise({ envelope: e, baseHash: await io.hash(e), operations: [{ op: "set_presentation", presentation: { wrongScale: null } }] });
+    expect(back.document.wrongScale).toBeUndefined();
   });
 });

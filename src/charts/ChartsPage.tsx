@@ -49,6 +49,7 @@ import {
   kindNames,
   kinds,
   layout,
+  axesLayout,
   MAX_CATEGORIES,
   MAX_SERIES,
   minorChoices,
@@ -456,6 +457,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       explanation: string;
     } | null>(null);
   const file = useRef<HTMLInputElement>(null);
+  const [scaleDraftError, setScaleDraftError] = useState<string | null>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view, true),
@@ -468,7 +470,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     (w) => (w < 500 ? 72 : 120),
   );
   const answerSvg = renderSvg(forView(e, "answer", true));
-  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
+  const issue = [...g.issues, workedIssue(answerSvg, e), d.wrongScale ? scaleDraftError : null].filter(Boolean).join(" ");
   const series = drawnSeries(e);
   const line = d.kind === "vline" || d.kind === "line",
     pie = d.kind === "pie",
@@ -1140,6 +1142,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onClick={() =>
                       patch((n) => {
                         n.kind = k;
+                        if (!axisKind(k)) delete n.wrongScale;
                         if (!singleSet(k) && n.series.length < 2) {
                           const two = addSeries({ ...e, document: n });
                           n.series = two.document.series;
@@ -1557,6 +1560,30 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onCommit={(v) => patch((n) => void (n.xTitle = v))}
                   />
                 </label>
+                <label className="ch-check">
+                  <input
+                    type="checkbox"
+                    disabled={blocked || (!d.wrongScale && axisUnreadable(e))}
+                    checked={!!d.wrongScale}
+                    onChange={(ev) => {
+                      const on = ev.target.checked;
+                      patch((n) => {
+                        if (on) n.wrongScale = axesLayout(e).ticks.map((t) => t.label);
+                        else delete n.wrongScale;
+                      });
+                    }}
+                  />
+                  This chart has a deliberately wrong scale
+                  {!d.wrongScale && axisUnreadable(e) && <span className="ch-error"> (fix the axis first)</span>}
+                </label>
+                {d.wrongScale && (
+                  <WrongScaleField
+                    value={d.wrongScale}
+                    disabled={blocked}
+                    onError={setScaleDraftError}
+                    onCommit={(v) => patch((n) => void (n.wrongScale = v))}
+                  />
+                )}
                 {linesControl}
                 <label>
                   Chart height (mm)
@@ -1730,5 +1757,64 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         )}
       </main>
     </div>
+  );
+}
+
+/** True when the axis start, end or step cannot be read, so a scale cannot be copied yet. */
+function axisUnreadable(e: Envelope) {
+  return axesLayout(e).issues.some((x) => /^Enter a (positive )?number for the axis|^The axis (end|step) must|^Use at most 40 axis steps/.test(x));
+}
+
+/** Splits typed scale numbers: semicolons when any are typed (so 1,000 can be written), otherwise commas. Blanks stay. */
+function parseWrongScale(text: string): { value: string[] } | { error: string } {
+  const parts = text.split(text.includes(";") ? ";" : ",").map((x) => x.trim());
+  if (parts.length > 41) return { error: `Use at most 41 scale numbers (there are ${parts.length}).` };
+  const long = parts.find((x) => x.length > 12);
+  if (long !== undefined) return { error: `“${long.slice(0, 16)}…” is too long: each scale number has at most 12 characters.` };
+  if (parts.some((x) => /[<>]/.test(x))) return { error: "Scale numbers cannot contain < or >." };
+  return { value: parts };
+}
+
+/** The deliberately wrong scale: keeps an invalid draft visible with its specific error instead of discarding it. */
+function WrongScaleField({ value, disabled, onCommit, onError }: { value: string[]; disabled: boolean; onCommit: (v: string[]) => void; onError: (error: string | null) => void }) {
+  const saved = value.join(value.some((x) => x.includes(",")) ? "; " : ", ");
+  const [draft, setDraft] = useState<string | null>(null);
+  const parsed = draft === null ? null : parseWrongScale(draft);
+  const error = parsed && "error" in parsed ? parsed.error : null;
+  // An invalid draft blocks export (like other invalid fields) until it is fixed or Escape restores the saved scale.
+  useEffect(() => {
+    onError(error);
+    return () => onError(null);
+  }, [error, onError]);
+  const commit = () => {
+    if (draft === null || !parsed || "error" in parsed) return;
+    setDraft(null);
+    if (parsed.value.join("\u0000") !== value.join("\u0000")) onCommit(parsed.value);
+  };
+  return (
+    <label>
+      Scale numbers, bottom to top, separated by commas (or semicolons)
+      <input
+        aria-label="Deliberately wrong scale numbers"
+        value={draft ?? saved}
+        disabled={disabled}
+        maxLength={600}
+        aria-invalid={error ? true : undefined}
+        onChange={(ev) => setDraft(ev.target.value)}
+        onBlur={commit}
+        onKeyDown={(ev) => {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            commit();
+          }
+          if (ev.key === "Escape") {
+            ev.preventDefault();
+            ev.stopPropagation();
+            setDraft(null);
+          }
+        }}
+      />
+      {error && <span className="ch-error" role="alert">{error}</span>}
+    </label>
   );
 }
