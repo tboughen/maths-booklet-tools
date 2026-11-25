@@ -42,6 +42,29 @@ export const UNNUMBERED: ReadonlySet<SectionKind> = new Set(["worked", "notes"])
 export const NUMBERING = ["continue", "restart", "letters"] as const;
 export type Numbering = (typeof NUMBERING)[number];
 
+/** Most NCETM links a lesson may carry (Tim, 25 November 2026: one to three, optional extras). */
+export const NCETM_LINKS_PER_LESSON = 3;
+
+/** A link to an NCETM page, PDF page or Checkpoints slide: what the chip says, and where it goes. Links only; NCETM content is never copied. */
+export const ncetmSchema = z
+  .object({
+    /** A few words naming the activity and where to look, e.g. "Checkpoint 10: Staircases (slide 31)". */
+    label: text(60),
+    url: z
+      .string()
+      .max(300)
+      .refine((u) => {
+        try {
+          const url = new URL(u);
+          return url.protocol === "https:" && (url.hostname === "www.ncetm.org.uk" || url.hostname === "ncetm.org.uk") && url.href === u;
+        } catch {
+          return false;
+        }
+      }, "Use an https://www.ncetm.org.uk/ address, written in full."),
+  })
+  .strict();
+export type NcetmLink = z.infer<typeof ncetmSchema>;
+
 export const sectionSchema = z
   .object({
     kind: z.enum(SECTION_KINDS),
@@ -57,6 +80,8 @@ export const sectionSchema = z
     columns: z.union([z.literal(1), z.literal(2)]).default(1),
     /** Question labels: continue the lesson's run of numbers (default), restart at 1, or letters A, B, C… */
     numbering: z.enum(NUMBERING).default("continue"),
+    /** An optional NCETM link for teachers (Tim, 25 November 2026): a small clickable chip at the right-hand end of the heading line, printed in the ANSWERS copy only (PDF and Word), never in the pupil copy. Used on a stage's first section or the Challenge, one to three a lesson. */
+    ncetm: ncetmSchema.optional(),
     cards: z.array(cardSchema).min(1).max(16),
   })
   .strict();

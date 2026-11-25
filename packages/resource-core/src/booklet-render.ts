@@ -3,7 +3,7 @@ import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fraction
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Section } from "./booklet";
+import { LESSON_WORDS, NCETM_LINKS_PER_LESSON, type NcetmLink, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Section } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -413,7 +413,51 @@ export function bannerFrag(label: string, end: boolean, st: HouseStyle, note = "
   };
 }
 
-function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean): Frag {
+/**
+ * The NCETM chip (Tim, 25 November 2026): a small pale-blue box at the right-hand end of a section's
+ * heading line, in the answers copy only, linking to an NCETM page or Checkpoints slide. It sits in
+ * space the heading line already leaves empty, so it never moves anything: pupil and answers pages
+ * keep the same layout. Word draws the same text (booklet-docx).
+ */
+export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "" } as const;
+
+/** The chip's label cut to fit `room` mm (the whole chip's width), or null when even a short label cannot fit. */
+export function ncetmChipLabel(label: string, room: number): string | null {
+  const c = NCETM_CHIP;
+  const fixed = 2 * c.padX + plainWidth(c.tag + "  ", c.size, "bold") + plainWidth(c.arrow, c.size);
+  if (room - fixed < c.minLabel) return null;
+  return fitLine(label.trim(), c.size, room - fixed);
+}
+
+/** Width of a chip with this (already fitted) label. */
+export const ncetmChipWidth = (label: string) => 2 * NCETM_CHIP.padX + plainWidth(NCETM_CHIP.tag + "  ", NCETM_CHIP.size, "bold") + plainWidth(label + NCETM_CHIP.arrow, NCETM_CHIP.size);
+
+/** Room left on a section's heading line, right of the title and an instruction printed beside it. */
+export function headingLineRoom(section: Section): number {
+  const tw = plainWidth(sectionTitle(section), A4.heading, "bold");
+  const ins = section.instruction.trim();
+  const used = ins && plainWidth(ins, A4.small) <= W - tw - 4 ? tw + 4 + plainWidth(ins, A4.small) : tw;
+  return W - used - NCETM_CHIP.gap;
+}
+
+function ncetmChip(link: NcetmLink, room: number, st: HouseStyle): string | null {
+  const c = NCETM_CHIP;
+  const label = ncetmChipLabel(link.label, room);
+  if (label === null) return null;
+  const w = ncetmChipWidth(label);
+  const x = W - w,
+    y = (lh(A4.heading) - c.h) / 2;
+  const by = y + c.h / 2 + c.size * 0.36;
+  const url = esc(link.url);
+  return (
+    `<a href="${url}">` +
+    rect(x, y, w, c.h, `rx="0.9" fill="${st.tint}" stroke="${st.navy}" stroke-width="0.18"`) +
+    textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.padX, by, c.size, st.navy) +
+    `</a>`
+  );
+}
+
+function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean, link?: { link: NcetmLink; onMissing: () => void }): Frag {
   const title = sectionTitle(section) + (continued ? " (continued)" : "");
   const tw = plainWidth(title, A4.heading, "bold");
   const out = [textSvg(titleRuns(title, maths), 0, base(A4.heading), A4.heading, st.navy)];
@@ -427,6 +471,11 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths
       out.push(at(f, 0, h));
       h += f.h;
     }
+  }
+  if (link && !continued) {
+    const chip = ncetmChip(link.link, headingLineRoom(section), st);
+    if (chip) out.push(chip);
+    else link.onMissing();
   }
   out.push(`<rect x="0" y="${n(h + 0.8)}" width="${n(W)}" height="0.5" fill="${st.navy}"/>`);
   return { h: h + 3.8, svg: out.join("") };
@@ -1055,7 +1104,10 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         continue;
       }
       if (block.kind === "section") {
-        out.push(at(sectionHead(lesson.sections[block.section], st, block.continued, !!ctx.maths), A4.marginX, yy));
+        const sec = lesson.sections[block.section];
+        const link = view === "answers" && sec.ncetm ? { link: sec.ncetm, onMissing: () => issues.push({ lesson: p.lesson, section: block.section + 1, page: pageNo, message: `There is no room for the NCETM link beside the "${sectionTitle(sec)}" heading. Shorten the heading's instruction or put the link on another section.` }) } : undefined;
+        out.push(at(sectionHead(sec, st, block.continued, !!ctx.maths, link), A4.marginX, yy));
+        if (link && !block.continued) glyphs({ title: sec.ncetm!.label }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(sec)} NCETM link`);
         if (!block.continued) glyphs({ title: lesson.sections[block.section].title, instruction: lesson.sections[block.section].instruction }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(lesson.sections[block.section])} heading`);
         continue;
       }
@@ -1078,6 +1130,12 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     }
     pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : p.checkInStop ? checkInBand(shownPage, st) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
+
+  if (view === "answers") doc.lessons.forEach((l, i) => {
+    const links = l.sections.filter((s) => s.ncetm).length;
+    const shown = i + 1 + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc);
+    if (links > NCETM_LINKS_PER_LESSON) issues.push({ lesson: i + 1, message: `Lesson ${shown} has ${links} NCETM links. Keep it to ${NCETM_LINKS_PER_LESSON} or fewer, so each one earns its place.` });
+  });
 
   if (doc.retrieval && plan.retrievalPage) {
     const pageNo = plan.retrievalPage + (options.numbering?.pageOffset ?? 0);
