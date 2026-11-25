@@ -3571,6 +3571,14 @@
             "type": "string",
             "maxLength": 40
           },
+          "wrongScale": {
+            "maxItems": 41,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 12
+            }
+          },
           "grid": {
             "type": "string",
             "enum": [
