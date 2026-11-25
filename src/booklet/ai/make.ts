@@ -120,6 +120,7 @@ export async function makeBooklet(o: MakeOptions, brief: BookletBrief, onProgres
       firstLessonNumber: 1,
       lessons,
       retrieval: null,
+      revision: null,
     },
   };
   return { booklet, plan, flags, usage, failed, model };

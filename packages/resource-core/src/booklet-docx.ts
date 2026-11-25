@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
-import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Section } from "./booklet";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, INTRO_TITLE, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
   cardCell,
@@ -411,7 +411,7 @@ function cover(doc: Booklet["document"], contents: { label: string; title: strin
     y += 12;
   }
   out.push(gap(y - cursor));
-  out.push(para(runs("Contents", { bold: true, color: st.navy, sizeMm: A4.heading }), { line: lh(A4.heading) }), gap(1), ruleTable(W, 0.5, st.navy), gap(2));
+  out.push(para(runs(CONTENTS_HEADING, { bold: true, color: st.navy, sizeMm: A4.heading }), { line: lh(A4.heading) }), gap(1), ruleTable(W, 0.5, st.navy), gap(2));
   y += lh(A4.heading) + 1 + 2.5;
   const rowMm = 8.6;
   const textTop = rowMm / 2 + S.body * 0.34 - base(S.body);
@@ -435,7 +435,7 @@ function cover(doc: Booklet["document"], contents: { label: string; title: strin
 
 function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle): string {
   const out: string[] = [];
-  out.push(textPara("Unit introduction", A4.lessonTitle, { color: st.navy, bold: true }));
+  out.push(textPara(INTRO_TITLE, A4.lessonTitle, { color: st.navy, bold: true }));
   const sub = [doc.code, doc.title].filter((s) => s.trim()).join(" • ");
   if (sub) out.push(para(runs(fitLine(sub, A4.small, W), { color: st.muted, sizeMm: A4.small }), { line: lh(A4.small) }));
   out.push(gap(4));
@@ -534,11 +534,11 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string 
     const h = heights[i];
     const b = { top: line, ...(i === r.items.length - 1 ? { bottom: line } : {}) };
     const q = wrap(it.question, S.body, qw, "regular", powersOnly(it.question, maths)).length * lh(S.body);
-    const write = h - R.pad * 2 - q;
+    const write = h - R.pad * 2 - q - retrievalHeadHeight(it);
     return row(
       [
-        cell(gap(R.pad) + para(runs(String(i + 1), { bold: true, color: st.navy })), { width: R.num, borders: b }),
-        cell(gap(R.pad) + para(runs(it.question, {}, "regular", powersOnly(it.question, maths))) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
+        cell(gap(R.pad + retrievalHeadHeight(it)) + para(runs(String(i + 1), { bold: true, color: st.navy })), { width: R.num, borders: b }),
+        cell(gap(R.pad) + (it.heading.trim() ? para(titleWordRuns(it.heading, { bold: true, color: st.navy }, maths), { line: lh(S.body), left: -R.num }) + gap(1.6) : "") + para(runs(it.question, {}, "regular", powersOnly(it.question, maths))) + gap(Math.max(END_MM, write - lh(S.body))) + para(tab(), { tabs: [{ pos: qw, align: "right", leader: "dot" }] }), { width: qw + WORD_WRAP_SLACK_MM, borders: b }),
         cell(gap(END_MM), { width: R.gap - WORD_WRAP_SLACK_MM, borders: { ...b, right: fold } }),
         cell(gap(Math.max(END_MM, h - R.pad - wrap(it.answer, S.body, retrievalAnswerWidth(), "regular", powersOnly(it.answer, maths)).length * lh(S.body))) + para(runs(it.answer, {}, "regular", powersOnly(it.answer, maths))), { width: rightW, margin, borders: { ...b, left: fold } }),
       ],
@@ -550,6 +550,45 @@ function retrievalPageXml(r: Retrieval, st: HouseStyle, maths: boolean): string 
   });
   out.push(table([R.num, qw + WORD_WRAP_SLACK_MM, R.gap - WORD_WRAP_SLACK_MM, rightW], [headRow, ...rows]));
   out.push(gap(1.5), para(runs("Fold back along the dashed line", { italic: true, color: st.muted, sizeMm: A4.small }), { line: lh(A4.small), left: leftW - 30, right: rightW - 30, align: "center" }));
+  return out.join("");
+}
+
+/** The "Do it" revision page (N30), as the SVG page places it: cards in rows, then the upside-down answers as a picture. */
+function revisionPageXml(r: Revision, ctx: Ctx): string {
+  const st = ctx.st;
+  const maths = !!ctx.maths;
+  const out: string[] = [];
+  out.push(para(titleWordRuns(r.title, { bold: true, color: st.navy, sizeMm: A4.lessonTitle }, maths), { line: lh(A4.lessonTitle), right: -WORD_WRAP_SLACK_MM }), gap(1));
+  if (r.instruction.trim()) out.push(textPara(r.instruction, S.body));
+  out.push(gap(4));
+  const quiet = { ...ctx, issues: [] };
+  const L = planRevision(r, (c, w) => measureCard(r.cards[c], null, w, quiet, 0, 0).h, maths);
+  let cursor = L.top;
+  const gapCell = () => cell(gap(END_MM), { width: A4.columnGap + CARD_RULE });
+  for (const rw of L.rows) {
+    if (rw.y - cursor > 0.005) out.push(gap(rw.y - cursor));
+    const w = rw.wide ? BOOKLET_WIDTHS.full : BOOKLET_WIDTHS.half;
+    const grid: number[] = [];
+    const cells: string[] = [];
+    rw.cards.forEach((ci, k) => {
+      if (k) {
+        grid.push(A4.columnGap + CARD_RULE);
+        cells.push(gapCell());
+      }
+      const fit = growLastSpace(r.cards[ci], rw.h - measureCard(r.cards[ci], null, w, quiet, 0, 0).h) ?? r.cards[ci];
+      grid.push(w - CARD_RULE);
+      cells.push(cardCell(fit, null, w, ctx, 0));
+    });
+    out.push(table(grid, [row(cells, { mm: rw.h - 2 * CARD_RULE }, true)]));
+    cursor = rw.y + rw.h;
+  }
+  if (L.answers.length) {
+    const h = L.answers.length * lh(REVISION.answerSize) + REVISION.answerGap;
+    if (L.answersTop - cursor > 0.005) out.push(gap(L.answersTop - cursor));
+    const dash = `<line x1="0" y1="1.2" x2="${W}" y2="1.2" stroke="${st.navy}" stroke-width="0.35" stroke-dasharray="2.4 1.6"/>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${h}mm" viewBox="0 0 ${W} ${h}" font-family="Inter" role="img" aria-label="Answers, upside down">${dash}${revisionAnswersSvg(L.answers, st, maths, 0, REVISION.answerGap)}</svg>`;
+    out.push(drawing({ svg, widthMm: W, heightMm: h }, W, 0, ctx));
+  }
   return out.join("");
 }
 
@@ -624,6 +663,10 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   const lessonOffset = (numbering?.lessonOffset ?? 0) + lessonShift(doc);
   for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : "page" });
   if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st, doc.notation === "maths"), footer: "page" });
+  if (doc.revision && plan.revisionPage) {
+    ctx.where = { lesson: 0, page: plan.revisionPage };
+    pages.push({ xml: gap(COVER_DROP) + revisionPageXml(doc.revision, ctx), footer: "page" });
+  }
 
   const label = fitLine([doc.code, doc.title].filter((s) => s.trim()).join(" · "), A4.small, W - 30);
   const footerType = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml";

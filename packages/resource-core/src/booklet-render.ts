@@ -3,7 +3,7 @@ import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fraction
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Section } from "./booklet";
+import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -46,6 +46,8 @@ export interface BookletIssue {
   page?: number;
   /** The issue is on the fold-over retrieval page. */
   retrieval?: boolean;
+  /** The issue is on the "Do it" revision page. */
+  revision?: boolean;
   message: string;
 }
 export interface BookletRenderOptions {
@@ -64,8 +66,10 @@ export interface RenderedBooklet {
   lessonPages: number[];
   /** The introduction's page, or null. */
   introPage: number | null;
-  /** The fold-over retrieval page (the last page), or null. */
+  /** The fold-over retrieval page, or null. */
   retrievalPage: number | null;
+  /** The "Do it" revision page (the last page), or null. */
+  revisionPage: number | null;
 }
 
 type W = { lesson: number; section?: number; question?: number | string; page?: number };
@@ -595,6 +599,10 @@ function page(body: string, label: string, opts: BookletRenderOptions) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${body}</svg>`;
 }
 
+/** The cover's contents heading and the introduction page's title (N30: the topic pages). */
+export const CONTENTS_HEADING = "Inside this booklet";
+export const INTRO_TITLE = "Topic introduction";
+
 function cover(doc: Booklet["document"], contents: { label: string; title: string; page: number }[], st: HouseStyle, issues: BookletIssue[]): string {
   const x0 = A4.marginX;
   const out: string[] = [];
@@ -625,7 +633,7 @@ function cover(doc: Booklet["document"], contents: { label: string; title: strin
     out.push(`<line x1="${n(x0 + 141)}" y1="${n(y + 0.8)}" x2="${n(x0 + W)}" y2="${n(y + 0.8)}" stroke="${st.ink}" stroke-width="0.3"/>`);
     y += 12;
   }
-  out.push(textSvg(parseRuns("Contents", "bold"), x0, y + base(A4.heading), A4.heading, st.navy));
+  out.push(textSvg(parseRuns(CONTENTS_HEADING, "bold"), x0, y + base(A4.heading), A4.heading, st.navy));
   y += lh(A4.heading) + 1;
   out.push(`<rect x="${x0}" y="${n(y)}" width="${n(W)}" height="0.5" fill="${st.navy}"/>`);
   y += 2.5;
@@ -659,7 +667,7 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
   const x0 = A4.marginX;
   const out: string[] = [];
   let y = A4.top;
-  out.push(textSvg(parseRuns("Unit introduction", "bold"), x0, y + base(A4.lessonTitle), A4.lessonTitle, st.navy));
+  out.push(textSvg(parseRuns(INTRO_TITLE, "bold"), x0, y + base(A4.lessonTitle), A4.lessonTitle, st.navy));
   y += lh(A4.lessonTitle);
   const sub = [doc.code, doc.title].filter((s) => s.trim()).join(" • ");
   if (sub) {
@@ -735,12 +743,14 @@ export const RETRIEVAL = {
 } as const;
 export const retrievalQuestionWidth = () => W - RETRIEVAL.strip - RETRIEVAL.gap - RETRIEVAL.num;
 export const retrievalAnswerWidth = () => RETRIEVAL.strip - RETRIEVAL.gap - 1;
+/** A block heading above a question (Know it, N30): one bold line and a little space. */
+export const retrievalHeadHeight = (it: { heading?: string }) => (it.heading?.trim() ? lh(S.body) + 1.6 : 0);
 /** Each row's height: the question, writing room and padding, or the answer if it is taller. */
 export function retrievalRowHeights(r: Retrieval, maths = false): number[] {
   return r.items.map((it) => {
     const q = wrap(it.question, S.body, retrievalQuestionWidth(), "regular", powersOnly(it.question, maths)).length * lh(S.body);
     const a = wrap(it.answer, S.body, retrievalAnswerWidth(), "regular", powersOnly(it.answer, maths)).length * lh(S.body);
-    return Math.max(q + RETRIEVAL.write, a + 2) + RETRIEVAL.pad * 2;
+    return Math.max(q + RETRIEVAL.write, a + 2) + RETRIEVAL.pad * 2 + retrievalHeadHeight(it);
   });
 }
 
@@ -766,8 +776,10 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
   r.items.forEach((it, i) => {
     const h = heights[i];
     out.push(hline(x0, x0 + W, y, st, 0.35));
-    out.push(textSvg([{ text: String(i + 1), style: "bold" }], x0, y + R.pad + base(S.body), S.body, st.navy));
-    out.push(at(para(it.question, retrievalQuestionWidth(), st, { maths: powersOnly(it.question, maths) }), qx, y + R.pad));
+    const hh = retrievalHeadHeight(it);
+    if (hh) out.push(textSvg(titleRuns(it.heading, maths), x0, y + R.pad + base(S.body), S.body, st.navy).replace("<text ", '<text font-weight="700" '));
+    out.push(textSvg([{ text: String(i + 1), style: "bold" }], x0, y + hh + R.pad + base(S.body), S.body, st.navy));
+    out.push(at(para(it.question, retrievalQuestionWidth(), st, { maths: powersOnly(it.question, maths) }), qx, y + hh + R.pad));
     const lineY = y + h - R.pad - 1.2;
     out.push(answerRule(qx, foldX - R.gap, lineY, st.ink));
     const a = para(it.answer, retrievalAnswerWidth(), st, { maths: powersOnly(it.answer, maths) });
@@ -780,6 +792,108 @@ function retrievalPage(r: Retrieval, st: HouseStyle, issues: BookletIssue[], pag
   out.push(`<line x1="${n(foldX)}" y1="${n(top - lh(S.body) - 2.5)}" x2="${n(foldX)}" y2="${n(y + 6)}" stroke="${st.ink}" stroke-width="0.4" stroke-dasharray="2.4 1.6"/>`);
   out.push(textSvg(parseRuns("Fold back along the dashed line", "italic"), foldX, y + 6 + base(A4.small) + 0.5, A4.small, st.muted, "middle"));
   if (y + 6 + lh(A4.small) > A4.bottom) issues.push({ lesson: 0, retrieval: true, page: pageNo, message: `The fold-over page needs ${n(y + 6 + lh(A4.small) - A4.bottom)} mm more height: use fewer or shorter questions.` });
+  return out.join("");
+}
+
+/**
+ * The "Do it" revision page (N30): the title, one line of instruction, the cards in two columns
+ * sharing the page's spare height, then the try-it answers small and upside down at the foot below
+ * a dashed line. Exactly one side: anything taller is an issue, never shrunk.
+ */
+export const REVISION = { rowGap: 3, answerGap: 3.5, answerSize: A4.small, pairGap: 5 } as const;
+export interface RevisionLayout {
+  /** Top of the cards. */
+  top: number;
+  rows: { cards: number[]; wide: boolean; y: number; h: number }[];
+  /** Answer lines, each a list of label and answer with its x offset. */
+  answers: { label: string; answer: string; x: number }[][];
+  /** Top of the dashed line above the answers. */
+  answersTop: number;
+  /** Millimetres over one side (0 when it fits). */
+  over: number;
+}
+export const revisionHeadHeight = (r: Revision) => lh(A4.lessonTitle) + 1 + (r.instruction.trim() ? wrap(r.instruction, S.body, W).length * lh(S.body) : 0) + 4;
+export function revisionAnswerLines(r: Revision, maths: boolean): { label: string; answer: string; x: number }[][] {
+  const R = REVISION;
+  const lines: { label: string; answer: string; x: number }[][] = [];
+  let line: { label: string; answer: string; x: number }[] = [];
+  let x = 0;
+  for (const a of r.answers) {
+    const w = plainWidth(a.label, R.answerSize, "bold") + 1.6 + lineWidth(titleRuns(a.answer, maths), R.answerSize);
+    if (line.length && x + w > W) {
+      lines.push(line);
+      line = [];
+      x = 0;
+    }
+    line.push({ ...a, x });
+    x += w + R.pairGap;
+  }
+  if (line.length) lines.push(line);
+  return lines;
+}
+export function planRevision(r: Revision, measure: (card: number, w: number) => number, maths: boolean): RevisionLayout {
+  const R = REVISION;
+  const top = A4.top + revisionHeadHeight(r);
+  const answers = revisionAnswerLines(r, maths);
+  const answersH = answers.length ? R.answerGap + answers.length * lh(R.answerSize) : 0;
+  const rows: { cards: number[]; wide: boolean; natural: number }[] = [];
+  for (let i = 0; i < r.cards.length; i += 2) {
+    const pair = i + 1 < r.cards.length ? [i, i + 1] : [i];
+    const wide = pair.length === 1;
+    const w = wide ? BOOKLET_WIDTHS.full : BOOKLET_WIDTHS.half;
+    rows.push({ cards: pair, wide, natural: Math.max(...pair.map((c) => measure(c, w))) });
+  }
+  const room = A4.bottom - answersH - top - R.rowGap * (rows.length - 1);
+  const used = rows.reduce((k, row) => k + row.natural, 0);
+  const spare = Math.max(0, room - used) / rows.length;
+  let y = top;
+  const placed = rows.map((row) => {
+    const out = { cards: row.cards, wide: row.wide, y, h: row.natural + spare };
+    y += out.h + R.rowGap;
+    return out;
+  });
+  return { top, rows: placed, answers, answersTop: A4.bottom - answersH, over: Math.max(0, used - room) };
+}
+/** The try-it answers as an SVG group, upside down: rotated half a turn about their own centre. */
+export function revisionAnswersSvg(lines: { label: string; answer: string; x: number }[][], st: HouseStyle, maths: boolean, x0: number, y0: number): string {
+  const R = REVISION;
+  if (!lines.length) return "";
+  const h = lines.length * lh(R.answerSize);
+  const parts = lines.flatMap((line, li) =>
+    line.map((a) => {
+      const by = y0 + li * lh(R.answerSize) + base(R.answerSize);
+      const lw = plainWidth(a.label, R.answerSize, "bold") + 1.6;
+      return textSvg([{ text: a.label, style: "bold" }], x0 + a.x, by, R.answerSize, st.navy) + textSvg(titleRuns(a.answer, maths), x0 + a.x + lw, by, R.answerSize, st.ink);
+    }),
+  );
+  return `<g transform="rotate(180 ${n(x0 + W / 2)} ${n(y0 + h / 2)})">${parts.join("")}</g>`;
+}
+function revisionPage(r: Revision, ctx: BCtx, pageNo: number): string {
+  const st = ctx.st;
+  const maths = !!ctx.maths;
+  const x0 = A4.marginX;
+  const out: string[] = [];
+  let y = A4.top;
+  out.push(textSvg(titleRuns(r.title, maths), x0, y + base(A4.lessonTitle), A4.lessonTitle, st.navy).replace("<text ", '<text font-weight="700" '));
+  y += lh(A4.lessonTitle) + 1;
+  if (r.instruction.trim()) out.push(at(para(r.instruction, W, st), x0, y));
+  const quiet = { ...ctx, issues: [] };
+  const L = planRevision(r, (c, w) => card(r.cards[c], null, w, quiet, 0, 0).h, maths);
+  for (const row of L.rows) {
+    row.cards.forEach((ci, k) => {
+      const w = row.wide ? BOOKLET_WIDTHS.full : BOOKLET_WIDTHS.half;
+      ctx.where = { lesson: 0, page: pageNo };
+      const natural = card(r.cards[ci], null, w, quiet, 0, 0).h;
+      const slack = Math.max(0, row.h - natural);
+      const grown = growLastSpace(r.cards[ci], slack);
+      const f = grown ? card(grown, null, w, ctx, 0, GROW_MARGIN) : card(r.cards[ci], null, w, ctx, 0, slack);
+      out.push(at(f, x0 + k * (BOOKLET_WIDTHS.half + A4.columnGap), row.y));
+    });
+  }
+  if (L.answers.length) {
+    out.push(`<line x1="${n(x0)}" y1="${n(L.answersTop + 1.2)}" x2="${n(x0 + W)}" y2="${n(L.answersTop + 1.2)}" stroke="${st.navy}" stroke-width="0.35" stroke-dasharray="2.4 1.6"/>`);
+    out.push(revisionAnswersSvg(L.answers, st, maths, x0, L.answersTop + REVISION.answerGap));
+  }
   return out.join("");
 }
 
@@ -815,6 +929,8 @@ export interface BookletPlan {
   introPage: number | null;
   /** The fold-over retrieval page after the last lesson, or null. */
   retrievalPage: number | null;
+  /** The "Do it" revision page, last, or null (N30). */
+  revisionPage: number | null;
   contents: { label: string; title: string; page: number }[];
 }
 /** The teaching notes' continued-page running header: a line of text, a hairline, then the notes. */
@@ -889,10 +1005,12 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
     if (!p.continued) lessonPages.push(first + i);
   });
   const retrievalPageNo = doc.retrieval ? first + planned.length : null;
+  const revisionPageNo = doc.revision ? first + planned.length + (doc.retrieval ? 1 : 0) : null;
   const contents = [
-    ...(introPageNo ? [{ label: "", title: "Unit introduction", page: introPageNo }] : []),
-    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1 + lessonShift(doc)}`, title: l.title, page: lessonPages[i] })),
+    ...(introPageNo ? [{ label: "", title: INTRO_TITLE, page: introPageNo }] : []),
+    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1 + lessonShift(doc) + (options.numbering?.lessonOffset ?? 0)}`, title: l.title, page: lessonPages[i] })),
     ...(doc.retrieval && retrievalPageNo ? [{ label: "", title: doc.retrieval.title, page: retrievalPageNo }] : []),
+    ...(doc.revision && revisionPageNo ? [{ label: "", title: doc.revision.title, page: revisionPageNo }] : []),
   ];
 
   // 3. Give each page's spare height to its working and drawing spaces.
@@ -916,7 +1034,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
     const last = pi === planned.length - 1 || planned[pi + 1].lesson !== p.lesson;
     return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks, last, squares: stageSquares(lesson), stage };
   });
-  return { pages, lessonPages, introPage: introPageNo, retrievalPage: retrievalPageNo, contents };
+  return { pages, lessonPages, introPage: introPageNo, retrievalPage: retrievalPageNo, revisionPage: revisionPageNo, contents };
 }
 
 export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}): RenderedBooklet {
@@ -1009,9 +1127,28 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     pages.push(page(retrievalPage(doc.retrieval, st, issues, pageNo, doc.notation === "maths") + footer(doc, pageNo, st), `${doc.title}, ${doc.retrieval.title}`, options));
   }
 
+  if (doc.revision && plan.revisionPage) {
+    const pageNo = plan.revisionPage + (options.numbering?.pageOffset ?? 0);
+    const r = doc.revision;
+    glyphs({ title: r.title, instruction: r.instruction, answers: r.answers }, { lesson: 0, revision: true, page: pageNo }, "The revision page");
+    const quiet = { ...ctx, issues: [] };
+    const L = planRevision(r, (c, w) => card(r.cards[c], null, w, quiet, 0, 0).h, !!ctx.maths);
+    if (L.over > 0) issues.push({ lesson: 0, revision: true, page: pageNo, message: `The revision page needs ${n(L.over)} mm more height: it must fit one side, so shorten a card or the answers; text is never shrunk.` });
+    if (r.answers.some((a) => /\{[^{}]+\/[^{}]+\}/.test(a.answer))) issues.push({ lesson: 0, revision: true, page: pageNo, message: "A revision answer has a stacked fraction, which the upside-down answers print as typed. Write it with a slash, such as h = A/5." });
+    const before = ctx.issues.length;
+    pages.push(page(revisionPage(r, ctx, pageNo) + footer(doc, pageNo, st), `${doc.title}, ${r.title}`, options));
+    for (const i of ctx.issues.slice(before)) (i as BookletIssue).revision = true;
+  }
+  // The four topic pages (N30): folded A3 needs a multiple of 4 sides, and each lesson opens on a right-hand (odd) page so its stage spreads open together.
+  if (doc.revision && !options.numbering) {
+    if (pages.length % 4) issues.push({ lesson: 0, page: pages.length, message: `The booklet has ${pages.length} sides; folded A3 needs a multiple of 4. Use the four topic pages: cover, topic introduction, Know it (fold-over page) and Do it (revision page).` });
+    plan.lessonPages.forEach((pg, i) => {
+      if (pg % 2 === 0) issues.push({ lesson: i + 1, page: pg, message: `Lesson ${i + 1 + lessonShift(doc)} starts on page ${pg}, a left-hand page, so its stage spreads split across a page turn. Every lesson must start on an odd page.` });
+    });
+  }
   // Card-level issues carry the lesson, section and question they belong to.
-  for (const i of ctx.issues) issues.push({ lesson: i.lesson, section: i.section, question: i.question, page: i.page, message: i.message });
-  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage, retrievalPage: plan.retrievalPage };
+  for (const i of ctx.issues) issues.push({ lesson: i.lesson, section: i.section, question: i.question, page: i.page, ...((i as BookletIssue).revision ? { revision: true } : {}), message: i.message });
+  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage, retrievalPage: plan.retrievalPage, revisionPage: plan.revisionPage };
 }
 
 function dedupe(list: BookletIssue[]): BookletIssue[] {
@@ -1034,14 +1171,14 @@ export function bookletFileName(booklet: Booklet, view: View = "pupil"): string 
 
 /** Where an issue is, in teacher words. */
 export function issuePlace(i: BookletIssue): string {
-  return [i.retrieval ? "fold-over page" : i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
+  return [i.retrieval ? "fold-over page" : i.revision ? "revision page" : i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question !== undefined && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
 }
 
 /** The printed pages of one lesson (0-based index), with the full booklet's page numbers. */
 export function lessonPagesOf(booklet: Booklet, lesson: number, options: BookletRenderOptions = {}): { pages: string[]; issues: BookletIssue[] } {
   const r = renderBooklet(booklet, options);
   const start = r.lessonPages[lesson] - 1;
-  const end = lesson + 1 < r.lessonPages.length ? r.lessonPages[lesson + 1] - 1 : r.retrievalPage ? r.retrievalPage - 1 : r.pages.length;
+  const end = lesson + 1 < r.lessonPages.length ? r.lessonPages[lesson + 1] - 1 : r.retrievalPage ? r.retrievalPage - 1 : r.revisionPage ? r.revisionPage - 1 : r.pages.length;
   return { pages: r.pages.slice(start, end), issues: r.issues };
 }
 
@@ -1051,9 +1188,19 @@ export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet
   const full = renderBooklet(booklet);
   const doc = booklet.document;
   return {
-    booklet: { ...booklet, document: { ...doc, intro: null, retrieval: null, lessons: [doc.lessons[lesson]] } },
+    booklet: { ...booklet, document: { ...doc, intro: null, retrieval: null, revision: null, lessons: [doc.lessons[lesson]] } },
     numbering: { lessonOffset: lesson, pageOffset: full.lessonPages[lesson] - 2 },
   };
+}
+
+/**
+ * One lesson as a booklet of its own WITH the four topic pages (N30, Tim 25 November 2026): cover,
+ * topic introduction, the lesson, Know it, Do it: 12 sides for folded A3. Lesson and page numbers
+ * are the small booklet's own (pages 1 to 12); the lesson keeps its number in the unit.
+ */
+export function topicLessonBooklet(booklet: Booklet, lesson: number): Booklet {
+  const doc = booklet.document;
+  return { ...booklet, document: { ...doc, firstLessonNumber: doc.firstLessonNumber + lesson, lessons: [doc.lessons[lesson]] } };
 }
 
 /**
