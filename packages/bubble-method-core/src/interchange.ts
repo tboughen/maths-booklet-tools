@@ -42,6 +42,8 @@ export const specSchema = z
     steps: z.array(stepInput).max(core.MAX_STEPS).optional(),
     intentionalError: z.boolean().optional(),
     lines: z.enum(LINE_WEIGHTS).optional(),
+    /** "house": navy rounded bubbles for house-style booklet pages; "plain" (default): black ovals. */
+    bubbles: z.enum(core.BUBBLE_STYLES).optional(),
   })
   .strict();
 export const createSchema = z
@@ -62,7 +64,7 @@ export const operationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("set_settings"),
-      settings: z.object({ intentionalError: z.boolean(), lines: z.enum(LINE_WEIGHTS) }).partial().strict(),
+      settings: z.object({ intentionalError: z.boolean(), lines: z.enum(LINE_WEIGHTS), bubbles: z.enum(core.BUBBLE_STYLES) }).partial().strict(),
     })
     .strict(),
 ]);
@@ -103,12 +105,14 @@ function buildLine(input: z.infer<typeof lineInput> | undefined, rel: core.Relat
   const s = splitLine(text);
   return { lhs: toValue({ text: s.lhs, hidden: hidden && !!s.lhs }), rel: s.rel, rhs: toValue({ text: s.rhs, hidden: hidden && !!s.rhs }) };
 }
-function settings(e: core.Envelope, s: { intentionalError?: boolean; lines?: "normal" | "bold" }): core.Envelope {
+function settings(e: core.Envelope, s: { intentionalError?: boolean; lines?: "normal" | "bold"; bubbles?: core.BubbleStyle }): core.Envelope {
   const n = structuredClone(e),
     d = n.document;
   if (s.intentionalError !== undefined) d.intentionalError = s.intentionalError;
   if (s.lines === "bold") d.lines = "bold";
   else if (s.lines === "normal") delete d.lines;
+  if (s.bubbles === "house") d.bubbles = "house";
+  else if (s.bubbles === "plain") delete d.bubbles;
   return core.validate(n);
 }
 
