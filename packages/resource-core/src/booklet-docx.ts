@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
+import { A4, BANNER, BOOKEND, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, headingLineRoom, KEY_IDEA, NCETM_CHIP, ncetmChipLabel, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -217,15 +217,19 @@ function cornerBadge(number: number, squares: string[], lit: string | null, page
   );
 }
 
-/** A section's heading, its instruction (on the same line when it fits) and the navy rule under it. */
-function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean): { xml: string; h: number } {
+/** A section's heading, its instruction (on the same line when it fits) and the navy rule under it. An answers copy may carry the section's NCETM chip at the line's right-hand end, as the PDF does. */
+function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean, chip?: { label: string; rid: string }): { xml: string; h: number } {
   const title = sectionTitle(section) + (continued ? " (continued)" : "");
   const titleW = plainWidth(title, A4.heading, "bold");
   const ins = continued ? "" : section.instruction.trim();
   const inline = !!ins && plainWidth(ins, A4.small) <= W - titleW - 4;
   const head = titleWordRuns(title, { bold: true, color: st.navy, sizeMm: A4.heading }, maths);
+  const c = NCETM_CHIP;
+  const look = { color: st.navy, sizeMm: c.size, shade: st.tint, border: st.navy };
+  const chipXml = chip && !continued ? tab() + `<w:hyperlink r:id="${chip.rid}" w:history="1">${run(" " + c.tag + "  ", { ...look, bold: true })}${run(chip.label + c.arrow + " ", look)}</w:hyperlink>` : "";
+  const tabs = [...(inline ? [{ pos: titleW + 4 }] : []), ...(chipXml ? [{ pos: W, align: "right" as const }] : [])];
   const out = [
-    para(inline ? head + tab() + runs(ins, { color: st.muted, sizeMm: A4.small }) : head, { line: lh(A4.heading), tabs: inline ? [{ pos: titleW + 4 }] : undefined, right: -WORD_WRAP_SLACK_MM }),
+    para((inline ? head + tab() + runs(ins, { color: st.muted, sizeMm: A4.small }) : head) + chipXml, { line: lh(A4.heading), tabs: tabs.length ? tabs : undefined, right: -WORD_WRAP_SLACK_MM }),
   ];
   let h = lh(A4.heading);
   if (ins && !inline) {
@@ -280,7 +284,14 @@ function lessonPage(doc: Booklet["document"], p: PlannedLessonPage, ctx: Ctx, le
       continue;
     }
     if (block.kind === "section") {
-      const head = sectionHead(section, st, block.continued, !!ctx.maths);
+      const label = ctx.view === "answers" && section.ncetm && !block.continued ? ncetmChipLabel(section.ncetm.label, headingLineRoom(section)) : null;
+      let chip: { label: string; rid: string } | undefined;
+      if (label !== null && section.ncetm) {
+        const rid = `rIdLink${ctx.rels.length + 1}`;
+        ctx.rels.push({ id: rid, target: section.ncetm.url, type: "hyperlink" });
+        chip = { label, rid };
+      }
+      const head = sectionHead(section, st, block.continued, !!ctx.maths, chip);
       out.push(head.xml);
       cursor = block.y + head.h;
       continue;

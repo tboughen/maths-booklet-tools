@@ -1050,6 +1050,8 @@ export async function writePackage(o: {
     `<Relationship Id="rIdFonts" Type="${REL}/fontTable" Target="fontTable.xml"/>`,
   ];
   for (const p of o.parts ?? []) docRels.push(`<Relationship Id="${p.id}" Type="${REL}/${p.relType}" Target="${p.name}"/>`);
+  // Web links (a booklet answers copy's NCETM chips): external targets.
+  for (const r of ctx.rels) if (r.type === "hyperlink") docRels.push(`<Relationship Id="${r.id}" Type="${REL}/hyperlink" Target="${x(r.target)}" TargetMode="External"/>`);
   for (const p of ctx.pictures) {
     const made = await options.picture(p.svg, p.widthMm, p.heightMm);
     files[`word/media/diagram${p.id}.png`] = made.png;

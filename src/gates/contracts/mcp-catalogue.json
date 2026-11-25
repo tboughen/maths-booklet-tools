@@ -488,6 +488,24 @@
                                 "letters"
                               ]
                             },
+                            "ncetm": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string",
+                                  "maxLength": 60
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "maxLength": 300
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "url"
+                              ],
+                              "additionalProperties": false
+                            },
                             "cards": {
                               "minItems": 1,
                               "maxItems": 16,
