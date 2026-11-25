@@ -287,3 +287,35 @@ test('library feedback refuses what it should', async () => {
   assert.equal(nobody.response.status, 403);
   assert.equal((await feedback('PUT', { action: 'comment', ...a704, text: 'Hi' })).response.status, 405);
 });
+
+test('library checks turn a lesson green for its version only, editors only, without GitHub', async () => {
+  const booklet = { id: 'y9-a7-04-lesson-booklet', year: 9, unit: 'A7', lesson: 'A7.04', version: 'Main', updated: '2026-11-25' };
+  const stored = { 'library/library.json': JSON.stringify({ ...libraryList, resources: [booklet] }) };
+  const puts = [];
+  const bucket = {
+    async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: `e${puts.length}` } : null; },
+    async put(k, v, o) { const exists = k in stored; if (o.onlyIf instanceof Headers ? exists : o.onlyIf.etagMatches !== `e${puts.length}`) return null; puts.push([k, o]); stored[k] = v; return {}; },
+  };
+  const env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: bucket, LIBRARY_EDITORS: 'Sam.Jones@school.example' };
+  const check = { action: 'check', ...a704, id: booklet.id, updated: '2026-11-25' };
+  const done = await feedback('POST', check, { env });
+  assert.equal(done.response.status, 200);
+  assert.equal(done.sent.length, 0);
+  assert.deepEqual(Object.keys(done.data.checks), [booklet.id]);
+  assert.equal(JSON.parse(stored['library/checks.json']).checks[booklet.id].by, 'Sam Jones');
+  const listed = await feedback('GET', undefined, { env });
+  assert.equal(listed.data.checks[booklet.id].updated, '2026-11-25');
+  const closing = await feedback('POST', { ...check, close: true }, { env, issues: [openIssue(a704)] });
+  assert.ok(closing.sent.some(([m, u, b]) => m === 'PATCH' && u.endsWith('/issues/7') && b.state === 'closed'));
+  assert.equal((await feedback('POST', { ...check, updated: '2026-11-18' }, { env })).response.status, 409);
+  assert.equal((await feedback('POST', { ...check, id: 'y9-a7-03-lesson-booklet' }, { env })).response.status, 400);
+  assert.equal((await feedback('POST', { ...check, lesson: 'A7.03' }, { env })).response.status, 400);
+  assert.equal((await feedback('POST', check, { env: { ...env, LIBRARY_EDITORS: 'tim@school.example' } })).response.status, 403);
+  const undone = await feedback('POST', { ...check, action: 'uncheck' }, { env });
+  assert.deepEqual(undone.data.checks, {});
+  const queuedStaysOpen = await feedback('POST', { ...check, close: true }, { env, issues: [openIssue(a704, ['library-feedback', 'queued'])] });
+  assert.ok(!queuedStaysOpen.sent.some(([m]) => m === 'PATCH'));
+  stored['library/checks.json'] = 'not json';
+  assert.equal((await feedback('POST', check, { env })).response.status, 502);
+  assert.equal(stored['library/checks.json'], 'not json');
+});

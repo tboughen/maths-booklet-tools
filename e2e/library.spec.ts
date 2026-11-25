@@ -9,13 +9,19 @@ const fixture = readFileSync(new URL("./fixtures/library.json", import.meta.url)
 type Sent = Record<string, unknown>;
 const thread = (over: Sent) => ({ number: 7, year: 9, unit: "A7", version: "Main", lesson: "A7.04", kind: "lesson", queued: false, agreed: false, opened: "2026-11-25T09:00:00Z", comments: [{ who: "Sam Jones", when: "2026-11-25T09:00:00Z", text: "Question 12 needs a whole-number example first." }], ...over });
 async function open(page: Page, address = "/library", { threads = [thread({})] as Sent[], canAct = true, feedback = true } = {}) {
-  const sent: Sent[] = [];
+  const sent: Sent[] = [], checks: Record<string, Sent> = {};
   await page.route("**/library-data/library.json", (route) => route.fulfill({ contentType: "application/json", body: fixture }));
   await page.route("**/library-data/files/**", (route) => route.fulfill({ contentType: "application/pdf", body: "%PDF-1.7" }));
   await page.route("**/api/library/feedback", async (route) => {
     if (!feedback) return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Feedback isn't switched on yet." }) });
-    if (route.request().method() === "POST") { sent.push(route.request().postDataJSON()); return route.fulfill({ contentType: "application/json", body: '{"ok":true}' }); }
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ threads, canAct, me: "Tim Boughen" }) });
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON();
+      sent.push(body);
+      if (body.action === "check") checks[body.id] = { updated: body.updated, by: "Tim Boughen", at: "2026-11-25T12:00:00Z" };
+      if (body.action === "uncheck") delete checks[body.id];
+      return route.fulfill({ contentType: "application/json", body: '{"ok":true}' });
+    }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ threads, checks, canAct, me: "Tim Boughen" }) });
   });
   await page.goto(address);
   return { main: page.getByRole("main"), sent };
@@ -87,12 +93,29 @@ test("staff comment on a lesson and the editor queues it, closes it or brings ba
   await expect(drawer).toBeHidden();
 });
 
+test("an editor ticks Checked and the lesson turns green at once, with Undo", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const { main, sent } = await open(page, "/library?year=9&unit=A7", { threads: [] });
+  const detail = main.getByRole("complementary", { name: "Unit resources" });
+  const a700 = detail.locator(".library-rows > li").filter({ hasText: "A7.00" });
+  await expect(a700).toHaveClass(/is-waiting/);
+  await a700.getByRole("button", { name: "Checked" }).click();
+  await expect(a700).toHaveClass(/is-ready/);
+  await expect(a700).toContainText("checked by Tim Boughen");
+  await expect(a700.getByRole("button", { name: "Checked" })).toHaveCount(0);
+  expect(sent[0]).toMatchObject({ action: "check", year: 9, unit: "A7", version: "Main", lesson: "A7.00", id: "y9-a7-00-lesson-booklet", updated: "2026-11-22" });
+  await a700.getByRole("button", { name: "Undo" }).click();
+  await expect(a700).toHaveClass(/is-waiting/);
+  await expect.poll(() => sent.map((s) => s.action)).toEqual(["check", "uncheck"]);
+});
+
 test("colleagues who are not editors can comment but not queue, and feedback that is off says so", async ({ page }) => {
   const { main } = await open(page, "/library?year=9&unit=A7", { canAct: false });
   const detail = main.getByRole("complementary", { name: "Unit resources" });
   const box = detail.getByRole("group", { name: "Feedback on A7.04" });
   await expect(box.getByRole("button", { name: "Send" })).toBeVisible();
   await expect(box.getByRole("button", { name: "Queue for tonight" })).toHaveCount(0);
+  await expect(detail.getByRole("button", { name: "Checked" })).toHaveCount(0);
   await page.unroute("**/api/library/feedback");
   await page.unroute("**/library-data/**");
   const off = await open(page, "/library?year=9&unit=A7", { feedback: false });

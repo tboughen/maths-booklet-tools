@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lessonPlan, loadFeedback, loadLibrary, partRanges, readState, searchLibrary, summary, threadMap, unitOf, versionsOf, writeState, type Library, type Resource, type Thread } from "./model";
+import { applyChecks, lessonPlan, predictFeedback, loadFeedback, loadLibrary, partRanges, readState, searchLibrary, summary, threadMap, unitOf, versionsOf, writeState, type Feedback, type Library, type Resource, type Thread } from "./model";
 
 const file = (role: "pupil" | "answers", format: "pdf" | "docx" = "pdf") => ({ role, format, name: `x_${role}.${format}`, bytes: 1, href: `library-data/files/${"a".repeat(64)}/x_${role}.${format}` });
 const res = (over: Partial<Resource>): Resource => ({ id: "r", year: 9, unit: "A7", version: "Main", title: "Gradient", type: "lesson-booklet", status: "ready", updated: "2026-11-22", files: [file("pupil")], history: [], ...over });
@@ -60,6 +60,25 @@ describe("Resource library list", () => {
   it("treats feedback that is off or broken as off", async () => {
     await expect(loadFeedback(async () => Response.json({ error: "Feedback isn't switched on yet." }, { status: 503 }))).resolves.toEqual({ off: "Feedback isn't switched on yet." });
     await expect(loadFeedback(async () => new Response("<html>"))).resolves.toEqual({ off: "Feedback could not be loaded." });
-    await expect(loadFeedback(async () => Response.json({ threads: [], canAct: true, me: "Tim" }))).resolves.toEqual({ threads: [], canAct: true, me: "Tim" });
+    await expect(loadFeedback(async () => Response.json({ threads: [], canAct: true, me: "Tim" }))).resolves.toEqual({ threads: [], checks: {}, canAct: true, me: "Tim" });
+  });
+  it("shows a checked booklet green only at the version that was checked", () => {
+    const base = { schema: "mathsdock-library-served/2", published: "", years: [], resources: [{ id: "a", year: 9, unit: "A7", lesson: "A7.01", version: "Main", title: "", type: "lesson-booklet", status: "waiting", updated: "2026-11-25", files: [], history: [] }] } as unknown as Library;
+    const check = { updated: "2026-11-25", by: "Tim Boughen", at: "" };
+    expect(applyChecks(base, { a: check }).resources[0]).toMatchObject({ status: "ready", checked: check });
+    expect(applyChecks(base, { a: { ...check, updated: "2026-11-18" } }).resources[0].status).toBe("waiting");
+    expect(applyChecks(base, {})).toBe(base);
+  });
+  it("predicts what an action does before the Worker answers", () => {
+    const old = { threads: [], checks: {}, canAct: true, me: "Tim Boughen" } as Feedback;
+    const key = { year: 9, unit: "A7", version: "Main", lesson: "A7.01" };
+    const commented = predictFeedback(old, { action: "comment", ...key, text: " Q3 typo " }) as Extract<Feedback, { threads: unknown }>;
+    expect(commented.threads[0]).toMatchObject({ lesson: "A7.01", kind: "lesson", comments: [{ who: "Tim Boughen", text: "Q3 typo" }] });
+    const queued = predictFeedback(commented, { action: "queue", ...key }) as Extract<Feedback, { threads: unknown }>;
+    expect(queued.threads[0].queued).toBe(true);
+    const checked = predictFeedback(queued, { action: "check", ...key, id: "a", updated: "2026-11-25", close: true }) as Extract<Feedback, { threads: unknown }>;
+    expect(checked.threads).toEqual([]);
+    expect(checked.checks.a.by).toBe("Tim Boughen");
+    expect((predictFeedback(checked, { action: "uncheck", ...key, id: "a" }) as Extract<Feedback, { checks: unknown }>).checks).toEqual({});
   });
 });
