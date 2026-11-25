@@ -910,10 +910,13 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       // A start banner stays with the heading and first row; an end banner stays with the last row.
       const startFrag = banners[si].start ? bannerFrag(banners[si].start, false, st, folded ? note : "") : null;
       // The check-in's STOP goes in the footer's place when the block ends on the lesson's first page and a stage follows (N28).
-      const footStop = block?.last === si && block.stageNext;
+      // A section's own saved end banner always prints inline, as typed.
+      const footStop = block?.last === si && block.stageNext && !section.endBanner.trim();
       const endFrag = banners[si].end ? bannerFrag(banners[si].end, true, st) : null;
       const startH = startFrag ? startFrag.h + BANNER.gap : 0;
-      const endH = endFrag && !(footStop && !pg.continued) ? BANNER.gap + endFrag.h : 0;
+      // The STOP takes room only once the section has left the lesson's first page, so this is read again after each page break.
+      const endHNow = () => (endFrag && !(footStop && !pg.continued) ? BANNER.gap + endFrag.h : 0);
+      const endH = endHNow();
       // A cycle (a start banner) always opens a new page, so pupils find where each part begins; a lesson's own first page is the exception.
       const onlyHead = pg.blocks.length === 1 && pg.blocks[0].block.kind === "head";
       if (startFrag && pg.blocks.length && !onlyHead) fresh();
@@ -927,7 +930,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       y += headFrag.h;
       rows.forEach((row, ri) => {
         if (ri > 0) y += A4.rowGap;
-        const tail = ri === rows.length - 1 ? endH : 0;
+        const tail = ri === rows.length - 1 ? endHNow() : 0;
         if (y + row.h + tail > A4.bottom && ri > 0) {
           pg.end = y - A4.rowGap;
           fresh();

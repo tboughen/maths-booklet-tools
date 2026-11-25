@@ -143,6 +143,12 @@ describe("booklet lesson bookends", () => {
       [0, false],
       [1, true],
     ]);
+    // A check-in that spills past the first page keeps its STOP with its last card, never alone on a page.
+    for (let n = 2; n <= 16; n++) for (let m = 1; m <= 8; m++) {
+      const long = planBooklet(booklet([section("check-in", n), section("practice", m, { title: "From lesson 1" }), section("worked", 2, { startBanner: "Stage 1" })]));
+      for (const p of long.pages) expect(p.blocks.length && p.blocks.every((x) => x.kind === "banner")).toBe(false);
+      for (const p of long.pages) for (const x of p.blocks) expect(x.y + x.h).toBeLessThanOrEqual(A4.bottom + 0.01);
+    }
     // Retrieval in a practice section before the first stage still belongs to the check-in.
     const a7 = [section("check-in", 2), section("practice", 1, { title: "From lesson 1" }), section("worked", 2, { startBanner: "Stage 1" })];
     expect(checkInBlock(booklet(a7).document.lessons[0])).toEqual({ first: 0, last: 1, stageNext: true });
