@@ -712,7 +712,8 @@ export function introLessons(doc: Booklet["document"], intro: Intro): string[] {
 
 /** The cover title: the topic title, and "Part 1 of 2" when the unit prints in parts (N33). */
 export function coverTitle(doc: Booklet["document"]): string {
-  return doc.part ? `${doc.title}: Part ${doc.part.n} of ${doc.part.of}` : doc.title;
+  // No-break spaces keep "Part 1 of 2" on one line when the title wraps.
+  return doc.part ? `${doc.title}: Part\u00a0${doc.part.n}\u00a0of\u00a0${doc.part.of}` : doc.title;
 }
 
 /** The cover's contents heading and the introduction page's title (N30: the topic pages). */

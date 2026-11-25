@@ -119,7 +119,7 @@ describe("a unit in parts", () => {
     expect(p.document.intro?.lessons).toHaveLength(6);
     expect(p.document.intro?.highlight).toEqual([2, 3, 4, 5]);
     const r = renderBooklet(p);
-    expect(r.pages[0].replace(/<[^>]+>/g, "")).toContain("Algebraic proficiency: Part 2 of 2");
+    expect(r.pages[0].replace(/<[^>]+>/g, "")).toContain("Algebraic proficiency: Part\u00a02\u00a0of\u00a02");
     expect(r.pages[1]).toContain("Lesson 0: Lesson title 0");
     expect(r.pages.length % 4).toBe(0);
     expect(r.issues.filter((i) => /multiple of 4|photocopier|Part/.test(i.message))).toEqual([]);
@@ -149,6 +149,6 @@ describe("a unit in parts", () => {
     const p = topicPartBooklet(booklet({}, 3), 0, 1, { n: 1, of: 2 });
     const { bytes } = await writeBookletDocx(p, { view: "pupil", fonts, picture: (s) => ({ svg: s, png: new Uint8Array([137, 80, 78, 71]) }) });
     const zip = unzipSync(bytes);
-    expect(strFromU8(zip["word/document.xml"])).toContain("Part 1 of 2");
+    expect(strFromU8(zip["word/document.xml"])).toContain("Part\u00a01\u00a0of\u00a02");
   });
 });
