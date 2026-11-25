@@ -18,6 +18,26 @@ describe("bubble method", () => {
     expect(bm.renderSvg(bm.forView(hidden, "answer"))).not.toContain(bm.ANSWER_COLOUR);
   });
 
+  it("saves house-style bubbles, never saves plain, and keeps the same layout either way", async () => {
+    const e = io.create({ spec: { example: "subject-two-steps", worked: true } });
+    const house = io.create({ spec: { example: "subject-two-steps", worked: true, bubbles: "house" } });
+    expect(house.document.bubbles).toBe("house");
+    expect(bm.parseFile(bm.canonical(house)).document.bubbles).toBe("house");
+    expect(bm.decodeLinkHash(bm.linkHash(house)).document.bubbles).toBe("house");
+    const plain = bm.validate({ ...structuredClone(e), document: { ...structuredClone(e.document), bubbles: "plain" } });
+    expect(bm.canonical(plain)).toBe(bm.canonical(e));
+    expect(await bm.hash(plain)).toBe(await bm.hash(e));
+    const svg = bm.renderSvg(house);
+    expect(svg).toContain(`stroke="${bm.HOUSE_NAVY}"`);
+    expect(svg).not.toContain("<ellipse");
+    expect(bm.renderSvg(e)).not.toContain(bm.HOUSE_NAVY);
+    expect(JSON.stringify(bm.layout(house))).toBe(JSON.stringify(bm.layout(e)));
+    const back = await io.revise({ envelope: house, baseHash: await bm.hash(house), operations: [{ op: "set_settings", settings: { bubbles: "plain" } }] });
+    expect(back.document.bubbles).toBeUndefined();
+    const again = await io.revise({ envelope: back, baseHash: await bm.hash(back), operations: [{ op: "set_settings", settings: { bubbles: "house" } }] });
+    expect(again.document.bubbles).toBe("house");
+  });
+
   it("prints keyboard signs as a paper prints them and stacks fractions", () => {
     expect(typesetSide("3x+2")).toBe("3x + 2");
     expect(typesetSide("y-2")).toBe("y − 2");

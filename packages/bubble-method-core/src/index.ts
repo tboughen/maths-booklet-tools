@@ -29,6 +29,15 @@ export const MAX_SIDE = 40;
 export const MAX_OP = 12;
 export const MAX_TERMS = 10;
 export const ANSWER_COLOUR = "#b0125b";
+/**
+ * Bubble looks. "plain" (the default, never saved): black oval bubbles. "house" (25 Nov 2026, for
+ * booklet pages in the house style): navy rounded bubbles with navy operations, as on the booklet
+ * revision page mock-up. Lines stay black either way; hidden answers stay dark pink on the
+ * answers copy only. Sizes never change, so pupil space is the same in both.
+ */
+export const BUBBLE_STYLES = ["plain", "house"] as const;
+export type BubbleStyle = (typeof BUBBLE_STYLES)[number];
+export const HOUSE_NAVY = "#173c65";
 export const RELATIONS = ["=", "<", ">", "≤", "≥"] as const;
 export type Relation = (typeof RELATIONS)[number];
 
@@ -72,6 +81,11 @@ export const documentSchema = z
     lines: z
       .enum(LINE_WEIGHTS)
       .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
+    /** Navy rounded bubbles in the house style. Plain black bubbles are the default and are never saved. */
+    bubbles: z
+      .enum(BUBBLE_STYLES)
+      .transform((v) => (v === "house" ? v : undefined))
       .optional(),
   })
   .strict();
@@ -399,11 +413,12 @@ export const exportIssue = (e: Envelope) => layout(e).issues[0] ?? null;
 const num = (v: number) => String(Math.round(v * 1000) / 1000);
 const dotted = (x1: number, x2: number, y: number) =>
   `<line x1="${num(x1)}" y1="${num(y)}" x2="${num(x2)}" y2="${num(y)}" stroke="black" stroke-width="0.3" stroke-dasharray="0.3 0.9" stroke-linecap="round"/>`;
-const ink = (v: Value) => (REVEALED.has(v) ? ANSWER_COLOUR : "black");
+const ink = (v: Value, base = "black") => (REVEALED.has(v) ? ANSWER_COLOUR : base);
 
 export function renderSvg(e: Envelope): string {
   const d = e.document,
     g = layout(e),
+    house = d.bubbles === "house",
     out: string[] = [`<rect width="${num(g.width)}" height="${num(g.height)}" fill="white"/>`];
   for (const r of g.rows) {
     if (r.kind === "line") {
@@ -420,9 +435,13 @@ export function renderSvg(e: Envelope): string {
       for (const b of r.items) {
         // A left-out bubble prints nothing, not even the empty bubble a pupil blank prints.
         if (b.v.show === "omit") continue;
-        out.push(`<ellipse cx="${num(b.cx)}" cy="${num(r.cy)}" rx="${num(b.rx)}" ry="${num(b.ry)}" fill="none" stroke="black" stroke-width="0.3"/>`);
+        if (house)
+          out.push(
+            `<rect x="${num(b.cx - b.rx)}" y="${num(r.cy - b.ry)}" width="${num(b.rx * 2)}" height="${num(b.ry * 2)}" rx="${num(b.ry * 0.6)}" fill="none" stroke="${HOUSE_NAVY}" stroke-width="0.3"/>`,
+          );
+        else out.push(`<ellipse cx="${num(b.cx)}" cy="${num(r.cy)}" rx="${num(b.rx)}" ry="${num(b.ry)}" fill="none" stroke="black" stroke-width="0.3"/>`);
         const p = printed(b.v);
-        if (p) out.push(markupCentred(typesetOp(p), b.cx, r.cy, ink(b.v)));
+        if (p) out.push(markupCentred(typesetOp(p), b.cx, r.cy, ink(b.v, house ? HOUSE_NAVY : "black")));
       }
   }
   const said = (v: Value) => (printed(v) ? typesetSide(printed(v)) : "blank");
