@@ -189,7 +189,7 @@ export function didYouKnowIcon(s: number, navy: string): string {
   );
 }
 
-/** The lesson's start block: tile, unit, title and START; then the key idea. */
+/** The lesson's start block: tile, unit and title; then the key idea. START waits for the check-in banner (N28), so the teacher can introduce the key idea and Did you know first. */
 function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st: HouseStyle): Frag {
   const B = BOOKEND;
   const out: string[] = [];
@@ -206,7 +206,6 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   out.push(textSvg([{ text: String(number), style: "bold" }], B.startPad + B.tile / 2, ty + 14.6, pt(26), st.navy, "middle"));
   const y0 = (h - textH) / 2;
   out.push(at(unitF, 0, y0), at(title, 0, y0 + unitF.h + (unit ? START_SIZES.gap : 0)));
-  out.push(textSvg([{ text: B.start, style: "bold" }], W - B.startPad, h / 2 + pt(14) * 0.36, pt(14), "white", "end"));
   // One title line (N2): the lesson's code and objective are not printed again under it.
   let y = h;
   if (lesson.keyIdea.trim()) {
@@ -343,17 +342,73 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
   };
 }
 
+/**
+ * The check-in block (N28, Tim 25 Nov 2026): the lesson's opening sections, from its check-in up to the first stage's START
+ * (so "From lesson 1" retrieval belongs to it), or the leading run of check-in sections when the lesson has no stages.
+ * It opens with "Check in" START, so the teacher can introduce the key idea and Did you know first, and closes with
+ * "End of check in" STOP: in the footer's place when the block ends on the lesson's first page and a stage follows, so it
+ * takes no room from the cards, otherwise straight after the block's last card.
+ */
+export const CHECK_IN = { start: "Check in", end: "End of check in" } as const;
+export function checkInBlock(lesson: Lesson): { first: number; last: number; stageNext: boolean } | null {
+  const secs = lesson.sections;
+  if (!secs.length || secs[0].kind !== "check-in" || secs[0].startBanner.trim()) return null;
+  const stage = secs.findIndex((s) => s.startBanner.trim());
+  if (stage > 0) return { first: 0, last: stage - 1, stageNext: true };
+  let last = 0;
+  while (last + 1 < secs.length && secs[last + 1].kind === "check-in") last++;
+  return { first: 0, last, stageNext: false };
+}
+
+/** The banners each section prints: its own, plus the check-in block's START and STOP. Stage squares count only the sections' own start banners. */
+export function sectionBanners(lesson: Lesson): { start: string; end: string }[] {
+  const out = lesson.sections.map((s) => ({ start: s.startBanner.trim(), end: s.endBanner.trim() }));
+  const block = checkInBlock(lesson);
+  if (block) {
+    out[block.first].start = sectionTitle(lesson.sections[block.first]);
+    if (!out[block.last].end) out[block.last].end = CHECK_IN.end;
+  }
+  return out;
+}
+
+/** The check-in's instruction, printed in its START banner at the heading instruction's own size (A4.small) in place of a section heading (one navy bar opens the check-in), or null when it would not fit on the bar's one line. */
+export function checkInNote(lesson: Lesson): string | null {
+  const block = checkInBlock(lesson);
+  if (!block) return null;
+  const sec = lesson.sections[block.first];
+  const ins = sec.instruction.trim();
+  const used = 2 * BANNER.pad + plainWidth(sectionTitle(sec), S.body, "bold") + BANNER.noteGap + plainWidth(BANNER.start, S.body, "bold") + 6;
+  return !ins || plainWidth(ins, A4.small) <= W - used ? ins : null;
+}
+
+/** "End of check in" STOP in the footer's place on a lesson's first page (N28): a stage banner with the page number centred. */
+export function checkInBand(pageNo: number, st: HouseStyle): string {
+  const x0 = A4.marginX;
+  const y = BOOKEND.endTop;
+  const by = y + BANNER.h / 2 + S.body * 0.36;
+  return [
+    rect(x0, y, W, BANNER.h, `rx="1.4" fill="${st.navy}"`),
+    textSvg([{ text: CHECK_IN.end, style: "bold" }], x0 + BANNER.pad, by, S.body, "white"),
+    textSvg([{ text: `Page ${pageNo}`, style: "bold" }], x0 + W / 2, y + BANNER.h / 2 + A4.pageNumber * 0.36, A4.pageNumber, "white", "middle"),
+    textSvg([{ text: BANNER.end, style: "bold" }], x0 + W - BANNER.pad, by, S.body, "white", "end"),
+  ].join("");
+}
+
 /** Cycle banners: a full-width navy band, the label in white bold on the left and START or STOP on the right. */
-export const BANNER = { h: 8, gap: 2.5, pad: 3, start: "START", end: "STOP" } as const;
-export function bannerFrag(label: string, end: boolean, st: HouseStyle): Frag {
+export const BANNER = { h: 8, gap: 2.5, pad: 3, start: "START", end: "STOP", noteGap: 4 } as const;
+/** A banner, with an optional note in regular weight after the label (the check-in's instruction, N28). */
+export function bannerFrag(label: string, end: boolean, st: HouseStyle, note = ""): Frag {
   const tag = end ? BANNER.end : BANNER.start;
   const y = BANNER.h / 2 + S.body * 0.36;
   const room = W - 2 * BANNER.pad - plainWidth(tag, S.body, "bold") - 6;
+  const shown = fitLine(label, S.body, room, "bold");
+  const noteX = BANNER.pad + plainWidth(shown, S.body, "bold") + BANNER.noteGap;
   return {
     h: BANNER.h,
     svg:
       rect(0, 0, W, BANNER.h, `rx="1.4" fill="${st.navy}"`) +
-      textSvg(parseRuns(fitLine(label, S.body, room, "bold"), "bold"), BANNER.pad, y, S.body, "white") +
+      textSvg(parseRuns(shown, "bold"), BANNER.pad, y, S.body, "white") +
+      (note ? textSvg(parseRuns(note), noteX, y, A4.small, "white") : "") +
       textSvg([{ text: tag, style: "bold" }], W - BANNER.pad, y, S.body, "white", "end"),
   };
 }
@@ -552,6 +607,7 @@ type Block =
 interface PlannedPage {
   lesson: number;
   continued: boolean;
+  checkInStop?: boolean;
   blocks: { block: Block; y: number }[];
   end: number;
 }
@@ -850,6 +906,8 @@ export interface PlannedLessonPage {
   blocks: PlacedBlock[];
   /** The lesson's last page: the end band takes the footer's place (N11). */
   last: boolean;
+  /** The lesson's first page, where the check-in block ends: "End of check in" STOP takes the footer's place (N28). */
+  checkInStop: boolean;
   /** The stage squares in the corner, and the lit one (null before the first stage). */
   squares: string[];
   stage: string | null;
@@ -890,14 +948,24 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
       planned.push(pg);
     };
     const labels = lessonLabels(lesson);
+    const banners = sectionBanners(lesson);
+    const block = checkInBlock(lesson);
+    const note = checkInNote(lesson);
     lesson.sections.forEach((section, si) => {
       const rows = rowsOf(section, labels[si], si + 1, L, ctx);
-      const headFrag = sectionHead(section, st, false, !!ctx.maths);
+      // The check-in's START banner carries its heading and instruction when they fit on its line (N28).
+      const folded = block?.first === si && note !== null;
+      const headFrag = folded ? { h: 0, svg: "" } : sectionHead(section, st, false, !!ctx.maths);
       // A start banner stays with the heading and first row; an end banner stays with the last row.
-      const startFrag = section.startBanner.trim() ? bannerFrag(section.startBanner, false, st) : null;
-      const endFrag = section.endBanner.trim() ? bannerFrag(section.endBanner, true, st) : null;
+      const startFrag = banners[si].start ? bannerFrag(banners[si].start, false, st, folded ? note : "") : null;
+      // The check-in's STOP goes in the footer's place when the block ends on the lesson's first page and a stage follows (N28).
+      // A section's own saved end banner always prints inline, as typed.
+      const footStop = block?.last === si && block.stageNext && !section.endBanner.trim();
+      const endFrag = banners[si].end ? bannerFrag(banners[si].end, true, st) : null;
       const startH = startFrag ? startFrag.h + BANNER.gap : 0;
-      const endH = endFrag ? BANNER.gap + endFrag.h : 0;
+      // The STOP takes room only once the section has left the lesson's first page, so this is read again after each page break.
+      const endHNow = () => (endFrag && !(footStop && !pg.continued) ? BANNER.gap + endFrag.h : 0);
+      const endH = endHNow();
       // A cycle (a start banner) always opens a new page, so pupils find where each part begins; a lesson's own first page is the exception.
       const onlyHead = pg.blocks.length === 1 && pg.blocks[0].block.kind === "head";
       if (startFrag && pg.blocks.length && !onlyHead) fresh();
@@ -907,11 +975,11 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
         pg.blocks.push({ block: { kind: "banner", section: si, end: false, frag: startFrag }, y });
         y += startH;
       }
-      pg.blocks.push({ block: { kind: "section", section: si, continued: false, frag: headFrag }, y });
+      if (!folded) pg.blocks.push({ block: { kind: "section", section: si, continued: false, frag: headFrag }, y });
       y += headFrag.h;
       rows.forEach((row, ri) => {
         if (ri > 0) y += A4.rowGap;
-        const tail = ri === rows.length - 1 ? endH : 0;
+        const tail = ri === rows.length - 1 ? endHNow() : 0;
         if (y + row.h + tail > A4.bottom && ri > 0) {
           pg.end = y - A4.rowGap;
           fresh();
@@ -923,9 +991,15 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
         y += row.h;
         pg.end = y;
       });
-      if (endFrag) {
+      if (endFrag && footStop && !pg.continued) pg.checkInStop = true;
+      else if (endFrag) {
+        // The check-in spilled past its first page: its STOP follows the last card, on a fresh page if it no longer fits.
+        if (y + BANNER.gap + endFrag.h > A4.bottom) {
+          fresh();
+          y = pg.end - BANNER.gap;
+        }
         pg.blocks.push({ block: { kind: "banner", section: si, end: true, frag: endFrag }, y: y + BANNER.gap });
-        pg.end = y + endH;
+        pg.end = y + BANNER.gap + endFrag.h;
       }
     });
   });
@@ -963,7 +1037,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
     const firstSection = blocks.find((b): b is Exclude<PlacedBlock, { kind: "head" }> => b.kind !== "head");
     const stage = firstSection ? sectionStages(lesson)[firstSection.section] : null;
     const last = pi === planned.length - 1 || planned[pi + 1].lesson !== p.lesson;
-    return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks, last, squares: stageSquares(lesson), stage };
+    return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks, last, checkInStop: !!p.checkInStop, squares: stageSquares(lesson), stage };
   });
   return { pages, lessonPages, introPage: introPageNo, retrievalPage: retrievalPageNo, contents };
 }
@@ -1022,8 +1096,10 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
       }
       if (block.kind === "banner") {
         const sec = lesson.sections[block.section];
-        const label = block.end ? sec.endBanner : sec.startBanner;
-        out.push(at(bannerFrag(label, block.end, st), A4.marginX, yy));
+        const label = block.end ? sectionBanners(lesson)[block.section].end : sectionBanners(lesson)[block.section].start;
+        const note = !block.end && checkInBlock(lesson)?.first === block.section ? (checkInNote(lesson) ?? "") : "";
+        out.push(at(bannerFrag(label, block.end, st, note), A4.marginX, yy));
+        if (note) glyphs({ instruction: note }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(sec)} heading`);
         glyphs({ title: label }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(sec)} banner`);
         continue;
       }
@@ -1052,7 +1128,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         out.push(at(f, A4.marginX + c.x, yy + c.dy));
       });
     }
-    pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
+    pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : p.checkInStop ? checkInBand(shownPage, st) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 
   if (view === "answers") doc.lessons.forEach((l, i) => {
