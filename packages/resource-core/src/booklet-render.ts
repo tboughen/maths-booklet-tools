@@ -1,9 +1,9 @@
 import { typesetForPrint } from "./typeset";
 import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fractionBaseline, fractionLine, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap } from "./text";
+import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink } from "./booklet";
+import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, type Misconception } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -459,6 +459,125 @@ function ncetmChip(link: NcetmLink, room: number, st: HouseStyle): string | null
     textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.padX, by, c.size, st.navy) +
     `</a>`
   );
+}
+
+/**
+ * Common misconceptions (Tim, 25 November 2026): in the ANSWERS copy only, the footer of the page
+ * where a section starts carries an amber "Watch for" box left of the page number and an "Ask" box
+ * (the question to ask, then the source) to its right. The footer is empty in both copies, so no
+ * layout moves. Each box holds at most two lines at full size; text is never shrunk to fit. Word
+ * draws the same boxes in that page's own footer (booklet-docx).
+ */
+export const MISCONCEPTION = {
+  top: 284.3,
+  h: 8.7,
+  size: 8 * 0.3528,
+  pitch: 1.2,
+  padX: 1.8,
+  bar: 0.9,
+  /** Room kept clear each side of the page's centre for the page number. */
+  numberRoom: 12,
+  maxLines: 2,
+  label: "Watch for",
+  ask: "Ask:",
+  source: "Source:",
+  ink: "#1f2937",
+  warn: "#92400e",
+  edge: "#d97706",
+  fill: "#fff7e0",
+  muted: "#6b7280",
+} as const;
+export type NoteWord = { text: string; tone: "warn" | "ink" | "muted"; bold: boolean; runs: Line };
+/** The two boxes' left edges (from the page's left margin) and their width. */
+export const misconceptionBoxes = () => {
+  const w = W / 2 - MISCONCEPTION.numberRoom;
+  return [{ x: 0, w }, { x: W / 2 + MISCONCEPTION.numberRoom, w }] as const;
+};
+export const misconceptionTextWidth = () => misconceptionBoxes()[0].w - 2 * MISCONCEPTION.padX - MISCONCEPTION.bar;
+const noteWidth = (w: NoteWord) => lineWidth(w.runs, MISCONCEPTION.size);
+
+function wrapNote(words: NoteWord[], width: number): NoteWord[][] {
+  const space = plainWidth(" ", MISCONCEPTION.size);
+  const lines: NoteWord[][] = [[]];
+  let used = 0;
+  for (const w of words) {
+    const line = lines[lines.length - 1];
+    const add = (line.length ? space : 0) + noteWidth(w);
+    if (line.length && used + add > width) {
+      lines.push([w]);
+      used = noteWidth(w);
+    } else {
+      line.push(w);
+      used += add;
+    }
+  }
+  return lines;
+}
+const split = (src: string, tone: NoteWord["tone"], bold = false, maths = false): NoteWord[] =>
+  src.trim().split(/\s+/).filter(Boolean).map((text) => ({ text, tone, bold, runs: parseRuns(text, bold ? "bold" : "regular", maths) }));
+
+/** The two boxes' wrapped lines, or null when either needs more than two lines or holds a stacked fraction (too tall for the box: write it in words). */
+export function misconceptionLines(m: Misconception, maths = false): { left: NoteWord[][]; right: NoteWord[][] } | null {
+  const M = MISCONCEPTION;
+  const width = misconceptionTextWidth();
+  const leftWords = [...split(M.label, "warn", true), ...split(m.watch, "ink", false, maths)];
+  const rightWords = [...split(M.ask, "warn", true), ...split(m.ask, "ink", false, maths), ...split(M.source, "muted", true), ...split(m.source, "muted")];
+  if ([...leftWords, ...rightWords].some((w) => hasFraction(w.runs))) return null;
+  const left = wrapNote(leftWords, width);
+  const right = wrapNote(rightWords, width);
+  return left.length > M.maxLines || right.length > M.maxLines ? null : { left, right };
+}
+export const misconceptionToneColour = (tone: NoteWord["tone"]) => (tone === "warn" ? MISCONCEPTION.warn : tone === "muted" ? MISCONCEPTION.muted : MISCONCEPTION.ink);
+
+/** The note, if any, that prints in this page's footer, and the problems found placing notes on it. Answers copy only. */
+export function pageMisconception(lesson: Lesson, p: { last: boolean; checkInStop: boolean; blocks: readonly PlacedBlock[] }, view: "pupil" | "answers", maths = false): { note: { section: number; lines: NonNullable<ReturnType<typeof misconceptionLines>> } | null; problems: { section: number; message: string }[] } {
+  const problems: { section: number; message: string }[] = [];
+  let note: { section: number; lines: NonNullable<ReturnType<typeof misconceptionLines>> } | null = null;
+  if (view !== "answers") return { note, problems };
+  for (const b of p.blocks) {
+    if (b.kind !== "section" || b.continued) continue;
+    const sec = lesson.sections[b.section];
+    if (!sec.misconception) continue;
+    const name = sectionTitle(sec);
+    if (p.last || p.checkInStop) {
+      problems.push({ section: b.section, message: `The misconception for "${name}" cannot print: this page's footer holds the ${p.last ? "end of lesson" : "check-in STOP"} band. Put it on a section that starts on another page.` });
+      continue;
+    }
+    if (note) {
+      problems.push({ section: b.section, message: `Two misconceptions would share one page footer ("${sectionTitle(lesson.sections[note.section])}" and "${name}"). Keep one a page.` });
+      continue;
+    }
+    const lines = misconceptionLines(sec.misconception, maths);
+    if (!lines) {
+      problems.push({ section: b.section, message: `The misconception for "${name}" needs more than two lines in a box, or has a stacked fraction. Shorten its watch, ask or source and write fractions in words; text is never shrunk.` });
+      continue;
+    }
+    note = { section: b.section, lines };
+  }
+  return { note, problems };
+}
+
+function misconceptionSvg(lines: { left: NoteWord[][]; right: NoteWord[][] }): string {
+  const M = MISCONCEPTION;
+  const pitch = M.size * M.pitch;
+  const space = plainWidth(" ", M.size);
+  const out: string[] = [];
+  misconceptionBoxes().forEach((b, k) => {
+    const x = A4.marginX + b.x;
+    out.push(rect(x, M.top, b.w, M.h, `rx="1.2" fill="${M.fill}" stroke="${M.edge}" stroke-width="0.28"`));
+    out.push(rect(x, M.top, M.bar, M.h, `rx="0.45" fill="${M.edge}"`));
+    const box = k === 0 ? lines.left : lines.right;
+    const y0 = M.top + (M.h - box.length * pitch) / 2;
+    box.forEach((line, i) => {
+      let cx = x + M.bar + M.padX;
+      const by = y0 + i * pitch + (pitch - M.size) / 2 + M.size * 0.82;
+      for (const w of line) {
+        out.push(textSvg(w.runs, cx, by, M.size, misconceptionToneColour(w.tone)));
+        cx += noteWidth(w) + space;
+      }
+    });
+  });
+  return out.join("");
 }
 
 function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths: boolean, link?: { link: NcetmLink; onMissing: () => void }): Frag {
@@ -1279,7 +1398,11 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         out.push(at(f, A4.marginX + c.x, yy + c.dy));
       });
     }
-    pages.push(page(out.join("") + (p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : p.checkInStop ? checkInBand(shownPage, st) : footer(doc, shownPage, st)), `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
+    const mis = pageMisconception(lesson, p, view, !!ctx.maths);
+    for (const pr of mis.problems) issues.push({ lesson: p.lesson, section: pr.section + 1, page: pageNo, message: pr.message });
+    if (mis.note) glyphs({ title: lesson.sections[mis.note.section].misconception!.watch, instruction: lesson.sections[mis.note.section].misconception!.ask + " " + lesson.sections[mis.note.section].misconception!.source }, { lesson: p.lesson, section: mis.note.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(lesson.sections[mis.note.section])} misconception`);
+    const foot = p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : p.checkInStop ? checkInBand(shownPage, st) : footer(doc, shownPage, st) + (mis.note ? misconceptionSvg(mis.note.lines) : "");
+    pages.push(page(out.join("") + foot, `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 
   if (view === "answers") doc.lessons.forEach((l, i) => {

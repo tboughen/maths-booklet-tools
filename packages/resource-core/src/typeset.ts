@@ -240,7 +240,7 @@ export function keepTogether(source: string): string {
 }
 
 /** Printed keys whose text takes italic maths letters, and those that print in bold (symbols only). */
-const BODY = new Set(["text", "prefix", "suffix", "answer", "before", "items", "options", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next", "columns", "question"]);
+const BODY = new Set(["text", "prefix", "suffix", "answer", "before", "items", "options", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next", "columns", "question", "watch", "ask"]);
 /** Printed keys that wrap as paragraphs; answer lines, options, cells and headings stay as typed. */
 const FLOWING = new Set(["text", "items", "objective", "instruction", "keyIdea", "didYouKnow", "coverNote", "meaning", "remember", "learn", "next", "question"]);
 const HEADINGS = new Set(["title", "heading", "label", "word", "startBanner", "endBanner"]);
