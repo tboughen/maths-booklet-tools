@@ -160,9 +160,12 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
       await gh.call('DELETE', `/issues/comments/${comment.id}`);
       // Read what is left after the delete (two deletes at once both see the truth), and never close a
       // thread Tim has queued or agreed: deleting a comment must not cancel his decision.
-      const left = thread.queued || thread.agreed ? null : await gh.call('GET', `/issues/${thread.number}/comments?per_page=1`);
-      const closed = Array.isArray(left) && left.length === 0;
-      if (closed) await gh.call('PATCH', `/issues/${thread.number}`, { state: 'closed', state_reason: 'not_planned' });
+      // The delete has happened: a failure from here on leaves the thread open, never reports an error.
+      let closed = false;
+      try {
+        const left = thread.queued || thread.agreed ? null : await gh.call('GET', `/issues/${thread.number}/comments?per_page=1`);
+        if (Array.isArray(left) && left.length === 0) { await gh.call('PATCH', `/issues/${thread.number}`, { state: 'closed', state_reason: 'not_planned' }); closed = true; }
+      } catch { closed = false; }
       return json(200, { ok: true, closed });
     }
     if (isCheck) {
