@@ -439,3 +439,30 @@ test('the cover request log shows names and states, never addresses', async () =
   assert.equal(JSON.stringify(data).includes('%40'), false);
   assert.equal(data.building, false);
 });
+
+test('a library editor can delete a cover lesson from the list, and nothing else', async () => {
+  const stored = { 'library/library.json': JSON.stringify({ resources: [
+    { id: 'y11-cover-2026-11-26-41', unit: 'REVIEW', note: 'Cover request #41' },
+    { id: 'y11-mock-revision', unit: 'REVIEW', note: 'Mock revision' },
+    { id: 'y9-a7-03', unit: 'A7', note: 'Cover request #9' },
+  ] }) };
+  const BANK = {
+    async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: 'e' } : null; },
+    async put(k, v) { stored[k] = v; return {}; },
+  };
+  const base = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK };
+  const colleague = await cover('POST', { action: 'remove', id: 'y11-cover-2026-11-26-41' }, { env: base });
+  assert.equal(colleague.response.status, 403);
+  const editor = { ...base, LIBRARY_EDITORS: 'sam.jones@school.example' };
+  for (const id of ['y11-mock-revision', 'y9-a7-03', 'missing', 42])
+    assert.equal((await cover('POST', { action: 'remove', id }, { env: editor })).response.status, 400, String(id));
+  assert.ok(!('library/cover-removed.json' in stored));
+  const done = await cover('POST', { action: 'remove', id: 'y11-cover-2026-11-26-41' }, { env: editor });
+  assert.equal(done.response.status, 200);
+  assert.deepEqual(done.data.removed, ['y11-cover-2026-11-26-41']);
+  assert.equal(done.sent.length, 0, 'deleting makes no GitHub call');
+  const listed = await cover('GET', undefined, { env: editor });
+  assert.deepEqual(listed.data.removed, ['y11-cover-2026-11-26-41']);
+  assert.equal(listed.data.canDelete, true);
+  assert.equal((await cover('GET', undefined, { env: base })).data.canDelete, false);
+});

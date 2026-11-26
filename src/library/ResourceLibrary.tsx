@@ -9,6 +9,7 @@ import {
 } from "./model";
 import "./library.css";
 import CoverRequest from "./CoverRequest";
+import { isCoverLesson, isOldCover, loadCoverLog, removeCoverLesson } from "./cover";
 
 const YEAR_KEY = "mathsdock.libraryYear";
 const savedYear = () => { try { return Number(localStorage.getItem(YEAR_KEY)) || 7; } catch { return 7; } };
@@ -19,6 +20,9 @@ const stateNames: Record<LessonState, string> = { none: "Not made yet", waiting:
 
 type FeedbackTools = { threads: Map<string, Thread>; all: Thread[]; canAct: boolean; off?: string; act: (a: FeedbackAction) => Promise<string> };
 const FeedbackContext = createContext<FeedbackTools>({ threads: new Map(), all: [], canAct: false, off: "Loading feedback…", act: async () => "" });
+/** Deleting a cover lesson (library editors only): it leaves the list, its files stay in the private store. */
+type CoverTools = { canDelete: boolean; remove: (id: string) => Promise<void> };
+const CoverContext = createContext<CoverTools>({ canDelete: false, remove: async () => {} });
 
 /**
  * Resource library (docs/content/RESOURCE-LIBRARY.md): pick a year, then a unit. Each unit card has a
@@ -32,6 +36,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState<Feedback>({ off: "Loading feedback…" });
   const [drawer, setDrawer] = useState(false);
+  const [removed, setRemoved] = useState<{ ids: Set<string>; canDelete: boolean }>({ ids: new Set(), canDelete: false });
   const [state, setStateValue] = useState<LibraryState>(() => readState(location.search, savedYear()));
   const box = useRef<HTMLInputElement>(null);
 
@@ -39,6 +44,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     let live = true;
     loadLibrary().then((l) => live && setList(l), (e: Error) => live && setError(e.message));
     loadFeedback().then((f) => live && setFeedback(f), () => live && setFeedback({ off: "Feedback could not be loaded." }));
+    loadCoverLog().then((c) => live && setRemoved({ ids: new Set(c.removed ?? []), canDelete: !!c.canDelete }), () => { /* Cover lessons then simply all show. */ });
     return () => { live = false; };
   }, []);
   useEffect(() => {
@@ -82,7 +88,15 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     return warning;
   }, [reload]);
   // A booklet an editor has ticked ✓ Checked at its current version shows green everywhere.
-  const list = useMemo(() => (raw ? applyChecks(raw, "off" in feedback ? {} : feedback.checks) : null), [raw, feedback]);
+  const list = useMemo(() => {
+    if (!raw) return null;
+    const kept = removed.ids.size ? { ...raw, resources: raw.resources.filter((r) => !(isCoverLesson(r) && removed.ids.has(r.id))) } : raw;
+    return applyChecks(kept, "off" in feedback ? {} : feedback.checks);
+  }, [raw, feedback, removed]);
+  const coverTools = useMemo<CoverTools>(() => ({
+    canDelete: removed.canDelete,
+    remove: async (id) => { const ids = await removeCoverLesson(id); setRemoved((old) => ({ ...old, ids: new Set([...ids, id]) })); },
+  }), [removed.canDelete]);
   const tools = useMemo<FeedbackTools>(() => ("off" in feedback
     ? { threads: new Map(), all: [], canAct: false, off: feedback.off, act }
     : { threads: threadMap(feedback.threads), all: feedback.threads, canAct: feedback.canAct, act }), [feedback, act]);
@@ -100,6 +114,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
 
   return (
     <FeedbackContext.Provider value={tools}>
+      <CoverContext.Provider value={coverTools}>
       <main className="resource-library" id="main-content" tabIndex={-1}>
         <PageHeading title="Resource library" description="Every booklet we have made, by year and unit, at its newest version. Send a colleague a unit's link: they sign in with their school email." />
         <div className="library-controls">
@@ -129,6 +144,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           : <Shelves list={list} state={state} setState={setState} />}
         {drawer && list && <Drawer list={list} close={() => setDrawer(false)} open={openUnit} />}
       </main>
+      </CoverContext.Provider>
     </FeedbackContext.Provider>
   );
 }
@@ -243,6 +259,8 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
   const ranges = partRanges(unit, rows);
   const booklets = unitBooklets(list, year, unit.code, version);
   const items = resourcesFor(list, year, unit.code).filter((r) => r.version === version);
+  // Cover lessons fold away after 7 days (Tim, 26 Nov), so the shelf does not fill up with one-offs.
+  const oldCover = rows.filter((r) => r.resource && isOldCover(r.resource));
   const unitThread = fb.threads.get(threadKey(year, unit.code, version, null));
   const [message, setMessage] = useState("");
   const [unitBox, setUnitBox] = useState<boolean | null>(null);
@@ -309,8 +327,16 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
       })}
       {!items.length && <p className="library-hint">Nothing made yet for this {versions.length > 1 ? "version" : "unit"}. Its lessons are listed below.</p>}
       <ul className="library-rows">
-        {rows.map((row, i) => <LessonLine key={row.code || row.resource?.id} row={row} year={year} unit={unit.code} version={version} part={ranges?.find((p) => p.start === i)?.name} />)}
+        {rows.map((row, i) => (row.resource && isOldCover(row.resource) ? null : <LessonLine key={row.code || row.resource?.id} row={row} year={year} unit={unit.code} version={version} part={ranges?.find((p) => p.start === i)?.name} />))}
       </ul>
+      {oldCover.length > 0 && (
+        <details className="library-old-cover">
+          <summary>Old cover lessons ({oldCover.length})</summary>
+          <ul className="library-rows">
+            {oldCover.map((row) => <LessonLine key={row.resource?.id} row={row} year={year} unit={unit.code} version={version} />)}
+          </ul>
+        </details>
+      )}
     </>
   );
 }
@@ -412,7 +438,28 @@ function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: 
       {part && <p className="library-part-label">{part}</p>}
       {r && row.code && !fb.off ? <MadeRow t={{ year, unit, version, lesson: row.code }} r={r} thread={row.thread} title={<><b>{row.code}</b> {row.title}</>} history={history} setHistory={setHistory} />
         : <PlainRow row={row} t={{ year, unit, version, lesson: row.code || null }} history={history} setHistory={setHistory} />}
+      {r && isCoverLesson(r) && <DeleteCover id={r.id} />}
     </li>
+  );
+}
+
+/** Two taps, so a slip never deletes: Delete, then Yes, delete it. */
+function DeleteCover({ id }: { id: string }) {
+  const cover = useContext(CoverContext);
+  const [sure, setSure] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  if (!cover.canDelete) return null;
+  async function go() {
+    setBusy(true); setMessage("");
+    try { await cover.remove(id); } catch (e) { setMessage((e as Error).message); setBusy(false); setSure(false); }
+  }
+  return (
+    <div className="library-actions">
+      {!sure ? <button type="button" className="library-chip" onClick={() => setSure(true)}><Trash2 size={13} aria-hidden="true" />Delete cover lesson</button>
+        : <><span className="library-hint">Delete it from the library?</span><button type="button" className="library-chip" disabled={busy} onClick={go}>Yes, delete it</button><button type="button" className="library-chip" disabled={busy} onClick={() => setSure(false)}>Keep it</button></>}
+      {message && <p className="library-status" role="alert">{message}</p>}
+    </div>
   );
 }
 

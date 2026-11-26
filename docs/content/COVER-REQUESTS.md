@@ -2,8 +2,8 @@
 
 Tim chose this on 26 Nov 2026. When a teacher is absent, they open **Resource library › Request cover**,
 describe the lesson in their own words and press **Check and build**. A cloud task builds one cover lesson
-and puts it in the library as Waiting, usually within 15 minutes. There is no daily cap. Instead, Tim is
-told about every request.
+and puts it in the library as Waiting, usually within 15 minutes. There is no daily cap. Every request is
+logged, and Tim gets an email about each one.
 
 ## What a teacher does
 
@@ -51,7 +51,8 @@ Worker secrets (`npx wrangler secret put <NAME>`, on production):
 - `REPORT_GITHUB_TOKEN`, which is already set for feedback. It needs issues read and write.
 - `COVER_TASK_URL` and `COVER_TASK_TOKEN`: the saved task's API trigger address and key, from its
   settings page on claude.ai. Without them, requests are saved and Tim is still emailed, and the page
-  says Tim will start the build. He can start it from the task page, pasting in the issue number.
+  says the lesson will be built shortly. Tim starts it by pressing Run on the task with nothing typed:
+  the task then builds the oldest open request that is not building or ready.
 - `COVER_TASK_BETA` is optional. It overrides the API's beta header if that ever changes.
 
 Each build uses about 12 to 15 minutes of Claude work from Tim's plan. It costs no extra money.
@@ -69,3 +70,16 @@ Each build uses about 12 to 15 minutes of Claude work from Tim's plan. It costs 
    type `revision-lesson`, unit `REVIEW`, a new id, status `waiting`, and a note naming the request.
    It then dispatches **Publish the Resource library**.
 5. Comments the library link on the issue, adds `cover-ready` and closes it.
+
+## Tidying away (Tim, 26 Nov)
+
+Cover lessons are one-offs, so they do not pile up on the shelf:
+
+- A cover lesson is a library resource on the `REVIEW` shelf whose note starts `Cover request #N`.
+  Nothing else is ever treated as one.
+- After 7 days (by its `updated` date) it folds into **Old cover lessons** at the bottom of the shelf.
+- A library editor (`LIBRARY_EDITORS`) sees **Delete cover lesson** on each one, then **Yes, delete it**.
+  POST `/api/library/cover` with `{ action: "remove", id }` adds the id to `library/cover-removed.json`
+  in R2 and the page stops listing it. The files stay in the private store, so a deletion can be undone
+  by taking the id out of that file.
+- The Request cover page lists only the last 7 days of requests.

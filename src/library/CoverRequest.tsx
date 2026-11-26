@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Paperclip } from "lucide-react";
 import type { Library } from "./model";
-import { COVER_ATTACHMENT_MAX, COVER_FILE_MAX_BYTES, COVER_TEXT_MAX, coverPlan, coverSuggestions, loadCoverLog, officeText, planSentence, sendCoverRequest, yearUnits, type CoverLogEntry } from "./cover";
+import { COVER_ATTACHMENT_MAX, COVER_FILE_MAX_BYTES, COVER_TEXT_MAX, coverPlan, coverSuggestions, loadCoverLog, officeText, planSentence, sendCoverRequest, yearUnits, type CoverLogEntry, recentRequests } from "./cover";
 
 type Attached = { name: string; text: string };
 const stateWords: Record<CoverLogEntry["state"], string> = { waiting: "Saved, waiting to build", building: "Building", ready: "In the library", stopped: "Stopped" };
@@ -46,7 +46,7 @@ export default function CoverRequest({ list }: { list: Library }) {
   const missing = !text.trim() ? "Describe what the lesson should revise." : tiered && !tier ? "Choose Foundation or Higher." : !absent ? "Tick the box to say you're absent." : "";
 
   const refresh = useCallback(() => {
-    loadCoverLog().then((d) => { setLog(d.requests); setLogError(""); }, (e: Error) => setLogError(e.message));
+    loadCoverLog().then((d) => { setLog(recentRequests(d.requests)); setLogError(""); }, (e: Error) => setLogError(e.message));
   }, []);
   useEffect(refresh, [refresh]);
   // While one of the teacher's own requests is building, look again every minute.
@@ -139,7 +139,7 @@ export default function CoverRequest({ list }: { list: Library }) {
         {sent && <p className="cover-sent" role="status">{sent.started ? "Building your cover lesson now. It will appear here and in the library, usually within 15 minutes." : "Your request is saved. Your cover lesson will be built shortly and will appear here and in the library."}</p>}
       </div>
       <div className="cover-log">
-        <h2>Recent requests</h2>
+        <h2>Requests in the last 7 days</h2>
         {logError ? <p className="library-status">{logError}</p> : !log ? <p className="library-status">Loading…</p> : !log.length ? <p className="library-status">No requests yet.</p> : (
           <ul>
             {log.map((r) => (

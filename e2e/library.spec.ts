@@ -8,9 +8,9 @@ import { test, expect, type Page } from "./release-fixtures";
 const fixture = readFileSync(new URL("./fixtures/library.json", import.meta.url), "utf8");
 type Sent = Record<string, unknown>;
 const thread = (over: Sent) => ({ number: 7, year: 9, unit: "A7", version: "Main", lesson: "A7.04", kind: "lesson", queued: false, agreed: false, opened: "2026-11-25T09:00:00Z", comments: [{ who: "Sam Jones", when: "2026-11-25T09:00:00Z", text: "Question 12 needs a whole-number example first." }], ...over });
-async function open(page: Page, address = "/library", { threads = [thread({})] as Sent[], canAct = true, feedback = true } = {}) {
+async function open(page: Page, address = "/library", { threads = [thread({})] as Sent[], canAct = true, feedback = true, list = fixture } = {}) {
   const sent: Sent[] = [], checks: Record<string, Sent> = {};
-  await page.route("**/library-data/library.json", (route) => route.fulfill({ contentType: "application/json", body: fixture }));
+  await page.route("**/library-data/library.json", (route) => route.fulfill({ contentType: "application/json", body: list }));
   await page.route("**/library-data/files/**", (route) => route.fulfill({ contentType: "application/pdf", body: "%PDF-1.7" }));
   await page.route("**/api/library/feedback", async (route) => {
     if (!feedback) return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Feedback isn't switched on yet." }) });
@@ -210,7 +210,7 @@ test("a list that cannot be loaded says so, and narrow screens do not spill side
 test("an absent teacher describes a cover lesson, checks it against the scheme and presses Build now", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   const sent: Sent[] = [];
-  const log = [{ number: 40, when: "2026-11-26T07:44:00Z", year: 9, tier: "Higher", who: "Ann Lee", mine: false, text: "Mock revision for Paper 3.", state: "ready" }];
+  const log = [{ number: 40, when: new Date(Date.now() - 3600000).toISOString(), year: 9, tier: "Higher", who: "Ann Lee", mine: false, text: "Mock revision for Paper 3.", state: "ready" }];
   await page.route("**/api/library/cover", async (route) => {
     if (route.request().method() === "POST") {
       sent.push(route.request().postDataJSON());
@@ -240,4 +240,37 @@ test("an absent teacher describes a cover lesson, checks it against the scheme a
   await expect(main.locator(".cover-log li").first()).toContainText("You");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+test("cover lessons fold away after 7 days and a library editor can delete one", async ({ page }) => {
+  const data = JSON.parse(fixture);
+  const today = new Date().toISOString().slice(0, 10);
+  const cover = (n: number, updated: string) => ({ id: `y9-cover-${n}`, year: 9, unit: "REVIEW", version: "Main", title: `Cover lesson ${n}`, type: "revision-lesson", status: "waiting", updated, note: `Cover request #${n}`, files: [], history: [] });
+  data.resources.push(cover(41, today), cover(30, "2026-11-01"));
+  const sent: Sent[] = [];
+  let removed: string[] = [];
+  await page.route("**/api/library/cover", async (route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON();
+      sent.push(body);
+      removed = [...removed, body.id];
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, removed }) });
+    }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: [], building: false, removed, canDelete: true }) });
+  });
+  const { main } = await open(page, "/library?year=9&unit=REVIEW", { list: JSON.stringify(data) });
+  const rows = main.locator(".library-rows").first();
+  await expect(rows).toContainText("Cover lesson 41");
+  await expect(rows).not.toContainText("Cover lesson 30");
+  const old = main.locator(".library-old-cover");
+  await expect(old.locator("summary")).toHaveText("Old cover lessons (1)");
+  await old.locator("summary").click();
+  await expect(old).toContainText("Cover lesson 30");
+  const row = rows.locator("li", { hasText: "Cover lesson 41" });
+  await row.getByRole("button", { name: "Delete cover lesson" }).click();
+  await row.getByRole("button", { name: "Yes, delete it" }).click();
+  await expect(main).not.toContainText("Cover lesson 41");
+  expect(sent).toEqual([{ action: "remove", id: "y9-cover-41" }]);
+  // Only cover lessons have the button.
+  await expect(main.getByRole("button", { name: "Delete cover lesson" })).toHaveCount(1);
 });
