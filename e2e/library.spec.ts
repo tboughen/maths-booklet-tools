@@ -109,8 +109,8 @@ test("an editor sets the status switch to Checked and the lesson turns green at 
   await expect(a700).toHaveClass(/is-waiting/);
   const status = a700.getByRole("group", { name: "Status of A7.00" });
   await expect(status.getByRole("button", { name: "Waiting" })).toHaveAttribute("aria-pressed", "true");
-  await status.getByRole("button", { name: "Needs changes" }).click();
-  await expect(status.getByRole("button", { name: "Needs changes" })).toHaveAttribute("aria-pressed", "true");
+  await status.getByRole("button", { name: "Feedback" }).click();
+  await expect(status.getByRole("button", { name: "Feedback" })).toHaveAttribute("aria-pressed", "true");
   await a700.getByRole("button", { name: "Cancel" }).click();
   await expect(status.getByRole("button", { name: "Waiting" })).toHaveAttribute("aria-pressed", "true");
   await expect(a700.getByRole("group", { name: "Feedback on A7.00" })).toHaveCount(0);

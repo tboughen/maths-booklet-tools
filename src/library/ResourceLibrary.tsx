@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Check, Clock, Copy, Download, Hand, History, Moon, Pencil, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
+import { BookOpen, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
@@ -316,14 +316,14 @@ type Target = { year: number; unit: string; version: string; lesson: string | nu
 type Ask = null | "waiting" | "checked";
 
 /**
- * The status switch (Tim, 25 Nov): Waiting (clock) · Needs changes (pencil, a moon when queued) · Checked (tick), the lit part always in the row's
- * colour. Editors tap a part to set it; colleagues see the lit part as a label. Needs changes lights at once and opens the comment
+ * The status switch (Tim, 25 Nov): Waiting (clock) · Feedback (speech bubble, a moon when queued) · Checked (tick), the lit part always in the row's
+ * colour. Editors tap a part to set it; colleagues see the lit part as a label. Feedback lights at once and opens the comment
  * box and sticks once a comment is sent; Waiting is the undo. On narrow screens only the lit part keeps its word.
  */
 function StatusSwitch({ status, queued, canAct, busy, label, onPick }: { status: "waiting" | "feedback" | "ready"; queued: boolean; canAct: boolean; busy: boolean; label: string; onPick: (to: "waiting" | "feedback" | "ready") => void }) {
   const parts = [
     { to: "waiting", Icon: Clock, word: "Waiting" },
-    { to: "feedback", Icon: queued ? Moon : Pencil, word: "Needs changes" },
+    { to: "feedback", Icon: queued ? Moon : MessageSquare, word: "Feedback" },
     { to: "ready", Icon: Check, word: "Checked" },
   ] as const;
   if (!canAct) {
@@ -351,7 +351,7 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
   const [message, setMessage] = useState("");
   const [ask, setAsk] = useState<Ask>(null);
   const [open, setOpen] = useState<boolean | null>(null);
-  // Tapping Needs changes lights it at once while the comment is written; cancelling goes back.
+  // Tapping Feedback lights it at once while the comment is written; cancelling goes back.
   const [draft, setDraft] = useState(false);
   const status: "waiting" | "feedback" | "ready" = thread || draft ? "feedback" : r.status;
   async function run(...actions: FeedbackAction[]) {
@@ -364,6 +364,8 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
   const toChecked = (cancelQueued = false) => run({ action: "check", ...base, close: !!thread, cancelQueued });
   const toWaiting = () => run(...[thread && { action: "no-change", ...base } as FeedbackAction, r.checked && { action: "uncheck", ...base } as FeedbackAction].filter((a): a is FeedbackAction => !!a));
   function pick(to: "waiting" | "feedback" | "ready") {
+    // While unsent feedback is being written, Waiting cancels it and Checked replaces it.
+    if (draft && !thread && to !== "feedback") { setDraft(false); setOpen(false); if (to === "waiting") return; }
     if (to === status) { if (to === "feedback") setOpen(true); return; }
     if (to === "feedback") { setDraft(true); setOpen(true); setMessage(""); return; }
     if (to === "ready") { if (thread?.queued) setAsk("checked"); else void toChecked(); return; }
@@ -371,13 +373,13 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
     else if (r.checked) void toWaiting();
     else setMessage("This booklet was published as ready, so it can't be put back to waiting here. Ask Claude to change it.");
   }
-  // The Worker takes any check off when a comment arrives, so the colour says Needs changes after the reload.
+  // The Worker takes any check off when a comment arrives, so the colour says Feedback after the reload.
   const onSent = () => { setMessage(""); setDraft(false); };
-  // Closing the box without sending takes back an unsent Needs changes.
+  // Closing the box without sending takes back an unsent Feedback.
   const close = () => { setDraft(false); setOpen(false); };
   const [Icon, words] = thread?.queued ? [Moon, `Queued for tonight · ${thread.comments.length} comment${thread.comments.length === 1 ? "" : "s"}`]
-    : draft && !thread ? [Pencil, "Needs changes: say what, then Send"]
-    : thread ? [Pencil, `Needs changes · asked by ${thread.comments[0]?.who ?? "a colleague"} · ${day(thread.opened)}`]
+    : draft && !thread ? [MessageSquare, "Feedback: say what needs changing, then Send"]
+    : thread ? [MessageSquare, `Feedback from ${thread.comments[0]?.who ?? "a colleague"} · ${day(thread.opened)}`]
     : r.checked ? [Check, `Checked by ${r.checked.by} · ${day(r.checked.at || r.checked.updated)}`]
     : r.status === "ready" ? [Check, `Ready · ${day(r.updated)}`] : [Clock, `Waiting for a check · made ${day(r.updated)}`];
   const who = <><Icon size={13} aria-hidden="true" />{words}</>;
