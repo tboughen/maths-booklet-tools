@@ -9,7 +9,7 @@ import {
 } from "./model";
 import "./library.css";
 import CoverRequest from "./CoverRequest";
-import { isCoverLesson, isOldCover, loadCoverLog, removeCoverLesson } from "./cover";
+import { isCoverLesson, isOldCover, loadCoverRemoved, removeCoverLesson } from "./cover";
 
 const YEAR_KEY = "mathsdock.libraryYear";
 const savedYear = () => { try { return Number(localStorage.getItem(YEAR_KEY)) || 7; } catch { return 7; } };
@@ -44,7 +44,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     let live = true;
     loadLibrary().then((l) => live && setList(l), (e: Error) => live && setError(e.message));
     loadFeedback().then((f) => live && setFeedback(f), () => live && setFeedback({ off: "Feedback could not be loaded." }));
-    loadCoverLog().then((c) => live && setRemoved({ ids: new Set(c.removed ?? []), canDelete: !!c.canDelete }), () => { /* Cover lessons then simply all show. */ });
+    loadCoverRemoved().then((c) => live && setRemoved({ ids: new Set(c.removed), canDelete: c.canDelete }), () => { /* Cover lessons then simply all show. */ });
     return () => { live = false; };
   }, []);
   useEffect(() => {

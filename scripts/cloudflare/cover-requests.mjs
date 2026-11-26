@@ -126,12 +126,16 @@ async function removeLesson(env, email, id) {
 }
 
 export async function coverRequests(request, env, claims, fetcher = fetch) {
+  // The library page asks only for the deleted list: R2 alone, so a GitHub problem never brings deleted lessons back.
+  if (request.method === 'GET' && new URL(request.url).searchParams.get('only') === 'removed') {
+    try { const { removed } = await readRemoved(env); return json(200, { removed: Object.keys(removed), canDelete: canAct(env, claims.email) }); }
+    catch { return json(500, { error: 'The deleted list could not be read.' }); }
+  }
   if (!env.REPORT_GITHUB_TOKEN) return json(503, { error: 'Cover requests are not switched on yet.' });
   const call = github(env, fetcher);
   if (request.method === 'GET') {
     try {
-      const [requests, { removed }] = await Promise.all([listRequests(env, fetcher, claims.email), readRemoved(env).catch(() => ({ removed: {} }))]);
-      return json(200, { requests, building: !!(env.COVER_TASK_URL && env.COVER_TASK_TOKEN), removed: Object.keys(removed), canDelete: canAct(env, claims.email) });
+      return json(200, { requests: await listRequests(env, fetcher, claims.email), building: !!(env.COVER_TASK_URL && env.COVER_TASK_TOKEN) });
     }
     catch { return json(502, { error: 'The requests could not be loaded. Try again in a minute.' }); }
   }

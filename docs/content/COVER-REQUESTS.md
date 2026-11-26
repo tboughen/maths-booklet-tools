@@ -80,6 +80,7 @@ Cover lessons are one-offs, so they do not pile up on the shelf:
 - After 7 days (by its `updated` date) it folds into **Old cover lessons** at the bottom of the shelf.
 - A library editor (`LIBRARY_EDITORS`) sees **Delete cover lesson** on each one, then **Yes, delete it**.
   POST `/api/library/cover` with `{ action: "remove", id }` adds the id to `library/cover-removed.json`
-  in R2 and the page stops listing it. The files stay in the private store, so a deletion can be undone
+  in R2 and the page stops listing it. The page reads that list with GET `/api/library/cover?only=removed`,
+  which needs only R2, so a GitHub outage never brings deleted lessons back. The files stay in the private store, so a deletion can be undone
   by taking the id out of that file.
 - The Request cover page lists only the last 7 days of requests.

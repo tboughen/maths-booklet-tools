@@ -249,14 +249,14 @@ test("cover lessons fold away after 7 days and a library editor can delete one",
   data.resources.push(cover(41, today), cover(30, "2026-11-01"));
   const sent: Sent[] = [];
   let removed: string[] = [];
-  await page.route("**/api/library/cover", async (route) => {
+  await page.route("**/api/library/cover*", async (route) => {
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
       sent.push(body);
       removed = [...removed, body.id];
       return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, removed }) });
     }
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: [], building: false, removed, canDelete: true }) });
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify(new URL(route.request().url()).searchParams.get("only") === "removed" ? { removed, canDelete: true } : { requests: [], building: false }) });
   });
   const { main } = await open(page, "/library?year=9&unit=REVIEW", { list: JSON.stringify(data) });
   const rows = main.locator(".library-rows").first();

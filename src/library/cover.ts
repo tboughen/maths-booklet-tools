@@ -85,7 +85,14 @@ export async function officeText(bytes: Uint8Array): Promise<string> {
 export type CoverLogEntry = { number: number; when: string; year: number; tier: string | null; who: string; mine: boolean; text: string; state: "waiting" | "building" | "ready" | "stopped" };
 export type CoverRequestBody = { year: number; tier: "Foundation" | "Higher" | null; absent: true; text: string; plan: string; attachment: { name: string; text: string } | null };
 
-export type CoverLog = { requests: CoverLogEntry[]; building: boolean; removed?: string[]; canDelete?: boolean };
+export type CoverLog = { requests: CoverLogEntry[]; building: boolean };
+/** The cover lessons deleted from the list, and whether the signed-in teacher may delete one. */
+export async function loadCoverRemoved(fetcher: typeof fetch = fetch): Promise<{ removed: string[]; canDelete: boolean }> {
+  const response = await fetcher(`${siteBase()}api/library/cover?only=removed`, { cache: "no-store" });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "The deleted list could not be loaded.");
+  return data;
+}
 export async function loadCoverLog(fetcher: typeof fetch = fetch): Promise<CoverLog> {
   const response = await fetcher(`${siteBase()}api/library/cover`, { cache: "no-store" });
   const data = await response.json().catch(() => ({}));

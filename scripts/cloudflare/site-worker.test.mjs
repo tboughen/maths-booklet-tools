@@ -375,7 +375,7 @@ test('a unit booklet is checked and commented on apart from its unit and lessons
 });
 
 // Cover lesson requests.
-async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, taskOk = true } = {}) {
+async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, taskOk = true, query = '' } = {}) {
   const sent = [];
   const fetcher = async (url, init) => {
     if (url.startsWith(team)) return certs(url);
@@ -386,7 +386,7 @@ async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secr
     return Response.json({}, { status: 200 });
   };
   const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'Sam.Jones@school.example' }) } : {}) };
-  const response = await serveCoverRequests(new Request('https://mathsdock.co.uk/api/library/cover', { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
+  const response = await serveCoverRequests(new Request(`https://mathsdock.co.uk/api/library/cover${query}`, { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
   return { response, sent, data: await response.json() };
 }
 const ask = { year: 10, tier: 'Foundation', absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: 'NP17.01 to NP17.03' };
@@ -461,8 +461,11 @@ test('a library editor can delete a cover lesson from the list, and nothing else
   assert.equal(done.response.status, 200);
   assert.deepEqual(done.data.removed, ['y11-cover-2026-11-26-41']);
   assert.equal(done.sent.length, 0, 'deleting makes no GitHub call');
-  const listed = await cover('GET', undefined, { env: editor });
+  // The deleted list needs no GitHub at all, so it survives GitHub being down or switched off.
+  const listed = await cover('GET', undefined, { env: { ...editor, REPORT_GITHUB_TOKEN: undefined }, query: '?only=removed' });
+  assert.equal(listed.response.status, 200);
   assert.deepEqual(listed.data.removed, ['y11-cover-2026-11-26-41']);
   assert.equal(listed.data.canDelete, true);
-  assert.equal((await cover('GET', undefined, { env: base })).data.canDelete, false);
+  assert.equal(listed.sent.length, 0);
+  assert.equal((await cover('GET', undefined, { env: base, query: '?only=removed' })).data.canDelete, false);
 });
