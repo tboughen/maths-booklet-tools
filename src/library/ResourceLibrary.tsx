@@ -179,7 +179,7 @@ function Shelves({ list, state, setState }: { list: Library; state: LibraryState
         })}
       </nav>
       {/* Clicking the open unit again, or empty space among the units, closes it (Tim, 26 Nov). */}
-      <section className="library-units" aria-label={`Year ${year.year} units`} onClick={(e) => { if (unit && !(e.target as HTMLElement).closest("button, a, input")) setState({ unit: undefined, version: undefined }, true); }}>
+      <section className="library-units" aria-label={`Year ${year.year} units`} onClick={(e) => { if (unit && !(e.target as HTMLElement).closest("button, a, input") && !window.getSelection()?.toString()) setState({ unit: undefined, version: undefined }, true); }}>
         <h2>Year {year.year}</h2>
         <p className="library-hint">Units in teaching order. {year.sections.some((s) => s.estimate) ? "The term headings are estimates from where classes are now." : "This year group follows its own list of units."}</p>
         {year.sections.map((section) => (
