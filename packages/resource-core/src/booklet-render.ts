@@ -3,7 +3,7 @@ import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fraction
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, lessonLabels, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, type Misconception } from "./booklet";
+import { LESSON_WORDS, endLabel, lessonLabel, lessonLabels, tileLines, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, type Misconception } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -206,8 +206,15 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   out.push(rect(0, 0, W, h, `rx="2" fill="${st.navy}"`));
   const ty = (h - B.tile) / 2;
   out.push(rect(B.startPad, ty, B.tile, B.tile, `rx="1.6" fill="white"`));
-  out.push(textSvg([{ text: lessonWords(doc).badge, style: "bold" }], B.startPad + B.tile / 2, ty + 5.4, pt(10), st.navy, "middle"));
-  out.push(textSvg([{ text: String(number), style: "bold" }], B.startPad + B.tile / 2, ty + 14.6, pt(26), st.navy, "middle"));
+  const tl = tileLines(lessonWords(doc), number);
+  if (tl.small) {
+    // Unnumbered (lessonNumbered false): the name on two lines, e.g. "Cover" over "lesson".
+    if (tl.top) out.push(textSvg([{ text: tl.top, style: "bold" }], B.startPad + B.tile / 2, ty + 7.4, pt(11), st.navy, "middle"));
+    out.push(textSvg([{ text: tl.main, style: "bold" }], B.startPad + B.tile / 2, ty + (tl.top ? 12.6 : 10), pt(11), st.navy, "middle"));
+  } else {
+    out.push(textSvg([{ text: tl.top, style: "bold" }], B.startPad + B.tile / 2, ty + 5.4, pt(10), st.navy, "middle"));
+    out.push(textSvg([{ text: tl.main, style: "bold" }], B.startPad + B.tile / 2, ty + 14.6, pt(26), st.navy, "middle"));
+  }
   const y0 = (h - textH) / 2;
   out.push(at(unitF, 0, y0), at(title, 0, y0 + unitF.h + (unit ? START_SIZES.gap : 0)));
   // One title line (N2): the lesson's code and objective are not printed again under it.
@@ -262,9 +269,15 @@ export function cornerBadge(number: number, squares: string[], lit: string | nul
   const bx = right ? A4.marginX + W - B.badgeW : A4.marginX;
   const out = [
     rect(bx, B.top, B.badgeW, B.badgeH, `rx="1.6" fill="${st.navy}"`),
-    textSvg([{ text: words.badge, style: "bold" }], bx + B.badgeW / 2, B.top + 4.6, pt(10), "white", "middle"),
-    textSvg([{ text: String(number), style: "bold" }], bx + B.badgeW / 2, B.top + 12.2, pt(24), "white", "middle"),
   ];
+  const tl = tileLines(words, number);
+  if (tl.small) {
+    if (tl.top) out.push(textSvg([{ text: tl.top, style: "bold" }], bx + B.badgeW / 2, B.top + 6, pt(10), "white", "middle"));
+    out.push(textSvg([{ text: tl.main, style: "bold" }], bx + B.badgeW / 2, B.top + (tl.top ? 10.6 : 8.3), pt(10), "white", "middle"));
+  } else {
+    out.push(textSvg([{ text: tl.top, style: "bold" }], bx + B.badgeW / 2, B.top + 4.6, pt(10), "white", "middle"));
+    out.push(textSvg([{ text: tl.main, style: "bold" }], bx + B.badgeW / 2, B.top + 12.2, pt(24), "white", "middle"));
+  }
   const run = squares.length * B.square + Math.max(0, squares.length - 1) * B.squareGap;
   let x = right ? bx - B.badgeGap - run : bx + B.badgeW + B.badgeGap;
   const sy = B.top + (B.badgeH - B.square) / 2;
@@ -287,9 +300,10 @@ export function endBand(number: number, pageNo: number, st: HouseStyle, words: L
   const tile = (B.endH - B.endTile) / 2;
   return [
     rect(x0, y, W, B.endH, `rx="1.6" fill="${st.navy}"`),
-    rect(x0 + 3, y + tile, B.endTile, B.endTile, `rx="1" fill="white"`),
-    textSvg([{ text: String(number), style: "bold" }], x0 + 3 + B.endTile / 2, by, size, st.navy, "middle"),
-    textSvg([{ text: `${words.end} ${number}`, style: "bold" }], x0 + 3 + B.endTile + 3, by, size, "white"),
+    // An unnumbered lesson has no number to put in the tile, so the tile is left out.
+    words.numbered ? rect(x0 + 3, y + tile, B.endTile, B.endTile, `rx="1" fill="white"`) : "",
+    words.numbered ? textSvg([{ text: String(number), style: "bold" }], x0 + 3 + B.endTile / 2, by, size, st.navy, "middle") : "",
+    textSvg([{ text: endLabel(words, number), style: "bold" }], x0 + 3 + B.endTile + 3, by, size, "white"),
     textSvg([{ text: `Page ${pageNo}`, style: "bold" }], x0 + W / 2, by, size, "white", "middle"),
     textSvg([{ text: B.stop, style: "bold" }], x0 + W - 5, by, size, "white", "end"),
   ].join("");
@@ -796,10 +810,10 @@ export function planNotes(lesson: Lesson, lessonNo: number, words: LessonWords =
   let y = A4.top;
   const fresh = () => {
     pages.push({ lesson: lessonNo, lines });
-    lines = [{ kind: "running", text: `Teaching notes · ${words.name} ${lessonNo} (continued)`, y: A4.top, size: A4.small, indent: 0, bullet: false }];
+    lines = [{ kind: "running", text: `Teaching notes · ${lessonLabel(words, lessonNo)} (continued)`, y: A4.top, size: A4.small, indent: 0, bullet: false }];
     y = A4.top + CONTINUED_HEAD;
   };
-  lines.push({ kind: "title", text: `Teaching notes · ${words.name} ${lessonNo}`, y, size: A4.lessonTitle, indent: 0, bullet: false });
+  lines.push({ kind: "title", text: `Teaching notes · ${lessonLabel(words, lessonNo)}`, y, size: A4.lessonTitle, indent: 0, bullet: false });
   y += lh(A4.lessonTitle);
   lines.push({ kind: "subtitle", text: lesson.title, y, size: A4.small, indent: 0, bullet: false });
   y += lh(A4.small) + NOTES.titleGap;
@@ -845,7 +859,7 @@ function page(body: string, label: string, opts: BookletRenderOptions) {
 /** The topic introduction's lesson list: the saved lines, or the booklet's own lessons (code and title). */
 export function introLessons(doc: Booklet["document"], intro: Intro): string[] {
   if (intro.lessons.length) return intro.lessons;
-  return doc.lessons.map((l, i) => `${lessonWords(doc).name} ${i + 1 + lessonShift(doc)}: ${[l.code, l.title].filter((t) => t.trim()).join(" ")}`);
+  return doc.lessons.map((l, i) => `${lessonLabel(lessonWords(doc), i + 1 + lessonShift(doc))}: ${[l.code, l.title].filter((t) => t.trim()).join(" ")}`);
 }
 
 /** The cover title: the topic title, and "Part 1 of 2" when the unit prints in parts (N33). */
@@ -1302,7 +1316,7 @@ export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, 
   const revisionPageNo = doc.revision ? first + planned.length + (doc.retrieval ? 1 : 0) : null;
   const contents = [
     ...(introPageNo ? [{ label: "", title: INTRO_TITLE, page: introPageNo }] : []),
-    ...doc.lessons.map((l, i) => ({ label: `${lessonWords(doc).name} ${i + 1 + lessonShift(doc) + (options.numbering?.lessonOffset ?? 0)}`, title: [l.code, l.title].filter((t) => t.trim()).join(" "), page: lessonPages[i] })),
+    ...doc.lessons.map((l, i) => ({ label: lessonLabel(lessonWords(doc), i + 1 + lessonShift(doc) + (options.numbering?.lessonOffset ?? 0)), title: [l.code, l.title].filter((t) => t.trim()).join(" "), page: lessonPages[i] })),
     ...(doc.retrieval && retrievalPageNo ? [{ label: "", title: doc.retrieval.title, page: retrievalPageNo }] : []),
     ...(doc.revision && revisionPageNo ? [{ label: "", title: doc.revision.title, page: revisionPageNo }] : []),
   ];
@@ -1351,13 +1365,16 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   glyphs({ lessonName: doc.lessonName, lessonBadge: doc.lessonBadge }, { lesson: 0, page: 1 }, "The lesson name");
   doc.lessons.forEach((l, li) => l.sections.forEach((sec, si) => spanIssues(sec).forEach((message) => issues.push({ lesson: li + 1, section: si + 1, message }))));
   const badgeWord = lessonWords(doc).badge;
-  if (plainWidth(badgeWord, pt(10), "bold") > BOOKEND.tile - 2)
+  const unnumbered = tileLines(lessonWords(doc), 1);
+  if (unnumbered.small && [unnumbered.top, unnumbered.main].some((w) => plainWidth(w, pt(11), "bold") > BOOKEND.badgeW - 2))
+    issues.push({ lesson: 0, page: 1, message: `"${lessonWords(doc).name}" is too wide for the lesson tile. Use two short words, such as "Cover lesson".` });
+  else if (lessonWords(doc).numbered && plainWidth(badgeWord, pt(10), "bold") > BOOKEND.tile - 2)
     issues.push({ lesson: 0, page: 1, message: `The badge word "${badgeWord}" is too wide for the lesson tile. Use a shorter word, such as "Revision".` });
   // The end band's words run from beside its tile to just short of the centred page number.
   {
     const size = pt(14);
     const room = W / 2 - plainWidth("Page 99", size, "bold") / 2 - 4 - (3 + BOOKEND.endTile + 3);
-    const endText = `${lessonWords(doc).end} ${doc.lessons.length + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc)}`;
+    const endText = endLabel(lessonWords(doc), doc.lessons.length + (options.numbering?.lessonOffset ?? 0) + lessonShift(doc));
     if (plainWidth(endText, size, "bold") > room)
       issues.push({ lesson: 0, page: 1, message: `"${endText}" is too long for the end band and would run into the page number. Use a shorter name for each part.` });
   }

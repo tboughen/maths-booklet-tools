@@ -665,6 +665,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 <Field label="Badge word" value={d.lessonBadge} max={12} disabled={blocked} onCommit={(v) => patch((x) => void (x.lessonBadge = v))} />
               </div>
               <p className="ws-hint">Empty means "Lesson". "Mock revision" prints "End of mock revision 1" and a "Revision" badge.</p>
+              <label className="ws-check">
+                <input type="checkbox" checked={d.lessonNumbered} disabled={blocked} onChange={(e) => patch((x) => void (x.lessonNumbered = e.target.checked))} /> Number each part (off for a one-off such as "Cover lesson")
+              </label>
               <Field label="Cover note" value={d.coverNote} max={240} multiline disabled={blocked} onCommit={(v) => patch((x) => void (x.coverNote = v))} />
               <label className="ws-check">
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines

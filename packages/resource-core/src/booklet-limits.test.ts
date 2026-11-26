@@ -37,9 +37,9 @@ const docxXml = async (b: Booklet, view: "pupil" | "answers" = "pupil") => {
 
 describe("the booklet's own name for a lesson", () => {
   it("is Lesson unless the booklet names its parts", () => {
-    expect(lessonWords({})).toEqual({ badge: "Lesson", name: "Lesson", end: "End of lesson" });
-    expect(lessonWords({ lessonName: "Mock revision" })).toEqual({ badge: "Revision", name: "Mock revision", end: "End of mock revision" });
-    expect(lessonWords({ lessonName: "SATs practice", lessonBadge: "SATs" })).toEqual({ badge: "SATs", name: "SATs practice", end: "End of SATs practice" });
+    expect(lessonWords({})).toEqual({ badge: "Lesson", name: "Lesson", end: "End of lesson", numbered: true });
+    expect(lessonWords({ lessonName: "Mock revision" })).toEqual({ badge: "Revision", name: "Mock revision", end: "End of mock revision", numbered: true });
+    expect(lessonWords({ lessonName: "SATs practice", lessonBadge: "SATs" })).toEqual({ badge: "SATs", name: "SATs practice", end: "End of SATs practice", numbered: true });
   });
 
   it("prints the name on the start tile, the corner badge, the end band, the contents and the notes, PDF and Word", async () => {
@@ -57,6 +57,22 @@ describe("the booklet's own name for a lesson", () => {
     expect(xml).toContain(">Revision<");
     expect(xml).toContain("End of mock revision 1");
     expect(xml).not.toContain("End of lesson");
+  });
+
+  it("prints a cover lesson with no number anywhere, PDF and Word (Tim, 26 November 2026)", async () => {
+    const b = booklet({ lessonName: "Cover lesson", lessonNumbered: false });
+    const r = renderBooklet(b);
+    const all = r.pages.join("");
+    expect(r.issues).toEqual([]);
+    expect(all).toContain(">Cover<");
+    expect(all).toContain(">lesson<");
+    expect(all).toContain("End of cover lesson<");
+    expect(all).not.toContain("End of cover lesson 1");
+    expect(all).not.toContain("Cover lesson 1");
+    expect(all).not.toMatch(/>1<\/text>/);
+    const xml = await docxXml(b);
+    expect(xml).toContain("End of cover lesson<");
+    expect(xml).not.toContain("End of cover lesson 1");
   });
 
   it("keeps Lesson for a booklet that does not name its parts", () => {
