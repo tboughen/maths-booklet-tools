@@ -206,3 +206,38 @@ test("a list that cannot be loaded says so, and narrow screens do not spill side
   await expect(page.getByRole("complementary", { name: "Unit resources" })).toContainText("A7.03");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
+
+test("an absent teacher describes a cover lesson, checks it against the scheme and presses Build now", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const sent: Sent[] = [];
+  const log = [{ number: 40, when: "2026-11-26T07:44:00Z", year: 9, tier: "Higher", who: "Ann Lee", mine: false, text: "Mock revision for Paper 3.", state: "ready" }];
+  await page.route("**/api/library/cover", async (route) => {
+    if (route.request().method() === "POST") {
+      sent.push(route.request().postDataJSON());
+      log.unshift({ number: 41, when: "2026-11-26T08:00:00Z", year: 10, tier: "Foundation", who: "Sam Jones", mine: true, text: "We're on NP17, lesson 3.", state: "building" });
+      return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ number: 41, started: true }) });
+    }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: log, building: true }) });
+  });
+  const { main } = await open(page, "/library?view=cover");
+  const form = main.locator(".cover-form");
+  await expect(form.getByRole("heading", { name: "Ask for a cover lesson" })).toBeVisible();
+  await expect(main.locator(".cover-log")).toContainText("Ann Lee");
+  await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
+  await form.getByRole("button", { name: "Revise our unit up to a lesson" }).click();
+  await expect(form.getByRole("textbox")).toHaveValue("We're on unit … , lesson … . Revise the lessons so far.");
+  await form.getByRole("textbox").fill("We're on NP17, lesson 3. Revise the lessons so far.");
+  await form.getByRole("radio", { name: "Foundation" }).check();
+  await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
+  await form.getByRole("checkbox").check();
+  await form.getByRole("button", { name: "Check and build" }).click();
+  const check = form.getByRole("region", { name: "Check before building" });
+  await expect(check).toContainText("Year 10 Foundation revising NP17.01 to NP17.03");
+  await page.screenshot({ path: test.info().outputPath("library-cover.png") });
+  await check.getByRole("button", { name: "Yes, build it" }).click();
+  await expect(form.getByRole("status")).toContainText("Building your cover lesson now");
+  expect(sent).toEqual([{ year: 10, tier: "Foundation", absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: expect.stringContaining("NP17.01 to NP17.03"), attachment: null }]);
+  await expect(main.locator(".cover-log li").first()).toContainText("You");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});

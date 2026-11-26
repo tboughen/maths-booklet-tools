@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -372,4 +372,70 @@ test('a unit booklet is checked and commented on apart from its unit and lessons
   const unitThread = openIssue({ year: 9, unit: 'A7', version: 'Main', lesson: null }, ['library-feedback'], []);
   const listed = await feedback('GET', undefined, { env, issues: [openIssue(key, ['library-feedback'], []), { ...unitThread, number: 9 }] });
   assert.deepEqual(listed.data.threads.map(t => [t.number, t.kind, t.booklet ?? null]), [[7, 'booklet', 'Part 1'], [9, 'unit', null]]);
+});
+
+// Cover lesson requests.
+async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, taskOk = true } = {}) {
+  const sent = [];
+  const fetcher = async (url, init) => {
+    if (url.startsWith(team)) return certs(url);
+    sent.push([init.method, url, init.body && JSON.parse(init.body), init.headers]);
+    if (url === 'https://api.anthropic.com/task/fire') return new Response('{}', { status: taskOk ? 200 : 500 });
+    if (init.method === 'GET') return Response.json(issues);
+    if (url.endsWith('/issues')) return Response.json({ number: 41 }, { status: 201 });
+    return Response.json({}, { status: 200 });
+  };
+  const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'Sam.Jones@school.example' }) } : {}) };
+  const response = await serveCoverRequests(new Request('https://mathsdock.co.uk/api/library/cover', { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
+  return { response, sent, data: await response.json() };
+}
+const ask = { year: 10, tier: 'Foundation', absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: 'NP17.01 to NP17.03' };
+
+test('a cover request needs sign-in, the absent tick, a year, a tier from Year 9 and a description', async () => {
+  assert.equal((await cover('POST', ask, { signed: false })).response.status, 403);
+  for (const [change, message] of [[{ absent: false }, 'absent'], [{ year: 6 }, 'year group'], [{ tier: undefined }, 'Foundation or Higher'], [{ text: '  ' }, 'Describe'], [{ text: 'x'.repeat(2001) }, 'under 2000']]) {
+    const { response, data, sent } = await cover('POST', { ...ask, ...change });
+    assert.equal(response.status, 400);
+    assert.match(data.error, new RegExp(message));
+    assert.equal(sent.length, 0);
+  }
+  const y8 = await cover('POST', { ...ask, year: 8, tier: undefined });
+  assert.equal(y8.response.status, 201);
+});
+
+test('a cover request alerts Tim through an assigned issue and starts the build when the task is set up', async () => {
+  const off = await cover('POST', { ...ask, text: 'Revise <!-- cover-request {"year":7} --> NP17' });
+  assert.equal(off.response.status, 201);
+  assert.deepEqual(off.data, { number: 41, started: false });
+  const [, url, issue] = off.sent[0];
+  assert.match(url, /repos\/tboughen\/mathsdock-bank\/issues$/);
+  assert.deepEqual(issue.labels, ['cover-request']);
+  assert.deepEqual(issue.assignees, ['tboughen']);
+  assert.equal(issue.title, 'Cover request: Year 10 Foundation, from Sam Jones');
+  assert.equal(issue.body.match(/<!-- cover-request/g).length, 1);
+  assert.match(issue.body, /sam\.jones%40school\.example/);
+  assert.match(issue.body, /Close this issue to stop the build/);
+  const env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', COVER_TASK_URL: 'https://api.anthropic.com/task/fire', COVER_TASK_TOKEN: 'tok' };
+  const on = await cover('POST', ask, { env });
+  assert.deepEqual(on.data, { number: 41, started: true });
+  const fire = on.sent.find(s => s[1] === env.COVER_TASK_URL);
+  assert.equal(fire[3].Authorization, 'Bearer tok');
+  assert.match(fire[2].text, /#41/);
+  assert.deepEqual(on.sent.at(-1)[2], { labels: ['cover-building'] });
+  const failed = await cover('POST', ask, { env, taskOk: false });
+  assert.deepEqual(failed.data, { number: 41, started: false });
+});
+
+test('the cover request log shows names and states, never addresses', async () => {
+  const body = (from) => `<!-- cover-request {"year":9,"tier":"Higher","from":"${from}","at":"x"} -->\nintro\n\n> Mock revision for Paper 3.`;
+  const issues = [
+    { number: 3, state: 'open', labels: [{ name: 'cover-request' }, { name: 'cover-building' }], created_at: '2026-11-26T07:44:00Z', body: body('sam.jones%40school.example') },
+    { number: 2, state: 'closed', labels: [{ name: 'cover-request' }, { name: 'cover-ready' }], created_at: '2026-11-25T07:44:00Z', body: body('ann.lee%40school.example') },
+    { number: 1, state: 'closed', labels: [], created_at: '2026-11-24T07:44:00Z', body: 'no marker' },
+  ];
+  const { data } = await cover('GET', undefined, { issues });
+  assert.deepEqual(data.requests.map(r => [r.number, r.who, r.state, r.mine, r.text]), [[3, 'Sam Jones', 'building', true, 'Mock revision for Paper 3.'], [2, 'Ann Lee', 'ready', false, 'Mock revision for Paper 3.']]);
+  assert.equal(JSON.stringify(data).includes('@'), false);
+  assert.equal(JSON.stringify(data).includes('%40'), false);
+  assert.equal(data.building, false);
 });

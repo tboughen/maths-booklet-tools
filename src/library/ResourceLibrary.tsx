@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
+import { BookOpen, CalendarPlus, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
@@ -8,6 +8,7 @@ import {
   type Feedback, type FeedbackAction, type LessonRow, type LessonState, type Library, type LibraryFile, type LibraryState, type LibraryUnit, type Resource, type Thread,
 } from "./model";
 import "./library.css";
+import CoverRequest from "./CoverRequest";
 
 const YEAR_KEY = "mathsdock.libraryYear";
 const savedYear = () => { try { return Number(localStorage.getItem(YEAR_KEY)) || 7; } catch { return 7; } };
@@ -116,6 +117,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           <div className="library-views" role="group" aria-label="View">
             <button type="button" aria-pressed={state.view === "shelves"} onClick={() => setState({ view: "shelves", q: "" })}><LayoutGrid size={16} aria-hidden="true" />Shelves</button>
             <button type="button" aria-pressed={state.view === "map"} onClick={() => setState({ view: "map", q: "" })}><MapIcon size={16} aria-hidden="true" />Map</button>
+            <button type="button" aria-pressed={state.view === "cover"} onClick={() => setState({ view: "cover", q: "" })}><CalendarPlus size={16} aria-hidden="true" />Request cover</button>
           </div>
         </div>
         <Key />
@@ -123,6 +125,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           : !list ? <p className="library-message" role="status">Loading the library…</p>
           : state.q ? <Results list={list} found={found} query={state.q} open={openUnit} />
           : state.view === "map" ? <LibraryMap list={list} open={openUnit} />
+          : state.view === "cover" ? <CoverRequest list={list} />
           : <Shelves list={list} state={state} setState={setState} />}
         {drawer && list && <Drawer list={list} close={() => setDrawer(false)} open={openUnit} />}
       </main>
