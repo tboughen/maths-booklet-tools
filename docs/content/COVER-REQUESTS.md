@@ -31,6 +31,9 @@ told about every request.
   usually goes (`lessonNumbered: false`, `lessonName: "Cover lesson"`). The end band says "End of cover
   lesson". The files are PDF only, so the booklet can't pass as a lesson of a unit.
 - Builds go into the library as Waiting, on the year's "Review and cover" shelf.
+- The description and the attached file's words are written by staff and passed to a task that can
+  publish to the library. The task treats them as data, never instructions, and every build lands as
+  Waiting, so Tim's check is the last safeguard.
 - No five-reviewer round (Tim, 26 Nov). Speed matters, and Tim checks each one in Waiting.
 
 ## How it runs

@@ -109,6 +109,8 @@ export async function coverRequests(request, env, claims, fetcher = fetch) {
   try {
     issue = await call('POST', '/issues', { title: `Cover request: ${group}, from ${nameOf(email)}`, body: issueBody(parsed, email, when), labels: [label], assignees: [coverAlertTo] });
   } catch { return json(502, { error: 'The request could not be sent. Try again, or tell Tim.' }); }
+  // GitHub made the issue (so Tim is already emailed) but gave no number back: say it was sent, not failed.
+  if (!Number.isInteger(issue?.number)) return json(201, { number: null, started: false });
   const started = await startBuild(env, fetcher, issue.number);
   if (started) await call('POST', `/issues/${issue.number}/labels`, { labels: ['cover-building'] }).catch(() => null);
   return json(201, { number: issue.number, started });

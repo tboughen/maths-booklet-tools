@@ -34,6 +34,8 @@ const lessonNo = (code: string) => Number(/\.(\d+)/.exec(code)?.[1] ?? NaN);
  * named asks which lesson the class is on, so nothing later than that is revised.
  */
 export function coverPlan(list: Library, year: number, text: string, upTo?: string | null): CoverPlan {
+  // "none": the teacher said the code wasn't a unit (e.g. "print on A4"), so the build follows the description.
+  if (upTo === "none") return { unit: null, lessons: [], upTo: null, needsLesson: false };
   const units = yearUnits(list, year);
   const codes = new Map(units.map((u) => [u.code.toUpperCase(), u]));
   let unit: LibraryUnit | null = null;
@@ -47,8 +49,10 @@ export function coverPlan(list: Library, year: number, text: string, upTo?: stri
   }
   if (!unit) return { unit: null, lessons: [], upTo: null, needsLesson: false };
   const all = [...(unit.lessons ?? [])].sort((a, b) => byLesson(a.code, b.code));
-  const said = /\blesson\s*(\d{1,2})\b/i.exec(text);
-  if (named === null && said) named = Number(said[1]);
+  // Only a lesson number next to the unit counts ("NP17, lesson 3", "lesson 3 of NP17"), not "last lesson 5 pupils…".
+  const code = unit.code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const said = new RegExp(`\\b${code}\\b[\\s,;:-]*(?:\\(?\\s*)?lesson\\s*(\\d{1,2})\\b|\\blesson\\s*(\\d{1,2})\\s+(?:of|in|from)\\s+${code}\\b`, "i").exec(text);
+  if (named === null && said) named = Number(said[1] ?? said[2]);
   const chosen = upTo ? all.find((l) => l.code === upTo) : named === null ? undefined : all.find((l) => lessonNo(l.code) === named);
   if (!chosen) return { unit, lessons: [], upTo: null, needsLesson: all.length > 0 };
   return { unit, lessons: all.filter((l) => lessonNo(l.code) <= lessonNo(chosen.code)), upTo: chosen.code, needsLesson: false };

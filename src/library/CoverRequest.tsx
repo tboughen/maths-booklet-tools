@@ -69,7 +69,8 @@ export default function CoverRequest({ list }: { list: Library }) {
     setBusy(true); setMessage("");
     try {
       const done = await sendCoverRequest({ year, tier: tiered ? tier : null, absent: true, text: text.trim(), plan: sentence, attachment: attached });
-      setSent(done); setChecking(false); refresh();
+      // A fresh tick for any further request, so one press never sends twice.
+      setSent(done); setChecking(false); setAbsent(false); refresh();
     } catch (e) { setMessage((e as Error).message); }
     finally { setBusy(false); }
   }
@@ -116,18 +117,19 @@ export default function CoverRequest({ list }: { list: Library }) {
         ) : (
           <div className="cover-check" role="region" aria-label="Check before building">
             <p>{sentence}</p>
-            {plan.unit && (plan.needsLesson || plan.upTo) && (
+            {(plan.unit || upTo === "none") && (plan.needsLesson || plan.upTo || upTo === "none") && (
               <label>Up to and including
                 <select value={upTo ?? plan.upTo ?? ""} onChange={(e) => setUpTo(e.target.value || null)}>
                   <option value="">Choose the lesson your class is on</option>
-                  {(plan.unit.lessons ?? []).map((l) => <option key={l.code} value={l.code}>{l.code} {l.title}</option>)}
+                  <option value="none">{plan.unit?.code ?? "That code"} isn't a unit here: follow my description</option>
+                  {(plan.unit?.lessons ?? []).map((l) => <option key={l.code} value={l.code}>{l.code} {l.title}</option>)}
                 </select>
               </label>
             )}
             <p className="library-hint">Is that right?</p>
             <div className="cover-row">
               <button type="button" className="cover-go" disabled={busy || (plan.needsLesson && !upTo)} onClick={() => void build()}>{busy ? "Sending…" : "Yes, build it"}</button>
-              <button type="button" className="cover-link" onClick={() => setChecking(false)}>Change it</button>
+              <button type="button" className="cover-link" onClick={() => { setChecking(false); setUpTo(null); }}>Change it</button>
             </div>
           </div>
         )}

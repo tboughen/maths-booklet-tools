@@ -801,7 +801,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
 
   const issues = [...rendered.issues];
   for (const i of ctx.issues) if (!issues.some((j) => j.message === i.message && j.lesson === i.lesson && j.section === i.section && j.question === i.question)) issues.push(i);
-  const lessonNo = numbering ? ` lesson ${numbering.lessonOffset + 1 + lessonShift(doc)}` : "";
+  const lessonNo = numbering && lessonWords(doc).numbered ? ` lesson ${numbering.lessonOffset + 1 + lessonShift(doc)}` : "";
   const bytes = await writePackage({
     body: body + LAST_PARAGRAPH + sect,
     ctx,

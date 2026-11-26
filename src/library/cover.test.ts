@@ -28,6 +28,12 @@ describe("the cover request check", () => {
     expect(coverPlan(list, 9, "NP17 lesson 3").unit).toBeNull();
   });
 
+  it("ignores lesson numbers away from the unit, and lets a code that isn't a unit be waved away", () => {
+    expect(coverPlan(list, 10, "Last lesson 5 pupils were out. Revise NP17 please.")).toMatchObject({ needsLesson: true, upTo: null });
+    expect(coverPlan(list, 10, "Revise SP8 (lesson 2)").upTo).toBe("SP8.02");
+    expect(coverPlan(list, 10, "Mock revision on SP8 paper", "none")).toMatchObject({ unit: null, needsLesson: false });
+  });
+
   it("never calls a suggestion a starter", () => {
     expect(JSON.stringify(coverSuggestions)).not.toMatch(/starter/i);
   });
