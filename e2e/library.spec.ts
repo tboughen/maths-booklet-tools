@@ -65,6 +65,14 @@ test("a year shows rings in teaching order and a unit shows its parts, versions,
   await page.goBack();
   await expect(page).toHaveURL(/\/library\?year=9$/);
   await expect(detail).toContainText("Choose a unit");
+  // The open unit closes when clicked again, or when empty space among the units is clicked.
+  await a7.click();
+  await expect(page).toHaveURL(/year=9&unit=A7$/);
+  await a7.click();
+  await expect(page).toHaveURL(/\/library\?year=9$/);
+  await a7.click();
+  await units.getByRole("heading", { name: "Year 9", exact: true }).click();
+  await expect(detail).toContainText("Choose a unit");
 });
 
 test("staff comment on a lesson and the editor queues it, closes it or brings back an earlier version", async ({ page }) => {
