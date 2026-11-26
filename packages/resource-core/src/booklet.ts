@@ -65,6 +65,19 @@ export const ncetmSchema = z
   .strict();
 export type NcetmLink = z.infer<typeof ncetmSchema>;
 
+/** A common misconception for teachers (Tim, 25 November 2026): what to watch for, one question to ask, and where the evidence comes from. Paraphrased, never copied. */
+export const misconceptionSchema = z
+  .object({
+    /** The mistake, in a few words, e.g. "counting squares, not reading the axes (Mei, Q21)". */
+    watch: text(110),
+    /** One question the teacher can ask, e.g. "What does one square stand for on each axis?" */
+    ask: text(90),
+    /** Where it comes from, e.g. "Examiner report June 2018 3H Q12", "NCETM", "This lesson, Q5". */
+    source: text(45),
+  })
+  .strict();
+export type Misconception = z.infer<typeof misconceptionSchema>;
+
 export const sectionSchema = z
   .object({
     kind: z.enum(SECTION_KINDS),
@@ -82,6 +95,8 @@ export const sectionSchema = z
     numbering: z.enum(NUMBERING).default("continue"),
     /** An optional NCETM link for teachers (Tim, 25 November 2026): a small clickable chip at the right-hand end of the heading line, printed in the ANSWERS copy only (PDF and Word), never in the pupil copy. Used on a stage's first section or the Challenge, one to three a lesson. */
     ncetm: ncetmSchema.optional(),
+    /** An optional common misconception (Tim, 25 November 2026): a "Watch for" box and an "Ask" box either side of the page number, in the footer of the page where the section starts, printed in the ANSWERS copy only (PDF and Word). Used on a stage's first section, one a stage. */
+    misconception: misconceptionSchema.optional(),
     cards: z.array(cardSchema).min(1).max(16),
   })
   .strict();

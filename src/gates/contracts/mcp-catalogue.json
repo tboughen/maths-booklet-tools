@@ -525,6 +525,29 @@
                               ],
                               "additionalProperties": false
                             },
+                            "misconception": {
+                              "type": "object",
+                              "properties": {
+                                "watch": {
+                                  "type": "string",
+                                  "maxLength": 110
+                                },
+                                "ask": {
+                                  "type": "string",
+                                  "maxLength": 90
+                                },
+                                "source": {
+                                  "type": "string",
+                                  "maxLength": 45
+                                }
+                              },
+                              "required": [
+                                "watch",
+                                "ask",
+                                "source"
+                              ],
+                              "additionalProperties": false
+                            },
                             "cards": {
                               "minItems": 1,
                               "maxItems": 16,

@@ -1,6 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, coverTitle, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, headingLineRoom, NCETM_CHIP, ncetmChipLabel } from "./booklet-render";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, coverTitle, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, headingLineRoom, NCETM_CHIP, ncetmChipLabel, MISCONCEPTION, misconceptionBoxes, misconceptionToneColour, pageMisconception, type NoteWord } from "./booklet-render";
 import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
@@ -645,6 +645,28 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${content}${gap(END_MM)}</w:ftr>`;
 }
 
+/** A word's parsed runs as Word runs: maths letters in the maths font, as everywhere else (N16). */
+const wordRunsOf = (parsed: NoteWord["runs"], o: { color: string; sizeMm: number; bold: boolean }) =>
+  parsed.map((r) => run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic", maths: r.style === "maths", sup: r.sup })).join("");
+/** A page footer that also carries a misconception (answers copy only): the "Watch for" box, the page number and the "Ask" box, as on the PDF page. */
+function noteFooter(lines: { left: NoteWord[][]; right: NoteWord[][] }, st: HouseStyle): string {
+  const M = MISCONCEPTION;
+  const [lb, rb] = misconceptionBoxes();
+  const pitch = M.size * M.pitch;
+  const edge = { color: M.edge, width: 0.28 };
+  const box = (ls: NoteWord[][], w: number) => {
+    const pad = (M.h - ls.length * pitch) / 2;
+    const body = ls.map((line) => para(line.map((word, i) => { const o = { color: misconceptionToneColour(word.tone), sizeMm: M.size, bold: word.bold }; return (i ? run(" ", o) : "") + wordRunsOf(word.runs, o); }).join(""), { line: pitch, right: -WORD_WRAP_SLACK_MM })).join("");
+    return cell(gap(pad) + body, { width: w, shade: M.fill, borders: { top: edge, bottom: edge, right: edge, left: { color: M.edge, width: M.bar } }, margin: { left: M.padX, right: M.padX, top: 0, bottom: 0 }, vAlign: "top" });
+  };
+  const o = { color: st.navy, sizeMm: A4.pageNumber, bold: true };
+  const mid = cell(gap(FOOT_TEXT_TOP - M.top) + para(run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.pageNumber), align: "center" }), { width: rb.x - lb.w });
+  const content = table([lb.w, rb.x - lb.w, rb.w], [row([box(lines.left, lb.w), mid, box(lines.right, rb.w)], { mm: M.h, exact: true })]);
+  return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${content}${gap(END_MM)}</w:ftr>`;
+}
+/** Distance from the page's foot to a misconception footer's last paragraph, so its boxes' top is at MISCONCEPTION.top. */
+const NOTE_FOOTER_DISTANCE = A4.page.height - (MISCONCEPTION.top + MISCONCEPTION.h + END_MM);
+
 /** The end band in the footer of a lesson's last page (N11): lesson tile, "End of lesson N" (or the booklet's own name), the page number and STOP. */
 function endBandFooter(number: number, st: HouseStyle, words: LessonWords = LESSON_WORDS): string {
   const B = BOOKEND;
@@ -708,7 +730,13 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
     if (doc.intro) pages.push({ xml: gap(COVER_DROP) + introPage(doc, doc.intro, st), footer: "page" });
   }
   const lessonOffset = (numbering?.lessonOffset ?? 0) + lessonShift(doc);
-  for (const p of plan.pages) pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : p.checkInStop ? "checkin" : "page" });
+  const notes: { left: NoteWord[][]; right: NoteWord[][] }[] = [];
+  for (const p of plan.pages) {
+    // A page whose footer carries a misconception (answers only) is a Word section of its own, so the footer can hold the boxes.
+    const note = pageMisconception(doc.lessons[p.lesson - 1], p, view, !!ctx.maths).note;
+    if (note) notes.push(note.lines);
+    pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : p.checkInStop ? "checkin" : note ? `note:${notes.length - 1}` : "page" });
+  }
   if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st, doc.notation === "maths"), footer: "page" });
   if (doc.revision && plan.revisionPage) {
     ctx.where = { lesson: 0, page: plan.revisionPage };
@@ -723,6 +751,12 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   const endFooters = new Map<string, string>();
   const footerId = (kind: string) => {
     if (kind === "page") return "rIdFooter1";
+    if (kind.startsWith("note:")) {
+      const k = Number(kind.slice(5));
+      const id = `rIdNoteFooter${k + 1}`;
+      if (!parts.some((x) => x.id === id)) parts.push({ name: `footer-note${k + 1}.xml`, id, relType: "footer", contentType: footerType, xml: noteFooter(notes[k], st) });
+      return id;
+    }
     if (kind === "checkin") {
       if (!parts.some((x) => x.id === "rIdCheckInFooter")) parts.push({ name: "footer-checkin.xml", id: "rIdCheckInFooter", relType: "footer", contentType: footerType, xml: checkInFooter(st) });
       return "rIdCheckInFooter";
@@ -741,7 +775,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   const sectPr = (kind: string, first: boolean) =>
     `<w:sectPr><w:footerReference w:type="default" r:id="${footerId(kind)}"/>${first && !numbering ? `<w:footerReference w:type="first" r:id="rIdFooter2"/>` : ""}` +
     `<w:type w:val="nextPage"/><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
-    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : kind === "checkin" ? CHECK_IN_FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
+    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" || kind.startsWith("note:") ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : kind.startsWith("note:") ? NOTE_FOOTER_DISTANCE : kind === "checkin" ? CHECK_IN_FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
     `${first ? `<w:pgNumType w:start="${firstPage}"/>` : ""}<w:cols w:space="0"/>${first && !numbering ? "<w:titlePg/>" : ""}<w:docGrid w:linePitch="360"/></w:sectPr>`;
   let body = "";
   let first = true;
