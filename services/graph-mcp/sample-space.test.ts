@@ -84,7 +84,7 @@ it("creates two dice with hidden totals, fills only on request and prints verifi
 
   const stale = await client.callTool({ name: "revise_diagram", arguments: { kind: "sample-space", envelope: r.envelope, baseHash: "0".repeat(64), operations: [{ op: "add_row" }] } });
   expect(stale.isError).toBe(true);
-});
+}, 20_000); // Prints verified PDF/PNG files: 5–9 s on the release runner, over the 5 s default.
 
 it("refuses to fill sums of outcomes that are not numbers, with the reason", async () => {
   const { client } = await start();

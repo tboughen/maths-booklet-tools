@@ -96,7 +96,7 @@ it("creates a cylinder with a hidden answer, revises it and prints verified file
   expect(revised.envelope.document.names).toEqual([{ id: "ct", text: "V" }]);
   const stale = await client.callTool({ name: "revise_diagram", arguments: { kind: "solids", envelope: r.envelope, baseHash: "0".repeat(64), operations: [] } });
   expect(stale.isError).toBe(true);
-});
+}, 20_000); // Prints verified PDF/PNG files: 5–9 s on the release runner, over the 5 s default.
 
 it("starts from a Question Bank example and places it in a worksheet family list", async () => {
   const { client } = await start();
