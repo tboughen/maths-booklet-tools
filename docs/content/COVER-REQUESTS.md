@@ -13,7 +13,8 @@ told about every request.
    starter is something else in teaching.
 3. Optionally, attach a PowerPoint, Word or PDF file. Only its words are read, on the teacher's own
    device, and sent with the request (up to 20,000 characters). Its pictures are not sent.
-4. Tick "I confirm I'm absent and this is cover for my own class."
+4. Tick "I'm absent, and this is cover for my own class." The page says only "Requests are logged."
+   (Tim, 26 Nov: keep it gentle).
 5. **Check and build** shows one check sentence. If the text names a unit from the year's list (NP17,
    lesson 3, or NP17.03), the sentence lists the objectives from the first lesson up to that one. If only
    the unit is named, the teacher chooses the lesson the class is on. So nothing later than that lesson is
