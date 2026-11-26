@@ -85,7 +85,15 @@ export async function officeText(bytes: Uint8Array): Promise<string> {
 export type CoverLogEntry = { number: number; when: string; year: number; tier: string | null; who: string; mine: boolean; text: string; state: "waiting" | "building" | "ready" | "stopped" };
 export type CoverRequestBody = { year: number; tier: "Foundation" | "Higher" | null; absent: true; text: string; plan: string; attachment: { name: string; text: string } | null };
 
-export async function loadCoverLog(fetcher: typeof fetch = fetch): Promise<{ requests: CoverLogEntry[]; building: boolean }> {
+export type CoverLog = { requests: CoverLogEntry[]; building: boolean };
+/** The cover lessons deleted from the list, and whether the signed-in teacher may delete one. */
+export async function loadCoverRemoved(fetcher: typeof fetch = fetch): Promise<{ removed: string[]; canDelete: boolean }> {
+  const response = await fetcher(`${siteBase()}api/library/cover?only=removed`, { cache: "no-store" });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "The deleted list could not be loaded.");
+  return data;
+}
+export async function loadCoverLog(fetcher: typeof fetch = fetch): Promise<CoverLog> {
   const response = await fetcher(`${siteBase()}api/library/cover`, { cache: "no-store" });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "The requests could not be loaded.");
@@ -97,4 +105,22 @@ export async function sendCoverRequest(body: CoverRequestBody, fetcher: typeof f
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "The request could not be sent. Try again, or tell Tim.");
   return data;
+}
+
+/** Cover lessons are short-lived (Tim, 26 Nov): a lesson a cover request built, on a Review and cover shelf. */
+export const isCoverLesson = (r: { unit: string; note?: string }) => r.unit === "REVIEW" && /^Cover request #\d+/.test(r.note ?? "");
+export const COVER_KEEP_DAYS = 7;
+const dayMs = 86400000;
+/** After 7 days a cover lesson folds away into "Old cover lessons". */
+export const isOldCover = (r: { unit: string; note?: string; updated: string }, now = Date.now()) =>
+  isCoverLesson(r) && now - Date.parse(r.updated.length === 10 ? `${r.updated}T12:00:00` : r.updated) > COVER_KEEP_DAYS * dayMs;
+/** The requests the page lists: the last 7 days only. */
+export const recentRequests = (log: CoverLogEntry[], now = Date.now()) => log.filter((r) => now - Date.parse(r.when) <= COVER_KEEP_DAYS * dayMs);
+
+/** Deletes one cover lesson from the library list (library editors only). Its files stay in the private store. */
+export async function removeCoverLesson(id: string, fetcher: typeof fetch = fetch): Promise<string[]> {
+  const response = await fetcher(`${siteBase()}api/library/cover`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "remove", id }) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "The cover lesson could not be deleted. Try again.");
+  return data.removed ?? [];
 }

@@ -6,6 +6,8 @@
 // The build writes one 8-side lesson marked "Cover lesson" (never a number), PDF only, into the library as
 // waiting, comments on the issue and closes it with the label cover-ready. Tim closing the issue stops it.
 // Needs REPORT_GITHUB_TOKEN (issues read and write); COVER_TASK_URL and COVER_TASK_TOKEN start the build.
+import { canAct } from './library-feedback.mjs';
+
 export const coverRepo = { owner: 'tboughen', name: 'mathsdock-bank' };
 export const coverLimits = { text: 2000, attachment: 20000, name: 120, list: 30 };
 export const coverAlertTo = 'tboughen';
@@ -88,11 +90,53 @@ export async function startBuild(env, fetcher, number) {
   } catch { return false; }
 }
 
+// Cover lessons are short-lived (Tim, 26 Nov): a library editor can delete one from the library list. The
+// files stay in the private store; library/cover-removed.json lists the deleted ids, and the page hides them.
+export const coverRemovedKey = 'library/cover-removed.json';
+export async function readRemoved(env) {
+  const object = await env.BANK?.get(coverRemovedKey);
+  if (!object) return { removed: {}, etag: null };
+  let removed;
+  try { removed = JSON.parse(await new Response(object.body).text()).removed; } catch { removed = null; }
+  // A damaged file is never overwritten: every deletion would come back.
+  if (!removed || typeof removed !== 'object' || Array.isArray(removed)) throw new Error(`${coverRemovedKey} cannot be read`);
+  return { removed, etag: object.etag };
+}
+/** Only a lesson a cover request built (on a Review and cover shelf, note "Cover request #N") can be deleted. */
+export async function isCoverLesson(env, id) {
+  const object = await env.BANK?.get('library/library.json');
+  if (!object) return false;
+  try {
+    const list = JSON.parse(await new Response(object.body).text());
+    return (list.resources ?? []).some(r => r.id === id && r.unit === 'REVIEW' && /^Cover request #\d+/.test(r.note ?? ''));
+  } catch { return false; }
+}
+async function removeLesson(env, email, id) {
+  if (!canAct(env, email)) return json(403, { error: 'Only the library editors can delete a cover lesson.' });
+  if (typeof id !== 'string' || !id || id.length > 200 || !(await isCoverLesson(env, id))) return json(400, { error: 'Only a cover lesson can be deleted.' });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let read;
+    try { read = await readRemoved(env); } catch { return json(500, { error: 'The deleted list could not be read. Tell Tim.' }); }
+    read.removed[id] = { by: nameOf(email), at: new Date().toISOString() };
+    const body = JSON.stringify({ schema: 'mathsdock-cover-removed/1', removed: read.removed });
+    const put = await env.BANK.put(coverRemovedKey, body, { httpMetadata: { contentType: 'application/json' }, onlyIf: read.etag ? { etagMatches: read.etag } : new Headers({ 'If-None-Match': '*' }) });
+    if (put) return json(200, { ok: true, removed: Object.keys(read.removed) });
+  }
+  return json(409, { error: 'Someone else changed the library at the same moment. Try again.' });
+}
+
 export async function coverRequests(request, env, claims, fetcher = fetch) {
+  // The library page asks only for the deleted list: R2 alone, so a GitHub problem never brings deleted lessons back.
+  if (request.method === 'GET' && new URL(request.url).searchParams.get('only') === 'removed') {
+    try { const { removed } = await readRemoved(env); return json(200, { removed: Object.keys(removed), canDelete: canAct(env, claims.email) }); }
+    catch { return json(500, { error: 'The deleted list could not be read.' }); }
+  }
   if (!env.REPORT_GITHUB_TOKEN) return json(503, { error: 'Cover requests are not switched on yet.' });
   const call = github(env, fetcher);
   if (request.method === 'GET') {
-    try { return json(200, { requests: await listRequests(env, fetcher, claims.email), building: !!(env.COVER_TASK_URL && env.COVER_TASK_TOKEN) }); }
+    try {
+      return json(200, { requests: await listRequests(env, fetcher, claims.email), building: !!(env.COVER_TASK_URL && env.COVER_TASK_TOKEN) });
+    }
     catch { return json(502, { error: 'The requests could not be loaded. Try again in a minute.' }); }
   }
   if (request.method !== 'POST') return json(405, { error: 'Method not allowed' });
@@ -100,6 +144,7 @@ export async function coverRequests(request, env, claims, fetcher = fetch) {
   if (!/^application\/json\b/i.test(request.headers.get('Content-Type') || '')) return json(415, { error: 'The request could not be read.' });
   let body;
   try { body = await request.json(); } catch { return json(400, { error: 'The request could not be read.' }); }
+  if (body?.action === 'remove') return removeLesson(env, String(claims.email || '').toLowerCase(), body.id);
   const parsed = coverRequest(body);
   if (parsed.error) return json(400, { error: parsed.error });
   const email = String(claims.email || '').toLowerCase();

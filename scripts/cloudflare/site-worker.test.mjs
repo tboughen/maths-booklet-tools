@@ -375,7 +375,7 @@ test('a unit booklet is checked and commented on apart from its unit and lessons
 });
 
 // Cover lesson requests.
-async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, taskOk = true } = {}) {
+async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, taskOk = true, query = '' } = {}) {
   const sent = [];
   const fetcher = async (url, init) => {
     if (url.startsWith(team)) return certs(url);
@@ -386,7 +386,7 @@ async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secr
     return Response.json({}, { status: 200 });
   };
   const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'Sam.Jones@school.example' }) } : {}) };
-  const response = await serveCoverRequests(new Request('https://mathsdock.co.uk/api/library/cover', { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
+  const response = await serveCoverRequests(new Request(`https://mathsdock.co.uk/api/library/cover${query}`, { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
   return { response, sent, data: await response.json() };
 }
 const ask = { year: 10, tier: 'Foundation', absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: 'NP17.01 to NP17.03' };
@@ -438,4 +438,34 @@ test('the cover request log shows names and states, never addresses', async () =
   assert.equal(JSON.stringify(data).includes('@'), false);
   assert.equal(JSON.stringify(data).includes('%40'), false);
   assert.equal(data.building, false);
+});
+
+test('a library editor can delete a cover lesson from the list, and nothing else', async () => {
+  const stored = { 'library/library.json': JSON.stringify({ resources: [
+    { id: 'y11-cover-2026-11-26-41', unit: 'REVIEW', note: 'Cover request #41' },
+    { id: 'y11-mock-revision', unit: 'REVIEW', note: 'Mock revision' },
+    { id: 'y9-a7-03', unit: 'A7', note: 'Cover request #9' },
+  ] }) };
+  const BANK = {
+    async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: 'e' } : null; },
+    async put(k, v) { stored[k] = v; return {}; },
+  };
+  const base = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK };
+  const colleague = await cover('POST', { action: 'remove', id: 'y11-cover-2026-11-26-41' }, { env: base });
+  assert.equal(colleague.response.status, 403);
+  const editor = { ...base, LIBRARY_EDITORS: 'sam.jones@school.example' };
+  for (const id of ['y11-mock-revision', 'y9-a7-03', 'missing', 42])
+    assert.equal((await cover('POST', { action: 'remove', id }, { env: editor })).response.status, 400, String(id));
+  assert.ok(!('library/cover-removed.json' in stored));
+  const done = await cover('POST', { action: 'remove', id: 'y11-cover-2026-11-26-41' }, { env: editor });
+  assert.equal(done.response.status, 200);
+  assert.deepEqual(done.data.removed, ['y11-cover-2026-11-26-41']);
+  assert.equal(done.sent.length, 0, 'deleting makes no GitHub call');
+  // The deleted list needs no GitHub at all, so it survives GitHub being down or switched off.
+  const listed = await cover('GET', undefined, { env: { ...editor, REPORT_GITHUB_TOKEN: undefined }, query: '?only=removed' });
+  assert.equal(listed.response.status, 200);
+  assert.deepEqual(listed.data.removed, ['y11-cover-2026-11-26-41']);
+  assert.equal(listed.data.canDelete, true);
+  assert.equal(listed.sent.length, 0);
+  assert.equal((await cover('GET', undefined, { env: base, query: '?only=removed' })).data.canDelete, false);
 });

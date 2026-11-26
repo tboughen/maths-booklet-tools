@@ -207,3 +207,6 @@
 .cover-log li.cover-ready { border-color: var(--lib-ready); }
 .cover-state { font-weight: 600; color: var(--md-ink-2); }
 .cover-text { color: var(--md-ink-3); }
+/* Cover lessons older than 7 days, folded away (Tim, 26 Nov). */
+.library-old-cover { margin: 14px 0 0; }
+.library-old-cover > summary { cursor: pointer; font-weight: 600; color: var(--md-ink-2); padding: 6px 0; }
