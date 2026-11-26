@@ -423,18 +423,19 @@ export function bannerFrag(label: string, end: boolean, st: HouseStyle, note = "
  * space the heading line already leaves empty, so it never moves anything: pupil and answers pages
  * keep the same layout. Word draws the same text (booklet-docx).
  */
-export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "" } as const;
+/** Pale green with dark green text and a thick left bar, like the misconception boxes (Tim, 26 November 2026): unlike the navy house colour, black text, the pink-purple answers and the amber misconception boxes, so the chip stands out. */
+export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "", ink: "#14532d", edge: "#16a34a", fill: "#dcfce7", bar: 0.9 } as const;
 
 /** The chip's label cut to fit `room` mm (the whole chip's width), or null when even a short label cannot fit. */
 export function ncetmChipLabel(label: string, room: number): string | null {
   const c = NCETM_CHIP;
-  const fixed = 2 * c.padX + plainWidth(c.tag + "  ", c.size, "bold") + plainWidth(c.arrow, c.size);
+  const fixed = c.bar + 2 * c.padX + plainWidth(c.tag + "  ", c.size, "bold") + plainWidth(c.arrow, c.size);
   if (room - fixed < c.minLabel) return null;
   return fitLine(label.trim(), c.size, room - fixed);
 }
 
 /** Width of a chip with this (already fitted) label. */
-export const ncetmChipWidth = (label: string) => 2 * NCETM_CHIP.padX + plainWidth(NCETM_CHIP.tag + "  ", NCETM_CHIP.size, "bold") + plainWidth(label + NCETM_CHIP.arrow, NCETM_CHIP.size);
+export const ncetmChipWidth = (label: string) => NCETM_CHIP.bar + 2 * NCETM_CHIP.padX + plainWidth(NCETM_CHIP.tag + "  ", NCETM_CHIP.size, "bold") + plainWidth(label + NCETM_CHIP.arrow, NCETM_CHIP.size);
 
 /** Room left on a section's heading line, right of the title and an instruction printed beside it. */
 export function headingLineRoom(section: Section): number {
@@ -444,7 +445,7 @@ export function headingLineRoom(section: Section): number {
   return W - used - NCETM_CHIP.gap;
 }
 
-function ncetmChip(link: NcetmLink, room: number, st: HouseStyle): string | null {
+function ncetmChip(link: NcetmLink, room: number): string | null {
   const c = NCETM_CHIP;
   const label = ncetmChipLabel(link.label, room);
   if (label === null) return null;
@@ -455,8 +456,9 @@ function ncetmChip(link: NcetmLink, room: number, st: HouseStyle): string | null
   const url = esc(link.url);
   return (
     `<a href="${url}">` +
-    rect(x, y, w, c.h, `rx="0.9" fill="${st.tint}" stroke="${st.navy}" stroke-width="0.18"`) +
-    textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.padX, by, c.size, st.navy) +
+    rect(x, y, w, c.h, `rx="0.9" fill="${c.fill}" stroke="${c.edge}" stroke-width="0.3"`) +
+    rect(x, y, c.bar, c.h, `rx="0.45" fill="${c.edge}"`) +
+    textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.bar + c.padX, by, c.size, c.ink) +
     `</a>`
   );
 }
@@ -613,7 +615,7 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths
     }
   }
   if (link && !continued) {
-    const chip = ncetmChip(link.link, headingLineRoom(section), st);
+    const chip = ncetmChip(link.link, headingLineRoom(section));
     if (chip) out.push(chip);
     else link.onMissing();
   }

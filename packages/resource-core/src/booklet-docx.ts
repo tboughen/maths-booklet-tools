@@ -226,7 +226,7 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths
   const inline = !!ins && plainWidth(ins, A4.small) <= W - titleW - 4;
   const head = titleWordRuns(title, { bold: true, color: st.navy, sizeMm: A4.heading }, maths);
   const c = NCETM_CHIP;
-  const look = { color: st.navy, sizeMm: c.size, shade: st.tint, border: st.navy };
+  const look = { color: c.ink, sizeMm: c.size, shade: c.fill, border: c.edge };
   const chipXml = chip && !continued ? tab() + `<w:hyperlink r:id="${chip.rid}" w:history="1">${run(" " + c.tag + "  ", { ...look, bold: true })}${run(chip.label + c.arrow + " ", look)}</w:hyperlink>` : "";
   const tabs = [...(inline ? [{ pos: titleW + 4 }] : []), ...(chipXml ? [{ pos: W, align: "right" as const }] : [])];
   const out = [
