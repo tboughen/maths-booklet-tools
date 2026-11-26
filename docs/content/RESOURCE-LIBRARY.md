@@ -78,13 +78,13 @@ a hidden marker and show only their name. It uses the `REPORT_GITHUB_TOKEN` Work
 (`docs/release/STAFF-SIGN-IN.md`); without it the page says feedback isn't switched on yet.
 
 - **The status switch** (Tim, 25 Nov): every made lesson and every unit booklet has **Waiting ·
-  Changes · Checked**, the lit part in the row's colour, with a line saying who set it. Colleagues who
+  Needs changes · Checked**, the lit part in the row's colour, with a line saying who set it. Colleagues who
   are not editors see only the lit part. **Checked** turns that version green at once and closes its
   open comments (on a queued lesson it asks first, then cancels the rebuild). The Worker keeps checks in
   `library/checks.json` in R2 (`{ id: { updated, by, at } }`); the page shows a booklet ready when its
   check names its current `updated` date, so a rebuilt booklet goes back to amber by itself. Publishing
-  never touches this file. **Changes** opens the comment box and sticks once a comment is sent (on a
-  checked booklet that also takes the check off). **Waiting** is the undo: it removes the check, or,
+  never touches this file. **Needs changes** lights at once and opens the comment box; **Cancel** (or
+  closing the box) before sending puts it back. A sent comment keeps it (and takes any check off). **Waiting** is the undo: it removes the check, or,
   after asking, closes the comments. On screens under 600 px only the lit part keeps its word.
 - **Unit booklets** have their own row above their lessons, keyed by part name (`booklet`: "Part 1",
   or "Unit booklet" for a unit in one booklet). Their comments are about the booklet's own pages (cover,
