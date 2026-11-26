@@ -17,6 +17,7 @@ cards and squares inside, versions, parts, history, and staff feedback closed by
 | Feedback | open issues labelled `library-feedback` in `tboughen/mathsdock-bank` |
 | Page | `src/library/` |
 | Worker routes | `/library-data/*` and `/api/library/feedback` in `scripts/cloudflare/site-worker.mjs` (feedback in `library-feedback.mjs`), behind Cloudflare Access like `/bank/assets/*` |
+| Cover requests | `/api/library/cover` (`cover-requests.mjs`) and the Request cover view: see `COVER-REQUESTS.md` |
 
 The site never holds the files, so new booklets and new versions need no website release. The page
 reads the served list and the open feedback each visit.

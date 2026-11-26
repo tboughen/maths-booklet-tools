@@ -5,7 +5,7 @@ import { accessSettings } from './site-worker.mjs';
 export function assertGatedWorker(config) {
   const bucket = config.r2_buckets?.find(b => b.binding === 'BANK');
   if (config.main !== 'scripts/cloudflare/site-worker.mjs' || bucket?.bucket_name !== 'maths-booklet-assets'
-      || JSON.stringify(config.assets?.run_worker_first) !== JSON.stringify(['/bank/assets/*', '/library-data/*', '/api/report', '/api/library/feedback'])
+      || JSON.stringify(config.assets?.run_worker_first) !== JSON.stringify(['/bank/assets/*', '/library-data/*', '/api/report', '/api/library/feedback', '/api/library/cover'])
       || config.workers_dev !== false || config.preview_urls !== false) {
     throw new Error('Website Worker must serve the question bank only through the gated R2 route');
   }

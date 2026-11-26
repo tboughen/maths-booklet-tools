@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
 import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, coverTitle, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, headingLineRoom, NCETM_CHIP, ncetmChipLabel, MISCONCEPTION, misconceptionBoxes, misconceptionToneColour, pageMisconception, type NoteWord } from "./booklet-render";
-import { LESSON_WORDS, lessonShift, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
+import { LESSON_WORDS, endLabel, lessonShift, tileLines, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
   cardCell,
@@ -148,7 +148,11 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
   const tagW = W - startTextX() - tw_;
   const unit = unitLabel(doc);
   const navy = (content: string, width: number, vAlign: "top" | "center" = "center") => cell(content, { width, shade: st.navy, vAlign });
-  const tileCell = navy(linesTile([{ text: lessonWords(doc).badge, size: pt(10), color: st.navy, line: 5 }, { text: String(number), size: pt(26), color: st.navy, line: 10.5 }], B.tile, B.tile, "#ffffff"), B.tile);
+  const tl = tileLines(lessonWords(doc), number);
+  const tileText = tl.small
+    ? [...(tl.top ? [{ text: tl.top, size: pt(11), color: st.navy, line: 5.2 }] : []), { text: tl.main, size: pt(11), color: st.navy, line: 5.2 }]
+    : [{ text: tl.top, size: pt(10), color: st.navy, line: 5 }, { text: tl.main, size: pt(26), color: st.navy, line: 10.5 }];
+  const tileCell = navy(linesTile(tileText, B.tile, B.tile, "#ffffff"), B.tile);
   const text =
     (unit ? textPara(unit, START_SIZES.unit, { color: "#ffffff", bold: true, right: 0 }) + gap(START_SIZES.gap) : "") +
     textPara(lesson.title, START_SIZES.title, { color: "#ffffff", bold: true, right: 0 });
@@ -200,7 +204,11 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
 function cornerBadge(number: number, squares: string[], lit: string | null, pageNo: number, st: HouseStyle, words: LessonWords): string {
   const B = BOOKEND;
   const right = pageNo % 2 === 1;
-  const badge = cell(linesTile([{ text: words.badge, size: pt(10), color: "#ffffff", line: 4.6 }, { text: String(number), size: pt(24), color: "#ffffff", line: 9 }], B.badgeW, B.badgeH, st.navy), { width: B.badgeW });
+  const tl = tileLines(words, number);
+  const badgeText = tl.small
+    ? [...(tl.top ? [{ text: tl.top, size: pt(10), color: "#ffffff", line: 4.6 }] : []), { text: tl.main, size: pt(10), color: "#ffffff", line: 4.6 }]
+    : [{ text: tl.top, size: pt(10), color: "#ffffff", line: 4.6 }, { text: tl.main, size: pt(24), color: "#ffffff", line: 9 }];
+  const badge = cell(linesTile(badgeText, B.badgeW, B.badgeH, st.navy), { width: B.badgeW });
   const sq: { xml: string; w: number }[] = [];
   squares.forEach((label, i) => {
     if (i) sq.push({ xml: cell(gap(END_MM), { width: B.squareGap }), w: B.squareGap });
@@ -674,14 +682,14 @@ function endBandFooter(number: number, st: HouseStyle, words: LessonWords = LESS
   const o = { bold: true, color: "#ffffff", sizeMm: size };
   const navy = (content: string, width: number) => cell(content, { width, shade: st.navy, vAlign: "center" });
   const restW = W - 3 - B.endTile - 3;
-  const text = para(run(`${words.end} ${number}`, o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>` + tab(o) + run(B.stop, o), {
+  const text = para(run(endLabel(words, number), o) + tab(o) + run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>` + tab(o) + run(B.stop, o), {
     line: lh(size),
     tabs: [
       { pos: W / 2 - (3 + B.endTile + 3), align: "center" },
       { pos: restW - 5, align: "right" },
     ],
   });
-  const band = table([3, B.endTile, 3, restW], [row([navy(gap(END_MM), 3), navy(linesTile([{ text: String(number), size, color: st.navy }], B.endTile, B.endTile, "#ffffff"), B.endTile), navy(gap(END_MM), 3), navy(text, restW)], { mm: B.endH, exact: true })]);
+  const band = table([3, B.endTile, 3, restW], [row([navy(gap(END_MM), 3), (words.numbered ? navy(linesTile([{ text: String(number), size, color: st.navy }], B.endTile, B.endTile, "#ffffff"), B.endTile) : navy(gap(END_MM), B.endTile)), navy(gap(END_MM), 3), navy(text, restW)], { mm: B.endH, exact: true })]);
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${band}${gap(END_MM)}</w:ftr>`;
 }
 /** "End of check in" STOP in the footer of a lesson's first page (N28): a stage banner with the page number centred. */
@@ -793,7 +801,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
 
   const issues = [...rendered.issues];
   for (const i of ctx.issues) if (!issues.some((j) => j.message === i.message && j.lesson === i.lesson && j.section === i.section && j.question === i.question)) issues.push(i);
-  const lessonNo = numbering ? ` lesson ${numbering.lessonOffset + 1 + lessonShift(doc)}` : "";
+  const lessonNo = numbering && lessonWords(doc).numbered ? ` lesson ${numbering.lessonOffset + 1 + lessonShift(doc)}` : "";
   const bytes = await writePackage({
     body: body + LAST_PARAGRAPH + sect,
     ctx,

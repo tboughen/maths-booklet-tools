@@ -206,6 +206,12 @@ export const bookletSchema = z
         /** The one word on the start tile and the corner badge above the number, e.g. "Revision". Empty uses the last word of the name. */
         lessonBadge: text(12).default(""),
         /**
+         * false prints no lesson number: the start tile and the corner badge show the name itself
+         * (e.g. "Cover" over "lesson"), the end band says "End of cover lesson" and the contents list the name
+         * alone. For one-off booklets such as a cover lesson, so they can't pass as a numbered lesson of a unit.
+         */
+        lessonNumbered: z.boolean().default(true),
+        /**
          * plain (saved booklets from before, and the default): text prints as typed. maths: {3/4}
          * prints as a stacked fraction, and as a native equation in Word, as on worksheets.
          * Typed maths also prints as a paper prints it (typeset.ts).
@@ -269,14 +275,29 @@ export interface LessonWords {
   name: string;
   /** The end band's words before the number, e.g. "End of mock revision". */
   end: string;
+  /** false: no number is printed anywhere (lessonNumbered). */
+  numbered: boolean;
 }
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** Lower-case the first letter only when the word is an ordinary word (so "SATs" stays as typed). */
 const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
-export function lessonWords(doc: { lessonName?: string; lessonBadge?: string }): LessonWords {
+export function lessonWords(doc: { lessonName?: string; lessonBadge?: string; lessonNumbered?: boolean }): LessonWords {
   const name = (doc.lessonName ?? "").trim().replace(/\s+/g, " ") || "Lesson";
   const badge = (doc.lessonBadge ?? "").trim() || capital(name.split(" ").pop() ?? name);
-  return { badge, name, end: `End of ${lowerFirst(name)}` };
+  return { badge, name, end: `End of ${lowerFirst(name)}`, numbered: doc.lessonNumbered !== false };
+}
+/** "Lesson 3", or the name alone when lessons are not numbered. */
+export const lessonLabel = (words: LessonWords, n: number): string => (words.numbered ? `${words.name} ${n}` : words.name);
+/** "End of lesson 3", or "End of cover lesson" when lessons are not numbered. */
+export const endLabel = (words: LessonWords, n: number): string => (words.numbered ? `${words.end} ${n}` : words.end);
+/**
+ * The two lines on the start tile and the corner badge: the badge word over the number, or, when lessons are
+ * not numbered, the name's first word over the rest ("Cover" over "lesson"), both at the small size.
+ */
+export function tileLines(words: LessonWords, n: number): { top: string; main: string; small: boolean } {
+  if (words.numbered) return { top: words.badge, main: String(n), small: false };
+  const [first, ...rest] = words.name.split(" ");
+  return rest.length ? { top: capital(first), main: rest.join(" "), small: true } : { top: "", main: capital(first), small: true };
 }
 /** What is added to a lesson's place (1, 2, 3...) to give its printed number. */
 export const lessonShift = (doc: { firstLessonNumber?: number }): number => (doc.firstLessonNumber ?? 1) - 1;

@@ -122,20 +122,20 @@ export function searchLibrary(list: Library, query: string): Resource[] {
   }).sort((a, b) => a.year - b.year || byLesson(a.lesson ?? a.unit, b.lesson ?? b.unit) || byLesson(a.type, b.type) || byLesson(a.version, b.version));
 }
 
-export type View = "shelves" | "map";
+export type View = "shelves" | "map" | "cover";
 export type LibraryState = { year: number; unit?: string; version?: string; view: View; q: string };
 /** The page's state from its address: `?year=9&unit=A7&version=Foundation`, `?view=map`, `?q=gradient`. */
 export function readState(search: string, fallbackYear = 7): LibraryState {
   const p = new URLSearchParams(search);
   const year = Number(p.get("year"));
-  return { year: [7, 8, 9, 10, 11].includes(year) ? year : fallbackYear, unit: p.get("unit") || undefined, version: p.get("version") || undefined, view: p.get("view") === "map" ? "map" : "shelves", q: p.get("q") ?? "" };
+  return { year: [7, 8, 9, 10, 11].includes(year) ? year : fallbackYear, unit: p.get("unit") || undefined, version: p.get("version") || undefined, view: p.get("view") === "map" ? "map" : p.get("view") === "cover" ? "cover" : "shelves", q: p.get("q") ?? "" };
 }
 export function writeState(state: LibraryState): string {
   const p = new URLSearchParams();
   p.set("year", String(state.year));
   if (state.unit) p.set("unit", state.unit);
   if (state.unit && state.version && state.version !== "Main") p.set("version", state.version);
-  if (state.view === "map") p.set("view", "map");
+  if (state.view !== "shelves") p.set("view", state.view);
   if (state.q) p.set("q", state.q);
   return `?${p}`;
 }

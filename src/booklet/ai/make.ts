@@ -115,6 +115,7 @@ export async function makeBooklet(o: MakeOptions, brief: BookletBrief, onProgres
       nameLine: true,
       lessonName: "",
       lessonBadge: "",
+      lessonNumbered: true,
       notation: "maths",
       intro: plan.intro,
       firstLessonNumber: 1,
