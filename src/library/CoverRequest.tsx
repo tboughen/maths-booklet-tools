@@ -4,7 +4,7 @@ import type { Library } from "./model";
 import { COVER_ATTACHMENT_MAX, COVER_FILE_MAX_BYTES, COVER_TEXT_MAX, coverPlan, coverSuggestions, loadCoverLog, officeText, planSentence, sendCoverRequest, yearUnits, type CoverLogEntry } from "./cover";
 
 type Attached = { name: string; text: string };
-const stateWords: Record<CoverLogEntry["state"], string> = { waiting: "Waiting for Tim to start it", building: "Building", ready: "In the library", stopped: "Stopped" };
+const stateWords: Record<CoverLogEntry["state"], string> = { waiting: "Saved, waiting to build", building: "Building", ready: "In the library", stopped: "Stopped" };
 
 /** Text out of an attached file, read on the teacher's own device: PowerPoint, Word or PDF. */
 async function readAttachment(file: File): Promise<Attached> {
@@ -43,7 +43,7 @@ export default function CoverRequest({ list }: { list: Library }) {
   const group = `Year ${year}${tiered && tier ? ` ${tier}` : ""}`;
   const plan = coverPlan(list, year, text, upTo);
   const sentence = planSentence(plan, group, attached?.name ?? null);
-  const missing = !text.trim() ? "Describe what the lesson should revise." : tiered && !tier ? "Choose Foundation or Higher." : !absent ? "Tick the box to confirm you're absent." : "";
+  const missing = !text.trim() ? "Describe what the lesson should revise." : tiered && !tier ? "Choose Foundation or Higher." : !absent ? "Tick the box to say you're absent." : "";
 
   const refresh = useCallback(() => {
     loadCoverLog().then((d) => { setLog(d.requests); setLogError(""); }, (e: Error) => setLogError(e.message));
@@ -79,7 +79,7 @@ export default function CoverRequest({ list }: { list: Library }) {
     <section className="cover-request" aria-labelledby="cover-title">
       <div className="cover-form">
         <h2 id="cover-title">Ask for a cover lesson</h2>
-        <p className="library-hint">For when you're absent. Describe the lesson and it's built for you: one 8-side lesson marked <b>Cover lesson</b>, pupil and answers PDFs, in the library in about 15 minutes. Tim is told about every request.</p>
+        <p className="library-hint">For when you're absent. Describe the lesson and it's built for you: one 8-side lesson marked <b>Cover lesson</b>, pupil and answers PDFs, in the library in about 15 minutes.</p>
         <div className="cover-row">
           <label>Year group
             <select value={year} onChange={(e) => edit(() => { setYear(Number(e.target.value)); if (Number(e.target.value) < 9) setTier(null); })}>
@@ -111,7 +111,8 @@ export default function CoverRequest({ list }: { list: Library }) {
         </div>
         <p className="library-hint">Only the words in the file are read and sent, not its pictures. Don't attach anything with pupils' names or marks.</p>
         <p className="cover-fixed">One cover lesson · 8 sides · pupil and answers PDFs</p>
-        <label className="cover-absent"><input type="checkbox" checked={absent} onChange={(e) => edit(() => setAbsent(e.target.checked))} />I confirm I'm absent and this is cover for my own class. Tim is told about every request.</label>
+        <label className="cover-absent"><input type="checkbox" checked={absent} onChange={(e) => edit(() => setAbsent(e.target.checked))} />I'm absent, and this is cover for my own class.</label>
+        <p className="library-hint">Requests are logged.</p>
         {!checking ? (
           <button type="button" className="cover-go" disabled={!!missing} onClick={() => setChecking(true)}>Check and build</button>
         ) : (
@@ -135,7 +136,7 @@ export default function CoverRequest({ list }: { list: Library }) {
         )}
         {missing && !checking && text && <p className="library-status">{missing}</p>}
         {message && <p className="library-status" role="alert">{message}</p>}
-        {sent && <p className="cover-sent" role="status">{sent.started ? "Building your cover lesson now. It will appear here and in the library, usually within 15 minutes." : "Your request is saved and Tim has been told. He'll start the build."}</p>}
+        {sent && <p className="cover-sent" role="status">{sent.started ? "Building your cover lesson now. It will appear here and in the library, usually within 15 minutes." : "Your request is saved. Your cover lesson will be built shortly and will appear here and in the library."}</p>}
       </div>
       <div className="cover-log">
         <h2>Recent requests</h2>
