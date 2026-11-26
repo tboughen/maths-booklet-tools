@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Check, Clock, Copy, Download, Hand, History, Moon, Pencil, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
+import { BookOpen, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
@@ -316,14 +316,14 @@ type Target = { year: number; unit: string; version: string; lesson: string | nu
 type Ask = null | "waiting" | "checked";
 
 /**
- * The status switch (Tim, 25 Nov): Waiting (clock) · Changes (pencil, a moon when queued) · Checked (tick), the lit part always in the row's
- * colour. Editors tap a part to set it; colleagues see the lit part as a label. Changes opens the comment
+ * The status switch (Tim, 25 Nov): Waiting (clock) · Feedback (speech bubble, a moon when queued) · Checked (tick), the lit part always in the row's
+ * colour. Editors tap a part to set it; colleagues see the lit part as a label. Feedback lights at once and opens the comment
  * box and sticks once a comment is sent; Waiting is the undo. On narrow screens only the lit part keeps its word.
  */
 function StatusSwitch({ status, queued, canAct, busy, label, onPick }: { status: "waiting" | "feedback" | "ready"; queued: boolean; canAct: boolean; busy: boolean; label: string; onPick: (to: "waiting" | "feedback" | "ready") => void }) {
   const parts = [
     { to: "waiting", Icon: Clock, word: "Waiting" },
-    { to: "feedback", Icon: queued ? Moon : Pencil, word: "Changes" },
+    { to: "feedback", Icon: queued ? Moon : MessageSquare, word: "Feedback" },
     { to: "ready", Icon: Check, word: "Checked" },
   ] as const;
   if (!canAct) {
@@ -351,7 +351,9 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
   const [message, setMessage] = useState("");
   const [ask, setAsk] = useState<Ask>(null);
   const [open, setOpen] = useState<boolean | null>(null);
-  const status: "waiting" | "feedback" | "ready" = thread ? "feedback" : r.status;
+  // Tapping Feedback lights it at once while the comment is written; cancelling goes back.
+  const [draft, setDraft] = useState(false);
+  const status: "waiting" | "feedback" | "ready" = thread || draft ? "feedback" : r.status;
   async function run(...actions: FeedbackAction[]) {
     setBusy(true); setMessage(""); setAsk(null);
     try { let warning = ""; for (const a of actions) warning = (await fb.act(a)) || warning; setMessage(warning); }
@@ -362,17 +364,22 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
   const toChecked = (cancelQueued = false) => run({ action: "check", ...base, close: !!thread, cancelQueued });
   const toWaiting = () => run(...[thread && { action: "no-change", ...base } as FeedbackAction, r.checked && { action: "uncheck", ...base } as FeedbackAction].filter((a): a is FeedbackAction => !!a));
   function pick(to: "waiting" | "feedback" | "ready") {
+    // While unsent feedback is being written, Waiting cancels it and Checked replaces it.
+    if (draft && !thread && to !== "feedback") { setDraft(false); setOpen(false); if (to === "waiting") return; }
     if (to === status) { if (to === "feedback") setOpen(true); return; }
-    if (to === "feedback") { setOpen(true); setMessage("Write what needs changing and send it: the lesson turns violet once it's sent."); return; }
+    if (to === "feedback") { setDraft(true); setOpen(true); setMessage(""); return; }
     if (to === "ready") { if (thread?.queued) setAsk("checked"); else void toChecked(); return; }
     if (thread) setAsk("waiting");
     else if (r.checked) void toWaiting();
     else setMessage("This booklet was published as ready, so it can't be put back to waiting here. Ask Claude to change it.");
   }
-  // The Worker takes any check off when a comment arrives, so the colour says Changes after the reload.
-  const onSent = () => setMessage("");
+  // The Worker takes any check off when a comment arrives, so the colour says Feedback after the reload.
+  const onSent = () => { setMessage(""); setDraft(false); };
+  // Closing the box without sending takes back an unsent Feedback.
+  const close = () => { setDraft(false); setOpen(false); };
   const [Icon, words] = thread?.queued ? [Moon, `Queued for tonight · ${thread.comments.length} comment${thread.comments.length === 1 ? "" : "s"}`]
-    : thread ? [Pencil, `Changes asked by ${thread.comments[0]?.who ?? "a colleague"} · ${day(thread.opened)}`]
+    : draft && !thread ? [MessageSquare, "Feedback: say what needs changing, then Send"]
+    : thread ? [MessageSquare, `Feedback from ${thread.comments[0]?.who ?? "a colleague"} · ${day(thread.opened)}`]
     : r.checked ? [Check, `Checked by ${r.checked.by} · ${day(r.checked.at || r.checked.updated)}`]
     : r.status === "ready" ? [Check, `Ready · ${day(r.updated)}`] : [Clock, `Waiting for a check · made ${day(r.updated)}`];
   const who = <><Icon size={13} aria-hidden="true" />{words}</>;
@@ -385,7 +392,7 @@ function useStatus(t: Target, r: Resource, thread: Thread | undefined) {
       </div>
     </div>
   );
-  return { status, busy, message, confirm, who, pick, onSent, open: open ?? !!thread, setOpen };
+  return { status, busy, message, confirm, who, pick, onSent, close, open: open ?? !!thread, setOpen: (v: boolean) => (v ? setOpen(true) : close()) };
 }
 
 function CommentCount({ thread, open, setOpen }: { thread?: Thread; open: boolean; setOpen: (v: boolean) => void }) {
@@ -425,7 +432,7 @@ function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: R
       {history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
       {s.confirm}
       {s.message && <p className="library-status" role="status">{s.message}</p>}
-      {s.open && <ThreadView target={t} thread={thread} onSent={s.onSent} />}
+      {s.open && <ThreadView target={t} thread={thread} onSent={s.onSent} onClose={s.close} />}
     </>
   );
 }
@@ -492,7 +499,7 @@ function HistoryList({ resource: r, year, unit, version }: { resource: Resource;
   );
 }
 
-function ThreadView({ target, thread, onSent, ask = false }: { target: Target; thread?: Thread; onSent?: () => void; ask?: boolean }) {
+function ThreadView({ target, thread, onSent, onClose, ask = false }: { target: Target; thread?: Thread; onSent?: () => void; onClose?: () => void; ask?: boolean }) {
   const fb = useContext(FeedbackContext);
   const { year, unit, version, lesson } = target;
   const booklet = target.booklet ?? null;
@@ -537,6 +544,7 @@ function ThreadView({ target, thread, onSent, ask = false }: { target: Target; t
       </label>
       <div className="library-actions">
         <button type="button" className="primary" disabled={busy || !text.trim()} onClick={() => run("comment", ask && !thread ? "Asked. It shows in Feedback to act on." : "Comment added.")}>Send</button>
+        {onClose && <button type="button" disabled={busy} onClick={onClose}>{thread ? "Close" : "Cancel"}</button>}
         {fb.canAct && thread && !forUnit && !thread.queued && <button type="button" className="violet-fill" disabled={busy} onClick={() => run("queue", "Queued for tonight's run.")}><Moon size={14} aria-hidden="true" />Queue for tonight</button>}
         {fb.canAct && thread && !forUnit && thread.queued && <button type="button" disabled={busy} onClick={() => run("unqueue", "Taken out of the queue.")}>Take out of the queue</button>}
         {fb.canAct && thread && ask && <button type="button" disabled={busy} onClick={() => run("no-change", "Closed.")}>Close the request</button>}
