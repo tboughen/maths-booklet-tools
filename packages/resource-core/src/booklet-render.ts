@@ -423,7 +423,8 @@ export function bannerFrag(label: string, end: boolean, st: HouseStyle, note = "
  * space the heading line already leaves empty, so it never moves anything: pupil and answers pages
  * keep the same layout. Word draws the same text (booklet-docx).
  */
-export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "" } as const;
+/** Solid green with white text (Tim, 26 November 2026): unlike the navy house colour, black text, the pink-purple answers and the amber misconception boxes, so the chip stands out. */
+export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "", ink: "#ffffff", edge: "#15803d", fill: "#15803d" } as const;
 
 /** The chip's label cut to fit `room` mm (the whole chip's width), or null when even a short label cannot fit. */
 export function ncetmChipLabel(label: string, room: number): string | null {
@@ -444,7 +445,7 @@ export function headingLineRoom(section: Section): number {
   return W - used - NCETM_CHIP.gap;
 }
 
-function ncetmChip(link: NcetmLink, room: number, st: HouseStyle): string | null {
+function ncetmChip(link: NcetmLink, room: number): string | null {
   const c = NCETM_CHIP;
   const label = ncetmChipLabel(link.label, room);
   if (label === null) return null;
@@ -455,8 +456,8 @@ function ncetmChip(link: NcetmLink, room: number, st: HouseStyle): string | null
   const url = esc(link.url);
   return (
     `<a href="${url}">` +
-    rect(x, y, w, c.h, `rx="0.9" fill="${st.tint}" stroke="${st.navy}" stroke-width="0.18"`) +
-    textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.padX, by, c.size, st.navy) +
+    rect(x, y, w, c.h, `rx="0.9" fill="${c.fill}" stroke="${c.edge}" stroke-width="0.3"`) +
+    textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.padX, by, c.size, c.ink) +
     `</a>`
   );
 }
@@ -474,7 +475,8 @@ export const MISCONCEPTION = {
   size: 8 * 0.3528,
   pitch: 1.2,
   padX: 1.8,
-  bar: 0.9,
+  /** No thick left bar (Tim, 26 November 2026): the box has one even edge. */
+  bar: 0,
   /** Room kept clear each side of the page's centre for the page number. */
   numberRoom: 12,
   maxLines: 2,
@@ -582,7 +584,6 @@ function misconceptionSvg(lines: { left: NoteWord[][]; right: NoteWord[][] }): s
   misconceptionBoxes().forEach((b, k) => {
     const x = A4.marginX + b.x;
     out.push(rect(x, M.top, b.w, M.h, `rx="1.2" fill="${M.fill}" stroke="${M.edge}" stroke-width="0.28"`));
-    out.push(rect(x, M.top, M.bar, M.h, `rx="0.45" fill="${M.edge}"`));
     const box = k === 0 ? lines.left : lines.right;
     const y0 = M.top + (M.h - box.length * pitch) / 2;
     box.forEach((line, i) => {
@@ -613,7 +614,7 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths
     }
   }
   if (link && !continued) {
-    const chip = ncetmChip(link.link, headingLineRoom(section), st);
+    const chip = ncetmChip(link.link, headingLineRoom(section));
     if (chip) out.push(chip);
     else link.onMissing();
   }

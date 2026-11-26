@@ -226,7 +226,7 @@ function sectionHead(section: Section, st: HouseStyle, continued: boolean, maths
   const inline = !!ins && plainWidth(ins, A4.small) <= W - titleW - 4;
   const head = titleWordRuns(title, { bold: true, color: st.navy, sizeMm: A4.heading }, maths);
   const c = NCETM_CHIP;
-  const look = { color: st.navy, sizeMm: c.size, shade: st.tint, border: st.navy };
+  const look = { color: c.ink, sizeMm: c.size, shade: c.fill, border: c.edge };
   const chipXml = chip && !continued ? tab() + `<w:hyperlink r:id="${chip.rid}" w:history="1">${run(" " + c.tag + "  ", { ...look, bold: true })}${run(chip.label + c.arrow + " ", look)}</w:hyperlink>` : "";
   const tabs = [...(inline ? [{ pos: titleW + 4 }] : []), ...(chipXml ? [{ pos: W, align: "right" as const }] : [])];
   const out = [
@@ -657,7 +657,7 @@ function noteFooter(lines: { left: NoteWord[][]; right: NoteWord[][] }, st: Hous
   const box = (ls: NoteWord[][], w: number) => {
     const pad = (M.h - ls.length * pitch) / 2;
     const body = ls.map((line) => para(line.map((word, i) => { const o = { color: misconceptionToneColour(word.tone), sizeMm: M.size, bold: word.bold }; return (i ? run(" ", o) : "") + wordRunsOf(word.runs, o); }).join(""), { line: pitch, right: -WORD_WRAP_SLACK_MM })).join("");
-    return cell(gap(pad) + body, { width: w, shade: M.fill, borders: { top: edge, bottom: edge, right: edge, left: { color: M.edge, width: M.bar } }, margin: { left: M.padX, right: M.padX, top: 0, bottom: 0 }, vAlign: "top" });
+    return cell(gap(pad) + body, { width: w, shade: M.fill, borders: { top: edge, bottom: edge, right: edge, left: edge }, margin: { left: M.padX, right: M.padX, top: 0, bottom: 0 }, vAlign: "top" });
   };
   const o = { color: st.navy, sizeMm: A4.pageNumber, bold: true };
   const mid = cell(gap(FOOT_TEXT_TOP - M.top) + para(run("Page ", o) + `<w:fldSimple w:instr=" PAGE ">${run("1", o)}</w:fldSimple>`, { line: lh(A4.pageNumber), align: "center" }), { width: rb.x - lb.w });
