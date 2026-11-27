@@ -274,3 +274,19 @@ test("cover lessons fold away after 7 days and a library editor can delete one",
   // Only cover lessons have the button.
   await expect(main.getByRole("button", { name: "Delete cover lesson" })).toHaveCount(1);
 });
+
+test("Request cover booklet sits top right in its own colour, apart from Shelves and Map", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.route("**/api/library/cover*", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: [], building: false, removed: [], canDelete: false }) }));
+  const { main } = await open(page);
+  const button = main.getByRole("button", { name: "Request cover booklet" });
+  await expect(main.getByRole("group", { name: "View" }).getByRole("button")).toHaveText(["Shelves", "Map"]);
+  await expect(button).toHaveCSS("color", "rgb(11, 110, 117)");
+  const box = (await button.boundingBox())!, views = (await main.getByRole("group", { name: "View" }).boundingBox())!;
+  expect(box.y + box.height).toBeLessThanOrEqual(views.y);
+  expect(Math.abs(box.x + box.width - (views.x + views.width))).toBeLessThan(4);
+  await page.screenshot({ path: test.info().outputPath("library-cover-button.png") });
+  await button.click();
+  await expect(button).toHaveAttribute("aria-pressed", "true");
+  await expect(main.locator(".cover-form")).toBeVisible();
+});

@@ -43,7 +43,7 @@
 .library-pills span { padding: 0 7px; border-radius: var(--md-radius-pill); background: var(--lib-violet-soft); color: var(--lib-violet); font-size: var(--md-text-2xs); font-weight: 700; }
 
 /* The four lesson states, on rings, squares and rows. */
-.resource-library { --lib-none: #cdd6e1; --lib-waiting: #c27400; --lib-feedback: #7a3fd1; --lib-ready: #1d8a4e; --lib-violet: #6a2fc4; --lib-violet-soft: #f1eafd; --lib-amber-soft: #fff4e0; }
+.resource-library { --lib-none: #cdd6e1; --lib-waiting: #c27400; --lib-feedback: #7a3fd1; --lib-ready: #1d8a4e; --lib-violet: #6a2fc4; --lib-violet-soft: #f1eafd; --lib-amber-soft: #fff4e0; --lib-teal: #0b6e75; --lib-teal-soft: #e3f4f3; }
 .library-ring { width: 56px; height: 56px; }
 .library-ring circle { fill: none; stroke-width: 7; }
 .library-ring text { font-size: 12px; font-weight: 700; fill: var(--md-ink); }
@@ -210,3 +210,7 @@
 /* Cover lessons older than 7 days, folded away (Tim, 26 Nov). */
 .library-old-cover { margin: 14px 0 0; }
 .library-old-cover > summary { cursor: pointer; font-weight: 600; color: var(--md-ink-2); padding: 6px 0; }
+/* Request cover booklet: top right, in teal, a colour no status uses; styled like Feedback to act on (Tim, 27 Nov). */
+.library-cover-button { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 16px; border: 1px solid var(--lib-teal); border-radius: var(--md-radius); background: var(--lib-teal-soft); color: var(--lib-teal); font: inherit; font-size: var(--md-text-sm); font-weight: 700; cursor: pointer; }
+.library-cover-button:hover, .library-cover-button[aria-pressed="true"] { background: #cdebe8; }
+.library-cover-button:focus-visible { outline: 3px solid var(--lib-teal); outline-offset: 2px; }
