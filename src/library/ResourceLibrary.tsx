@@ -116,7 +116,10 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     <FeedbackContext.Provider value={tools}>
       <CoverContext.Provider value={coverTools}>
       <main className="resource-library" id="main-content" tabIndex={-1}>
-        <PageHeading title="Resource library" description="Every booklet we have made, by year and unit, at its newest version. Send a colleague a unit's link: they sign in with their school email." />
+        <PageHeading title="Resource library" description="Every booklet we have made, by year and unit, at its newest version. Send a colleague a unit's link: they sign in with their school email.">
+          {/* Its own colour and place, apart from the Shelves and Map switch (Tim, 27 Nov). */}
+          <button type="button" className="library-cover-button" aria-pressed={state.view === "cover"} onClick={() => setState({ view: "cover", q: "" })}><CalendarPlus size={16} aria-hidden="true" />Request cover booklet</button>
+        </PageHeading>
         <div className="library-controls">
           <label className="library-search">
             <Search size={18} aria-hidden="true" />
@@ -132,7 +135,6 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           <div className="library-views" role="group" aria-label="View">
             <button type="button" aria-pressed={state.view === "shelves"} onClick={() => setState({ view: "shelves", q: "" })}><LayoutGrid size={16} aria-hidden="true" />Shelves</button>
             <button type="button" aria-pressed={state.view === "map"} onClick={() => setState({ view: "map", q: "" })}><MapIcon size={16} aria-hidden="true" />Map</button>
-            <button type="button" aria-pressed={state.view === "cover"} onClick={() => setState({ view: "cover", q: "" })}><CalendarPlus size={16} aria-hidden="true" />Request cover</button>
           </div>
         </div>
         <Key />

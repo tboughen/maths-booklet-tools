@@ -1,6 +1,6 @@
 # Cover lesson requests
 
-Tim chose this on 26 Nov 2026. When a teacher is absent, they open **Resource library › Request cover**,
+Tim chose this on 26 Nov 2026. When a teacher is absent, they open **Resource library › Request cover booklet** (the teal button, top right),
 describe the lesson in their own words and press **Check and build**. A cloud task builds one cover lesson
 and puts it in the library as Waiting, usually within 15 minutes. There is no daily cap. Every request is
 logged, and Tim gets an email about each one.
@@ -83,4 +83,4 @@ Cover lessons are one-offs, so they do not pile up on the shelf:
   in R2 and the page stops listing it. The page reads that list with GET `/api/library/cover?only=removed`,
   which needs only R2, so a GitHub outage never brings deleted lessons back. The files stay in the private store, so a deletion can be undone
   by taking the id out of that file.
-- The Request cover page lists only the last 7 days of requests.
+- The Request cover booklet page lists only the last 7 days of requests.
