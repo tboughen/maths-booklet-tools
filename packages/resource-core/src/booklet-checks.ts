@@ -294,6 +294,29 @@ export function scriptChecks({ source, lesson, lessonNumber, pages }: ScriptChec
     }),
   );
 
+  // N35 (Tim, 28 November 2026): every stage has one "spot the mistake" or "explain why" card, from the lesson's
+  // misconception list. A stage runs from a START banner to the next one; the Challenge is not a stage. Cover lessons are exempt.
+  if (!lesson.cover) {
+    const MISTAKE = /\bmistakes?\b|\berrors?\b|explain why|is (?:\S+ ){1,3}(?:correct|right)\?|\b(?:says|thinks|claims)\b/i;
+    let stage: { name: string; si: number; found: boolean } | null = null;
+    const close = () => {
+      if (stage && !stage.found) fail("N35", `"${stage.name}" (${placeOf(stage.si, 0)} on)`, 'This stage has no "spot the mistake" or "explain why" card. Add one, built from the lesson\'s misconception list (N35).');
+    };
+    lesson.sections.forEach((s: J, si: number) => {
+      if (s.kind === "challenge" || /Challenge/i.test(s.title ?? "")) {
+        close();
+        stage = null;
+        return;
+      }
+      if (strip(s.startBanner)) {
+        close();
+        stage = { name: strip(s.startBanner), si, found: false };
+      }
+      if (stage && (s.kind === "mistake" || (s.kind !== "worked" && (MISTAKE.test(strip(s.title)) || s.cards.some((c: J) => MISTAKE.test(strip(cardText(c)))))))) stage.found = true;
+    });
+    close();
+  }
+
   // M1: stored working uses the printed labels, in order, with the same answers.
   const want = L.filter((l) => l.kind === "q").map((l) => l.label + (l.part ? " " + l.part : ""));
   const stored = (source.working ?? []).filter((w: J) => !/^Our turn|^Worked/i.test(String(w.q))).map((w: J) => String(w.q) + (w.part ? " " + w.part : ""));
