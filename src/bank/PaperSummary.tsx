@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { DetailLoader } from "./catalogueLoader";
-import type { BankListQuestion } from "./model";
+import { levelLabel, type BankListQuestion } from "./model";
 import type { PaperDraft, PaperEntry } from "./paper-builder";
 import { assetUrl } from "./pdf";
 import { formatCount } from "./format";
@@ -36,7 +36,7 @@ export function PaperSummary({draft,entries,revisionHidden=0,onIncludeRevision,o
   }
   return <section className={`qb-paper-summary${panel?" qb-paper-panel":""}`} aria-label="Your paper">
     <div>{panel&&<h2>Your paper</h2>}<strong role="status">{draft.codes.length} selected code{draft.codes.length===1?"":"s"} · {formatCount(entries.length)} distinct question{entries.length===1?"":"s"} · {formatCount(entries.reduce((n,e)=>n+e.question.marks,0))} marks</strong><div className="qb-code-chips">{draft.codes.map(code=><button key={code} onClick={()=>onUntick(code)} aria-label={`Untick ${code}`}>{code} ×</button>)}</div>{!panel&&saved}{revisionHidden>0&&<p className="qb-small" role="status">{formatCount(revisionHidden)} matching question{revisionHidden===1?" is":"s are"} from Year 11 revision papers and left out.{onIncludeRevision&&<> <button className="qb-text-button" onClick={onIncludeRevision}>Include them</button></>}</p>}{intent&&!entries.length&&<p role="status">{panel?.removed?"Every matching question has been removed. Restore them, widen the filters or change your codes.":"No selected questions match these filters. Widen the filters or change your codes."}</p>}</div>
-    {panel&&<><ol className="qb-paper-list">{entries.map(entry=>{const q=entry.question;return <li key={entry.key}><Picture question={q} loadDetails={panel.loadDetails}/><span><strong>{q.source}</strong><span>{q.tier==="F"?"Foundation":"Higher"} · {q.calculator?"Calculator":"Non-calculator"}</span><span><i>{entry.matchingCodes.join(", ")||"Picked"}</i> {draft.partsOnly&&entry.otherParts.length>0?"matching parts only":`${q.marks} mark${q.marks===1?"":"s"}`}</span></span><button className="qb-text-button" aria-label={`Remove ${q.source}`} onClick={e=>remove(e.currentTarget,entry.key)}><X size={16}/></button></li>;})}</ol>{saved}</>}
+    {panel&&<><ol className="qb-paper-list">{entries.map(entry=>{const q=entry.question;return <li key={entry.key}><Picture question={q} loadDetails={panel.loadDetails}/><span><strong>{q.source}</strong><span>{levelLabel(q)} · {q.calculator?"Calculator":"Non-calculator"}</span><span><i>{entry.matchingCodes.join(", ")||"Picked"}</i> {draft.partsOnly&&entry.otherParts.length>0?"matching parts only":`${q.marks} mark${q.marks===1?"":"s"}`}</span></span><button className="qb-text-button" aria-label={`Remove ${q.source}`} onClick={e=>remove(e.currentTarget,entry.key)}><X size={16}/></button></li>;})}</ol>{saved}</>}
     <div className="qb-summary-actions"><button className="qb-button" disabled={!intent} onClick={onClear}>Clear paper</button>{panel&&panel.removed>0&&<button className="qb-text-button" onClick={panel.onRestore}>Restore {panel.removed} removed</button>}<button className="qb-button qb-primary" disabled={!entries.length} onClick={onReview}>Review paper</button></div>
   </section>;
 }

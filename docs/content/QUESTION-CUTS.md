@@ -90,3 +90,14 @@ before it reaches the bank.
   at true size, and counts only their marks. Individually chosen questions, and questions whose
   matching parts would make up the whole question, print whole. Mark schemes print whole.
 - **Assessment Follow-Up** still uses whole questions.
+
+## KS2 tests
+
+KS2 maths tests (Standards and Testing Agency, OGL v3) live in the bank as one folder a year
+(`ks2-2026/`), in the same file layout, and join the catalogue as collection `ks2` through
+`scripts/bank/add-ks2.py`. Each part keeps the school objective it practises (`objectives`), the most
+advanced lesson it needs in each strand (`needsUpTo`) and the STA content domain refs (`sourceCodes`).
+Its `codes` are the Sparx topics the bank scheme links to its objectives, so it is listed beside the
+GCSE questions on the same topic; the Collection filter's "KS2 tests" option shows or hides them.
+KS2 questions are non-calculator, stored as tier F and shown as "KS2"; papers are named
+"KS2 2026 Paper 2" and found by searching "KS2 2026".

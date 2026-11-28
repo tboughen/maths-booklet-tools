@@ -13,11 +13,11 @@ const scope=catalogueCoverage(fixture,emptyRoute);
 const tick=(code:string)=>({type:"code" as const,code,checked:true});
 
 describe("shared paper draft",()=>{
-  it("matches independent catalogue counts for every topic in all 27 filter combinations, and with Crossover only for each tier",()=>{
-    for(const tier of ["all","F","H"] as const)for(const collection of ["all","past","mock"] as const)for(const calculator of ["all","yes","no"] as const)for(const crossover of (collection==="all"&&calculator==="all"?["all","only"]:["all"]) as ("all"|"only")[]){
+  it("matches independent catalogue counts for every topic in all 36 filter combinations, and with Crossover only for each tier",()=>{
+    for(const tier of ["all","F","H"] as const)for(const collection of ["all","past","mock","ks2"] as const)for(const calculator of ["all","yes","no"] as const)for(const crossover of (collection==="all"&&calculator==="all"?["all","only"]:["all"]) as ("all"|"only")[]){
       const filters={tier,collection,calculator,crossover,revision:"include" as const},coverage=catalogueCoverage(bank,filters);
       for(const topic of bank.topics){
-        const raw=bank.questions.filter(q=>(tier==="all"||q.tier===tier)&&(collection==="all"||(/^mock/i.test(q.collection)?"mock":"past")===collection)&&(calculator==="all"||q.calculator===(calculator==="yes"))&&(crossover==="all"||Boolean(q.equivalentId))&&q.codes.includes(topic.code));
+        const raw=bank.questions.filter(q=>(tier==="all"||q.tier===tier)&&(collection==="all"||(q.collection==="ks2"?"ks2":/^mock/i.test(q.collection)?"mock":"past")===collection)&&(calculator==="all"||q.calculator===(calculator==="yes"))&&(crossover==="all"||Boolean(q.equivalentId))&&q.codes.includes(topic.code));
         const expected=new Set(raw.map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id));
         expect(coverage.codes.get(topic.code)||new Set(),`${topic.code} ${JSON.stringify(filters)}`).toEqual(expected);
         const entries=draftEntries(coverage,draftReducer(emptyDraft(),tick(topic.code)));
@@ -27,7 +27,7 @@ describe("shared paper draft",()=>{
     }
   },30000);
   it("derives series and papers from component IDs",()=>{
-    expect([all.examSeries,all.examPapers,all.mockSeries,all.mockPapers,all.groups.size]).toEqual([17,102,8,48,3189]);
+    expect([all.examSeries,all.examPapers,all.mockSeries,all.mockPapers,all.groups.size]).toEqual([18,105,8,48,3269]);
   });
   it("combines overlapping codes and both crossover mappings, retaining an eligible source",()=>{
     const state=draftReducer(draftReducer(emptyDraft(),tick("U1")),tick("U2"));

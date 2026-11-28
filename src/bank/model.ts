@@ -5,7 +5,7 @@ import { paperDetailPath, type DetailKey } from "../../bankCatalogueSplit";
 
 export type Tier = "all" | "F" | "H";
 export type CalculatorFilter = "all" | "yes" | "no";
-export type CollectionFilter = "all" | "past" | "mock";
+export type CollectionFilter = "all" | "past" | "mock" | "ks2";
 /** "only" keeps questions that appear on both a Foundation and a Higher paper (a reviewed `equivalentId` pair). */
 export type CrossoverFilter = "all" | "only";
 /** "hide" (the default) leaves out questions from papers kept for the Year 11 revision programme (`revisionUse`). */
@@ -32,6 +32,10 @@ export interface BankPart {
   sourceCodes: string[];
   mappingStatus: string;
   notes: string[];
+  /** KS2 parts: the school scheme objective the part practises, as Tim checked it. */
+  objectives?: string[];
+  /** KS2 parts: the most advanced lesson the part needs in each other strand. */
+  needsUpTo?: string[];
 }
 
 /**
@@ -166,7 +170,7 @@ export function readRoute(search: string, catalogue?: BankCatalogue<BankListQues
     code: catalogue?.aliases[raw] || raw,
     tier: p.get("tier") === "F" || p.get("tier") === "H" ? p.get("tier") as Tier : "all",
     calculator: p.get("calc") === "yes" || p.get("calc") === "no" ? p.get("calc") as CalculatorFilter : "all",
-    collection: p.get("collection") === "past" || p.get("collection") === "mock" ? p.get("collection") as CollectionFilter : "all",
+    collection: ["past", "mock", "ks2"].includes(p.get("collection") || "") ? p.get("collection") as CollectionFilter : "all",
     crossover: p.get("crossover") === "only" ? "only" : "all",
     // A link to a question kept for the Year 11 revision programme opens it, so its papers are included.
     revision: p.get("revision") === "include" || Boolean(p.get("question") && catalogue?.questions.find(q => q.id === p.get("question"))?.revisionUse) ? "include" : "hide",
@@ -232,6 +236,14 @@ export function filterQuestions<Q extends BankListQuestion>(catalogue: BankCatal
   return (route.code ? distinctQuestions(questions, route.question) : questions).sort(compareAccessibility);
 }
 
+/** Which collection a question belongs to: an Edexcel exam paper, a mock paper or a KS2 test (STA). */
+export const collectionKind = (q: Pick<BankListQuestion, "collection">): "past" | "mock" | "ks2" =>
+  q.collection === "ks2" ? "ks2" : /^mock/i.test(q.collection) ? "mock" : "past";
+
+/** "Foundation", "Higher" or, for a KS2 test question (stored as tier F), "KS2". */
+export const levelLabel = (q: Pick<BankListQuestion, "collection" | "tier">): string =>
+  collectionKind(q) === "ks2" ? "KS2" : q.tier === "H" ? "Higher" : "Foundation";
+
 export const questionIdentity = (q: BankListQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
 
 export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection" | "crossover" | "revision">): boolean {
@@ -239,7 +251,7 @@ export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "
     (filters.revision === "include" || !q.revisionUse) &&
     (filters.tier === "all" || q.tier === filters.tier) &&
     (filters.calculator === "all" || q.calculator === (filters.calculator === "yes")) &&
-    (filters.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === filters.collection);
+    (filters.collection === "all" || collectionKind(q) === filters.collection);
 }
 
 function distinctQuestions<Q extends BankListQuestion>(questions: Q[], preferredId = ""): Q[] {
@@ -398,14 +410,18 @@ export interface BankPaper {
   tier: "F" | "H";
   calculator: boolean;
   mock: boolean;
+  /** A KS2 test paper (STA), named "KS2 2026 Paper 2". */
+  ks2: boolean;
   questions: number;
   marks: number;
   revisionUse?: string;
 }
 
 const MONTHS: Record<string, number> = {january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12};
-/** Exam series newest first, then mock sets in number order. */
+/** Exam series newest first, then mock sets in number order, then KS2 tests newest first. */
 function compareSets(a: string, b: string): number {
+  const ks2 = (s: string) => /^KS2 /.test(s);
+  if (ks2(a) || ks2(b)) return ks2(a) && ks2(b) ? b.localeCompare(a) : ks2(a) ? 1 : -1;
   const series = (s: string) => {const m = /^(\w+) (\d{4})$/.exec(s); return m && MONTHS[m[1].toLowerCase()] ? Number(m[2]) * 12 + MONTHS[m[1].toLowerCase()] : null;};
   const mock = (s: string) => Number(/(\d+)\s*$/.exec(s)?.[1] ?? 0);
   const x = series(a), y = series(b);
@@ -414,31 +430,32 @@ function compareSets(a: string, b: string): number {
   return mock(a) - mock(b) || a.localeCompare(b);
 }
 
-/** Every paper in the bank, grouped by set (series newest first, then mocks), then Foundation 1-3, Higher 1-3. */
+/** Every paper in the bank, grouped by set (series newest first, then mocks, then KS2), then Foundation 1-3, Higher 1-3. */
 export function bankPapers(catalogue: BankCatalogue<BankListQuestion>): BankPaper[] {
   const papers = new Map<string, BankPaper>();
   for (const q of catalogue.questions) {
     const found = papers.get(q.paperId);
     if (found) {found.questions++; found.marks += q.marks; continue;}
-    papers.set(q.paperId, {id: q.paperId, set: q.set, paper: /_(\d)[FH]$/.exec(q.paperId)?.[1] ?? "", tier: q.tier, calculator: q.calculator, mock: /^mock/i.test(q.collection), questions: 1, marks: q.marks, revisionUse: q.revisionUse});
+    papers.set(q.paperId, {id: q.paperId, set: q.set, paper: /_P?(\d)[FH]?$/.exec(q.paperId)?.[1] ?? "", tier: q.tier, calculator: q.calculator, mock: /^mock/i.test(q.collection), ks2: collectionKind(q) === "ks2", questions: 1, marks: q.marks, revisionUse: q.revisionUse});
   }
   return [...papers.values()].sort((a, b) => compareSets(a.set, b.set) || a.tier.localeCompare(b.tier) || a.paper.localeCompare(b.paper));
 }
 
 /** A paper's name as teachers say it: "November 2023 2H". */
-export const paperName = (paper: Pick<BankPaper, "set" | "paper" | "tier">): string => `${paper.set} ${paper.paper}${paper.tier}`;
+export const paperName = (paper: Pick<BankPaper, "set" | "paper" | "tier"> & {ks2?: boolean}): string => paper.ks2 ? `${paper.set} Paper ${paper.paper}` : `${paper.set} ${paper.paper}${paper.tier}`;
 
 const MONTH_WORDS: Record<string, string> = {j: "june", jun: "june", june: "june", n: "november", nov: "november", november: "november"};
 /**
  * Papers a typed search names, newest first: "nov 23 2h", "N23 2H", "November 2023 paper 2 higher",
- * "1MA1 June 2019 1F", "mock set 6 2h", "MS6 3F". Empty when the text names no series, year, mock set
+ * "1MA1 June 2019 1F", "mock set 6 2h", "MS6 3F", "KS2 2026 paper 2". Empty when the text names no series, year, mock set
  * or paper code, so topic searches are left alone.
  */
 export function matchPapers(papers: BankPaper[], text: string): BankPaper[] {
   let rest = ` ${text.toLowerCase().replace(/1ma1/g, " ").replace(/[_,./-]/g, " ")} `;
-  let month = "", year = "", mock = "", number = "", tier = "";
+  let month = "", year = "", mock = "", number = "", tier = "", ks2 = false;
   const take = (pattern: RegExp, apply: (m: RegExpMatchArray) => void) => {const m = rest.match(pattern); if (m) {apply(m); rest = rest.replace(m[0], " ");}};
   take(/\s(?:mock\s*(?:set\s*)?|ms\s*)(\d{1,2})\s/, m => {mock = String(Number(m[1]));});
+  take(/\s(?:ks2|key\s*stage\s*2|sats)\s/, () => {ks2 = true;});
   take(/\s([123])\s*([fh])\s/, m => {number = m[1]; tier = m[2].toUpperCase();});
   take(/\s(?:(jun|june|nov|november)\s*(\d{2}|\d{4})?|(j|n)\s*(\d{2}|\d{4}))\s/, m => {const y = m[2] ?? m[4]; month = MONTH_WORDS[m[1] ?? m[3]]; if (y) year = y.length === 2 ? `20${y}` : y;});
   take(/\s(20\d{2})\s/, m => {year = m[1];});
@@ -446,11 +463,12 @@ export function matchPapers(papers: BankPaper[], text: string): BankPaper[] {
   take(/\s(foundation|higher)\s/, m => {tier = m[1][0].toUpperCase();});
   if (!number) take(/\s([123])\s/, m => {number = m[1];});
   if (!year && month) take(/\s(\d{2})\s/, m => {year = `20${m[1]}`;});
-  if (!month && !year && !mock && !(number && tier)) return [];
+  if (!month && !year && !mock && !ks2 && !(number && tier)) return [];
   // Anything left over that is not a filler word means the text was not a paper.
   if (rest.replace(/\b(paper|set|tier|calculator|non|exam|series)\b/g, " ").trim()) return [];
   return papers.filter(p => {
     const set = p.set.toLowerCase();
+    if (ks2) return p.ks2 && (!year || set.endsWith(year)) && (!number || p.paper === number) && !tier && !month;
     if (mock) return set === `mock set ${mock}` && (!number || p.paper === number) && (!tier || p.tier === tier) && !month && !year;
     return (!month || set.startsWith(month)) && (!year || set.endsWith(year)) && (!number || p.paper === number) && (!tier || p.tier === tier) && (!(month || year) || !p.mock);
   });

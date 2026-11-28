@@ -29,7 +29,7 @@ export function TopicPaperBuilder({catalogue,coverage,overall,filters,draft,entr
     <div className="qb-topic-controls">
       <input aria-label="Search codes or topics" type="search" placeholder="Search codes or topics" value={search} onChange={e=>setSearch(e.target.value)}/>
       {pick("tier","Tier",[["all","Both tiers"],["F","Foundation"],["H","Higher"]])}
-      {pick("collection","Paper type",[["all","Exam and mock"],["past","Exam papers"],["mock","Mock papers"]])}
+      {pick("collection","Paper type",[["all","Exam and mock"],["past","Exam papers"],["mock","Mock papers"],["ks2","KS2 tests"]])}
       {pick("calculator","Calculator",[["all","Any calculator"],["yes","Calculator"],["no","Non-calculator"]])}
       {pick("crossover","Crossover",[["all","All questions"],["only","On both tiers only"]])}
       {pick("revision","Year 11 revision papers",[["hide","No revision papers"],["include","With revision papers"]])}

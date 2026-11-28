@@ -26,7 +26,7 @@ export function catalogueCoverage<Q extends BankListQuestion>(catalogue: BankCat
         const found = index.get(code) || new Set<string>(); found.add(key); index.set(code, found);
       }
     }
-    const mock = /^mock/i.test(q.collection), series = q.paperId.replace(/_[123][FH]$/, "");
+    const mock = /^mock/i.test(q.collection), series = q.paperId.replace(/_(?:[123][FH]|P\d)$/, "");
     (mock ? mockSeries : examSeries).add(series);
     (mock ? mockPapers : examPapers).add(q.paperId);
   }

@@ -40,6 +40,6 @@ describe("serving parts on their own", () => {
       const ids = served ? served.cuts.map(s => s.cut.id) : (q.cuts ?? []).map(s => s.id);
       for (const id of c.requiresAnswerTo) expect(ids, `${q.id} ${c.id}`).toContain(id);
     }
-    expect(needing).toBe(133);
+    expect(needing).toBe(134); // 133 GCSE + 1 KS2 2026
   });
 });
