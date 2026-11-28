@@ -303,3 +303,43 @@ test("opens the five most used diagram tools from a card with the card's diagram
   }
   expect(JSON.stringify((await saved(page)).document.lessons[0].sections[0].cards[0])).toBe(start);
 });
+
+test("full editing on the page: add, move and remove items, add a question and a section, add a new diagram", async ({ page }) => {
+  await boot(page);
+  const card = page.getByRole("region", { name: "Edit Question A" });
+  await page.getByTestId("booklet-pages").getByRole("button", { name: "Edit question A, lesson 1" }).click();
+  const items = async () => (await saved(page)).document.lessons[0].sections[0].cards[0].items;
+  const n = (await items()).length;
+  await card.getByRole("combobox", { name: "Add to this card" }).selectOption({ label: "Answer line" });
+  expect((await items()).length).toBe(n + 1);
+  expect((await items()).at(-1)).toMatchObject({ type: "answerLine", answer: "" });
+  await card.getByRole("button", { name: `Move item ${n + 1} up` }).click();
+  expect((await items())[n - 1].type).toBe("answerLine");
+  await card.getByRole("button", { name: `Remove item ${n}` }).click();
+  expect((await items()).some((i) => i.type === "answerLine")).toBe(false);
+  // A question after this one: the editor moves to it, ready for its words.
+  const cards = (await saved(page)).document.lessons[0].sections[0].cards.length;
+  await card.getByRole("button", { name: "Add a question after this" }).click();
+  expect((await saved(page)).document.lessons[0].sections[0].cards.length).toBe(cards + 1);
+  expect((await saved(page)).document.lessons[0].sections[0].cards[1].title).toBe("New question");
+  const next = page.getByRole("region", { name: "Edit Question B" });
+  await expect(next.getByRole("textbox", { name: "Card title" })).toHaveValue("New question");
+  const newItems = async () => (await saved(page)).document.lessons[0].sections[0].cards[1].items;
+  // A new number line, made in its tool: Done adds it at the end of the card.
+  await next.getByRole("combobox", { name: "Add to this card" }).selectOption({ label: "Number line" });
+  const dialog = page.getByRole("dialog", { name: "New number line" });
+  await expect(page.frameLocator(".bk-diagram-frame").getByRole("heading", { name: "Number lines", exact: true })).toBeVisible({ timeout: 20000 });
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(dialog).toBeHidden();
+  expect((await newItems()).at(-1)).toMatchObject({ type: "diagram", diagram: { tool: "number-line" } });
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await newItems()).some((i) => i.type === "diagram")).toBe(false);
+  // A section after the first, in the outline.
+  const sections = (await saved(page)).document.lessons[0].sections.length;
+  await page.getByRole("combobox", { name: "Add a section after this" }).first().selectOption({ label: "Practice" });
+  const after = (await saved(page)).document.lessons[0].sections;
+  expect(after.length).toBe(sections + 1);
+  expect(after[1]).toMatchObject({ kind: "practice", cards: [{ title: "New question" }] });
+  // The live checks name empty space and the 64-side limit.
+  await expect(page.getByRole("region", { name: "Checks" })).toContainText(/of at most 64 sides|sides: a booklet is at most 64/);
+});

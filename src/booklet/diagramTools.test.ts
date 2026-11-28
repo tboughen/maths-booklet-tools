@@ -2,9 +2,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DIAGRAM_KINDS, FAMILIES } from "../../packages/diagram-core/src/registry";
-import { closeDiagramCopy, openDiagramCopy, readDiagramCopy, sweepDiagramCopies, TOOL_STORAGE } from "./diagramTools";
+import { closeDiagramCopy, freshDiagram, openDiagramCopy, readDiagramCopy, sweepDiagramCopies, TOOL_STORAGE } from "./diagramTools";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { diagramEnvelope } from "../../packages/resource-core/src/schema";
+import { renderBooklet, validateBooklet } from "../../packages/resource-core/src/index";
+import { addItem } from "./edit";
 
 const src = resolve(import.meta.dirname, "..");
 const sources = readdirSync(src, { recursive: true, encoding: "utf8" })
@@ -52,5 +54,18 @@ describe("diagram tools opened from a booklet card", () => {
     sweepDiagramCopies(Date.now() + 25 * 60 * 60 * 1000);
     expect(localStorage.getItem(old.key)).toBeNull();
     expect(localStorage.getItem("maths-booklet-tools:booklet:diagram-copies")).toBeNull();
+  });
+
+  it("starts a new diagram of every family", () => {
+    for (const kind of DIAGRAM_KINDS) {
+      expect(() => diagramEnvelope({ tool: kind, envelope: freshDiagram(kind) as Record<string, unknown> }), kind).not.toThrow();
+      // Added to a card as the Add menu does, the booklet stays valid. A tool's starting size may be wider than a
+      // half-width card: then the layout check says so with the fix (diagrams are never shrunk), and nothing else.
+      const b = validateBooklet(a7Booklet);
+      const before = renderBooklet(b).issues.length;
+      const next = validateBooklet(addItem(b, 0, 0, 0, { type: "diagram", diagram: { tool: kind, envelope: freshDiagram(kind) as Record<string, unknown> } } as never));
+      const issues = renderBooklet(next).issues.slice(before);
+      expect(issues.every((i) => /never shrunk/.test(i.message)), `${kind}: ${issues.map((i) => i.message).join(" ")}`).toBe(true);
+    }
   });
 });

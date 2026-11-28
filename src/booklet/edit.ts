@@ -1,4 +1,5 @@
 import type { Booklet, Card, Lesson, Section } from "../../packages/resource-core/src/index";
+import { besideIssueAt } from "../../packages/resource-core/src/schema";
 
 /** Pure, structural edits for the booklet editor. Each returns a new booklet; nothing is calculated. */
 
@@ -42,4 +43,59 @@ export function moveCardAcross(b: Booklet, li: number, si: number, ci: number, d
     return s;
   });
   return mapLesson(b, li, (x) => ({ ...x, sections }));
+}
+
+/** A new question card: words to replace and working space (stage 5, full editing on the page). */
+export const newCard = (): Card => ({ title: "New question", items: [{ type: "text", text: "Write the question here." }, { type: "space", kind: "working", heightMm: 20 }] }) as Card;
+
+/** A card added straight after another, so it lands where the teacher is working. */
+export const insertCardAfter = (b: Booklet, li: number, si: number, ci: number, card: Card) =>
+  mapSection(b, li, si, (s) => (s.cards.length < 16 ? { ...s, cards: [...s.cards.slice(0, ci + 1), card, ...s.cards.slice(ci + 1)] } : s));
+
+/** A new section of the given kind after another, holding one new card (a section needs at least one). */
+export const addSectionAfter = (b: Booklet, li: number, si: number, kind: Section["kind"]) =>
+  mapLesson(b, li, (l) =>
+    l.sections.length < 20
+      ? { ...l, sections: [...l.sections.slice(0, si + 1), { kind, title: "", instruction: "", startBanner: "", endBanner: "", columns: 1, numbering: "continue", cards: [newCard()] } as Section, ...l.sections.slice(si + 1)] }
+      : l,
+  );
+
+type Items = Card["items"];
+const mapCard = (b: Booklet, li: number, si: number, ci: number, f: (c: Card) => Card) => mapSection(b, li, si, (s) => ({ ...s, cards: s.cards.map((c, i) => (i === ci ? f(c) : c)) }));
+/** An item added at the end of a card (or after one item), for the card's own Add menu. */
+export const addItem = (b: Booklet, li: number, si: number, ci: number, item: Items[number], after?: number) =>
+  mapCard(b, li, si, ci, (c) => {
+    const at = after === undefined ? c.items.length : after + 1;
+    return { ...c, items: [...c.items.slice(0, at), item, ...c.items.slice(at)] as Items };
+  });
+/**
+ * Items that would break the beside rule after a move or removal print on their own row instead, so a click never
+ * leaves a card the booklet refuses (only two items share a row, never beside a lettered part or nothing).
+ */
+function ownRows(items: Items): Items {
+  const out = items.slice() as Items;
+  for (let k = 0; k < out.length; k++) if ("beside" in out[k] && besideIssueAt(out as never, k)) out[k] = withoutBeside(out[k]);
+  return out;
+}
+/** Items keep at least one in a card. An item that sat beside the removed one goes back to its own row. */
+export const removeItem = (b: Booklet, li: number, si: number, ci: number, i: number) =>
+  mapCard(b, li, si, ci, (c) => {
+    if (c.items.length < 2) return c;
+    const items = c.items.filter((_, k) => k !== i) as Items;
+    if (items[i] && "beside" in items[i]) items[i] = withoutBeside(items[i]);
+    return { ...c, items: ownRows(items) };
+  });
+/** An item moved up or down on its own: it leaves the row it shared, and the item that sat beside it keeps its own row. */
+export const moveItem = (b: Booklet, li: number, si: number, ci: number, i: number, to: number) =>
+  mapCard(b, li, si, ci, (c) => {
+    if (to < 0 || to >= c.items.length || to === i) return c;
+    const items = c.items.slice() as Items;
+    items[i] = withoutBeside(items[i]);
+    if (items[i + 1] && "beside" in items[i + 1]) items[i + 1] = withoutBeside(items[i + 1]);
+    return { ...c, items: ownRows(moveIn(items, i, to) as Items) };
+  });
+function withoutBeside<T extends object>(it: T): T {
+  const copy = { ...it } as T & { beside?: true };
+  delete copy.beside;
+  return copy;
 }

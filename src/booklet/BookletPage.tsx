@@ -24,10 +24,10 @@ import {
   lessonShift,
   validateBooklet,
   lessonChecks,
+  bookletGaps,
   type Booklet,
   type CardSpot,
   type LessonSource,
-  type Card,
   type Item,
   type Lesson,
   type Numbering,
@@ -36,7 +36,8 @@ import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { diagramEnvelope } from "../../packages/resource-core/src/schema";
 import type { DiagramKind } from "../../packages/diagram-core/src/registry";
 import { DiagramDialog } from "./DiagramDialog";
-import { sweepDiagramCopies } from "./diagramTools";
+import { freshDiagram, sweepDiagramCopies } from "./diagramTools";
+import { DIAGRAM_KINDS, FAMILIES } from "../../packages/diagram-core/src/registry";
 import { BesideToggle, Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
 import { withBeside } from "../worksheet/edit";
 import { pagesPdf } from "../worksheet/export";
@@ -52,6 +53,17 @@ import { usePrintSize } from "../site/usePrintSize";
 import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, openDraft, STORAGE_UNAVAILABLE, useDraftAutosave } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
+/** What a card's Add menu makes (stage 5): pupil blanks stay blank, and no answer is filled in. */
+const NEW_ITEMS: [string, string, () => Item][] = [
+  ["text", "Words", () => ({ type: "text", text: "Write here." }) as Item],
+  ["info", "Key fact box", () => ({ type: "info", text: "The key fact." }) as Item],
+  ["answerLine", "Answer line", () => ({ type: "answerLine", prefix: "", suffix: "", answer: "", inline: false }) as Item],
+  ["working", "Working space", () => ({ type: "space", kind: "working", heightMm: 20 }) as Item],
+  ["drawing", "Drawing space", () => ({ type: "space", kind: "drawing", heightMm: 40 }) as Item],
+  ["table", "Table", () => ({ type: "table", columns: ["x", "y"], rows: [[{ text: "", state: "blank" }, { text: "", state: "blank" }]] }) as Item],
+  ["choice", "Multiple choice", () => ({ type: "choice", mode: "letters", options: ["Option A", "Option B", "Option C", "Option D"], answer: null }) as Item],
+  ["paper", "Squared paper", () => ({ type: "paper", style: "squared", widthMm: 80, heightMm: 40 }) as Item],
+];
 /** The rest of a lesson source file (stored working, sides, plan), kept beside the booklet it was opened with. */
 const SOURCE_STORAGE = `${STORAGE}:source`;
 type SourceExtras = Omit<LessonSource, "booklet"> & { library?: LibraryOrigin };
@@ -170,7 +182,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   /** A card's diagram open in its own tool (stage 4): where it sits in the card, and the envelope it opened with. */
   /** The button that opened the diagram dialog: focus goes back to it when the dialog closes. */
   const diagramOpener = useRef<HTMLElement | null>(null);
-  const [diagramEdit, setDiagramEdit] = useState<{ kind: DiagramKind; envelope: unknown; lesson: number; section: number; card: number; path: number[] } | null>(null);
+  const [diagramEdit, setDiagramEdit] = useState<{ kind: DiagramKind; envelope: unknown; lesson: number; section: number; card: number; path: number[]; fresh?: boolean } | null>(null);
   const [focus, setFocus] = useState(0);
   const file = useRef<HTMLInputElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -197,6 +209,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
       return false;
     }
   }
+  /** Lessons moved, copied or removed: the card open on the page closes rather than show another lesson's card. */
+  function lessonsChange(next: Booklet) {
+    if (blocked || next === b || !commit(next)) return;
+    setSelected(null);
+  }
+  /** A section added, moved or removed: the card open on the page follows its section, or closes if that section went. */
+  function sectionsChange(next: Booklet, li: number, place: (section: number) => number | null) {
+    if (blocked || next === b || !commit(next)) return;
+    if (!selected || selected.lesson !== li) return;
+    const to = place(selected.section);
+    setSelected(to === null ? null : { ...selected, section: to });
+  }
   function apply(f: (b: Booklet) => Booklet) {
     if (!blocked) commit(f(b));
   }
@@ -213,7 +237,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   function putDiagram(at: NonNullable<typeof diagramEdit>, envelope: unknown): string {
     if (recovery !== null) return "The saved booklet changed in another tab. Close this, deal with the protected copy, then edit the diagram again.";
     if (busy || aiBusy || pending !== null) return "The booklet is busy. Wait a moment and press Done again.";
-    const next = structuredClone(b);
+    let next = structuredClone(b);
+    if (at.fresh) {
+      // A new diagram goes at the end of the card.
+      if (!next.document.lessons[at.lesson]?.sections[at.section]?.cards[at.card]) return "The card is no longer there.";
+      next = edit.addItem(next, at.lesson, at.section, at.card, { type: "diagram", diagram: { tool: at.kind, envelope: envelope as Record<string, unknown> } } as Item);
+      try {
+        validateBooklet(next);
+      } catch (e) {
+        return e instanceof Error ? e.message : String(e);
+      }
+      return commit(next) ? "" : "The diagram could not go in the card.";
+    }
     const items = next.document.lessons[at.lesson]?.sections[at.section]?.cards[at.card]?.items;
     const list = at.path.length === 1 ? items : (items?.[at.path[0]] as Extract<Item, { type: "part" }> | undefined)?.items;
     const leaf = list?.[at.path[at.path.length - 1]];
@@ -408,11 +443,28 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   }
 
   const placeholders = d.lessons.filter(isPlaceholder).length;
+  // Live while editing (stage 5): empty space on a side (N21) and the 64-side limit for one booklet (N33).
+  const gaps = useMemo((): { gaps: ReturnType<typeof bookletGaps>; error: string } => {
+    try {
+      return { gaps: bookletGaps(later, { view: "pupil" }), error: "" };
+    } catch (e) {
+      return { gaps: [], error: e instanceof Error ? e.message : String(e) };
+    }
+  }, [later]);
   const checks: { ok: boolean; text: string }[] = [
     {
       ok: issues.length === 0,
       text: issues.length ? `${issues.length} layout problem${issues.length > 1 ? "s" : ""}: ${issues.slice(0, 4).map((i) => `${issuePlace(i)}: ${i.message}`).join(" ")}` : `Lays out on ${shown.pages.length} A4 pages; no card is split or cut off.`,
     },
+    {
+      ok: !gaps.error && gaps.gaps.length === 0,
+      text: gaps.error
+        ? `The empty space check (N21) could not run: ${gaps.error}`
+        : gaps.gaps.length
+          ? `Empty space (N21): ${gaps.gaps.length} place${gaps.gaps.length > 1 ? "s" : ""} leave more than 20 mm without a card. ${gaps.gaps.slice(0, 3).map((g) => `Lesson ${g.lesson + lessonShift(d)}: ${g.message}`).join(" ")}`
+          : "No side leaves more than 20 mm without a card.",
+    },
+    { ok: shown.pages.length <= 64, text: shown.pages.length <= 64 ? `${shown.pages.length} of at most 64 sides.` : `${shown.pages.length} sides: a booklet is at most 64 sides (N33). Split the unit into parts at a topic break.` },
     { ok: placeholders === 0, text: placeholders ? `${placeholders} lesson${placeholders > 1 ? "s" : ""} not made yet: rebuild under Change a lesson.` : "Every lesson is made." },
     { ok: true, text: "Text is 11 pt with nothing below 10 pt; nothing is shrunk to fit." },
     { ok: true, text: "Saved answers print only in the answers PDF and Word file." },
@@ -437,6 +489,20 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
         if (path.length === 1) items[path[0]] = next as Item;
         else (items[path[0]] as Extract<Item, { type: "part" }>).items[path[1]] = next as Leaf;
       });
+    /** Move an item up or down in the card, or take it out (a card keeps at least one item). */
+    const itemMoves = (i: number) => (
+      <div className="bk-item-moves" role="group" aria-label={`Item ${i + 1}`}>
+        <button className="icon-button" aria-label={`Move item ${i + 1} up`} disabled={blocked || i === 0} onClick={() => apply((x) => edit.moveItem(x, li, si, ci, i, i - 1))}>
+          <ArrowUp size={14} aria-hidden="true" />
+        </button>
+        <button className="icon-button" aria-label={`Move item ${i + 1} down`} disabled={blocked || i === card.items.length - 1} onClick={() => apply((x) => edit.moveItem(x, li, si, ci, i, i + 1))}>
+          <ArrowDown size={14} aria-hidden="true" />
+        </button>
+        <button className="icon-button" aria-label={`Remove item ${i + 1}`} disabled={blocked || card.items.length < 2} onClick={() => apply((x) => edit.removeItem(x, li, si, ci, i))}>
+          <Trash2 size={14} aria-hidden="true" />
+        </button>
+      </div>
+    );
     /** The leaf's diagram in its own tool; Done puts the envelope back at the same place in the card. */
     const editDiagram = (path: number[], leaf: Leaf) => {
       if (leaf.type !== "diagram") return undefined;
@@ -510,6 +576,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                     {card.items.map((item, i) =>
                       item.type === "part" ? (
                         <div key={i} className="ws-part">
+                          {itemMoves(i)}
                           <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                           {item.items.map((leaf, j) => (
                             <div key={j} className="ws-item">
@@ -532,11 +599,57 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                         </div>
                       ) : (
                         <div key={i} className="ws-item">
+                          {itemMoves(i)}
                           <LeafEditor item={item} set={(next) => setItem([i], next)} label="" disabled={blocked} editDiagram={editDiagram([i], item)} />
                           <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                         </div>
                       ),
                     )}
+                    <div className="bk-add-row">
+                      <label className="ws-field">
+                        <span>Add to this card</span>
+                        <select
+                          value=""
+                          disabled={blocked || card.items.length >= 16}
+                          onChange={(e) => {
+                            const choice = e.target.value;
+                            e.currentTarget.value = "";
+                            if (choice.startsWith("diagram:")) {
+                              const kind = choice.slice(8) as DiagramKind;
+                              diagramOpener.current = e.currentTarget;
+                              setDiagramEdit({ kind, envelope: freshDiagram(kind), lesson: li, section: si, card: ci, path: [], fresh: true });
+                              return;
+                            }
+                            const make = NEW_ITEMS.find(([id]) => id === choice)?.[2];
+                            if (make) apply((x) => edit.addItem(x, li, si, ci, make()));
+                          }}
+                        >
+                          <option value="">Choose…</option>
+                          {NEW_ITEMS.map(([id, name]) => (
+                            <option key={id} value={id}>
+                              {name}
+                            </option>
+                          ))}
+                          <optgroup label="A diagram, made in its tool">
+                            {DIAGRAM_KINDS.map((k) => (
+                              <option key={k} value={`diagram:${k}`}>
+                                {FAMILIES[k].label[0].toUpperCase() + FAMILIES[k].label.slice(1)}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      </label>
+                      <button
+                        className="tool-button bk-small"
+                        disabled={blocked || section.cards.length >= 16}
+                        onClick={() => {
+                          // The editor goes to the new question, ready for its words.
+                          if (commit(edit.insertCardAfter(b, li, si, ci, edit.newCard()))) setSelected({ lesson: li, section: si, card: ci + 1 });
+                        }}
+                      >
+                        <Plus size={15} aria-hidden="true" /> Add a question after this
+                      </button>
+                    </div>
                     <WorkingField
                       label="Card hidden working"
                       value={card.working}
@@ -563,16 +676,16 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           {isPlaceholder(lesson) && <em className="bk-tag"> not made yet</em>}
         </summary>
         <div className="ws-card-moves" role="group" aria-label={`Lesson ${li + 1 + shift}`}>
-          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} up`} disabled={blocked || li === 0} onClick={() => apply((x) => edit.moveLesson(x, li, li - 1))}>
+          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} up`} disabled={blocked || li === 0} onClick={() => lessonsChange(edit.moveLesson(b, li, li - 1))}>
             <ArrowUp size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} down`} disabled={blocked || li === d.lessons.length - 1} onClick={() => apply((x) => edit.moveLesson(x, li, li + 1))}>
+          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} down`} disabled={blocked || li === d.lessons.length - 1} onClick={() => lessonsChange(edit.moveLesson(b, li, li + 1))}>
             <ArrowDown size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Duplicate lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length >= 16} onClick={() => apply((x) => edit.duplicateLesson(x, li))}>
+          <button className="icon-button" aria-label={`Duplicate lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length >= 16} onClick={() => lessonsChange(edit.duplicateLesson(b, li))}>
             <Copy size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Delete lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length < 2} onClick={() => apply((x) => edit.removeLesson(x, li))}>
+          <button className="icon-button" aria-label={`Delete lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length < 2} onClick={() => lessonsChange(edit.removeLesson(b, li))}>
             <Trash2 size={16} aria-hidden="true" />
           </button>
           <button className="tool-button bk-small" disabled={recovery !== null} onClick={() => showPage(shown.lessonPages[li])}>
@@ -622,13 +735,13 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <div className="bk-section-head">
                 <strong>{sectionTitle(section)}</strong>
                 <div className="ws-card-moves" role="group" aria-label={`Section ${sectionTitle(section)}`}>
-                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} up`} disabled={blocked || si === 0} onClick={() => apply((x) => edit.moveSection(x, li, si, si - 1))}>
+                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} up`} disabled={blocked || si === 0} onClick={() => sectionsChange(edit.moveSection(b, li, si, si - 1), li, (k) => (k === si ? si - 1 : k === si - 1 ? si : k))}>
                     <ArrowUp size={15} aria-hidden="true" />
                   </button>
-                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} down`} disabled={blocked || si === lesson.sections.length - 1} onClick={() => apply((x) => edit.moveSection(x, li, si, si + 1))}>
+                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} down`} disabled={blocked || si === lesson.sections.length - 1} onClick={() => sectionsChange(edit.moveSection(b, li, si, si + 1), li, (k) => (k === si ? si + 1 : k === si + 1 ? si : k))}>
                     <ArrowDown size={15} aria-hidden="true" />
                   </button>
-                  <button className="icon-button" aria-label={`Delete section ${si + 1} of lesson ${li + 1 + shift}`} disabled={blocked || lesson.sections.length < 2} onClick={() => apply((x) => edit.removeSection(x, li, si))}>
+                  <button className="icon-button" aria-label={`Delete section ${si + 1} of lesson ${li + 1 + shift}`} disabled={blocked || lesson.sections.length < 2} onClick={() => sectionsChange(edit.removeSection(b, li, si), li, (k) => (k === si ? null : k > si ? k - 1 : k))}>
                     <Trash2 size={15} aria-hidden="true" />
                   </button>
                 </div>
@@ -673,13 +786,30 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                   </details>
                 );
               })}
-              <button
-                className="tool-button bk-small"
-                disabled={blocked || section.cards.length >= 16}
-                onClick={() => apply((x) => edit.addCard(x, li, si, { title: "New question", items: [{ type: "text", text: "Write the question here." }, { type: "space", kind: "working", heightMm: 20 }] } as Card))}
-              >
-                <Plus size={15} aria-hidden="true" /> Add a card
-              </button>
+              <div className="bk-add-row">
+                <button className="tool-button bk-small" disabled={blocked || section.cards.length >= 16} onClick={() => apply((x) => edit.addCard(x, li, si, edit.newCard()))}>
+                  <Plus size={15} aria-hidden="true" /> Add a card
+                </button>
+                <label className="ws-field">
+                  <span>Add a section after this</span>
+                  <select
+                    value=""
+                    disabled={blocked || lesson.sections.length >= 20}
+                    onChange={(e) => {
+                      const kind = e.target.value as (typeof SECTION_KINDS)[number] | "";
+                      e.currentTarget.value = "";
+                      if (kind) sectionsChange(edit.addSectionAfter(b, li, si, kind), li, (k) => (k > si ? k + 1 : k));
+                    }}
+                  >
+                    <option value="">Choose a kind…</option>
+                    {SECTION_KINDS.map((k) => (
+                      <option key={k} value={k}>
+                        {SECTION_TITLES[k]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </div>
           );
         })}
@@ -844,9 +974,10 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <DiagramDialog
                 kind={diagramEdit.kind}
                 envelope={diagramEdit.envelope}
+                fresh={diagramEdit.fresh}
                 onDone={(next) => {
                   const problem = putDiagram(diagramEdit, next);
-                  if (!problem) setMessage("The diagram is back in the card. Undo puts the old one back.");
+                  if (!problem) setMessage(diagramEdit.fresh ? "The diagram is in the card. Undo takes it out." : "The diagram is back in the card. Undo puts the old one back.");
                   return problem;
                 }}
                 onClose={() => {
