@@ -1,4 +1,5 @@
 import type { Booklet, Card, Lesson, Section } from "../../packages/resource-core/src/index";
+import { besideIssueAt } from "../../packages/resource-core/src/schema";
 
 /** Pure, structural edits for the booklet editor. Each returns a new booklet; nothing is calculated. */
 
@@ -67,19 +68,31 @@ export const addItem = (b: Booklet, li: number, si: number, ci: number, item: It
     const at = after === undefined ? c.items.length : after + 1;
     return { ...c, items: [...c.items.slice(0, at), item, ...c.items.slice(at)] as Items };
   });
-/** Items keep at least one in a card. An item that sat beside the removed one keeps its place on its own. */
+/**
+ * Items that would break the beside rule after a move or removal print on their own row instead, so a click never
+ * leaves a card the booklet refuses (only two items share a row, never beside a lettered part or nothing).
+ */
+function ownRows(items: Items): Items {
+  const out = items.slice() as Items;
+  for (let k = 0; k < out.length; k++) if ("beside" in out[k] && besideIssueAt(out as never, k)) out[k] = withoutBeside(out[k]);
+  return out;
+}
+/** Items keep at least one in a card. An item that sat beside the removed one goes back to its own row. */
 export const removeItem = (b: Booklet, li: number, si: number, ci: number, i: number) =>
   mapCard(b, li, si, ci, (c) => {
     if (c.items.length < 2) return c;
-    const items = c.items.filter((_, k) => k !== i).map((it, k) => (k === 0 && "beside" in it && it.beside ? withoutBeside(it) : it));
-    return { ...c, items: items as Items };
+    const items = c.items.filter((_, k) => k !== i) as Items;
+    if (items[i] && "beside" in items[i]) items[i] = withoutBeside(items[i]);
+    return { ...c, items: ownRows(items) };
   });
+/** An item moved up or down on its own: it leaves the row it shared, and the item that sat beside it keeps its own row. */
 export const moveItem = (b: Booklet, li: number, si: number, ci: number, i: number, to: number) =>
   mapCard(b, li, si, ci, (c) => {
-    const items = moveIn(c.items, i, to);
-    if (items === c.items) return c;
-    // The first item has nothing to sit beside.
-    return { ...c, items: items.map((it, k) => (k === 0 && "beside" in it && it.beside ? withoutBeside(it) : it)) as Items };
+    if (to < 0 || to >= c.items.length || to === i) return c;
+    const items = c.items.slice() as Items;
+    items[i] = withoutBeside(items[i]);
+    if (items[i + 1] && "beside" in items[i + 1]) items[i + 1] = withoutBeside(items[i + 1]);
+    return { ...c, items: ownRows(moveIn(items, i, to) as Items) };
   });
 function withoutBeside<T extends object>(it: T): T {
   const copy = { ...it } as T & { beside?: true };

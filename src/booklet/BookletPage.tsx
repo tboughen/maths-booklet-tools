@@ -209,6 +209,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
       return false;
     }
   }
+  /** Lessons moved, copied or removed: the card open on the page closes rather than show another lesson's card. */
+  function lessonsChange(next: Booklet) {
+    if (blocked || next === b || !commit(next)) return;
+    setSelected(null);
+  }
+  /** A section added, moved or removed: the card open on the page follows its section, or closes if that section went. */
+  function sectionsChange(next: Booklet, li: number, place: (section: number) => number | null) {
+    if (blocked || next === b || !commit(next)) return;
+    if (!selected || selected.lesson !== li) return;
+    const to = place(selected.section);
+    setSelected(to === null ? null : { ...selected, section: to });
+  }
   function apply(f: (b: Booklet) => Booklet) {
     if (!blocked) commit(f(b));
   }
@@ -432,11 +444,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
 
   const placeholders = d.lessons.filter(isPlaceholder).length;
   // Live while editing (stage 5): empty space on a side (N21) and the 64-side limit for one booklet (N33).
-  const gaps = useMemo(() => {
+  const gaps = useMemo((): { gaps: ReturnType<typeof bookletGaps>; error: string } => {
     try {
-      return bookletGaps(later, { view: "pupil" });
-    } catch {
-      return [];
+      return { gaps: bookletGaps(later, { view: "pupil" }), error: "" };
+    } catch (e) {
+      return { gaps: [], error: e instanceof Error ? e.message : String(e) };
     }
   }, [later]);
   const checks: { ok: boolean; text: string }[] = [
@@ -445,10 +457,12 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
       text: issues.length ? `${issues.length} layout problem${issues.length > 1 ? "s" : ""}: ${issues.slice(0, 4).map((i) => `${issuePlace(i)}: ${i.message}`).join(" ")}` : `Lays out on ${shown.pages.length} A4 pages; no card is split or cut off.`,
     },
     {
-      ok: gaps.length === 0,
-      text: gaps.length
-        ? `Empty space (N21): ${gaps.length} place${gaps.length > 1 ? "s" : ""} leave more than 20 mm without a card. ${gaps.slice(0, 3).map((g) => `Lesson ${g.lesson + lessonShift(d)}, page ${g.page}: ${g.message}`).join(" ")}`
-        : "No side leaves more than 20 mm without a card.",
+      ok: !gaps.error && gaps.gaps.length === 0,
+      text: gaps.error
+        ? `The empty space check (N21) could not run: ${gaps.error}`
+        : gaps.gaps.length
+          ? `Empty space (N21): ${gaps.gaps.length} place${gaps.gaps.length > 1 ? "s" : ""} leave more than 20 mm without a card. ${gaps.gaps.slice(0, 3).map((g) => `Lesson ${g.lesson + lessonShift(d)}: ${g.message}`).join(" ")}`
+          : "No side leaves more than 20 mm without a card.",
     },
     { ok: shown.pages.length <= 64, text: shown.pages.length <= 64 ? `${shown.pages.length} of at most 64 sides.` : `${shown.pages.length} sides: a booklet is at most 64 sides (N33). Split the unit into parts at a topic break.` },
     { ok: placeholders === 0, text: placeholders ? `${placeholders} lesson${placeholders > 1 ? "s" : ""} not made yet: rebuild under Change a lesson.` : "Every lesson is made." },
@@ -625,7 +639,14 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                           </optgroup>
                         </select>
                       </label>
-                      <button className="tool-button bk-small" disabled={blocked || section.cards.length >= 16} onClick={() => move(edit.insertCardAfter(b, li, si, ci, edit.newCard()), { lesson: li, section: si, card: ci + 1 })}>
+                      <button
+                        className="tool-button bk-small"
+                        disabled={blocked || section.cards.length >= 16}
+                        onClick={() => {
+                          // The editor goes to the new question, ready for its words.
+                          if (commit(edit.insertCardAfter(b, li, si, ci, edit.newCard()))) setSelected({ lesson: li, section: si, card: ci + 1 });
+                        }}
+                      >
                         <Plus size={15} aria-hidden="true" /> Add a question after this
                       </button>
                     </div>
@@ -655,16 +676,16 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           {isPlaceholder(lesson) && <em className="bk-tag"> not made yet</em>}
         </summary>
         <div className="ws-card-moves" role="group" aria-label={`Lesson ${li + 1 + shift}`}>
-          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} up`} disabled={blocked || li === 0} onClick={() => apply((x) => edit.moveLesson(x, li, li - 1))}>
+          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} up`} disabled={blocked || li === 0} onClick={() => lessonsChange(edit.moveLesson(b, li, li - 1))}>
             <ArrowUp size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} down`} disabled={blocked || li === d.lessons.length - 1} onClick={() => apply((x) => edit.moveLesson(x, li, li + 1))}>
+          <button className="icon-button" aria-label={`Move lesson ${li + 1 + shift} down`} disabled={blocked || li === d.lessons.length - 1} onClick={() => lessonsChange(edit.moveLesson(b, li, li + 1))}>
             <ArrowDown size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Duplicate lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length >= 16} onClick={() => apply((x) => edit.duplicateLesson(x, li))}>
+          <button className="icon-button" aria-label={`Duplicate lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length >= 16} onClick={() => lessonsChange(edit.duplicateLesson(b, li))}>
             <Copy size={16} aria-hidden="true" />
           </button>
-          <button className="icon-button" aria-label={`Delete lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length < 2} onClick={() => apply((x) => edit.removeLesson(x, li))}>
+          <button className="icon-button" aria-label={`Delete lesson ${li + 1 + shift}`} disabled={blocked || d.lessons.length < 2} onClick={() => lessonsChange(edit.removeLesson(b, li))}>
             <Trash2 size={16} aria-hidden="true" />
           </button>
           <button className="tool-button bk-small" disabled={recovery !== null} onClick={() => showPage(shown.lessonPages[li])}>
@@ -714,13 +735,13 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <div className="bk-section-head">
                 <strong>{sectionTitle(section)}</strong>
                 <div className="ws-card-moves" role="group" aria-label={`Section ${sectionTitle(section)}`}>
-                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} up`} disabled={blocked || si === 0} onClick={() => apply((x) => edit.moveSection(x, li, si, si - 1))}>
+                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} up`} disabled={blocked || si === 0} onClick={() => sectionsChange(edit.moveSection(b, li, si, si - 1), li, (k) => (k === si ? si - 1 : k === si - 1 ? si : k))}>
                     <ArrowUp size={15} aria-hidden="true" />
                   </button>
-                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} down`} disabled={blocked || si === lesson.sections.length - 1} onClick={() => apply((x) => edit.moveSection(x, li, si, si + 1))}>
+                  <button className="icon-button" aria-label={`Move section ${si + 1} of lesson ${li + 1 + shift} down`} disabled={blocked || si === lesson.sections.length - 1} onClick={() => sectionsChange(edit.moveSection(b, li, si, si + 1), li, (k) => (k === si ? si + 1 : k === si + 1 ? si : k))}>
                     <ArrowDown size={15} aria-hidden="true" />
                   </button>
-                  <button className="icon-button" aria-label={`Delete section ${si + 1} of lesson ${li + 1 + shift}`} disabled={blocked || lesson.sections.length < 2} onClick={() => apply((x) => edit.removeSection(x, li, si))}>
+                  <button className="icon-button" aria-label={`Delete section ${si + 1} of lesson ${li + 1 + shift}`} disabled={blocked || lesson.sections.length < 2} onClick={() => sectionsChange(edit.removeSection(b, li, si), li, (k) => (k === si ? null : k > si ? k - 1 : k))}>
                     <Trash2 size={15} aria-hidden="true" />
                   </button>
                 </div>
@@ -777,7 +798,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                     onChange={(e) => {
                       const kind = e.target.value as (typeof SECTION_KINDS)[number] | "";
                       e.currentTarget.value = "";
-                      if (kind) apply((x) => edit.addSectionAfter(x, li, si, kind));
+                      if (kind) sectionsChange(edit.addSectionAfter(b, li, si, kind), li, (k) => (k > si ? k + 1 : k));
                     }}
                   >
                     <option value="">Choose a kind…</option>

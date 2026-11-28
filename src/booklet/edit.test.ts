@@ -27,4 +27,19 @@ describe("full editing of a booklet (stage 5)", () => {
     expect(edit.removeItem(one, 0, 0, 0, 0).document.lessons[0].sections[0].cards[0].items).toEqual(one.document.lessons[0].sections[0].cards[0].items);
     expect(() => validateBooklet(edit.moveItem(withTwo, 0, 0, 0, items.length - 1, 0))).not.toThrow();
   });
+
+  it("never leaves a card the booklet refuses when items that share a row move or go", () => {
+    const at = (x: typeof b) => x.document.lessons[0].sections[0].cards[0].items;
+    let x = b;
+    const t = (text: string, beside?: true) => ({ type: "text", text, ...(beside ? { beside } : {}) }) as never;
+    x = { ...x, document: { ...x.document, lessons: x.document.lessons.map((l, li) => (li ? l : { ...l, sections: l.sections.map((s, si) => (si ? s : { ...s, cards: s.cards.map((c, ci) => (ci ? c : { ...c, items: [t("A"), t("B", true), t("C"), t("D", true)] })) })) })) } };
+    x = validateBooklet(x);
+    const removed = edit.removeItem(x, 0, 0, 0, 2);
+    expect(at(removed).map((i) => "beside" in i)).toEqual([false, true, false]);
+    expect(() => validateBooklet(removed)).not.toThrow();
+    const moved = edit.moveItem(x, 0, 0, 0, 3, 2);
+    expect(() => validateBooklet(moved)).not.toThrow();
+    const pairMoved = edit.moveItem(x, 0, 0, 0, 1, 0);
+    expect(at(pairMoved).map((i) => "beside" in i)).toEqual([false, false, false, true]);
+  });
 });
