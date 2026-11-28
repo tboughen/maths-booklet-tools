@@ -1,5 +1,5 @@
-import type { KeyboardEvent, MouseEvent } from "react";
-import { Eraser, Hand, Highlighter, Pencil, Redo2, Slash, Trash2, Undo2, X, Zap } from "lucide-react";
+import type { KeyboardEvent, MouseEvent, PointerEvent as ReactPointerEvent } from "react";
+import { Eraser, GripHorizontal, Hand, Highlighter, Pencil, Redo2, Slash, Trash2, Undo2, X, Zap } from "lucide-react";
 import { HIGHLIGHTER_COLOURS, PEN_COLOURS, SIZES, withTool, type AnnotationPreferences, type AnnotationTool } from "./annotations";
 
 const tools: { value: AnnotationTool; label: string; key: string; icon: typeof Pencil }[] = [
@@ -22,6 +22,32 @@ interface Props {
   onClear: () => void;
   onClearAll: () => void;
   onClose: () => void;
+  /** Present lets the rail be dragged by a grip (Tim, 28 Nov 2026); the Question Bank keeps it fixed. */
+  movable?: { place: RailPlace; onPlace: (place: RailPlace) => void };
+}
+
+/** Where a movable rail sits: docked at the right (the default) or left edge, or floating at a spot in its frame. */
+export type RailPlace = "right" | "left" | { x: number; y: number };
+/** Dropped this close to a side of the frame, the rail docks there. */
+const SNAP = 48;
+
+/** Drag the rail by its grip; let go near an edge to dock it there; double-click puts it back on the right. */
+function startDrag(event: ReactPointerEvent<HTMLButtonElement>, onPlace: (place: RailPlace) => void) {
+  const rail = event.currentTarget.closest<HTMLElement>(".qb-annotate-bar"), frame = rail?.parentElement;
+  if (!rail || !frame) return;
+  event.preventDefault();
+  const grip = event.currentTarget;
+  grip.setPointerCapture(event.pointerId);
+  const r = rail.getBoundingClientRect(), f = frame.getBoundingClientRect();
+  const dx = event.clientX - r.left, dy = event.clientY - r.top;
+  const at = (e: PointerEvent) => ({ x: Math.max(0, Math.min(f.width - r.width, e.clientX - f.left - dx)), y: Math.max(0, Math.min(f.height - r.height, e.clientY - f.top - dy)) });
+  const move = (e: PointerEvent) => onPlace(at(e));
+  const up = (e: PointerEvent) => {
+    grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); grip.removeEventListener("pointercancel", up);
+    const p = at(e);
+    onPlace(p.x < SNAP ? "left" : p.x > f.width - r.width - SNAP ? "right" : p);
+  };
+  grip.addEventListener("pointermove", move); grip.addEventListener("pointerup", up); grip.addEventListener("pointercancel", up);
 }
 
 /** Arrow keys, Home and End move along the rail; they don't step questions while focus is on it. */
@@ -46,7 +72,7 @@ const press = (action: () => void) => (event: MouseEvent<HTMLButtonElement>) => 
  * at the board finds everything on one side. The tools are toggle buttons with one pressed at a time.
  * Nothing here reaches exports, links or saved files.
  */
-export function AnnotationBar({ preferences: p, onChange, canUndo, canRedo, hasInk, anyInk, onUndo, onRedo, onClear, onClearAll, onClose }: Props) {
+export function AnnotationBar({ preferences: p, onChange, canUndo, canRedo, hasInk, anyInk, onUndo, onRedo, onClear, onClearAll, onClose, movable }: Props) {
   const set = (patch: Partial<AnnotationPreferences>) => onChange({ ...(patch.tool ? withTool(p, patch.tool) : p), ...patch });
   const highlighter = p.tool === "highlighter";
   const colours = highlighter ? HIGHLIGHTER_COLOURS : PEN_COLOURS;
@@ -54,7 +80,10 @@ export function AnnotationBar({ preferences: p, onChange, canUndo, canRedo, hasI
   const drawing = p.tool === "pen" || p.tool === "highlighter";
   const current = highlighter ? p.highlighterSize : p.penSize;
   const COLOUR_SLOTS = Math.max(PEN_COLOURS.length, HIGHLIGHTER_COLOURS.length);
-  return <div className="qb-annotate-bar" role="toolbar" aria-orientation="vertical" aria-label="Annotation tools (screen only)" data-drawing={drawing} onKeyDown={moveAlongRail}>
+  const place = movable?.place;
+  const floating = typeof place === "object" ? place : undefined;
+  return <div className={`qb-annotate-bar${place === "left" ? " is-left" : ""}${floating ? " is-floating" : ""}`} role="toolbar" aria-orientation="vertical" aria-label="Annotation tools (screen only)" data-drawing={drawing} onKeyDown={moveAlongRail} style={floating ? { left: floating.x, top: floating.y } : undefined}>
+    {movable && <button type="button" className="qb-annotate-grip" title="Drag to move the pen tools · double-click to put them back" aria-label="Move the pen tools" onPointerDown={(e) => startDrag(e, movable.onPlace)} onDoubleClick={() => movable.onPlace("right")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); movable.onPlace(place === "left" ? "right" : "left"); } }}><GripHorizontal size={18}/></button>}
     <div className="qb-annotate-group" role="group" aria-label="Tool">
       {tools.map(tool => <button key={tool.value} aria-pressed={p.tool === tool.value} className="qb-annotate-tool" title={`${tool.label} · ${tool.key}`} aria-label={tool.label} onClick={press(() => set({ tool: tool.value }))}><tool.icon size={18}/></button>)}
       <button className="qb-annotate-tool" aria-pressed={p.straight} title="Straight lines (or hold Shift, or draw and hold still)" aria-label="Straight lines" onClick={press(() => set({ straight: !p.straight }))}><Slash size={18}/></button>

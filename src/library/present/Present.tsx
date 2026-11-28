@@ -8,7 +8,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, u
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { ArrowLeft, ArrowRight, ChevronLeft, Download, LoaderCircle, Maximize2, Minus, Pencil, Plus, RotateCcw, X } from "lucide-react";
 import { loadPdfUrl, renderPdfPage } from "../../bank/pdf";
-import { AnnotationBar } from "../../bank/AnnotationBar";
+import { AnnotationBar, type RailPlace } from "../../bank/AnnotationBar";
 import { AnnotationLayer, type AnnotationSettings } from "../../bank/AnnotationLayer";
 import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, readAnnotationPreferences, saveAnnotationPreferences, SIZES, toolCursor, withTool, type AnnotationPreferences, type AnnotationTool, type Stroke } from "../../bank/annotations";
 import { overlayPreference, overlays, type Overlay } from "../../bank/overlays";
@@ -61,6 +61,9 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const [prefs, setPrefs] = useState<AnnotationPreferences>(readAnnotationPreferences);
   useEffect(() => saveAnnotationPreferences(prefs), [prefs]);
   const [ink, dispatchInk] = useReducer(inkReducer, {});
+  // The pen rail can be moved; where it was left is remembered on this computer.
+  const [rail, setRail] = useState<RailPlace>(() => { try { const v = JSON.parse(localStorage.getItem("present-rail") ?? '"right"'); return v === "left" || (v && typeof v.x === "number" && typeof v.y === "number") ? v : "right"; } catch { return "right"; } });
+  useEffect(() => { try { localStorage.setItem("present-rail", JSON.stringify(rail)); } catch { /* A convenience only. */ } }, [rail]);
   const [side, setSide] = useState(1);
   // The class being taught: its ink and place are saved for each exact build. No class means nothing is saved.
   const [cls, setCls] = useState<string>();
@@ -284,7 +287,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
                   strokes={layerOf(ink, inkKey(i + 1)).strokes} active={annotating} settings={settings} onCommit={(s) => commit(inkKey(i + 1), s)}
                   pins={pins.filter((p) => p.side === i + 1)} pinMode={pinMode && !annotating} onPin={(x, y) => { addPin(i + 1, x, y, false); setPinMode(false); setFeedbackOpen(true); }} onPoint={(x, y) => { lastPoint.current = { side: i + 1, x, y }; }} />)}
           </div>
-          {annotating && <AnnotationBar preferences={prefs} onChange={setPrefs} canUndo={undoKeys.current.length > 0} canRedo={redoKeys.current.length > 0} hasInk={sideHasInk} anyInk={hasInk(buildInk)} onUndo={undoInk} onRedo={redoInk} onClear={clearSide} onClearAll={clearAll} onClose={() => setAnnotating(false)} />}
+          {annotating && <AnnotationBar preferences={prefs} onChange={setPrefs} canUndo={undoKeys.current.length > 0} canRedo={redoKeys.current.length > 0} hasInk={sideHasInk} anyInk={hasInk(buildInk)} onUndo={undoInk} onRedo={redoInk} onClear={clearSide} onClearAll={clearAll} onClose={() => setAnnotating(false)} movable={{ place: rail, onPlace: setRail }} />}
           {display && <div className="qb-display-dock present-dock">
             <span className="present-side-count">Side {side} of {sizes.length}</span>
             {build.answers && copySwitch}
@@ -332,7 +335,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
           </details>
           <details className="present-card present-notes" open>
             <summary>Teacher notes on this side</summary>
-            {!docs.answers ? <p className="present-hint">This booklet has no answers copy, so it has no teacher notes.</p>
+            {!ready ? <p className="present-hint">Looking for notes…</p> : !docs.answers ? <p className="present-hint">This booklet has no answers copy, so it has no teacher notes.</p>
               : !hasNotes(notes[side]) ? <p className="present-hint">None on side {side}.</p>
               : <>
                 {notes[side].links.map((l) => <a key={l.url + l.box.x + l.box.y} className="present-note-link" href={l.url} target="_blank" rel="noreferrer"><span>{l.label ?? `NCETM ${l.url.replace(/^https?:\/\/(www\.)?/, "")}`}</span> ↗</a>)}

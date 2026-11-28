@@ -432,6 +432,12 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media print { .qb-annotations, .qb-annotate-bar, .qb-display-dock { display: none !important; } }
 @media (max-width: 600px) { .qb-display-dock { left: 12px; right: 12px; justify-content: flex-end; flex-wrap: wrap; } }
 .qb-annotate-spare { visibility: hidden; }
+/* Present's movable rail: a grip on top, docked left or floating over the sides with a shadow. */
+.qb-annotate-grip { display: grid; place-items: center; min-height: 28px; border: 0; border-radius: 6px; background: transparent; color: #6b7a8c; cursor: grab; touch-action: none; }
+.qb-annotate-grip:hover { background: #edf4ff; }
+.qb-annotate-grip:active { cursor: grabbing; }
+.qb-annotate-bar.is-left { order: -1; border-left: 0; border-right: 1px solid #dce4ec; }
+.qb-annotate-bar.is-floating { position: absolute; max-height: calc(100% - 16px); border: 1px solid #cad4df; border-radius: 8px; box-shadow: 0 4px 20px #18324e33; }
 /* Colours and sizes stay in place but read as inactive while a non-drawing tool is chosen. */
 .qb-annotate-bar[data-drawing=false] .qb-annotate-colour, .qb-annotate-bar[data-drawing=false] .qb-annotate-size { opacity: .45; }
 /* Worked solutions: the cut in slices with added room between, and the working over it. */

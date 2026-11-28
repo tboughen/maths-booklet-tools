@@ -226,3 +226,27 @@ test("a pinned comment and a quick note from Display go to the lesson's library 
   await expect(ask).toHaveCount(0);
   expect(sent[1].text).toMatch(/Side 1 .*flagged during a lesson, no words added$/);
 });
+
+test("the pen rail moves by its grip, docks at an edge, is remembered and double-click puts it back", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
+  const present = page.getByRole("region", { name: /^Present A7\.04/ });
+  await present.getByRole("button", { name: "Annotate" }).click();
+  const rail = present.getByRole("toolbar", { name: "Annotation tools (screen only)" });
+  const grip = rail.getByRole("button", { name: "Move the pen tools" });
+  const drag = async (x: number, y: number) => { const g = (await grip.boundingBox())!; await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await page.mouse.down(); await page.mouse.move(x, y, { steps: 8 }); await page.mouse.up(); };
+  await drag(800, 700);
+  await expect(rail).toHaveClass(/is-floating/);
+  const floated = (await rail.boundingBox())!;
+  expect(floated.x).toBeGreaterThan(600);
+  expect(floated.x).toBeLessThan(900);
+  await page.screenshot({ path: test.info().outputPath("present-rail.png") });
+  await page.reload();
+  await page.getByRole("region", { name: /^Present A7\.04/ }).getByRole("button", { name: "Annotate" }).click();
+  await expect(rail).toHaveClass(/is-floating/);
+  await drag(10, 400);
+  await expect(rail).toHaveClass(/is-left/);
+  expect((await rail.boundingBox())!.x).toBeLessThan(20);
+  await grip.dblclick();
+  await expect(rail).not.toHaveClass(/is-left|is-floating/);
+});

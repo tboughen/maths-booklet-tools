@@ -61,10 +61,12 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
   happens. Leaving Display with quick notes shows one line, "Send N notes as feedback?", with Send and Not now.
 - Display has no feedback or version controls.
 
-## Still to build (Tim's option A)
+## Movable pen rail
 
-1. A movable pen rail: drag its grip, snaps to an edge, remembered per computer, double-click resets (shared with the
-   Question Bank).
+- In Present the rail has a grip at the top (`AnnotationBar`'s optional `movable`). Drag it anywhere over the sides;
+  let go within 48 px of the left or right edge and it docks there. Double-click the grip (or press Enter on it) to
+  put it back. Where it was left is remembered on this computer (`present-rail`).
+- The Question Bank's rail stays fixed until Tim asks for the same there.
 
 Open questions answered with the recommended option unless Tim says otherwise: ink saved on the site behind staff
 sign-in (needs a small store on the free Cloudflare plan), private to each teacher, teacher notes on by default,
