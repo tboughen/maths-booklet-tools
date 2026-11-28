@@ -116,3 +116,41 @@ test("an earlier build opens from the history, and a missing booklet says so", a
   await page.goto("/library?year=9&present=gone");
   await expect(page.getByRole("alert")).toHaveText(/no longer in the library/);
 });
+
+test("a class keeps its ink and where it stopped, and another class starts clean", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
+  const present = page.getByRole("region", { name: /^Present A7\.04/ });
+  const card = present.locator(".present-class");
+  await expect(card).toContainText("Teaching which class?");
+  await card.getByPlaceholder("For example 9X").fill("9 x");
+  await card.getByRole("button", { name: "Teach" }).click();
+  await expect(present.getByRole("button", { name: "Teaching 9X" })).toBeVisible();
+
+  const side = (n: number) => present.locator(`.present-side[data-side="${n}"]`);
+  await present.getByRole("button", { name: "Next" }).click();
+  await present.getByRole("button", { name: "Annotate" }).click();
+  await drawOn(page, side(2));
+  await expect(side(2).locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "1");
+  await card.getByRole("button", { name: "⚑ We stopped here" }).click();
+  await expect(present.getByRole("button", { name: /^Side 2, has ink/ }).locator(".present-flag")).toHaveCount(1);
+  await expect(card.locator("summary")).toContainText("stopped at side 2");
+  await page.waitForTimeout(600);
+
+  // Next lesson: the class is offered, its ink is back and it can go to where it stopped.
+  await page.reload();
+  const again = page.getByRole("region", { name: /^Present A7\.04/ });
+  await again.locator(".present-recent").getByRole("button", { name: "9X" }).click();
+  await expect(again.locator(".present-resume")).toContainText("You stopped at side 2");
+  await page.screenshot({ path: test.info().outputPath("present-class.png") });
+  await again.getByRole("button", { name: "Go to where we stopped" }).click();
+  await expect(again.getByText("Side 2 of 3", { exact: true })).toBeVisible();
+  await expect(again.locator('.present-side[data-side="2"] svg.qb-annotations')).toHaveAttribute("data-strokes", "1");
+
+  // Another class has its own (empty) ink.
+  await again.getByRole("button", { name: "Change class" }).click();
+  await again.getByPlaceholder("For example 9X").fill("9Y");
+  await again.getByRole("button", { name: "Teach" }).click();
+  await expect(again.locator('.present-side[data-side="2"] svg.qb-annotations')).toHaveCount(0);
+  await expect(again.locator(".present-resume")).toHaveCount(0);
+});

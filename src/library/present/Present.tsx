@@ -10,13 +10,17 @@ import { ArrowLeft, ArrowRight, ChevronLeft, Download, LoaderCircle, Maximize2, 
 import { loadPdfUrl, renderPdfPage } from "../../bank/pdf";
 import { AnnotationBar } from "../../bank/AnnotationBar";
 import { AnnotationLayer, type AnnotationSettings } from "../../bank/AnnotationLayer";
-import { annotationReducer, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, readAnnotationPreferences, saveAnnotationPreferences, SIZES, toolCursor, withTool, type AnnotationPreferences, type AnnotationTool, type Stroke } from "../../bank/annotations";
+import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, readAnnotationPreferences, saveAnnotationPreferences, SIZES, toolCursor, withTool, type AnnotationPreferences, type AnnotationTool, type Stroke } from "../../bank/annotations";
 import { overlayPreference, overlays, type Overlay } from "../../bank/overlays";
 import type { Library } from "../model";
+import { className, lastBuildFor, loadClass, recentClasses, rememberClass, saveClass, type Stopped } from "./presentStore";
 import { buildLabel, buildUrl, findBuild, fitScale, stepZoom, type PresentBuild, type ZoomFit } from "./presentModel";
 import "./present.css";
 
 type Size = { width: number; height: number };
+type InkAction = AnnotationAction | { type: "replace"; state: AnnotationState };
+/** The Question Bank's ink history, plus loading a class's saved ink in one go. */
+const inkReducer = (state: AnnotationState, action: InkAction) => (action.type === "replace" ? action.state : annotationReducer(state, action));
 type Props = { list: Library; id: string; at?: string; onClose: () => void; onPick: (id: string, at?: string) => void };
 
 /** Both copies of one build, opened together so switching is instant. */
@@ -51,8 +55,16 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const [annotating, setAnnotating] = useState(false);
   const [prefs, setPrefs] = useState<AnnotationPreferences>(readAnnotationPreferences);
   useEffect(() => saveAnnotationPreferences(prefs), [prefs]);
-  const [ink, dispatchInk] = useReducer(annotationReducer, {});
+  const [ink, dispatchInk] = useReducer(inkReducer, {});
   const [side, setSide] = useState(1);
+  // The class being taught: its ink and place are saved for each exact build. No class means nothing is saved.
+  const [cls, setCls] = useState<string>();
+  const [recent, setRecent] = useState(recentClasses);
+  const [classOpen, setClassOpen] = useState(true);
+  const [stopped, setStopped] = useState<Stopped>();
+  const [resume, setResume] = useState<Stopped>();
+  const [saveError, setSaveError] = useState(false);
+  const [typed, setTyped] = useState("");
   const root = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const [stageSize, setStageSize] = useState<Size>({ width: 1200, height: 800 });
@@ -86,9 +98,12 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
     });
     setSide(best);
   }, []);
+  // A side asked for before the booklet has opened is shown as soon as it has.
+  const pendingSide = useRef<number | null>(null);
   const goTo = useCallback((n: number) => {
     const page = stage.current?.querySelector<HTMLElement>(`[data-side="${n}"]`);
-    if (!page || !stage.current) return;
+    if (!page || !stage.current) { pendingSide.current = n; return; }
+    pendingSide.current = null;
     stage.current.scrollTo({ top: page.offsetTop - 16, behavior: "auto" });
     setSide(n);
   }, []);
@@ -105,7 +120,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const sideRef = useRef(side); sideRef.current = side;
   const settle = useRef(0);
   useLayoutEffect(() => { settle.current = performance.now() + 400; }, [display]);
-  useLayoutEffect(() => { if (performance.now() < settle.current) goTo(sideRef.current); }, [display, scale, goTo]);
+  useLayoutEffect(() => { if (pendingSide.current) goTo(pendingSide.current); else if (performance.now() < settle.current) goTo(sideRef.current); }, [display, scale, ready, goTo]);
   const changeZoom = useCallback((next: number | ((z: number) => number)) => { rememberPlace(); setZoom(next); }, []);
   const changeFit = (next: ZoomFit) => { rememberPlace(); setFit(next); setZoom(1); };
 
@@ -113,6 +128,34 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const undoKeys = useRef<string[]>([]), redoKeys = useRef<string[]>([]);
   const inkRef = useRef(ink); inkRef.current = ink;
   const commit = useCallback((key: string, strokes: Stroke[]) => { undoKeys.current.push(key); redoKeys.current = []; dispatchInk({ type: "set", key, strokes }); }, []);
+
+  // Choosing a class (or another build) loads that class's ink and place; its last place is offered, never forced.
+  const loaded = useRef("");
+  useEffect(() => {
+    const key = build?.key;
+    if (!key) return;
+    const record = cls ? loadClass(cls, key) : undefined;
+    const state: AnnotationState = {};
+    for (const [n, strokes] of Object.entries(record?.sides ?? {})) state[`${key}|${n}`] = { strokes, past: [], future: [] };
+    undoKeys.current = []; redoKeys.current = [];
+    dispatchInk({ type: "replace", state });
+    setStopped(record?.stopped); setResume(record?.stopped); setSaveError(false);
+    loaded.current = cls ? `${cls}|${key}` : "";
+  }, [cls, build?.key]);
+  // The place moves with the teacher unless they set the flag by hand.
+  useEffect(() => { if (cls && ready) setStopped((old) => (old?.flag ? old : { side, at: new Date().toISOString(), flag: false })); }, [cls, side, ready]);
+  useEffect(() => {
+    const key = build?.key;
+    if (!cls || !key || loaded.current !== `${cls}|${key}`) return;
+    const timer = window.setTimeout(() => {
+      const sides: Record<string, Stroke[]> = {};
+      for (const [k, layer] of Object.entries(ink)) if (k.startsWith(`${key}|`)) sides[k.slice(key.length + 1)] = layer.strokes;
+      setSaveError(!saveClass(cls, key, sides, stopped));
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [ink, stopped, cls, build?.key]);
+  const chooseClass = (text: string) => { const name = className(text); if (!name) return; setRecent(rememberClass(name)); setCls(name); setTyped(""); };
+  const newerBuild = useMemo(() => { if (!cls || !build) return undefined; const k = lastBuildFor(cls, builds.map((b) => b.key)); return k && k !== build.key ? builds.find((b) => b.key === k) : undefined; }, [cls, build, builds]);
   const undoInk = useCallback(() => { const key = undoKeys.current.pop(); if (key && layerOf(inkRef.current, key).past.length) { redoKeys.current.push(key); dispatchInk({ type: "undo", key }); } }, []);
   const redoInk = useCallback(() => { const key = redoKeys.current.pop(); if (key && layerOf(inkRef.current, key).future.length) { undoKeys.current.push(key); dispatchInk({ type: "redo", key }); } }, []);
   const clearSide = () => { const key = inkKey(side); if (layerOf(ink, key).strokes.length) commit(key, []); };
@@ -185,6 +228,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
       {!display && <header className="present-top">
         <button type="button" className="qb-button" onClick={onClose}><ChevronLeft size={16} aria-hidden="true" />Library</button>
         <h1 className="present-title">{title}</h1>
+        <button type="button" className="present-class-pill" aria-expanded={classOpen} onClick={() => setClassOpen(true)}>{cls ? `Teaching ${cls}` : "Choose a class"}</button>
         <label className="present-version">Version <select value={build.key} onChange={(e) => { const b = builds.find((x) => x.key === e.target.value); if (b) onPick(b.resource.id, b.current ? undefined : b.updated); }}>
           {builds.map((b) => <option key={b.key} value={b.key}>{buildLabel(b)}</option>)}
         </select></label>
@@ -209,19 +253,42 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
           </div>}
         </div>
         {!display && <aside className="present-column" aria-label="Present settings">
+          <details className="present-card present-class" open={classOpen} onToggle={(e) => setClassOpen(e.currentTarget.open)}>
+            <summary>{cls ? <>Class {cls}{stopped && <span className="present-summary-note"> · {stopped.flag ? "stopped at" : "on"} side {stopped.side}</span>}</> : "Class"}</summary>
+            {!cls ? <>
+              <p className="present-hint">Teaching which class? Your ink and where you got to are saved for each class.</p>
+              {recent.length > 0 && <div className="present-recent" role="group" aria-label="Recent classes">{recent.map((c) => <button key={c.name} type="button" className="qb-button" onClick={() => chooseClass(c.name)}>{c.name}</button>)}</div>}
+              <form className="present-class-form" onSubmit={(e) => { e.preventDefault(); chooseClass(typed); }}>
+                <label><span className="sr-only">Class</span><input value={typed} maxLength={12} placeholder="For example 9X" onChange={(e) => setTyped(e.target.value)} /></label>
+                <button type="submit" className="qb-button" disabled={!className(typed)}>Teach</button>
+              </form>
+              <p className="present-hint">Without a class, ink is kept until you leave.</p>
+            </> : <>
+              {resume && resume.side > 1 && <div className="present-resume">
+                <b>Last time {new Date(resume.at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</b>
+                <span>{resume.flag ? "You stopped" : "You were"} at side {resume.side}</span>
+                <button type="button" className="qb-button qb-primary" onClick={() => { goTo(resume.side); setResume(undefined); }}>Go to where we stopped</button>
+              </div>}
+              {newerBuild && <p className="present-warning">{cls} has ink on the {buildLabel(newerBuild)} build. <button type="button" className="library-link" onClick={() => onPick(newerBuild.resource.id, newerBuild.current ? undefined : newerBuild.updated)}>Open that build</button></p>}
+              <button type="button" className="qb-button" aria-pressed={!!stopped?.flag && stopped.side === side} onClick={() => setStopped({ side, at: new Date().toISOString(), flag: true })}>⚑ We stopped here</button>
+              <p className="present-hint">Ink is saved in this browser for {cls}, for this version only. Another class has its own.</p>
+              {saveError && <p className="present-warning" role="alert">This browser would not save the ink. It stays until you leave.</p>}
+              <button type="button" className="library-link" onClick={() => setCls(undefined)}>Change class</button>
+            </>}
+          </details>
           <details className="present-card" open>
             <summary>Sides</summary>
             <div className="present-sides">
               {sizes.map((_, i) => <button key={i} type="button" className="present-thumb" aria-current={side === i + 1 ? "true" : undefined} onClick={() => goTo(i + 1)} aria-label={`Side ${i + 1}${layerOf(ink, inkKey(i + 1)).strokes.length ? ", has ink" : ""}`}>
-                {i + 1}{layerOf(ink, inkKey(i + 1)).strokes.length > 0 && <span className="present-ink-dot" aria-hidden="true" />}
+                {stopped?.flag && stopped.side === i + 1 && <span className="present-flag" aria-label="(where you stopped)" />}{i + 1}{layerOf(ink, inkKey(i + 1)).strokes.length > 0 && <span className="present-ink-dot" aria-hidden="true" />}
               </button>)}
             </div>
-            <p className="present-hint">A dot marks a side with ink on it.</p>
+            <p className="present-hint">A dot marks a side with ink on it; the flag marks where you stopped.</p>
           </details>
           <details className="present-card" open>
             <summary>Pen</summary>
             <p className="present-hint">Press P or Annotate. Write anywhere, on a side or the grey around it. Draw and hold for a straight line or a shape; level and upright lines snap within 5°. A fist or the pen's other end rubs out.</p>
-            <p className="present-hint">Ink is on this screen only. It never goes into a download, and Pupil and Answers share it.</p>
+            <p className="present-hint">Ink never goes into a download. Pupil and Answers share it. With a class chosen it is saved for that class.</p>
           </details>
           <details className="present-card">
             <summary>Keys</summary>

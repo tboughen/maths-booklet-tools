@@ -25,17 +25,29 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
   Exit Display). Escape puts the pen down first, then leaves Display. The current side stays at the top.
 - The right column's cards fold: Sides (with a dot on each side that has ink), Pen, Keys. Under 1,100 px wide the
   column hides.
-- Ink is in memory for this visit only and never reaches a download or link.
+- Ink never reaches a download or link.
+
+## Classes and where you got to (second step)
+
+- The Class card (top of the column, foldable; the teal pill in the top bar opens it) asks "Teaching which class?"
+  with recent classes as buttons. A class is a short label (`9 x` becomes `9X`), never pupil data.
+- With a class chosen, its ink and place are saved for that exact build (`src/library/present/presentStore.ts`,
+  this browser's storage for now, key `present-ink|<class>|<resource id>@<updated>`). Another class has its own ink.
+- The place follows the current side; **⚑ We stopped here** pins it by hand and shows a flag on that side's thumbnail.
+  Next time, "Last time … You stopped at side N" offers **Go to where we stopped** (never forced).
+- If the class has ink on a different build of this booklet, the card says so and offers to open that build, so a
+  rebuilt booklet never moves a class's ink.
+- Without a class, ink is kept until you leave.
+- Saving on the site behind staff sign-in (so ink follows a teacher between computers) waits for a small store on the
+  free Cloudflare plan that Tim switches on; the record shape is already the one the site will keep.
 
 ## Still to build (Tim's option A)
 
-1. Classes: "Teaching which class?", "Go to where we stopped", a "We stopped here" flag, and ink saved per class and
-   per exact build (a class keeps the build it started; a newer one is offered, never forced).
-2. Teacher notes (NCETM chips, Watch for and Ask boxes) shown on the pupil copy on screen only, with T to hide; a
+1. Teacher notes (NCETM chips, Watch for and Ask boxes) shown on the pupil copy on screen only, with T to hide; a
    Feedback card with comments pinned to a spot on a side, sent to the library feedback queue; N for a quick-note
    flag during a lesson and a one-line "Send as feedback?" on leaving Display. No feedback or version controls in
    Display.
-3. A movable pen rail: drag its grip, snaps to an edge, remembered per computer, double-click resets (shared with the
+2. A movable pen rail: drag its grip, snaps to an edge, remembered per computer, double-click resets (shared with the
    Question Bank).
 
 Open questions answered with the recommended option unless Tim says otherwise: ink saved on the site behind staff

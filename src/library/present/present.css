@@ -27,6 +27,17 @@
 .present-hint { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: #536579; }
 .present-warning { margin: 0; padding: 8px 10px; border-left: 4px solid var(--md-amber, #b86a00); background: #fff4e0; font-size: 13px; }
 .present-spacer { flex: 1; }
+.present-class-pill { min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #d9f0ee; color: #0f6b67; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.present-summary-note { margin-left: 5px; font-weight: 500; color: #536579; }
+.present-class[open] { display: grid; gap: 8px; }
+.present-class > .qb-button, .present-class > .library-link { justify-self: start; }
+.present-recent { display: flex; flex-wrap: wrap; gap: 6px; }
+.present-class-form { display: flex; gap: 6px; }
+.present-class-form label { flex: 1; }
+.present-class-form input { width: 100%; min-height: 36px; padding: 4px 8px; border: 1px solid #bac6d3; border-radius: 4px; font: inherit; }
+.present-resume { display: grid; gap: 4px; padding: 10px; border-radius: 6px; background: #d9f0ee; font-size: 14px; }
+.present-resume .qb-button { justify-self: start; margin-top: 4px; }
+.present-flag { position: absolute; top: -3px; left: 5px; width: 10px; height: 16px; background: var(--md-amber, #b86a00); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%); }
 .present-side-count { font-size: 14px; white-space: nowrap; }
 .present-overlays { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #536579; }
 .present-overlays button { min-height: 36px; padding: 0 10px; border: 1px solid #bac6d3; border-radius: 4px; color: #253e59; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
