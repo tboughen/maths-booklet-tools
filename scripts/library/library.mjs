@@ -11,13 +11,14 @@ export const sourceSchema = 'mathsdock-library/2';
 export const servedSchema = 'mathsdock-library-served/2';
 export const types = ['unit-booklet', 'lesson-booklet', 'revision-lesson', 'starter'];
 export const statuses = ['ready', 'waiting'];
-export const roles = ['pupil', 'answers'];
+// source: the lesson source a build wrote (JSON), so staff can open the booklet in the Booklet builder and edit it.
+export const roles = ['pupil', 'answers', 'source'];
 const lessonCode = /^[A-Z]{1,3}\d+(\.\d+[a-z]?)?$/;
 const versionName = /^[A-Za-z0-9][A-Za-z0-9 ()+&,'-]{0,39}$/;
 const isDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value ?? '');
-export const formats = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
-const fileName = /^[a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx)$/;
-const safePath = /^y(7|8|9|10|11)\/[A-Za-z0-9_-]+\/[a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx)$/;
+export const formats = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', json: 'application/json' };
+const fileName = /^[a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx|json)$/;
+const safePath = /^y(7|8|9|10|11)\/[A-Za-z0-9_-]+\/[a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx|json)$/;
 
 /** Every problem with a source list, as sentences; empty when it is sound. */
 export function checkLibrary(list, root) {
@@ -75,7 +76,7 @@ function checkFiles(at, r, files, root, problems) {
   if (!files?.length) problems.push(`${at}: it has no files.`);
   const seen = new Set();
   for (const f of files ?? []) {
-    if (!roles.includes(f.role) || !(f.format in formats)) { problems.push(`${at}: a file has role ${f.role} and format ${f.format}.`); continue; }
+    if (!roles.includes(f.role) || !(f.format in formats) || (f.role === 'source') !== (f.format === 'json')) { problems.push(`${at}: a file has role ${f.role} and format ${f.format}.`); continue; }
     if (seen.has(`${f.role}.${f.format}`)) problems.push(`${at}: two ${f.role} ${f.format} files.`);
     seen.add(`${f.role}.${f.format}`);
     if (!safePath.test(f.path ?? '') || !f.path.endsWith(`.${f.format}`)) problems.push(`${at}: ${f.path} must look like y9/A7/name.${f.format} (lower-case file name).`);

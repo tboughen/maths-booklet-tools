@@ -29,7 +29,7 @@ resolve and Access would redirect to it after sign-in.
   immutable keys `bank/assets/sha256/<sha256>.<pdf|png>`.
 - The website Worker (`scripts/cloudflare/site-worker.mjs`, `main` in
   `wrangler.jsonc`) reads them through the `BANK` R2 binding. `run_worker_first`
-  limits the script to `/bank/assets/*`, `/library-data/*` (Resource library), `/api/report`, `/api/library/feedback`, `/api/library/cover` and `/api/present/ink`; every other path is plain Workers Static
+  limits the script to `/bank/assets/*`, `/library-data/*` (Resource library), `/api/report` and the `/api/library/*` routes (feedback, cover, edit) and `/api/present/ink`; every other path is plain Workers Static
   Assets.
 - The browser fetches them from the same origin (`/bank/assets/...`), so the
   Access cookie covers them. There is no public asset origin and no CORS policy
@@ -50,6 +50,10 @@ resolve and Access would redirect to it after sign-in.
   repository, with the same `REPORT_GITHUB_TOKEN` (`docs/content/RESOURCE-LIBRARY.md`).
   The Worker secret `LIBRARY_EDITORS` (comma-separated emails) names who may queue,
   restore and close feedback; without it nobody can. Anyone signed in can comment.
+- `GET` and `POST /api/library/edit` (booklets edited in the Booklet builder and saved to the
+  library) check the same token, keep each edited lesson source in R2 under
+  `library/edits/<sha256>/` with the list in `library/edits.json`, and alert Tim with an issue
+  labelled `library-edit` (needs `REPORT_GITHUB_TOKEN`; without it the edit is still kept).
 - `GET` and `PUT /api/present/ink` (Present's ink for each class) check the same token and keep each teacher's
   records in the `BANK` bucket under `present-ink/<hash of their email>/` (`docs/tools/PRESENT-BOOKLETS.md`).
 - Responses use `Cache-Control: private, max-age=31536000, immutable`, support
@@ -88,5 +92,5 @@ downloads keep working. Its "open in editor" links point at
 address (such as `/tools/venn`), and a teacher signs in once when they follow one.
 Page addresses are served as the site's `index.html` by the assets
 `single-page-application` fallback, so the one Access application covering the
-whole domain gates them; only `/bank/assets/*`, `/library-data/*` and the `/api/*` routes listed above run the Worker script.
+whole domain gates them; only `/bank/assets/*`, `/library-data/*`, `/api/report` and the `/api/library/*` and `/api/present/ink` routes run the Worker script.
 Guests cannot follow them until the Worker-side guest split exists.

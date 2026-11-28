@@ -78,3 +78,17 @@ test('versions, parts and history are checked, and earlier versions are served t
   for (const words of ['same booklet of the same unit', 'must be a short name', 'part Part 9 is not a part', 'needs an updated date', 'A9, is not listed', 'part Part 3 must run'])
     assert.match(problems, new RegExp(words.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')), words);
 });
+
+test('a booklet may carry its lesson source (JSON) so staff can edit it on the site; only the source role is JSON', () => {
+  const { root, list } = sample();
+  writeFileSync(join(root, 'files', 'y9', 'A7', 'y9-a7-03-lesson-booklet_source.json'), '{"booklet":{}}');
+  list.resources[0].files.push({ role: 'source', format: 'json', path: 'y9/A7/y9-a7-03-lesson-booklet_source.json' });
+  assert.deepEqual(checkLibrary(list, root), []);
+  const { list: served, uploads } = servedLibrary(list, root, '2026-11-28T12:00:00Z');
+  const source = served.resources[0].files.find(f => f.role === 'source');
+  assert.match(source.href, /^library-data\/files\/[a-f0-9]{64}\/y9-a7-03-lesson-booklet_source\.json$/);
+  assert.equal(uploads.find(u => u.key.endsWith('.json')).contentType, 'application/json');
+  for (const u of uploads) assert.ok(libraryFileKey.test(u.key), u.key);
+  list.resources[0].files.push({ role: 'pupil', format: 'json', path: 'y9/A7/y9-a7-03-lesson-booklet_source.json' });
+  assert.match(checkLibrary(list, root).join(), /role pupil and format json/);
+});

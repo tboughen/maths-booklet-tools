@@ -1,10 +1,11 @@
 import { libraryFeedback } from './library-feedback.mjs';
 import { coverRequests } from './cover-requests.mjs';
+import { libraryEdits } from './library-edits.mjs';
 import { presentInk } from './present-ink.mjs';
 // MathsDock website Worker.
 //
 // Static assets are served directly by Workers Static Assets. Only
-// /bank/assets/*, /library-data/* and /api/report reach this script (see run_worker_first in wrangler.jsonc).
+// /bank/assets/*, /library-data/*, /api/report and the /api/library/* routes reach this script (see run_worker_first in wrangler.jsonc).
 // Question-bank PDFs and PNGs, and schemes of work (JSON), are read from the private R2 bucket through the
 // BANK binding, so they sit behind the same Cloudflare Access rule as the rest
 // of /bank instead of on a public R2 custom domain.
@@ -113,7 +114,8 @@ export async function serveBankAsset(request, env, options = {}) {
 // R2 bucket under library/. The list changes with each publish, so it is checked every time; each file
 // sits under its own SHA-256, so it never changes.
 export const libraryListKey = 'library/library.json';
-export const libraryFileKey = /^library\/files\/[a-f0-9]{64}\/([a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx))$/;
+// Edited lesson sources saved from the Booklet builder sit beside the files under library/edits/<sha256>/ (library-edits.mjs).
+export const libraryFileKey = /^library\/(?:files|edits)\/[a-f0-9]{64}\/([a-z0-9][a-z0-9._-]{0,150}\.(pdf|docx|json))$/;
 const libraryTypes = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', json: 'application/json; charset=utf-8' };
 
 export async function serveLibrary(request, env, options = {}) {
@@ -130,7 +132,7 @@ export async function serveLibrary(request, env, options = {}) {
   if (file) {
     headers.set('Content-Type', libraryTypes[file[2]]);
     headers.set('Cache-Control', gatedCache);
-    // PDFs open in the browser; Word files download. Either way the file keeps its readable name.
+    // PDFs open in the browser; Word files and lesson sources download. Either way the file keeps its readable name.
     headers.set('Content-Disposition', `${file[2] === 'pdf' ? 'inline' : 'attachment'}; filename="${file[1]}"`);
   } else {
     headers.set('Content-Type', libraryTypes.json);
@@ -182,6 +184,15 @@ export async function serveLibraryFeedback(request, env, { fetcher = fetch, ...o
   return libraryFeedback(request, env, claims, fetcher);
 }
 
+// Booklets edited on the site and saved to the library (library-edits.mjs), behind the same sign-in.
+export async function serveLibraryEdits(request, env, { fetcher = fetch, ...options } = {}) {
+  const settings = accessSettings(env);
+  if (!settings) return json(503, { error: 'Staff sign-in is not configured.' });
+  const claims = await verifyAccessToken(request.headers.get('Cf-Access-Jwt-Assertion'), settings, { fetcher, ...options });
+  if (!claims) return json(403, { error: 'Sign in again to save to the library.' });
+  return libraryEdits(request, env, claims, fetcher);
+}
+
 // Cover lesson requests from absent teachers (cover-requests.mjs), behind the same sign-in.
 export async function serveCoverRequests(request, env, { fetcher = fetch, ...options } = {}) {
   const settings = accessSettings(env);
@@ -208,6 +219,7 @@ export default {
     if (pathname === '/api/report') return submitReport(request, env);
     if (pathname === '/api/library/feedback') return serveLibraryFeedback(request, env);
     if (pathname === '/api/library/cover') return serveCoverRequests(request, env);
+    if (pathname === '/api/library/edit') return serveLibraryEdits(request, env);
     if (pathname === '/api/present/ink') return servePresentInk(request, env);
     // run_worker_first limits this script to these paths; anything else is static.
     return env.ASSETS ? env.ASSETS.fetch(request) : text(404, 'Not found');

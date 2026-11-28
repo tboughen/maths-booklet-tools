@@ -1,9 +1,9 @@
 import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, CalendarPlus, MonitorPlay, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, Search, Trash2, X } from "lucide-react";
+import { BookOpen, CalendarPlus, MonitorPlay, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, PencilLine, Search, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
-  applyChecks, bookletName, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
+  applyChecks, bookletName, downloads, editHref, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
   summary, threadKey, threadMap, typeNames, unitBooklets, unitLabel, unitOf, versionsOf, writeState,
   type Feedback, type FeedbackAction, type LessonRow, type LessonState, type Library, type LibraryFile, type LibraryState, type LibraryUnit, type Resource, type Thread,
 } from "./model";
@@ -246,12 +246,14 @@ function Shelves({ list, state, setState }: { list: Library; state: LibraryState
   );
 }
 
-function FileLinks({ files, present, at }: { files: LibraryFile[]; present?: string; at?: string }) {
+function FileLinks({ files, resource, present, at }: { files: LibraryFile[]; resource?: Resource; present?: string; at?: string }) {
   const open = useContext(PresentContext);
+  const edit = resource ? editHref(resource) : null;
   return (
     <span className="library-files">
       {present && canPresent(files) && <a href={pageHref("library") + `?present=${encodeURIComponent(present)}${at ? `&at=${encodeURIComponent(at)}` : ""}`} className="library-file is-present" onClick={(e) => { if (e.button || e.ctrlKey || e.metaKey || e.shiftKey) return; e.preventDefault(); open(present, at); }}><MonitorPlay size={14} aria-hidden="true" />Present</a>}
-      {files.map((f) => (
+      {edit && <a href={edit} className="library-file is-edit" aria-label={`Edit ${resource!.title} in the Booklet builder`}><PencilLine size={13} aria-hidden="true" /> Edit</a>}
+      {downloads(files).map((f) => (
         <a key={f.href} href={fileHref(f)} className={`library-file${f.role === "answers" ? " is-answers" : ""}`} target={f.format === "pdf" ? "_blank" : undefined} rel="noreferrer" download={f.format === "docx" ? f.name : undefined}>{fileLabel(f)}</a>
       ))}
     </span>
@@ -280,7 +282,7 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
     try {
       const { zipSync } = await import("fflate");
       const entries: Record<string, Uint8Array> = {};
-      for (const r of items) for (const f of r.files) {
+      for (const r of items) for (const f of downloads(r.files)) {
         const response = await fetch(fileHref(f));
         if (!response.ok) throw new Error(f.name);
         // Two files with one name would overwrite each other in the zip.
@@ -454,7 +456,7 @@ function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: R
         <StatusSwitch status={s.status} queued={!!thread?.queued} canAct={fb.canAct} busy={s.busy} label={label} onPick={s.pick} />
         <CommentCount thread={thread} open={s.open} setOpen={s.setOpen} />
       </div>
-      <FileLinks files={r.files} present={r.id} />
+      <FileLinks files={r.files} resource={r} present={r.id} />
       {history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
       {s.confirm}
       {s.message && <p className="library-status" role="status">{s.message}</p>}
@@ -481,7 +483,7 @@ function PlainRow({ row, t, history, setHistory }: { row: LessonRow; t: Target; 
         </span>
         {canAsk && (row.thread ? <CommentCount thread={row.thread} open={!!shown} setOpen={setOpen} /> : <button type="button" className="library-chip" aria-expanded={!!shown} onClick={() => setOpen(!shown)}><Hand size={14} aria-hidden="true" />Ask for this</button>)}
       </div>
-      {r && <FileLinks files={r.files} present={r.id} />}
+      {r && <FileLinks files={r.files} resource={r} present={r.id} />}
       {r && history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
       {shown && <ThreadView target={t} thread={row.thread} ask />}
     </>
@@ -493,7 +495,7 @@ function BookletLine({ booklet, year, unit, version, heading }: { booklet: Resou
   const fb = useContext(FeedbackContext);
   const name = bookletName(booklet);
   const thread = fb.threads.get(threadKey(year, unit, version, null, name));
-  if (fb.off) return <FileLinks files={booklet.files} present={booklet.id} />;
+  if (fb.off) return <FileLinks files={booklet.files} resource={booklet} present={booklet.id} />;
   return (
     <div className={`library-row is-booklet is-${thread ? "feedback" : booklet.status}`}>
       <MadeRow t={{ year, unit, version, lesson: null, booklet: name }} r={booklet} thread={thread} title={<><BookOpen size={15} aria-hidden="true" /> <b>Unit booklet</b> {heading}</>} />
@@ -651,7 +653,7 @@ function Results({ list, found, query, open }: { list: Library; found: Resource[
               {r.lesson && <b> {r.lesson}</b>} {r.title}
             </p>
             <span className="library-row-state">{typeNames[r.type]}{r.version !== "Main" ? ` · ${r.version}` : ""} · {r.status === "ready" ? "Ready" : "Waiting for check"} · {day(r.updated)}</span>
-            <FileLinks files={r.files} present={r.id} />
+            <FileLinks files={r.files} resource={r} present={r.id} />
           </li>
         ))}
       </ul>

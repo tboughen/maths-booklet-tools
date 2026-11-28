@@ -96,6 +96,7 @@
 .library-file:hover { text-decoration: underline; }
 .library-file.is-present { gap: 5px; background: var(--md-navy); color: #fff; }
 .library-file.is-answers { background: #fde7ef; color: var(--md-pink); }
+.library-file.is-edit { gap: 4px; background: #e6f4ec; color: #17603a; }
 .library-history { display: grid; gap: 6px; padding: 8px 10px; border-radius: var(--md-radius); background: var(--md-page); }
 .library-history-row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .library-history-row small { display: block; color: var(--md-ink-3); }
