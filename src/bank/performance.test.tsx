@@ -34,8 +34,8 @@ describe("automatic accessibility",()=>{
   });
   it("enriches every appearance without mutating catalogue content or Sparx mappings",()=>{
     const raw=JSON.parse(readFileSync("public/bank/catalogue.json","utf8"));
-    expect(bank.questions).toHaveLength(3729);
-    expect(bank.questions.every(q=>q.performance&&q.performance.percentage>=0&&q.performance.percentage<=100)).toBe(true);
+    expect(bank.questions).toHaveLength(3809);
+    expect(bank.questions.filter(q=>q.collection!=="ks2").every(q=>q.performance&&q.performance.percentage>=0&&q.performance.percentage<=100)).toBe(true);
     expect(bank.questions.filter(q=>q.performance?.kind==="measured")).toHaveLength(2835);
     expect(bank.questions.map(({performance,...question})=>{void performance;return question;})).toEqual(raw.questions);
   });
@@ -76,7 +76,8 @@ it("names the source of each figure and keeps estimates grey",()=>{
 it("labels every catalogue figure by where it comes from",()=>{
   const kinds=new Map<string,number>();
   for(const question of bank.questions){const k=performanceSource(question).kind;kinds.set(k,(kinds.get(k)??0)+1);}
-  expect(kinds.get("none")).toBeUndefined();
+  // KS2 test questions have no published per-question results.
+  expect(kinds.get("none")).toBe(bank.questions.filter(q=>q.collection==="ks2").length);
   expect(kinds.get("estimate")).toBe(894);
   expect(performanceSource(bank.questions.find(q=>q.id==="1MA1_MOCK_SET_06_2H_Q12")!).kind).toBe("estimate");
   expect(performanceSource(bank.questions.find(q=>q.id==="1MA1_JUN_2017_1H_Q1")!).label).toBe("National average");

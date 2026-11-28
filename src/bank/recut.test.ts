@@ -10,7 +10,7 @@ const file = (path: string) => `public/${path}`;
 describe("recut question bank", () => {
   it("serves every question from the recut and keeps its print sizes with its pages", () => {
     for (const q of bank.questions) {
-      expect(q.questionPdf, q.id).toMatch(/^bank\/assets\/cuts-2026-11\/[A-Za-z0-9_]+\/question\.pdf$/);
+      expect(q.questionPdf, q.id).toMatch(q.collection === "ks2" ? /^bank\/assets\/ks2-2026\/[A-Za-z0-9_]+\/question\.pdf$/ : /^bank\/assets\/cuts-2026-11\/[A-Za-z0-9_]+\/question\.pdf$/);
       expect(q.printPdf, q.id).toBe(q.questionPdf.replace(/question\.pdf$/, "print.pdf"));
       expect(q.schemePdf, q.id).toBe(q.questionPdf.replace(/question\.pdf$/, "scheme.pdf"));
       expect(q.printPages.length, q.id).toBe(q.questionViews.length);
@@ -23,9 +23,9 @@ describe("recut question bank", () => {
 
   it("holds the agreed parts, stems and needs-answer links", () => {
     const cuts = bank.questions.flatMap(q => q.cuts ?? []);
-    expect(cuts.filter(c => c.kind === "part")).toHaveLength(2782);
-    expect(cuts.filter(c => c.kind === "stem")).toHaveLength(855);
-    expect(cuts.filter(c => c.requiresAnswerTo.length)).toHaveLength(133);
+    expect(cuts.filter(c => c.kind === "part")).toHaveLength(2794); // 2782 GCSE + 12 KS2 2026
+    expect(cuts.filter(c => c.kind === "stem")).toHaveLength(860); // 855 GCSE + 5 KS2 2026
+    expect(cuts.filter(c => c.requiresAnswerTo.length)).toHaveLength(134); // 133 GCSE + 1 KS2 2026
     // A part that needs an earlier answer is the later part, never the first.
     for (const q of bank.questions) for (const cut of q.cuts ?? []) for (const id of cut.requiresAnswerTo) {
       const ids = (q.cuts ?? []).map(c => c.id);

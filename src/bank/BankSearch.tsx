@@ -17,7 +17,7 @@ export function BankSearch({catalogue, value, onChange, topics, input, onTopic, 
   const papers = useMemo(() => catalogue ? bankPapers(catalogue) : [], [catalogue]);
   const matched = useMemo(() => matchPapers(papers, value), [papers, value]);
   const options: Option[] = [
-    ...matched.slice(0, 8).map(p => ({id: `${id}-p-${p.id}`, kind: "paper" as const, key: p.id, name: paperName(p), detail: `${p.tier === "H" ? "Higher" : "Foundation"} · ${p.calculator ? "Calculator" : "Non-calculator"} · ${formatCount(p.questions)} questions · ${formatCount(p.marks)} marks`})),
+    ...matched.slice(0, 8).map(p => ({id: `${id}-p-${p.id}`, kind: "paper" as const, key: p.id, name: paperName(p), detail: `${p.ks2 ? "KS2" : p.tier === "H" ? "Higher" : "Foundation"} · ${p.calculator ? "Calculator" : "Non-calculator"} · ${formatCount(p.questions)} questions · ${formatCount(p.marks)} marks`})),
     ...(matched.length ? [] : topics.slice(0, 12)).map(t => ({id: `${id}-t-${t.code}`, kind: "topic" as const, key: t.code, name: `${t.code} ${t.title}`, detail: `${formatCount(t.availableCount ?? t.pilotCount)} available`})),
   ];
   const close = () => {setOpen(false); setBrowse(false); setActive(-1);};
