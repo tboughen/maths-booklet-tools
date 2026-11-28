@@ -341,3 +341,49 @@ test("the Cover button sits top right in its own colour, apart from Shelves and 
   await expect(button).toHaveAttribute("aria-pressed", "true");
   await expect(main.locator(".cover-form")).toBeVisible();
 });
+
+test("Edit opens a library lesson in the Booklet builder, and Save to library sends the edit with a note", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const { a7Booklet } = await import("../packages/resource-core/src/booklet-fixtures");
+  const { singleLessonBooklet } = await import("../packages/resource-core/src/index");
+  const lessonSource = { code: "A7.03", sides: 6, lessonNumber: 3, working: [], booklet: singleLessonBooklet(a7Booklet, 1).booklet };
+  const list = JSON.parse(fixture);
+  const sourceHref = `library-data/files/${"c".repeat(64)}/y9-a7-03-lesson-booklet_source.json`;
+  list.resources.find((r: { id: string }) => r.id === "y9-a7-03-lesson-booklet").files.push({ role: "source", format: "json", name: "y9-a7-03-lesson-booklet_source.json", bytes: 100, href: sourceHref });
+  const saved: Sent[] = [];
+  await page.route("**/api/library/edit", (route) => {
+    saved.push(route.request().postDataJSON());
+    return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ edit: { key: "library/edits/x/y.json" }, alerted: true }) });
+  });
+  const { main } = await open(page, "/library?year=9&unit=A7", { list: JSON.stringify(list) });
+  // Registered after the page's own file route, so it wins for the lesson source.
+  await page.route(`**/${sourceHref}`, (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(lessonSource) }));
+  const row = main.getByRole("complementary", { name: "Unit resources" }).locator(".library-rows > li").filter({ hasText: "A7.03" });
+  // The lesson source is not a download: it shows as Edit, and the zip of the unit leaves it out.
+  await expect(row.getByRole("link", { name: /Lesson source/ })).toHaveCount(0);
+  await row.getByRole("link", { name: /^Edit / }).click();
+  await expect(page).toHaveURL(/\/booklets$/);
+  const confirm = page.getByRole("alertdialog");
+  await expect(confirm).toContainText('from the Resource library');
+  await confirm.getByRole("button", { name: "Open" }).click();
+  await expect(page.getByTestId("build-checks")).toContainText("Build checks, lesson 3");
+  await page.getByTestId("booklet-pages").locator(".bk-spot").first().click();
+  const title = page.getByRole("region", { name: /^Edit / }).getByRole("textbox", { name: "Card title" });
+  await title.fill("Gradients from coordinates");
+  await title.press("Enter");
+  await page.getByRole("button", { name: "Save to library" }).click();
+  const box = page.getByRole("form", { name: "Save to library" });
+  await box.getByRole("button", { name: "Save to library" }).click();
+  await expect(page.locator(".ws-message")).toHaveText("Say in a few words what you changed.");
+  expect(saved).toHaveLength(0);
+  await box.getByRole("textbox", { name: "What did you change?" }).fill("Clearer first card title");
+  await box.getByRole("button", { name: "Save to library" }).click();
+  await expect(page.locator(".ws-message")).toContainText("Saved to the library. Tim has been told");
+  expect(saved).toHaveLength(1);
+  expect(saved[0]).toMatchObject({ resource: "y9-a7-03-lesson-booklet", version: "Main", note: "Clearer first card title" });
+  const sent = JSON.parse(saved[0].source as string);
+  expect(sent.sides).toBe(6);
+  expect(sent.library).toBeUndefined();
+  expect(sent.lessons).toBeUndefined();
+  expect(JSON.stringify(sent.booklet)).toContain("Gradients from coordinates");
+});

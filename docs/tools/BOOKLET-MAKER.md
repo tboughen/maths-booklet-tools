@@ -121,6 +121,24 @@ button beside Lesson PDF. The page writes them with the connector's own writer a
 version compiled to WebAssembly (`src/export/word.ts`, loaded only when a Word file is first asked
 for), so the website and a chat give byte-identical files.
 
+### Editing on the page (28 Nov 2026)
+
+Each card drawn on the preview is a button. Clicking it outlines the card and opens its editor at the top of
+the right-hand column (the same fields as the outline); every change redraws the page at once and is one
+undo step. Escape outside a field, or the close button, puts the editor away. `renderBooklet` returns
+`cards` (each card's page and box in millimetres) for this; the buttons are page controls and never reach
+the SVG, PDF or Word files.
+
+### Lesson source files and the build checks
+
+File > Open also takes a lesson source as booklet builds write it (`source.json`: the booklet under
+`booklet`, beside `working`, `sides`, `lessonNumber` and the plan). The page keeps those fields, saves
+them back with **Save lesson source file**, and runs the build's own lesson checks live on the lesson in
+focus: layout (P1), empty space (N21), sides (B2), cycles (B9), cover lessons (B11), check in (B7),
+multiple choice (B14), wording (L14, N14) and the script checks (M1, N13, L13, P9, B12, T10, N18, P10, M9).
+They live in `packages/resource-core/src/booklet-checks.ts`, the one copy for the site and the build
+script; change checks there, not in a copy beside the build.
+
 ## Tests
 
 `packages/resource-core/src/booklet.test.ts` checks the schema and layout rules on the A7 example.
