@@ -343,6 +343,43 @@ test("the Cover button sits top right in its own colour, apart from Shelves and 
   await expect(main.locator(".cover-form")).toBeVisible();
 });
 
+test("the One-offs shelf shows class, day used and who asked, folds past ones away, and the asker deletes theirs", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const data = JSON.parse(fixture);
+  const day = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const pdf = (id: string, role: string) => ({ role, format: "pdf", name: `${id}_${role}.pdf`, bytes: 1, href: `library-data/files/${id}_${role}.pdf` });
+  const oneOff = (id: string, title: string, used: string, owner?: string) => ({ id, year: 11, unit: "ONEOFFS", version: "Main", type: "one-off", title, class: "11X2", used, askedBy: "Ann Lee", owner, status: "waiting", updated: day(-2), files: [pdf(id, "pupil"), pdf(id, "answers")], history: [] });
+  data.resources.push(oneOff("y11-p1-revision", "Paper 1 revision", day(2), "ann.lee@school.example"), oneOff("y11-old-revision", "Old revision sheet", day(-10)));
+  let removed: string[] = [];
+  const sent: Sent[] = [];
+  await page.route("**/api/library/cover*", async (route) => {
+    if (route.request().method() === "POST") { const body = route.request().postDataJSON(); sent.push(body); removed = [...removed, body.id]; return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, removed }) }); }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ removed, canDelete: false, me: "ann.lee@school.example" }) });
+  });
+  const { main, sent: feedback } = await open(page, "/library?year=11&unit=ONEOFFS", { list: JSON.stringify(data), threads: [], canAct: true });
+  const panel = main.getByRole("complementary", { name: "Unit resources" });
+  await expect(panel.getByRole("heading", { name: "One-offs" })).toBeVisible();
+  const card = panel.locator("li", { hasText: "Paper 1 revision" });
+  await expect(card).toContainText("Class 11X2");
+  await expect(card).toContainText("asked for by Ann Lee");
+  await expect(card.getByRole("link", { name: "Pupil PDF" })).toBeVisible();
+  // Silent starters are kept: they never fold.
+  await expect(panel.getByRole("heading", { name: "Kept" })).toBeVisible();
+  // Ten days ago is folded away.
+  const past = panel.locator("details", { hasText: "Past one-offs (1)" });
+  await expect(past.getByText("Old revision sheet")).toBeHidden();
+  await past.locator("summary").click();
+  await expect(past.getByText("Old revision sheet")).toBeVisible();
+  // Not an editor and not the asker: no Delete on the old one.
+  await expect(past.getByRole("button", { name: "Delete" })).toHaveCount(0);
+  await card.getByRole("button", { name: "Keep as booklet" }).click();
+  await expect.poll(() => feedback.find((s) => s.action === "comment")).toMatchObject({ unit: "ONEOFFS", booklet: "y11-p1-revision" });
+  await card.getByRole("button", { name: "Delete" }).click();
+  await card.getByRole("button", { name: "Yes, delete it" }).click();
+  await expect(panel.getByText("Paper 1 revision")).toHaveCount(0);
+  expect(sent).toEqual([{ action: "remove", id: "y11-p1-revision" }]);
+});
+
 test("Edit opens a library lesson in the Booklet builder, and Save to library sends the edit with a note", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   const { a7Booklet } = await import("../packages/resource-core/src/booklet-fixtures");

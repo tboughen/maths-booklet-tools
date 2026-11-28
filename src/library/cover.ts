@@ -95,7 +95,7 @@ export const COVER_FIELD_MAX = 20;
 
 export type CoverLog = { requests: CoverLogEntry[]; building: boolean };
 /** The cover lessons deleted from the list, and whether the signed-in teacher may delete one. */
-export async function loadCoverRemoved(fetcher: typeof fetch = fetch): Promise<{ removed: string[]; canDelete: boolean }> {
+export async function loadCoverRemoved(fetcher: typeof fetch = fetch): Promise<{ removed: string[]; canDelete: boolean; me?: string }> {
   const response = await fetcher(`${siteBase()}api/library/cover?only=removed`, { cache: "no-store" });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "The deleted list could not be loaded.");

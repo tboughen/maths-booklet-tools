@@ -79,6 +79,27 @@ test('versions, parts and history are checked, and earlier versions are served t
     assert.match(problems, new RegExp(words.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')), words);
 });
 
+test('a one-off sits on the One-offs shelf with a used date, its files anywhere in its year', () => {
+  const { root, list } = sample();
+  list.years[0].sections.push({ name: 'Also for Year 9', units: [{ code: 'ONEOFFS', title: 'One-offs' }] });
+  const oneOff = { id: 'y9-mock-p1', year: 9, unit: 'ONEOFFS', type: 'one-off', title: 'Mock revision', class: '9Y4', used: '2026-11-30', askedBy: 'Tim', owner: 'tim@school.example', status: 'waiting', updated: '2026-11-28',
+    files: [{ role: 'pupil', format: 'pdf', path: 'y9/A7/y9-a7-03-lesson-booklet_pupil.pdf' }] };
+  list.resources.push(oneOff);
+  assert.deepEqual(checkLibrary(list, root), []);
+  const { used, ...noDate } = oneOff;
+  assert.equal(used, '2026-11-30');
+  list.resources[1] = { ...noDate };
+  assert.match(checkLibrary(list, root).join(' '), /needs the date it is used/);
+  list.resources[1] = { ...noDate, kept: true };
+  assert.deepEqual(checkLibrary(list, root), []);
+  list.resources[1] = { ...oneOff, lesson: 'A7.03', owner: 'Tim' };
+  assert.match(checkLibrary(list, root).join(' '), /no lesson code.*owner must be/);
+  list.resources[1] = { ...oneOff, type: 'revision-lesson' };
+  assert.match(checkLibrary(list, root).join(' '), /only a one-off sits on the ONEOFFS shelf/);
+  list.resources[1] = { ...oneOff, unit: 'A7' };
+  assert.match(checkLibrary(list, root).join(' '), /a one-off sits on the ONEOFFS shelf/);
+});
+
 test('a booklet may carry its lesson source (JSON) so staff can edit it on the site; only the source role is JSON', () => {
   const { root, list } = sample();
   writeFileSync(join(root, 'files', 'y9', 'A7', 'y9-a7-03-lesson-booklet_source.json'), '{"booklet":{}}');
