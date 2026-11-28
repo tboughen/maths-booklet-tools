@@ -48,6 +48,8 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           DRY_RUN: ${{ inputs.dry_run }}
+        # pipefail: a failed library check must fail the run, not hide behind tee.
         run: |
+          set -o pipefail
           if [ "$DRY_RUN" = true ]; then node scripts/library/publish.mjs bank/library --dry-run
           else node scripts/library/publish.mjs bank/library | tee -a "$GITHUB_STEP_SUMMARY"; fi
