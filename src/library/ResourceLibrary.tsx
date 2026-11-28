@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, CalendarPlus, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, PencilLine, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { BookOpen, CalendarPlus, MonitorPlay, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, PencilLine, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
@@ -12,6 +12,12 @@ import CoverRequest from "./CoverRequest";
 import { isCoverWork, loadCoverRemoved, removeCoverLesson } from "./cover";
 import AdaptForm from "./AdaptForm";
 import { loadAdaptRequests, type AdaptAsked, type AdaptKind } from "./adapt";
+import { buildAt, canPresent } from "./present/presentModel";
+
+// Present (docs/tools/PRESENT-BOOKLETS.md) loads only when a teacher opens it, with pdf.js.
+const Present = lazy(() => import("./present/Present"));
+/** Opens a booklet in Present: its id, and the date of an earlier build. */
+const PresentContext = createContext<(id: string, at?: string) => void>(() => undefined);
 
 const YEAR_KEY = "mathsdock.libraryYear";
 const savedYear = () => { try { return Number(localStorage.getItem(YEAR_KEY)) || 7; } catch { return 7; } };
@@ -47,9 +53,10 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     loadCoverRemoved().then((c) => live && setRemoved({ ids: new Set(c.removed), canDelete: c.canDelete }), () => { /* Cover lessons then simply all show. */ });
     return () => { live = false; };
   }, []);
+  const pushedPresent = useRef(false);
   useEffect(() => {
     if (!active) return;
-    const back = () => { if (readPage() === "library") setStateValue(readState(location.search, savedYear())); };
+    const back = () => { pushedPresent.current = false; if (readPage() === "library") setStateValue(readState(location.search, savedYear())); };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, [active]);
@@ -59,6 +66,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     function key(event: KeyboardEvent) {
       if (event.key === "Escape") { setDrawer(false); return; }
       if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (document.querySelector(".present")) return; // Present has its own keys.
       if ((event.target as HTMLElement).closest("input, textarea, select, [contenteditable='true']")) return;
       event.preventDefault();
       box.current?.focus();
@@ -106,9 +114,13 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
   }
   const openUnit = (year: number, unit: string, version?: string) => { setDrawer(false); setState({ year, unit, version, view: "shelves", q: "" }, true); };
   const found = useMemo(() => (list ? searchLibrary(list, state.q) : []), [list, state.q]);
+  // Opening Present adds one history entry, so closing it (or Back) returns to the same library page.
+  const present = (id: string, at?: string) => { pushedPresent.current = true; setState({ present: id, at }, true); };
+  const closePresent = () => { if (pushedPresent.current) { pushedPresent.current = false; history.back(); } else setState({ present: undefined, at: undefined }); };
 
   return (
     <FeedbackContext.Provider value={tools}>
+    <PresentContext.Provider value={present}>
       <main className="resource-library" id="main-content" tabIndex={-1}>
         <PageHeading title="Resource library" description="Every booklet we have made, by year and unit, at its newest version. Send a colleague a unit's link: they sign in with their school email.">
           {/* Its own colour and place, apart from the Shelves and Map switch (Tim, 27 Nov). */}
@@ -139,7 +151,11 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           : state.view === "cover" ? <CoverRequest list={list} covers={covers} removed={removed.ids} canDelete={removed.canDelete} remove={removeCover} />
           : <Shelves list={list} state={state} setState={setState} />}
         {drawer && list && <Drawer list={list} close={() => setDrawer(false)} open={openUnit} />}
+        {active && list && state.present && <Suspense fallback={<p className="library-message" role="status">Opening Present…</p>}>
+          <Present list={list} id={state.present} at={state.at} feedback={{ off: tools.off, send: (r, text) => act({ action: "comment", year: r.year, unit: r.unit, version: r.version, lesson: r.type === "unit-booklet" ? null : r.lesson ?? null, booklet: r.type === "unit-booklet" ? bookletName(r) : null, text }) }} onClose={closePresent} onPick={(id, at) => setState({ present: id, at })} />
+        </Suspense>}
       </main>
+    </PresentContext.Provider>
     </FeedbackContext.Provider>
   );
 }
@@ -236,10 +252,12 @@ function Shelves({ list, state, setState }: { list: Library; state: LibraryState
   );
 }
 
-function FileLinks({ files, resource }: { files: LibraryFile[]; resource?: Resource }) {
+function FileLinks({ files, resource, present, at }: { files: LibraryFile[]; resource?: Resource; present?: string; at?: string }) {
+  const open = useContext(PresentContext);
   const edit = resource ? editHref(resource) : null;
   return (
     <span className="library-files">
+      {present && canPresent(files) && <a href={pageHref("library") + `?present=${encodeURIComponent(present)}${at ? `&at=${encodeURIComponent(at)}` : ""}`} className="library-file is-present" onClick={(e) => { if (e.button || e.ctrlKey || e.metaKey || e.shiftKey) return; e.preventDefault(); open(present, at); }}><MonitorPlay size={14} aria-hidden="true" />Present</a>}
       {edit && <a href={edit} className="library-file is-edit" aria-label={`Edit ${resource!.title} in the Booklet builder`}><PencilLine size={13} aria-hidden="true" /> Edit</a>}
       {downloads(files).map((f) => (
         <a key={f.href} href={fileHref(f)} className={`library-file${f.role === "answers" ? " is-answers" : ""}`} target={f.format === "pdf" ? "_blank" : undefined} rel="noreferrer" download={f.format === "docx" ? f.name : undefined}>{fileLabel(f)}</a>
@@ -471,7 +489,7 @@ function MainRow({ row, main, onAdapt }: { row: LessonRow; main: Resource; onAda
           <span className="library-row-state">Same as Main · {stateNames[main.status]}<AdaptLink onAdapt={onAdapt} /></span>
         </span>
       </div>
-      <FileLinks files={main.files} />
+      <FileLinks files={main.files} present={main.id} />
     </>
   );
 }
@@ -491,7 +509,7 @@ function MadeRow({ t, r, thread, title, history, setHistory, onAdapt }: { t: Tar
         <StatusSwitch status={s.status} queued={!!thread?.queued} canAct={fb.canAct} busy={s.busy} label={label} onPick={s.pick} />
         <CommentCount thread={thread} open={s.open} setOpen={s.setOpen} />
       </div>
-      <FileLinks files={r.files} resource={r} />
+      <FileLinks files={r.files} resource={r} present={r.id} />
       {history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
       {s.confirm}
       {s.message && <p className="library-status" role="status">{s.message}</p>}
@@ -518,7 +536,7 @@ function PlainRow({ row, t, history, setHistory, onAdapt }: { row: LessonRow; t:
         </span>
         {canAsk && (row.thread ? <CommentCount thread={row.thread} open={!!shown} setOpen={setOpen} /> : <button type="button" className="library-chip" aria-expanded={!!shown} onClick={() => setOpen(!shown)}><Hand size={14} aria-hidden="true" />Ask for this</button>)}
       </div>
-      {r && <FileLinks files={r.files} resource={r} />}
+      {r && <FileLinks files={r.files} resource={r} present={r.id} />}
       {r && history && <HistoryList resource={r} year={t.year} unit={t.unit} version={t.version} />}
       {shown && <ThreadView target={t} thread={row.thread} ask />}
     </>
@@ -530,7 +548,7 @@ function BookletLine({ booklet, year, unit, version, heading }: { booklet: Resou
   const fb = useContext(FeedbackContext);
   const name = bookletName(booklet);
   const thread = fb.threads.get(threadKey(year, unit, version, null, name));
-  if (fb.off) return <FileLinks files={booklet.files} resource={booklet} />;
+  if (fb.off) return <FileLinks files={booklet.files} resource={booklet} present={booklet.id} />;
   return (
     <div className={`library-row is-booklet is-${thread ? "feedback" : booklet.status}`}>
       <MadeRow t={{ year, unit, version, lesson: null, booklet: name }} r={booklet} thread={thread} title={<><BookOpen size={15} aria-hidden="true" /> <b>Unit booklet</b> {heading}</>} />
@@ -552,7 +570,7 @@ function HistoryList({ resource: r, year, unit, version }: { resource: Resource;
       {r.history.map((old) => (
         <div key={old.updated + (old.files[0]?.href ?? "")} className="library-history-row">
           <span><b>{day(old.updated)}</b>{old.note && <small>{old.note}</small>}</span>
-          <FileLinks files={old.files} />
+          <FileLinks files={old.files} present={r.id} at={buildAt(old.updated, old.files)} />
           {fb.canAct && r.lesson && <button type="button" className="library-chip" onClick={() => restore(old.updated)}>Make current again</button>}
         </div>
       ))}
@@ -688,7 +706,7 @@ function Results({ list, found, query, open }: { list: Library; found: Resource[
               {r.lesson && <b> {r.lesson}</b>} {r.title}
             </p>
             <span className="library-row-state">{typeNames[r.type]}{r.version !== "Main" ? ` · ${r.version}` : ""} · {r.status === "ready" ? "Ready" : "Waiting for check"} · {day(r.updated)}</span>
-            <FileLinks files={r.files} resource={r} />
+            <FileLinks files={r.files} resource={r} present={r.id} />
           </li>
         ))}
       </ul>
