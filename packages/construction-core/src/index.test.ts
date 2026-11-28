@@ -373,3 +373,28 @@ describe("loci round a shape, either-or shading and bearings angles (GM8.06, GM8
     expect(g.note!.x + g.note!.width / 2).toBeLessThanOrEqual(g.width);
   });
 });
+
+describe("locus round a shape: awkward outlines (review findings)", () => {
+  const shape = (pts: [string, number, number][]) => {
+    const e = c.blank(16, 14);
+    for (const [k, x, y] of pts) e.document.points.push(c.newPoint(k, x, y));
+    e.document.objects.push({ id: "s", type: "polygon", points: pts.map((p) => p[0]), dash: false, role: "given" });
+    return c.validate(e);
+  };
+  it("draws a nearly straight corner as a sharp meeting instead of failing", () => {
+    const e = shape([["A", 4, 4], ["M", 8, 3.99], ["B", 12, 4], ["C", 12, 10], ["D", 4, 10]]);
+    expect(() => c.locusFromPolygon(e, { shape: "s", distance: 1 })).not.toThrow();
+    expect(() => c.locusFromPolygon(e, { shape: "s", distance: 1, side: "inside" })).not.toThrow();
+  });
+  it("refuses crossing sides and repeated corners with a clear reason", () => {
+    expect(() => c.locusFromPolygon(shape([["A", 4, 4], ["B", 12, 4], ["C", 5, 10], ["D", 12, 10]]), { shape: "s", distance: 0.5 })).toThrow(/cross/);
+    expect(() => c.locusFromPolygon(shape([["A", 4, 4], ["B", 4, 4], ["C", 12, 10], ["D", 4, 10]]), { shape: "s", distance: 0.5 })).toThrow(/same place/);
+  });
+  it("keeps the not-to-scale note in one place on both copies when the caption is hidden", () => {
+    const e = c.blank(8, 6);
+    e.document.caption = c.label("Scale: 1 cm represents 4 km.", "hidden");
+    e.document.notAccurate = true;
+    const v = c.validate(e);
+    expect(c.layout(v, "pupil").note!.y).toBeCloseTo(c.layout(v, "answer").note!.y, 6);
+  });
+});

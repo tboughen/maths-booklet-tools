@@ -171,14 +171,14 @@ const OBJECTS = {
 type ObjectType = keyof typeof OBJECTS;
 
 /** How a saved object reads in the list. */
-function describe(o: Obj): string {
+function describe(o: Obj, objects: Obj[] = []): string {
   switch (o.type) {
     case "segment":
       return o.extend[0] || o.extend[1] ? `Line through ${o.from} and ${o.to}` : `Segment ${o.from}${o.to}`;
     case "arc":
       return Math.abs(o.sweep) >= 360 ? `Circle, centre ${o.center}, radius ${o.radius} cm` : `Arc, centre ${o.center}`;
     case "angle": {
-      const arm = (x: string) => (x === o.from || x === o.to) && /^north\d*$/.test(x) ? "N" : x;
+      const arm = (x: string) => (objects.some((n) => n.id === x && n.type === "north") ? "N" : x);
       return `${o.style === "right" ? "Right angle" : "Angle"} ${arm(o.from)}${o.at}${arm(o.to)}`;
     }
     case "north":
@@ -857,11 +857,11 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
             <FoldCard tool="construction" title="Lines and marks" icon={PenLine} defaultOpen summary={(() => { const k = d.objects.filter((o) => !o.group && o.type !== "region").length; return k === 0 ? "None yet" : k === 1 ? "1 line or mark" : `${k} lines and marks`; })()}>
               {d.objects.filter((o) => !o.group && o.type !== "region").map((o) => (
                 <div key={o.id} className="cn-item">
-                  <span>{describe(o)}</span>
+                  <span>{describe(o, d.objects)}</span>
                   {"label" in o && o.type !== "text" && (
                     <span className="cn-inline">
                       Label
-                      <DraftField label={`Label for ${describe(o)}`} value={o.label.text} disabled={blocked} maxLength={40} onCommit={(v) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { text: string } }).label.text = v))} />
+                      <DraftField label={`Label for ${describe(o, d.objects)}`} value={o.label.text} disabled={blocked} maxLength={40} onCommit={(v) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { text: string } }).label.text = v))} />
                       <label className="pt-hide">
                         <input type="checkbox" disabled={blocked} checked={o.label.show === "hidden"} onChange={(ev) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { show: string } }).label.show = ev.target.checked ? "hidden" : "show"))} />
                         {o.label.show === "omit" ? "Pupil space (left out now)" : "Pupil space"}

@@ -678,6 +678,18 @@ export function locusFromPolygon(e: Envelope, o: HelperOptions & { shape: string
   const pts = poly.points.map((x) => requirePoint(dr.d, x));
   const k = o.distance,
     count = pts.length;
+  pts.forEach((p, i) => {
+    const q = pts[(i + 1) % count];
+    if (dist(p, q) < 0.01) throw Error(`Polygon ${o.shape} has two corners in the same place (${p.id} and ${q.id}).`);
+  });
+  for (let i = 0; i < count; i++)
+    for (let j = i + 2; j < count; j++) {
+      if (i === 0 && j === count - 1) continue;
+      const [a, b, c, e2] = [pts[i], pts[i + 1], pts[j], pts[(j + 1) % count]];
+      const side = (p: Vec, q: Vec, r: Vec) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+      if (side(a, b, c) * side(a, b, e2) < 0 && side(c, e2, a) * side(c, e2, b) < 0)
+        throw Error(`The sides of polygon ${o.shape} cross. List its corners in order round the shape.`);
+    }
   let area = 0;
   pts.forEach((p, i) => {
     const q = pts[(i + 1) % count];
@@ -715,7 +727,9 @@ export function locusFromPolygon(e: Envelope, o: HelperOptions & { shape: string
         continue;
       }
       const convex = cross * turn > 0;
-      if (convex === (s === 1)) {
+      // A turn of under half a degree is drawn as a sharp meeting: an arc that small could not be drawn.
+      const tiny = Math.abs(deg(Math.atan2(cross, dot(u[prev], u[i])))) < 0.5;
+      if (!tiny && convex === (s === 1)) {
         // The lines leave a gap here: a compass arc round the corner joins them.
         const a1 = add(V, mul(n1, k)),
           a2 = add(V, mul(n2, k));
@@ -754,8 +768,8 @@ export function locusFromPolygon(e: Envelope, o: HelperOptions & { shape: string
   // Every piece must be exactly the distance from the outline; a narrow part of the shape can break that.
   const outline = pts as Vec[];
   const samples = [
-    ...pieces.flatMap(({ a, b }) => [0.25, 0.5, 0.75].map((t) => add(a, mul(sub(b, a), t)))),
-    ...arcs.flatMap(({ c, start, sweep }) => [0.25, 0.5, 0.75].map((t) => add(c, mul(dir(start + sweep * t), k)))),
+    ...pieces.flatMap(({ a, b }) => Array.from({ length: 21 }, (_, j) => add(a, mul(sub(b, a), j / 20)))),
+    ...arcs.flatMap(({ c, start, sweep }) => Array.from({ length: 9 }, (_, j) => add(c, mul(dir(start + (sweep * j) / 8), k)))),
   ];
   if (samples.some((v) => distanceToOutline(v, outline) < k - 0.01))
     throw Error(`A distance of ${k} cm is too large for polygon ${o.shape}: part of the locus comes closer than ${k} cm to another side. Use a smaller distance.`);
@@ -1168,7 +1182,9 @@ function draw(e: Envelope, reserve?: Box) {
     const w = textWidth(NOT_ACCURATE, false, NOTE_FONT);
     const right = Math.max(Wmm, w);
     let y1 = under + 3;
-    if (captionBox && captionBox.x2 + 4 > right - w) y1 = captionBox.y2 + 2;
+    // Decided from the saved caption, shown or hidden, so the note sits in the same place on both copies.
+    const capWidth = cap.text.trim() ? textWidth(typeset(cap.text)) + 8 : 0;
+    if (capWidth && capWidth + 4 > right - w) y1 = under + 3 + FONT + 4 + 2;
     const y2 = y1 + NOTE_FONT + 2;
     boxes.push({ x1: right - w, y1, x2: right, y2 });
     noteText = { text: NOT_ACCURATE, x: right - w / 2, y: y1 + NOTE_FONT * 0.95, italic: false, hidden: false, width: w };
