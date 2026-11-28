@@ -243,3 +243,133 @@ describe("left-out labels", () => {
     expect(c.renderSvg(v, "pupil")).toMatch(/>B</);
   });
 });
+
+describe("loci round a shape, either-or shading and bearings angles (GM8.06, GM8.07, GM8.11, GM8.13)", () => {
+  const rectangle = () => {
+    const e = c.blank(12, 9);
+    e.document.points.push(c.newPoint("P", 4, 3), c.newPoint("Q", 8, 3), c.newPoint("R", 8, 5), c.newPoint("S", 4, 5));
+    e.document.objects.push({ id: "pond", type: "polygon", points: ["P", "Q", "R", "S"], dash: false, role: "given" });
+    return c.validate(e);
+  };
+  const lShape = (clockwise = false) => {
+    const e = c.blank(16, 14);
+    const corners: [string, number, number][] = [["A", 3, 3], ["B", 11, 3], ["C", 11, 6], ["D", 7, 6], ["E", 7, 10], ["F", 3, 10]];
+    if (clockwise) corners.reverse();
+    for (const [k, x, y] of corners) e.document.points.push(c.newPoint(k, x, y));
+    e.document.objects.push({ id: "yard", type: "polygon", points: corners.map((x) => x[0]), dash: false, role: "given" });
+    return c.validate(e);
+  };
+  const piecesOf = (e: c.Envelope, group: string) => {
+    const d = e.document;
+    return {
+      segments: d.objects.filter((o): o is Extract<c.Obj, { type: "segment" }> => o.type === "segment" && o.group === group),
+      arcs: d.objects.filter((o): o is Extract<c.Obj, { type: "arc" }> => o.type === "arc" && o.group === group),
+    };
+  };
+  /** Every sampled point of the locus is exactly the distance from the shape's outline. */
+  const exactly = (e: c.Envelope, group: string, shape: string, k: number) => {
+    const d = e.document;
+    const poly = (c.objectById(d, shape) as Extract<c.Obj, { type: "polygon" }>).points.map((x) => at(e, x));
+    const { segments, arcs } = piecesOf(e, group);
+    for (const s of segments)
+      for (const t of [0, 0.3, 0.7, 1]) {
+        const a = at(e, s.from),
+          b = at(e, s.to);
+        expect(c.distanceToOutline({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, poly)).toBeCloseTo(k, 2);
+      }
+    for (const a of arcs)
+      for (const t of [0, 0.5, 1]) {
+        const ce = at(e, a.center),
+          ang = ((a.start + a.sweep * t) * Math.PI) / 180;
+        expect(c.distanceToOutline({ x: ce.x + k * Math.cos(ang), y: ce.y + k * Math.sin(ang) }, poly)).toBeCloseTo(k, 2);
+      }
+  };
+
+  it("draws the locus outside a rectangle as four parallel lines and four quarter-circle arcs", () => {
+    const e = c.locusFromPolygon(rectangle(), { shape: "pond", distance: 1.5 });
+    const { segments, arcs } = piecesOf(e, "lg1");
+    expect(segments).toHaveLength(4);
+    expect(arcs).toHaveLength(4);
+    for (const a of arcs) expect(Math.abs(a.sweep)).toBeCloseTo(90, 6);
+    exactly(e, "lg1", "pond", 1.5);
+    // Saved as an answer, so the pupil copy shows only the pond.
+    expect(e.document.objects.filter((o) => o.group === "lg1").every((o) => o.role === "answer")).toBe(true);
+  });
+
+  it("follows an L-shaped outline either way round: arcs at convex corners outside, a sharp corner at the reflex one", () => {
+    for (const clockwise of [false, true]) {
+      const e = c.locusFromPolygon(lShape(clockwise), { shape: "yard", distance: 1 });
+      const { segments, arcs } = piecesOf(e, "lg1");
+      expect(segments).toHaveLength(6);
+      expect(arcs).toHaveLength(5);
+      exactly(e, "lg1", "yard", 1);
+      const inside = c.locusFromPolygon(lShape(clockwise), { shape: "yard", distance: 1, side: "inside" });
+      expect(piecesOf(inside, "lg1").arcs).toHaveLength(1);
+      exactly(inside, "lg1", "yard", 1);
+    }
+  });
+
+  it("refuses a distance too large for the inside of the shape, naming the side", () => {
+    expect(() => c.locusFromPolygon(rectangle(), { shape: "pond", distance: 1.2, side: "inside" })).toThrow(/too large/);
+    expect(() => c.locusFromPolygon(rectangle(), { shape: "pond", distance: 0.8, side: "both" })).not.toThrow();
+    expect(() => c.locusFromPolygon(rectangle(), { shape: "nope", distance: 1 })).toThrow(/not in the drawing/);
+  });
+
+  it("shades within a distance of the whole outline, and either of two conditions", () => {
+    const e = rectangle();
+    e.document.points.push(c.newPoint("T", 10.5, 7.5));
+    e.document.objects.push({
+      id: "r1",
+      type: "region",
+      rules: [
+        { kind: "either", rules: [{ kind: "distance", from: "pond", distance: 1, side: "within" }, { kind: "distance", from: "T", distance: 1, side: "within" }] },
+        { kind: "inside", shape: "pond", side: "beyond" },
+      ],
+      pattern: "hatch",
+      role: "given",
+    });
+    const v = c.validate(e);
+    const hatch = c.layout(v).paths.find((p) => p.width === 0.2)!;
+    expect(hatch).toBeTruthy();
+    // Hatching reaches round both the pond and the tree T: some strokes near T (x 105 mm), none inside the pond.
+    const xs = [...hatch.d.matchAll(/[ML]([\d.-]+) ([\d.-]+)/g)].map((m) => [+m[1], +m[2]]);
+    expect(xs.some(([x]) => x > 95)).toBe(true);
+    expect(c.references(v.document.objects.find((o) => o.id === "r1")!)).toEqual(["pond", "T", "pond"]);
+    // Removing the tree removes the region that measures from it.
+    expect(c.remove(v, ["T"]).document.objects.some((o) => o.id === "r1")).toBe(false);
+  });
+
+  it("refuses a closer rule against a polygon and an either rule nested in itself", () => {
+    const e = rectangle();
+    e.document.objects.push({ id: "r1", type: "region", rules: [{ kind: "closer", to: "pond", than: "P" }], pattern: "hatch", role: "given" });
+    expect(() => c.validate(e)).toThrow(/point or a segment/);
+    const n = rectangle();
+    (n.document.objects as unknown[]).push({ id: "r2", type: "region", rules: [{ kind: "either", rules: [{ kind: "either", rules: [] }, { kind: "inside", shape: "pond", side: "within" }] }], pattern: "hatch", role: "given" });
+    expect(() => c.validate(n)).toThrow();
+  });
+
+  it("measures an angle from the north line at B, the co-interior angle in a bearings question", () => {
+    const e = examples.find((x) => x.id === "bearings-parallel")!.make(false);
+    expect(c.measureAngle(e, "angleB").document.objects.find((o) => o.id === "angleB")).toMatchObject({ label: { text: "120°" } });
+    // The arm must be a north line at the vertex itself.
+    const wrong = structuredClone(e);
+    (wrong.document.objects.find((o) => o.id === "angleB") as Extract<c.Obj, { type: "angle" }>).from = "northA";
+    expect(() => c.validate(wrong)).toThrow(/not at the vertex/);
+    // Removing the north line removes the angle drawn from it.
+    expect(c.remove(e, ["northB"]).document.objects.some((o) => o.id === "angleB")).toBe(false);
+  });
+
+  it("prints Diagram NOT accurately drawn only when asked, and saves only true", () => {
+    const e = examples.find((x) => x.id === "bearings-parallel")!.make(false);
+    expect(c.renderSvg(e)).toContain(c.NOT_ACCURATE);
+    expect(c.renderSvg(twoPoints())).not.toContain(c.NOT_ACCURATE);
+    const off = structuredClone(e);
+    (off.document as { notAccurate?: boolean }).notAccurate = false;
+    expect("notAccurate" in c.validate(off).document && c.validate(off).document.notAccurate).toBeFalsy();
+    expect(c.canonical(c.validate(off))).not.toContain("notAccurate");
+    // The note sits under the drawing area, inside the printed width.
+    const g = c.layout(e);
+    expect(g.note!.y).toBeGreaterThan(g.frame.y + g.frame.height);
+    expect(g.note!.x + g.note!.width / 2).toBeLessThanOrEqual(g.width);
+  });
+});

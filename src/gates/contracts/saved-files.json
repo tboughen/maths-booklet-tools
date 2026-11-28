@@ -4861,6 +4861,9 @@
             ],
             "additionalProperties": false
           },
+          "notAccurate": {
+            "type": "boolean"
+          },
           "points": {
             "maxItems": 40,
             "type": "array",
@@ -5504,6 +5507,110 @@
                               "kind",
                               "shape",
                               "side"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "either"
+                              },
+                              "rules": {
+                                "minItems": 2,
+                                "maxItems": 4,
+                                "type": "array",
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "kind": {
+                                          "type": "string",
+                                          "const": "distance"
+                                        },
+                                        "from": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                                        },
+                                        "distance": {
+                                          "type": "number",
+                                          "minimum": 0.05,
+                                          "maximum": 40
+                                        },
+                                        "side": {
+                                          "type": "string",
+                                          "enum": [
+                                            "within",
+                                            "beyond"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "kind",
+                                        "from",
+                                        "distance",
+                                        "side"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "kind": {
+                                          "type": "string",
+                                          "const": "closer"
+                                        },
+                                        "to": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                                        },
+                                        "than": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                                        }
+                                      },
+                                      "required": [
+                                        "kind",
+                                        "to",
+                                        "than"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "kind": {
+                                          "type": "string",
+                                          "const": "inside"
+                                        },
+                                        "shape": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                                        },
+                                        "side": {
+                                          "type": "string",
+                                          "enum": [
+                                            "within",
+                                            "beyond"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "kind",
+                                        "shape",
+                                        "side"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "rules"
                             ],
                             "additionalProperties": false
                           }

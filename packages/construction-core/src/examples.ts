@@ -5,6 +5,7 @@ import {
   label,
   locusFromPoint,
   locusFromSegment,
+  locusFromPolygon,
   measureBearing,
   newPoint,
   perpendicularAtPoint,
@@ -161,6 +162,52 @@ export const examples: {
         role: "answer",
       });
       return finish(n, worked);
+    },
+  },
+  {
+    id: "loci-pond",
+    title: "Within a distance of a pond's edge",
+    note: "A 4 m by 2 m pond at 1 cm to 1 m. Pupils draw the locus 1.5 m from its edge (lines parallel to the sides, arcs round the corners) and shade the path round it; both are the saved answer.",
+    worked: true,
+    make: (worked) => {
+      const e = blank(11, 8);
+      const d = e.document;
+      d.points.push(newPoint("P", 3.5, 3, "P", { labelAt: "sw" }), newPoint("Q", 7.5, 3, "Q", { labelAt: "se" }), newPoint("R", 7.5, 5, "R", { labelAt: "ne" }), newPoint("S", 3.5, 5, "S", { labelAt: "nw" }));
+      d.objects.push({ id: "pond", type: "polygon", points: ["P", "Q", "R", "S"], dash: false, role: "given" });
+      d.caption = label("Scale: 1 cm represents 1 m");
+      const n = locusFromPolygon(e, { shape: "pond", distance: 1.5 });
+      n.document.objects.push({
+        id: "path",
+        type: "region",
+        rules: [
+          { kind: "distance", from: "pond", distance: 1.5, side: "within" },
+          { kind: "inside", shape: "pond", side: "beyond" },
+        ],
+        pattern: "hatch",
+        role: "answer",
+      });
+      return finish(n, worked);
+    },
+  },
+  {
+    id: "bearings-parallel",
+    title: "Bearings and parallel north lines",
+    note: "B is on a bearing of 060° from A. The angle x between the north line at B and BA is marked; pupils use co-interior angles to find the bearing of A from B. Not drawn to scale.",
+    worked: false,
+    make: () => {
+      const e = blank(12, 9);
+      e.document.notAccurate = true;
+      e.document.points.push(newPoint("A", 2.5, 2, "A", { labelAt: "s" }));
+      e.document.objects.push({ id: "northA", type: "north", at: "A", length: 3, role: "given" });
+      const n = pointByBearing(e, { id: "B", from: "A", bearing: 60, distance: 7, role: "given" });
+      n.document.points.find((p) => p.id === "B")!.labelAt = "e";
+      n.document.objects.push(
+        segment("AB", "A", "B"),
+        { id: "bearingAB", type: "bearing", from: "A", to: "B", northLine: false, label: label("60°"), role: "given" },
+        { id: "northB", type: "north", at: "B", length: 2.5, role: "given" },
+        { id: "angleB", type: "angle", at: "B", from: "northB", to: "A", style: "arc", reflex: false, label: label("x"), role: "given" },
+      );
+      return validate(n);
     },
   },
 ];

@@ -32,6 +32,34 @@ test("constructions: adds a hidden perpendicular bisector, shows it only on the 
   expect(await saved(page, cKey)).toEqual(before);
 });
 
+test("constructions: a shape, the locus round its edge and the not-to-scale note, each one undo step", async ({ page }) => {
+  await page.goto("/tools/construction");
+  const art = page.getByTestId("construction-resource").locator("svg");
+  await expect(art).toBeVisible();
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add point" }).click();
+  const ids: string[] = (await saved(page, cKey)).document.points.filter((p: { group?: string }) => !p.group).map((p: { id: string }) => p.id).slice(-3);
+  const before = await saved(page, cKey);
+  await page.getByRole("combobox", { name: "Line or mark to add" }).selectOption("polygon");
+  await page.getByRole("textbox", { name: "Corners of the shape in order" }).fill(ids.join(" "));
+  await page.getByRole("button", { name: /^Add shape/ }).click();
+  const shape = (await saved(page, cKey)).document.objects.find((o: { type: string }) => o.type === "polygon");
+  expect(shape.points).toEqual(ids);
+  const section = page.getByRole("region", { name: "Ruler and compass constructions" });
+  await section.getByRole("combobox", { name: "Construction to add" }).selectOption("locus-polygon");
+  await section.getByRole("combobox", { name: "Shape whose edge the locus follows" }).selectOption(shape.id);
+  await section.getByRole("textbox", { name: "Distance in centimetres on the drawing" }).fill("0.5");
+  await section.getByRole("button", { name: /^Add/ }).click();
+  const locus = (await saved(page, cKey)).document.objects.filter((o: { group?: string }) => o.group?.startsWith("lg"));
+  expect(locus.length).toBeGreaterThanOrEqual(6);
+  expect(locus.every((o: { role: string }) => o.role === "answer")).toBe(true);
+  const drawing = page.getByRole("region", { name: "Drawing" });
+  await drawing.getByRole("button", { name: "Drawing", exact: true }).click();
+  await drawing.getByLabel("Print “Diagram NOT accurately drawn”").check();
+  await expect(art).toContainText("Diagram NOT accurately drawn");
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo" }).click();
+  expect(await saved(page, cKey)).toEqual(before);
+});
+
 test("constructions: the printed PNG keeps the drawing's true size", async ({ page }) => {
   await page.addInitScript(([k, v]) => localStorage.setItem(k, v), [cKey, cCanonical(cCreate())]);
   await page.goto("/tools/construction");

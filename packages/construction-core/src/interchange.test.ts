@@ -20,6 +20,30 @@ describe("construction connector adapter", () => {
     expect(e.document.objects.find((o) => o.type === "region")!.role).toBe("answer");
   });
 
+  it("draws the locus round a whole shape, either-or shading, a north-line angle and the not-to-scale note", async () => {
+    const e = io.create({
+      spec: {
+        widthCm: 14,
+        heightCm: 10,
+        notAccurate: true,
+        points: [{ id: "P", x: 4, y: 3 }, { id: "Q", x: 9, y: 3 }, { id: "R", x: 9, y: 6 }, { id: "S", x: 4, y: 6 }],
+        objects: [
+          { type: "polygon", id: "pond", points: ["P", "Q", "R", "S"] },
+          { type: "north", id: "nQ", at: "Q" },
+          { type: "angle", at: "Q", from: "nQ", to: "P", label: "x" },
+          { type: "region", rules: [{ kind: "either", rules: [{ kind: "distance", from: "pond", distance: 1, side: "within" }, { kind: "distance", from: "R", distance: 2, side: "within" }] }], answer: true },
+        ],
+        constructions: [{ type: "locus-polygon", shape: "pond", distance: 1 }],
+      },
+    });
+    expect(e.document.notAccurate).toBe(true);
+    expect(e.document.objects.filter((o) => o.group === "lg1")).toHaveLength(8);
+    expect(c.renderSvg(e)).toContain(c.NOT_ACCURATE);
+    const off = await io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_drawing", notAccurate: false }] });
+    expect(off.document.notAccurate).toBeUndefined();
+    expect(c.renderSvg(off)).not.toContain(c.NOT_ACCURATE);
+  });
+
   it("places bearing points before the objects that join them", () => {
     const e = io.create({
       spec: {
