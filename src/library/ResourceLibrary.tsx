@@ -3,7 +3,7 @@ import { BookOpen, CalendarPlus, Check, Clock, Copy, Download, Hand, History, Mo
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
-  applyChecks, bookletName, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
+  applyChecks, bookletName, foldDay, ONE_OFF_SHELF, oneOffs, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
   summary, threadKey, threadMap, typeNames, unitBooklets, unitLabel, unitOf, versionsOf, writeState,
   type Feedback, type FeedbackAction, type LessonRow, type LessonState, type Library, type LibraryFile, type LibraryState, type LibraryUnit, type Resource, type Thread,
 } from "./model";
@@ -20,7 +20,9 @@ const stateNames: Record<LessonState, string> = { none: "Not made yet", waiting:
 
 type FeedbackTools = { threads: Map<string, Thread>; all: Thread[]; canAct: boolean; off?: string; act: (a: FeedbackAction) => Promise<string> };
 const FeedbackContext = createContext<FeedbackTools>({ threads: new Map(), all: [], canAct: false, off: "Loading feedback…", act: async () => "" });
-/** Deleting a cover lesson (library editors only): it leaves the list, its files stay in the private store. */
+/** Deleting a one-off (its owner or a library editor): it leaves the list, its files stay in the private store. */
+type DeleteTools = { canDelete: boolean; me: string; remove: (id: string) => Promise<void> };
+const DeleteContext = createContext<DeleteTools>({ canDelete: false, me: "", remove: async () => undefined });
 
 /**
  * Resource library (docs/content/RESOURCE-LIBRARY.md): pick a year, then a unit. Each unit card has a
@@ -34,7 +36,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState<Feedback>({ off: "Loading feedback…" });
   const [drawer, setDrawer] = useState(false);
-  const [removed, setRemoved] = useState<{ ids: Set<string>; canDelete: boolean }>({ ids: new Set(), canDelete: false });
+  const [removed, setRemoved] = useState<{ ids: Set<string>; canDelete: boolean; me: string }>({ ids: new Set(), canDelete: false, me: "" });
   const [state, setStateValue] = useState<LibraryState>(() => readState(location.search, savedYear()));
   const box = useRef<HTMLInputElement>(null);
 
@@ -42,7 +44,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     let live = true;
     loadLibrary().then((l) => live && setList(l), (e: Error) => live && setError(e.message));
     loadFeedback().then((f) => live && setFeedback(f), () => live && setFeedback({ off: "Feedback could not be loaded." }));
-    loadCoverRemoved().then((c) => live && setRemoved({ ids: new Set(c.removed), canDelete: c.canDelete }), () => { /* Cover lessons then simply all show. */ });
+    loadCoverRemoved().then((c) => live && setRemoved({ ids: new Set(c.removed), canDelete: c.canDelete, me: c.me ?? "" }), () => { /* Cover lessons then simply all show. */ });
     return () => { live = false; };
   }, []);
   useEffect(() => {
@@ -87,9 +89,11 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
   }, [reload]);
   // A booklet an editor has ticked ✓ Checked at its current version shows green everywhere. Cover work lives only in
   // the Cover library on the Create cover booklet page (Tim, 27 Nov), never on the shelves, search or Map.
-  const list = useMemo(() => (raw ? applyChecks({ ...raw, resources: raw.resources.filter((r) => !isCoverWork(r)) }, "off" in feedback ? {} : feedback.checks) : null), [raw, feedback]);
+  // A deleted one-off leaves the shelves, search and Map; its files stay in the private store.
+  const list = useMemo(() => (raw ? applyChecks({ ...raw, resources: raw.resources.filter((r) => !isCoverWork(r) && !(r.type === "one-off" && removed.ids.has(r.id))) }, "off" in feedback ? {} : feedback.checks) : null), [raw, feedback, removed.ids]);
   const covers = useMemo(() => raw?.resources.filter(isCoverWork) ?? [], [raw]);
   const removeCover = useCallback(async (id: string) => { const ids = await removeCoverLesson(id); setRemoved((old) => ({ ...old, ids: new Set([...ids, id]) })); }, []);
+  const deleting = useMemo<DeleteTools>(() => ({ canDelete: removed.canDelete, me: removed.me, remove: removeCover }), [removed.canDelete, removed.me, removeCover]);
   const tools = useMemo<FeedbackTools>(() => ("off" in feedback
     ? { threads: new Map(), all: [], canAct: false, off: feedback.off, act }
     : { threads: threadMap(feedback.threads), all: feedback.threads, canAct: feedback.canAct, act }), [feedback, act]);
@@ -107,6 +111,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
 
   return (
     <FeedbackContext.Provider value={tools}>
+      <DeleteContext.Provider value={deleting}>
       <main className="resource-library" id="main-content" tabIndex={-1}>
         <PageHeading title="Resource library" description="Every booklet we have made, by year and unit, at its newest version. Send a colleague a unit's link: they sign in with their school email.">
           {/* Its own colour and place, apart from the Shelves and Map switch (Tim, 27 Nov). */}
@@ -138,6 +143,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           : <Shelves list={list} state={state} setState={setState} />}
         {drawer && list && <Drawer list={list} close={() => setDrawer(false)} open={openUnit} />}
       </main>
+      </DeleteContext.Provider>
     </FeedbackContext.Provider>
   );
 }
@@ -227,7 +233,8 @@ function Shelves({ list, state, setState }: { list: Library; state: LibraryState
         ))}
       </section>
       <aside className="library-detail" aria-label="Unit resources">
-        {unit ? <UnitDetail key={`${year.year}/${unit.code}`} list={list} year={year.year} unit={unit} version={state.version} setVersion={(v) => setState({ version: v })} />
+        {unit?.code === ONE_OFF_SHELF ? <OneOffDetail key={`${year.year}/oneoffs`} list={list} year={year.year} unit={unit} />
+          : unit ? <UnitDetail key={`${year.year}/${unit.code}`} list={list} year={year.year} unit={unit} version={state.version} setVersion={(v) => setState({ version: v })} />
           : <p className="library-hint">Choose a unit to see its booklets, answers and feedback here.</p>}
       </aside>
     </div>
@@ -323,6 +330,67 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
     </>
   );
 }
+
+/**
+ * The One-offs shelf (Tim, 28 Nov): mock revision, follow-up sheets, silent starters and other material that is not a unit
+ * lesson. Each shows its class, the day it is used and who asked; no versions. It folds into Past one-offs 7 days after
+ * that day, unless it is Kept. Keep as booklet asks for it to be rebuilt as a real booklet in a unit, with versions.
+ */
+function OneOffDetail({ list, year, unit }: { list: Library; year: number; unit: LibraryUnit }) {
+  const { current, kept, past } = oneOffs(list, year);
+  const card = (r: Resource) => <OneOffCard key={r.id} r={r} year={year} />;
+  return (
+    <>
+      <h2>{unit.title}</h2>
+      <p className="library-hint">Year {year} · material for one class and one day: mock revision, follow-up sheets, silent starters. Each folds into Past one-offs 7 days after it is used, unless it is kept.</p>
+      {current.length ? <ul className="library-rows">{current.map(card)}</ul> : <p className="library-hint">Nothing for the coming days.</p>}
+      {kept.length > 0 && <><h3 className="library-oneoff-head">Kept</h3><ul className="library-rows">{kept.map(card)}</ul></>}
+      {past.length > 0 && (
+        <details className="library-oneoff-past">
+          <summary>Past one-offs ({past.length})</summary>
+          <ul className="library-rows">{past.map(card)}</ul>
+        </details>
+      )}
+    </>
+  );
+}
+
+function OneOffCard({ r, year }: { r: Resource; year: number }) {
+  const fb = useContext(FeedbackContext);
+  const del = useContext(DeleteContext);
+  const t: Target = { year, unit: ONE_OFF_SHELF, version: "Main", lesson: null, booklet: r.id };
+  const thread = fb.threads.get(threadKey(year, ONE_OFF_SHELF, "Main", null, r.id));
+  const [sure, setSure] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const mayDelete = del.canDelete || (!!r.owner && !!del.me && r.owner.toLowerCase() === del.me);
+  const keepAsked = !!thread?.comments.some((c) => c.text.startsWith(KEEP_TEXT));
+  async function remove() {
+    setBusy(true); setMessage("");
+    try { await del.remove(r.id); } catch (e) { setMessage((e as Error).message); setBusy(false); setSure(false); }
+  }
+  async function keep() {
+    setBusy(true); setMessage("");
+    try { await fb.act({ action: "comment", year, unit: ONE_OFF_SHELF, version: "Main", lesson: null, booklet: r.id, text: KEEP_TEXT }); setMessage("Asked for. It is in Feedback to act on, for the nightly run."); }
+    catch (e) { setMessage((e as Error).message); }
+    finally { setBusy(false); }
+  }
+  const meta = [r.class && `Class ${r.class}`, r.used ? `used ${day(r.used)}` : null, r.askedBy && `asked for by ${r.askedBy}`, r.kept ? "kept" : `folds ${day(foldDay(r))}`].filter(Boolean).join(" · ");
+  const title = <><b>{r.title}</b> <span className="library-oneoff-meta">{meta}</span></>;
+  return (
+    <li className={`library-row is-${thread ? "feedback" : r.status}`}>
+      {fb.off ? <><div className="library-row-main"><i className={`library-sq is-${r.status}`} aria-hidden="true" /><span className="library-row-text"><span className="library-row-title">{title}</span><span className="library-row-state">{stateNames[r.status]} · {day(r.updated)}</span></span></div><FileLinks files={r.files} /></>
+        : <MadeRow t={t} r={r} thread={thread} title={title} />}
+      <span className="library-actions">
+        {!r.kept && fb.canAct && !fb.off && (keepAsked ? <span className="library-hint">Keep as booklet asked for</span> : <button type="button" className="library-chip" disabled={busy} onClick={() => void keep()}><BookOpen size={13} aria-hidden="true" />Keep as booklet</button>)}
+        {mayDelete && (!sure ? <button type="button" className="library-chip" disabled={busy} onClick={() => setSure(true)}><Trash2 size={13} aria-hidden="true" />Delete</button>
+          : <><span className="library-hint">Delete it from the library? Its files are kept.</span><button type="button" className="library-chip" disabled={busy} onClick={() => void remove()}>Yes, delete it</button><button type="button" className="library-chip" disabled={busy} onClick={() => setSure(false)}>Keep it</button></>)}
+      </span>
+      {message && <p className="library-status" role="status">{message}</p>}
+    </li>
+  );
+}
+const KEEP_TEXT = "Keep as booklet: rebuild this as a real booklet in its unit, with versions from then on.";
 
 type Target = { year: number; unit: string; version: string; lesson: string | null; booklet?: string | null };
 type Ask = null | "waiting" | "checked";
@@ -449,7 +517,7 @@ function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: R
   );
 }
 
-/** A lesson not made yet (anyone can ask for it), a starter, or a row when feedback is off. */
+/** A lesson not made yet (anyone can ask for it), or a row when feedback is off. */
 function PlainRow({ row, t, history, setHistory }: { row: LessonRow; t: Target; history: boolean; setHistory: (v: boolean) => void }) {
   const fb = useContext(FeedbackContext);
   const r = row.resource;

@@ -1,23 +1,37 @@
 import { describe, expect, it } from "vitest";
-import { applyChecks, lessonPlan, predictFeedback, loadFeedback, loadLibrary, partRanges, readState, searchLibrary, summary, threadMap, unitOf, versionsOf, writeState, type Feedback, type Library, type Resource, type Thread } from "./model";
+import { applyChecks, foldDay, lessonPlan, oneOffs, predictFeedback, loadFeedback, loadLibrary, partRanges, readState, searchLibrary, summary, threadMap, unitOf, versionsOf, writeState, type Feedback, type Library, type Resource, type Thread } from "./model";
 
 const file = (role: "pupil" | "answers", format: "pdf" | "docx" = "pdf") => ({ role, format, name: `x_${role}.${format}`, bytes: 1, href: `library-data/files/${"a".repeat(64)}/x_${role}.${format}` });
 const res = (over: Partial<Resource>): Resource => ({ id: "r", year: 9, unit: "A7", version: "Main", title: "Gradient", type: "lesson-booklet", status: "ready", updated: "2026-11-22", files: [file("pupil")], history: [], ...over });
 const lessons = ["A7.01", "A7.02", "A7.03", "A7.04"].map((code) => ({ code, title: `Planned ${code}` }));
 const list: Library = {
   schema: "mathsdock-library-served/2", published: "2026-11-24T12:00:00Z",
-  years: [{ year: 9, now: "A7", sections: [{ name: "Autumn term", estimate: true, units: [{ code: "A7", title: "Algebraic proficiency: visualising", lessons, parts: [{ name: "Part 1", from: "A7.01", to: "A7.02" }, { name: "Part 2", from: "A7.03", to: "A7.04" }] }, { code: "SP7", title: "Understanding risk" }] }, { name: "Also for Year 9", units: [{ code: "STARTERS", title: "Silent starters" }] }] }],
+  years: [{ year: 9, now: "A7", sections: [{ name: "Autumn term", estimate: true, units: [{ code: "A7", title: "Algebraic proficiency: visualising", lessons, parts: [{ name: "Part 1", from: "A7.01", to: "A7.02" }, { name: "Part 2", from: "A7.03", to: "A7.04" }] }, { code: "SP7", title: "Understanding risk" }] }, { name: "Also for Year 9", units: [{ code: "ONEOFFS", title: "One-offs" }] }] }],
   resources: [
     res({ id: "a", lesson: "A7.03", title: "Gradient (positive)" }),
     res({ id: "b", lesson: "A7.00", title: "Unit start", status: "waiting" }),
     res({ id: "c", lesson: "A7.01", title: "Plot", version: "Foundation", status: "waiting" }),
     res({ id: "d", type: "unit-booklet", title: "Whole A7", part: "Part 2" }),
     res({ id: "e", unit: "SP7", lesson: "SP7.02", title: "Multiplication law" }),
-    res({ id: "f", unit: "STARTERS", type: "starter", title: "Silent starter 2" }),
-    res({ id: "g", unit: "STARTERS", type: "starter", title: "Silent starter 1", status: "waiting" }),
+    res({ id: "f", unit: "ONEOFFS", type: "one-off", title: "Silent starter 2", kept: true }),
+    res({ id: "g", unit: "ONEOFFS", type: "one-off", title: "Silent starter 1", status: "waiting", kept: true }),
+    res({ id: "h", unit: "ONEOFFS", type: "one-off", title: "Mock revision P1", class: "11X2", used: "2026-11-30" }),
+    res({ id: "i", unit: "ONEOFFS", type: "one-off", title: "Follow-up sheets", used: "2026-11-20" }),
+    res({ id: "j", unit: "ONEOFFS", type: "one-off", title: "Made, no date", updated: "2026-11-24" }),
   ],
 };
 const thread = (over: Partial<Thread>): Thread => ({ number: 1, year: 9, unit: "A7", version: "Main", lesson: "A7.03", kind: "lesson", queued: false, agreed: false, opened: "2026-11-25T09:00:00Z", comments: [], ...over });
+
+describe("One-offs", () => {
+  it("fold into Past one-offs 7 days after they are used (or made), unless kept", () => {
+    const { current, kept, past } = oneOffs(list, 9, new Date("2026-11-28T09:00:00"));
+    expect(current.map((r) => r.id)).toEqual(["h", "j"]);
+    expect(kept.map((r) => r.id)).toEqual(["g", "f"]);
+    expect(past.map((r) => r.id)).toEqual(["i"]);
+    expect(foldDay(list.resources.find((r) => r.id === "h")!)).toBe("2026-12-07");
+    expect(oneOffs(list, 9, new Date("2026-12-01T09:00:00")).past.map((r) => r.id)).toEqual(["j", "i"]);
+  });
+});
 
 describe("Resource library list", () => {
   it("lists planned lessons in order with made ones in place, and feedback turns a lesson violet", () => {
@@ -28,8 +42,8 @@ describe("Resource library list", () => {
     expect(summary(lessonPlan(list, 9, "SP7", "Foundation"))).toBe("Nothing yet");
     expect(lessonPlan(list, 9, "A7", "Foundation").map((r) => r.state)).toEqual(["waiting", "none", "none", "none"]);
   });
-  it("gives starters a row each, and keeps versions and parts", () => {
-    expect(lessonPlan(list, 9, "STARTERS", "Main").map((r) => r.title)).toEqual(["Silent starter 1", "Silent starter 2"]);
+  it("gives one-offs a row each, and keeps versions and parts", () => {
+    expect(lessonPlan(list, 9, "ONEOFFS", "Main").map((r) => r.title).slice(0, 2)).toEqual(["Follow-up sheets", "Made, no date"]);
     expect(versionsOf(list, 9, "A7")).toEqual(["Main", "Foundation"]);
     const rows = lessonPlan(list, 9, "A7", "Main");
     expect(partRanges(unitOf(list, 9, "A7"), rows)?.map((p) => [p.start, p.end])).toEqual([[1, 2], [3, 4]]);
@@ -40,6 +54,7 @@ describe("Resource library list", () => {
     expect(searchLibrary(list, "risk").map((r) => r.id)).toEqual(["e"]);
     expect(searchLibrary(list, "foundation").map((r) => r.id)).toEqual(["c"]);
     expect(searchLibrary(list, "waiting starter").map((r) => r.id)).toEqual(["g"]);
+    expect(searchLibrary(list, "11x2").map((r) => r.id)).toEqual(["h"]);
     expect(searchLibrary(list, "  ")).toEqual([]);
   });
   it("keeps its state in the address", () => {

@@ -50,6 +50,8 @@ const fromEmail = body => { const raw = fromMarker.exec(body ?? '')?.[1] ?? ''; 
 const clean = text => { let s = String(text), before; do { before = s; s = s.replace(/<!--|-->/g, ''); } while (s !== before); return s.trim(); };
 const editors = env => String(env.LIBRARY_EDITORS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 /** Anyone signed in may comment; queueing, restoring and closing are for the named editors only. */
+/** A booklet key names a unit booklet by its part, or a one-off by its id (one-offs have no lesson code). */
+const bookletMatches = (r, booklet) => r?.type === 'unit-booklet' ? (r.part ?? 'Unit booklet') === booklet : r?.type === 'one-off' && r.id === booklet;
 export const canAct = (env, email) => editors(env).includes(String(email || '').toLowerCase());
 
 function github(env, fetcher) {
@@ -170,7 +172,7 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
     }
     if (isCheck) {
       const resource = list.resources?.find(r => r.id === body.id);
-      const matches = key.booklet ? resource?.type === 'unit-booklet' && (resource.part ?? 'Unit booklet') === key.booklet : resource?.lesson === key.lesson;
+      const matches = key.booklet ? bookletMatches(resource, key.booklet) : resource?.lesson === key.lesson;
       if (!resource || resource.year !== key.year || resource.unit !== key.unit || (resource.version ?? 'Main') !== key.version || !matches) return json(400, { error: 'That booklet is not in the library.' });
       if (resource.updated !== body.updated) return json(409, { error: 'A newer version of this booklet has been published. Reload the page.' });
       const checks = await changeChecks(env, all => { if (action === 'check') all[body.id] = { updated: body.updated, by: displayName(email), at: new Date().toISOString() }; else delete all[body.id]; });
@@ -208,7 +210,7 @@ export async function libraryFeedback(request, env, claims, fetcher = fetch) {
     if (note) await gh.call('POST', `/issues/${n}/comments`, { body: `${from}${note}` });
     // A comment asks for changes, so it takes any check off this booklet's current version.
     if (action === 'comment' && (key.lesson || key.booklet)) {
-      const resource = list.resources?.find(r => r.year === key.year && r.unit === key.unit && (r.version ?? 'Main') === key.version && (key.booklet ? r.type === 'unit-booklet' && (r.part ?? 'Unit booklet') === key.booklet : r.lesson === key.lesson && r.type !== 'unit-booklet'));
+      const resource = list.resources?.find(r => r.year === key.year && r.unit === key.unit && (r.version ?? 'Main') === key.version && (key.booklet ? bookletMatches(r, key.booklet) : r.lesson === key.lesson && r.type !== 'unit-booklet'));
       if (resource) await changeChecks(env, all => { delete all[resource.id]; }).catch(() => undefined);
     }
     await Promise.all([

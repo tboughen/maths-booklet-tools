@@ -219,3 +219,9 @@
 .library-cover-button { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 16px; border: 1px solid var(--lib-teal); border-radius: var(--md-radius); background: var(--lib-teal-soft); color: var(--lib-teal); font: inherit; font-size: var(--md-text-sm); font-weight: 700; cursor: pointer; }
 .library-cover-button:hover, .library-cover-button[aria-pressed="true"] { background: #cdebe8; }
 .library-cover-button:focus-visible { outline: 3px solid var(--lib-teal); outline-offset: 2px; }
+
+/* One-offs shelf (Tim, 28 Nov): class, day used and who asked under each title; Past one-offs folds away. */
+.library-oneoff-meta { display: block; font-weight: 400; color: var(--md-ink-3); font-size: var(--md-text-sm); }
+.library-oneoff-head { margin: 1rem 0 0.25rem; font-size: 1rem; }
+.library-oneoff-past { margin-top: 1rem; }
+.library-oneoff-past > summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }

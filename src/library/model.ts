@@ -1,17 +1,19 @@
 /**
- * The Resource library list (docs/content/RESOURCE-LIBRARY.md): every booklet and starter we have
+ * The Resource library list (docs/content/RESOURCE-LIBRARY.md): every booklet and one-off we have
  * made, by year and unit, with each unit's planned lessons, its versions (Main, Foundation, …) and
  * every replaced version kept in each resource's history. The list and its files are served by the
  * site Worker behind staff sign-in; scripts/library/publish.mjs writes them.
  */
 import { siteBase } from "../site/routes";
 
-export type ResourceType = "unit-booklet" | "lesson-booklet" | "revision-lesson" | "starter";
+export type ResourceType = "unit-booklet" | "lesson-booklet" | "revision-lesson" | "one-off";
 export type LibraryFile = { role: "pupil" | "answers"; format: "pdf" | "docx"; name: string; bytes: number; href: string };
 export type Earlier = { updated: string; note?: string; files: LibraryFile[] };
 export type Resource = {
   id: string; year: number; unit: string; lesson?: string; version: string; part?: string; note?: string;
   title: string; type: ResourceType; status: "ready" | "waiting"; updated: string; files: LibraryFile[]; history: Earlier[];
+  /** One-offs only: the class, the day it is used, who asked for it, their sign-in email (they may delete it) and Kept (never folds away). */
+  class?: string; used?: string; askedBy?: string; owner?: string; kept?: boolean;
   /** Set when an editor ticked ✓ Checked on this version on the page (not in the published list). */
   checked?: Check;
 };
@@ -37,7 +39,7 @@ export const typeNames: Record<ResourceType, string> = {
   "unit-booklet": "Unit booklet",
   "lesson-booklet": "Lesson booklet",
   "revision-lesson": "Revision lesson",
-  starter: "Silent starter",
+  "one-off": "One-off",
 };
 const roleNames = { pupil: "Pupil", answers: "Answers" } as const;
 export const fileLabel = (file: LibraryFile) => `${roleNames[file.role]} ${file.format === "pdf" ? "PDF" : "Word"}`;
@@ -65,7 +67,29 @@ export function unitOf(list: Library, year: number, code: string): LibraryUnit |
 export const isSchemeUnit = (code: string) => /^(A|NP|SP|GM)\d+$/.test(code);
 export const unitLabel = (unit: LibraryUnit) => (isSchemeUnit(unit.code) ? unit.code : unit.title);
 /** The short name inside a ring: the code, or ST, MR and so on for the extra shelves. */
-export const ringLabel = (unit: LibraryUnit) => (isSchemeUnit(unit.code) ? unit.code : ({ STARTERS: "ST", MOCK: "MR", REVIEW: "REV" } as Record<string, string>)[unit.code] ?? unit.code.slice(0, 3));
+export const ringLabel = (unit: LibraryUnit) => (isSchemeUnit(unit.code) ? unit.code : ({ [ONE_OFF_SHELF]: "1×", REVIEW: "REV" } as Record<string, string>)[unit.code] ?? unit.code.slice(0, 3));
+/** Each year's One-offs shelf (Tim, 28 Nov): mock revision, follow-up sheets, silent starters and the like. */
+export const ONE_OFF_SHELF = "ONEOFFS";
+export const ONE_OFF_DAYS = 7;
+const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** The day a one-off folds into Past one-offs: 7 days after it is used (or made, if no date was given). */
+export function foldDay(r: Resource) {
+  const d = new Date(`${(r.used ?? r.updated).slice(0, 10)}T12:00:00`);
+  d.setDate(d.getDate() + ONE_OFF_DAYS);
+  return isoDay(d);
+}
+/** A year's one-offs: current (newest use first), kept (never fold) and past (folded away). Deleted ones are left out. */
+export function oneOffs(list: Library, year: number, today = new Date()) {
+  const all = list.resources.filter((r) => r.year === year && r.type === "one-off");
+  const when = (r: Resource) => r.used ?? r.updated;
+  const newest = (a: Resource, b: Resource) => when(b).localeCompare(when(a)) || a.title.localeCompare(b.title);
+  const now = isoDay(today);
+  return {
+    current: all.filter((r) => !r.kept && foldDay(r) > now).sort(newest),
+    kept: all.filter((r) => r.kept).sort((a, b) => byLesson(a.title, b.title)),
+    past: all.filter((r) => !r.kept && foldDay(r) <= now).sort(newest),
+  };
+}
 export const resourcesFor = (list: Library, year: number, unit: string) => list.resources.filter((r) => r.year === year && r.unit === unit);
 
 /** Main first, then the other versions in the order they were added. */
@@ -117,7 +141,7 @@ export function searchLibrary(list: Library, query: string): Resource[] {
   if (!words.length) return [];
   return list.resources.filter((r) => {
     const unit = unitOf(list, r.year, r.unit);
-    const text = normal(`${r.lesson ?? ""} ${r.unit} ${unit?.title ?? ""} ${r.title} ${typeNames[r.type]} ${r.version} ${r.part ?? ""} year ${r.year} y${r.year} ${r.status === "waiting" ? "waiting" : "ready"}`);
+    const text = normal(`${r.lesson ?? ""} ${r.unit} ${unit?.title ?? ""} ${r.title} ${typeNames[r.type]} ${r.class ?? ""} ${r.askedBy ?? ""} ${r.version} ${r.part ?? ""} year ${r.year} y${r.year} ${r.status === "waiting" ? "waiting" : "ready"}`);
     return words.every((w) => text.includes(w));
   }).sort((a, b) => a.year - b.year || byLesson(a.lesson ?? a.unit, b.lesson ?? b.unit) || byLesson(a.type, b.type) || byLesson(a.version, b.version));
 }

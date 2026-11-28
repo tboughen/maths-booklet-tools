@@ -59,8 +59,8 @@ Each entry in `resources` is one booklet:
     "files": [{ "role": "pupil", "format": "pdf", "path": "y9/A7/y9-a7-03-lesson-booklet-2026-11-18_pupil.pdf" }] }] }
 ```
 
-- `type`: `unit-booklet`, `lesson-booklet`, `revision-lesson` or `starter`. A unit booklet for one part
-  names it in `part`.
+- `type`: `unit-booklet`, `lesson-booklet`, `revision-lesson` or `one-off` (below). A unit booklet for one
+  part names it in `part`.
 - `version`: `Main` unless named (`Foundation`, `Higher`, `Extra challenge (9X)`). A new version is a new
   entry with the same unit and lesson and its own `id`; its tab and pill appear by themselves.
 - `status`: `ready` once Tim has passed it, otherwise `waiting`.
@@ -69,6 +69,30 @@ Each entry in `resources` is one booklet:
   the front of `history`, and set `status` to `waiting`. Never overwrite or delete an old file: staff
   can open every earlier version, and "Make current again" brings one back.
 - Never add pupil data (class lists, names, marks).
+
+## One-offs
+
+Tim chose this on 28 Nov 2026. Material that is not a unit lesson (mock revision, assessment follow-up
+sheets, silent starters, new non-lesson resources from lesson adaptations) is a `one-off` on its year's
+**One-offs** shelf (unit `ONEOFFS`, in the "Also for Year N" section). Cover lessons are not one-offs:
+they stay in the Cover library (`COVER-REQUESTS.md`).
+
+```json
+{ "id": "y11-p1-revision-one-off", "year": 11, "unit": "ONEOFFS", "type": "one-off", "title": "Paper 1 revision",
+  "class": "11X2", "used": "2026-11-30", "askedBy": "Ann Lee", "owner": "ann.lee@school.example",
+  "status": "waiting", "updated": "2026-11-28", "files": [{ "role": "pupil", "format": "pdf", "path": "y11/ONEOFFS/y11-p1-revision_pupil.pdf" }] }
+```
+
+- `used` (the day it is taught) is required unless `kept` is `true`. `class`, `askedBy` (a name) and `owner`
+  (the asker's lower-case sign-in email) are optional. No lesson code, part or version.
+- The shelf shows the coming ones first; each folds into **Past one-offs** 7 days after `used` (or `updated`
+  when there is no date). `kept: true` never folds (silent starters).
+- Files may sit in any folder of the year (`y11/ONEOFFS/`, or where they were first filed), so nothing moves.
+- **Delete**: the `owner` or a library editor. It goes on the same deleted list as cover lessons
+  (`library/cover-removed.json` in R2); the files stay in the private store.
+- **Keep as booklet** (editors): comments on the one-off's feedback thread (keyed by its id as `booklet`).
+  Queue it and the nightly run rebuilds it as a real booklet in the unit the comments name, with versions.
+- The status switch and comments work as for a unit booklet.
 
 ## Feedback
 

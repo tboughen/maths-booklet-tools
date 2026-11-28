@@ -3,13 +3,18 @@
 // beside the list. Publishing turns it into the served list, which names each file by its SHA-256.
 // Version 2: booklets only. A unit lists its planned lessons and any parts; a resource belongs to a
 // version of its unit ("Main" unless named) and keeps every replaced version in its history.
+// One-offs (Tim, 28 Nov): mock revision, follow-up sheets, silent starters and other non-unit material sit
+// on each year's One-offs shelf with a class, the date used and who asked; no versions, no lesson codes.
 import { createHash } from 'node:crypto';
 import { readFileSync, lstatSync, realpathSync } from 'node:fs';
 import { join, basename } from 'node:path';
 
 export const sourceSchema = 'mathsdock-library/2';
 export const servedSchema = 'mathsdock-library-served/2';
-export const types = ['unit-booklet', 'lesson-booklet', 'revision-lesson', 'starter'];
+export const types = ['unit-booklet', 'lesson-booklet', 'revision-lesson', 'one-off'];
+export const oneOffShelf = 'ONEOFFS';
+const shortText = /^[^\p{Cc}<>]{1,60}$/u;
+const emailText = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
 export const statuses = ['ready', 'waiting'];
 export const roles = ['pupil', 'answers'];
 const lessonCode = /^[A-Z]{1,3}\d+(\.\d+[a-z]?)?$/;
@@ -59,6 +64,8 @@ export function checkLibrary(list, root) {
     if (r.version !== undefined && !versionName.test(r.version)) problems.push(`${at}: version ${r.version} must be a short name such as Foundation.`);
     if (r.part !== undefined && !(units.get(`${r.year}/${r.unit}`)?.parts ?? []).some(p => p.name === r.part)) problems.push(`${at}: part ${r.part} is not a part of ${r.unit}.`);
     if (r.note !== undefined && typeof r.note !== 'string') problems.push(`${at}: the note must be a sentence.`);
+    if (r.type === 'one-off') checkOneOff(at, r, problems);
+    else if (r.unit === oneOffShelf || ['class', 'used', 'askedBy', 'owner', 'kept'].some(k => r[k] !== undefined)) problems.push(`${at}: only a one-off sits on the ${oneOffShelf} shelf or has a class, used date, askedBy, owner or kept.`);
     checkFiles(at, r, r.files, root, problems);
     if (r.history !== undefined && !Array.isArray(r.history)) problems.push(`${at}: history must be a list.`);
     for (const old of Array.isArray(r.history) ? r.history : []) {
@@ -71,6 +78,17 @@ export function checkLibrary(list, root) {
   return problems;
 }
 
+/** A one-off: its shelf, a used date (unless kept), and no lesson, part or version. */
+function checkOneOff(at, r, problems) {
+  if (r.unit !== oneOffShelf) problems.push(`${at}: a one-off sits on the ${oneOffShelf} shelf.`);
+  if (r.lesson !== undefined || r.part !== undefined || (r.version ?? 'Main') !== 'Main') problems.push(`${at}: a one-off has no lesson code, part or version.`);
+  if (r.kept !== undefined && r.kept !== true) problems.push(`${at}: kept is true or left out.`);
+  if (r.used !== undefined ? !isDate(r.used) : r.kept !== true) problems.push(`${at}: a one-off needs the date it is used, such as 2026-11-30 (a kept one may leave it out).`);
+  if (r.class !== undefined && !shortText.test(r.class)) problems.push(`${at}: class must be a short name such as 9Y4.`);
+  if (r.askedBy !== undefined && !shortText.test(r.askedBy)) problems.push(`${at}: askedBy must be a name such as Tim.`);
+  if (r.owner !== undefined && !emailText.test(r.owner)) problems.push(`${at}: owner must be the lower-case school email of the person who asked.`);
+}
+
 function checkFiles(at, r, files, root, problems) {
   if (!files?.length) problems.push(`${at}: it has no files.`);
   const seen = new Set();
@@ -79,7 +97,8 @@ function checkFiles(at, r, files, root, problems) {
     if (seen.has(`${f.role}.${f.format}`)) problems.push(`${at}: two ${f.role} ${f.format} files.`);
     seen.add(`${f.role}.${f.format}`);
     if (!safePath.test(f.path ?? '') || !f.path.endsWith(`.${f.format}`)) problems.push(`${at}: ${f.path} must look like y9/A7/name.${f.format} (lower-case file name).`);
-    else if (!f.path.startsWith(`y${r.year}/${r.unit}/`)) problems.push(`${at}: ${f.path} must sit in y${r.year}/${r.unit}/.`);
+    // A one-off's files stay wherever they were first filed in the year (STARTERS, MOCK), so none move.
+    else if (!f.path.startsWith(r.type === 'one-off' ? `y${r.year}/` : `y${r.year}/${r.unit}/`)) problems.push(`${at}: ${f.path} must sit in y${r.year}/${r.type === 'one-off' ? '' : `${r.unit}/`}.`);
     else if (root && !regularFile(root, f.path)) problems.push(`${at}: files/${f.path} is missing or is not a plain file.`);
   }
 }
