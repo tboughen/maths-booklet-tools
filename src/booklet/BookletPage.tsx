@@ -50,13 +50,11 @@ import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepN
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 /** The rest of a lesson source file (stored working, sides, plan), kept beside the booklet it was opened with. */
 const SOURCE_STORAGE = `${STORAGE}:source`;
-/** `lessons` names the lesson codes the source was opened with, so an undone open does not check against another lesson's working. */
-type SourceExtras = Omit<LessonSource, "booklet"> & { lessons?: string; library?: LibraryOrigin };
+type SourceExtras = Omit<LessonSource, "booklet"> & { library?: LibraryOrigin };
 /** The Resource library booklet a source was opened from, so Save to library adds the edit to it. */
 type LibraryOrigin = { resource: string; version: string; title: string };
 /** Only a lesson source served by the library opens from a link. */
 const LIBRARY_SOURCE = /^library-data\/(?:files|edits)\/[a-f0-9]{64}\/[a-z0-9][a-z0-9._-]{0,150}\.json$/;
-const lessonCodes = (b: Booklet) => b.document.lessons.map((l) => l.code).join("|");
 const readExtras = (): SourceExtras | null => {
   try {
     const raw = localStorage.getItem(SOURCE_STORAGE);
@@ -74,7 +72,7 @@ const writeExtras = (extras: SourceExtras | null) => {
   }
 };
 type Spot = Pick<CardSpot, "lesson" | "section" | "card">;
-const withoutMatch = ({ lessons: _lessons, library: _library, ...rest }: SourceExtras): Omit<LessonSource, "booklet"> => rest;
+const withoutMatch = ({ library: _library, ...rest }: SourceExtras & { lessons?: unknown }): Omit<LessonSource, "booklet"> => rest;
 /** A file's parsed JSON as a booklet and the rest of its lesson source (null for a plain booklet file). */
 function readBookletFile(parsed: unknown): { b: Booklet; rest: Omit<LessonSource, "booklet"> | null } {
   const wrapped = parsed && typeof parsed === "object" && "booklet" in parsed && !("document" in parsed);
@@ -158,6 +156,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     setExtrasState(next);
     writeExtras(next);
   };
+  // The booklet the lesson source came with. Undoing its open puts it in the redo list, and the source then
+  // stands aside; a new edit after that drops the source, so it never travels with a different booklet.
+  const opened = useRef<Booklet | null>(startup.b);
   /** The note for Save to library while its box is open. */
   const [saving, setSaving] = useState<string | null>(null);
   /** The card being edited on the page, if any. */
@@ -175,6 +176,10 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return false;
     try {
       const valid = validateBooklet(next);
+      if (extras && opened.current && history.future.includes(opened.current)) {
+        setExtras(null);
+        opened.current = null;
+      }
       documentHistory.commit(valid);
       setMessage("");
       return true;
@@ -233,39 +238,41 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
       }
       if ((parsed as { document?: { kind?: string } })?.document?.kind === "worksheet-a3") throw Error("This is a worksheet file. Open it in the Worksheet builder.");
       // A lesson source as booklet builds write it: the booklet sits under "booklet" beside its stored working.
-      const { b: opened, rest } = readBookletFile(parsed);
-      if (rest) setPending({ b: opened, extras: { ...rest, lessons: lessonCodes(opened) }, title: "Open this lesson source? It replaces the current booklet. You can undo it." });
-      else setPending({ b: opened, extras: null, title: "Open this booklet? It replaces the current one. You can undo it." });
+      const { b: file, rest } = readBookletFile(parsed);
+      if (rest) setPending({ b: file, extras: rest, title: "Open this lesson source? It replaces the current booklet. You can undo it." });
+      else setPending({ b: file, extras: null, title: "Open this booklet? It replaces the current one. You can undo it." });
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     }
   }
   // Edit from the Resource library: its Edit button links here with the lesson source to open.
   useEffect(() => {
-    if (!active) return;
+    // A protected draft is downloaded or set aside first; the link is opened after that.
+    if (!active || recovery !== null) return;
     const q = new URLSearchParams(location.search);
     const open = q.get("open");
     if (!open) return;
-    window.history.replaceState(window.history.state, "", location.pathname + location.hash);
+    const origin: LibraryOrigin = { resource: q.get("resource") ?? "", version: q.get("version") || "Main", title: (q.get("title") ?? "").slice(0, 120) };
+    for (const k of ["open", "resource", "version", "title"]) q.delete(k);
+    window.history.replaceState(window.history.state, "", location.pathname + (q.size ? `?${q}` : "") + location.hash);
     if (!LIBRARY_SOURCE.test(open)) {
       setMessage("That link does not name a booklet in the Resource library.");
       return;
     }
-    const origin: LibraryOrigin = { resource: q.get("resource") ?? "", version: q.get("version") || "Main", title: (q.get("title") ?? "").slice(0, 120) };
     setMessage("Opening the booklet from the Resource library…");
     void (async () => {
       try {
         const response = await fetch(siteBase() + open, { cache: "no-cache" });
         if (!response.ok) throw Error(response.status === 403 ? "Sign in again, then press Edit in the library once more." : "The booklet could not be fetched from the library. Try again.");
-        const { b: opened, rest } = readBookletFile(await response.json());
-        const name = origin.title || opened.document.lessons[0]?.title || "this booklet";
-        setPending({ b: opened, extras: { ...(rest ?? {}), lessons: lessonCodes(opened), library: origin.resource ? origin : undefined }, title: `Open "${name}" (${origin.version}) from the Resource library? It replaces the booklet on this page. You can undo it.` });
+        const { b: file, rest } = readBookletFile(await response.json());
+        const name = origin.title || file.document.lessons[0]?.title || "this booklet";
+        setPending({ b: file, extras: { ...(rest ?? {}), library: origin.resource ? origin : undefined }, title: `Open "${name}" (${origin.version}) from the Resource library? It replaces the booklet on this page. You can undo it.` });
         setMessage("");
       } catch (e) {
         setMessage(e instanceof Error && !(e instanceof SyntaxError) ? e.message : "The library file is not a booklet.");
       }
     })();
-  }, [active]);
+  }, [active, recovery]);
 
   async function run(action: () => Promise<void> | void, success: string) {
     if (blocked) return;
@@ -312,7 +319,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const showPage = (page: number) => pagesRef.current?.querySelector(`#bk-page-${page}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   // The build's own lesson checks (booklet-checks.ts), live on the lesson being edited, for a lesson source file.
-  const source = extras && extras.lessons === lessonCodes(b) ? extras : null;
+  const source = extras && !(opened.current && history.future.includes(opened.current)) ? extras : null;
   const later = useDeferredValue(b);
   const checkLesson = Math.min(focus, d.lessons.length - 1);
   const build = useMemo(() => {
@@ -346,13 +353,22 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   }, [editing]);
 
   const fromLibrary = source?.library ?? null;
+  /** The build check problems on the booklet as it is saved (the panel may lag a keystroke behind). */
+  const failingNow = () => {
+    if (!source) return null;
+    try {
+      return b.document.lessons.reduce((n, _l, li) => n + lessonChecks({ ...withoutMatch(source), booklet: b }, li).findings.length, 0);
+    } catch {
+      return null;
+    }
+  };
   async function saveToLibrary(note: string) {
     if (!source || !fromLibrary) return;
     if (issues.length) throw Error("Fix the layout checks before saving to the library.");
     const response = await fetch(`${siteBase()}api/library/edit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...fromLibrary, note, failing: build?.findings.length ?? null, source: JSON.stringify({ ...withoutMatch(source), booklet: b }) }),
+      body: JSON.stringify({ ...fromLibrary, note, failing: failingNow(), source: JSON.stringify({ ...withoutMatch(source), booklet: b }) }),
     });
     const reply = (await response.json().catch(() => ({}))) as { error?: string; alerted?: boolean };
     if (!response.ok) throw Error(reply.error ?? "The booklet could not be saved to the library. Save the file and send it to Tim.");
@@ -377,6 +393,13 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     const section = lesson.sections[si];
     const card = section.cards[ci];
     const setLesson = (f: (l: Lesson) => void) => patch((x) => f(x.lessons[li]));
+    /** A move or delete; the card being edited on the page keeps its editor as it moves. */
+    const move = (next: Booklet, to: Spot | null) => {
+      if (blocked || next === b || !commit(next)) return;
+      if (sameSpot(selected, { lesson: li, section: si, card: ci })) setSelected(to);
+      // Another card's place in these sections may have shifted: put its editor away rather than show the wrong card.
+      else if (selected && selected.lesson === li && (selected.section === si || selected.section === to?.section)) setSelected(null);
+    };
     const setItem = (path: number[], next: Item | Leaf) =>
       setLesson((l) => {
         const items = l.sections[si].cards[ci].items;
@@ -386,21 +409,21 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     return (
       <>
                     <div className="ws-card-moves" role="group" aria-label={`Card ${card.title}`}>
-                      <button className="icon-button" aria-label={`Move ${card.title} up`} disabled={blocked || (ci === 0 && si === 0)} onClick={() => apply((x) => (ci === 0 ? edit.moveCardAcross(x, li, si, ci, -1) : edit.moveCardIn(x, li, si, ci, ci - 1)))}>
+                      <button className="icon-button" aria-label={`Move ${card.title} up`} disabled={blocked || (ci === 0 && si === 0)} onClick={() => move(ci === 0 ? edit.moveCardAcross(b, li, si, ci, -1) : edit.moveCardIn(b, li, si, ci, ci - 1), ci === 0 ? { lesson: li, section: si - 1, card: lesson.sections[si - 1]?.cards.length ?? 0 } : { lesson: li, section: si, card: ci - 1 })}>
                         <ArrowUp size={15} aria-hidden="true" />
                       </button>
                       <button
                         className="icon-button"
                         aria-label={`Move ${card.title} down`}
                         disabled={blocked || (ci === section.cards.length - 1 && si === lesson.sections.length - 1)}
-                        onClick={() => apply((x) => (ci === section.cards.length - 1 ? edit.moveCardAcross(x, li, si, ci, 1) : edit.moveCardIn(x, li, si, ci, ci + 1)))}
+                        onClick={() => move(ci === section.cards.length - 1 ? edit.moveCardAcross(b, li, si, ci, 1) : edit.moveCardIn(b, li, si, ci, ci + 1), ci === section.cards.length - 1 ? { lesson: li, section: si + 1, card: 0 } : { lesson: li, section: si, card: ci + 1 })}
                       >
                         <ArrowDown size={15} aria-hidden="true" />
                       </button>
                       <button className="icon-button" aria-label={`Duplicate ${card.title}`} disabled={blocked || section.cards.length >= 16} onClick={() => apply((x) => edit.duplicateCard(x, li, si, ci))}>
                         <Copy size={15} aria-hidden="true" />
                       </button>
-                      <button className="icon-button" aria-label={`Delete ${card.title}`} disabled={blocked || section.cards.length < 2} onClick={() => apply((x) => edit.removeCard(x, li, si, ci))}>
+                      <button className="icon-button" aria-label={`Delete ${card.title}`} disabled={blocked || section.cards.length < 2} onClick={() => move(edit.removeCard(b, li, si, ci), null)}>
                         <Trash2 size={15} aria-hidden="true" />
                       </button>
                     </div>
@@ -726,6 +749,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                     setPending(null);
                     setHistory((h) => pushHistory(h, next, { label: "open file" }));
                     if (pending.extras !== undefined) setExtras(pending.extras);
+                    opened.current = next;
                     setSelected(null);
                     setFocus(0);
                     setMessage("");

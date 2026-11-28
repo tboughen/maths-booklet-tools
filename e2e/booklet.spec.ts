@@ -220,4 +220,10 @@ test("opens a lesson source from a booklet build and runs the build's checks liv
   expect(written.working).toEqual([]);
   expect(written.lessons).toBeUndefined();
   expect(written.booklet.document.lessons[0].sections[0].title).toBe("From earlier");
+  // Undoing the open puts the source aside with its booklet; redoing brings both back.
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(checks).toBeHidden();
+  await page.getByRole("button", { name: "Redo" }).click();
+  await expect(checks).toBeVisible();
 });

@@ -12,6 +12,8 @@ const label = 'library-edit';
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 const clean = text => { let s = String(text ?? ''), before; do { before = s; s = s.replace(/<!--|-->/g, ''); } while (s !== before); return s.trim(); };
 const oneLine = (text, max) => clean(text).replace(/[\r\n`]+/g, ' ').replace(/\s+/g, ' ').slice(0, max);
+// Typed words go into a GitHub issue: an @name there would notify that account, so it is broken with a zero-width space.
+const quiet = text => String(text).replace(/@/g, '@\u200b');
 const nameOf = email => String(email || '').split('@')[0].split(/[._-]+/).filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join(' ') || 'A colleague';
 const resourceId = /^[a-z0-9][a-z0-9-]{0,119}$/;
 const versionName = /^[A-Za-z0-9][A-Za-z0-9 ()+&,'-]{0,39}$/;
@@ -62,9 +64,9 @@ export function editIssueBody(edit, email) {
   const meta = { resource: edit.resource, version: edit.version, key: edit.key, at: edit.at, from: encodeURIComponent(String(email).toLowerCase()) };
   return [
     `<!-- library-edit ${JSON.stringify(meta)} -->`,
-    `**${nameOf(email)}** (${oneLine(email, 200)}) edited **${edit.title}** (${edit.version}) on the site and saved it to the library.`,
-    '', `> ${edit.note}`, '',
-    edit.failing ? `The page showed ${edit.failing} build check problem${edit.failing === 1 ? '' : 's'} when it was saved.` : 'The page showed no build check problems when it was saved.',
+    `**${nameOf(email)}** (${quiet(oneLine(email, 200))}) edited **${quiet(edit.title)}** (${edit.version}) on the site and saved it to the library.`,
+    '', `> ${quiet(edit.note)}`, '',
+    edit.failing === null ? 'The build checks did not run on the page.' : edit.failing ? `The page showed ${edit.failing} build check problem${edit.failing === 1 ? '' : 's'} when it was saved.` : 'The page showed no build check problems when it was saved.',
     '', `Saved lesson source: \`${edit.key}\` in the private store. Build it with the booklet build and its checks, add it to the library as a new version marked waiting, then close this issue. Close it without building to turn the edit down.`,
   ].join('\n');
 }
@@ -77,22 +79,39 @@ async function saveEdit(env, claims, body, fetcher) {
   const key = `library/edits/${sha}/${parsed.resource}.json`;
   const at = new Date().toISOString();
   await env.BANK.put(key, parsed.text, { httpMetadata: { contentType: 'application/json' }, customMetadata: { by: nameOf(email), resource: parsed.resource, at } });
-  const edit = { resource: parsed.resource, version: parsed.version, title: parsed.title, note: parsed.note, key, by: nameOf(email), at, failing: parsed.failing, issue: null };
-  let issue = null;
-  if (env.REPORT_GITHUB_TOKEN) {
+  // The list first: the edit is kept and listed before Tim is told, so a failed save never leaves an issue behind.
+  const update = async change => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const read = await readEdits(env);
+      const next = change(read.edits);
+      if (!next) return read.edits;
+      const put = await env.BANK.put(editsKey, JSON.stringify({ schema: 'mathsdock-library-edits/1', edits: next.slice(-editLimits.list) }), { httpMetadata: { contentType: 'application/json' }, onlyIf: read.etag ? { etagMatches: read.etag } : new Headers({ 'If-None-Match': '*' }) });
+      if (put) return next;
+    }
+    return null;
+  };
+  let edit;
+  let listed;
+  try {
+    listed = await update(edits => {
+      // The same file saved again (a retry) is the same edit, with its issue.
+      edit = edits.find(e => e.key === key) ?? { resource: parsed.resource, version: parsed.version, title: parsed.title, note: parsed.note, key, by: nameOf(email), at, failing: parsed.failing, issue: null };
+      return edits.some(e => e.key === key) ? null : [...edits, edit];
+    });
+  } catch { return json(500, { error: 'The list of saved edits could not be read. Tell Tim.' }); }
+  if (!listed) return json(409, { error: 'Someone else saved an edit at the same moment. Try again.' });
+  if (edit.issue === null && env.REPORT_GITHUB_TOKEN) {
+    let issue = null;
     try {
-      issue = await github(env, fetcher)('POST', '/issues', { title: `Edited booklet: ${parsed.title} (${parsed.version}), from ${nameOf(email)}`, body: editIssueBody(edit, email), labels: [label], assignees: [editAlertTo] });
+      issue = await github(env, fetcher)('POST', '/issues', { title: `Edited booklet: ${quiet(parsed.title)} (${parsed.version}), from ${nameOf(email)}`, body: editIssueBody(edit, email), labels: [label], assignees: [editAlertTo] });
     } catch { issue = null; }
+    if (Number.isInteger(issue?.number)) {
+      edit = { ...edit, issue: issue.number };
+      // Best effort: the issue names the saved file, so a lost race here loses only the number on the list.
+      await update(edits => edits.map(e => (e.key === key ? edit : e))).catch(() => null);
+    }
   }
-  edit.issue = Number.isInteger(issue?.number) ? issue.number : null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    let read;
-    try { read = await readEdits(env); } catch { return json(500, { error: 'The list of saved edits could not be read. Tell Tim.' }); }
-    const edits = [...read.edits.filter(e => e.key !== key), edit].slice(-editLimits.list);
-    const put = await env.BANK.put(editsKey, JSON.stringify({ schema: 'mathsdock-library-edits/1', edits }), { httpMetadata: { contentType: 'application/json' }, onlyIf: read.etag ? { etagMatches: read.etag } : new Headers({ 'If-None-Match': '*' }) });
-    if (put) return json(201, { edit, alerted: edit.issue !== null });
-  }
-  return json(409, { error: 'Someone else saved an edit at the same moment. Try again.' });
+  return json(201, { edit, alerted: edit.issue !== null });
 }
 
 export async function libraryEdits(request, env, claims, fetcher = fetch) {
@@ -108,7 +127,7 @@ export async function libraryEdits(request, env, claims, fetcher = fetch) {
   // JSON only, so a cross-site form post cannot save an edit without a CORS preflight.
   if (!/^application\/json\b/i.test(request.headers.get('Content-Type') || '')) return json(415, { error: 'The edit could not be read.' });
   const length = Number(request.headers.get('Content-Length') || 0);
-  if (length > editLimits.bytes * 1.2) return json(413, { error: 'This booklet is too large to save to the library.' });
+  if (length > editLimits.bytes * 2.5) return json(413, { error: 'This booklet is too large to save to the library.' });
   let body;
   try { body = await request.json(); } catch { return json(400, { error: 'The edit could not be read.' }); }
   return saveEdit(env, claims, body, fetcher);

@@ -540,8 +540,13 @@ test('an edited booklet is kept under its own SHA-256, listed, and Tim is alerte
   assert.deepEqual(issue.assignees, ['tboughen']);
   assert.equal(issue.body.match(/<!--/g).length, 1);
   assert.match(issue.body, /no build check problems/);
-  // The same file again is one edit, not two; the served list names it by its library-data address.
-  await edit('POST', save, { BANK });
+  const unchecked = await edit('POST', { ...save, failing: null, note: 'Thanks @someone' });
+  assert.match(unchecked.sent[0][2].body, /build checks did not run/);
+  assert.doesNotMatch(unchecked.sent[0][2].body, /@someone/);
+  // The same file again (a retry) is one edit with one issue; the served list names it by its library-data address.
+  const again = await edit('POST', save, { BANK });
+  assert.equal(again.sent.length, 0);
+  assert.equal(again.data.edit.issue, 52);
   const listed = await edit('GET', undefined, { BANK, query: '?resource=y9-a7-03-lesson-booklet' });
   assert.equal(listed.data.edits.length, 1);
   assert.match(listed.data.edits[0].href, /^library-data\/edits\//);
