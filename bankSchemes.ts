@@ -1,15 +1,17 @@
-// Schemes of work served from the private question bank (school information, so the files live in
+// Schemes of work (and other school JSON, such as skill sheet banks) served from the private question bank (school information, so the files live in
 // the bank repository, never here). `bank/schemes.json` names each scheme's source file; a release
 // rewrites each name to the file's immutable `bank/assets/sha256/<hash>.json` object, served by the
 // site Worker only to signed-in staff. No Node or browser side effects.
 
 export const SCHEMES_PATH = "bank/schemes.json";
-export const schemeIds = ["school"] as const;
+export const schemeIds = ["school", "skillSheets"] as const;
 export type SchemeId = (typeof schemeIds)[number];
 export interface SchemeIndex {
   schemaVersion: 1;
   /** The department's own scheme, shown first on the Worksheets page. */
   school?: string;
+  /** Levelled question banks for skill sheets on the Assessment Follow-Up page (src/assessment/skills). */
+  skillSheets?: string;
 }
 
 const sourcePath = /^bank\/assets\/schemes\/[a-z0-9-]+\.json$/;
