@@ -157,7 +157,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           : <Shelves list={list} state={state} setState={setState} />}
         {drawer && list && <Drawer list={list} close={() => setDrawer(false)} open={openUnit} />}
         {active && list && state.present && <Suspense fallback={<p className="library-message" role="status">Opening Present…</p>}>
-          <Present list={list} id={state.present} at={state.at} feedback={{ off: tools.off, send: (r, text) => act({ action: "comment", year: r.year, unit: r.unit, version: r.version, lesson: r.type === "unit-booklet" ? null : r.lesson ?? null, booklet: r.type === "unit-booklet" ? bookletName(r) : null, text }) }} onClose={closePresent} onPick={(id, at) => setState({ present: id, at })} />
+          <Present list={list} id={state.present} at={state.at} feedback={{ off: tools.off, send: (r, text) => act({ action: "comment", year: r.year, unit: r.unit, version: r.version, lesson: r.type === "unit-booklet" ? null : r.lesson ?? null, booklet: r.type === "unit-booklet" ? bookletName(r) : r.type === "one-off" ? r.id : null, text }) }} onClose={closePresent} onPick={(id, at) => setState({ present: id, at })} />
         </Suspense>}
       </main>
       </DeleteContext.Provider>
