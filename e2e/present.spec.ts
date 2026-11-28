@@ -5,15 +5,26 @@ import { test, expect, type Page } from "./release-fixtures";
 
 const fixture = readFileSync(new URL("./fixtures/library.json", import.meta.url), "utf8");
 
-/** A plain A4 PDF of `sides` pages, each with one line of text, with a correct cross-reference table. */
+/**
+ * A plain A4 PDF of `sides` pages, each with one line of text, with a correct cross-reference table. The answers copy's
+ * side 1 also has an NCETM-style link at the top right and a Watch for / Ask band in the footer, as booklets print them.
+ */
 function pdf(label: string, sides = 3) {
-  const objects: string[] = [];
-  const kids = Array.from({ length: sides }, (_, i) => 4 + i * 2);
-  objects.push("<< /Type /Catalog /Pages 2 0 R >>", `<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(" ")}] /Count ${sides} >>`, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  const answers = label === "Answers";
+  const objects: string[] = ["", "", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"];
+  const kids: number[] = [];
   for (let i = 0; i < sides; i++) {
-    const text = `BT /F1 28 Tf 72 760 Td (${label} side ${i + 1}) Tj ET`;
-    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + i * 2} 0 R >>`, `<< /Length ${text.length} >>\nstream\n${text}\nendstream`);
+    const notes = answers && i === 0;
+    const text = `BT /F1 28 Tf 72 760 Td (${label} side ${i + 1}) Tj ET` + (notes ? " 0.85 0.47 0.02 rg 34 20 250 25 re f 0 g BT /F1 8 Tf 42 28 Td (Watch for change in x over change in y) Tj ET BT /F1 8 Tf 340 28 Td (Ask: which way is the line going?) Tj ET 0.86 0.99 0.9 rg 450 780 110 15 re f 0 g BT /F1 7 Tf 456 785 Td (NCETM Explain Gradient 4.2) Tj ET" : "");
+    const page = objects.length + 1, content = page + 1;
+    kids.push(page);
+    const annots = notes ? ` /Annots [${content + 1} 0 R]` : "";
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${content} 0 R${annots} >>`, `<< /Length ${text.length} >>\nstream\n${text}\nendstream`);
+    if (notes) objects.push("<< /Type /Annot /Subtype /Link /Rect [450 780 560 795] /Border [0 0 0] /A << /S /URI /URI (https://www.ncetm.org.uk/test-gradient) >> >>");
+
   }
+  objects[0] = "<< /Type /Catalog /Pages 2 0 R >>";
+  objects[1] = `<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(" ")}] /Count ${sides} >>`;
   let body = "%PDF-1.4\n";
   const offsets = objects.map((o, i) => { const at = body.length; body += `${i + 1} 0 obj\n${o}\nendobj\n`; return at; });
   const xref = body.length;
@@ -44,7 +55,7 @@ test("a library lesson opens in Present with its sides, Pupil | Answers, ink, ov
   await expect(page).toHaveURL(/present=y9-a7-04-lesson-booklet/);
   const present = page.getByRole("region", { name: /^Present A7\.04/ });
   await expect(present.locator(".present-side")).toHaveCount(3);
-  await expect(present.locator(".present-side").first().locator("canvas")).toBeVisible();
+  await expect(present.locator(".present-side").first().locator(".qb-canvas-host canvas")).toBeVisible();
   await expect(present.getByText("Side 1 of 3")).toBeVisible();
   // The version list holds the current build and the earlier one from the history.
   await expect(present.locator(".present-version select option")).toHaveCount(2);
@@ -63,7 +74,7 @@ test("a library lesson opens in Present with its sides, Pupil | Answers, ink, ov
   await expect(first.locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "1");
   await expect(present.getByRole("button", { name: "Side 1, has ink" })).toBeVisible();
   await present.getByRole("button", { name: "Answers" }).click();
-  await expect(first.locator("canvas")).toHaveAttribute("aria-label", "Side 1 (answers)");
+  await expect(first.locator(".qb-canvas-host canvas")).toHaveAttribute("aria-label", "Side 1 (answers)");
   await expect(first.locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "1");
   await page.keyboard.press("Control+z");
   await expect(first.locator("svg.qb-annotations")).toHaveCount(1);
@@ -153,4 +164,28 @@ test("a class keeps its ink and where it stopped, and another class starts clean
   await again.getByRole("button", { name: "Teach" }).click();
   await expect(again.locator('.present-side[data-side="2"] svg.qb-annotations')).toHaveCount(0);
   await expect(again.locator(".present-resume")).toHaveCount(0);
+});
+
+test("teacher notes from the answers copy show on the pupil copy on screen only, and T hides them", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
+  const present = page.getByRole("region", { name: /^Present A7\.04/ });
+  const card = present.locator(".present-notes");
+  await expect(card.locator(".present-note-watch")).toHaveText("Watch for change in x over change in y");
+  await expect(card.locator(".present-note-ask")).toHaveText("Ask which way is the line going?");
+  await expect(card.getByRole("link", { name: "NCETM Explain Gradient 4.2 ↗" })).toHaveAttribute("href", "https://www.ncetm.org.uk/test-gradient");
+  const side1 = present.locator('.present-side[data-side="1"]');
+  await expect(side1.locator(".present-notes-crop")).toHaveCount(1);
+  await expect(side1.getByRole("link", { name: "NCETM link" })).toHaveAttribute("href", "https://www.ncetm.org.uk/test-gradient");
+  await expect(present.locator('.present-side[data-side="2"] .present-notes-crop')).toHaveCount(0);
+  // The band really is drawn from the answers page: amber shows in the footer of the pupil side.
+  await expect.poll(() => side1.locator(".present-notes-crop").evaluate((c: HTMLCanvasElement) => { const x = c.getContext("2d")!; const k = c.width / 595; const d = x.getImageData(60 * k, (842 - 30) * k, 1, 1).data; return [d[0] > 180, d[1] < 160, d[2] < 60].every(Boolean); })).toBe(true);
+  await page.screenshot({ path: test.info().outputPath("present-notes.png") });
+  await page.keyboard.press("t");
+  await expect(side1.locator(".present-notes-crop")).toHaveCount(0);
+  await expect(card.getByRole("checkbox")).not.toBeChecked();
+  await page.keyboard.press("t");
+  await present.getByRole("button", { name: "Answers" }).click();
+  await expect(side1.locator(".present-notes-crop")).toHaveCount(0);
+  await expect(side1.getByRole("link", { name: "NCETM link" })).toBeVisible();
 });

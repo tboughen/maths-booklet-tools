@@ -14,6 +14,7 @@ import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState,
 import { overlayPreference, overlays, type Overlay } from "../../bank/overlays";
 import type { Library } from "../model";
 import { className, lastBuildFor, loadClass, recentClasses, rememberClass, saveClass, type Stopped } from "./presentStore";
+import { hasNotes, sideNotes, type SideNotes } from "./teacherNotes";
 import { buildLabel, buildUrl, findBuild, fitScale, stepZoom, type PresentBuild, type ZoomFit } from "./presentModel";
 import "./present.css";
 
@@ -65,6 +66,9 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const [resume, setResume] = useState<Stopped>();
   const [saveError, setSaveError] = useState(false);
   const [typed, setTyped] = useState("");
+  // Teacher notes from the answers copy, shown on the pupil copy on screen only (T hides them).
+  const [notesOn, setNotesOn] = useState(true);
+  const [notes, setNotes] = useState<Record<number, SideNotes>>({});
   const root = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const [stageSize, setStageSize] = useState<Size>({ width: 1200, height: 800 });
@@ -73,6 +77,14 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const showAnswers = answers && !!docs.answers;
   const pdf = showAnswers ? docs.answers : docs.pupil;
   const sizes = ready ? docs.sizes : [];
+  useEffect(() => {
+    setNotes({});
+    const answers = docs.answers;
+    if (!answers || docs.key !== build?.key) return;
+    let live = true;
+    (async () => { for (let n = 1; n <= answers.numPages && live; n++) { const found = await sideNotes(answers, n).catch(() => undefined); if (live && found) setNotes((old) => ({ ...old, [n]: found })); } })();
+    return () => { live = false; };
+  }, [docs.answers, docs.key, build?.key]);
   const mismatch = ready && !!docs.answers && docs.answers.numPages !== docs.pupil!.numPages;
   const scale = sizes.length ? fitScale(fit, sizes[0], stageSize) * zoom : 1;
   const inkKey = (n: number) => `${build?.key}|${n}`;
@@ -188,6 +200,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
       if (e.key === "+" || e.key === "=") { e.preventDefault(); changeZoom((z) => stepZoom(z, 1)); return; }
       if (e.key === "-" || e.key === "_") { e.preventDefault(); changeZoom((z) => stepZoom(z, -1)); return; }
       if (e.key === "0") { e.preventDefault(); changeZoom(1); return; }
+      if (k === "t" && !now.current.annotating) { e.preventDefault(); setNotesOn((v) => !v); return; }
       if (k === "a" && docs.answers) { e.preventDefault(); setAnswers((v) => !v); return; }
       if (k === "p") { e.preventDefault(); if (now.current.annotating && now.current.tool === "pen") setAnnotating(false); else chooseTool("pen"); return; }
       if (now.current.annotating) {
@@ -241,7 +254,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
           <div ref={stage} className={`qb-stage present-stage${drawing ? " is-drawing" : ""}`} style={{ cursor }} onScroll={onScroll} tabIndex={-1} aria-label="Booklet sides">
             {docs.error ? <div className="qb-view-error" role="alert"><p>{docs.error}</p><button type="button" className="qb-button" onClick={() => setRetry((n) => n + 1)}><RotateCcw size={16} aria-hidden="true" />Try again</button><a className="qb-button" href={buildUrl(build.pupil)} target="_blank" rel="noreferrer">Open PDF</a></div>
               : !ready ? <p className="qb-view-status" role="status"><LoaderCircle className="spin" size={18} aria-hidden="true" /> Opening the booklet…</p>
-              : sizes.map((size, i) => <Side key={i + 1} pdf={pdf!} n={i + 1} size={size} scale={scale} tint={tint} label={`Side ${i + 1}${showAnswers ? " (answers)" : ""}`}
+              : sizes.map((size, i) => <Side key={i + 1} pdf={pdf!} n={i + 1} size={size} scale={scale} tint={tint} label={`Side ${i + 1}${showAnswers ? " (answers)" : ""}`} notes={notes[i + 1]} notesFrom={!showAnswers && notesOn && !mismatch ? docs.answers : undefined}
                   strokes={layerOf(ink, inkKey(i + 1)).strokes} active={annotating} settings={settings} onCommit={(s) => commit(inkKey(i + 1), s)} />)}
           </div>
           {annotating && <AnnotationBar preferences={prefs} onChange={setPrefs} canUndo={undoKeys.current.length > 0} canRedo={redoKeys.current.length > 0} hasInk={sideHasInk} anyInk={hasInk(buildInk)} onUndo={undoInk} onRedo={redoInk} onClear={clearSide} onClearAll={clearAll} onClose={() => setAnnotating(false)} />}
@@ -285,6 +298,17 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
             </div>
             <p className="present-hint">A dot marks a side with ink on it; the flag marks where you stopped.</p>
           </details>
+          <details className="present-card present-notes" open>
+            <summary>Teacher notes on this side</summary>
+            {!docs.answers ? <p className="present-hint">This booklet has no answers copy, so it has no teacher notes.</p>
+              : !hasNotes(notes[side]) ? <p className="present-hint">None on side {side}.</p>
+              : <>
+                {notes[side].links.map((l) => <a key={l.url + l.box.x + l.box.y} className="present-note-link" href={l.url} target="_blank" rel="noreferrer"><span>{l.label ?? `NCETM ${l.url.replace(/^https?:\/\/(www\.)?/, "")}`}</span> ↗</a>)}
+                {notes[side].watch && <p className="present-note-watch"><b>Watch for</b> {notes[side].watch}</p>}
+                {notes[side].ask && <p className="present-note-ask"><b>Ask</b> {notes[side].ask}</p>}
+              </>}
+            <label className="present-check"><input type="checkbox" checked={notesOn} onChange={(e) => setNotesOn(e.target.checked)} /> Show them on the pupil copy · T</label>
+          </details>
           <details className="present-card" open>
             <summary>Pen</summary>
             <p className="present-hint">Press P or Annotate. Write anywhere, on a side or the grey around it. Draw and hold for a straight line or a shape; level and upright lines snap within 5°. A fist or the pen's other end rubs out.</p>
@@ -320,7 +344,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
 }
 
 /** One side: drawn when it is near the view, kept stretched at the old size while a zoom redraws it sharp. */
-function Side({ pdf, n, size, scale, tint, label, strokes, active, settings, onCommit }: { pdf: PDFDocumentProxy; n: number; size: Size; scale: number; tint?: string; label: string; strokes: Stroke[]; active: boolean; settings: AnnotationSettings; onCommit: (s: Stroke[]) => void }) {
+function Side({ pdf, n, size, scale, tint, label, strokes, active, settings, onCommit, notes, notesFrom }: { pdf: PDFDocumentProxy; n: number; size: Size; scale: number; tint?: string; label: string; strokes: Stroke[]; active: boolean; settings: AnnotationSettings; onCommit: (s: Stroke[]) => void; notes?: SideNotes; notesFrom?: PDFDocumentProxy }) {
   const box = useRef<HTMLDivElement>(null), host = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(n <= 2);
   const [error, setError] = useState(false);
@@ -358,10 +382,36 @@ function Side({ pdf, n, size, scale, tint, label, strokes, active, settings, onC
     <div ref={box} className="qb-pdf present-side" data-side={n} style={{ width: size.width * scale, height: size.height * scale }}>
       <div className="qb-canvas-surface">
         <div ref={host} className="qb-canvas-host" />
+        {near && notesFrom && hasNotes(notes) && <NotesCrop pdf={notesFrom} n={n} size={size} scale={scale} notes={notes!} />}
         {tint && <div className="qb-coloured-overlay" aria-hidden="true" style={{ backgroundColor: tint }} />}
         <AnnotationLayer strokes={strokes} width={size.width} height={size.height} scale={scale} active={active} settings={settings} onCommit={onCommit} />
+        {!active && notes?.links.map((l) => <a key={l.url + l.box.x + l.box.y} className="present-link-spot" href={l.url} target="_blank" rel="noreferrer" title={l.url} aria-label="NCETM link" style={{ left: l.box.x * scale, top: l.box.y * scale, width: l.box.w * scale, height: l.box.h * scale }} />)}
       </div>
       {error && <div className="qb-view-error" role="alert"><p>Side {n} could not load.</p><button type="button" className="qb-button" onClick={() => setRetry((x) => x + 1)}><RotateCcw size={16} aria-hidden="true" />Retry</button></div>}
     </div>
   );
+}
+
+/**
+ * The answers copy's teacher notes laid over the pupil side: the answers page drawn at the same size and clipped to
+ * the NCETM chips and the misconception band, so they look exactly as printed and nothing else of the answers shows.
+ */
+function NotesCrop({ pdf, n, size, scale, notes }: { pdf: PDFDocumentProxy; n: number; size: Size; scale: number; notes: SideNotes }) {
+  const host = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const ratio = Math.min(window.devicePixelRatio || 1, 3);
+    const timer = window.setTimeout(() => void renderPdfPage(pdf, n, scale * ratio, controller.signal).then((source) => {
+      const out = host.current;
+      if (controller.signal.aborted || !out) return;
+      out.width = source.width; out.height = source.height;
+      const k = source.width / size.width;
+      const context = out.getContext("2d");
+      if (!context) return;
+      const boxes = [...notes.links.map((l) => l.box), ...(notes.band ? [notes.band] : [])];
+      for (const b of boxes) { const pad = 1; context.drawImage(source, (b.x - pad) * k, (b.y - pad) * k, (b.w + 2 * pad) * k, (b.h + 2 * pad) * k, (b.x - pad) * k, (b.y - pad) * k, (b.w + 2 * pad) * k, (b.h + 2 * pad) * k); }
+    }).catch(() => undefined), 60);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [pdf, n, size, scale, notes]);
+  return <canvas ref={host} className="present-notes-crop" aria-hidden="true" style={{ width: size.width * scale, height: size.height * scale }} />;
 }

@@ -27,6 +27,15 @@
 .present-hint { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: #536579; }
 .present-warning { margin: 0; padding: 8px 10px; border-left: 4px solid var(--md-amber, #b86a00); background: #fff4e0; font-size: 13px; }
 .present-spacer { flex: 1; }
+.present-notes-crop { position: absolute; inset: 0; pointer-events: none; }
+.present-link-spot { position: absolute; z-index: 2; border-radius: 3px; }
+.present-link-spot:hover, .present-link-spot:focus-visible { outline: 2px solid var(--md-blue, #0f62fe); outline-offset: 1px; }
+.present-notes[open] { display: grid; gap: 6px; }
+.present-note-link { display: flex; gap: 6px; align-items: baseline; padding: 4px 8px; border-left: 4px solid #16a34a; border-radius: 3px; background: #dcfce7; color: #14532d; font-size: 13px; font-weight: 700; text-decoration: none; }
+.present-note-link span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.present-note-watch, .present-note-ask { margin: 0; padding: 4px 8px; border-left: 4px solid #d97706; border-radius: 3px; background: #fff7e0; font-size: 13px; line-height: 1.4; }
+.present-note-ask { border-left-color: #6b7280; background: #f3f4f6; }
+.present-check { display: flex; gap: 6px; align-items: center; margin-top: 4px; font-size: 13px; color: #253e59; }
 .present-class-pill { min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #d9f0ee; color: #0f6b67; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .present-summary-note { margin-left: 5px; font-weight: 500; color: #536579; }
 .present-class[open] { display: grid; gap: 8px; }

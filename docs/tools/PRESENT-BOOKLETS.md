@@ -41,10 +41,20 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
 - Saving on the site behind staff sign-in (so ink follows a teacher between computers) waits for a small store on the
   free Cloudflare plan that Tim switches on; the record shape is already the one the site will keep.
 
+## Teacher notes on both copies (third step)
+
+- `src/library/present/teacherNotes.ts` reads each answers side's NCETM chips (its web links, named by the words
+  inside each chip) and its Watch for / Ask band (the text in the misconception band of the footer, whose place
+  matches `MISCONCEPTION` in `booklet-render.ts`; a unit test keeps the two in step).
+- On the pupil copy, those parts of the answers page are drawn over the pupil side at the same size, clipped to the
+  chips and the band, so they look exactly as printed and no answer shows. T (or the card's tick box) hides them.
+- Chips are clickable on both copies, except while the pen is out. The "Teacher notes on this side" card lists the
+  side's links and its Watch for and Ask words.
+- Booklets without notes (older builds) simply show none; no rebuild is needed.
+
 ## Still to build (Tim's option A)
 
-1. Teacher notes (NCETM chips, Watch for and Ask boxes) shown on the pupil copy on screen only, with T to hide; a
-   Feedback card with comments pinned to a spot on a side, sent to the library feedback queue; N for a quick-note
+1. A Feedback card with comments pinned to a spot on a side, sent to the library feedback queue; N for a quick-note
    flag during a lesson and a one-line "Send as feedback?" on leaving Display. No feedback or version controls in
    Display.
 2. A movable pen rail: drag its grip, snaps to an edge, remembered per computer, double-click resets (shared with the
