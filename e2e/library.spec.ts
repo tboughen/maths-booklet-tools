@@ -58,10 +58,11 @@ test("a year shows rings in teaching order and a unit shows its parts, versions,
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1920);
   await page.screenshot({ path: test.info().outputPath("library-shelves.png") });
 
-  await detail.getByRole("group", { name: "Versions" }).getByRole("button", { name: "Foundation" }).click();
+  await detail.getByRole("group", { name: "Adaptations" }).getByRole("button", { name: "Foundation" }).click();
   await expect(page).toHaveURL(/year=9&unit=A7&version=Foundation$/);
   await expect(detail.locator(".library-rows > li.is-waiting")).toHaveCount(2);
-  await expect(detail).toContainText("Each version sits alongside the main one");
+  await expect(detail).toContainText("Each adaptation sits beside Main");
+  await expect(detail.locator(".library-rows > li.is-main").first()).toContainText("Same as Main");
   await page.goBack();
   await expect(page).toHaveURL(/\/library\?year=9$/);
   await expect(detail).toContainText("Choose a unit");
@@ -423,4 +424,40 @@ test("Edit opens a library lesson in the Booklet builder, and Save to library se
   expect(sent.library).toBeUndefined();
   expect(sent.lessons).toBeUndefined();
   expect(JSON.stringify(sent.booklet)).toContain("Gradients from coordinates");
+});
+
+test("a teacher asks for an easier or harder lesson, or adds a whole unit to an adaptation it already has", async ({ page }) => {
+  const sent: Sent[] = [];
+  await page.route("**/api/library/adapt*", async (route) => {
+    if (route.request().method() === "POST") { sent.push(route.request().postDataJSON()); return route.fulfill({ status: 201, contentType: "application/json", body: '{"number":52}' }); }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: [{ number: 50, when: "2026-11-27T09:00:00Z", lesson: "A7.05", kind: "easier", name: "Easier (9X)", who: "Sam Jones", mine: false }] }) });
+  });
+  const { main } = await open(page, "/library?year=9&unit=A7");
+  const detail = main.getByRole("complementary", { name: "Unit resources" });
+  await expect(detail.locator(".library-asked")).toContainText("Easier (9X) · A7.05 · Sam Jones");
+  const a703 = detail.locator(".library-rows > li").filter({ hasText: "A7.03" });
+  await a703.getByRole("button", { name: "Adapt" }).click();
+  const form = a703.getByRole("group", { name: "Adapt A7.03" });
+  await form.getByRole("radio", { name: "A new adaptation" }).check();
+  await form.getByRole("radio", { name: "Harder" }).check();
+  await form.getByLabel("For which class?").fill("9A");
+  await expect(form).toContainText("It will sit beside Main as “Harder (9A)”.");
+  await expect(form.getByRole("button", { name: "Send request" })).toBeDisabled();
+  await form.getByLabel("What should change?").fill("Fewer scaffolds and a proof question.");
+  await page.screenshot({ path: test.info().outputPath("library-adapt.png") });
+  await form.getByRole("button", { name: "Send request" }).click();
+  await expect(detail).toContainText("Sent to Tim. A7.03 arrives under “Harder (9A)” as waiting.");
+  await expect(detail.locator(".library-asked")).toContainText("Harder (9A) · A7.03 · you");
+  expect(sent).toEqual([{ year: 9, unit: "A7", lesson: "A7.03", kind: "harder", name: "Harder (9A)", text: "Fewer scaffolds and a proof question." }]);
+
+  // On an adaptation's tab, the whole-unit form adds to that adaptation by default.
+  await detail.getByRole("group", { name: "Adaptations" }).getByRole("button", { name: "Foundation" }).click();
+  await detail.getByRole("button", { name: "Adapt whole unit" }).click();
+  const unitForm = detail.getByRole("group", { name: "Adapt the whole of A7" });
+  await expect(unitForm.getByRole("radio", { name: "Foundation" })).toBeChecked();
+  await expect(unitForm.getByRole("radio", { name: "Harder" })).toHaveCount(0);
+  await unitForm.getByLabel("What should change?").fill("Every lesson, like A7.01.");
+  await unitForm.getByRole("button", { name: "Send request" }).click();
+  expect(sent[1]).toEqual({ year: 9, unit: "A7", lesson: null, kind: "different", name: "Foundation", text: "Every lesson, like A7.01." });
+  await expect(detail).not.toContainText("Requests are logged");
 });
