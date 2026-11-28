@@ -10,7 +10,8 @@ import { ArrowLeft, ArrowRight, ChevronLeft, Download, LoaderCircle, Maximize2, 
 import { loadPdfUrl, renderPdfPage } from "../../bank/pdf";
 import { AnnotationBar, type RailPlace } from "../../bank/AnnotationBar";
 import { AnnotationLayer, type AnnotationSettings } from "../../bank/AnnotationLayer";
-import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, readAnnotationPreferences, saveAnnotationPreferences, SIZES, toolCursor, withTool, type AnnotationPreferences, type AnnotationTool, type Stroke } from "../../bank/annotations";
+import { usePen } from "../../bank/usePen";
+import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState, layerOf, type Stroke } from "../../bank/annotations";
 import { overlayPreference, overlays, type Overlay } from "../../bank/overlays";
 import type { Library, Resource } from "../model";
 import { classRecord, className, lastBuildFor, loadClass, loadClassSite, newerRecord, recentClasses, rememberClass, saveClass, saveClassSite, siteBuilds, type ClassRecord, type Stopped } from "./presentStore";
@@ -61,10 +62,9 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   useEffect(() => { try { localStorage.setItem("qb-overlay", overlay); } catch { /* Optional device preference, shared with the Question Bank. */ } }, [overlay]);
   const [display, setDisplay] = useState(false);
   const displayRef = useRef(display); displayRef.current = display;
-  const [annotating, setAnnotating] = useState(false);
-  const [prefs, setPrefs] = useState<AnnotationPreferences>(readAnnotationPreferences);
-  useEffect(() => saveAnnotationPreferences(prefs), [prefs]);
   const [ink, dispatchInk] = useReducer(inkReducer, {});
+  const pen = usePen(ink, dispatchInk);
+  const { annotating, prefs, resetHistory, handleKey: handlePenKey, close: closePen } = pen;
   // The pen rail can be moved; where it was left is remembered on this computer.
   const [rail, setRail] = useState<RailPlace>(() => { try { const v = JSON.parse(localStorage.getItem("present-rail") ?? '"right"'); return v === "left" || (v && typeof v.x === "number" && typeof v.y === "number") ? v : "right"; } catch { return "right"; } });
   useEffect(() => { try { localStorage.setItem("present-rail", JSON.stringify(rail)); } catch { /* A convenience only. */ } }, [rail]);
@@ -157,9 +157,8 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const changeFit = (next: ZoomFit) => { rememberPlace(); setFit(next); setZoom(1); };
 
   // Ink: undo and redo walk back through the sides in the order they were drawn on.
-  const undoKeys = useRef<string[]>([]), redoKeys = useRef<string[]>([]);
   const inkRef = useRef(ink); inkRef.current = ink;
-  const commit = useCallback((key: string, strokes: Stroke[]) => { undoKeys.current.push(key); redoKeys.current = []; dispatchInk({ type: "set", key, strokes }); }, []);
+  const { commit } = pen;
 
   // Choosing a class (or another build) loads that class's ink and place; its last place is offered, never forced.
   // Each record is saved in this browser at once and on the site ten seconds later (and as the page closes), so it
@@ -195,10 +194,10 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const showRecord = useCallback((key: string, record: ClassRecord | undefined) => {
     const state: AnnotationState = {};
     for (const [n, strokes] of Object.entries(record?.sides ?? {})) state[`${key}|${n}`] = { strokes, past: [], future: [] };
-    undoKeys.current = []; redoKeys.current = [];
+    resetHistory();
     dispatchInk({ type: "replace", state });
     setStopped(record?.stopped); setResume(record?.stopped);
-  }, []);
+  }, [resetHistory]);
   // The strokes on screen for a build that are not in `base`: ink drawn before a class was chosen, or while the site
   // copy was on its way. They are added to whatever copy is shown, never thrown away.
   const strokesSince = useCallback((key: string, base: ClassRecord | undefined) => {
@@ -284,17 +283,13 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   }, [ink, stopped, cls, build?.key, settled, queueSite]);
   const chooseClass = (text: string) => { const name = className(text); if (!name) return; setRecent(rememberClass(name)); setCls(name); setTyped(""); };
   const newerBuild = useMemo(() => { if (!cls || !build) return undefined; const k = lastBuildFor(cls, builds.map((b) => b.key), siteList); return k && k !== build.key ? builds.find((b) => b.key === k) : undefined; }, [cls, build, builds, siteList]);
-  const undoInk = useCallback(() => { const key = undoKeys.current.pop(); if (key && layerOf(inkRef.current, key).past.length) { redoKeys.current.push(key); dispatchInk({ type: "undo", key }); } }, []);
-  const redoInk = useCallback(() => { const key = redoKeys.current.pop(); if (key && layerOf(inkRef.current, key).future.length) { undoKeys.current.push(key); dispatchInk({ type: "redo", key }); } }, []);
-  const clearSide = () => { const key = inkKey(side); if (layerOf(ink, key).strokes.length) commit(key, []); };
-  const clearAll = () => { for (let n = 1; n <= sizes.length; n++) { const key = inkKey(n); if (layerOf(ink, key).strokes.length) commit(key, []); } };
+  const buildKeyRef = useRef(build?.key); buildKeyRef.current = build?.key;
+  const onBuild = useCallback((key: string) => key.startsWith(`${buildKeyRef.current}|`), []);
+  const clearSide = () => pen.clear([inkKey(side)]);
+  const clearAll = () => pen.clear(sizes.map((_, n) => inkKey(n + 1)));
   const buildInk = useMemo(() => Object.fromEntries(Object.entries(ink).filter(([k]) => k.startsWith(`${build?.key}|`))), [ink, build?.key]);
 
-  const penSize = SIZES.find((s) => s.value === prefs.penSize)!.pen, highlighterSize = SIZES.find((s) => s.value === prefs.highlighterSize)!.highlighter;
-  const settings = useMemo<AnnotationSettings>(() => ({ tool: prefs.tool, penColour: prefs.penColour, highlighterColour: prefs.highlighterColour, penSize, highlighterSize, straight: prefs.straight }), [prefs, penSize, highlighterSize]);
-  const now = useRef({ annotating, tool: prefs.tool }); now.current = { annotating, tool: prefs.tool };
-  const chooseTool = useCallback((tool: AnnotationTool) => { now.current = { annotating: true, tool }; setPrefs((p) => withTool(p, tool)); setAnnotating(true); }, []);
-  const drawing = annotating && prefs.tool !== "hand";
+  const { settings, drawing, now } = pen;
 
   const enterDisplay = () => { setDisplay(true); void root.current?.requestFullscreen?.().catch(() => undefined); (document.activeElement as HTMLElement | null)?.blur(); };
   const pinsRef = useRef(pins); pinsRef.current = pins;
@@ -319,8 +314,8 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
       const target = e.target as HTMLElement;
       if (target.closest("input, select, textarea, [contenteditable='true']")) return;
       const k = e.key.toLowerCase();
-      if (e.key === "Escape") { if (now.current.annotating) { setAnnotating(false); return; } if (display) leaveDisplay(); return; }
-      if (now.current.annotating && (e.ctrlKey || e.metaKey) && !e.altKey && (k === "z" || k === "y")) { e.preventDefault(); if (k === "y" || e.shiftKey) redoInk(); else undoInk(); return; }
+      if (e.key === "Escape") { if (now.current.annotating) { closePen(); return; } if (display) leaveDisplay(); return; }
+      if (handlePenKey(e, onBuild)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (target.closest(".qb-annotate-bar") && e.key.startsWith("Arrow")) return;
       if (e.key === "ArrowRight" || e.key === "PageDown" || (e.key === "ArrowDown" && !e.shiftKey && !target.closest("button"))) { e.preventDefault(); goTo(Math.min(sizes.length, side + 1)); return; }
@@ -331,18 +326,10 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
       if (k === "n") { e.preventDefault(); const at = lastPoint.current?.side === side ? lastPoint.current : { side, x: (sizes[side - 1]?.width ?? 595) - 40, y: 60 }; addPin(at.side, at.x, at.y, true); return; }
       if (k === "t" && !now.current.annotating) { e.preventDefault(); setNotesOn((v) => !v); return; }
       if (k === "a" && docs.answers) { e.preventDefault(); setAnswers((v) => !v); return; }
-      if (k === "p") { e.preventDefault(); if (now.current.annotating && now.current.tool === "pen") setAnnotating(false); else chooseTool("pen"); return; }
-      if (now.current.annotating) {
-        const tool = ({ h: "highlighter", e: "eraser", l: "laser", v: "hand" } as Record<string, AnnotationTool>)[k];
-        if (tool) { e.preventDefault(); chooseTool(tool); return; }
-        const n = Number(e.key);
-        const colours = now.current.tool === "highlighter" ? HIGHLIGHTER_COLOURS : PEN_COLOURS;
-        if (n >= 1 && colours[n - 1]) { e.preventDefault(); const c = colours[n - 1]; setPrefs((p) => (p.tool === "highlighter" ? { ...p, highlighterColour: c.value } : { ...withTool(p, "pen"), penColour: c.value })); }
-      }
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [display, leaveDisplay, undoInk, redoInk, goTo, side, sizes, changeZoom, chooseTool, docs.answers, addPin]);
+  }, [display, leaveDisplay, handlePenKey, closePen, now, onBuild, goTo, side, sizes, changeZoom, docs.answers, addPin]);
 
   // Ctrl + wheel or a trackpad pinch zooms; an ordinary wheel scrolls the booklet.
   useEffect(() => {
@@ -357,9 +344,9 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const title = build.resource.lesson ? `${build.resource.lesson} ${build.resource.title}` : build.resource.title;
   const file = showAnswers ? build.answers! : build.pupil;
   const tint = overlay === "off" ? undefined : overlays.find((o) => o.value === overlay)?.colour;
-  const cursor = annotating ? toolCursor(prefs.tool, prefs.tool === "highlighter" ? prefs.highlighterColour : prefs.penColour, prefs.tool === "highlighter" ? highlighterSize : penSize, scale) : undefined;
+  const cursor = pen.cursor(scale);
   const sideHasInk = layerOf(ink, inkKey(side)).strokes.length > 0;
-  const annotateButton = <button type="button" className="qb-button qb-annotate-toggle" aria-pressed={annotating} title="Annotate on screen · P" onClick={() => (annotating ? setAnnotating(false) : chooseTool(prefs.tool === "hand" ? "pen" : prefs.tool))}><Pencil size={16} aria-hidden="true" />Annotate</button>;
+  const annotateButton = <button type="button" className="qb-button qb-annotate-toggle" aria-pressed={annotating} title="Annotate on screen · P" onClick={pen.toggle}><Pencil size={16} aria-hidden="true" />Annotate</button>;
   const copySwitch = <div className="qb-segment present-copy" role="group" aria-label="Copy">
     <button type="button" className="qb-button" aria-pressed={!showAnswers} onClick={() => setAnswers(false)}>Pupil</button>
     <button type="button" className="qb-button" aria-pressed={showAnswers} disabled={!build.answers} title={build.answers ? "Answers · A" : "This booklet has no answers copy"} onClick={() => setAnswers(true)}>Answers</button>
@@ -387,7 +374,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
                   strokes={layerOf(ink, inkKey(i + 1)).strokes} active={annotating} settings={settings} onCommit={(s) => commit(inkKey(i + 1), s)}
                   pins={pins.filter((p) => p.side === i + 1)} pinMode={pinMode && !annotating} onPin={(x, y) => { addPin(i + 1, x, y, false); setPinMode(false); setFeedbackOpen(true); }} onPoint={(x, y) => { lastPoint.current = { side: i + 1, x, y }; }} />)}
           </div>
-          {annotating && <AnnotationBar preferences={prefs} onChange={setPrefs} canUndo={undoKeys.current.length > 0} canRedo={redoKeys.current.length > 0} hasInk={sideHasInk} anyInk={hasInk(buildInk)} onUndo={undoInk} onRedo={redoInk} onClear={clearSide} onClearAll={clearAll} onClose={() => setAnnotating(false)} movable={{ place: rail, onPlace: setRail }} />}
+          {annotating && <AnnotationBar preferences={prefs} onChange={pen.setPrefs} canUndo={pen.canUndo(onBuild)} canRedo={pen.canRedo(onBuild)} hasInk={sideHasInk} anyInk={hasInk(buildInk)} onUndo={() => pen.undo(onBuild)} onRedo={() => pen.redo(onBuild)} onClear={clearSide} onClearAll={clearAll} onClose={pen.close} movable={{ place: rail, onPlace: setRail }} />}
           {display && <div className="qb-display-dock present-dock">
             <span className="present-side-count">Side {side} of {sizes.length}</span>
             {build.answers && copySwitch}
