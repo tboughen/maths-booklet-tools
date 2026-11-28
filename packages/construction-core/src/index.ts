@@ -1183,7 +1183,7 @@ function draw(e: Envelope, reserve?: Box) {
     const right = Math.max(Wmm, w);
     let y1 = under + 3;
     // Decided from the saved caption, shown or hidden, so the note sits in the same place on both copies.
-    const capWidth = cap.text.trim() ? textWidth(typeset(cap.text)) + 8 : 0;
+    const capWidth = cap.text.trim() && cap.show !== "omit" ? textWidth(typeset(cap.text)) + 8 : 0;
     if (capWidth && capWidth + 4 > right - w) y1 = under + 3 + FONT + 4 + 2;
     const y2 = y1 + NOTE_FONT + 2;
     boxes.push({ x1: right - w, y1, x2: right, y2 });
