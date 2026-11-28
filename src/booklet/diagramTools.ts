@@ -40,6 +40,9 @@ export const TOOL_STORAGE: Record<DiagramKind, string> = {
   solids: "maths-booklet-tools:solids:v1",
 };
 
+/** A new diagram of the family, as its tool would start one: the graph needs its list of objects, every other family starts from an empty spec. */
+export const freshDiagram = (kind: DiagramKind) => FAMILIES[kind].create({ spec: kind === "graph" ? { objects: [] } : {} });
+
 /** The bar model page keeps its envelope in a versioned record; every other tool stores the envelope itself. */
 const toStored = (kind: DiagramKind, envelope: unknown) => JSON.stringify(kind === "bar-model" ? { storageVersion: 1, envelope } : envelope);
 function fromStored(kind: DiagramKind, raw: string): unknown {

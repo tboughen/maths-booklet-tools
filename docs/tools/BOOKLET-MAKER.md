@@ -140,6 +140,16 @@ the card redraws at its print size and the build checks run again. Cancel, Escap
 the card as it was. Every family works this way: `src/booklet/diagramTools.ts` lists where each tool keeps its
 document, and its test fails if a tool's key changes.
 
+### Full editing (28 Nov 2026)
+
+The card editor (in the outline and on the page) also moves each item up or down and removes it (a card keeps
+at least one item; the first item never prints beside anything). **Add to this card** adds words, a key fact
+box, an answer line, working or drawing space, a table, multiple choice, squared paper, or a new diagram of
+any family, which opens in its tool first and goes in the card on Done. New answer lines, tables and choices
+start blank: nothing is filled in. **Add a question after this** puts a new card straight after the one being
+edited and moves the editor to it; each section in the outline has **Add a section after this**. The Checks
+panel shows empty space (N21) and the 64-side limit (N33) live as the booklet changes.
+
 ### Lesson source files and the build checks
 
 File > Open also takes a lesson source as booklet builds write it (`source.json`: the booklet under

@@ -62,3 +62,10 @@
 .bk-diagram-foot .bk-diagram-done { background: #0f62fe; border-color: #0f62fe; color: #fff; padding-inline: 20px; }
 .bk-diagram-foot .bk-diagram-done:disabled { opacity: 0.5; }
 .bk-diagram-foot .tool-button { min-height: 36px; padding-inline: 14px; border: 1px solid #c6cbd8; }
+
+/* Full editing (stage 5): each item's moves sit at its top right; the Add menus share a row. */
+.bk-editor :is(.ws-item, .ws-part) { position: relative; }
+.bk-item-moves { display: flex; justify-content: flex-end; gap: 2px; margin-bottom: 2px; }
+.bk-item-moves .icon-button { width: 26px; height: 26px; min-width: 0; padding: 0; }
+.bk-add-row { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin: 8px 0; }
+.bk-add-row .ws-field { flex: 1 1 180px; margin: 0; }

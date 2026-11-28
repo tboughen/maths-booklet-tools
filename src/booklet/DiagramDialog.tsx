@@ -9,7 +9,7 @@ import { closeDiagramCopy, openDiagramCopy, readDiagramCopy, type DiagramCopy } 
  * close button leave the card as it was. If the diagram cannot go back, the dialog stays open with the reason, so
  * the teacher's edit in the tool is never thrown away.
  */
-export function DiagramDialog({ kind, envelope, onDone, onClose }: { kind: DiagramKind; envelope: unknown; onDone: (envelope: unknown) => string; onClose: () => void }) {
+export function DiagramDialog({ kind, envelope, fresh = false, onDone, onClose }: { kind: DiagramKind; envelope: unknown; /** A new diagram: Done adds it even when the tool changed nothing. */ fresh?: boolean; onDone: (envelope: unknown) => string; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [copy, setCopy] = useState<DiagramCopy | null>(null);
@@ -76,7 +76,7 @@ export function DiagramDialog({ kind, envelope, onDone, onClose }: { kind: Diagr
       setError(`The ${label} cannot go back in the card yet: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
-    const problem = next === null ? "" : onDone(next);
+    const problem = next === null ? (fresh ? onDone(envelope) : "") : onDone(next);
     if (problem) setError(`The ${label} cannot go back in the card: ${problem}`);
     else onClose();
   };
@@ -84,7 +84,7 @@ export function DiagramDialog({ kind, envelope, onDone, onClose }: { kind: Diagr
     <dialog
       ref={dialog}
       className="bk-diagram-dialog"
-      aria-label={`Edit the ${label}`}
+      aria-label={`${fresh ? "New" : "Edit the"} ${label}`}
       onKeyDown={(e) => e.key === "Escape" && e.stopPropagation()}
       onCancel={(e) => {
         e.preventDefault();
@@ -92,9 +92,9 @@ export function DiagramDialog({ kind, envelope, onDone, onClose }: { kind: Diagr
       }}
     >
       <header className="bk-diagram-head">
-        <h2>Edit the {label}</h2>
-        <p>Changes stay in this card. Your own work in the tool is not touched.</p>
-        <button className="icon-button" aria-label="Close without changing the card" disabled={finishing} onClick={close}>
+        <h2>{fresh ? "New" : "Edit the"} {label}</h2>
+        <p>{fresh ? "Done adds it to the card." : "Changes stay in this card."} Your own work in the tool is not touched.</p>
+        <button className="icon-button" aria-label={fresh ? "Close without adding the diagram" : "Close without changing the card"} disabled={finishing} onClick={close}>
           <X size={18} aria-hidden="true" />
         </button>
       </header>

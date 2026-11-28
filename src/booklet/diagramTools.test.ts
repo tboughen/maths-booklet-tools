@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DIAGRAM_KINDS, FAMILIES } from "../../packages/diagram-core/src/registry";
-import { closeDiagramCopy, openDiagramCopy, readDiagramCopy, sweepDiagramCopies, TOOL_STORAGE } from "./diagramTools";
+import { closeDiagramCopy, freshDiagram, openDiagramCopy, readDiagramCopy, sweepDiagramCopies, TOOL_STORAGE } from "./diagramTools";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { diagramEnvelope } from "../../packages/resource-core/src/schema";
 
@@ -52,5 +52,9 @@ describe("diagram tools opened from a booklet card", () => {
     sweepDiagramCopies(Date.now() + 25 * 60 * 60 * 1000);
     expect(localStorage.getItem(old.key)).toBeNull();
     expect(localStorage.getItem("maths-booklet-tools:booklet:diagram-copies")).toBeNull();
+  });
+
+  it("starts a new diagram of every family", () => {
+    for (const kind of DIAGRAM_KINDS) expect(() => diagramEnvelope({ tool: kind, envelope: freshDiagram(kind) as Record<string, unknown> }), kind).not.toThrow();
   });
 });
