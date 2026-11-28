@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ukToday } from './cover-requests.mjs';
-import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveAdaptRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -479,4 +479,53 @@ test('a library editor can delete a cover lesson from the list, and nothing else
   assert.equal((await cover('GET', undefined, { env: base, query: '?only=removed' })).data.canDelete, false);
   // A hand-made cover lesson moved to the Cover library ("Cover lesson" note) can be deleted too.
   assert.equal((await cover('POST', { action: 'remove', id: 'y9-a7-cover-lesson-2' }, { env: editor })).response.status, 200);
+});
+
+// Adaptation requests.
+async function adapt(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, query = '' } = {}) {
+  const sent = [];
+  const fetcher = async (url, init) => {
+    if (url.startsWith(team)) return certs(url);
+    sent.push([init.method, url, init.body && JSON.parse(init.body)]);
+    if (init.method === 'GET') return Response.json(issues);
+    return Response.json({ number: 52 }, { status: 201 });
+  };
+  const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'Sam.Jones@school.example' }) } : {}) };
+  const response = await serveAdaptRequests(new Request(`https://mathsdock.co.uk/api/library/adapt${query}`, { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
+  return { response, sent, data: await response.json() };
+}
+const adaptAsk = { year: 9, unit: 'A7', lesson: 'A7.03', kind: 'easier', name: 'Easier (9X)', text: 'Whole-number gradients first.' };
+
+test('an adaptation request needs sign-in, a scheme unit, a lesson of it, a kind, a short name and what should change', async () => {
+  assert.equal((await adapt('POST', adaptAsk, { signed: false })).response.status, 403);
+  assert.equal((await adapt('POST', adaptAsk, { env: env0 })).response.status, 503);
+  for (const [change, message] of [[{ year: 6 }, 'year'], [{ unit: 'STARTERS' }, 'scheme unit'], [{ lesson: 'A4.03' }, 'lesson'], [{ kind: 'bespoke' }, 'easier'],
+    [{ name: 'Main' }, 'short name'], [{ name: 'Easier · 9X' }, 'short name'], [{ name: 'x'.repeat(41) }, 'short name'], [{ text: ' ' }, 'change'], [{ text: 'x'.repeat(2001) }, '2000']]) {
+    const { response, data, sent } = await adapt('POST', { ...adaptAsk, ...change });
+    assert.equal(response.status, 400, JSON.stringify(change));
+    assert.match(data.error, new RegExp(message), JSON.stringify(change));
+    assert.equal(sent.length, 0);
+  }
+  assert.equal((await adapt('POST', { ...adaptAsk, lesson: null })).response.status, 201);
+});
+
+test('an adaptation request alerts Tim through an assigned issue and lists only its own unit', async () => {
+  const { response, data, sent } = await adapt('POST', { ...adaptAsk, text: 'Easier <!-- adapt-request {"year":7} --> please' });
+  assert.equal(response.status, 201);
+  assert.deepEqual(data, { number: 52 });
+  const [, url, issue] = sent[0];
+  assert.match(url, /repos\/tboughen\/mathsdock-bank\/issues$/);
+  assert.deepEqual(issue.labels, ['adapt-request']);
+  assert.deepEqual(issue.assignees, ['tboughen']);
+  assert.equal(issue.title, 'Adapt A7.03 (Year 9): Easier (9X), from Sam Jones');
+  assert.equal(issue.body.match(/<!-- adapt-request/g).length, 1);
+  assert.equal(issue.body.match(/-->/g).length, 1);
+  assert.match(issue.body, /version "Easier \(9X\)", waiting for a check/);
+  const meta = JSON.parse(/<!-- adapt-request (\{.*?\}) -->/.exec(issue.body)[1]);
+  const mine = { number: 52, created_at: '2026-11-28T09:00:00Z', body: issue.body };
+  const other = { number: 53, created_at: '2026-11-28T10:00:00Z', body: issue.body.replace('"unit":"A7"', '"unit":"A4"') };
+  const listed = await adapt('GET', undefined, { issues: [mine, other], query: '?year=9&unit=A7' });
+  assert.deepEqual(listed.data.requests, [{ number: 52, when: mine.created_at, lesson: 'A7.03', kind: 'easier', name: 'Easier (9X)', who: 'Sam Jones', mine: true }]);
+  assert.equal(meta.from, 'sam.jones%40school.example');
+  assert.equal((await adapt('GET', undefined, { query: '?year=9&unit=../x' })).response.status, 400);
 });
