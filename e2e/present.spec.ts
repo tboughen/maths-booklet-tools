@@ -1,0 +1,118 @@
+// Present a booklet from the Resource library (docs/tools/PRESENT-BOOKLETS.md). The library list and files are served
+// behind staff sign-in, so these checks stand in the fixture list and small made-up PDFs: three A4 sides for each copy.
+import { readFileSync } from "node:fs";
+import { test, expect, type Page } from "./release-fixtures";
+
+const fixture = readFileSync(new URL("./fixtures/library.json", import.meta.url), "utf8");
+
+/** A plain A4 PDF of `sides` pages, each with one line of text, with a correct cross-reference table. */
+function pdf(label: string, sides = 3) {
+  const objects: string[] = [];
+  const kids = Array.from({ length: sides }, (_, i) => 4 + i * 2);
+  objects.push("<< /Type /Catalog /Pages 2 0 R >>", `<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(" ")}] /Count ${sides} >>`, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  for (let i = 0; i < sides; i++) {
+    const text = `BT /F1 28 Tf 72 760 Td (${label} side ${i + 1}) Tj ET`;
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + i * 2} 0 R >>`, `<< /Length ${text.length} >>\nstream\n${text}\nendstream`);
+  }
+  let body = "%PDF-1.4\n";
+  const offsets = objects.map((o, i) => { const at = body.length; body += `${i + 1} 0 obj\n${o}\nendobj\n`; return at; });
+  const xref = body.length;
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("")}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(body, "latin1");
+}
+
+async function open(page: Page, address: string) {
+  await page.route("**/library-data/library.json", (route) => route.fulfill({ contentType: "application/json", body: fixture }));
+  await page.route("**/library-data/files/**", (route) => route.fulfill({ contentType: "application/pdf", body: pdf(route.request().url().includes("answers") ? "Answers" : "Pupil") }));
+  await page.route("**/api/library/feedback", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ threads: [], checks: {}, canAct: false, me: "Tim Boughen" }) }));
+  await page.goto(address);
+}
+
+const drawOn = async (page: Page, side: ReturnType<Page["locator"]>) => {
+  const box = (await side.boundingBox())!;
+  await page.mouse.move(box.x + 100, box.y + 200);
+  await page.mouse.down();
+  for (let i = 1; i <= 10; i++) await page.mouse.move(box.x + 100 + i * 20, box.y + 200 + i * 6);
+  await page.mouse.up();
+};
+
+test("a library lesson opens in Present with its sides, Pupil | Answers, ink, overlays and Display", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "/library?year=9&unit=A7");
+  const a704 = page.locator(".library-rows > li").filter({ hasText: "A7.04" });
+  await a704.getByRole("link", { name: "Present" }).click();
+  await expect(page).toHaveURL(/present=y9-a7-04-lesson-booklet/);
+  const present = page.getByRole("region", { name: /^Present A7\.04/ });
+  await expect(present.locator(".present-side")).toHaveCount(3);
+  await expect(present.locator(".present-side").first().locator("canvas")).toBeVisible();
+  await expect(present.getByText("Side 1 of 3")).toBeVisible();
+  // The version list holds the current build and the earlier one from the history.
+  await expect(present.locator(".present-version select option")).toHaveCount(2);
+
+  // Fit width: a side fills the stage width less its gutters, and it really is A4 in shape.
+  const first = present.locator(".present-side").first();
+  const box = (await first.boundingBox())!;
+  expect(box.height / box.width).toBeCloseTo(842 / 595, 2);
+  const stage = (await present.locator(".present-stage").boundingBox())!;
+  expect(box.width).toBeGreaterThan(stage.width - 120);
+
+  // Pen: one stroke on side 1 stays when the answers copy is swapped in underneath.
+  await present.getByRole("button", { name: "Annotate" }).click();
+  await expect(present.getByRole("toolbar", { name: "Annotation tools (screen only)" })).toBeVisible();
+  await drawOn(page, first);
+  await expect(first.locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "1");
+  await expect(present.getByRole("button", { name: "Side 1, has ink" })).toBeVisible();
+  await present.getByRole("button", { name: "Answers" }).click();
+  await expect(first.locator("canvas")).toHaveAttribute("aria-label", "Side 1 (answers)");
+  await expect(first.locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "1");
+  await page.keyboard.press("Control+z");
+  await expect(first.locator("svg.qb-annotations")).toHaveCount(1);
+  await expect(first.locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "0");
+  await page.keyboard.press("Control+Shift+z");
+  await expect(first.locator("svg.qb-annotations")).toHaveAttribute("data-strokes", "1");
+  await page.keyboard.press("Escape");
+  await expect(present.getByRole("toolbar", { name: "Annotation tools (screen only)" })).toBeHidden();
+
+  // A coloured overlay tints the sides, as in the Question Bank.
+  await present.getByRole("group", { name: "Coloured overlay" }).getByRole("button", { name: "Yellow" }).click();
+  await expect(first.locator(".qb-coloured-overlay")).toHaveCSS("background-color", "rgb(255, 248, 207)");
+
+  // Zoom keeps a side's shape; Next steps a side.
+  await present.getByRole("button", { name: "Zoom in" }).click();
+  await expect(present.locator(".present-zoom-level")).toHaveText("125%");
+  await present.getByRole("button", { name: "Fit side" }).click();
+  const fitted = (await first.boundingBox())!;
+  expect(fitted.height).toBeLessThanOrEqual(stage.height);
+  await present.getByRole("button", { name: "Next" }).click();
+  await expect(present.getByText("Side 2 of 3")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1920);
+  await page.screenshot({ path: test.info().outputPath("present.png") });
+
+  // Display keeps only the sides and a small dock; Escape leaves it.
+  await present.getByRole("button", { name: "Display" }).click();
+  await expect(present.getByRole("complementary", { name: "Present settings" })).toBeHidden();
+  await expect(present.getByRole("button", { name: /Exit Display/ })).toBeVisible();
+  await expect(present.locator(".present-dock")).toContainText("Side 2 of 3");
+  await page.screenshot({ path: test.info().outputPath("present-display.png") });
+  await present.getByRole("button", { name: /Exit Display/ }).click();
+  await expect(present.getByRole("complementary", { name: "Present settings" })).toBeVisible();
+
+  // Back to the library, and the browser's Back opens Present again.
+  await present.getByRole("button", { name: "Library" }).click();
+  await expect(present).toBeHidden();
+  await expect(page).toHaveURL(/\/library\?year=9&unit=A7$/);
+  await page.goBack();
+  await expect(page.getByRole("region", { name: /^Present A7\.04/ })).toBeVisible();
+});
+
+test("an earlier build opens from the history, and a missing booklet says so", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "/library?year=9&unit=A7");
+  const a704 = page.locator(".library-rows > li").filter({ hasText: "A7.04" });
+  await a704.getByRole("button", { name: "1 earlier version" }).click();
+  await a704.locator(".library-history-row").nth(1).getByRole("link", { name: "Present" }).click();
+  await expect(page).toHaveURL(/present=y9-a7-04-lesson-booklet&at=/);
+  await expect(page.locator(".present-version select option:checked")).toContainText("(earlier)");
+  await page.goto("/library?year=9&present=gone");
+  await expect(page.getByRole("alert")).toHaveText(/no longer in the library/);
+});

@@ -9,23 +9,31 @@ const documents = new Map<string, Promise<PDFDocumentProxy>>();
 export const assetUrl = (path: string) => resolveBankAssetUrl(path, import.meta.env.BASE_URL, import.meta.env.VITE_BANK_ASSET_ORIGIN);
 
 export function loadPdf(path: string, retry = false): Promise<PDFDocumentProxy> {
-  if (retry) documents.delete(path);
-  let pending = documents.get(path);
+  return loadPdfUrl(assetUrl(path), retry);
+}
+
+/** Any PDF by its address (a Resource library file, say), sharing the bank's cache and pdf.js data. */
+export function loadPdfUrl(url: string, retry = false): Promise<PDFDocumentProxy> {
+  if (retry) documents.delete(url);
+  let pending = documents.get(url);
   if (!pending) {
     pending = getDocument({
-      url: assetUrl(path),
+      url,
       cMapUrl: assetUrl("bank/pdfjs/cmaps/"), cMapPacked: true,
       standardFontDataUrl: assetUrl("bank/pdfjs/standard_fonts/"),
       wasmUrl: assetUrl("bank/pdfjs/wasm/"),
       isEvalSupported: false,
-    }).promise.catch(error => { documents.delete(path); throw error; });
-    documents.set(path, pending);
+    }).promise.catch(error => { documents.delete(url); throw error; });
+    documents.set(url, pending);
   }
   return pending;
 }
 
 export async function renderPage(path: string, pageNumber: number, scale: number, signal?: AbortSignal): Promise<HTMLCanvasElement> {
-  const pdf = await loadPdf(path);
+  return renderPdfPage(await loadPdf(path), pageNumber, scale, signal);
+}
+
+export async function renderPdfPage(pdf: PDFDocumentProxy, pageNumber: number, scale: number, signal?: AbortSignal): Promise<HTMLCanvasElement> {
   const page = await pdf.getPage(pageNumber);
   if (signal?.aborted) throw new DOMException("Cancelled", "AbortError");
   const natural = page.getViewport({scale: 1});
