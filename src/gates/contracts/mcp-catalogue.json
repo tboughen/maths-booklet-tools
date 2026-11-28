@@ -521,6 +521,14 @@
                                 "url": {
                                   "type": "string",
                                   "maxLength": 300
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "explain",
+                                    "diagnose",
+                                    "extend"
+                                  ]
                                 }
                               },
                               "required": [

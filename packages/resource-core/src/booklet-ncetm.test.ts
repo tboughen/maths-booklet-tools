@@ -85,6 +85,17 @@ describe("NCETM links", () => {
     expect(r.issues.some((i) => /no room for the NCETM link/.test(i.message))).toBe(true);
   });
 
+  it("names the link's kind in the tag, in PDF and Word", async () => {
+    const b = lesson([{ ...STAIRS, kind: "diagnose" }, { ...PAGE9, kind: "extend" }]);
+    const svg = renderBooklet(b, { view: "answers" }).pages.join("");
+    expect(svg).toContain("NCETM Diagnose");
+    expect(svg).toContain("NCETM Extend");
+    const a = await docx(b, "answers");
+    expect(a.body).toContain("NCETM Diagnose");
+    expect(a.body).toContain("NCETM Extend");
+    expect(() => lesson([{ ...STAIRS, kind: "teach" }])).toThrow();
+  });
+
   it("rejects addresses that are not written in full", () => {
     expect(() => lesson([{ label: "Odd", url: "https://www.ncetm.org.uk/a b" }])).toThrow();
     expect(() => lesson([{ label: "Host", url: "https://www.ncetm.org.uk.evil.com/x" }])).toThrow();

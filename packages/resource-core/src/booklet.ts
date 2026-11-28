@@ -61,8 +61,12 @@ export const ncetmSchema = z
           return false;
         }
       }, "Use an https://www.ncetm.org.uk/ address, written in full."),
+    /** What the link is for (Tim, 28 November 2026), printed in the chip's tag, e.g. "NCETM Diagnose": explain = teacher background, diagnose = a Checkpoint or example to open a stage, extend = for the Challenge. */
+    kind: z.enum(["explain", "diagnose", "extend"]).optional(),
   })
   .strict();
+/** The chip's bold tag: "NCETM", then the link's kind when it has one. */
+export const ncetmTag = (link: { kind?: "explain" | "diagnose" | "extend" }) => (link.kind ? `NCETM ${link.kind[0].toUpperCase()}${link.kind.slice(1)}` : "NCETM");
 export type NcetmLink = z.infer<typeof ncetmSchema>;
 
 /** A common misconception for teachers (Tim, 25 November 2026): what to watch for, one question to ask, and where the evidence comes from. Paraphrased, never copied. */
