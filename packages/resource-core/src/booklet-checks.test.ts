@@ -29,6 +29,23 @@ describe("booklet build checks, shared by the build script and the Booklet build
     expect(r.findings.some((f) => f.check === "M1")).toBe(true);
   });
 
+  it("asks every stage for a spot the mistake or explain why card (N35)", () => {
+    const b = structuredClone(one());
+    const lesson = b.document.lessons[0];
+    let n = 0;
+    for (const s of lesson.sections) if (s.kind === "worked") s.startBanner = `Stage ${++n}`;
+    const stages = lesson.sections.filter((s) => s.startBanner).length;
+    const n35 = (l: typeof lesson) => scriptChecks({ source: { working: [] }, lesson: l, lessonNumber: 1, pages: {} }).findings.filter((f) => f.check === "N35");
+    for (const s of lesson.sections) if (s.kind === "mistake") s.kind = "practice";
+    for (const s of lesson.sections) if (s.kind !== "worked") s.cards = s.cards.filter((c) => !/spot the mistake|explain|correct\?|says|thinks|claims/i.test(JSON.stringify(c)));
+    expect(stages).toBeGreaterThan(0);
+    expect(n35(lesson)).toHaveLength(stages);
+    lesson.sections.forEach((s) => {
+      if (s.startBanner) s.kind = "mistake";
+    });
+    expect(n35(lesson)).toHaveLength(0);
+  });
+
   it("reads the printed words off the pages for the wording rules", () => {
     expect(svgPlainText(['<svg><text x="1">Go <tspan font-style="italic">x</tspan> &amp; y</text><text>across</text></svg>'])).toBe("Go x & y\nacross");
     const b = structuredClone(one());
