@@ -29,7 +29,7 @@ resolve and Access would redirect to it after sign-in.
   immutable keys `bank/assets/sha256/<sha256>.<pdf|png>`.
 - The website Worker (`scripts/cloudflare/site-worker.mjs`, `main` in
   `wrangler.jsonc`) reads them through the `BANK` R2 binding. `run_worker_first`
-  limits the script to `/bank/assets/*`, `/library-data/*` (Resource library), `/api/report` and `/api/library/feedback`; every other path is plain Workers Static
+  limits the script to `/bank/assets/*`, `/library-data/*` (Resource library), `/api/report`, `/api/library/feedback`, `/api/library/cover` and `/api/present/ink`; every other path is plain Workers Static
   Assets.
 - The browser fetches them from the same origin (`/bank/assets/...`), so the
   Access cookie covers them. There is no public asset origin and no CORS policy
@@ -50,6 +50,8 @@ resolve and Access would redirect to it after sign-in.
   repository, with the same `REPORT_GITHUB_TOKEN` (`docs/content/RESOURCE-LIBRARY.md`).
   The Worker secret `LIBRARY_EDITORS` (comma-separated emails) names who may queue,
   restore and close feedback; without it nobody can. Anyone signed in can comment.
+- `GET` and `PUT /api/present/ink` (Present's ink for each class) check the same token and keep each teacher's
+  records in the `BANK` bucket under `present-ink/<hash of their email>/` (`docs/tools/PRESENT-BOOKLETS.md`).
 - Responses use `Cache-Control: private, max-age=31536000, immutable`, support
   `Range` (PDF.js) and `HEAD`, and carry `X-Robots-Tag: noindex`.
 
@@ -86,5 +88,5 @@ downloads keep working. Its "open in editor" links point at
 address (such as `/tools/venn`), and a teacher signs in once when they follow one.
 Page addresses are served as the site's `index.html` by the assets
 `single-page-application` fallback, so the one Access application covering the
-whole domain gates them; only `/bank/assets/*`, `/library-data/*`, `/api/report` and `/api/library/feedback` run the Worker script.
+whole domain gates them; only `/bank/assets/*`, `/library-data/*` and the `/api/*` routes listed above run the Worker script.
 Guests cannot follow them until the Worker-side guest split exists.

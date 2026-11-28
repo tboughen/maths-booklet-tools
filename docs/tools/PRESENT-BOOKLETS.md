@@ -31,15 +31,30 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
 
 - The Class card (top of the column, foldable; the teal pill in the top bar opens it) asks "Teaching which class?"
   with recent classes as buttons. A class is a short label (`9 x` becomes `9X`), never pupil data.
-- With a class chosen, its ink and place are saved for that exact build (`src/library/present/presentStore.ts`,
-  this browser's storage for now, key `present-ink|<class>|<resource id>@<updated>`). Another class has its own ink.
+- With a class chosen, its ink and place are saved for that exact build (`src/library/present/presentStore.ts`):
+  in this browser at once (key `present-ink|<class>|<resource id>@<updated>`) and on the site ten seconds later, or
+  as soon as the teacher leaves Present or the page closes. Another class has its own ink.
 - The place follows the current side; **⚑ We stopped here** pins it by hand and shows a flag on that side's thumbnail.
   Next time, "Last time … You stopped at side N" offers **Go to where we stopped** (never forced).
 - If the class has ink on a different build of this booklet, the card says so and offers to open that build, so a
   rebuilt booklet never moves a class's ink.
 - Without a class, ink is kept until you leave.
-- Saving on the site behind staff sign-in (so ink follows a teacher between computers) waits for a small store on the
-  free Cloudflare plan that Tim switches on; the record shape is already the one the site will keep.
+- The site copy follows the teacher between computers. When a class opens, Present reads the site copy and keeps
+  whichever copy is newer; opening a class saves nothing, only new ink or a new place does. When the site cannot be
+  reached (or on a preview without sign-in) the card says "saved in this browser" and carries on; a failed site save
+  is tried again every 30 seconds.
+
+### Site store
+
+- `/api/present/ink` in the site Worker (`scripts/cloudflare/present-ink.mjs`), behind the same Cloudflare Access
+  sign-in as the library. It reuses the existing private R2 bucket (`BANK`), so there is nothing to switch on.
+- One JSON object per teacher, class and build: `present-ink/<first 32 hex of SHA-256 of the signed-in email>/<class>/<build>.json`.
+  Addresses never appear in object names. Only the signed-in teacher reads or writes their own records.
+- `GET ?class=9X&build=<id>@<updated>` returns `{record}` (or `null`); `GET ?class=9X` lists that class's builds
+  (newest first, at most 200); `PUT` takes JSON `{class, build, record}` only (a cross-site form cannot write), up to
+  1.5 MB, and checks the record's shape. Class labels are `A-Z0-9`, at most 12; build keys match the library ids.
+- Writes are debounced to one every ten seconds while drawing, well inside R2's free monthly operations.
+- Nothing clears old records yet; a yearly clear-out of `present-ink/` is a later step if Tim wants one.
 
 ## Teacher notes on both copies (third step)
 
@@ -69,10 +84,10 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
 - The Question Bank's rail stays fixed until Tim asks for the same there.
 
 Open questions answered with the recommended option unless Tim says otherwise: ink saved on the site behind staff
-sign-in (needs a small store on the free Cloudflare plan), private to each teacher, teacher notes on by default,
+sign-in (built: reuses the private R2 bucket), private to each teacher, teacher notes on by default,
 kept for the school year, spare working space later, older booklets work without rebuilds.
 
 ## Checks
 
 `npx playwright test --project=library` runs `e2e/present.spec.ts` with made-up three-side PDFs; unit tests are in
-`src/library/present/presentModel.test.ts`.
+`src/library/present/*.test.ts`; the site store's tests are in `scripts/cloudflare/site-worker.test.mjs`.

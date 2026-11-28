@@ -6,7 +6,7 @@ import { validateInventory } from './inventory.mjs';
 
 export const siteWorker = 'scripts/cloudflare/site-worker.mjs';
 // The Worker and every module it imports; wrangler bundles them from the package's config folder.
-export const siteWorkerFiles = [siteWorker, 'scripts/cloudflare/library-feedback.mjs', 'scripts/cloudflare/cover-requests.mjs'];
+export const siteWorkerFiles = [siteWorker, 'scripts/cloudflare/library-feedback.mjs', 'scripts/cloudflare/cover-requests.mjs', 'scripts/cloudflare/present-ink.mjs'];
 export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'bankSchemes.ts', 'bankCatalogueSplit.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
 export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));

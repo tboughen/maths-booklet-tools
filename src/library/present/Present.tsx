@@ -13,7 +13,10 @@ import { AnnotationLayer, type AnnotationSettings } from "../../bank/AnnotationL
 import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, readAnnotationPreferences, saveAnnotationPreferences, SIZES, toolCursor, withTool, type AnnotationPreferences, type AnnotationTool, type Stroke } from "../../bank/annotations";
 import { overlayPreference, overlays, type Overlay } from "../../bank/overlays";
 import type { Library, Resource } from "../model";
-import { className, lastBuildFor, loadClass, recentClasses, rememberClass, saveClass, type Stopped } from "./presentStore";
+import { classRecord, className, lastBuildFor, loadClass, loadClassSite, newerRecord, recentClasses, rememberClass, saveClass, saveClassSite, siteBuilds, type ClassRecord, type Stopped } from "./presentStore";
+
+/** What a save would change: the ink and the side, not the time the place was last seen. */
+const recordShape = (r: ClassRecord) => JSON.stringify([r.sides, r.stopped?.side, r.stopped?.flag]);
 import { hasNotes, sideNotes, type SideNotes } from "./teacherNotes";
 import { buildLabel, buildUrl, findBuild, fitScale, stepZoom, type PresentBuild, type ZoomFit } from "./presentModel";
 import "./present.css";
@@ -158,18 +161,70 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const commit = useCallback((key: string, strokes: Stroke[]) => { undoKeys.current.push(key); redoKeys.current = []; dispatchInk({ type: "set", key, strokes }); }, []);
 
   // Choosing a class (or another build) loads that class's ink and place; its last place is offered, never forced.
+  // Each record is saved in this browser at once and on the site ten seconds later (and as the page closes), so it
+  // follows the teacher to another computer. Whichever copy is newer wins when a class opens.
   const loaded = useRef("");
+  const [site, setSite] = useState<"checking" | "on" | "off" | "failed">("checking");
+  const [siteList, setSiteList] = useState<{ build: string; updated: string }[]>([]);
+  const siteReady = useRef("");
+  const shape = useRef("");
+  const pendingSite = useRef<{ cls: string; key: string; record: ClassRecord } | undefined>(undefined);
+  const siteTimer = useRef<number | undefined>(undefined);
+  const flushSite = useCallback((keepalive = false) => {
+    window.clearTimeout(siteTimer.current); siteTimer.current = undefined;
+    const job = pendingSite.current;
+    if (!job) return;
+    pendingSite.current = undefined;
+    void saveClassSite(job.cls, job.key, job.record, { keepalive }).then((ok) => {
+      setSite(ok ? "on" : "failed");
+      if (!ok && !keepalive && !pendingSite.current) { pendingSite.current = job; siteTimer.current = window.setTimeout(() => flushSite(), 30_000); }
+    });
+  }, []);
+  const queueSite = useCallback((job: { cls: string; key: string; record: ClassRecord }) => {
+    pendingSite.current = job;
+    if (!siteTimer.current) siteTimer.current = window.setTimeout(() => flushSite(), 10_000);
+  }, [flushSite]);
   useEffect(() => {
-    const key = build?.key;
-    if (!key) return;
-    const record = cls ? loadClass(cls, key) : undefined;
+    const away = () => { if (document.visibilityState === "hidden") flushSite(true); };
+    const leave = () => flushSite(true);
+    document.addEventListener("visibilitychange", away); window.addEventListener("pagehide", leave);
+    return () => { document.removeEventListener("visibilitychange", away); window.removeEventListener("pagehide", leave); flushSite(); };
+  }, [flushSite]);
+  const showRecord = useCallback((key: string, record: ClassRecord | undefined) => {
     const state: AnnotationState = {};
     for (const [n, strokes] of Object.entries(record?.sides ?? {})) state[`${key}|${n}`] = { strokes, past: [], future: [] };
     undoKeys.current = []; redoKeys.current = [];
     dispatchInk({ type: "replace", state });
-    setStopped(record?.stopped); setResume(record?.stopped); setSaveError(false);
+    setStopped(record?.stopped); setResume(record?.stopped);
+    shape.current = record ? recordShape(record) : recordShape(classRecord({}, undefined));
+  }, []);
+  useEffect(() => {
+    const key = build?.key;
+    if (!key) return;
+    showRecord(key, cls ? loadClass(cls, key) : undefined);
+    setSaveError(false);
     loaded.current = cls ? `${cls}|${key}` : "";
-  }, [cls, build?.key]);
+    siteReady.current = "";
+    if (!cls) return;
+    let live = true;
+    setSite("checking");
+    void loadClassSite(cls, key).then((remote) => {
+      if (!live) return;
+      if (remote === undefined) { setSite("off"); return; }
+      setSite("on"); siteReady.current = `${cls}|${key}`;
+      const here = loadClass(cls, key), newer = newerRecord(here, remote ?? undefined);
+      if (remote && newer === remote && remote.updated !== here?.updated) {
+        if (!undoKeys.current.length) { showRecord(key, remote); saveClass(cls, key, remote); }
+      } else if (here && (!remote || here.updated !== remote.updated)) queueSite({ cls, key, record: here });
+    });
+    return () => { live = false; flushSite(); };
+  }, [cls, build?.key, showRecord, queueSite, flushSite]);
+  useEffect(() => {
+    if (!cls) { setSiteList([]); return; }
+    let live = true;
+    void siteBuilds(cls).then((list) => { if (live) setSiteList(list ?? []); });
+    return () => { live = false; };
+  }, [cls]);
   // The place moves with the teacher unless they set the flag by hand.
   useEffect(() => { if (cls && ready) setStopped((old) => (old?.flag ? old : { side, at: new Date().toISOString(), flag: false })); }, [cls, side, ready]);
   useEffect(() => {
@@ -178,12 +233,17 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
     const timer = window.setTimeout(() => {
       const sides: Record<string, Stroke[]> = {};
       for (const [k, layer] of Object.entries(ink)) if (k.startsWith(`${key}|`)) sides[k.slice(key.length + 1)] = layer.strokes;
-      setSaveError(!saveClass(cls, key, sides, stopped));
+      const record = classRecord(sides, stopped);
+      // Opening a class changes nothing, so it saves nothing: only new ink or a new place gets a newer copy.
+      if (recordShape(record) === shape.current) return;
+      shape.current = recordShape(record);
+      setSaveError(!saveClass(cls, key, record));
+      if (siteReady.current === `${cls}|${key}`) queueSite({ cls, key, record });
     }, 400);
     return () => window.clearTimeout(timer);
-  }, [ink, stopped, cls, build?.key]);
+  }, [ink, stopped, cls, build?.key, queueSite]);
   const chooseClass = (text: string) => { const name = className(text); if (!name) return; setRecent(rememberClass(name)); setCls(name); setTyped(""); };
-  const newerBuild = useMemo(() => { if (!cls || !build) return undefined; const k = lastBuildFor(cls, builds.map((b) => b.key)); return k && k !== build.key ? builds.find((b) => b.key === k) : undefined; }, [cls, build, builds]);
+  const newerBuild = useMemo(() => { if (!cls || !build) return undefined; const k = lastBuildFor(cls, builds.map((b) => b.key), siteList); return k && k !== build.key ? builds.find((b) => b.key === k) : undefined; }, [cls, build, builds, siteList]);
   const undoInk = useCallback(() => { const key = undoKeys.current.pop(); if (key && layerOf(inkRef.current, key).past.length) { redoKeys.current.push(key); dispatchInk({ type: "undo", key }); } }, []);
   const redoInk = useCallback(() => { const key = redoKeys.current.pop(); if (key && layerOf(inkRef.current, key).future.length) { undoKeys.current.push(key); dispatchInk({ type: "redo", key }); } }, []);
   const clearSide = () => { const key = inkKey(side); if (layerOf(ink, key).strokes.length) commit(key, []); };
@@ -319,8 +379,9 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
               </div>}
               {newerBuild && <p className="present-warning">{cls} has ink on the {buildLabel(newerBuild)} build. <button type="button" className="library-link" onClick={() => onPick(newerBuild.resource.id, newerBuild.current ? undefined : newerBuild.updated)}>Open that build</button></p>}
               <button type="button" className="qb-button" aria-pressed={!!stopped?.flag && stopped.side === side} onClick={() => setStopped({ side, at: new Date().toISOString(), flag: true })}>⚑ We stopped here</button>
-              <p className="present-hint">Ink is saved in this browser for {cls}, for this version only. Another class has its own.</p>
-              {saveError && <p className="present-warning" role="alert">This browser would not save the ink. It stays until you leave.</p>}
+              <p className="present-hint present-saved">{site === "on" ? <>Ink is saved on MathsDock for {cls}, so it follows you to another computer.</> : <>Ink is saved in this browser for {cls}.</>} This version only; another class has its own.</p>
+              {site === "failed" && <p className="present-warning" role="status">MathsDock could not save the ink just now. It is kept in this browser and tried again shortly.</p>}
+              {saveError && <p className="present-warning" role="alert">This browser would not save the ink. {site === "on" ? "It is still saved on MathsDock." : "It stays until you leave."}</p>}
               <button type="button" className="library-link" onClick={() => setCls(undefined)}>Change class</button>
             </>}
           </details>

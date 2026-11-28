@@ -171,6 +171,38 @@ test("a class keeps its ink and where it stopped, and another class starts clean
   await expect(again.locator(".present-resume")).toHaveCount(0);
 });
 
+test("a class's ink saved on the site on another computer opens here, and new ink goes back to the site", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const build = "y9-a7-04-lesson-booklet@2026-11-22";
+  const fromElsewhere = { schema: 1, sides: { "3": [{ id: "s1", kind: "pen", colour: "#1f2937", size: 3.5, scale: 1, points: [[100, 200], [200, 260]] }] }, stopped: { side: 3, at: "2026-11-27T10:00:00Z", flag: true }, updated: "2026-11-27T10:00:00Z" };
+  const puts: { class: string; build: string; record: { sides: Record<string, unknown[]> } }[] = [];
+  await page.route("**/api/present/ink**", (route) => {
+    const request = route.request(), url = new URL(request.url());
+    if (request.method() === "PUT") { puts.push(request.postDataJSON()); return route.fulfill({ contentType: "application/json", body: '{"ok":true}' }); }
+    if (url.searchParams.get("build")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ record: url.searchParams.get("build") === build && url.searchParams.get("class") === "9X" ? fromElsewhere : null }) });
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ builds: [{ build, updated: "2026-11-27T10:00:00Z" }] }) });
+  });
+  await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
+  const present = page.getByRole("region", { name: /^Present A7\.04/ });
+  const card = present.locator(".present-class");
+  await card.getByPlaceholder("For example 9X").fill("9X");
+  await card.getByRole("button", { name: "Teach" }).click();
+  await expect(card.locator(".present-saved")).toContainText("saved on MathsDock for 9X");
+  await expect(card.locator(".present-resume")).toContainText("You stopped at side 3");
+  await expect(present.getByRole("button", { name: /^Side 3, has ink/ })).toBeVisible();
+  expect(puts).toHaveLength(0);
+
+  await present.getByRole("button", { name: "Annotate" }).click();
+  await drawOn(page, present.locator('.present-side[data-side="1"]'));
+  await page.waitForTimeout(600);
+  // Leaving Present sends what is waiting at once, rather than after the usual few seconds.
+  await present.getByRole("button", { name: "Library" }).click();
+  await expect.poll(() => puts.length).toBe(1);
+  expect(puts[0].class).toBe("9X");
+  expect(puts[0].build).toBe(build);
+  expect(Object.keys(puts[0].record.sides).sort()).toEqual(["1", "3"]);
+});
+
 test("teacher notes from the answers copy show on the pupil copy on screen only, and T hides them", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
