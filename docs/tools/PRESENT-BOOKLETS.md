@@ -16,9 +16,12 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
 - **Version** lists the same booklet in every version (Main first) and each one's earlier builds from its history.
 - The surround is light grey (`#eef1f5`), not white or dark, and is writable: a pen-down beside a side draws on the
   nearest side, as in the Question Bank.
-- The pen rail, keys and ink are the Question Bank's (`src/bank/AnnotationBar.tsx`, `AnnotationLayer.tsx`,
-  `inkShape.ts`, `inkSnap.ts`): pen, highlighter, eraser, laser, move, straight lines, 8 colours, sizes, shape
-  snapping, level and upright within 5°, fist and stylus-end erase, undo and redo across sides.
+- The pen is one shared component with the Question Bank: `src/bank/usePen.ts` holds the pen's state, settings,
+  undo and redo, pointer and keys, and both pages draw with `AnnotationBar.tsx`, `AnnotationLayer.tsx`,
+  `inkShape.ts` and `inkSnap.ts`. Change the pen there, never in one page. It has pen, highlighter, eraser, laser,
+  move, straight lines, 8 colours, sizes, shape snapping, level and upright within 5°, stylus-end erase, and undo
+  and redo across sides. Fist erase works only on boards that report contact size to the browser; Tim's SMART
+  board does not (tested with CueCurve, Nov 2026), so it is not promised.
 - Coloured overlays (Off, Yellow, Blue, Green, Lilac) sit in the foot bar and share the Question Bank's saved choice.
 - Zoom: Fit width (default), Fit side, steps from 50% to 400%, Ctrl + wheel or pinch; a zoom keeps the same place.
 - **Display** goes full screen with only the sides, the rail and a dock (side number, Pupil | Answers, Annotate,

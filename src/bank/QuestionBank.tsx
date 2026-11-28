@@ -8,8 +8,8 @@ import { ZoomControls, ZoomOverview } from "./ZoomControls";
 import { STACK_GAP, usePane } from "./usePane";
 import { MarkSchemeIcon, QuestionBankIcon, WorkedSolutionIcon } from "../site/MathsDockIcons";
 import { AnnotationBar } from "./AnnotationBar";
-import { annotationReducer, readAnnotationPreferences, saveAnnotationPreferences, withTool, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
-import type { AnnotationSettings } from "./AnnotationLayer";
+import { usePen } from "./usePen";
+import { annotationReducer, hasInk, layerOf } from "./annotations";
 import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
 import { assetUrl, downloadBlob, preloadQuestion, questionImage, stackImage } from "./pdf";
@@ -76,12 +76,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [display,setDisplay]=useState(false);
   // Screen-only annotations: in memory for this visit, one layer per view, never saved, linked or exported.
   const [ink,dispatchInk]=useReducer(annotationReducer,{});
-  const [annotating,setAnnotating]=useState(false);
-  const [annotatePrefs,setAnnotatePrefs]=useState<AnnotationPreferences>(readAnnotationPreferences);
-  useEffect(()=>saveAnnotationPreferences(annotatePrefs),[annotatePrefs]);
-  // Read by the key handler, so quick key presses never see a stale tool.
-  const annotateNow=useRef({annotating,tool:annotatePrefs.tool});annotateNow.current={annotating,tool:annotatePrefs.tool};
-  const undoKeys=useRef<string[]>([]);const redoKeys=useRef<string[]>([]);
+  const pen=usePen(ink,dispatchInk);
+  const {handleKey:handlePenKey,close:closePen,now:penNow}=pen;
   const [showPerformance,setShowPerformance]=useState(false);
   const [listOpen,setListOpen]=useState(false);
   const [draft,dispatchDraft]=useReducer(draftReducer,undefined,()=>loadPaperDraft());
@@ -181,7 +177,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const moveNow=useRef<(direction:number)=>void>(()=>undefined);
   const swipe=useCallback((direction:1|-1)=>moveNow.current(direction),[]);
   const zoomSetters=useMemo(()=>{const set=(target:ViewRole)=>(value:number)=>setZooms(previous=>previous[target]===value?previous:{...previous,[target]:value});return{question:set("question"),scheme:set("scheme"),"worked-solution":set("worked-solution")};},[]);
-  const paneOptions={question,served,partsView,fit,room,onSwipe:swipe,enabled:!!question&&!topicsMode,drawing:annotating&&annotatePrefs.tool!=="hand",layout:`${!!catalogue}|${display}|${listOpen}|${route.bankView}|${on.join()}`};
+  const paneOptions={question,served,partsView,fit,room,onSwipe:swipe,enabled:!!question&&!topicsMode,drawing:pen.drawing,layout:`${!!catalogue}|${display}|${listOpen}|${route.bankView}|${on.join()}`};
   const questionPane=usePane({...paneOptions,role:"question",shown:on.includes("question"),wanted:route.view,zoom:zooms.question,setZoom:zoomSetters.question});
   const schemePane=usePane({...paneOptions,role:"scheme",shown:on.includes("scheme"),wanted:showing.view.scheme,zoom:zooms.scheme,setZoom:zoomSetters.scheme});
   const workedPane=usePane({...paneOptions,role:"worked-solution",shown:on.includes("worked-solution"),worked:workedShown?.shown,wanted:showing.view["worked-solution"],zoom:zooms["worked-solution"],setZoom:zoomSetters["worked-solution"]});
@@ -204,18 +200,9 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   },[listed,question,viewIndex,two,views.length,role,showing,route,results,questionIndex,go]);
   moveNow.current=move;
   const visibleKeysRef=useRef(visibleKeys);visibleKeysRef.current=visibleKeys;
-  const inkRef=useRef(ink);inkRef.current=ink;
-  const commitInk=useCallback((key:string,strokes:Stroke[])=>{undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"set",key,strokes});},[]);
-  // Undo and redo follow the order of changes across the views on screen (two views can be visible).
-  const undoInk=useCallback(()=>{const keys=undoKeys.current;for(let i=keys.length-1;i>=0;i--){const key=keys[i];if(visibleKeysRef.current.includes(key)&&layerOf(inkRef.current,key).past.length){keys.splice(i,1);redoKeys.current.push(key);dispatchInk({type:"undo",key});return;}}},[]);
-  const redoInk=useCallback(()=>{const keys=redoKeys.current;for(let i=keys.length-1;i>=0;i--){const key=keys[i];if(visibleKeysRef.current.includes(key)&&layerOf(inkRef.current,key).future.length){keys.splice(i,1);undoKeys.current.push(key);dispatchInk({type:"redo",key});return;}}},[]);
-  const clearInk=()=>{for(const key of visibleKeys)if(layerOf(ink,key).strokes.length)commitInk(key,[]);};
-  const clearAllInk=()=>{for(const [key,layer] of Object.entries(ink))if(layer.strokes.length)undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"clearAll"});};
+  const isVisibleKey=(key:string)=>visibleKeys.includes(key);
+  const isVisibleKeyRef=useRef((key:string)=>visibleKeysRef.current.includes(key));
   const viewHasInk=visibleKeys.some(key=>layerOf(ink,key).strokes.length>0);
-  const penSize=SIZES.find(size=>size.value===annotatePrefs.penSize)!.pen,highlighterSize=SIZES.find(size=>size.value===annotatePrefs.highlighterSize)!.highlighter;
-  const stageCursor=(scale:number)=>annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?highlighterSize:penSize,scale):undefined;
-  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize,highlighterSize,straight:annotatePrefs.straight}),[annotatePrefs,penSize,highlighterSize]);
-  const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>withTool(p,tool));setAnnotating(true);},[]);
   // Question and worked solution are one switch: at most one shows, because the worked solution already holds the question.
   // The mark scheme turns on and off beside whichever is showing. One pane always stays on, and an answer opens at fit.
   const toggle=useCallback((target:ViewRole)=>{
@@ -235,19 +222,9 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     if(!active||topicsMode)return;
     const key=(e:KeyboardEvent)=>{
       // Escape puts the pen down first, so a second press is needed to leave Display.
-      if(e.key==="Escape"){if(annotateNow.current.annotating){annotateNow.current.annotating=false;setAnnotating(false);return;}leaveDisplay();return;}
+      if(e.key==="Escape"){if(penNow.current.annotating){closePen();return;}leaveDisplay();return;}
       if((e.target as HTMLElement)?.closest("input,select,textarea,dialog,[contenteditable=true]")||reviewOpen)return;
-      const k=e.key.toLowerCase();
-      if(annotateNow.current.annotating&&(e.ctrlKey||e.metaKey)&&!e.altKey&&(k==="z"||k==="y")){e.preventDefault();if(k==="y"||e.shiftKey)redoInk();else undoInk();return;}
-      if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
-        if(k==="p"){e.preventDefault();if(annotateNow.current.annotating&&annotateNow.current.tool==="pen"){annotateNow.current.annotating=false;setAnnotating(false);}else chooseTool("pen");return;}
-        if(annotateNow.current.annotating){
-          const tool=({h:"highlighter",e:"eraser",l:"laser",v:"hand"} as Record<string,AnnotationTool>)[k];
-          if(tool){e.preventDefault();chooseTool(tool);return;}
-          const n=Number.parseInt(e.key,10);
-          if(n>=1&&n<=PEN_COLOURS.length){const colours=annotateNow.current.tool==="highlighter"?HIGHLIGHTER_COLOURS:PEN_COLOURS;const c=colours[n-1];if(c){e.preventDefault();setAnnotatePrefs(p=>p.tool==="highlighter"?{...p,highlighterColour:c.value}:{...withTool(p,"pen"),penColour:c.value});return;}}
-        }
-      }
+      if(handlePenKey(e,isVisibleKeyRef.current))return;
       if(e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.startsWith("Arrow")){
         // Shift + arrows pan a zoomed view; plain arrows still change question (presentation clickers).
         e.preventDefault();panBy(e.key==="ArrowLeft"?-.15:e.key==="ArrowRight"?.15:0,e.key==="ArrowUp"?-.15:e.key==="ArrowDown"?.15:0);return;
@@ -264,7 +241,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const fullscreen=()=>{if(!document.fullscreenElement)setDisplay(false);};
     window.addEventListener("keydown",key);document.addEventListener("fullscreenchange",fullscreen);
     return()=>{window.removeEventListener("keydown",key);document.removeEventListener("fullscreenchange",fullscreen);};
-  },[active,topicsMode,move,reveal,leaveDisplay,reviewOpen,panBy,zoomStep,zoomFit,chooseTool,undoInk,redoInk]);
+  },[active,topicsMode,move,reveal,leaveDisplay,reviewOpen,panBy,zoomStep,zoomFit,handlePenKey,closePen,penNow]);
   useEffect(()=>{const q=!topicsMode&&active&&following?details[following.id]:undefined;if(q)void preloadQuestion(q).catch(()=>undefined);},[following,details,topicsMode,active]);
 
   const actions=useRef({catalogue,route,listed,role,on,viewIndex,go});actions.current={catalogue,route,listed,role,on,viewIndex,go};
@@ -296,7 +273,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   // The line under the source names the question's view while the question is on screen.
   const infoPane=on.includes("question")?questionPane:panes[role];
 
-  const annotateButton=<button className="qb-button qb-annotate-toggle" aria-pressed={annotating} title="Annotate on screen · P" onClick={()=>annotating?setAnnotating(false):chooseTool(annotatePrefs.tool==="hand"?"pen":annotatePrefs.tool)}><Pencil size={16}/>Annotate{viewHasInk&&<span className="qb-ink-dot" aria-label="(this view has annotations)"/>}</button>;
+  const annotateButton=<button className="qb-button qb-annotate-toggle" aria-pressed={pen.annotating} title="Annotate on screen · P" onClick={pen.toggle}><Pencil size={16}/>Annotate{viewHasInk&&<span className="qb-ink-dot" aria-label="(this view has annotations)"/>}</button>;
   const paneButton=(target:ViewRole,extra?:ReactNode)=>{const {name,Icon}=PANES.find(pane=>pane.role===target)!;
     return <button className="qb-button qb-switch" aria-pressed={on.includes(target)} disabled={target==="worked-solution"&&!question?.workedSolution} title={target==="scheme"?"Mark scheme · M":undefined} onClick={()=>toggle(target)}>{extra}<Icon size={16}/>{name}</button>;};
   // A joined two-part switch for the question or its worked solution, then a separate on/off toggle for the mark scheme.
@@ -323,8 +300,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const pane=panes[shown],{Icon,name}=PANES.find(item=>item.role===shown)!;
     return <div key={shown} role="group" aria-label={name} className={`qb-pane${many&&shown===role?" qb-pane-active":""}`} tabIndex={many?0:undefined} onPointerDownCapture={()=>activate(shown)} onFocusCapture={()=>activate(shown)} onWheelCapture={event=>{if(event.ctrlKey||event.metaKey)activate(shown);}}>
       {(many||shown==="worked-solution")&&<div className="qb-pane-header"><Icon size={16}/><span>{name}</span>{pane.views.length>1&&<small>View {pane.viewIndex+1}{pane.two?`–${pane.viewIndex+2}`:""} of {pane.views.length}</small>}{shown==="worked-solution"&&workedOptions}</div>}
-      <div ref={pane.stage} style={{backgroundColor:tint,cursor:stageCursor(pane.scale)}} className={`qb-stage${shown==="scheme"?" qb-scheme-stage":""}${question&&pane.pannable?" qb-pannable":""}`}>
-        {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:pane.visibleViews.reduce((n,v)=>n+v.width*pane.scale,0)+(pane.two?16:0),minHeight:pane.visibleViews.length?Math.max(...pane.visibleViews.map(v=>v.height*pane.scale)):0}}>{shown==="worked-solution"&&!workedShown?.shown&&(workedShown?.error?<div className="qb-empty" role="alert"><h2>Could not load the worked solution</h2><p>{workedShown.error}</p><button className="qb-button" onClick={()=>setWorkedRetry(v=>v+1)}>Try again</button></div>:<p role="status">Loading worked solution…</p>)}{pane.visibleViews.map(v=><div className="qb-view-stack" style={{gap:STACK_GAP*pane.scale}} key={v.items.map(i=>`${i.pdf}|${i.view.page}`).join("+")}>{v.items.map(item=>item.worked?<WorkedSurface key={`${question.id}|${question.revision}|${question.workedSolution?.revision||""}|${item.pdf}|${item.view.page}|${item.view.id}`} pdf={item.pdf} view={item.view} overlay={item.overlay} scale={pane.scale} retryKey={reload} colour={overlay} marks={workedMarks} upTo={upTo}/>:<PdfView key={`${question.id}|${question.revision}|${shown}|${item.pdf}|${item.view.page}`} path={item.pdf} label={pane.resource!.label} view={item.view} scale={pane.scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,pane.inkKey(item)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(pane.inkKey(item),strokes)}}/>)}</div>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="unknown-paper"?"That paper was not found":reason==="filtered"?"No questions match these filters":reason==="revision"?"Only Year 11 revision papers have this topic":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":reason==="revision"?"Its questions come from papers kept for the Year 11 revision programme, which are hidden. Include them only if pupils will not meet these questions later.":reason==="unknown-paper"?"The link names a paper that is not in the question bank. Search by Sparx code or topic instead.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",revision:"hide"});else if(reason==="revision")go({...route,revision:"include",question:"",view:0});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":reason==="revision"?"Include Year 11 revision papers":"Search another topic"}</button></div>}
+      <div ref={pane.stage} style={{backgroundColor:tint,cursor:pen.cursor(pane.scale)}} className={`qb-stage${shown==="scheme"?" qb-scheme-stage":""}${question&&pane.pannable?" qb-pannable":""}`}>
+        {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:pane.visibleViews.reduce((n,v)=>n+v.width*pane.scale,0)+(pane.two?16:0),minHeight:pane.visibleViews.length?Math.max(...pane.visibleViews.map(v=>v.height*pane.scale)):0}}>{shown==="worked-solution"&&!workedShown?.shown&&(workedShown?.error?<div className="qb-empty" role="alert"><h2>Could not load the worked solution</h2><p>{workedShown.error}</p><button className="qb-button" onClick={()=>setWorkedRetry(v=>v+1)}>Try again</button></div>:<p role="status">Loading worked solution…</p>)}{pane.visibleViews.map(v=><div className="qb-view-stack" style={{gap:STACK_GAP*pane.scale}} key={v.items.map(i=>`${i.pdf}|${i.view.page}`).join("+")}>{v.items.map(item=>item.worked?<WorkedSurface key={`${question.id}|${question.revision}|${question.workedSolution?.revision||""}|${item.pdf}|${item.view.page}|${item.view.id}`} pdf={item.pdf} view={item.view} overlay={item.overlay} scale={pane.scale} retryKey={reload} colour={overlay} marks={workedMarks} upTo={upTo}/>:<PdfView key={`${question.id}|${question.revision}|${shown}|${item.pdf}|${item.view.page}`} path={item.pdf} label={pane.resource!.label} view={item.view} scale={pane.scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,pane.inkKey(item)).strokes,active:pen.annotating,settings:pen.settings,onCommit:strokes=>pen.commit(pane.inkKey(item),strokes)}}/>)}</div>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="unknown-paper"?"That paper was not found":reason==="filtered"?"No questions match these filters":reason==="revision"?"Only Year 11 revision papers have this topic":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":reason==="revision"?"Its questions come from papers kept for the Year 11 revision programme, which are hidden. Include them only if pupils will not meet these questions later.":reason==="unknown-paper"?"The link names a paper that is not in the question bank. Search by Sparx code or topic instead.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",revision:"hide"});else if(reason==="revision")go({...route,revision:"include",question:"",view:0});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":reason==="revision"?"Include Year 11 revision papers":"Search another topic"}</button></div>}
       </div>
       {question&&<ZoomOverview stage={pane.stage} active={pane.pannable&&pane.zoom>1.001} redrawKey={`${question.id}|${shown}|${pane.viewIndex}|${pane.scale}|${overlay}|${pane.partMode}`}/>}
     </div>;
@@ -379,7 +356,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
           <div className="qb-stage-frame"><div className="qb-panes">{on.map(renderPane)}</div>
-          {question&&annotating&&<AnnotationBar preferences={annotatePrefs} onChange={setAnnotatePrefs} canUndo={visibleKeys.some(key=>layerOf(ink,key).past.length>0)} canRedo={visibleKeys.some(key=>layerOf(ink,key).future.length>0)} hasInk={viewHasInk} anyInk={hasInk(ink)} onUndo={undoInk} onRedo={redoInk} onClear={clearInk} onClearAll={clearAllInk} onClose={()=>setAnnotating(false)}/>}
+          {question&&pen.annotating&&<AnnotationBar preferences={pen.prefs} onChange={pen.setPrefs} canUndo={pen.canUndo(isVisibleKey)} canRedo={pen.canRedo(isVisibleKey)} hasInk={viewHasInk} anyInk={hasInk(ink)} onUndo={()=>pen.undo(isVisibleKey)} onRedo={()=>pen.redo(isVisibleKey)} onClear={()=>pen.clear(visibleKeys)} onClearAll={()=>pen.clear(Object.keys(ink))} onClose={pen.close}/>}
           {question&&display&&<div className="qb-display-dock">{annotateButton}<ZoomControls floating zoom={zoom} onStep={zoomStep} onFit={zoomFit}/></div>}
           </div>
           <footer className="qb-footer">
