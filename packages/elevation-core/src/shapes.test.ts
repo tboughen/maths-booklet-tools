@@ -115,6 +115,10 @@ describe("solids made of shapes: review fixes", () => {
     expect(() => shapesDoc([cylinder, { ...cone, at: at(2, 2, 5) } as c.Shape])).not.toThrow();
     expect(() => shapesDoc([cylinder, { ...cone, at: at(2, 2, 4.5) } as c.Shape])).toThrow(/overlap/);
     expect(() => shapesDoc([{ type: "sphere", at: at(3, 3, 3), r: 2 }, { type: "sphere", at: at(6, 3, 3), r: 2 }])).toThrow(/overlap/);
+    // A thin tip pushed half a square into a box falls between the grid points; its apex is caught.
+    const box: c.Shape = { type: "prism", at: at(0, 0, 3.5), section: [[0, 0], [5, 0], [5, 2], [0, 2]], axis: "y", length: 5 };
+    expect(() => shapesDoc([{ type: "cone", at: at(2.5, 2.5, 0), r: 0.5, h: 4, axis: "z" }, box])).toThrow(/overlap/);
+    expect(() => shapesDoc([{ type: "pyramid", at: at(0, 0, 0), base: [[0, 0], [1, 0], [1, 1], [0, 1]], apex: at(1, 1, 4) }, box])).toThrow(/overlap/);
   });
   it("draws no edge at a corner in the middle of a straight side", () => {
     const withMid: c.Shape = { type: "prism", at: at(0, 0, 0), section: [[0, 0], [4, 0], [4, 4], [2, 4], [0, 4]], axis: "y", length: 3 };

@@ -614,13 +614,17 @@ export function insideShape(s: Shape, p: V3): boolean {
 }
 /**
  * The first two shapes (numbered from 0) whose insides overlap, or null. Shapes may touch face to face but not
- * overlap, because lines where two solids pass through each other are not edges of either. Points on a grid of
- * quarter squares, offset off the half-square lines, are tried inside both shapes' common box.
+ * overlap, because lines where two solids pass through each other are not edges of either. Each shape's corners
+ * are tried inside the other, then points on a grid of quarter squares (offset off the half-square lines) inside
+ * both shapes' common box.
  */
 export function overlappingShapes(shapes: Shape[]): [number, number] | null {
-  const boxes = shapes.map((s) => bounds(buildMesh([s])));
+  const meshes = shapes.map((s) => buildMesh([s]));
+  const boxes = meshes.map(bounds);
   for (let i = 0; i < shapes.length; i++)
     for (let j = i + 1; j < shapes.length; j++) {
+      // A corner (a cone's or pyramid's tip too) strictly inside the other shape: catches tips thinner than the grid.
+      if (meshes[i].points.some((p) => insideShape(shapes[j], p)) || meshes[j].points.some((p) => insideShape(shapes[i], p))) return [i, j];
       const lo = v3(Math.max(boxes[i].min.x, boxes[j].min.x), Math.max(boxes[i].min.y, boxes[j].min.y), Math.max(boxes[i].min.z, boxes[j].min.z));
       const hi = v3(Math.min(boxes[i].max.x, boxes[j].max.x), Math.min(boxes[i].max.y, boxes[j].max.y), Math.min(boxes[i].max.z, boxes[j].max.z));
       if (lo.x >= hi.x || lo.y >= hi.y || lo.z >= hi.z) continue;
