@@ -117,16 +117,17 @@ export const isCoverWork = (r: { unit: string; note?: string }) => r.unit === "R
 export const COVER_KEEP_DAYS = 7;
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const addDays = (day: string, n: number) => { const [y, m, d] = day.split("-").map(Number); return iso(new Date(y, m - 1, d + n)); };
-/** Today on this device, YYYY-MM-DD. */
-export const localToday = (now = new Date()) => iso(now);
+/** Today in the UK, YYYY-MM-DD: the same clock the Worker checks the date against. */
+export const localToday = (now = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 /** The date box's starting value: the next weekday after today (term dates are not known here). */
 export function nextSchoolDay(now = new Date()): string {
-  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
-  return iso(d);
+  let day = addDays(localToday(now), 1);
+  while ([0, 6].includes(weekday(day))) day = addDays(day, 1);
+  return day;
 }
+const weekday = (day: string) => { const [y, m, d] = day.split("-").map(Number); return new Date(y, m - 1, d).getDay(); };
 /** The latest date a request may name, as the Worker checks it. */
-export const lastCoverDate = (now = new Date()) => addDays(iso(now), 30);
+export const lastCoverDate = (now = new Date()) => addDays(localToday(now), 30);
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 /** "2026-11-28" as "Sat 28 Nov". */
@@ -173,7 +174,7 @@ export function coverLibrary(log: CoverLogEntry[], resources: Resource[], remove
     entries.push({ key: r.id, number: noteNumber(r.note), year: r.year, tier: null, className: note.className, room: note.room, date: note.date ?? r.updated.slice(0, 10), who: null, mine: false, state: "ready", text: r.title, resource: r });
   }
   entries.sort((a, b) => b.date.localeCompare(a.date) || (b.number ?? 0) - (a.number ?? 0));
-  const cut = addDays(iso(now), -COVER_KEEP_DAYS);
+  const cut = addDays(localToday(now), -COVER_KEEP_DAYS);
   return { recent: entries.filter((e) => e.date >= cut), older: entries.filter((e) => e.date < cut) };
 }
 

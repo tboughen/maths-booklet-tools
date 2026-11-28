@@ -154,6 +154,6 @@ export async function remakeLesson(
   const lesson = booklet.document.lessons[index];
   const request = change === null ? lessonRequest(planFromBooklet(booklet), index, { group: booklet.document.group, context, methods }) : lessonChangeRequest(lesson, index, change);
   const r = await runJob(o.provider, lessonJob, { ...o, request });
-  // A rebuild keeps the teacher's own notes and Did you know fact when the new lesson brings none.
-  return { lesson: { ...r.value.lesson, teacherNotes: r.value.lesson.teacherNotes.trim() || lesson.teacherNotes, didYouKnow: r.value.lesson.didYouKnow.trim() || lesson.didYouKnow }, flags: r.value.flags, usage: r.usage, model: r.model, attempts: r.attempts };
+  // A rebuild keeps the teacher's own notes and Did you know fact when the new lesson brings none, and always a cover lesson's class, room and date.
+  return { lesson: { ...r.value.lesson, teacherNotes: r.value.lesson.teacherNotes.trim() || lesson.teacherNotes, didYouKnow: r.value.lesson.didYouKnow.trim() || lesson.didYouKnow, ...(lesson.cover ? { cover: lesson.cover } : {}) }, flags: r.value.flags, usage: r.usage, model: r.model, attempts: r.attempts };
 }
