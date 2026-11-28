@@ -168,12 +168,13 @@ export default function SiteApp() {
       return;
     }
     const clicked = new URL(link.href, location.href).href;
-    // Inside the Booklet builder's diagram dialog the tool is the whole page: links to other pages do nothing.
-    if (embeddedInBooklet && new URL(clicked).origin === location.origin && readPage(new URL(clicked)) !== page) {
+    const url = new URL(upgradeLegacyLink(clicked) ?? clicked);
+    // Inside the Booklet builder's diagram dialog the tool is the whole page: a link that would leave this copy
+    // (another page, or the same page with another address) does nothing. In-page anchors still work.
+    if (embeddedInBooklet && url.origin === location.origin && (url.pathname !== location.pathname || url.search !== location.search)) {
       event.preventDefault();
       return;
     }
-    const url = new URL(upgradeLegacyLink(clicked) ?? clicked);
     const next = readPage(url);
     if (
       url.origin !== location.origin ||

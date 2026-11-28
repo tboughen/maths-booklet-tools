@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DIAGRAM_KINDS, FAMILIES } from "../../packages/diagram-core/src/registry";
-import { closeDiagramCopy, openDiagramCopy, readDiagramCopy, TOOL_STORAGE } from "./diagramTools";
+import { closeDiagramCopy, openDiagramCopy, readDiagramCopy, sweepDiagramCopies, TOOL_STORAGE } from "./diagramTools";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { diagramEnvelope } from "../../packages/resource-core/src/schema";
 
@@ -43,5 +43,14 @@ describe("diagram tools opened from a booklet card", () => {
     expect(JSON.parse(localStorage.getItem(copy.key)!)).toEqual({ storageVersion: 1, envelope: JSON.parse(JSON.stringify(envelope)) });
     localStorage.setItem(copy.key, JSON.stringify({ storageVersion: 1, envelope: { ...JSON.parse(JSON.stringify(envelope)) }, extra: 1 }));
     expect(readDiagramCopy(copy)).toEqual(JSON.parse(JSON.stringify(envelope)));
+  });
+
+  it("sweeps copies a closed tab left behind, once they are a day old", () => {
+    const old = openDiagramCopy("number-line", FAMILIES["number-line"].create({ spec: {} }));
+    sweepDiagramCopies(Date.now() + 60_000);
+    expect(localStorage.getItem(old.key)).not.toBeNull();
+    sweepDiagramCopies(Date.now() + 25 * 60 * 60 * 1000);
+    expect(localStorage.getItem(old.key)).toBeNull();
+    expect(localStorage.getItem("maths-booklet-tools:booklet:diagram-copies")).toBeNull();
   });
 });

@@ -50,6 +50,38 @@ function fromStored(kind: DiagramKind, raw: string): unknown {
   return record.envelope;
 }
 
+/** Copies the Booklet builder has open, with when each opened, so a tab closed mid-edit leaves nothing for long. */
+const OPEN_COPIES = "maths-booklet-tools:booklet:diagram-copies";
+const DAY = 24 * 60 * 60 * 1000;
+function openCopies(): Record<string, number> {
+  try {
+    const list: unknown = JSON.parse(localStorage.getItem(OPEN_COPIES) ?? "{}");
+    return list && typeof list === "object" && !Array.isArray(list) ? (list as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+}
+function noteCopy(key: string, open: boolean) {
+  const list = openCopies();
+  if (open) list[key] = Date.now();
+  else delete list[key];
+  if (Object.keys(list).length) localStorage.setItem(OPEN_COPIES, JSON.stringify(list));
+  else localStorage.removeItem(OPEN_COPIES);
+}
+/** Remove copies left by a booklet tab that closed with the dialog open, once they are a day old (another tab may still be editing a newer one). */
+export function sweepDiagramCopies(now = Date.now()) {
+  try {
+    for (const [key, at] of Object.entries(openCopies())) {
+      if (!(now - at < DAY) && /:worked:[a-f0-9-]{36}$/.test(key)) {
+        localStorage.removeItem(key);
+        noteCopy(key, false);
+      }
+    }
+  } catch {
+    // No storage: nothing was left behind.
+  }
+}
+
 export interface DiagramCopy {
   kind: DiagramKind;
   key: string;
@@ -64,6 +96,7 @@ export function openDiagramCopy(kind: DiagramKind, envelope: unknown): DiagramCo
   const id = crypto.randomUUID();
   const key = `${TOOL_STORAGE[kind]}:worked:${id}`;
   const seeded = toStored(kind, envelope);
+  noteCopy(key, true);
   localStorage.setItem(key, seeded);
   const url = new URL(siteBase() + FAMILIES[kind].route.replace(/^\//, ""), location.origin);
   url.searchParams.set("resourceCopy", id);
@@ -89,6 +122,7 @@ export function readDiagramCopy(copy: DiagramCopy): unknown | null {
 export function closeDiagramCopy(copy: DiagramCopy) {
   try {
     localStorage.removeItem(copy.key);
+    noteCopy(copy.key, false);
   } catch {
     // Storage went away: nothing is left to tidy.
   }

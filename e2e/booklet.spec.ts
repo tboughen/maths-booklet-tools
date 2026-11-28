@@ -263,6 +263,13 @@ test("edits a card's diagram in its own tool, in a dialog over the booklet, then
   expect(JSON.stringify(after)).not.toBe(before);
   await page.getByRole("button", { name: "Undo" }).click();
   expect(JSON.stringify((await saved(page)).document.lessons[0].sections[0].cards[0].items.at(-1))).toBe(before);
+  // Escape closes the dialog only: the card's editor stays open, and focus goes back to the button.
+  await card.getByRole("button", { name: "Edit the ratio table in its tool" }).click();
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(card).toBeVisible();
+  await expect(card.getByRole("button", { name: "Edit the ratio table in its tool" })).toBeFocused();
   // The teacher's own ratio table work is untouched, and the copies are tidied away.
   const stored = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("maths-booklet-tools:ratio-table-envelope:v1")));
   expect(stored).toEqual(["maths-booklet-tools:ratio-table-envelope:v1"]);

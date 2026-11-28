@@ -36,6 +36,7 @@ import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { diagramEnvelope } from "../../packages/resource-core/src/schema";
 import type { DiagramKind } from "../../packages/diagram-core/src/registry";
 import { DiagramDialog } from "./DiagramDialog";
+import { sweepDiagramCopies } from "./diagramTools";
 import { BesideToggle, Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
 import { withBeside } from "../worksheet/edit";
 import { pagesPdf } from "../worksheet/export";
@@ -167,6 +168,8 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   /** The card being edited on the page, if any. */
   const [selected, setSelected] = useState<Spot | null>(null);
   /** A card's diagram open in its own tool (stage 4): where it sits in the card, and the envelope it opened with. */
+  /** The button that opened the diagram dialog: focus goes back to it when the dialog closes. */
+  const diagramOpener = useRef<HTMLElement | null>(null);
   const [diagramEdit, setDiagramEdit] = useState<{ kind: DiagramKind; envelope: unknown; lesson: number; section: number; card: number; path: number[] } | null>(null);
   const [focus, setFocus] = useState(0);
   const file = useRef<HTMLInputElement>(null);
@@ -203,16 +206,25 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     update(next.document);
     return commit(next);
   }
-  /** The diagram back from its tool, as one undo step. The page is blocked only by the dialog itself here. */
-  function putDiagram(at: NonNullable<typeof diagramEdit>, envelope: unknown) {
-    if (busy || aiBusy || recovery !== null || pending !== null) return false;
+  /**
+   * The diagram back from its tool, as one undo step. The page is blocked only by the dialog itself here. Returns why
+   * it could not go back ("" when it did), so the dialog stays open with the reason and the teacher's edit is kept.
+   */
+  function putDiagram(at: NonNullable<typeof diagramEdit>, envelope: unknown): string {
+    if (recovery !== null) return "The saved booklet changed in another tab. Close this, deal with the protected copy, then edit the diagram again.";
+    if (busy || aiBusy || pending !== null) return "The booklet is busy. Wait a moment and press Done again.";
     const next = structuredClone(b);
     const items = next.document.lessons[at.lesson]?.sections[at.section]?.cards[at.card]?.items;
     const list = at.path.length === 1 ? items : (items?.[at.path[0]] as Extract<Item, { type: "part" }> | undefined)?.items;
     const leaf = list?.[at.path[at.path.length - 1]];
-    if (leaf?.type !== "diagram" || leaf.diagram.tool !== at.kind) return false;
+    if (leaf?.type !== "diagram" || leaf.diagram.tool !== at.kind) return "The diagram is no longer in this card.";
     leaf.diagram = { tool: at.kind, envelope: envelope as Record<string, unknown> };
-    return commit(next);
+    try {
+      validateBooklet(next);
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e);
+    }
+    return commit(next) ? "" : "The diagram could not go back in the card.";
   }
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();
@@ -358,15 +370,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     return label === null ? d.lessons[c.lesson].sections[c.section].cards[c.card].title || sectionTitle(d.lessons[c.lesson].sections[c.section]) : `Question ${label}`;
   };
   const selectedRef = useRef<HTMLElement>(null);
+  // Diagram copies a closed tab left open in storage (stage 4) go after a day.
+  useEffect(() => sweepDiagramCopies(), []);
   useEffect(() => {
     if (editing) selectedRef.current?.scrollIntoView({ block: "nearest" });
   }, [editing?.lesson, editing?.section, editing?.card]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!editing) return;
+    // While a diagram is open in its tool, Escape belongs to that dialog.
+    if (!editing || diagramEdit) return;
     const key = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [editing]);
+  }, [editing, diagramEdit]);
 
   const fromLibrary = source?.library ?? null;
   /** The build check problems on the booklet as it is saved (the panel may lag a keystroke behind). */
@@ -433,6 +448,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           setMessage(`This diagram cannot open in its tool: ${err instanceof Error ? err.message : String(err)}`);
           return;
         }
+        diagramOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         setDiagramEdit({ kind: leaf.diagram.tool, envelope, lesson: li, section: si, card: ci, path });
       };
     };
@@ -829,9 +845,16 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 kind={diagramEdit.kind}
                 envelope={diagramEdit.envelope}
                 onDone={(next) => {
-                  if (putDiagram(diagramEdit, next)) setMessage("The diagram is back in the card. Undo puts the old one back.");
+                  const problem = putDiagram(diagramEdit, next);
+                  if (!problem) setMessage("The diagram is back in the card. Undo puts the old one back.");
+                  return problem;
                 }}
-                onClose={() => setDiagramEdit(null)}
+                onClose={() => {
+                  setDiagramEdit(null);
+                  // The button is enabled again once the page redraws; then keyboard users are back where they were.
+                  const opener = diagramOpener.current;
+                  window.requestAnimationFrame(() => opener?.isConnected && opener.focus());
+                }}
               />
             )}
             {recovery !== null && (
