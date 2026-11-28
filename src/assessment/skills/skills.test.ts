@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseSkillSets, type SkillSet } from "./model";
-import { defaultPlan, fitSheet, isAbsent, pick, sheetResource, skillLabels, startLevel } from "./compose";
+import { defaultPlan, fitSheet, isAbsent, pick, sheetResource, skillLabels, startLevel, withExclusions } from "./compose";
 
 // An invented two-part assessment with three small skills (the real banks live in the private question bank).
 const card = (title: string) => ({ title, items: [{ type: "text", text: `Work out ${title}.` }, { type: "answerLine", prefix: "", suffix: "", answer: "1", inline: false }] });
@@ -72,5 +72,35 @@ describe("skill sheets", () => {
   it("reads marks whose part labels the import wrote in capitals", () => {
     const pupils = [{ key: "a", identifier: "S001", scores: { Q1: 1, Q2A: 2, Q2B: null }, profile: {} }];
     expect(skillLabels(set(), pupils, true)[0].scores).toEqual({ Q1: 1, Q2a: 2, Q2b: null, Q3: null });
+  });
+  it("lays out sheets with one or two skills on matching column layouts", () => {
+    const s = set();
+    for (const n of [1, 2]) {
+      const plan = defaultPlan(s, { Q1: 0, Q2a: 0, Q2b: 0, Q3: 0 }).slice(0, n);
+      const { resource, problems } = fitSheet(s, "Student 01", plan);
+      expect(problems).toEqual([]);
+      expect(resource.document.sides.map((d) => d.columns.length)).toEqual([n, n]);
+    }
+    expect(() => fitSheet(s, "Student 01", [])).toThrow(/one to three skills/);
+  });
+  it("fills a stretch side 2 from back-to-the-paper cards when only one stretch card exists, and names what it holds", () => {
+    const one = set(); one.skills[1].cards = one.skills[1].cards.filter((c) => c.card.title !== "B S.9");
+    const t = (x: { card: Record<string, unknown> }[]) => x.map((c) => c.card.title);
+    expect(pick(one.skills[1], "S", 6, 6).map(t)).toEqual([["B S.8"], ["B P.7"]]);
+    const s = set(), sheet = sheetResource(s, "x", [{ code: "A", level: 4 }, { code: "B", level: "S" }], [[6, 6], [6, 6]]);
+    expect(sheet.document.sides[1].columns.map((c) => c.heading)).toEqual(["Adding: Back to the paper", "Bonds: Stretch"]);
+    expect(sheetResource(one, "x", [{ code: "B", level: "S" }], [[6], [6]]).document.sides[1].columns[0].heading).toBe("Bonds: Back to the paper");
+  });
+  it("keeps a teacher's edits when a whole-class skill is ticked, and brings them back when it is unticked", () => {
+    const edited = [{ code: "A", level: 2 as const }, { code: "B", level: 1 as const }, { code: "C", level: 3 as const }];
+    const fallback = [{ code: "C", level: 1 as const }, { code: "D", level: "S" as const }, { code: "A", level: 1 as const }];
+    expect(withExclusions(edited, fallback, ["B"])).toEqual([{ code: "A", level: 2 }, { code: "C", level: 3 }, { code: "D", level: "S" }]);
+    expect(withExclusions(edited, fallback, [])).toEqual(edited);
+    expect(withExclusions(undefined, fallback, ["B"])).toEqual(fallback);
+  });
+  it("matches part labels however the import wrote them", () => {
+    const s = set(); s.parts[1].label = "Q2(a)"; s.skills[1].paper = ["Q2(a)", "Q2b"];
+    const pupils = [{ key: "a", identifier: "S001", scores: { Q1: 1, Q2A: 2, Q2B: 0 }, profile: {} }];
+    expect(skillLabels(s, pupils, true)[0].scores).toEqual({ Q1: 1, "Q2(a)": 2, Q2b: 0, Q3: null });
   });
 });

@@ -6,7 +6,7 @@ import { downloadBlob } from "../../bank/pdf";
 import { pagesPdf } from "../../worksheet/export";
 import { Preview } from "../Preview";
 import { LEVEL_NAMES, START_LEVELS, type Level, type SkillSet } from "./model";
-import { defaultPlan, fitSheet, isAbsent, type PlanEntry, type SkillPupil } from "./compose";
+import { defaultPlan, fitSheet, isAbsent, startLevel, withExclusions, type PlanEntry, type SkillPupil } from "./compose";
 
 
 const levelValue = (v: string): Level => (/^\d$/.test(v) ? (Number(v) as Level) : (v as Level));
@@ -24,21 +24,26 @@ export function SkillSheets({ set, pupils, disabled }: { set: SkillSet; pupils: 
   const max = useMemo(() => set.parts.reduce((n, p) => n + p.max, 0), [set]);
   const rows = pupils.map(({ pupil, label, scores }) => {
     const absent = isAbsent(set, scores);
-    const plan = absent ? [] : overrides[pupil.key] ?? defaultPlan(set, scores, excluded);
-    const total = set.parts.reduce((n, p) => n + (scores[p.label] ?? 0), 0);
-    return { pupil, label, scores, absent, plan, total, edited: !!overrides[pupil.key] };
+    const plan = absent ? [] : withExclusions(overrides[pupil.key], defaultPlan(set, scores, excluded), excluded);
+    const recorded = set.parts.filter((p) => scores[p.label] !== null && scores[p.label] !== undefined);
+    const total = recorded.reduce((n, p) => n + scores[p.label]!, 0), blank = set.parts.length - recorded.length;
+    return { pupil, label, scores, absent, plan, total, blank, edited: !!overrides[pupil.key] };
   });
   const invalidate = () => { run.current++; setResult(undefined); setBusy(false); setStatus(""); setError(""); setProblems([]); };
   const classScore = (code: string) => {
     const skill = set.skills.find((s) => s.code === code)!, present = rows.filter((r) => !r.absent);
     const maxOf = (p: string) => set.parts.find((x) => x.label === p)!.max;
-    const got = present.reduce((n, r) => n + skill.paper.reduce((m, p) => m + (r.scores[p] ?? 0), 0), 0);
-    const out = present.length * skill.paper.reduce((m, p) => m + maxOf(p), 0);
+    // Blank marks are left out of both the marks and the maximum: blank is not zero.
+    const marked = present.flatMap((r) => skill.paper.filter((p) => r.scores[p] !== null && r.scores[p] !== undefined).map((p) => [r.scores[p]!, maxOf(p)]));
+    const got = marked.reduce((n, [m]) => n + m, 0), out = marked.reduce((n, [, m]) => n + m, 0);
     return out ? Math.round((100 * got) / out) : 0;
   };
   const edit = (key: string, plan: PlanEntry[], index: number, change: Partial<PlanEntry>) => {
     invalidate();
-    const next = plan.map((e, i) => (i === index ? { ...e, ...change } : e));
+    // A new skill starts at that skill's own start level from the pupil's marks, never the old skill's level.
+    const scores = pupils.find((p) => p.pupil.key === key)!.scores;
+    const level = (code: string) => startLevel(set.skills.find((s) => s.code === code)!, scores);
+    const next = plan.map((e, i) => (i === index ? (change.code ? { code: change.code, level: level(change.code) } : { ...e, ...change }) : e));
     setOverrides((o) => ({ ...o, [key]: next }));
   };
   async function generate() {
@@ -72,13 +77,13 @@ export function SkillSheets({ set, pupils, disabled }: { set: SkillSet; pupils: 
       <p className="af-help">Each student gets one A3 sheet: their three weakest skills, side 1 at their level and side 2 the next step up. Levels come from their marks on each part.</p>
       <details><summary>Teach to the whole class{excluded.length ? ` · ${excluded.length} left out` : ""}</summary>
         <p className="af-help">Tick a skill to leave it off every sheet, for example when you will reteach it to everyone.</p>
-        <div className="af-topic-exclusions">{set.skills.map((s) => <label className="af-check" key={s.code}><input type="checkbox" disabled={disabled || busy} checked={excluded.includes(s.code)} onChange={(e) => { invalidate(); setOverrides({}); setExcluded((x) => (e.target.checked ? [...x, s.code] : x.filter((c) => c !== s.code))); }} />{s.title} ({s.pupilCodes}) · class {classScore(s.code)}%</label>)}</div>
+        <div className="af-topic-exclusions">{set.skills.map((s) => <label className="af-check" key={s.code}><input type="checkbox" disabled={disabled || busy} checked={excluded.includes(s.code)} onChange={(e) => { invalidate(); setExcluded((x) => (e.target.checked ? [...x, s.code] : x.filter((c) => c !== s.code))); }} />{s.title} ({s.pupilCodes}) · class {classScore(s.code)}%</label>)}</div>
       </details>
       <details open><summary>Plan · {sheets} sheets{Object.keys(overrides).length ? ` · ${Object.keys(overrides).length} changed` : ""}</summary>
         <p className="af-help">Change any skill or level. Changes stay until you change the marks or the skills left out.</p>
         <div className="af-table"><table aria-label="Skill sheet plan"><thead><tr><th>Student</th><th>Marks</th>{[1, 2, 3].map((n) => <th key={n}>Skill {n}</th>)}</tr></thead><tbody>
-          {rows.map((r) => <tr key={r.pupil.key}><td>{r.label}{r.edited && <> <button type="button" className="af-link" disabled={disabled || busy} onClick={() => { invalidate(); setOverrides((o) => { const n = { ...o }; delete n[r.pupil.key]; return n; }); }}>Undo changes</button></>}</td><td>{r.absent ? "Absent" : `${r.total}/${max}`}</td>
-            {r.absent ? <td colSpan={3}>No sheet</td> : r.plan.map((entry, i) => <td key={i}><div className="af-skill-cell">
+          {rows.map((r) => <tr key={r.pupil.key}><td>{r.label}{r.edited && <> <button type="button" className="af-link" disabled={disabled || busy} onClick={() => { invalidate(); setOverrides((o) => { const n = { ...o }; delete n[r.pupil.key]; return n; }); }}>Undo changes</button></>}</td><td>{r.absent ? "Absent" : `${r.total}/${max}${r.blank ? ` · ${r.blank} blank` : ""}`}</td>
+            {r.absent || !r.plan.length ? <td colSpan={3}>{r.absent ? "Absent" : "No skills left"}</td> : r.plan.map((entry, i) => <td key={i}><div className="af-skill-cell">
               <select aria-label={`${r.label} skill ${i + 1}`} disabled={disabled || busy} value={entry.code} onChange={(e) => edit(r.pupil.key, r.plan, i, { code: e.target.value })}>{set.skills.map((s) => <option key={s.code} value={s.code} disabled={s.code !== entry.code && r.plan.some((p) => p.code === s.code)}>{s.title}</option>)}</select>
               <select aria-label={`${r.label} skill ${i + 1} level`} disabled={disabled || busy} value={String(entry.level)} onChange={(e) => edit(r.pupil.key, r.plan, i, { level: levelValue(e.target.value) })}>{START_LEVELS.map((l) => <option key={l} value={String(l)}>{LEVEL_NAMES[l]}</option>)}</select>
             </div></td>)}
