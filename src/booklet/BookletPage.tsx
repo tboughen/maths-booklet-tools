@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, Copy, Download, LoaderCircle, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Download, LibraryBig, LoaderCircle, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { siteBase } from "../site/routes";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
@@ -50,7 +51,11 @@ const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 /** The rest of a lesson source file (stored working, sides, plan), kept beside the booklet it was opened with. */
 const SOURCE_STORAGE = `${STORAGE}:source`;
 /** `lessons` names the lesson codes the source was opened with, so an undone open does not check against another lesson's working. */
-type SourceExtras = Omit<LessonSource, "booklet"> & { lessons?: string };
+type SourceExtras = Omit<LessonSource, "booklet"> & { lessons?: string; library?: LibraryOrigin };
+/** The Resource library booklet a source was opened from, so Save to library adds the edit to it. */
+type LibraryOrigin = { resource: string; version: string; title: string };
+/** Only a lesson source served by the library opens from a link. */
+const LIBRARY_SOURCE = /^library-data\/(?:files|edits)\/[a-f0-9]{64}\/[a-z0-9][a-z0-9._-]{0,150}\.json$/;
 const lessonCodes = (b: Booklet) => b.document.lessons.map((l) => l.code).join("|");
 const readExtras = (): SourceExtras | null => {
   try {
@@ -69,7 +74,14 @@ const writeExtras = (extras: SourceExtras | null) => {
   }
 };
 type Spot = Pick<CardSpot, "lesson" | "section" | "card">;
-const withoutMatch = ({ lessons: _lessons, ...rest }: SourceExtras): Omit<LessonSource, "booklet"> => rest;
+const withoutMatch = ({ lessons: _lessons, library: _library, ...rest }: SourceExtras): Omit<LessonSource, "booklet"> => rest;
+/** A file's parsed JSON as a booklet and the rest of its lesson source (null for a plain booklet file). */
+function readBookletFile(parsed: unknown): { b: Booklet; rest: Omit<LessonSource, "booklet"> | null } {
+  const wrapped = parsed && typeof parsed === "object" && "booklet" in parsed && !("document" in parsed);
+  if (!wrapped) return { b: validateBooklet(parsed), rest: null };
+  const { booklet, ...rest } = parsed as LessonSource;
+  return { b: validateBooklet(booklet), rest };
+}
 const sameSpot = (a: Spot | null, b: Spot) => !!a && a.lesson === b.lesson && a.section === b.section && a.card === b.card;
 const MAX_FILE = 4_000_000;
 type BookletDoc = Booklet["document"];
@@ -146,6 +158,8 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     setExtrasState(next);
     writeExtras(next);
   };
+  /** The note for Save to library while its box is open. */
+  const [saving, setSaving] = useState<string | null>(null);
   /** The card being edited on the page, if any. */
   const [selected, setSelected] = useState<Spot | null>(null);
   const [focus, setFocus] = useState(0);
@@ -219,16 +233,40 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
       }
       if ((parsed as { document?: { kind?: string } })?.document?.kind === "worksheet-a3") throw Error("This is a worksheet file. Open it in the Worksheet builder.");
       // A lesson source as booklet builds write it: the booklet sits under "booklet" beside its stored working.
-      const wrapped = parsed && typeof parsed === "object" && "booklet" in parsed && !("document" in parsed);
-      if (wrapped) {
-        const { booklet, ...rest } = parsed as LessonSource;
-        const opened = validateBooklet(booklet);
-        setPending({ b: opened, extras: { ...rest, lessons: lessonCodes(opened) }, title: "Open this lesson source? It replaces the current booklet. You can undo it." });
-      } else setPending({ b: validateBooklet(parsed), extras: null, title: "Open this booklet? It replaces the current one. You can undo it." });
+      const { b: opened, rest } = readBookletFile(parsed);
+      if (rest) setPending({ b: opened, extras: { ...rest, lessons: lessonCodes(opened) }, title: "Open this lesson source? It replaces the current booklet. You can undo it." });
+      else setPending({ b: opened, extras: null, title: "Open this booklet? It replaces the current one. You can undo it." });
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     }
   }
+  // Edit from the Resource library: its Edit button links here with the lesson source to open.
+  useEffect(() => {
+    if (!active) return;
+    const q = new URLSearchParams(location.search);
+    const open = q.get("open");
+    if (!open) return;
+    window.history.replaceState(window.history.state, "", location.pathname + location.hash);
+    if (!LIBRARY_SOURCE.test(open)) {
+      setMessage("That link does not name a booklet in the Resource library.");
+      return;
+    }
+    const origin: LibraryOrigin = { resource: q.get("resource") ?? "", version: q.get("version") || "Main", title: (q.get("title") ?? "").slice(0, 120) };
+    setMessage("Opening the booklet from the Resource library…");
+    void (async () => {
+      try {
+        const response = await fetch(siteBase() + open, { cache: "no-cache" });
+        if (!response.ok) throw Error(response.status === 403 ? "Sign in again, then press Edit in the library once more." : "The booklet could not be fetched from the library. Try again.");
+        const { b: opened, rest } = readBookletFile(await response.json());
+        const name = origin.title || opened.document.lessons[0]?.title || "this booklet";
+        setPending({ b: opened, extras: { ...(rest ?? {}), lessons: lessonCodes(opened), library: origin.resource ? origin : undefined }, title: `Open "${name}" (${origin.version}) from the Resource library? It replaces the booklet on this page. You can undo it.` });
+        setMessage("");
+      } catch (e) {
+        setMessage(e instanceof Error && !(e instanceof SyntaxError) ? e.message : "The library file is not a booklet.");
+      }
+    })();
+  }, [active]);
+
   async function run(action: () => Promise<void> | void, success: string) {
     if (blocked) return;
     setBusy(true);
@@ -306,6 +344,21 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [editing]);
+
+  const fromLibrary = source?.library ?? null;
+  async function saveToLibrary(note: string) {
+    if (!source || !fromLibrary) return;
+    if (issues.length) throw Error("Fix the layout checks before saving to the library.");
+    const response = await fetch(`${siteBase()}api/library/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...fromLibrary, note, failing: build?.findings.length ?? null, source: JSON.stringify({ ...withoutMatch(source), booklet: b }) }),
+    });
+    const reply = (await response.json().catch(() => ({}))) as { error?: string; alerted?: boolean };
+    if (!response.ok) throw Error(reply.error ?? "The booklet could not be saved to the library. Save the file and send it to Tim.");
+    setSaving(null);
+    return reply.alerted;
+  }
 
   const placeholders = d.lessons.filter(isPlaceholder).length;
   const checks: { ok: boolean; text: string }[] = [
@@ -590,6 +643,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               </div>
               <div className="editor-copy-actions">
                 <div className="editor-file-actions">
+                  {fromLibrary && (
+                    <button className="tool-button bk-save-library" disabled={blocked || saving !== null} title={`Save your changes to the Resource library as an edit of ${fromLibrary.title || "this booklet"} (${fromLibrary.version})`} onClick={() => setSaving("")}>
+                      <LibraryBig size={17} aria-hidden="true" /> Save to library
+                    </button>
+                  )}
                   <button className="copy-main" disabled={blocked || issues.length > 0} title="Download the pupil booklet (A4 PDF)" onClick={() => void run(() => downloadPdf("pupil"), `Pupil booklet download started: ${shown.pages.length} A4 pages. Print at 100%, double-sided, flip on the long edge.`)}>
                     {busy ? <LoaderCircle className="spin" size={17} aria-hidden="true" /> : <Download size={17} aria-hidden="true" />}
                     {busy ? "Preparing…" : "Pupil PDF"}
@@ -679,6 +737,38 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                   Cancel
                 </button>
               </div>
+            )}
+            {saving !== null && fromLibrary && (
+              <form
+                className="ws-confirm bk-save-box"
+                aria-label="Save to library"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const note = saving.trim();
+                  if (!note) return setMessage("Say in a few words what you changed.");
+                  setBusy(true);
+                  setMessage("");
+                  saveToLibrary(note)
+                    .then((alerted) => setMessage(alerted ? "Saved to the library. Tim has been told: the edit is built with the booklet checks and added as a new version marked waiting until he checks it." : "Saved to the library, but Tim was not told automatically. Let him know."))
+                    .catch((err) => setMessage(err instanceof Error ? err.message : String(err)))
+                    .finally(() => setBusy(false));
+                }}
+              >
+                <p>
+                  Save to the Resource library as an edit of <strong>{fromLibrary.title || "this booklet"}</strong> ({fromLibrary.version}). The library keeps the current version until the edit is built and checked.
+                  {build && build.findings.length > 0 && ` The build checks show ${build.findings.length} problem${build.findings.length === 1 ? "" : "s"}; you can still save, and Tim sees them.`}
+                </p>
+                <label className="ws-field">
+                  <span>What did you change?</span>
+                  <textarea id="bk-save-note" rows={2} maxLength={500} value={saving} onChange={(e) => setSaving(e.target.value)} autoFocus />
+                </label>
+                <button className="tool-button" type="submit" disabled={busy}>
+                  {busy ? "Saving…" : "Save to library"}
+                </button>
+                <button className="tool-button" type="button" disabled={busy} onClick={() => setSaving(null)}>
+                  Cancel
+                </button>
+              </form>
             )}
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved booklet data">
@@ -781,7 +871,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               {build && (
                 <div className="bk-build-checks" data-testid="build-checks">
                   <h3>
-                    Build checks, lesson {checkLesson + 1 + lessonShift(d)}
+                    Build checks, lesson {Number(source?.lessonNumber ?? 1) + checkLesson}
                     {later !== b && <span className="bk-tag"> updating…</span>}
                   </h3>
                   <p className="ws-hint">The same checks the booklet build runs. Problems must be fixed before the lesson goes in the library; warnings are for you to look at.</p>

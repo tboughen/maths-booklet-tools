@@ -17,6 +17,7 @@ cards and squares inside, versions, parts, history, and staff feedback closed by
 | Feedback | open issues labelled `library-feedback` in `tboughen/mathsdock-bank` |
 | Page | `src/library/` |
 | Worker routes | `/library-data/*` and `/api/library/feedback` in `scripts/cloudflare/site-worker.mjs` (feedback in `library-feedback.mjs`), behind Cloudflare Access like `/bank/assets/*` |
+| Edits saved from the Booklet builder | `/api/library/edit` (`library-edits.mjs`), R2 `library/edits/` and `library/edits.json` |
 | Cover requests | `/api/library/cover` (`cover-requests.mjs`) and the Request cover view: see `COVER-REQUESTS.md` |
 
 The site never holds the files, so new booklets and new versions need no website release. The page
@@ -64,7 +65,8 @@ Each entry in `resources` is one booklet:
 - `version`: `Main` unless named (`Foundation`, `Higher`, `Extra challenge (9X)`). A new version is a new
   entry with the same unit and lesson and its own `id`; its tab and pill appear by themselves.
 - `status`: `ready` once Tim has passed it, otherwise `waiting`.
-- `role`: `pupil` or `answers` (shown in pink); `format`: `pdf` or `docx`.
+- `role`: `pupil` or `answers` (shown in pink), `format`: `pdf` or `docx`; or `role` `source` with `format`
+  `json`, the lesson source the build wrote, which shows as **Edit** (see "Editing a booklet on the site").
 - Replacing a booklet: give the new files new names, move the old `files`, `updated` and `note` into
   the front of `history`, and set `status` to `waiting`. Never overwrite or delete an old file: staff
   can open every earlier version, and "Make current again" brings one back.
@@ -111,6 +113,25 @@ run, for each one it rebuilds the lesson from the comments to the booklet standa
 again", copies the earlier files forward as the newest version), updates the bank list as above with
 `status: "waiting"`, publishes, comments what changed on the issue and closes it. It posts a summary in
 its thread and the project chat. Nothing is shared as ready until Tim checks it.
+
+## Editing a booklet on the site
+
+Tim, 28 Nov 2026 (plan https://claude.ai/artifact/99nTtHAKFEhdDexwLSeZMw). A booklet whose files include its
+lesson source shows **Edit** beside its downloads. Edit opens it in the Booklet builder (`/booklets?open=…`),
+where a colleague clicks a card on the page to change it and sees the build's own checks live. **Save to
+library** asks what they changed and sends the lesson source to `/api/library/edit` (`library-edits.mjs`):
+
+- The Worker keeps it in R2 at `library/edits/<sha256>/<resource id>.json` (never replaced), adds it to
+  `library/edits.json` (who, when, note, version, the issue) and opens an issue in the bank repository
+  labelled `library-edit`, assigned to Tim. The library list itself does not change.
+- To take an edit: download the saved source (`/library-data/edits/…`, or R2), build it with
+  `build-booklet.mjs` and its checks, add the files to the library as a new version of that resource
+  (`status: "waiting"`, note naming who edited it) with its `source` file, publish, comment and close the
+  issue. Close it without building to turn it down. Nothing is shared as ready until Tim checks it.
+
+Builds add the lesson source to each library entry as a file with `"role": "source", "format": "json"`
+(for example `y9/A7/y9-a7-03-lesson-booklet_source.json`). It is never offered as a download or put in a
+unit's zip; older entries without one simply have no Edit button.
 
 ## Adding or updating a booklet
 
