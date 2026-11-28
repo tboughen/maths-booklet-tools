@@ -171,3 +171,53 @@ test("refuses a worksheet file with a pointer to the Worksheet builder", async (
   await chooser.setFiles({ name: "sheet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ tool: "resource", schemaVersion: 1, document: { kind: "worksheet-a3" } })) });
   await expect(page.locator(".ws-message")).toContainText("Open it in the Worksheet builder");
 });
+
+test("edits a card on the page: click it, change its words, close it and undo", async ({ page }) => {
+  await boot(page);
+  const pages = page.getByTestId("booklet-pages");
+  await pages.getByRole("button", { name: "Edit question A, lesson 1" }).click();
+  const pop = page.getByRole("region", { name: "Edit Question A" });
+  await expect(pop).toBeVisible();
+  await expect(pages.getByRole("button", { name: "Edit question A, lesson 1" })).toHaveAttribute("aria-pressed", "true");
+  const title = pop.getByRole("textbox", { name: "Card title" });
+  await title.fill("Substitute into each expression");
+  await title.press("Enter");
+  expect((await saved(page)).document.lessons[0].sections[0].cards[0].title).toBe("Substitute into each expression");
+  const drawn = pages.locator(".bk-page.editing .ws-art > svg");
+  await expect(drawn).toContainText("Substitute into each expression");
+  // The page controls never reach the drawn page or its exports.
+  expect(await drawn.evaluate((svg) => /bk-spot|bk-selected|<button/.test(svg.outerHTML))).toBe(false);
+  // Escape in a field restores its words, as everywhere on the site; outside a field it closes the editor.
+  await pop.getByRole("heading", { name: "Question A" }).click();
+  await page.keyboard.press("Escape");
+  await expect(pop).toBeHidden();
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.lessons[0].sections[0].cards[0].title).toBe("Substitute");
+});
+
+test("opens a lesson source from a booklet build and runs the build's checks live", async ({ page }) => {
+  await boot(page);
+  const lesson = singleLessonBooklet(a7Booklet, 0).booklet;
+  const source = { code: "A7.01", sides: 6, lessonNumber: 1, working: [], booklet: lesson };
+  await page.getByRole("button", { name: "File" }).click();
+  const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.getByRole("menuitem", { name: "Open booklet file" }).click()]);
+  await chooser.setFiles({ name: "source.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(source)) });
+  await page.getByRole("alertdialog").getByRole("button", { name: "Open" }).click();
+  const checks = page.getByTestId("build-checks");
+  await expect(checks).toContainText("Build checks, lesson 1");
+  await expect(checks).toContainText("M1");
+  await expect(checks).not.toContainText("N13");
+  // A retrieval heading must name its lessons (N13): the check shows as soon as the edit lands.
+  const heading = page.getByRole("textbox", { name: "Heading (empty uses the kind)" }).first();
+  await heading.fill("From earlier");
+  await heading.press("Enter");
+  await expect(checks).toContainText("N13");
+  // Saving keeps the stored working and sides beside the edited booklet.
+  await page.getByRole("button", { name: "File" }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: "Save lesson source file" }).click()]);
+  const written = JSON.parse(readFileSync(await download.path(), "utf8"));
+  expect(written.sides).toBe(6);
+  expect(written.working).toEqual([]);
+  expect(written.lessons).toBeUndefined();
+  expect(written.booklet.document.lessons[0].sections[0].title).toBe("From earlier");
+});
