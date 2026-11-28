@@ -3,7 +3,7 @@ import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fraction
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, checkInWords, coverTagLines, endLabel, lessonLabel, lessonLabels, tileLines, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, type Misconception } from "./booklet";
+import { LESSON_WORDS, checkInWords, coverTagLines, endLabel, lessonLabel, lessonLabels, tileLines, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, ncetmTag, type Misconception } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -465,15 +465,15 @@ export function bannerFrag(label: string, end: boolean, st: HouseStyle, note = "
 export const NCETM_CHIP = { size: 8 * 0.3528, padX: 1.4, h: 4.4, gap: 6, minLabel: 12, tag: "NCETM", arrow: "", ink: "#14532d", edge: "#16a34a", fill: "#dcfce7", bar: 0.9 } as const;
 
 /** The chip's label cut to fit `room` mm (the whole chip's width), or null when even a short label cannot fit. */
-export function ncetmChipLabel(label: string, room: number): string | null {
+export function ncetmChipLabel(label: string, room: number, tag: string = NCETM_CHIP.tag): string | null {
   const c = NCETM_CHIP;
-  const fixed = c.bar + 2 * c.padX + plainWidth(c.tag + "  ", c.size, "bold") + plainWidth(c.arrow, c.size);
+  const fixed = c.bar + 2 * c.padX + plainWidth(tag + "  ", c.size, "bold") + plainWidth(c.arrow, c.size);
   if (room - fixed < c.minLabel) return null;
   return fitLine(label.trim(), c.size, room - fixed);
 }
 
 /** Width of a chip with this (already fitted) label. */
-export const ncetmChipWidth = (label: string) => NCETM_CHIP.bar + 2 * NCETM_CHIP.padX + plainWidth(NCETM_CHIP.tag + "  ", NCETM_CHIP.size, "bold") + plainWidth(label + NCETM_CHIP.arrow, NCETM_CHIP.size);
+export const ncetmChipWidth = (label: string, tag: string = NCETM_CHIP.tag) => NCETM_CHIP.bar + 2 * NCETM_CHIP.padX + plainWidth(tag + "  ", NCETM_CHIP.size, "bold") + plainWidth(label + NCETM_CHIP.arrow, NCETM_CHIP.size);
 
 /** Room left on a section's heading line, right of the title and an instruction printed beside it. */
 export function headingLineRoom(section: Section): number {
@@ -485,9 +485,10 @@ export function headingLineRoom(section: Section): number {
 
 function ncetmChip(link: NcetmLink, room: number): string | null {
   const c = NCETM_CHIP;
-  const label = ncetmChipLabel(link.label, room);
+  const tag = ncetmTag(link);
+  const label = ncetmChipLabel(link.label, room, tag);
   if (label === null) return null;
-  const w = ncetmChipWidth(label);
+  const w = ncetmChipWidth(label, tag);
   const x = W - w,
     y = (lh(A4.heading) - c.h) / 2;
   const by = y + c.h / 2 + c.size * 0.36;
@@ -496,7 +497,7 @@ function ncetmChip(link: NcetmLink, room: number): string | null {
     `<a href="${url}">` +
     rect(x, y, w, c.h, `rx="0.9" fill="${c.fill}" stroke="${c.edge}" stroke-width="0.3"`) +
     rect(x, y, c.bar, c.h, `rx="0.45" fill="${c.edge}"`) +
-    textSvg([{ text: c.tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.bar + c.padX, by, c.size, c.ink) +
+    textSvg([{ text: tag + "  ", style: "bold" }, { text: label + c.arrow, style: "regular" }], x + c.bar + c.padX, by, c.size, c.ink) +
     `</a>`
   );
 }
