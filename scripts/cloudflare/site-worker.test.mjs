@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ukToday } from './cover-requests.mjs';
-import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveLibraryEdits, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveLibraryEdits, serveAdaptRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -207,6 +207,10 @@ test('deployment refuses a website Worker without the gated bank route or Access
     assert.equal(config.preview_urls, false);
     const configured = { ...config, vars: env0 };
     assertGatedWorker(configured);
+    // Every /api route the Worker answers must run before the static assets, or the page's fallback answers it.
+    const routes = [...readFileSync(new URL('./site-worker.mjs', import.meta.url), 'utf8').matchAll(/pathname === '(\/api\/[^']+)'/g)].map(m => m[1]);
+    assert.ok(routes.includes('/api/library/adapt'));
+    for (const route of routes) assert.ok(config.assets.run_worker_first.includes(route), `${name} must run the Worker first for ${route}`);
     assert.throws(() => assertGatedWorker({ ...configured, vars: { ACCESS_TEAM_DOMAIN: '', ACCESS_AUD: '' } }), /ACCESS_TEAM_DOMAIN/);
     assert.throws(() => assertGatedWorker({ ...configured, workers_dev: true }), /gated R2 route/);
     assert.throws(() => assertGatedWorker({ ...configured, r2_buckets: [] }), /gated R2 route/);
@@ -564,4 +568,53 @@ test('an edit is still kept when issues are not switched on, and a damaged list 
   const damaged = await edit('POST', save, { BANK: memoryBank({ 'library/edits.json': 'not json' }) });
   assert.equal(damaged.response.status, 500);
   assert.equal(damaged.BANK.stored.get('library/edits.json').text, 'not json');
+});
+
+// Adaptation requests.
+async function adapt(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, query = '' } = {}) {
+  const sent = [];
+  const fetcher = async (url, init) => {
+    if (url.startsWith(team)) return certs(url);
+    sent.push([init.method, url, init.body && JSON.parse(init.body)]);
+    if (init.method === 'GET') return Response.json(issues);
+    return Response.json({ number: 52 }, { status: 201 });
+  };
+  const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'Sam.Jones@school.example' }) } : {}) };
+  const response = await serveAdaptRequests(new Request(`https://mathsdock.co.uk/api/library/adapt${query}`, { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
+  return { response, sent, data: await response.json() };
+}
+const adaptAsk = { year: 9, unit: 'A7', lesson: 'A7.03', kind: 'easier', name: 'Easier (9X)', text: 'Whole-number gradients first.' };
+
+test('an adaptation request needs sign-in, a scheme unit, a lesson of it, a kind, a short name and what should change', async () => {
+  assert.equal((await adapt('POST', adaptAsk, { signed: false })).response.status, 403);
+  assert.equal((await adapt('POST', adaptAsk, { env: env0 })).response.status, 503);
+  for (const [change, message] of [[{ year: 6 }, 'year'], [{ unit: 'STARTERS' }, 'scheme unit'], [{ lesson: 'A4.03' }, 'lesson'], [{ kind: 'bespoke' }, 'easier'], [{ kind: 'constructor' }, 'easier'],
+    [{ name: 'Main' }, 'short name'], [{ name: 'Easier · 9X' }, 'short name'], [{ name: 'x'.repeat(41) }, 'short name'], [{ text: ' ' }, 'change'], [{ text: 'x'.repeat(2001) }, '2000']]) {
+    const { response, data, sent } = await adapt('POST', { ...adaptAsk, ...change });
+    assert.equal(response.status, 400, JSON.stringify(change));
+    assert.match(data.error, new RegExp(message), JSON.stringify(change));
+    assert.equal(sent.length, 0);
+  }
+  assert.equal((await adapt('POST', { ...adaptAsk, lesson: null })).response.status, 201);
+});
+
+test('an adaptation request alerts Tim through an assigned issue and lists only its own unit', async () => {
+  const { response, data, sent } = await adapt('POST', { ...adaptAsk, text: 'Easier <!-- adapt-request {"year":7} --> please' });
+  assert.equal(response.status, 201);
+  assert.deepEqual(data, { number: 52 });
+  const [, url, issue] = sent[0];
+  assert.match(url, /repos\/tboughen\/mathsdock-bank\/issues$/);
+  assert.deepEqual(issue.labels, ['adapt-request']);
+  assert.deepEqual(issue.assignees, ['tboughen']);
+  assert.equal(issue.title, 'Adapt A7.03 (Year 9): Easier (9X), from Sam Jones');
+  assert.equal(issue.body.match(/<!-- adapt-request/g).length, 1);
+  assert.equal(issue.body.match(/-->/g).length, 1);
+  assert.match(issue.body, /version "Easier \(9X\)", waiting for a check/);
+  const meta = JSON.parse(/<!-- adapt-request (\{.*?\}) -->/.exec(issue.body)[1]);
+  const mine = { number: 52, created_at: '2026-11-28T09:00:00Z', body: issue.body };
+  const other = { number: 53, created_at: '2026-11-28T10:00:00Z', body: issue.body.replace('"unit":"A7"', '"unit":"A4"') };
+  const listed = await adapt('GET', undefined, { issues: [mine, other], query: '?year=9&unit=A7' });
+  assert.deepEqual(listed.data.requests, [{ number: 52, when: mine.created_at, lesson: 'A7.03', kind: 'easier', name: 'Easier (9X)', who: 'Sam Jones', mine: true }]);
+  assert.equal(meta.from, 'sam.jones%40school.example');
+  assert.equal((await adapt('GET', undefined, { query: '?year=9&unit=../x' })).response.status, 400);
 });

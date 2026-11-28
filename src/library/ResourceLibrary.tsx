@@ -1,15 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, CalendarPlus, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, PencilLine, Search, Trash2, X } from "lucide-react";
+import { BookOpen, CalendarPlus, Check, Clock, Copy, Download, Hand, History, Moon, LayoutGrid, Map as MapIcon, MessageSquare, PencilLine, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { PageHeading } from "../site/PageHeading";
 import { pageHref, readPage } from "../site/routes";
 import {
-  applyChecks, bookletName, downloads, editHref, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
+  adaptationPlan, applyChecks, bookletName, downloads, editHref, countState, fileHref, predictFeedback, fileLabel, isSchemeUnit, lessonPlan, loadFeedback, loadLibrary, partRanges, readState, resourcesFor, ringLabel, searchLibrary, sendFeedback,
   summary, threadKey, threadMap, typeNames, unitBooklets, unitLabel, unitOf, versionsOf, writeState,
   type Feedback, type FeedbackAction, type LessonRow, type LessonState, type Library, type LibraryFile, type LibraryState, type LibraryUnit, type Resource, type Thread,
 } from "./model";
 import "./library.css";
 import CoverRequest from "./CoverRequest";
 import { isCoverWork, loadCoverRemoved, removeCoverLesson } from "./cover";
+import AdaptForm from "./AdaptForm";
+import { loadAdaptRequests, type AdaptAsked, type AdaptKind } from "./adapt";
 
 const YEAR_KEY = "mathsdock.libraryYear";
 const savedYear = () => { try { return Number(localStorage.getItem(YEAR_KEY)) || 7; } catch { return 7; } };
@@ -250,14 +252,29 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
   const fb = useContext(FeedbackContext);
   const versions = versionsOf(list, year, unit.code);
   const version = asked && versions.includes(asked) ? asked : "Main";
-  const rows = lessonPlan(list, year, unit.code, version, fb.threads);
+  const rows = adaptationPlan(list, year, unit.code, version, fb.threads);
   const ranges = partRanges(unit, rows);
   const booklets = unitBooklets(list, year, unit.code, version);
   const items = resourcesFor(list, year, unit.code).filter((r) => r.version === version);
   const unitThread = fb.threads.get(threadKey(year, unit.code, version, null));
   const [message, setMessage] = useState("");
   const [unitBox, setUnitBox] = useState<boolean | null>(null);
-  useEffect(() => setMessage(""), [version]);
+  // Adaptations (Tim, 28 Nov): which lesson's form is open (null is the whole unit), and the open requests.
+  const [adapt, setAdapt] = useState<{ lesson: string | null } | null>(null);
+  const [requests, setRequests] = useState<AdaptAsked[]>([]);
+  useEffect(() => { setMessage(""); setAdapt(null); }, [version]);
+  useEffect(() => {
+    if (!isSchemeUnit(unit.code)) return;
+    let live = true;
+    loadAdaptRequests(year, unit.code).then((a) => live && setRequests(a), () => { /* The asked-for list is only a help. */ });
+    return () => { live = false; };
+  }, [year, unit.code]);
+  const others = versions.filter((v) => v !== "Main");
+  const kinds = Object.fromEntries(others.map((v) => [v, resourcesFor(list, year, unit.code).find((r) => r.version === v && r.adaptation)?.adaptation?.kind as AdaptKind | undefined]));
+  const form = (lesson: string | null, title: string) => (
+    <AdaptForm key={lesson ?? "unit"} year={year} unit={unit.code} lesson={lesson} title={title} existing={others} current={version} kinds={kinds}
+      onCancel={() => setAdapt(null)} onSent={(a, words) => { setRequests((old) => [...old, a]); setAdapt(null); setMessage(words); }} />
+  );
   async function copyLink() {
     const link = new URL(pageHref("library") + writeState({ year, unit: unit.code, version, view: "shelves", q: "" }), location.origin).href;
     try { await navigator.clipboard.writeText(link); setMessage("Link copied. Colleagues sign in with their school email to open it."); }
@@ -291,22 +308,30 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
       <p className="library-hint">Year {year} · {rows.length} {scheme ? "lessons" : "booklets"} · {summary(rows)}</p>
       {versions.length > 1 && (
         <>
-          <div className="library-tabs" role="group" aria-label="Versions">
+          <div className="library-tabs" role="group" aria-label="Adaptations">
             {versions.map((v) => {
               const flagged = lessonPlan(list, year, unit.code, v, fb.threads).some((r) => r.state === "feedback");
               return <button key={v} type="button" aria-pressed={v === version} onClick={() => setVersion(v)}>{v}{flagged && <i className="library-dot" aria-label="has feedback" />}</button>;
             })}
           </div>
-          <p className="library-hint">Each version sits alongside the main one and is checked on its own.</p>
+          <p className="library-hint">{version === "Main" ? "Each adaptation sits beside Main and is checked on its own." : "Each adaptation sits beside Main and is checked on its own. Lessons it leaves as they are show Main, greyed."}</p>
         </>
       )}
       <div className="library-actions">
         <button type="button" className="primary" onClick={copyLink}><Copy size={15} aria-hidden="true" />Copy link</button>
         {items.length > 0 && <button type="button" onClick={downloadUnit}><Download size={15} aria-hidden="true" />Download all (zip)</button>}
+        {scheme && <button type="button" aria-expanded={adapt?.lesson === null} onClick={() => setAdapt(adapt?.lesson === null ? null : { lesson: null })}><SlidersHorizontal size={15} aria-hidden="true" />Adapt whole unit</button>}
         {scheme && !fb.off && <button type="button" className="violet" aria-expanded={showUnitBox} onClick={() => setUnitBox(!showUnitBox)}><MessageSquare size={15} aria-hidden="true" />Feedback on this unit{unitThread ? ` (${unitThread.comments.length})` : ""}</button>}
       </div>
       {fb.off && fb.off !== "Loading feedback…" && <p className="library-hint">{fb.off}</p>}
       {message && <p className="library-status" role="status">{message}</p>}
+      {adapt?.lesson === null && form(null, unit.title)}
+      {requests.length > 0 && (
+        <div className="library-asked">
+          <p className="library-adapt-label">Adaptations asked for</p>
+          <ul>{requests.map((a) => <li key={`${a.number}-${a.name}-${a.lesson}`}><b>{a.name}</b> · {a.lesson ?? "whole unit"} · {a.mine ? "you" : a.who}, {day(a.when)}</li>)}</ul>
+        </div>
+      )}
       {showUnitBox && <ThreadView target={{ year, unit: unit.code, version, lesson: null }} thread={unitThread} />}
       {(ranges ?? [{ name: "", start: 0, end: rows.length - 1, from: "", to: "" }]).map((p) => {
         const booklet = booklets.find((b) => (p.name ? b.part === p.name : !b.part)) ?? (ranges ? undefined : booklets[0]);
@@ -318,9 +343,13 @@ function UnitDetail({ list, year, unit, version: asked, setVersion }: { list: Li
           </div>
         );
       })}
-      {!items.length && <p className="library-hint">Nothing made yet for this {versions.length > 1 ? "version" : "unit"}. Its lessons are listed below.</p>}
+      {!items.length && <p className="library-hint">Nothing made yet for this {version === "Main" ? "unit" : "adaptation"}. Its lessons are listed below.</p>}
       <ul className="library-rows">
-        {rows.map((row, i) => <LessonLine key={row.code || row.resource?.id} row={row} year={year} unit={unit.code} version={version} part={ranges?.find((p) => p.start === i)?.name} />)}
+        {rows.map((row, i) => {
+          const canAdapt = scheme && !!row.code && !!(row.resource || row.main);
+          return <LessonLine key={row.code || row.resource?.id} row={row} year={year} unit={unit.code} version={version} part={ranges?.find((p) => p.start === i)?.name}
+            onAdapt={canAdapt ? () => setAdapt(adapt?.lesson === row.code ? null : { lesson: row.code }) : undefined} adapting={canAdapt && adapt?.lesson === row.code ? form(row.code, row.title) : null} />;
+        })}
       </ul>
     </>
   );
@@ -414,20 +443,40 @@ function CommentCount({ thread, open, setOpen }: { thread?: Thread; open: boolea
   return <button type="button" className="library-count" aria-expanded={open} aria-label={`${n} comment${n === 1 ? "" : "s"}`} onClick={() => setOpen(!open)}><MessageSquare size={14} aria-hidden="true" />{n}</button>;
 }
 
-function LessonLine({ row, year, unit, version, part }: { row: LessonRow; year: number; unit: string; version: string; part?: string }) {
+function LessonLine({ row, year, unit, version, part, onAdapt, adapting }: { row: LessonRow; year: number; unit: string; version: string; part?: string; onAdapt?: () => void; adapting?: React.ReactNode }) {
   const fb = useContext(FeedbackContext);
   const r = row.resource;
   const [history, setHistory] = useState(false);
   return (
-    <li className={`library-row is-${row.state}`}>
+    <li className={`library-row is-${row.main ? "main" : row.state}`}>
       {part && <p className="library-part-label">{part}</p>}
-      {r && row.code && !fb.off ? <MadeRow t={{ year, unit, version, lesson: row.code }} r={r} thread={row.thread} title={<><b>{row.code}</b> {row.title}</>} history={history} setHistory={setHistory} />
-        : <PlainRow row={row} t={{ year, unit, version, lesson: row.code || null }} history={history} setHistory={setHistory} />}
+      {row.main ? <MainRow row={row} main={row.main} onAdapt={onAdapt} />
+        : r && row.code && !fb.off ? <MadeRow t={{ year, unit, version, lesson: row.code }} r={r} thread={row.thread} title={<><b>{row.code}</b> {row.title}</>} history={history} setHistory={setHistory} onAdapt={onAdapt} />
+        : <PlainRow row={row} t={{ year, unit, version, lesson: row.code || null }} history={history} setHistory={setHistory} onAdapt={onAdapt} />}
+      {adapting}
     </li>
   );
 }
 
-function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: Resource; thread?: Thread; title: React.ReactNode; history?: boolean; setHistory?: (v: boolean) => void }) {
+const AdaptLink = ({ onAdapt }: { onAdapt?: () => void }) => (onAdapt ? <>{" · "}<button type="button" className="library-link" onClick={onAdapt}><SlidersHorizontal size={13} aria-hidden="true" />Adapt</button></> : null);
+
+/** A lesson an adaptation leaves as it is: Main's booklet, greyed, so the whole unit reads in one list. */
+function MainRow({ row, main, onAdapt }: { row: LessonRow; main: Resource; onAdapt?: () => void }) {
+  return (
+    <>
+      <div className="library-row-main">
+        <i className={`library-sq is-${main.status}`} aria-hidden="true" />
+        <span className="library-row-text">
+          <span className="library-row-title"><b>{row.code}</b> {row.title}</span>
+          <span className="library-row-state">Same as Main · {stateNames[main.status]}<AdaptLink onAdapt={onAdapt} /></span>
+        </span>
+      </div>
+      <FileLinks files={main.files} />
+    </>
+  );
+}
+
+function MadeRow({ t, r, thread, title, history, setHistory, onAdapt }: { t: Target; r: Resource; thread?: Thread; title: React.ReactNode; history?: boolean; setHistory?: (v: boolean) => void; onAdapt?: () => void }) {
   const fb = useContext(FeedbackContext);
   const s = useStatus(t, r, thread);
   const label = t.lesson ?? t.booklet ?? r.title;
@@ -437,7 +486,7 @@ function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: R
         <i className={`library-sq is-${s.status}`} aria-hidden="true" />
         <span className="library-row-text">
           <span className="library-row-title">{title}</span>
-          <span className={`library-row-state is-${s.status}`}>{s.who}{setHistory && <>{" · "}<button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button></>}</span>
+          <span className={`library-row-state is-${s.status}`}>{s.who}{setHistory && <>{" · "}<button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button></>}<AdaptLink onAdapt={onAdapt} /></span>
         </span>
         <StatusSwitch status={s.status} queued={!!thread?.queued} canAct={fb.canAct} busy={s.busy} label={label} onPick={s.pick} />
         <CommentCount thread={thread} open={s.open} setOpen={s.setOpen} />
@@ -452,7 +501,7 @@ function MadeRow({ t, r, thread, title, history, setHistory }: { t: Target; r: R
 }
 
 /** A lesson not made yet (anyone can ask for it), a starter, or a row when feedback is off. */
-function PlainRow({ row, t, history, setHistory }: { row: LessonRow; t: Target; history: boolean; setHistory: (v: boolean) => void }) {
+function PlainRow({ row, t, history, setHistory, onAdapt }: { row: LessonRow; t: Target; history: boolean; setHistory: (v: boolean) => void; onAdapt?: () => void }) {
   const fb = useContext(FeedbackContext);
   const r = row.resource;
   const [open, setOpen] = useState<boolean | null>(null);
@@ -464,7 +513,7 @@ function PlainRow({ row, t, history, setHistory }: { row: LessonRow; t: Target; 
         <i className={`library-sq is-${row.state}`} aria-hidden="true" />
         <span className="library-row-text">
           <span className="library-row-title">{row.code && <b>{row.code}</b>} {row.title}</span>
-          {r && <span className="library-row-state">{stateNames[r.status]} · {day(r.updated)} <button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button></span>}
+          {r && <span className="library-row-state">{stateNames[r.status]} · {day(r.updated)} <button type="button" className="library-link" aria-expanded={history} onClick={() => setHistory(!history)}><History size={13} aria-hidden="true" />{r.history.length ? `${r.history.length} earlier version${r.history.length === 1 ? "" : "s"}` : "History"}</button><AdaptLink onAdapt={onAdapt} /></span>}
           {!r && row.thread && <span className="library-row-state"><Hand size={13} aria-hidden="true" />Asked for by {row.thread.comments[0]?.who ?? "a colleague"}</span>}
         </span>
         {canAsk && (row.thread ? <CommentCount thread={row.thread} open={!!shown} setOpen={setOpen} /> : <button type="button" className="library-chip" aria-expanded={!!shown} onClick={() => setOpen(!shown)}><Hand size={14} aria-hidden="true" />Ask for this</button>)}

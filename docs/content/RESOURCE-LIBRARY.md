@@ -62,8 +62,11 @@ Each entry in `resources` is one booklet:
 
 - `type`: `unit-booklet`, `lesson-booklet`, `revision-lesson` or `starter`. A unit booklet for one part
   names it in `part`.
-- `version`: `Main` unless named (`Foundation`, `Higher`, `Extra challenge (9X)`). A new version is a new
-  entry with the same unit and lesson and its own `id`; its tab and pill appear by themselves.
+- `version`: `Main` unless named (`Foundation`, `Higher`, `Easier (9X)`). Every version other than Main is an
+  adaptation (below). A new one is a new entry with the same unit and lesson and its own `id`; its tab and
+  pill appear by themselves.
+- `adaptation` (optional): `{ "kind": "easier" | "harder" | "different", "from": "2026-11-25" }`, the kind a
+  teacher asked for and the date of the Main booklet it was built from.
 - `status`: `ready` once Tim has passed it, otherwise `waiting`.
 - `role`: `pupil` or `answers` (shown in pink), `format`: `pdf` or `docx`; or `role` `source` with `format`
   `json`, the lesson source the build wrote, which shows as **Edit** (see "Editing a booklet on the site").
@@ -71,6 +74,29 @@ Each entry in `resources` is one booklet:
   the front of `history`, and set `status` to `waiting`. Never overwrite or delete an old file: staff
   can open every earlier version, and "Make current again" brings one back.
 - Never add pupil data (class lists, names, marks).
+
+## Adaptations
+
+Tim, 28 Nov 2026 (mock-up https://claude.ai/artifact/Qh2r2AWPkQnwf3YWQyeZQ8, option A). A teacher asks for a
+different version of one lesson, or a whole unit, because it is too hard or too easy for a class or simply to
+teach it another way. Adaptations are the library's versions: tabs beside Main, each checked on its own, with
+feedback and history as usual.
+
+- **Asking:** "Adapt" on any made lesson row, or "Adapt whole unit" (scheme units only). The form asks what
+  kind (Easier, Harder, Different approach), for which class (optional), and what should change. It can add
+  the lesson to an adaptation the unit already has; on an adaptation's tab that is the default.
+- **Naming:** kind and class, as "Easier (9X)"; a different approach may use the teacher's own short name
+  ("Bar models first (9X)"). Names follow the version rule: up to 40 letters, digits and spaces.
+- **Sending:** `POST /api/library/adapt` (`scripts/cloudflare/adapt-requests.mjs`) opens an issue in the bank
+  repository, labelled `adapt-request` and assigned to Tim, with a hidden marker giving year, unit, lesson
+  (null for the whole unit), kind and name. GitHub emails Tim. Nothing builds by itself: Tim starts the build.
+  `GET /api/library/adapt?year=9&unit=A7` lists the unit's open requests under "Adaptations asked for".
+- **Building:** build from the current Main booklet with the booklet builder, keep the lesson structure,
+  change what the request says, and add it to the bank list under the request's `version` name with
+  `adaptation` set and `status` `waiting` (no teacher notes). Then close the issue with a comment.
+- **Showing:** on an adaptation's tab, lessons it leaves as they are show Main's booklet greyed ("Same as
+  Main"), so the whole unit reads in one list. Squares, rings and summaries count only its own lessons.
+- A brand-new resource that is not a version of a lesson belongs with the one-off materials, not here.
 
 ## Feedback
 
