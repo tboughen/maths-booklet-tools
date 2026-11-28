@@ -15,6 +15,8 @@ describe("adaptations", () => {
     expect(adaptName("harder", "")).toBe("Harder");
     expect(adaptName("different", " 10y2 ", "Bar models · first!")).toBe("Bar models first (10y2)");
     expect(adaptName("different", "", "  ")).toBe("Different approach");
+    expect(adaptName("different", "-9X", "-x")).toBe("x (9X)");
+    expect(adaptName("different", "", "Main")).toBe("Different approach");
     for (const n of [adaptName("easier", "<!-- 9X -->"), adaptName("different", "x".repeat(40), "y".repeat(40))]) expect(versionName.test(n)).toBe(true);
     expect([kindOf("Easier (9X)"), kindOf("Harder"), kindOf("Foundation"), kindOf("Foundation", "easier")]).toEqual(["easier", "harder", "different", "easier"]);
   });
@@ -22,5 +24,8 @@ describe("adaptations", () => {
     const rows = adaptationPlan(list, 9, "A7", "Easier (9X)");
     expect(rows.map((r) => [r.code, r.resource?.id ?? null, r.main?.id ?? null, r.state])).toEqual([["A7.01", null, "a", "none"], ["A7.02", "c", null, "waiting"], ["A7.03", null, null, "none"]]);
     expect(adaptationPlan(list, 9, "A7", "Main").some((r) => r.main)).toBe(false);
+    const asked = { number: 3, year: 9, unit: "A7", version: "Easier (9X)", lesson: "A7.01", kind: "lesson" as const, queued: false, agreed: false, opened: "2026-11-28", comments: [] };
+    const withThread = adaptationPlan(list, 9, "A7", "Easier (9X)", new Map([["9|A7|Easier (9X)|A7.01|", asked]]));
+    expect([withThread[0].main, withThread[0].state]).toEqual([undefined, "feedback"]);
   });
 });

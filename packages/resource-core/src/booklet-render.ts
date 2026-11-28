@@ -70,6 +70,20 @@ export interface RenderedBooklet {
   retrievalPage: number | null;
   /** The "Do it" revision page (the last page), or null. */
   revisionPage: number | null;
+  /** Where each lesson card is drawn, so an editor can find the card under a click. Never drawn itself. */
+  cards: CardSpot[];
+}
+
+/** A drawn card: its 1-based page, 0-based lesson, section and card, and its box on the page in millimetres. */
+export interface CardSpot {
+  page: number;
+  lesson: number;
+  section: number;
+  card: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 type W = { lesson: number; section?: number; question?: number | string; page?: number };
@@ -1410,6 +1424,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   }
 
   const pages: string[] = [];
+  const spots: CardSpot[] = [];
   pages.push(page(cover(doc, plan.contents, st, issues), `${doc.title}, cover${view === "answers" ? ", answers" : ""}`, options));
   if (doc.intro) pages.push(page(introPage(doc, doc.intro, st, issues, 2) + footer(doc, 2, st), `${doc.title}, unit introduction`, options));
 
@@ -1462,6 +1477,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
         const grown = growLastSpace(section.cards[c.index], slack);
         const f = grown ? card(grown, c.number, c.w, ctx, extra, GROW_MARGIN) : card(section.cards[c.index], c.number, c.w, ctx, extra, slack);
         out.push(at(f, A4.marginX + c.x, yy + c.dy));
+        spots.push({ page: pages.length + 1, lesson: p.lesson - 1, section: block.section, card: c.index, x: A4.marginX + c.x, y: yy + c.dy, w: c.w, h: c.h });
       });
     }
     const mis = pageMisconception(lesson, p, view, !!ctx.maths);
@@ -1512,7 +1528,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   }
   // Card-level issues carry the lesson, section and question they belong to.
   for (const i of ctx.issues) issues.push({ lesson: i.lesson, section: i.section, question: i.question, page: i.page, ...((i as BookletIssue).revision ? { revision: true } : {}), message: i.message });
-  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage, retrievalPage: plan.retrievalPage, revisionPage: plan.revisionPage };
+  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage, retrievalPage: plan.retrievalPage, revisionPage: plan.revisionPage, cards: spots };
 }
 
 function dedupe(list: BookletIssue[]): BookletIssue[] {

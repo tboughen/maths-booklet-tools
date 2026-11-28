@@ -14,10 +14,12 @@ export const ADAPT_NAME_MAX = 24;
 /** The same rule the bank list and the Worker use for version names. */
 export const versionName = /^[A-Za-z0-9][A-Za-z0-9 ()+&,'-]{0,39}$/;
 
-const tidy = (text: string, max: number) => text.replace(/[^A-Za-z0-9 +&,'-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, max).trim();
+// A name starts with a letter or digit, as the version rule needs.
+const tidy = (text: string, max: number) => text.replace(/[^A-Za-z0-9 +&,'-]+/g, " ").replace(/^[^A-Za-z0-9]+/, "").replace(/\s+/g, " ").trim().slice(0, max).trim();
 /** "Easier" with class 9X is "Easier (9X)"; a different approach may carry the teacher's own short name instead. */
 export function adaptName(kind: AdaptKind, className: string, own = ""): string {
-  const base = (kind === "different" && tidy(own, ADAPT_NAME_MAX)) || adaptKinds[kind];
+  const mine = kind === "different" ? tidy(own, ADAPT_NAME_MAX) : "";
+  const base = mine && mine.toLowerCase() !== "main" ? mine : adaptKinds[kind];
   const group = tidy(className, ADAPT_CLASS_MAX);
   return group ? `${base} (${group})` : base;
 }

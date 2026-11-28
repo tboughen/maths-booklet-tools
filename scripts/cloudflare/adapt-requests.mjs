@@ -27,7 +27,7 @@ export function adaptRequest(body) {
   if (!unitCode.test(unit)) return { error: 'Only a scheme unit can be adapted.' };
   const lesson = body?.lesson ?? null;
   if (lesson !== null && (!lessonCode.test(String(lesson)) || !String(lesson).startsWith(`${unit}.`))) return { error: 'Choose a lesson of this unit.' };
-  if (!(body?.kind in adaptKinds)) return { error: 'Choose easier, harder or a different approach.' };
+  if (!Object.hasOwn(adaptKinds, String(body?.kind))) return { error: 'Choose easier, harder or a different approach.' };
   const name = String(body?.name ?? '').replace(/\s+/g, ' ').trim();
   if (name === 'Main' || !versionName.test(name)) return { error: 'Give the adaptation a short name, up to 40 letters, digits and spaces.' };
   const text = clean(body?.text);
@@ -69,7 +69,7 @@ export async function listRequests(env, fetcher, email, year, unit) {
     let who = 'A colleague';
     try { who = nameOf(decodeURIComponent(meta.from)); } catch { /* keep the default */ }
     const lesson = typeof meta.lesson === 'string' && lessonCode.test(meta.lesson) ? meta.lesson : null;
-    if (!(meta.kind in adaptKinds) || !versionName.test(meta.name ?? '')) return [];
+    if (!Object.hasOwn(adaptKinds, String(meta.kind)) || !versionName.test(meta.name ?? '')) return [];
     return [{ number: issue.number, when: issue.created_at, lesson, kind: meta.kind, name: meta.name, who, mine: meta.from === me }];
   });
 }

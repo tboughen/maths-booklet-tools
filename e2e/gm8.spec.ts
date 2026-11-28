@@ -181,3 +181,46 @@ test("constructions: typing in one point's box is kept for that point when anoth
   expect(points.map((p: { label: { text: string } }) => p.label.text).slice(0, 2)).toEqual(["P", "B"]);
   await expect(box.getByRole("textbox", { name: "Point label" })).toHaveValue("B");
 });
+
+test("plans and elevations: a solid made of shapes, each change one undo step, with hidden lengths on the answers copy only", async ({ page }) => {
+  await page.goto("/tools/elevations");
+  const art = page.getByTestId("elevations-resource").locator("svg");
+  await expect(art).toHaveAttribute("aria-label", /Solid of 7 cubes/);
+  await page.getByLabel("Solid made of").selectOption("shapes");
+  await expect(art).toHaveAttribute("aria-label", /Solid made of a prism/);
+  let doc = (await saved(page, eKey)).document;
+  expect(doc.heights).toBeUndefined();
+  expect(doc.shapes).toHaveLength(1);
+  // Corners typed as pairs make an L-shaped cross-section.
+  const corners = page.getByLabel("Shape 1 cross-section corners");
+  await corners.fill("(0, 0) (5, 0) (5, 2) (2, 2) (2, 4) (0, 4)");
+  await corners.press("Enter");
+  expect((await saved(page, eKey)).document.shapes[0].section).toHaveLength(6);
+  // A cone on top, then a radius that is not a whole or half square is refused with a reason and changes nothing.
+  await page.getByLabel("Add a shape on top").selectOption("cone");
+  await expect(art).toHaveAttribute("aria-label", /a prism and a cone/);
+  doc = (await saved(page, eKey)).document;
+  expect(doc.shapes[1]).toMatchObject({ type: "cone", at: { z: 4 } });
+  const radius = page.getByLabel("Shape 2 radius");
+  await radius.fill("2.3");
+  await radius.press("Enter");
+  await expect(page.getByText(/Shape 2 radius: Use whole or half squares/)).toBeVisible();
+  expect((await saved(page, eKey)).document.shapes[1].r).toBe(2);
+  // A hidden length prints on the answers copy only.
+  await page.getByRole("button", { name: "Add a length" }).click();
+  const text = page.getByLabel("Length 1 text");
+  await text.fill("5 cm");
+  await text.press("Enter");
+  await page.getByLabel("Hide for pupils (shown on the answers copy)").check();
+  expect((await saved(page, eKey)).document.lengths[0]).toMatchObject({ text: "5 cm", show: "hidden" });
+  const pupil = await art.innerHTML();
+  await page.getByLabel("Teacher copy: show answers").check();
+  expect(await art.innerHTML()).not.toBe(pupil);
+  await page.getByLabel("Teacher copy: show answers").uncheck();
+  // Dashed hidden edges are saved only when asked.
+  await page.getByLabel(/Dash hidden edges/).check();
+  expect((await saved(page, eKey)).document.hiddenLines).toBe("dashed");
+  // Every change undoes one at a time, back to the cube solid.
+  for (let i = 0; i < 7; i++) await page.getByRole("button", { name: "Undo" }).click();
+  expect(await saved(page, eKey)).toEqual(JSON.parse(eCanonical(eCreate())));
+});

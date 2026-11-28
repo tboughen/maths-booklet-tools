@@ -32,3 +32,17 @@
 .bk-outline .ws-toolbar, .bk-outline .bk-section-head { flex-wrap: wrap; }
 .bk-lesson > .ws-card-moves { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .bk-notes-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Editing on the page: a button over each drawn card and the card's editor beside it. Never in exports. */
+.bk-art-wrap { position: relative; max-width: 100%; }
+.ws-actual .bk-art-wrap { max-width: none; }
+.bk-spot { position: absolute; padding: 0; margin: 0; border: 0; border-radius: 1.5%; background: transparent; cursor: text; }
+.bk-spot:hover { box-shadow: 0 0 0 2px rgba(43, 108, 217, 0.45); }
+.bk-spot:focus-visible { outline: 3px solid #2b6cd9; outline-offset: 1px; }
+.bk-spot.on { box-shadow: 0 0 0 3px #2b6cd9; background: rgba(43, 108, 217, 0.04); }
+.bk-selected { border: 2px solid #2b6cd9; }
+.bk-selected-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bk-selected-head h2 { margin: 0; }
+.bk-build-checks h3 { font-size: 0.95rem; margin: 12px 0 4px; }
+.bk-build-checks li.warn span { color: #a86200; }
+.bk-page.editing { content-visibility: visible; position: relative; z-index: 4; }

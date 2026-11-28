@@ -6337,6 +6337,477 @@
               }
             }
           },
+          "shapes": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "prism"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "section": {
+                      "minItems": 3,
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "number",
+                          "minimum": -12,
+                          "maximum": 12
+                        }
+                      }
+                    },
+                    "axis": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "y",
+                        "z"
+                      ]
+                    },
+                    "length": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 12
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "at",
+                    "section",
+                    "axis",
+                    "length"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "pyramid"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "base": {
+                      "minItems": 3,
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "number",
+                          "minimum": -12,
+                          "maximum": 12
+                        }
+                      }
+                    },
+                    "apex": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -12,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -12,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "at",
+                    "base",
+                    "apex"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "cylinder"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "r": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 6
+                    },
+                    "h": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 12
+                    },
+                    "axis": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "y",
+                        "z"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "at",
+                    "r",
+                    "h",
+                    "axis"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "cone"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "r": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 6
+                    },
+                    "h": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 12
+                    },
+                    "axis": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "y",
+                        "z"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "at",
+                    "r",
+                    "h",
+                    "axis"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "sphere"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "r": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 6
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "at",
+                    "r"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "hemisphere"
+                    },
+                    "at": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "z": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "r": {
+                      "type": "number",
+                      "minimum": 0.5,
+                      "maximum": 6
+                    },
+                    "flat": {
+                      "type": "string",
+                      "enum": [
+                        "down",
+                        "up"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "at",
+                    "r",
+                    "flat"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "lengths": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "a": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    },
+                    "z": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                },
+                "b": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    },
+                    "z": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 12
+                },
+                "show": {
+                  "type": "string",
+                  "enum": [
+                    "show",
+                    "hidden"
+                  ]
+                }
+              },
+              "required": [
+                "a",
+                "b",
+                "text",
+                "show"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "hiddenLines": {
+            "type": "string",
+            "enum": [
+              "none",
+              "dashed"
+            ]
+          },
           "panels": {
             "minItems": 1,
             "maxItems": 6,
@@ -6441,7 +6912,6 @@
           }
         },
         "required": [
-          "heights",
           "panels",
           "unitCm",
           "arrows",

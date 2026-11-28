@@ -75,7 +75,7 @@ describe("plans and elevations", () => {
       baseHash: await c.hash(e),
       operations: [{ op: "set_height", row: 0, column: 0, height: 3 }, { op: "set_panel", index: 1, panel: { state: "drawn" } }],
     });
-    expect(out.document.heights[0][0]).toBe(3);
+    expect(out.document.heights![0][0]).toBe(3);
     expect(out.document.panels[1].state).toBe("drawn");
     await expect(io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_height", row: 4, column: 0, height: 1 }] })).rejects.toThrow(/rows/);
     for (const example of io.exampleIds) expect(c.exportIssue(io.create({ spec: { example } }))).toBeNull();

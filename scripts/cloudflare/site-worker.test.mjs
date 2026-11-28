@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ukToday } from './cover-requests.mjs';
-import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveAdaptRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveLibraryEdits, serveAdaptRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -207,6 +207,10 @@ test('deployment refuses a website Worker without the gated bank route or Access
     assert.equal(config.preview_urls, false);
     const configured = { ...config, vars: env0 };
     assertGatedWorker(configured);
+    // Every /api route the Worker answers must run before the static assets, or the page's fallback answers it.
+    const routes = [...readFileSync(new URL('./site-worker.mjs', import.meta.url), 'utf8').matchAll(/pathname === '(\/api\/[^']+)'/g)].map(m => m[1]);
+    assert.ok(routes.includes('/api/library/adapt'));
+    for (const route of routes) assert.ok(config.assets.run_worker_first.includes(route), `${name} must run the Worker first for ${route}`);
     assert.throws(() => assertGatedWorker({ ...configured, vars: { ACCESS_TEAM_DOMAIN: '', ACCESS_AUD: '' } }), /ACCESS_TEAM_DOMAIN/);
     assert.throws(() => assertGatedWorker({ ...configured, workers_dev: true }), /gated R2 route/);
     assert.throws(() => assertGatedWorker({ ...configured, r2_buckets: [] }), /gated R2 route/);
@@ -481,6 +485,91 @@ test('a library editor can delete a cover lesson from the list, and nothing else
   assert.equal((await cover('POST', { action: 'remove', id: 'y9-a7-cover-lesson-2' }, { env: editor })).response.status, 200);
 });
 
+// Booklets edited on the site and saved to the library (library-edits.mjs).
+function memoryBank(start = {}) {
+  const stored = new Map(Object.entries(start).map(([k, v]) => [k, { text: v, etag: 'e0' }]));
+  let n = 0;
+  return {
+    stored,
+    async get(k) { const o = stored.get(k); return o ? { etag: o.etag, httpEtag: `"${o.etag}"`, size: o.text.length, body: new Blob([o.text]).stream() } : null; },
+    async head(k) { const o = stored.get(k); return o ? { etag: o.etag, httpEtag: `"${o.etag}"`, size: o.text.length } : null; },
+    async put(k, text, options = {}) {
+      const only = options.onlyIf;
+      if (only?.etagMatches && stored.get(k)?.etag !== only.etagMatches) return null;
+      if (only instanceof Headers && only.get('If-None-Match') === '*' && stored.has(k)) return null;
+      stored.set(k, { text, etag: `e${++n}`, meta: options.customMetadata });
+      return { etag: `e${n}` };
+    },
+  };
+}
+const lessonSource = JSON.stringify({ code: 'A7.03', working: [], sides: 6, booklet: { tool: 'resource', schemaVersion: 1, document: { kind: 'booklet-a4', title: 'A7', lessons: [{ title: 'Find the gradient' }] } } });
+async function edit(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, signed = true, query = '', BANK = memoryBank() } = {}) {
+  const sent = [];
+  const fetcher = async (url, init) => {
+    if (url.startsWith(team)) return certs(url);
+    sent.push([init.method, url, init.body && JSON.parse(init.body)]);
+    return Response.json({ number: 52 }, { status: 201 });
+  };
+  const headers = { 'Content-Type': 'application/json', ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email: 'Sam.Jones@school.example' }) } : {}) };
+  const response = await serveLibraryEdits(new Request(`https://mathsdock.co.uk/api/library/edit${query}`, { method, headers, body: body && JSON.stringify(body) }), { ...env, BANK }, { fetcher });
+  return { response, sent, BANK, data: await response.json() };
+}
+const save = { resource: 'y9-a7-03-lesson-booklet', version: 'Main', title: 'A7.03 Find the gradient', note: 'Clearer wording on question 5', failing: 0, source: lessonSource };
+
+test('saving an edited booklet needs sign-in, a library booklet, a note and a lesson source', async () => {
+  assert.equal((await edit('POST', save, { signed: false })).response.status, 403);
+  for (const [change, message] of [[{ resource: '../x' }, 'Resource library'], [{ note: '  ' }, 'what you changed'], [{ source: '' }, 'not sent'], [{ source: '{' }, 'could not be read'], [{ source: '{"booklet":{"document":{"kind":"worksheet-a3","lessons":[{}]}}}' }, 'not a booklet'], [{ version: '<b>' }, 'version']]) {
+    const { response, data, sent, BANK } = await edit('POST', { ...save, ...change });
+    assert.equal(response.status, 400, message);
+    assert.match(data.error, new RegExp(message));
+    assert.equal(sent.length, 0);
+    assert.equal(BANK.stored.size, 0);
+  }
+});
+
+test('an edited booklet is kept under its own SHA-256, listed, and Tim is alerted through an assigned issue', async () => {
+  const { response, data, sent, BANK } = await edit('POST', { ...save, note: 'Fixed <!-- library-edit {"x":1} --> Q5' });
+  assert.equal(response.status, 201);
+  assert.equal(data.alerted, true);
+  const key = data.edit.key;
+  assert.match(key, /^library\/edits\/[a-f0-9]{64}\/y9-a7-03-lesson-booklet\.json$/);
+  assert.equal(BANK.stored.get(key).text, lessonSource);
+  assert.equal(BANK.stored.get(key).meta.by, 'Sam Jones');
+  const list = JSON.parse(BANK.stored.get('library/edits.json').text);
+  assert.equal(list.edits.length, 1);
+  assert.equal(list.edits[0].issue, 52);
+  const [, url, issue] = sent[0];
+  assert.match(url, /repos\/tboughen\/mathsdock-bank\/issues$/);
+  assert.deepEqual(issue.labels, ['library-edit']);
+  assert.deepEqual(issue.assignees, ['tboughen']);
+  assert.equal(issue.body.match(/<!--/g).length, 1);
+  assert.match(issue.body, /no build check problems/);
+  const unchecked = await edit('POST', { ...save, failing: null, note: 'Thanks @someone' });
+  assert.match(unchecked.sent[0][2].body, /build checks did not run/);
+  assert.doesNotMatch(unchecked.sent[0][2].body, /@someone/);
+  // The same file again (a retry) is one edit with one issue; the served list names it by its library-data address.
+  const again = await edit('POST', save, { BANK });
+  assert.equal(again.sent.length, 0);
+  assert.equal(again.data.edit.issue, 52);
+  const listed = await edit('GET', undefined, { BANK, query: '?resource=y9-a7-03-lesson-booklet' });
+  assert.equal(listed.data.edits.length, 1);
+  assert.match(listed.data.edits[0].href, /^library-data\/edits\//);
+  // The saved source is served to signed-in staff like the library's files.
+  const served = await serveLibrary(request(listed.data.edits[0].href, { 'Cf-Access-Jwt-Assertion': await token() }), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(served.status, 200);
+  assert.equal(await served.text(), lessonSource);
+});
+
+test('an edit is still kept when issues are not switched on, and a damaged list is never overwritten', async () => {
+  const quiet = await edit('POST', save, { env: env0 });
+  assert.equal(quiet.response.status, 201);
+  assert.equal(quiet.data.alerted, false);
+  assert.equal(quiet.sent.length, 0);
+  const damaged = await edit('POST', save, { BANK: memoryBank({ 'library/edits.json': 'not json' }) });
+  assert.equal(damaged.response.status, 500);
+  assert.equal(damaged.BANK.stored.get('library/edits.json').text, 'not json');
+});
+
 // Adaptation requests.
 async function adapt(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secret' }, issues = [], signed = true, query = '' } = {}) {
   const sent = [];
@@ -499,7 +588,7 @@ const adaptAsk = { year: 9, unit: 'A7', lesson: 'A7.03', kind: 'easier', name: '
 test('an adaptation request needs sign-in, a scheme unit, a lesson of it, a kind, a short name and what should change', async () => {
   assert.equal((await adapt('POST', adaptAsk, { signed: false })).response.status, 403);
   assert.equal((await adapt('POST', adaptAsk, { env: env0 })).response.status, 503);
-  for (const [change, message] of [[{ year: 6 }, 'year'], [{ unit: 'STARTERS' }, 'scheme unit'], [{ lesson: 'A4.03' }, 'lesson'], [{ kind: 'bespoke' }, 'easier'],
+  for (const [change, message] of [[{ year: 6 }, 'year'], [{ unit: 'STARTERS' }, 'scheme unit'], [{ lesson: 'A4.03' }, 'lesson'], [{ kind: 'bespoke' }, 'easier'], [{ kind: 'constructor' }, 'easier'],
     [{ name: 'Main' }, 'short name'], [{ name: 'Easier · 9X' }, 'short name'], [{ name: 'x'.repeat(41) }, 'short name'], [{ text: ' ' }, 'change'], [{ text: 'x'.repeat(2001) }, '2000']]) {
     const { response, data, sent } = await adapt('POST', { ...adaptAsk, ...change });
     assert.equal(response.status, 400, JSON.stringify(change));
