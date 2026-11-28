@@ -13,6 +13,8 @@ export type Earlier = { updated: string; note?: string; files: LibraryFile[] };
 export type Resource = {
   id: string; year: number; unit: string; lesson?: string; version: string; part?: string; note?: string;
   title: string; type: ResourceType; status: "ready" | "waiting"; updated: string; files: LibraryFile[]; history: Earlier[];
+  /** What an adaptation (a version beside Main) was made for, when a teacher asked for it. */
+  adaptation?: { kind: "easier" | "harder" | "different"; from?: string };
   /** Set when an editor ticked ✓ Checked on this version on the page (not in the published list). */
   checked?: Check;
 };
@@ -84,7 +86,8 @@ export function versionsOf(list: Library, year: number, unit: string): string[] 
 }
 
 export type LessonState = "none" | "waiting" | "ready" | "feedback";
-export type LessonRow = { code: string; title: string; resource?: Resource; state: LessonState; thread?: Thread };
+/** `main` is the Main lesson shown, greyed, where an adaptation leaves a lesson as it is. */
+export type LessonRow = { code: string; title: string; resource?: Resource; state: LessonState; thread?: Thread; main?: Resource };
 /**
  * One row per lesson of one version: the planned lessons in order, with any made lesson the plan does
  * not name (A4.00 Unit start) in its place. Starters and booster booklets have no lesson code, so each
@@ -105,6 +108,17 @@ export function lessonPlan(list: Library, year: number, code: string, version: s
     if (thread) Object.assign(row, { thread, state: "feedback" });
   }
   return ordered;
+}
+/**
+ * An adaptation's rows (Tim, 28 Nov): the lessons it changes, and Main's lesson, greyed, for every lesson it leaves
+ * as it is, so a teacher sees the whole unit in one list. The squares and summary still count only its own lessons.
+ */
+export function adaptationPlan(list: Library, year: number, code: string, version: string, threads = new Map<string, Thread>()): LessonRow[] {
+  const rows = lessonPlan(list, year, code, version, threads);
+  if (version === "Main") return rows;
+  const main = new Map(lessonPlan(list, year, code, "Main").map((r) => [r.code, r.resource]));
+  // A lesson someone has asked for or commented on in this adaptation keeps its own row, so the thread stays open to read.
+  return rows.map((r) => (!r.resource && !r.thread && r.code && main.get(r.code) ? { ...r, main: main.get(r.code) } : r));
 }
 /** Where each part starts and ends among the rows, or null for a unit in one booklet. */
 export function partRanges(unit: LibraryUnit | undefined, rows: LessonRow[]) {

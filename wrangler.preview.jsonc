@@ -10,7 +10,7 @@
     "directory": "./dist-cloudflare",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/bank/assets/*", "/library-data/*", "/api/report", "/api/library/feedback", "/api/library/cover", "/api/library/edit", "/api/present/ink"]
+    "run_worker_first": ["/bank/assets/*", "/library-data/*", "/api/report", "/api/library/feedback", "/api/library/cover", "/api/library/edit", "/api/library/adapt", "/api/present/ink"]
   },
   "r2_buckets": [{ "binding": "BANK", "bucket_name": "maths-booklet-assets" }],
   "vars": {

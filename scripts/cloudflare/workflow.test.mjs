@@ -170,7 +170,7 @@ test('real clean Git/package fixture reuses exact catalogue and rejects altered 
     ['.gitignore', 'cloudflare-release\ndist-cloudflare\n'],
     ['public/bank/catalogue.json', '{"questions":[]}'], ['public/bank/assets/example/print.pdf', 'asset-data'],
     ['package-lock.json', '{"version":1}'], ['wrangler.jsonc', '{}'], ['wrangler.preview.jsonc', '{}'], ['scripts/cloudflare/site-worker.mjs', '// fixture worker'], ['scripts/cloudflare/library-feedback.mjs', '// fixture worker module'],
-    ['scripts/cloudflare/cover-requests.mjs', '// fixture worker module'], ['scripts/cloudflare/library-edits.mjs', '// fixture worker module'], ['scripts/cloudflare/present-ink.mjs', '// fixture worker module'],
+    ['scripts/cloudflare/cover-requests.mjs', '// fixture worker module'], ['scripts/cloudflare/library-edits.mjs', '// fixture worker module'], ['scripts/cloudflare/adapt-requests.mjs', '// fixture worker module'], ['scripts/cloudflare/present-ink.mjs', '// fixture worker module'],
     ...policyFiles.map(p => [p, `// fixture ${p}`]),
     ...['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(p => [`scripts/cloudflare/${p}`, '// fixture verifier']),
   ]) { mkdirSync(resolve(root, p, '..'), { recursive: true }); writeFileSync(resolve(root, p), text); }
