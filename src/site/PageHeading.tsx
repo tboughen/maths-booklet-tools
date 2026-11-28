@@ -1,4 +1,4 @@
-import { resourceCopyId } from "./copyDocument";
+import { embeddedInBooklet, resourceCopyId } from "./copyDocument";
 import { useContext, type ReactNode } from "react";
 import { bookletTools } from "./registry";
 import { ToolPageContext, useToolSwitcher } from "./toolPage";
@@ -20,9 +20,10 @@ export function PageHeading({
   return (
     <div className="page-heading">
       <div>
-        {tool && ToolSwitcher ? <ToolSwitcher tool={tool} title={title} /> : <h1 tabIndex={-1}>{title}</h1>}
+        {/* Inside the Booklet builder's diagram dialog the tool cannot switch to another tool. */}
+        {tool && ToolSwitcher && !embeddedInBooklet ? <ToolSwitcher tool={tool} title={title} /> : <h1 tabIndex={-1}>{title}</h1>}
         {resourceCopyId && (
-          <span className="worked-copy-badge">Separate worked copy</span>
+          <span className="worked-copy-badge">{embeddedInBooklet ? "Copy for the booklet card" : "Separate worked copy"}</span>
         )}
         <p>{description}</p>
       </div>

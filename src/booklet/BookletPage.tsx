@@ -33,6 +33,9 @@ import {
   type Numbering,
 } from "../../packages/resource-core/src/index";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
+import { diagramEnvelope } from "../../packages/resource-core/src/schema";
+import type { DiagramKind } from "../../packages/diagram-core/src/registry";
+import { DiagramDialog } from "./DiagramDialog";
 import { BesideToggle, Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
 import { withBeside } from "../worksheet/edit";
 import { pagesPdf } from "../worksheet/export";
@@ -163,12 +166,14 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const [saving, setSaving] = useState<string | null>(null);
   /** The card being edited on the page, if any. */
   const [selected, setSelected] = useState<Spot | null>(null);
+  /** A card's diagram open in its own tool (stage 4): where it sits in the card, and the envelope it opened with. */
+  const [diagramEdit, setDiagramEdit] = useState<{ kind: DiagramKind; envelope: unknown; lesson: number; section: number; card: number; path: number[] } | null>(null);
   const [focus, setFocus] = useState(0);
   const file = useRef<HTMLInputElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const b = history.present;
   const d = b.document;
-  const blocked = busy || aiBusy || recovery !== null || pending !== null;
+  const blocked = busy || aiBusy || recovery !== null || pending !== null || diagramEdit !== null;
   const shown = useMemo(() => renderBooklet(b, { view: answers ? "answers" : "pupil" }), [b, answers]);
   const issues = shown.issues;
 
@@ -196,6 +201,17 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (blocked) return false;
     const next = structuredClone(b);
     update(next.document);
+    return commit(next);
+  }
+  /** The diagram back from its tool, as one undo step. The page is blocked only by the dialog itself here. */
+  function putDiagram(at: NonNullable<typeof diagramEdit>, envelope: unknown) {
+    if (busy || aiBusy || recovery !== null || pending !== null) return false;
+    const next = structuredClone(b);
+    const items = next.document.lessons[at.lesson]?.sections[at.section]?.cards[at.card]?.items;
+    const list = at.path.length === 1 ? items : (items?.[at.path[0]] as Extract<Item, { type: "part" }> | undefined)?.items;
+    const leaf = list?.[at.path[at.path.length - 1]];
+    if (leaf?.type !== "diagram" || leaf.diagram.tool !== at.kind) return false;
+    leaf.diagram = { tool: at.kind, envelope: envelope as Record<string, unknown> };
     return commit(next);
   }
   const undo = () => !blocked && documentHistory.undo();
@@ -406,6 +422,20 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
         if (path.length === 1) items[path[0]] = next as Item;
         else (items[path[0]] as Extract<Item, { type: "part" }>).items[path[1]] = next as Leaf;
       });
+    /** The leaf's diagram in its own tool; Done puts the envelope back at the same place in the card. */
+    const editDiagram = (path: number[], leaf: Leaf) => {
+      if (leaf.type !== "diagram") return undefined;
+      return () => {
+        let envelope: unknown;
+        try {
+          envelope = diagramEnvelope(leaf.diagram);
+        } catch (err) {
+          setMessage(`This diagram cannot open in its tool: ${err instanceof Error ? err.message : String(err)}`);
+          return;
+        }
+        setDiagramEdit({ kind: leaf.diagram.tool, envelope, lesson: li, section: si, card: ci, path });
+      };
+    };
     return (
       <>
                     <div className="ws-card-moves" role="group" aria-label={`Card ${card.title}`}>
@@ -467,7 +497,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                           <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                           {item.items.map((leaf, j) => (
                             <div key={j} className="ws-item">
-                              <LeafEditor item={leaf} set={(next) => setItem([i, j], next)} label="" disabled={blocked} />
+                              <LeafEditor item={leaf} set={(next) => setItem([i, j], next)} label="" disabled={blocked} editDiagram={editDiagram([i, j], leaf)} />
                               <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
                             </div>
                           ))}
@@ -486,7 +516,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                         </div>
                       ) : (
                         <div key={i} className="ws-item">
-                          <LeafEditor item={item} set={(next) => setItem([i], next)} label="" disabled={blocked} />
+                          <LeafEditor item={item} set={(next) => setItem([i], next)} label="" disabled={blocked} editDiagram={editDiagram([i], item)} />
                           <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                         </div>
                       ),
@@ -793,6 +823,16 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                   Cancel
                 </button>
               </form>
+            )}
+            {diagramEdit && (
+              <DiagramDialog
+                kind={diagramEdit.kind}
+                envelope={diagramEdit.envelope}
+                onDone={(next) => {
+                  if (putDiagram(diagramEdit, next)) setMessage("The diagram is back in the card. Undo puts the old one back.");
+                }}
+                onClose={() => setDiagramEdit(null)}
+              />
             )}
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved booklet data">

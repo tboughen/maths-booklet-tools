@@ -129,6 +129,17 @@ undo step. Escape outside a field, or the close button, puts the editor away. `r
 `cards` (each card's page and box in millimetres) for this; the buttons are page controls and never reach
 the SVG, PDF or Word files.
 
+### Diagrams in their own tools (28 Nov 2026)
+
+A diagram in the card being edited has **Edit the <diagram> in its tool**. The real MathsDock tool opens in a
+dialog over the booklet with that diagram loaded, as a separate copy (`?resourceCopy=<id>&embed=booklet`, the
+copies worked documents use), so the teacher's own work in that tool is never touched. Inside the dialog the
+tool shows no site header and cannot switch to another tool. **Done** asks the tool to save, reads the copy
+back, checks both copies with the family's validator and puts the envelope back in the card as one undo step;
+the card redraws at its print size and the build checks run again. Cancel, Escape or the close button leave
+the card as it was. Every family works this way: `src/booklet/diagramTools.ts` lists where each tool keeps its
+document, and its test fails if a tool's key changes.
+
 ### Lesson source files and the build checks
 
 File > Open also takes a lesson source as booklet builds write it (`source.json`: the booklet under

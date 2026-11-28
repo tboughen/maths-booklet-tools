@@ -1,4 +1,4 @@
-import { resourceCopyId } from "./copyDocument";
+import { embeddedInBooklet, resourceCopyId } from "./copyDocument";
 import {
   Suspense,
   useCallback,
@@ -168,6 +168,11 @@ export default function SiteApp() {
       return;
     }
     const clicked = new URL(link.href, location.href).href;
+    // Inside the Booklet builder's diagram dialog the tool is the whole page: links to other pages do nothing.
+    if (embeddedInBooklet && new URL(clicked).origin === location.origin && readPage(new URL(clicked)) !== page) {
+      event.preventDefault();
+      return;
+    }
     const url = new URL(upgradeLegacyLink(clicked) ?? clicked);
     const next = readPage(url);
     if (
@@ -204,11 +209,13 @@ export default function SiteApp() {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
   }
   return (
-    <div className="site-app" ref={host} onClick={navigate}>
-      <a className="site-skip" href="#main-content">
-        Skip to content
-      </a>
-      <SiteHeader key={section} page={page} section={section} />
+    <div className={`site-app${embeddedInBooklet ? " site-app--embedded" : ""}`} ref={host} onClick={navigate}>
+      {!embeddedInBooklet && (
+        <a className="site-skip" href="#main-content">
+          Skip to content
+        </a>
+      )}
+      {!embeddedInBooklet && <SiteHeader key={section} page={page} section={section} />}
       {page === "not-found" && (
         <div className="site-page">
           <NotFound />
@@ -229,7 +236,7 @@ export default function SiteApp() {
             <div key={tool.id} className="site-page site-page--tool" hidden={page !== tool.id}>
               <LazyPage onReady={pageReady}>
                 <ToolPageContext value={tool.id}>
-                  <DocumentChangeContext value={workRecorder(tool.id)}>
+                  <DocumentChangeContext value={embeddedInBooklet ? null : workRecorder(tool.id)}>
                     <tool.component active={page === tool.id} />
                   </DocumentChangeContext>
                 </ToolPageContext>

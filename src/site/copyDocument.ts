@@ -5,6 +5,12 @@ const suppliedCopy = new URL(location.href).searchParams.get("resourceCopy");
 export const resourceCopyId =
   suppliedCopy && /^[a-f0-9-]{36}$/.test(suppliedCopy) ? suppliedCopy : null;
 
+/**
+ * A diagram tool opened inside the Booklet builder's diagram dialog (?embed=booklet on a resource copy): the page
+ * shows the tool alone, records no recent work and does not leave the tool.
+ */
+export const embeddedInBooklet = resourceCopyId !== null && new URL(location.href).searchParams.get("embed") === "booklet";
+
 /** Separate worked documents have a distinct storage key, including after reload. */
 export function copyStorageKey(base: string) {
   return resourceCopyId ? `${base}:worked:${resourceCopyId}` : base;

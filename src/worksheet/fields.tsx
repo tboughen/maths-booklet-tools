@@ -99,7 +99,7 @@ const CELL_STATES: [Cell["state"], string][] = [
   ["hidden", "Hidden answer"],
 ];
 
-export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf; set: (next: Leaf) => boolean | void; label: string; disabled: boolean }): ReactNode {
+export function LeafEditor({ item, set, label, disabled: blocked, editDiagram }: { item: Leaf; set: (next: Leaf) => boolean | void; label: string; disabled: boolean; /** Opens the diagram in its own tool (the Booklet builder's diagram dialog). */ editDiagram?: () => void }): ReactNode {
     switch (item.type) {
       case "text":
       case "info":
@@ -266,7 +266,13 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
           </>
         );
       case "diagram":
-        return <p className="ws-note">{familyLabel(item.diagram.tool)}: ask the AI to change it, or change it in its own tool.</p>;
+        return editDiagram ? (
+          <button className="tool-button bk-small ws-edit-diagram" disabled={blocked} onClick={editDiagram}>
+            Edit the {FAMILIES[item.diagram.tool].label} in its tool
+          </button>
+        ) : (
+          <p className="ws-note">{familyLabel(item.diagram.tool)}: ask the AI to change it, or change it in its own tool.</p>
+        );
       case "paper":
         return <PaperEditor item={item} set={set} label={label} disabled={blocked} />;
     case "steps":
