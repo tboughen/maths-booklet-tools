@@ -402,3 +402,44 @@ test("the page is on the house style: the shared margins, cards on the settings 
   expect((await generate.boundingBox())!.width).toBeGreaterThan(300);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+test("skill sheets: an invented skill bank gives one A3 sheet per student, with edits and a skill left out", async ({ page }) => {
+  // The real banks are school material in the private question bank, so this test serves an invented one.
+  const card = (title: string) => ({ title, items: [{ type: "text", text: `Work out ${title}.` }, { type: "answerLine", prefix: "", suffix: "", answer: "1", inline: false }] });
+  const cards = (code: string) => [1, 1, 2, 2, 3, 3, 4, "P", "S", "S"].map((level, i) => ({ level, card: card(`${code} card ${i + 1}`) }));
+  const skill = (code: string, title: string, part: string) => ({ code, title, pupilCodes: `M${code}`, sparx: ["U236"], paper: [part], start: [{ level: 1, all: [[part, 1]] }, { level: 2, all: [[part, 2]] }], cards: cards(code) });
+  const bank = { schema: "mathsdock-skill-sheets", version: 1, sets: [{ id: "demo", name: "Demo test", year: 8, title: "Demo test follow-up",
+    parts: ["Q1", "Q2a", "Q2b", "Q3"].map(label => ({ label, max: 2, codes: ["U236"] })), instructions: ["Side one.", "Side two."],
+    skills: [skill("A", "Adding", "Q1"), skill("B", "Bonds", "Q2a"), skill("C", "Counting", "Q2b"), skill("D", "Dividing", "Q3")] }] };
+  await page.route("**/bank/schemes.json", route => route.fulfill({ json: { schemaVersion: 1, skillSheets: "bank/assets/schemes/skill-sheets.json" } }));
+  await page.route("**/bank/assets/schemes/skill-sheets.json", route => route.fulfill({ json: bank }));
+  await page.goto("/assessment-follow-up");
+  await page.getByLabel("Choose assessment", { exact: true }).selectOption("skills:demo");
+  await expect(page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Paste marks", { exact: true }).fill(["0\t1\t2\t2", "2\t0\t0\t1", "\t\t\t"].join("\n"));
+  const plan = page.getByRole("table", { name: "Skill sheet plan" });
+  await expect(plan.locator("tbody tr")).toHaveCount(3);
+  await expect(plan.locator("tbody tr").nth(2)).toContainText("Absent");
+  await expect(page.getByLabel("Student 01 skill 1", { exact: true })).toHaveValue("A");
+  await expect(page.getByLabel("Student 01 skill 1 level", { exact: true })).toHaveValue("1");
+  // Leaving a skill out for the whole class replaces it on every sheet.
+  await page.getByText(/Teach to the whole class/).click();
+  await page.getByLabel(/^Adding/).check();
+  await expect(page.getByLabel("Student 01 skill 1", { exact: true })).not.toHaveValue("A");
+  // A teacher's change shows as changed and can be undone.
+  await page.getByLabel("Student 02 skill 1 level", { exact: true }).selectOption("S");
+  await expect(page.getByText("1 changed")).toBeVisible();
+  await page.getByRole("button", { name: "Generate skill sheets" }).click();
+  await expect(page.getByText("Class PDFs ready")).toBeVisible({ timeout: 60000 });
+  await expect(page.getByText("2 A3 sheets · 4 sides")).toBeVisible();
+  for (const [name, file] of [["Download pupil sheets", "demo-skill-sheets_pupil.pdf"], ["Download answers", "demo-skill-sheets_answers.pdf"]]) {
+    const pending = page.waitForEvent("download");
+    await page.getByRole("button", { name }).click();
+    const download = await pending;
+    expect(download.suggestedFilename()).toBe(file);
+    const pdf = await PDFDocument.load(await readFile((await download.path())!));
+    expect(pdf.getPageCount()).toBe(4);
+    const { width, height } = pdf.getPage(0).getSize();
+    expect([Math.round(width), Math.round(height)]).toEqual([1191, 842]);
+  }
+});

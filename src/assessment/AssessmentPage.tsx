@@ -13,6 +13,10 @@ import { exportClass } from "./export";
 import { layoutPack } from "./layout";
 import { Preview } from "./Preview";
 import { AnalysisPanel } from "./AnalysisPanel";
+import { loadSkillSets } from "./skills/load";
+import type { SkillSet } from "./skills/model";
+import { SkillSheets } from "./skills/SkillSheets";
+import { skillLabels } from "./skills/compose";
 import "../site/settings-kit.css";
 import "./assessment.css";
 
@@ -40,6 +44,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
   const [settings, setSettings] = useState<Settings>(defaults), [mappingText, setMappingText] = useState(""), [resultText, setResultText] = useState("");
   const [mappingRows, setMappingRows] = useState<string[][]>([]), [resultRows, setResultRows] = useState<string[][]>([]), [resultOptions, setResultOptions] = useState<ResultOptions>({}), [paper, setPaper] = useState(""), [partScores, setPartScores] = useState(true), [needsRegeneration, setNeedsRegeneration] = useState(false);
   const [plan, setPlan] = useState<ClassPlan>(), [blob, setBlob] = useState<Blob>(), [busy, setBusy] = useState(false), [status, setStatus] = useState(""), [error, setError] = useState(""), [previewPage, setPreviewPage] = useState(1), [resetKey, setResetKey] = useState(0);
+  const [skillSets, setSkillSets] = useState<SkillSet[]>([]);
   const controller = useRef<AbortController | null>(null), revision = useRef(0);
   useEffect(() => {
     const fetchController = new AbortController();
@@ -48,6 +53,8 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
       const parts = await fetch(assetUrl("bank/performance-parts.json"), { signal: fetchController.signal }).then(r => r.ok ? r.json() : undefined).then(json => json && verifyPartPerformance(json)).catch(() => undefined);
       setCatalogue({ ...withPerformance(verifyCatalogue(data)), ...(parts ? { partPerformance: parts } : {}) });
     }).catch(() => { if (!fetchController.signal.aborted) setLoadError("The question bank could not be loaded. Reload to try again."); });
+    // Skill sheet banks are optional: without them the page offers exam-question packs only.
+    loadSkillSets(fetchController.signal).then(setSkillSets).catch(e => { if (!fetchController.signal.aborted) setLoadError(e instanceof Error ? e.message : "The skill sheet bank could not be loaded."); });
     return () => { fetchController.abort(); controller.current?.abort(); };
   }, []);
   const invalidate = () => { revision.current++; controller.current?.abort(); if (blob || plan) setNeedsRegeneration(true); setPlan(undefined); setBlob(undefined); setError(""); setStatus(""); setBusy(false); };
@@ -58,10 +65,13 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
     if (items.length && resultRows.length) { const imported = importPupils(resultRows, items, resultOptions); pupils = imported.rows; detection = imported.detection; warnings.push(...imported.warnings); }
   } catch (e) { importError = e instanceof Error ? e.message : "Check the imported data."; }
   const presets = catalogue ? assessmentPresets(catalogue) : [], selectedPreset = presets.find(p => p.id === paper);
+  const skillSet = paper.startsWith("skills:") ? skillSets.find(s => `skills:${s.id}` === paper) : undefined;
   const questionGroups = [...new Set(items.map(item => assessmentQuestion(item.label)))].map(label => ({ label, codes: [...new Set(items.filter(item => assessmentQuestion(item.label) === label).flatMap(item => item.codes))] }));
   function choosePaper(id: string, parts = partScores) {
     if (id !== paper) setSettings(old => ({ ...old, excludedQuestions: [] }));
     invalidate(); setPaper(id); if (!id) { setMappingText(""); setMappingRows([]); return; } if (!catalogue) return;
+    const set = id.startsWith("skills:") ? skillSets.find(s => `skills:${s.id}` === id) : undefined;
+    if (set) { const text = mappingsCsv(set.parts.map(p => ({ label: p.label, marks: p.max, codes: p.codes }))); setMappingText(text); setMappingRows(parseDelimited(text)); return; }
     const preset = presets.find(p => p.id === id); if (!preset) return;
     const text = mappingsCsv(parts ? preset.parts : preset.items); setMappingText(text); setMappingRows(parseDelimited(text));
   }
@@ -104,16 +114,16 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
   const downloadText = (text: string, filename: string) => downloadBlob(new Blob([text], { type: "text/csv;charset=utf-8" }), filename);
   return <main className="af-page" id={active ? "main-content" : undefined} tabIndex={-1}>
     <PageHeading title="Assessment follow-up" description="Turn question-level assessment results into personalised practice for each pupil." />
-    <p className="af-intro">Paste marks only, one student per row. Students will be labelled S001, S002, etc.</p>
+    <p className="af-intro">Paste marks only, one student per row. Students will be labelled {skillSet ? "Student 01, Student 02" : "S001, S002"}, etc.</p>
     <div className="af-toolbar"><button className={blob ? "af-primary" : undefined} disabled={!blob || busy} onClick={() => blob && downloadBlob(blob, "mathsdock-assessment-follow-up.pdf")}><Download size={18} />Download class PDF</button><button disabled={!catalogue || busy} onClick={example}>Try example</button><button onClick={reset}><RotateCcw size={18} />Reset and clear data</button></div>
     <div className="af-workspace md-kit"><div className="af-main">
-      <Panel className="af-panel"><h2>1. Choose assessment</h2><label><span className="sr-only">Choose assessment</span><select aria-label="Choose assessment" disabled={!catalogue || busy} value={paper} onChange={e => choosePaper(e.target.value)}><option value="" disabled>Choose an assessment…</option><option value="custom">Custom assessment</option>{(["HPPs", "Mini mocks", "Exam papers", "Mock papers"] as const).flatMap(group => ([settings.tier, settings.tier === "H" ? "F" : "H"] as const).map(tier => <optgroup key={`${group}-${tier}`} label={`${group} — ${tier === "H" ? "Higher" : "Foundation"}`}>{presets.filter(p => p.group === group && p.tier === tier).map(p => <option key={p.id} value={p.id}>{p.name} — {p.marks} marks</option>)}</optgroup>))}</select></label>
-        <label className="af-check"><input type="checkbox" checked={partScores} disabled={busy} onChange={e => { setPartScores(e.target.checked); if (paper) choosePaper(paper, e.target.checked); else invalidate(); }} />Separate scores for 1a, 1b, etc.</label>
-        <p className="af-help">Untick for whole-question totals.</p>
+      <Panel className="af-panel"><h2>1. Choose assessment</h2><label><span className="sr-only">Choose assessment</span><select aria-label="Choose assessment" disabled={!catalogue || busy} value={paper} onChange={e => choosePaper(e.target.value)}><option value="" disabled>Choose an assessment…</option><option value="custom">Custom assessment</option>{skillSets.length > 0 && <optgroup label="Skill sheets (A3, levelled questions)">{skillSets.map(s => <option key={s.id} value={`skills:${s.id}`}>{s.name} — {s.parts.reduce((n, p) => n + p.max, 0)} marks</option>)}</optgroup>}{(["HPPs", "Mini mocks", "Exam papers", "Mock papers"] as const).flatMap(group => ([settings.tier, settings.tier === "H" ? "F" : "H"] as const).map(tier => <optgroup key={`${group}-${tier}`} label={`${group} — ${tier === "H" ? "Higher" : "Foundation"}`}>{presets.filter(p => p.group === group && p.tier === tier).map(p => <option key={p.id} value={p.id}>{p.name} — {p.marks} marks</option>)}</optgroup>))}</select></label>
+        {!skillSet && <><label className="af-check"><input type="checkbox" checked={partScores} disabled={busy} onChange={e => { setPartScores(e.target.checked); if (paper) choosePaper(paper, e.target.checked); else invalidate(); }} />Separate scores for 1a, 1b, etc.</label>
+        <p className="af-help">Untick for whole-question totals.</p></>}
         {items.length > 0 && <p className="af-assessment-summary">{items.length} score columns expected</p>}
-        {selectedPreset && <details><summary>View or edit mapping</summary>{mappingEditor}<div className="af-table"><table><thead><tr><th>Question</th><th>Marks</th><th>Sparx</th></tr></thead><tbody>{items.map(item => <tr key={item.label}><td>{item.label}</td><td>{item.marks}</td><td>{item.codes.join(", ")}</td></tr>)}</tbody></table></div></details>}
+        {(selectedPreset || skillSet) && <details><summary>View{skillSet ? "" : " or edit"} mapping</summary>{mappingEditor}<div className="af-table"><table><thead><tr><th>Question</th><th>Marks</th><th>Sparx</th></tr></thead><tbody>{items.map(item => <tr key={item.label}><td>{item.label}</td><td>{item.marks}</td><td>{item.codes.join(", ")}</td></tr>)}</tbody></table></div></details>}
         {paper === "custom" && mappingEditor}
-        {items.length > 0 && <details><summary>Not yet taught{settings.excludedQuestions?.length ? ` · ${settings.excludedQuestions.length} skipped` : ""}</summary>
+        {items.length > 0 && !skillSet && <details><summary>Not yet taught{settings.excludedQuestions?.length ? ` · ${settings.excludedQuestions.length} skipped` : ""}</summary>
           <p className="af-help">Tick questions to skip their topics throughout the pack. Keep all mark columns.</p>
           <div className="af-topic-exclusions">{questionGroups.map(group => <label className="af-check" key={group.label}><input type="checkbox" disabled={busy} checked={settings.excludedQuestions?.includes(group.label) || false} onChange={e => updateSettings({ excludedQuestions: e.target.checked ? [...(settings.excludedQuestions || []), group.label] : settings.excludedQuestions?.filter(label => label !== group.label) })} />{group.label} · {group.codes.map(code => catalogue?.topics.find(topic => topic.code === code)?.title || code).join(" / ")}</label>)}</div>
         </details>}
@@ -130,7 +140,8 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
       {(loadError || importError || error) && <p className="af-error" role="alert">{loadError || importError || error}</p>}
       {invalidScores > 0 && <p className="af-error" role="alert">{range([invalidScores], "invalid score")} treated as missing. Check import notices.</p>}
       {warnings.length > 0 && <details className="af-notices"><summary>{warnings.length} import notices — check details</summary><ul>{warnings.slice(0, 100).map((warning, i) => <li key={i}>{warning}</li>)}</ul></details>}
-      <div className="af-actions"><button className={blob ? undefined : "af-primary"} disabled={busy || !pupils.length || !items.length || !!importError} onClick={() => void generate()}><FileSpreadsheet size={18} />Generate class pack</button>{busy && <button onClick={() => { invalidate(); setStatus("Generation cancelled."); }}><X size={18} />Cancel</button>}</div>
+      {skillSet && catalogue && !importError && pupils.length > 0 && detection && detection.matchedQuestions === items.length && <SkillSheets key={`${skillSet.id}:${JSON.stringify(pupils.map(p => [p.identifier, p.scores]))}:${detection.identifierColumn}`} set={skillSet} pupils={skillLabels(skillSet, pupils, detection.identifierColumn === null)} disabled={busy} />}
+      {!skillSet && <div className="af-actions"><button className={blob ? undefined : "af-primary"} disabled={busy || !pupils.length || !items.length || !!importError} onClick={() => void generate()}><FileSpreadsheet size={18} />Generate class pack</button>{busy && <button onClick={() => { invalidate(); setStatus("Generation cancelled."); }}><X size={18} />Cancel</button>}</div>}
       <p role="status" aria-live="polite">{status}</p>
       {needsRegeneration && !blob && !busy && <p className="af-import-summary" role="status">Changes made — generate again</p>}
       {blob && plan && <Panel className="af-panel"><h2>3. Class pack</h2><div className="af-pack-summary" aria-label="Class pack summary"><strong>{range([plan.packs.length], "student")}</strong><strong>{range(plan.packs.map(p => p.entries.length), "question")} each</strong><strong>{range(plan.packs.map(p => p.entries.reduce((n, e) => n + e.question.marks, 0)), "mark")} each</strong></div><p className="af-help">{range(pageCounts, "A4 page")} each · {totalPages} pages total · Answers included</p>{emptyPacks > 0 && <p className="af-error" role="alert">{range([emptyPacks], "student")} with no suitable questions. Check Student details.</p>}
@@ -142,7 +153,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         <details><summary>Why these questions?</summary>{plan.packs.map(pack => <div key={pack.pupil.key}><h3>{pack.pupil.identifier}</h3><ol>{pack.entries.map(entry => <li key={entry.question.id}>{entry.question.source} — follow-up to {entry.references.join(", ")} · {entry.reason}</li>)}</ol></div>)}</details>
       </Panel>}
       {catalogue && !importError && items.length > 0 && pupils.length > 0 && <AnalysisPanel catalogue={catalogue} items={items} pupils={pupils} />}
-    </div><aside className="af-inspector"><Panel className="af-panel"><h2>Class settings</h2><fieldset disabled={busy}>
+    </div><aside className="af-inspector">{skillSet ? <Panel className="af-panel"><h2>Skill sheets</h2><p className="af-help">{skillSet.name}: {skillSet.skills.length} skills, levels 1 to 3, paper level, back to the paper and stretch. Class settings do not apply: levels come from each student's marks.</p></Panel> : <Panel className="af-panel"><h2>Class settings</h2><fieldset disabled={busy}>
       <label>Year<select aria-label="Year" value={settings.year} onChange={e => updateSettings({ year: Number(e.target.value) })}>{[7, 8, 9, 10, 11, 12, 13].map(year => <option key={year}>{year}</option>)}</select></label>
       <label>Tier<select aria-label="Tier" value={settings.tier} onChange={e => updateSettings({ tier: e.target.value as Settings["tier"] })}><option value="H">Higher</option><option value="F">Foundation</option></select></label>
       <label>Class strength<select aria-label="Class strength" value={settings.strength} onChange={e => updateSettings({ strength: e.target.value as Settings["strength"] })}><option value="developing">Developing</option><option value="secure">Secure</option><option value="strong">Strong</option></select></label>
@@ -157,7 +168,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         <p className="af-help">Shared packs use the class’s most commonly selected questions and class settings.</p>
         <details><summary>How questions are chosen</summary><p className="af-help">Earlier assessment gaps come first. Parts testing the same skill count together; packs cover up to three priority skills before repeating. Difficulty uses exam averages or estimates: developing 70–100%, secure 55–80%, strong 0–65%, adjusted for year and results. These are preferences, not exclusions.</p></details>
       </details>
-    </fieldset></Panel><details className="af-data-help"><summary>How your data is handled</summary><p className="af-help">Marks stay on this device. They are never uploaded or saved, and reset or reload clears them. Paste marks only to generate student identifiers; existing identifier columns also work.</p></details></aside></div>
+    </fieldset></Panel>}<details className="af-data-help"><summary>How your data is handled</summary><p className="af-help">Marks stay on this device. They are never uploaded or saved, and reset or reload clears them. Paste marks only to generate student identifiers; existing identifier columns also work.</p></details></aside></div>
   </main>;
 }
 

@@ -61,3 +61,7 @@
 .af-gap-low { background: #fadadd; }
 .af-gap-below { background: #fff0c2; }
 .af-gap-above { background: #d3eedb; }
+
+/* Skill sheets plan: each skill cell holds its skill and its level, one above the other. */
+.af-skill-cell { display: grid; gap: 4px; min-width: 150px; }
+.af-page button.af-link { min-height: 0; padding: 0 4px; border: 0; background: none; color: var(--md-blue); text-decoration: underline; font-size: var(--md-text-xs); }
