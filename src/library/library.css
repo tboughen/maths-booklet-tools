@@ -242,6 +242,12 @@
 .library-cover-button:hover, .library-cover-button[aria-pressed="true"] { background: #cdebe8; }
 .library-cover-button:focus-visible { outline: 3px solid var(--lib-teal); outline-offset: 2px; }
 
+/* One-offs shelf (Tim, 28 Nov): class, day used and who asked under each title; Past one-offs folds away. */
+.library-oneoff-meta { display: block; font-weight: 400; color: var(--md-ink-3); font-size: var(--md-text-sm); }
+.library-oneoff-head { margin: 1rem 0 0.25rem; font-size: 1rem; }
+.library-oneoff-past { margin-top: 1rem; }
+.library-oneoff-past > summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+
 /* Adaptations (Tim, 28 Nov): Main's lesson, greyed, where an adaptation leaves it as it is; the request form. */
 .library-rows > li.library-row.is-main { color: var(--md-ink-3); background: var(--md-page); }
 .library-row.is-main .library-row-title b { color: inherit; }

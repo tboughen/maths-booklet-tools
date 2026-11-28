@@ -485,6 +485,29 @@ test('a library editor can delete a cover lesson from the list, and nothing else
   assert.equal((await cover('POST', { action: 'remove', id: 'y9-a7-cover-lesson-2' }, { env: editor })).response.status, 200);
 });
 
+test('a one-off can be deleted by the person who asked for it or an editor, and nobody else', async () => {
+  const stored = { 'library/library.json': JSON.stringify({ resources: [
+    { id: 'y11-mock-p1', unit: 'ONEOFFS', type: 'one-off', owner: 'ann.lee@school.example' },
+    { id: 'y8-follow-up', unit: 'ONEOFFS', type: 'one-off' },
+  ] }) };
+  const BANK = {
+    async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: 'e' } : null; },
+    async put(k, v) { stored[k] = v; return {}; },
+  };
+  const base = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK };
+  // Signed in as sam.jones: not the owner, not an editor.
+  assert.equal((await cover('POST', { action: 'remove', id: 'y11-mock-p1' }, { env: base })).response.status, 403);
+  assert.equal((await cover('POST', { action: 'remove', id: 'y8-follow-up' }, { env: base })).response.status, 403);
+  const owned = { ...env0, REPORT_GITHUB_TOKEN: 'secret', BANK: { ...BANK, async get(k) { return k === 'library/library.json' ? { body: new Blob([stored[k].replace('ann.lee', 'sam.jones')]).stream(), etag: 'e' } : BANK.get(k); } } };
+  const mine = await cover('POST', { action: 'remove', id: 'y11-mock-p1' }, { env: owned });
+  assert.equal(mine.response.status, 200);
+  assert.deepEqual(mine.data.removed, ['y11-mock-p1']);
+  const editor = { ...base, LIBRARY_EDITORS: 'sam.jones@school.example' };
+  assert.equal((await cover('POST', { action: 'remove', id: 'y8-follow-up' }, { env: editor })).response.status, 200);
+  const listed = await cover('GET', undefined, { env: base, query: '?only=removed' });
+  assert.equal(listed.data.me, 'sam.jones@school.example');
+});
+
 // Booklets edited on the site and saved to the library (library-edits.mjs).
 function memoryBank(start = {}) {
   const stored = new Map(Object.entries(start).map(([k, v]) => [k, { text: v, etag: 'e0' }]));

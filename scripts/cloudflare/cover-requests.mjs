@@ -117,7 +117,7 @@ export async function startBuild(env, fetcher, number) {
 }
 
 // Cover lessons are short-lived (Tim, 26 Nov): a library editor can delete one from the library list. The
-// files stay in the private store; library/cover-removed.json lists the deleted ids, and the page hides them.
+// files stay in the private store; library/cover-removed.json lists the deleted ids (one-offs too), and the page hides them.
 export const coverRemovedKey = 'library/cover-removed.json';
 export async function readRemoved(env) {
   const object = await env.BANK?.get(coverRemovedKey);
@@ -130,17 +130,23 @@ export async function readRemoved(env) {
 }
 /** Only cover work can be deleted: a Review and cover shelf resource whose note starts "Cover request #N" or "Cover lesson". */
 export const isCoverWork = r => r?.unit === 'REVIEW' && /^(Cover request #\d+|Cover lesson)/.test(r?.note ?? '');
-export async function isCoverLesson(env, id) {
+/** One-offs (Tim, 28 Nov) can be deleted too: by the editors, or by the person who asked for one (its owner). */
+export const isOneOff = r => r?.type === 'one-off';
+/** The resource with this id if it may be deleted at all (cover work or a one-off), else null. */
+export async function deletable(env, id) {
   const object = await env.BANK?.get('library/library.json');
-  if (!object) return false;
+  if (!object) return null;
   try {
     const list = JSON.parse(await new Response(object.body).text());
-    return (list.resources ?? []).some(r => r.id === id && isCoverWork(r));
-  } catch { return false; }
+    return (list.resources ?? []).find(r => r.id === id && (isCoverWork(r) || isOneOff(r))) ?? null;
+  } catch { return null; }
 }
 async function removeLesson(env, email, id) {
-  if (!canAct(env, email)) return json(403, { error: 'Only the library editors can delete a cover lesson.' });
-  if (typeof id !== 'string' || !id || id.length > 200 || !(await isCoverLesson(env, id))) return json(400, { error: 'Only a cover lesson can be deleted.' });
+  if (typeof id !== 'string' || !id || id.length > 200) return json(400, { error: 'Only a cover lesson or a one-off can be deleted.' });
+  const resource = await deletable(env, id);
+  if (!resource) return json(400, { error: 'Only a cover lesson or a one-off can be deleted.' });
+  const owner = isOneOff(resource) && typeof resource.owner === 'string' && resource.owner.toLowerCase() === email;
+  if (!canAct(env, email) && !owner) return json(403, { error: isOneOff(resource) ? 'Only the person who asked for it, or a library editor, can delete this one-off.' : 'Only the library editors can delete a cover lesson.' });
   for (let attempt = 0; attempt < 2; attempt++) {
     let read;
     try { read = await readRemoved(env); } catch { return json(500, { error: 'The deleted list could not be read. Tell Tim.' }); }
@@ -155,7 +161,7 @@ async function removeLesson(env, email, id) {
 export async function coverRequests(request, env, claims, fetcher = fetch) {
   // The library page asks only for the deleted list: R2 alone, so a GitHub problem never brings deleted lessons back.
   if (request.method === 'GET' && new URL(request.url).searchParams.get('only') === 'removed') {
-    try { const { removed } = await readRemoved(env); return json(200, { removed: Object.keys(removed), canDelete: canAct(env, claims.email) }); }
+    try { const { removed } = await readRemoved(env); return json(200, { removed: Object.keys(removed), canDelete: canAct(env, claims.email), me: String(claims.email || '').toLowerCase() }); }
     catch { return json(500, { error: 'The deleted list could not be read.' }); }
   }
   if (!env.REPORT_GITHUB_TOKEN) return json(503, { error: 'Cover requests are not switched on yet.' });
