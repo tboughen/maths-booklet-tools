@@ -97,8 +97,9 @@ export async function listRequests(env, fetcher, email) {
     let who = 'A colleague';
     try { who = nameOf(decodeURIComponent(meta.from)); } catch { /* keep the default */ }
     const field = v => (typeof v === 'string' ? v.slice(0, coverLimits.field) : null);
-    // The build bar starts when the build did: the issue's last update is the cover-building label going on.
-    return [{ number: issue.number, when: issue.created_at, since: state === 'building' ? issue.updated_at ?? issue.created_at : null, year: meta.year, tier: meta.tier ?? null, className: field(meta.className), room: field(meta.room), date: isoDay(meta.date) ? meta.date : null, who, mine: meta.from === me, text: text.slice(0, 200), state }];
+    // The build bar starts when the build did: the Worker starts the task and labels the issue as it creates it.
+    // (updated_at would move with any later comment or edit, so it is never used.)
+    return [{ number: issue.number, when: issue.created_at, since: state === 'building' ? issue.created_at : null, year: meta.year, tier: meta.tier ?? null, className: field(meta.className), room: field(meta.room), date: isoDay(meta.date) ? meta.date : null, who, mine: meta.from === me, text: text.slice(0, 200), state }];
   });
 }
 

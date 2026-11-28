@@ -106,7 +106,7 @@ of the form on the Create cover booklet page:
 - Entries are grouped by the date the cover is for: **Today**, **Coming up** (soonest first), **Last 7 days**
   (most recent first), and **Older cover (n)**, folded.
 - While a lesson builds, a bar fills to 90% over 16 minutes ("About 12 minutes left"), counted from when the
-  request was marked building; after that it says "Taking longer than usual, nearly there". It completes when
+  request was sent (the Worker starts the build then); after that it says "Taking longer than usual, nearly there". It completes when
   the PDFs are ready.
 - A library editor (`LIBRARY_EDITORS`) sees **Delete cover booklet** on each built one, then **Yes, delete it**.
   POST `/api/library/cover` with `{ action: "remove", id }` adds the id to `library/cover-removed.json`

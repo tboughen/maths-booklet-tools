@@ -233,8 +233,14 @@ test("a teacher gives the class, room and date, describes a cover lesson, checks
   await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
   await form.getByRole("button", { name: "Revise our unit up to a lesson" }).click();
   await expect(form.locator("#cover-text")).toHaveValue("We're on unit … , lesson … . Revise the lessons so far.");
-  await form.locator("#cover-text").fill("We're on NP17, lesson 3. Revise the lessons so far.");
   await form.getByRole("radio", { name: "Foundation" }).check();
+  // A lesson picked for one unit is dropped when the text names another unit.
+  await form.locator("#cover-text").fill("We're on NP17.");
+  await form.locator(".cover-upto select").selectOption("NP17.02");
+  await expect(form.locator(".cover-plan")).toContainText("NP17.01 to NP17.02");
+  await form.locator("#cover-text").fill("We're on SP8.");
+  await expect(form.locator(".cover-upto select")).toHaveValue("");
+  await form.locator("#cover-text").fill("We're on NP17, lesson 3. Revise the lessons so far.");
   await form.getByRole("checkbox", { name: "This is cover work for myself or a colleague." }).check();
   // Class and room are required before it builds.
   await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();

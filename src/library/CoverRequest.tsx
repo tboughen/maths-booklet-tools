@@ -34,7 +34,8 @@ export default function CoverRequest({ list, covers, removed, canDelete, remove 
   const [text, setText] = useState("");
   const [attached, setAttached] = useState<Attached | null>(null);
   const [absent, setAbsent] = useState(false);
-  const [upTo, setUpTo] = useState<string | null>(null);
+  // The lesson picked, kept only while the text still reads as it did then (same unit, same lesson named).
+  const [choice, setChoice] = useState<{ read: string; upTo: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState<{ number: number; started: boolean } | null>(null);
@@ -44,6 +45,8 @@ export default function CoverRequest({ list, covers, removed, canDelete, remove 
 
   const tiered = year >= 9;
   const group = `Year ${year}${tiered && tier ? ` ${tier}` : ""}`;
+  const read = (({ unit, upTo: said }) => `${unit?.code ?? ""}|${said ?? ""}`)(coverPlan(list, year, text));
+  const upTo = choice && choice.read === read ? choice.upTo : null;
   const plan = coverPlan(list, year, text, upTo);
   const sentence = planSentence(plan, group, attached?.name ?? null, text);
   const pickLesson = (plan.unit || upTo === "none") && (plan.needsLesson || plan.upTo || upTo === "none");
@@ -93,7 +96,7 @@ export default function CoverRequest({ list, covers, removed, canDelete, remove 
         <p className="library-hint">Fill in the class, room and date, and say what to revise. Pupil and answers PDFs in about 15 minutes.</p>
         <div className="cover-row">
           <label>Year group
-            <select value={year} onChange={(e) => edit(() => { setYear(Number(e.target.value)); setUpTo(null); if (Number(e.target.value) < 9) setTier(null); })}>
+            <select value={year} onChange={(e) => edit(() => { setYear(Number(e.target.value)); setChoice(null); if (Number(e.target.value) < 9) setTier(null); })}>
               {[7, 8, 9, 10, 11].map((y) => <option key={y} value={y}>Year {y}</option>)}
             </select>
           </label>
@@ -127,7 +130,7 @@ export default function CoverRequest({ list, covers, removed, canDelete, remove 
         {text.trim() && <p className="cover-plan" aria-live="polite">{sentence}</p>}
         {pickLesson && (
           <label className="cover-upto">Up to and including
-            <select value={upTo ?? plan.upTo ?? ""} onChange={(e) => edit(() => setUpTo(e.target.value || null))}>
+            <select value={upTo ?? plan.upTo ?? ""} onChange={(e) => edit(() => setChoice(e.target.value ? { read, upTo: e.target.value } : null))}>
               <option value="">Choose the lesson your class is on</option>
               <option value="none">{plan.unit?.code ?? "That code"} isn't a unit here: follow my description</option>
               {(plan.unit?.lessons ?? []).map((l) => <option key={l.code} value={l.code}>{l.code} {l.title}</option>)}
