@@ -17,6 +17,9 @@ Code: `packages/probability-tree-core` (schema, exact arithmetic, layout, SVG, e
   the text but prints nothing in either copy; an empty shown label prints nothing. Blank, zero, pupil space and left
   out stay distinct. A left-out label keeps a click target in the editor (a grey dashed outline) so it can come back.
 - Probabilities are text: `a/b` prints as a stacked fraction; decimals, percentages and algebra (`x`, `1 − x`) print as typed.
+- A written calculation such as `5/7 × 4/6 = 20/42` (parts separated by spaces; fractions, decimals and × ÷ + − =)
+  prints with each fraction stacked, so the end Probability column can show the multiplication that leads to each
+  probability (Tim, 17 Nov 2026). Hidden, it leaves a pupil space wide enough to write the calculation.
 - Optional end columns (outcome, probability), stage titles, bold branches for picking out paths, and up to 8
   questions printed below the tree with answer spaces.
 - `endColumn: "working"` (added 21 Nov 2026) prints each path's names, its multiplication (3/8 × 3/8 =) and then the

@@ -641,15 +641,36 @@ export const FONT = (11 * 25.4) / 72;
 const MARGIN = 2;
 export const textWidth = (text: string, font = FONT) =>
   [...text].reduce((n, c) => n + glyphAdvance(c), 0) * font;
+/** The gap either side of a sign in a written calculation such as "5/7 × 4/6 = 20/42", in mm. */
+const EXPRESSION_GAP = 1.4;
+const EXPRESSION_SIGNS = new Set(["×", "÷", "+", "−", "-", "="]);
+/**
+ * A short written calculation with at least one fraction, such as "5/7 × 4/6 = 20/42" or
+ * "0.3 × 0.4 = 0.12": its parts, separated by spaces, or null for any other text. Each fraction
+ * prints stacked (Tim, 17 November 2026: the end column shows the multiplication that leads to each
+ * probability).
+ */
+export function expressionParts(text: string): string[] | null {
+  const parts = text.trim().split(/\s+/);
+  if (parts.length < 3 || !parts.some((p) => isFractionText(p))) return null;
+  return parts.every((p) => isFractionText(p) || EXPRESSION_SIGNS.has(p) || /^[−-]?\d+(\.\d+)?$/.test(p)) ? parts : null;
+}
+const partWidth = (p: string) => (isFractionText(p) ? Math.max(...p.split("/").map((s) => textWidth(s.trim()))) + 1.2 : textWidth(p));
+const expressionWidth = (parts: string[]) => parts.reduce((w, p) => w + partWidth(p), 0) + EXPRESSION_GAP * 2 * (parts.length - 1);
 /** Size of a printed label or of its pupil space. */
 export function labelBox(l: Label, blank: TreeDocument["blankStyle"], kind: "probability" | "text") {
   const text = l.text.trim();
+  const parts = expressionParts(text);
   if (l.show === "omit") return { width: 0, height: 0 };
-  if (l.show === "hidden")
+  if (l.show === "hidden") {
+    // A hidden calculation leaves a pupil space wide enough to write it, not one fraction's space.
+    if (kind === "probability" && parts) return { width: Math.ceil(Math.max(24, expressionWidth(parts) * 1.25)), height: blank === "box" ? 9 : FONT * 2 + 1.5 };
     return kind === "probability"
       ? { width: blank === "box" ? 10 : 11, height: blank === "box" ? 9 : FONT * 2 + 1.5 }
       : { width: blank === "box" ? 14 : 16, height: blank === "box" ? 6.5 : FONT * 1.2 };
+  }
   if (!text) return { width: 0, height: 0 };
+  if (parts) return { width: expressionWidth(parts), height: FONT * 2 + 1.5 };
   if (isFractionText(text)) {
     const [a, b] = text.split("/").map((s) => s.trim());
     return { width: Math.max(textWidth(a), textWidth(b)) + 1.2, height: FONT * 2 + 1.5 };
@@ -995,6 +1016,16 @@ const esc = (s: string) =>
 const text = (t: string, x: number, y: number, anchor = "middle", fill = "black") =>
   `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="${fill}">${esc(t)}</text>`;
 const typeset = (t: string) => t.trim().replace(/^-/, "−").replace(/(\s)-(\s)/g, "$1−$2");
+/** A stacked fraction `width` wide from `left`, its bar at `cy`. */
+function fractionSvg(t: string, left: number, width: number, cy: number, ink: string): string {
+  const [a, c] = t.split("/").map((s) => typeset(s));
+  const mid = left + width / 2;
+  return (
+    text(a, mid, cy - 0.9, "middle", ink) +
+    `<line x1="${n(left + 0.2)}" y1="${n(cy)}" x2="${n(left + width - 0.2)}" y2="${n(cy)}" stroke="${ink}" stroke-width="0.25"/>` +
+    text(c, mid, cy + FONT * 0.72 + 0.9, "middle", ink)
+  );
+}
 function drawLabel(p: Placed, blank: TreeDocument["blankStyle"]): string {
   const l = p.label,
     b = labelBox(l, blank, p.kind);
@@ -1009,15 +1040,21 @@ function drawLabel(p: Placed, blank: TreeDocument["blankStyle"]): string {
   const t = l.text.trim();
   if (!t) return "";
   const ink = REVEALED.has(l) ? TREE_ANSWER_COLOUR : "black";
-  if (isFractionText(t)) {
-    const [a, c] = t.split("/").map((s) => typeset(s));
-    const mid = left + b.width / 2;
-    return (
-      text(a, mid, p.cy - 0.9, "middle", ink) +
-      `<line x1="${n(left + 0.2)}" y1="${n(p.cy)}" x2="${n(left + b.width - 0.2)}" y2="${n(p.cy)}" stroke="${ink}" stroke-width="0.25"/>` +
-      text(c, mid, p.cy + FONT * 0.72 + 0.9, "middle", ink)
-    );
+  const parts = expressionParts(t);
+  if (parts) {
+    let x = left;
+    return parts
+      .map((part) => {
+        const w = partWidth(part);
+        const svg = isFractionText(part)
+          ? fractionSvg(part, x, w, p.cy, ink)
+          : text(typeset(part), x, p.cy + FONT * 0.33, "start", ink);
+        x += w + EXPRESSION_GAP * 2;
+        return svg;
+      })
+      .join("");
   }
+  if (isFractionText(t)) return fractionSvg(t, left, b.width, p.cy, ink);
   return text(typeset(t), p.align === "start" ? left : p.cx, p.cy + FONT * 0.33, p.align === "start" ? "start" : "middle", ink);
 }
 export function renderSvg(e: Envelope): string {

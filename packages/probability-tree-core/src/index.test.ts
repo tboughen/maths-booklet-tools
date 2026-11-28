@@ -6,6 +6,7 @@ import {
   canonical,
   childrenOf,
   create,
+  expressionParts,
   decodeLinkHash,
   editorLink,
   extendBranch,
@@ -280,6 +281,24 @@ describe("connector create", () => {
     expect(layout(fitted).issues).toEqual([]);
     const asked = createTree({ spec: { stages, settings: { endColumn: "both", branchMm: 32 } } });
     expect(asked.document.branchMm).toBe(32);
+  });
+});
+
+describe("a written calculation in the end column", () => {
+  it("reads fractions, decimals and signs separated by spaces, and nothing else", () => {
+    expect(expressionParts("5/7 × 4/6 = 20/42")).toEqual(["5/7", "×", "4/6", "=", "20/42"]);
+    expect(expressionParts("0.3 × 1/2 = 0.15")).not.toBeNull();
+    expect(expressionParts("20/42")).toBeNull();
+    expect(expressionParts("Red, Red")).toBeNull();
+    expect(expressionParts("0.3 × 0.4")).toBeNull();
+  });
+  it("prints each fraction stacked and leaves a pupil space wide enough to write it", () => {
+    const shown = labelBox({ text: "5/7 × 4/6 = 20/42", show: "show" }, "dots", "probability");
+    const hidden = labelBox({ text: "5/7 × 4/6 = 20/42", show: "hidden" }, "dots", "probability");
+    const fraction = labelBox({ text: "20/42", show: "hidden" }, "dots", "probability");
+    expect(shown.width).toBeGreaterThan(15);
+    expect(hidden.width).toBeGreaterThan(shown.width);
+    expect(fraction.width).toBe(11);
   });
 });
 
