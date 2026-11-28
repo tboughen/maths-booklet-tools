@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ukToday } from './cover-requests.mjs';
-import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveLibraryEdits, serveAdaptRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
+import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, serveLibraryEdits, serveAdaptRequests, servePresentInk, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
 
@@ -640,4 +640,55 @@ test('an adaptation request alerts Tim through an assigned issue and lists only 
   assert.deepEqual(listed.data.requests, [{ number: 52, when: mine.created_at, lesson: 'A7.03', kind: 'easier', name: 'Easier (9X)', who: 'Sam Jones', mine: true }]);
   assert.equal(meta.from, 'sam.jones%40school.example');
   assert.equal((await adapt('GET', undefined, { query: '?year=9&unit=../x' })).response.status, 400);
+});
+
+// Present's saved ink (present-ink.mjs).
+function inkBucket() {
+  const store = new Map();
+  return {
+    store,
+    async get(k) { const v = store.get(k); return v ? { json: async () => JSON.parse(v.body) } : null; },
+    async put(k, body) { store.set(k, { body, uploaded: new Date(Date.UTC(2026, 10, 28, 9, store.size)) }); },
+    async list({ prefix, limit }) { return { objects: [...store].filter(([k]) => k.startsWith(prefix)).slice(0, limit).map(([k, v]) => ({ key: k, uploaded: v.uploaded })) }; },
+  };
+}
+const inkRecord = { schema: 1, sides: { 3: [{ id: 's1', kind: 'pen', colour: '#111', size: 3.5, scale: 1, points: [[1, 2], [3, 4]] }] }, stopped: { side: 3, at: '2026-11-28T09:00:00Z', flag: true }, updated: '2026-11-28T09:00:00Z' };
+async function ink(method, { query = '', body, email = 'Teacher@School.example', signed = true, env, type = 'application/json' } = {}) {
+  const headers = { 'Content-Type': type, ...(signed ? { 'Cf-Access-Jwt-Assertion': await token({ email }) } : {}) };
+  const response = await servePresentInk(new Request(`https://mathsdock.co.uk/api/present/ink${query}`, { method, headers, body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body) }), env, { fetcher: certs });
+  return { response, data: await response.json() };
+}
+
+test('Present ink is saved per teacher, class and build, under a hashed folder', async () => {
+  const BANK = inkBucket(), env = { ...env0, BANK };
+  const build = 'y9-a7-04-lesson-booklet@2026-11-25';
+  assert.deepEqual((await ink('GET', { query: `?class=9X&build=${encodeURIComponent(build)}`, env })).data, { record: null });
+  const saved = await ink('PUT', { body: { class: '9X', build, record: inkRecord }, env });
+  assert.equal(saved.response.status, 200);
+  const [objectKey] = BANK.store.keys();
+  assert.match(objectKey, /^present-ink\/[0-9a-f]{32}\/9X\/y9-a7-04-lesson-booklet%402026-11-25\.json$/);
+  assert.doesNotMatch(objectKey, /teacher|school/i);
+  assert.deepEqual((await ink('GET', { query: `?class=9X&build=${encodeURIComponent(build)}`, env, email: ' teacher@school.example ' })).data, { record: inkRecord });
+  assert.deepEqual((await ink('GET', { query: `?class=9X&build=${encodeURIComponent(build)}`, env, email: 'colleague@school.example' })).data, { record: null });
+  assert.deepEqual((await ink('GET', { query: `?class=9Y&build=${encodeURIComponent(build)}`, env })).data, { record: null });
+  await ink('PUT', { body: { class: '9X', build: 'y9-a7-04-lesson-booklet@2026-11-27', record: inkRecord }, env });
+  assert.deepEqual((await ink('GET', { query: '?class=9X', env })).data.builds.map(b => b.build), ['y9-a7-04-lesson-booklet@2026-11-27', build]);
+});
+
+test('Present ink refuses what it should', async () => {
+  const env = { ...env0, BANK: inkBucket() };
+  const build = 'y9-a7-04-lesson-booklet@2026-11-25';
+  assert.equal((await ink('GET', { query: '?class=9X', env, signed: false })).response.status, 403);
+  assert.equal((await ink('GET', { query: '?class=9X', env: env0 })).response.status, 503);
+  assert.equal((await servePresentInk(new Request('https://mathsdock.co.uk/api/present/ink?class=9X'), { BANK: env.BANK })).status, 503);
+  assert.equal((await ink('GET', { query: '?class=9x%2F..', env })).response.status, 400);
+  assert.equal((await ink('GET', { query: '?class=9X&build=..%2Fx', env })).response.status, 400);
+  assert.equal((await ink('PUT', { body: { class: '9X', build, record: inkRecord }, env, type: 'text/plain' })).response.status, 415);
+  assert.equal((await ink('PUT', { body: '{', env })).response.status, 400);
+  assert.equal((await ink('PUT', { body: { class: '9X', build, record: { ...inkRecord, schema: 2 } }, env })).response.status, 400);
+  assert.equal((await ink('PUT', { body: { class: '9X', build, record: { ...inkRecord, sides: { x: [] } } }, env })).response.status, 400);
+  assert.equal((await ink('PUT', { body: { class: '9X', build, record: { ...inkRecord, sides: { 1: [{ id: 'a', kind: 'eraser', points: [] }] } } }, env })).response.status, 400);
+  assert.equal((await ink('PUT', { body: { class: '9X', build, record: { ...inkRecord, pad: 'x'.repeat(1_500_001) } }, env })).response.status, 413);
+  assert.equal((await ink('DELETE', { env })).response.status, 405);
+  assert.equal(env.BANK.store.size, 0);
 });

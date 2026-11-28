@@ -2,6 +2,7 @@ import { libraryFeedback } from './library-feedback.mjs';
 import { coverRequests } from './cover-requests.mjs';
 import { libraryEdits } from './library-edits.mjs';
 import { adaptRequests } from './adapt-requests.mjs';
+import { presentInk } from './present-ink.mjs';
 // MathsDock website Worker.
 //
 // Static assets are served directly by Workers Static Assets. Only
@@ -211,6 +212,15 @@ export async function serveAdaptRequests(request, env, { fetcher = fetch, ...opt
   return adaptRequests(request, env, claims, fetcher);
 }
 
+// Present's saved ink and place for each class (present-ink.mjs), behind the same sign-in.
+export async function servePresentInk(request, env, { fetcher = fetch, ...options } = {}) {
+  const settings = accessSettings(env);
+  if (!settings) return json(503, { error: 'Staff sign-in is not configured.' });
+  const claims = await verifyAccessToken(request.headers.get('Cf-Access-Jwt-Assertion'), settings, { fetcher, ...options });
+  if (!claims) return json(403, { error: 'Sign in again to save your ink.' });
+  return presentInk(request, env, claims);
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -221,6 +231,7 @@ export default {
     if (pathname === '/api/library/cover') return serveCoverRequests(request, env);
     if (pathname === '/api/library/edit') return serveLibraryEdits(request, env);
     if (pathname === '/api/library/adapt') return serveAdaptRequests(request, env);
+    if (pathname === '/api/present/ink') return servePresentInk(request, env);
     // run_worker_first limits this script to these paths; anything else is static.
     return env.ASSETS ? env.ASSETS.fetch(request) : text(404, 'Not found');
   },
