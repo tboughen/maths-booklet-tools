@@ -46,3 +46,19 @@
 .bk-build-checks h3 { font-size: 0.95rem; margin: 12px 0 4px; }
 .bk-build-checks li.warn span { color: #a86200; }
 .bk-page.editing { content-visibility: visible; position: relative; z-index: 4; }
+
+/* A card's diagram in its own tool (booklet editor stage 4): the tool fills most of the screen above the booklet. */
+.bk-diagram-dialog { width: min(1800px, calc(100vw - 32px)); height: calc(100dvh - 32px); max-width: none; max-height: none; padding: 0; border: 0; border-radius: 8px; box-shadow: 0 12px 48px rgb(0 0 0 / 35%); display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+.bk-diagram-dialog:not([open]) { display: none; }
+.bk-diagram-dialog::backdrop { background: rgb(15 23 42 / 55%); }
+.bk-diagram-head { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #1f2d5c; color: #fff; }
+.bk-diagram-head h2 { margin: 0; font-size: 1.05rem; }
+.bk-diagram-head p { margin: 0; flex: 1; font-size: 0.9rem; opacity: 0.85; }
+.bk-diagram-head .icon-button { color: inherit; }
+.bk-diagram-frame { width: 100%; height: 100%; border: 0; background: #fff; }
+.bk-diagram-foot { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #d9dce6; }
+.bk-diagram-foot .ws-message { flex: 1; margin: 0; }
+.bk-diagram-done { font-weight: 600; }
+.bk-diagram-foot .bk-diagram-done { background: #0f62fe; border-color: #0f62fe; color: #fff; padding-inline: 20px; }
+.bk-diagram-foot .bk-diagram-done:disabled { opacity: 0.5; }
+.bk-diagram-foot .tool-button { min-height: 36px; padding-inline: 14px; border: 1px solid #c6cbd8; }

@@ -1,4 +1,4 @@
-import { resourceCopyId } from "./copyDocument";
+import { embeddedInBooklet, resourceCopyId } from "./copyDocument";
 import {
   Suspense,
   useCallback,
@@ -169,6 +169,12 @@ export default function SiteApp() {
     }
     const clicked = new URL(link.href, location.href).href;
     const url = new URL(upgradeLegacyLink(clicked) ?? clicked);
+    // Inside the Booklet builder's diagram dialog the tool is the whole page: a link that would leave this copy
+    // (another page, or the same page with another address) does nothing. In-page anchors still work.
+    if (embeddedInBooklet && url.origin === location.origin && (url.pathname !== location.pathname || url.search !== location.search)) {
+      event.preventDefault();
+      return;
+    }
     const next = readPage(url);
     if (
       url.origin !== location.origin ||
@@ -204,11 +210,13 @@ export default function SiteApp() {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
   }
   return (
-    <div className="site-app" ref={host} onClick={navigate}>
-      <a className="site-skip" href="#main-content">
-        Skip to content
-      </a>
-      <SiteHeader key={section} page={page} section={section} />
+    <div className={`site-app${embeddedInBooklet ? " site-app--embedded" : ""}`} ref={host} onClick={navigate}>
+      {!embeddedInBooklet && (
+        <a className="site-skip" href="#main-content">
+          Skip to content
+        </a>
+      )}
+      {!embeddedInBooklet && <SiteHeader key={section} page={page} section={section} />}
       {page === "not-found" && (
         <div className="site-page">
           <NotFound />
@@ -229,7 +237,7 @@ export default function SiteApp() {
             <div key={tool.id} className="site-page site-page--tool" hidden={page !== tool.id}>
               <LazyPage onReady={pageReady}>
                 <ToolPageContext value={tool.id}>
-                  <DocumentChangeContext value={workRecorder(tool.id)}>
+                  <DocumentChangeContext value={embeddedInBooklet ? null : workRecorder(tool.id)}>
                     <tool.component active={page === tool.id} />
                   </DocumentChangeContext>
                 </ToolPageContext>
