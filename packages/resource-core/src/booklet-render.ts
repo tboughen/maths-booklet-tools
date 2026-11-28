@@ -3,7 +3,7 @@ import { answerRule, at, card, countSpaces, GROW_MARGIN, growLastSpace, fraction
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, titleRuns, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
-import { LESSON_WORDS, endLabel, lessonLabel, lessonLabels, tileLines, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, type Misconception } from "./booklet";
+import { LESSON_WORDS, checkInWords, coverTagLines, endLabel, lessonLabel, lessonLabels, tileLines, lessonShift, lessonWords, sectionTitle, type LessonWords, type Booklet, type Intro, type Lesson, type QuestionLabel, type Retrieval, type Revision, type Section, NCETM_LINKS_PER_LESSON, type NcetmLink, type Misconception } from "./booklet";
 
 /**
  * Lays out an A4 portrait booklet. Each lesson starts on a new page; a section's heading stays
@@ -138,14 +138,32 @@ export function unitLabel(doc: Booklet["document"]): string {
 
 /** The start block's text width, shared with Word. */
 export const startTextX = () => BOOKEND.startPad + BOOKEND.tile + 5;
-export const startTextWidth = () => W - startTextX() - BOOKEND.startPad - plainWidth(BOOKEND.start, pt(14), "bold") - 6;
+export const startTextWidth = (lesson?: Pick<Lesson, "cover">) => W - startTextX() - BOOKEND.startPad - Math.max(plainWidth(BOOKEND.start, pt(14), "bold"), coverTagWidth(lesson)) - 6;
+/**
+ * A cover lesson's class, room and date at the start block's top right (Tim, 27 November 2026): "Class 10X2" in bold
+ * over "Room M4 · Fri 28 Nov". The lines never wrap or shrink: the title beside them wraps sooner instead, so long
+ * names never overflow (class and room are at most 20 characters each). Shared with Word.
+ */
+export const COVER_TAG = { size: pt(12), gap: 1, max: 60 } as const;
+/** The tag's lines, first in bold: two lines, or three ("Class", "Room", date) when the second is wider than COVER_TAG.max. */
+export function coverTag(lesson?: Pick<Lesson, "cover">): string[] {
+  if (!lesson?.cover) return [];
+  const [a, b] = coverTagLines(lesson.cover);
+  if (plainWidth(b, COVER_TAG.size) <= COVER_TAG.max) return [a, b];
+  const cut = b.lastIndexOf(" · ");
+  return [a, b.slice(0, cut), b.slice(cut + 3)];
+}
+export const coverTagHeight = (lines: string[]) => (lines.length ? lines.length * lh(COVER_TAG.size) + (lines.length - 1) * COVER_TAG.gap : 0);
+export function coverTagWidth(lesson?: Pick<Lesson, "cover">): number {
+  return Math.max(0, ...coverTag(lesson).map((t, i) => plainWidth(t, COVER_TAG.size, i ? "regular" : "bold")));
+}
 
 /** The start block's unit and title sizes, and its height, shared with Word. */
 export const START_SIZES = { unit: pt(11), title: pt(14), gap: 0.6 } as const;
 export function startBlockHeight(doc: Booklet["document"], lesson: Lesson): number {
   const unit = unitLabel(doc);
-  const textH = (unit ? wrap(unit, START_SIZES.unit, startTextWidth(), "bold").length * lh(START_SIZES.unit) + START_SIZES.gap : 0) + wrap(lesson.title, START_SIZES.title, startTextWidth(), "bold").length * lh(START_SIZES.title);
-  return Math.max(BOOKEND.startH, textH + 2 * BOOKEND.startPadY);
+  const textH = (unit ? wrap(unit, START_SIZES.unit, startTextWidth(lesson), "bold").length * lh(START_SIZES.unit) + START_SIZES.gap : 0) + wrap(lesson.title, START_SIZES.title, startTextWidth(lesson), "bold").length * lh(START_SIZES.title);
+  return Math.max(BOOKEND.startH, Math.max(textH, coverTagHeight(coverTag(lesson))) + 2 * BOOKEND.startPadY);
 }
 
 /**
@@ -199,8 +217,8 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   const out: string[] = [];
   const tx = startTextX();
   const unit = unitLabel(doc);
-  const unitF = unit ? para(unit, startTextWidth(), st, { size: START_SIZES.unit, fill: "white", style: "bold", x: tx }) : { h: 0, svg: "" };
-  const title = para(lesson.title, startTextWidth(), st, { size: START_SIZES.title, fill: "white", style: "bold", x: tx });
+  const unitF = unit ? para(unit, startTextWidth(lesson), st, { size: START_SIZES.unit, fill: "white", style: "bold", x: tx }) : { h: 0, svg: "" };
+  const title = para(lesson.title, startTextWidth(lesson), st, { size: START_SIZES.title, fill: "white", style: "bold", x: tx });
   const textH = unitF.h + (unit ? START_SIZES.gap : 0) + title.h;
   const h = startBlockHeight(doc, lesson);
   out.push(rect(0, 0, W, h, `rx="2" fill="${st.navy}"`));
@@ -217,6 +235,10 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, st
   }
   const y0 = (h - textH) / 2;
   out.push(at(unitF, 0, y0), at(title, 0, y0 + unitF.h + (unit ? START_SIZES.gap : 0)));
+  const tag = coverTag(lesson);
+  const C = COVER_TAG;
+  const top = (h - coverTagHeight(tag)) / 2;
+  tag.forEach((t, i) => out.push(textSvg([{ text: t, style: i ? "regular" : "bold" }], W - B.startPad, top + i * (lh(C.size) + C.gap) + lh(C.size) / 2 + C.size * 0.36, C.size, "white", "end")));
   // One title line (N2): the lesson's code and objective are not printed again under it.
   let y = h;
   if (lesson.keyIdea.trim()) {
@@ -368,6 +390,8 @@ function keyIdeaBox(keyIdea: string, st: HouseStyle, maths: boolean): Frag {
  * takes no room from the cards, otherwise straight after the block's last card.
  */
 export const CHECK_IN = { start: "Check in", end: "End of check in" } as const;
+/** The check-in's START banner label: its own title, else "Silent starter" on a cover lesson, else "Check in". */
+export const checkInTitle = (lesson: Lesson, sec: Section) => sec.title.trim() || checkInWords(lesson).start;
 export function checkInBlock(lesson: Lesson): { first: number; last: number; stageNext: boolean } | null {
   const secs = lesson.sections;
   if (!secs.length || secs[0].kind !== "check-in" || secs[0].startBanner.trim()) return null;
@@ -383,8 +407,8 @@ export function sectionBanners(lesson: Lesson): { start: string; end: string }[]
   const out = lesson.sections.map((s) => ({ start: s.startBanner.trim(), end: s.endBanner.trim() }));
   const block = checkInBlock(lesson);
   if (block) {
-    out[block.first].start = sectionTitle(lesson.sections[block.first]);
-    if (!out[block.last].end) out[block.last].end = CHECK_IN.end;
+    out[block.first].start = checkInTitle(lesson, lesson.sections[block.first]);
+    if (!out[block.last].end) out[block.last].end = checkInWords(lesson).end;
   }
   return out;
 }
@@ -395,18 +419,18 @@ export function checkInNote(lesson: Lesson): string | null {
   if (!block) return null;
   const sec = lesson.sections[block.first];
   const ins = sec.instruction.trim();
-  const used = 2 * BANNER.pad + plainWidth(sectionTitle(sec), S.body, "bold") + BANNER.noteGap + plainWidth(BANNER.start, S.body, "bold") + 6;
+  const used = 2 * BANNER.pad + plainWidth(checkInTitle(lesson, sec), S.body, "bold") + BANNER.noteGap + plainWidth(BANNER.start, S.body, "bold") + 6;
   return !ins || plainWidth(ins, A4.small) <= W - used ? ins : null;
 }
 
 /** "End of check in" STOP in the footer's place on a lesson's first page (N28): a stage banner with the page number centred. */
-export function checkInBand(pageNo: number, st: HouseStyle): string {
+export function checkInBand(pageNo: number, st: HouseStyle, end: string = CHECK_IN.end): string {
   const x0 = A4.marginX;
   const y = BOOKEND.endTop;
   const by = y + BANNER.h / 2 + S.body * 0.36;
   return [
     rect(x0, y, W, BANNER.h, `rx="1.4" fill="${st.navy}"`),
-    textSvg([{ text: CHECK_IN.end, style: "bold" }], x0 + BANNER.pad, by, S.body, "white"),
+    textSvg([{ text: end, style: "bold" }], x0 + BANNER.pad, by, S.body, "white"),
     textSvg([{ text: `Page ${pageNo}`, style: "bold" }], x0 + W / 2, y + BANNER.h / 2 + A4.pageNumber * 0.36, A4.pageNumber, "white", "middle"),
     textSvg([{ text: BANNER.end, style: "bold" }], x0 + W - BANNER.pad, by, S.body, "white", "end"),
   ].join("");
@@ -1363,6 +1387,11 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
   glyphs({ title: coverTitle(doc), code: doc.code, group: doc.group, coverNote: doc.coverNote }, { lesson: 0, page: 1 }, "The cover");
   if (doc.intro) glyphs(doc.intro, { lesson: 0, page: 2 }, "The unit introduction");
   glyphs({ lessonName: doc.lessonName, lessonBadge: doc.lessonBadge }, { lesson: 0, page: 1 }, "The lesson name");
+  doc.lessons.forEach((l, li) => {
+    if (!l.cover) return;
+    glyphs({ className: l.cover.className, room: l.cover.room }, { lesson: li + 1 }, "The class and room");
+    if (coverTagWidth(l) > COVER_TAG.max) issues.push({ lesson: li + 1, message: "The class or room name is too long to print beside the title. Shorten it." });
+  });
   doc.lessons.forEach((l, li) => l.sections.forEach((sec, si) => spanIssues(sec).forEach((message) => issues.push({ lesson: li + 1, section: si + 1, message }))));
   const badgeWord = lessonWords(doc).badge;
   const unnumbered = tileLines(lessonWords(doc), 1);
@@ -1437,7 +1466,7 @@ export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}
     const mis = pageMisconception(lesson, p, view, !!ctx.maths);
     for (const pr of mis.problems) issues.push({ lesson: p.lesson, section: pr.section + 1, page: pageNo, message: pr.message });
     if (mis.note) glyphs({ title: lesson.sections[mis.note.section].misconception!.watch, instruction: lesson.sections[mis.note.section].misconception!.ask + " " + lesson.sections[mis.note.section].misconception!.source }, { lesson: p.lesson, section: mis.note.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(lesson.sections[mis.note.section])} misconception`);
-    const foot = p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : p.checkInStop ? checkInBand(shownPage, st) : footer(doc, shownPage, st) + (mis.note ? misconceptionSvg(mis.note.lines) : "");
+    const foot = p.last ? endBand(shownLesson, shownPage, st, lessonWords(doc)) : p.checkInStop ? checkInBand(shownPage, st, checkInWords(lesson).end) : footer(doc, shownPage, st) + (mis.note ? misconceptionSvg(mis.note.lines) : "");
     pages.push(page(out.join("") + foot, `${doc.title}, lesson ${shownLesson}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   }
 

@@ -1682,6 +1682,29 @@
                           "additionalProperties": false
                         }
                       },
+                      "cover": {
+                        "type": "object",
+                        "properties": {
+                          "className": {
+                            "type": "string",
+                            "maxLength": 20
+                          },
+                          "room": {
+                            "type": "string",
+                            "maxLength": 20
+                          },
+                          "date": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          }
+                        },
+                        "required": [
+                          "className",
+                          "room",
+                          "date"
+                        ],
+                        "additionalProperties": false
+                      },
                       "teacherNotes": {
                         "default": "",
                         "type": "string",

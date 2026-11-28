@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { strToU8, zipSync } from "fflate";
-import { coverPlan, coverSuggestions, isCoverLesson, isOldCover, officeText, planSentence, recentRequests, type CoverLogEntry } from "./cover";
-import type { Library } from "./model";
+import { coverLibrary, coverPlan, coverSuggestions, isCoverWork, nextSchoolDay, officeText, planSentence, ukDay, type CoverLogEntry } from "./cover";
+import type { Library, Resource } from "./model";
 
 const lessons = (unit: string, n: number) => Array.from({ length: n }, (_, i) => ({ code: `${unit}.${String(i + 1).padStart(2, "0")}`, title: `${unit} lesson ${i + 1}` }));
 const list = { schema: "mathsdock-library-served/2", published: "", resources: [], years: [
@@ -45,21 +45,35 @@ describe("the cover request check", () => {
   });
 });
 
-describe("old cover lessons", () => {
-  const now = Date.parse("2026-12-10T09:00:00Z");
-  const cover = { unit: "REVIEW", note: "Cover request #41", updated: "2026-12-02" };
-  it("knows a cover lesson by its shelf and note", () => {
-    expect(isCoverLesson(cover)).toBe(true);
-    expect(isCoverLesson({ ...cover, note: "Mock revision" })).toBe(false);
-    expect(isCoverLesson({ ...cover, unit: "A7" })).toBe(false);
+describe("the Cover library", () => {
+  const now = new Date(2026, 11, 10, 9, 0);
+  const res = (id: string, note: string, updated = "2026-12-01", unit = "REVIEW") => ({ id, year: 10, unit, version: "Main", note, title: id, type: "revision-lesson", status: "waiting", updated, history: [],
+    files: [{ role: "answers", format: "pdf", name: "a.pdf", bytes: 1, href: `bank/assets/${id}-a.pdf` }, { role: "pupil", format: "pdf", name: "p.pdf", bytes: 1, href: `bank/assets/${id}-p.pdf` }] }) as Resource;
+  const req = (number: number, date: string | null, state: CoverLogEntry["state"] = "ready") => ({ number, when: "2026-12-01T08:00:00Z", year: 10, tier: "Foundation", className: "10X2", room: "M4", date, who: "Ann Lee", mine: false, text: "NP17", state }) as CoverLogEntry;
+
+  it("knows cover work by its shelf and note", () => {
+    expect(isCoverWork({ unit: "REVIEW", note: "Cover request #41" })).toBe(true);
+    expect(isCoverWork({ unit: "REVIEW", note: "Cover lesson, 2026-11-26" })).toBe(true);
+    expect(isCoverWork({ unit: "REVIEW", note: "Mock revision" })).toBe(false);
+    expect(isCoverWork({ unit: "A7", note: "Cover lesson" })).toBe(false);
   });
-  it("folds a cover lesson away after 7 days, never another booklet", () => {
-    expect(isOldCover(cover, now)).toBe(true);
-    expect(isOldCover({ ...cover, updated: "2026-12-04" }, now)).toBe(false);
-    expect(isOldCover({ ...cover, note: undefined }, now)).toBe(false);
+
+  it("merges requests with their booklets, most recent lesson date first, folding entries over 7 days old", () => {
+    const resources = [res("built-41", "Cover request #41. Class 10X2, room M4, 2026-12-09."), res("a7-hand", "Cover lesson, 2026-11-26", "2026-11-26"), res("gone-30", "Cover request #30"), res("mock", "Mock revision")];
+    const { recent, older } = coverLibrary([req(42, "2026-12-11", "building"), req(41, "2026-12-09"), req(30, "2026-12-08"), req(29, null, "stopped")], resources, new Set(["gone-30"]), now);
+    expect(recent.map((e) => [e.key, e.date, e.state])).toEqual([["q42", "2026-12-11", "building"], ["q41", "2026-12-09", "ready"]]);
+    expect(recent[1].resource?.id).toBe("built-41");
+    expect(older.map((e) => [e.key, e.date, e.state, e.className])).toEqual([["q29", "2026-12-01", "stopped", "10X2"], ["a7-hand", "2026-11-26", "ready", null]]);
   });
-  it("lists the requests of the last 7 days", () => {
-    const entry = (when: string) => ({ number: 1, when, year: 9, tier: "Higher", who: "A", mine: false, text: "", state: "ready" }) as CoverLogEntry;
-    expect(recentRequests([entry("2026-12-09T10:00:00Z"), entry("2026-12-01T10:00:00Z")], now).map((r) => r.when)).toEqual(["2026-12-09T10:00:00Z"]);
+
+  it("still lists a built booklet when its request is no longer in the log, reading class, room and date from its note", () => {
+    const { recent } = coverLibrary([], [res("built-7", "Cover request #7. Class 9H1, room Science Lab 3, 2026-12-07.")], new Set(), now);
+    expect(recent.map((e) => [e.number, e.className, e.room, e.date])).toEqual([[7, "9H1", "Science Lab 3", "2026-12-07"]]);
+  });
+
+  it("starts the date box on the next weekday and writes dates the UK way", () => {
+    expect(nextSchoolDay(new Date(2026, 10, 27, 7))).toBe("2026-11-30");
+    expect(nextSchoolDay(new Date(2026, 10, 24, 7))).toBe("2026-11-25");
+    expect(ukDay("2026-11-28")).toBe("Sat 28 Nov");
   });
 });

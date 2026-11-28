@@ -179,7 +179,7 @@
 .cover-form h2, .cover-log h2 { margin: 0; font-size: var(--md-text-lg, 1.15rem); }
 .cover-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
 .cover-row label, .cover-check label { display: grid; gap: 4px; font-weight: 600; font-size: var(--md-text-sm); }
-.cover-form select, .cover-form textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); max-width: 100%; }
+.cover-form select, .cover-form textarea, .cover-form input[type="text"], .cover-form input[type="date"] { font: inherit; padding: 8px 10px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius); background: var(--md-paper); color: var(--md-ink); max-width: 100%; }
 .cover-form textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 .cover-tier { display: flex; gap: 8px; border: 0; padding: 0; margin: 0; }
 .cover-tier legend { font-weight: 600; font-size: var(--md-text-sm); margin-bottom: 4px; }
@@ -208,8 +208,13 @@
 .cover-state { font-weight: 600; color: var(--md-ink-2); }
 .cover-text { color: var(--md-ink-3); }
 /* Cover lessons older than 7 days, folded away (Tim, 26 Nov). */
-.library-old-cover { margin: 14px 0 0; }
-.library-old-cover > summary { cursor: pointer; font-weight: 600; color: var(--md-ink-2); padding: 6px 0; }
+.cover-where input[type="text"] { width: 9em; }
+.cover-where-line { font-size: var(--md-text-base, 1rem); color: var(--md-ink); }
+.cover-files { display: flex; flex-wrap: wrap; gap: 12px; }
+.cover-files a { display: inline-flex; align-items: center; gap: 4px; color: var(--md-blue); font-weight: 600; }
+.cover-older { margin: 4px 0 0; }
+.cover-older > summary { cursor: pointer; font-weight: 600; color: var(--md-ink-2); padding: 6px 0; }
+.cover-older ul { margin-top: 8px; }
 /* Request cover booklet: top right, in teal, a colour no status uses; styled like Feedback to act on (Tim, 27 Nov). */
 .library-cover-button { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 16px; border: 1px solid var(--lib-teal); border-radius: var(--md-radius); background: var(--lib-teal-soft); color: var(--lib-teal); font: inherit; font-size: var(--md-text-sm); font-weight: 700; cursor: pointer; }
 .library-cover-button:hover, .library-cover-button[aria-pressed="true"] { background: #cdebe8; }

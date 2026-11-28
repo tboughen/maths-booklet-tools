@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { card as measureCard, growLastSpace } from "./render";
-import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, coverTitle, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, headingLineRoom, NCETM_CHIP, ncetmChipLabel, MISCONCEPTION, misconceptionBoxes, misconceptionToneColour, pageMisconception, type NoteWord } from "./booklet-render";
-import { LESSON_WORDS, endLabel, lessonShift, tileLines, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
+import { A4, BANNER, BOOKEND, BOOKLET_WIDTHS, CONTENTS_HEADING, coverTitle, INTRO_TITLE, introLessons, planRevision, REVISION, retrievalHeadHeight, revisionAnswersSvg, placeRow, CONTINUED_HEAD, RETRIEVAL, retrievalAnswerWidth, retrievalQuestionWidth, retrievalRowHeights, DID_YOU_KNOW, didYouKnowBox, didYouKnowMaths, powersOnly, didYouKnowIcon, CONTINUED_RULE, fitLine, KEY_IDEA, keyIdeaLabelWidth, keyIdeaLines, keyIdeas, keyIdeaTextWidth, planBooklet, planNotes, renderBooklet, renderLessonNotes, STAGE_UNLIT, START_SIZES, startBlockHeight, startTextWidth, startTextX, unitLabel, type BookletIssue, type NotesPage, type PlannedLessonPage, sectionBanners, checkInBlock, checkInNote, CHECK_IN, COVER_TAG, coverTag, headingLineRoom, NCETM_CHIP, ncetmChipLabel, MISCONCEPTION, misconceptionBoxes, misconceptionToneColour, pageMisconception, type NoteWord } from "./booklet-render";
+import { LESSON_WORDS, checkInWords, endLabel, lessonShift, tileLines, lessonWords, sectionTitle, type Booklet, type LessonWords, type Intro, type Lesson, type Retrieval, type Revision, type Section } from "./booklet";
 import {
   CARD_RULE,
   cardCell,
@@ -144,7 +144,7 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
   const st = ctx.st;
   const B = BOOKEND;
   const h = startBlockHeight(doc, lesson);
-  const tw_ = startTextWidth();
+  const tw_ = startTextWidth(lesson);
   const tagW = W - startTextX() - tw_;
   const unit = unitLabel(doc);
   const navy = (content: string, width: number, vAlign: "top" | "center" = "center") => cell(content, { width, shade: st.navy, vAlign });
@@ -157,7 +157,11 @@ function lessonHead(doc: Booklet["document"], lesson: Lesson, number: number, ct
     (unit ? textPara(unit, START_SIZES.unit, { color: "#ffffff", bold: true, right: 0 }) + gap(START_SIZES.gap) : "") +
     textPara(lesson.title, START_SIZES.title, { color: "#ffffff", bold: true, right: 0 });
   // No START here (N28): the check-in banner carries it.
-  const tag = para("", { align: "right", line: lh(pt(14)), right: B.startPad });
+  // A cover lesson's class, room and date sit top right, as in the SVG; otherwise the cell is empty.
+  const tagLines = coverTag(lesson);
+  const tag = tagLines.length
+    ? tagLines.map((t, i) => para(run(t, { bold: !i, color: "#ffffff", sizeMm: COVER_TAG.size }), { align: "right", line: lh(COVER_TAG.size), right: B.startPad })).join(gap(COVER_TAG.gap))
+    : para("", { align: "right", line: lh(pt(14)), right: B.startPad });
   const out = [
     table(
       [B.startPad, B.tile, 5, tw_ + WORD_WRAP_SLACK_MM, tagW - WORD_WRAP_SLACK_MM],
@@ -693,10 +697,10 @@ function endBandFooter(number: number, st: HouseStyle, words: LessonWords = LESS
   return `${XML_HEAD}<w:ftr ${WORD_NAMESPACES}>${band}${gap(END_MM)}</w:ftr>`;
 }
 /** "End of check in" STOP in the footer of a lesson's first page (N28): a stage banner with the page number centred. */
-function checkInFooter(st: HouseStyle): string {
+function checkInFooter(st: HouseStyle, end: string = CHECK_IN.end): string {
   const o = { bold: true, color: "#ffffff", sizeMm: S.body };
   const num = { ...o, sizeMm: A4.pageNumber };
-  const text = para(run(CHECK_IN.end, o) + tab(o) + run("Page ", num) + `<w:fldSimple w:instr=" PAGE ">${run("1", num)}</w:fldSimple>` + tab(o) + run(BANNER.end, o), {
+  const text = para(run(end, o) + tab(o) + run("Page ", num) + `<w:fldSimple w:instr=" PAGE ">${run("1", num)}</w:fldSimple>` + tab(o) + run(BANNER.end, o), {
     line: lh(A4.pageNumber),
     left: BANNER.pad,
     right: BANNER.pad,
@@ -743,7 +747,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
     // A page whose footer carries a misconception (answers only) is a Word section of its own, so the footer can hold the boxes.
     const note = pageMisconception(doc.lessons[p.lesson - 1], p, view, !!ctx.maths).note;
     if (note) notes.push(note.lines);
-    pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : p.checkInStop ? "checkin" : note ? `note:${notes.length - 1}` : "page" });
+    pages.push({ xml: lessonPage(doc, p, ctx, lessonOffset, numbering?.pageOffset ?? 0), footer: p.last ? `end:${p.lesson + lessonOffset}` : p.checkInStop ? (doc.lessons[p.lesson - 1].cover ? "checkin-cover" : "checkin") : note ? `note:${notes.length - 1}` : "page" });
   }
   if (doc.retrieval && plan.retrievalPage) pages.push({ xml: gap(COVER_DROP) + retrievalPageXml(doc.retrieval, st, doc.notation === "maths"), footer: "page" });
   if (doc.revision && plan.revisionPage) {
@@ -765,9 +769,11 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
       if (!parts.some((x) => x.id === id)) parts.push({ name: `footer-note${k + 1}.xml`, id, relType: "footer", contentType: footerType, xml: noteFooter(notes[k], st) });
       return id;
     }
-    if (kind === "checkin") {
-      if (!parts.some((x) => x.id === "rIdCheckInFooter")) parts.push({ name: "footer-checkin.xml", id: "rIdCheckInFooter", relType: "footer", contentType: footerType, xml: checkInFooter(st) });
-      return "rIdCheckInFooter";
+    if (kind === "checkin" || kind === "checkin-cover") {
+      const cover = kind === "checkin-cover";
+      const id = cover ? "rIdCheckInCoverFooter" : "rIdCheckInFooter";
+      if (!parts.some((x) => x.id === id)) parts.push({ name: cover ? "footer-checkin-cover.xml" : "footer-checkin.xml", id, relType: "footer", contentType: footerType, xml: checkInFooter(st, checkInWords({ cover: cover || undefined }).end) });
+      return id;
     }
     if (!endFooters.has(kind)) {
       const k = endFooters.size + 1;
@@ -783,7 +789,7 @@ export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptio
   const sectPr = (kind: string, first: boolean) =>
     `<w:sectPr><w:footerReference w:type="default" r:id="${footerId(kind)}"/>${first && !numbering ? `<w:footerReference w:type="first" r:id="rIdFooter2"/>` : ""}` +
     `<w:type w:val="nextPage"/><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}"/>` +
-    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" || kind.startsWith("note:") ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : kind.startsWith("note:") ? NOTE_FOOTER_DISTANCE : kind === "checkin" ? CHECK_IN_FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
+    `<w:pgMar w:top="${tw(BOOKEND.top - END_MM)}" w:right="${tw(A4.marginX)}" w:bottom="${tw(kind === "page" || kind.startsWith("note:") ? P.height - A4.bottom - WORD_FOOT_MM : END_BOTTOM)}" w:left="${tw(A4.marginX)}" w:header="0" w:footer="${tw(kind === "page" ? FOOTER_DISTANCE : kind.startsWith("note:") ? NOTE_FOOTER_DISTANCE : kind.startsWith("checkin") ? CHECK_IN_FOOTER_DISTANCE : END_FOOTER_DISTANCE)}" w:gutter="0"/>` +
     `${first ? `<w:pgNumType w:start="${firstPage}"/>` : ""}<w:cols w:space="0"/>${first && !numbering ? "<w:titlePg/>" : ""}<w:docGrid w:linePitch="360"/></w:sectPr>`;
   let body = "";
   let first = true;
