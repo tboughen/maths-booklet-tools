@@ -28,7 +28,8 @@ describe("Diagram builder example index", () => {
   });
   it("finds a triangular prism: plain shapes first, then the exam-style prism and the net", () => {
     const found = searchExamples(saved, "triangular prism");
-    expect(found.slice(0, 2).map((e) => e.id)).toEqual(["solids-plain-triangular-prism", "solids-plain-roof-prism"]);
+    // Plain shapes lead: the 3D drawings, and the triangular prism with its plan and elevations (GM8, 28 Nov 2026).
+    expect(found.slice(0, 3).map((e) => e.id).sort()).toEqual(["elevations-plain-triangular-prism", "solids-plain-roof-prism", "solids-plain-triangular-prism"]);
     expect(found.map((e) => e.id)).toEqual(expect.arrayContaining(["solids-triangular-prism", "nets-name-the-shape"]));
     expect(found.find((e) => e.id === "nets-name-the-shape")?.tool).toBe("nets");
   });

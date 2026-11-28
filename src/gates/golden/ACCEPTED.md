@@ -1118,3 +1118,22 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - constructions: construction-loci-pond (worked): added
 - constructions: construction-bearings-parallel: added
 - constructions: construction-bearings-parallel (worked): added
+
+## 2026-11-28: GM8 plans and elevations of prisms, cylinders, cones and pyramids: new examples only (Tim's 28 Nov 04:00 go)
+
+- plans and elevations: elevations-plain-triangular-prism: added
+- plans and elevations: elevations-plain-triangular-prism (worked): added
+- plans and elevations: elevations-plain-cylinder: added
+- plans and elevations: elevations-plain-cylinder (worked): added
+- plans and elevations: elevations-plain-cone: added
+- plans and elevations: elevations-plain-cone (worked): added
+- plans and elevations: elevations-plain-square-pyramid: added
+- plans and elevations: elevations-plain-square-pyramid (worked): added
+- plans and elevations: elevations-prism-elevations: added
+- plans and elevations: elevations-prism-elevations (worked): added
+- plans and elevations: elevations-prism-side-elevation: added
+- plans and elevations: elevations-prism-side-elevation (worked): added
+- plans and elevations: elevations-cylinder-views: added
+- plans and elevations: elevations-cylinder-views (worked): added
+- plans and elevations: elevations-pyramid-roof-plan: added
+- plans and elevations: elevations-pyramid-roof-plan (worked): added
