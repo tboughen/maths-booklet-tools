@@ -5,7 +5,13 @@ import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidan
 
 /** Connector adapter: the same schema and renderer as the browser editor. */
 export const exampleIds = examples.map((x) => x.id) as [string, ...string[]];
-const heights = core.documentSchema.shape.heights;
+const heights = core.heightsSchema;
+const shapes = z.array(core.shapeSchema).min(1).max(core.MAX_SHAPES);
+const lengthInput = z
+  .object({ a: core.p3Schema, b: core.p3Schema, text: z.string().max(12), hidden: z.boolean().optional() })
+  .strict();
+const lengths = z.array(lengthInput).max(core.MAX_LENGTH_LABELS);
+const toLengths = (ls: z.infer<typeof lengths>) => ls.map((l) => ({ a: l.a, b: l.b, text: l.text, show: l.hidden ? ("hidden" as const) : ("show" as const) }));
 const panelInput = z
   .object({
     view: z.enum(core.VIEWS),
@@ -19,16 +25,18 @@ const panelInput = z
   })
   .strict();
 const settings = z
-  .object({ unitCm: core.documentSchema.shape.unitCm, arrows: z.boolean(), isoDots: z.boolean(), maxWidthCm: core.documentSchema.shape.maxWidthCm })
+  .object({ unitCm: core.documentSchema.shape.unitCm, arrows: z.boolean(), isoDots: z.boolean(), maxWidthCm: core.documentSchema.shape.maxWidthCm, hiddenLines: z.enum(["none", "dashed"]) })
   .partial()
   .strict();
 export const outputViewSchema = z.enum(["pupil", "answer"]);
 export const specSchema = z
-  .object({ example: z.enum(exampleIds).optional(), worked: z.boolean().optional(), heights: heights.optional(), panels: z.array(panelInput).min(1).max(core.MAX_PANELS).optional(), settings: settings.optional() })
+  .object({ example: z.enum(exampleIds).optional(), worked: z.boolean().optional(), heights: heights.optional(), shapes: shapes.optional(), lengths: lengths.optional(), panels: z.array(panelInput).min(1).max(core.MAX_PANELS).optional(), settings: settings.optional() })
   .strict();
 export const createSchema = z.object({ envelope: core.envelopeSchema.optional(), spec: specSchema.optional(), outputView: outputViewSchema.optional() }).strict();
 export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("set_heights"), heights }).strict(),
+  z.object({ op: z.literal("set_shapes"), shapes }).strict(),
+  z.object({ op: z.literal("set_lengths"), lengths }).strict(),
   z.object({ op: z.literal("set_height"), row: z.number().int().min(0), column: z.number().int().min(0), height: z.number().int().min(0).max(core.MAX_HEIGHT) }).strict(),
   z.object({ op: z.literal("set_panels"), panels: z.array(panelInput).min(1).max(core.MAX_PANELS) }).strict(),
   z.object({ op: z.literal("set_panel"), index: z.number().int().min(0), panel: panelInput.partial() }).strict(),
@@ -65,10 +73,20 @@ export function create(input: unknown): core.Envelope {
   if (v.envelope) return core.validate(v.envelope);
   const s = v.spec;
   if (!s) return core.create();
-  if (s.example && (s.heights || s.panels)) throw Error("Examples already contain their solid and views; revise the result instead.");
+  if (s.heights && s.shapes) throw Error("Give the solid as heights (cubes) or shapes, not both.");
+  if (s.example && (s.heights || s.shapes || s.panels)) throw Error("Examples already contain their solid and views; revise the result instead.");
   let e = s.example ? examples.find((x) => x.id === s.example)!.make(false) : core.create();
   e = withDoc(e, (d) => {
-    if (s.heights) d.heights = s.heights;
+    if (s.heights) {
+      d.heights = s.heights;
+      delete d.shapes;
+      delete d.lengths;
+    }
+    if (s.shapes) {
+      d.shapes = s.shapes;
+      delete d.heights;
+    }
+    if (s.lengths) d.lengths = toLengths(s.lengths);
     if (s.panels) d.panels = s.panels.map((p) => toPanel(p));
     Object.assign(d, s.settings ?? {});
   });
@@ -83,10 +101,21 @@ export async function revise(input: unknown): Promise<core.Envelope> {
     if (op.op === "show_all") e = core.forView(e, "answer");
     else
       e = withDoc(e, (d) => {
-        if (op.op === "set_heights") d.heights = op.heights;
+        if (op.op === "set_heights") {
+          d.heights = op.heights;
+          delete d.shapes;
+          delete d.lengths;
+        }
+        if (op.op === "set_shapes") {
+          d.shapes = op.shapes;
+          delete d.heights;
+        }
+        if (op.op === "set_lengths") d.lengths = toLengths(op.lengths);
         if (op.op === "set_height") {
-          if (op.row >= d.heights.length || op.column >= d.heights[0].length) throw Error(`The grid has ${d.heights.length} rows and ${d.heights[0].length} columns (counted from 0, row 0 at the front).`);
-          d.heights[op.row][op.column] = op.height;
+          const h = d.heights;
+          if (!h) throw Error("This solid is made of shapes; use set_shapes, or set_heights to start a cube solid.");
+          if (op.row >= h.length || op.column >= h[0].length) throw Error(`The grid has ${h.length} rows and ${h[0].length} columns (counted from 0, row 0 at the front).`);
+          h[op.row][op.column] = op.height;
         }
         if (op.op === "set_panels") d.panels = op.panels.map((p) => toPanel(p));
         if (op.op === "set_panel") {

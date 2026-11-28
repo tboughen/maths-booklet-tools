@@ -1287,6 +1287,34 @@
   "tool": "construction"
  },
  {
+  "id": "elevations-plain-triangular-prism",
+  "title": "Triangular prism: plan and elevations",
+  "description": "A triangular prism, with the plan, front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
+  "id": "elevations-plain-cylinder",
+  "title": "Cylinder: plan and elevations",
+  "description": "An upright cylinder, with the plan, front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
+  "id": "elevations-plain-cone",
+  "title": "Cone: plan and elevations",
+  "description": "An upright cone, with the plan (a circle with its apex marked), front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
+  "id": "elevations-plain-square-pyramid",
+  "title": "Square-based pyramid: plan and elevations",
+  "description": "A square-based pyramid, with the plan, front and side elevations drawn.",
+  "tool": "elevations",
+  "plain": true
+ },
+ {
   "id": "elevations-plain-row",
   "title": "Row of cubes",
   "description": "Four cubes in a row, with the plan, front and side elevations drawn.",
@@ -1336,6 +1364,30 @@
   "id": "elevations-scale-2cm",
   "title": "Elevations at 2 cm to one cube",
   "description": "Pupils draw the front and side elevations with each cube edge 2 cm long.",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-prism-elevations",
+  "title": "Front and side elevations of a prism",
+  "description": "A prism with a trapezium cross-section, its lengths given. Pupils draw the front and side elevations on centimetre squares; the views are saved answers.",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-prism-side-elevation",
+  "title": "Side elevation from the plan and front elevation",
+  "description": "An L-shaped prism. The plan and front elevation are given; pupils draw the side elevation.",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-cylinder-views",
+  "title": "A cylinder from its plan and front elevation",
+  "description": "The plan and front elevation of a cylinder on centimetre squares. Pupils read its radius and height, then sketch the cylinder (the sketch is the saved answer).",
+  "tool": "elevations"
+ },
+ {
+  "id": "elevations-pyramid-roof-plan",
+  "title": "Plan of a cube with a pyramid roof",
+  "description": "A cube with a square-based pyramid on top. Pupils draw the plan and front elevation; both are saved answers.",
   "tool": "elevations"
  },
  {

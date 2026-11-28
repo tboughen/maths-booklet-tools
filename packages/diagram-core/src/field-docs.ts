@@ -259,8 +259,10 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     example,
     worked,
     heights: "Cube counts per square: heights[row][column], row 0 the front, column 0 the left, 0 to 6 each.",
+    shapes: "Instead of heights: up to 4 prisms, pyramids, cylinders, cones, spheres or hemispheres in grid squares (x across, y back, z up, 0 to 12).",
+    lengths: "Up to 8 lengths such as \"6 cm\" beside lines between two corners of a shapes solid's 3D drawing, each shown or hidden.",
     panels: "Up to 6 views (isometric, plan, front or side), each drawn, blank or an answer.",
-    settings: "Cube edge (unitCm 0.5, 1 or 2), viewing arrows, isometric dot paper and maximum width.",
+    settings: "Cube or square edge (unitCm 0.5, 1 or 2), viewing arrows, isometric dot paper, maximum width and hiddenLines (none or dashed).",
   },
   area: {
     example,

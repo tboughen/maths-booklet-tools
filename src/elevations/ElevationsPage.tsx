@@ -5,7 +5,7 @@ import { answerSize, previewArt, workedIssue } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery, ReturnToDiagram } from "../examples/ExampleGallery";
 import { elevationsGallery } from "../examples/galleryCatalogue";
@@ -27,7 +27,8 @@ import {
   create,
   cubeCount,
   DEFAULT_LABELS,
-  flatView,
+  solidDescription,
+  viewSpan,
   layout,
   MAX_HEIGHT,
   MAX_PANELS,
@@ -41,6 +42,9 @@ import {
   type Panel as ViewPanel,
   type ViewKind,
 } from "../../packages/elevation-core/src";
+import { DraftField } from "./DraftField";
+import { ShapesEditor } from "./ShapesEditor";
+import { defaultShape } from "./shapeFields";
 import { LINK_PREFIX, parseElevationsLink, elevationsLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
@@ -75,61 +79,6 @@ function initial() {
   return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
-/** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
-function DraftField({ id, label, value, onCommit, disabled, maxLength = 40, inputMode, className, onHistory }: {
-  /** With nothing typed, Ctrl+Z / Ctrl+Y go to the diagram's undo; return true when handled. */
-  onHistory?: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
-  id?: string;
-  label: string;
-  value: string;
-  onCommit: (value: string) => void;
-  disabled?: boolean;
-  maxLength?: number;
-  inputMode?: "decimal" | "text";
-  className?: string;
-}) {
-  const [draft, setDraft] = useState(value);
-  const [editing, setEditing] = useState(false);
-  useEffect(() => {
-    if (!editing) setDraft(value);
-  }, [value, editing]);
-  const commit = () => {
-    setEditing(false);
-    if (draft !== value) onCommit(draft);
-  };
-  return (
-    <input
-      id={id}
-      className={className}
-      aria-label={label}
-      value={draft}
-      disabled={disabled}
-      maxLength={maxLength}
-      inputMode={inputMode}
-      onChange={(ev) => {
-        setEditing(true);
-        setDraft(ev.target.value);
-      }}
-      onBlur={commit}
-      onKeyDown={(ev: ReactKeyboardEvent<HTMLInputElement>) => {
-        if (draft === value && onHistory?.(ev)) return;
-        if (ev.key === "Enter") {
-          ev.preventDefault();
-          commit();
-        }
-        // Escape undoes typing; with nothing typed it passes on, so it closes the options box.
-        if (ev.key === "Escape" && draft !== value) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          setDraft(value);
-          setEditing(false);
-        }
-      }}
-    />
-  );
-}
-
-
 export default function ElevationsPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
@@ -154,8 +103,9 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
   const answerSvg = renderSvg(e, "answer");
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
-  const rows = d.heights.length,
-    cols = d.heights[0].length;
+  const cubes = d.heights,
+    rows = cubes?.length ?? 0,
+    cols = cubes?.[0].length ?? 0;
   const current = selected !== null && selected < d.panels.length ? selected : null;
   const spaceCount = d.panels.filter((q) => q.state === "answer").length + d.panels.filter((q) => q.label.show === "hidden").length;
   // The box closes when its panel goes (a removal, an undo).
@@ -177,10 +127,10 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     }
   }
   function patch(update: (n: Doc) => void, label?: string) {
-    if (blocked) return;
+    if (blocked) return false;
     const n = structuredClone(e);
     update(n.document);
-    commit(n, label);
+    return commit(n, label);
   }
   function setPanel(i: number, update: (p: ViewPanel) => void, label?: string) {
     patch((n) => update(n.panels[i]), label);
@@ -260,18 +210,34 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
   }
 
   function setHeight(r: number, c: number, h: number) {
-    if (d.heights[r][c] === h) return;
-    if (h === 0 && cubeCount(d) === d.heights[r][c]) return setMessage("The solid needs at least one cube.");
-    patch((n) => void (n.heights[r][c] = h), `set height to ${h}`);
+    if (!cubes || cubes[r][c] === h) return;
+    if (h === 0 && cubeCount(d) === cubes[r][c]) return setMessage("The solid needs at least one cube.");
+    patch((n) => void (n.heights![r][c] = h), `set height to ${h}`);
   }
   /** Rows grow at the back and columns on the right, so the front and left edges stay where they are. */
   function resize(dr: number, dc: number) {
     patch((n) => {
-      if (dr > 0) n.heights.push(Array(cols).fill(0));
-      if (dr < 0) n.heights.pop();
-      if (dc > 0) for (const row of n.heights) row.push(0);
-      if (dc < 0) for (const row of n.heights) row.pop();
+      const h = n.heights!;
+      if (dr > 0) h.push(Array(cols).fill(0));
+      if (dr < 0) h.pop();
+      if (dc > 0) for (const row of h) row.push(0);
+      if (dc < 0) for (const row of h) row.pop();
     }, dr > 0 ? "add a row" : dr < 0 ? "remove the back row" : dc > 0 ? "add a column" : "remove the right column");
+  }
+  /** Cubes or shapes: switching starts the other kind of solid afresh (one undo step), keeping the panels and printing. */
+  function setSolidKind(kind: "cubes" | "shapes") {
+    if (kind === (cubes ? "cubes" : "shapes")) return;
+    patch((n) => {
+      delete n.lengths;
+      delete n.hiddenLines;
+      if (kind === "shapes") {
+        delete n.heights;
+        n.shapes = [defaultShape("prism")];
+      } else {
+        delete n.shapes;
+        n.heights = create().document.heights;
+      }
+    }, kind === "shapes" ? "build the solid from shapes" : "build the solid from cubes");
   }
   function addPanel(kind: ViewKind) {
     if (d.panels.length >= MAX_PANELS) return setMessage(`Use at most ${MAX_PANELS} panels.`);
@@ -303,7 +269,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
   return (
     <div className="app-shell booklet-editor pt-editor ev-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Plans and elevations" description="Build a solid from cubes and print its isometric drawing, plan and elevations, with blank grids for pupils to draw on.">
+        <PageHeading title="Plans and elevations" description="Build a solid from cubes, prisms, cylinders, cones, pyramids or spheres and print its isometric drawing, plan and elevations, with blank grids for pupils to draw on.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
@@ -406,7 +372,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 {boxAnchor && current !== null && (() => {
                   const i = current,
                     q = d.panels[i];
-                  const fit = q.view === "isometric" ? null : flatView(d, q.view);
+                  const fit = q.view === "isometric" ? null : viewSpan(d, q.view);
                   return (
                     <OptionsBox anchor={boxAnchor} anchorKey={String(i)} focusField={!coarse} title={`Panel ${i + 1}: ${VIEW_NAMES[q.view]}`} onClose={() => setBoxAnchor(null)}>
                       <VisibilitySwitch name="What pupils see" caption="What pupils see" help={PANEL_HELP} value={PANEL_VISIBILITY[q.state]} disabled={blocked} onChange={(v) => setVisibility(i, v)} />
@@ -551,11 +517,20 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 Double-click a panel for a pupil space.
               </PupilSpaceHint>
             </FoldCard>
-            <FoldCard tool="elevations" title="The solid" icon={Boxes} defaultOpen summary={`${cubeCount(d)} cubes`}>
-              <p className="pt-note">Seen from above: each square is a stack of cubes. The front of the solid is at the bottom of this grid.</p>
+            <FoldCard tool="elevations" title="The solid" icon={Boxes} defaultOpen summary={cubes ? `${cubeCount(d)} cubes` : solidDescription(d).replace(/^Solid made of /, "")}>
+              <label className="pt-fields">
+                Made of
+                <select aria-label="Solid made of" value={cubes ? "cubes" : "shapes"} disabled={blocked} onChange={(ev) => setSolidKind(ev.target.value as "cubes" | "shapes")}>
+                  <option value="cubes">Cubes</option>
+                  <option value="shapes">Prisms, cylinders, cones, pyramids and spheres</option>
+                </select>
+              </label>
+              {cubes ? (
+                <>
+<p className="pt-note">Seen from above: each square is a stack of cubes. The front of the solid is at the bottom of this grid.</p>
               <table className="ev-heights">
                 <tbody>
-                  {d.heights
+                  {cubes
                     .map((row, r) => (
                       <tr key={r}>
                         {row.map((h, c) => (
@@ -597,6 +572,10 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   Remove the right column
                 </button>
               </div>
+                </>
+              ) : (
+                <ShapesEditor d={d} blocked={blocked} patch={patch} onMessage={setMessage} onHistory={(ev) => handleUndoKeys(ev.nativeEvent, { undo, redo }, { inField: true })} />
+              )}
             </FoldCard>
             <FoldCard
               tool="elevations"
@@ -636,7 +615,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               tool="elevations"
               title="Printing"
               icon={Printer}
-              summary={`${d.unitCm} cm cubes`}
+              summary={`${d.unitCm} cm ${cubes ? "cubes" : "squares"}`}
               help={
                 <>
                   <p className="pt-note">
@@ -652,7 +631,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
             >
               <div className="pt-fields">
                 <label>
-                  Cube edge on the grids
+                  {cubes ? "Cube edge on the grids" : "One square on the grids"}
                   <select aria-label="Cube edge on the grids" value={d.unitCm} disabled={blocked} onChange={(ev) => patch((n) => void (n.unitCm = Number(ev.target.value) as Doc["unitCm"]))}>
                     <option value={0.5}>0.5 cm</option>
                     <option value={1}>1 cm</option>

@@ -3600,6 +3600,20 @@
    "png600": "3307x543",
    "pixels": "d12917e41686ffad"
   },
+  "plans and elevations: elevations-cylinder-views": {
+   "json": "f840eee833f97761",
+   "svg": "f90d41bc99427997",
+   "mm": "236x109.3",
+   "png600": "5575x2582",
+   "pixels": "31930d394ddf4716"
+  },
+  "plans and elevations: elevations-cylinder-views (worked)": {
+   "json": "6567b3df38cec4c1",
+   "svg": "77855c0c1e073479",
+   "mm": "236x109.3",
+   "png600": "5575x2582",
+   "pixels": "e579739a3c19ec86"
+  },
   "plans and elevations: elevations-draw-solid": {
    "json": "18466b2dbad26c01",
    "svg": "f6f88264beff9e7d",
@@ -3642,6 +3656,34 @@
    "png600": "6151x1795",
    "pixels": "2dfd660f8ed94e1d"
   },
+  "plans and elevations: elevations-plain-cone": {
+   "json": "4fe306a9651b2a28",
+   "svg": "e9d5a47ac0652195",
+   "mm": "236x162.1",
+   "png600": "5575x3829",
+   "pixels": "b81a4a1eb821a2ec"
+  },
+  "plans and elevations: elevations-plain-cone (worked)": {
+   "json": "4fe306a9651b2a28",
+   "svg": "e9d5a47ac0652195",
+   "mm": "236x162.1",
+   "png600": "5575x3829",
+   "pixels": "b81a4a1eb821a2ec"
+  },
+  "plans and elevations: elevations-plain-cylinder": {
+   "json": "1de12cf3dcf8785f",
+   "svg": "404b084ad61c348f",
+   "mm": "236x196.2",
+   "png600": "5575x4635",
+   "pixels": "2784356e4132221d"
+  },
+  "plans and elevations: elevations-plain-cylinder (worked)": {
+   "json": "1de12cf3dcf8785f",
+   "svg": "404b084ad61c348f",
+   "mm": "236x196.2",
+   "png600": "5575x4635",
+   "pixels": "2784356e4132221d"
+  },
   "plans and elevations: elevations-plain-l-shape": {
    "json": "f8b125fb17c093ee",
    "svg": "367420c1e8c79497",
@@ -3670,6 +3712,20 @@
    "png600": "5443x2667",
    "pixels": "e04bddcbca0c4ac3"
   },
+  "plans and elevations: elevations-plain-square-pyramid": {
+   "json": "9a7cf777800f2f6b",
+   "svg": "46ce44e13316b47b",
+   "mm": "256.3x147.9",
+   "png600": "6054x3494",
+   "pixels": "70cfa752d0a7349a"
+  },
+  "plans and elevations: elevations-plain-square-pyramid (worked)": {
+   "json": "9a7cf777800f2f6b",
+   "svg": "46ce44e13316b47b",
+   "mm": "256.3x147.9",
+   "png600": "6054x3494",
+   "pixels": "70cfa752d0a7349a"
+  },
   "plans and elevations: elevations-plain-steps": {
    "json": "041113295d671267",
    "svg": "bb0607ad582f34cf",
@@ -3683,6 +3739,62 @@
    "mm": "260.4x86",
    "png600": "6151x2031",
    "pixels": "35311b852827fd4e"
+  },
+  "plans and elevations: elevations-plain-triangular-prism": {
+   "json": "4aeab66250a36736",
+   "svg": "7410d3449d1cf7fb",
+   "mm": "195x162.9",
+   "png600": "4606x3848",
+   "pixels": "aafb4cde5d28158d"
+  },
+  "plans and elevations: elevations-plain-triangular-prism (worked)": {
+   "json": "4aeab66250a36736",
+   "svg": "7410d3449d1cf7fb",
+   "mm": "195x162.9",
+   "png600": "4606x3848",
+   "pixels": "aafb4cde5d28158d"
+  },
+  "plans and elevations: elevations-prism-elevations": {
+   "json": "6be2fe7ec32ae88e",
+   "svg": "092be7af95880daa",
+   "mm": "223.7x177.9",
+   "png600": "5284x4202",
+   "pixels": "df7020874ae59e42"
+  },
+  "plans and elevations: elevations-prism-elevations (worked)": {
+   "json": "8200c33e2466f8cd",
+   "svg": "553aa702ed5a835f",
+   "mm": "223.7x177.9",
+   "png600": "5284x4202",
+   "pixels": "98ec425ae8596ad3"
+  },
+  "plans and elevations: elevations-prism-side-elevation": {
+   "json": "50b8784547524d34",
+   "svg": "f45ccceb3b39d0e7",
+   "mm": "213x69.9",
+   "png600": "5031x1651",
+   "pixels": "3062f943a40012b1"
+  },
+  "plans and elevations: elevations-prism-side-elevation (worked)": {
+   "json": "eb60b20f914ae5f5",
+   "svg": "5e798267a69e4c4f",
+   "mm": "213x69.9",
+   "png600": "5031x1651",
+   "pixels": "e04c0b9cbe939eab"
+  },
+  "plans and elevations: elevations-pyramid-roof-plan": {
+   "json": "7136e1a48e020a65",
+   "svg": "3e6451615cbfc5b5",
+   "mm": "256.3x121",
+   "png600": "6054x2858",
+   "pixels": "5b79b5c45fc691ab"
+  },
+  "plans and elevations: elevations-pyramid-roof-plan (worked)": {
+   "json": "478c612bbd54319b",
+   "svg": "0b4fd9513227e682",
+   "mm": "256.3x121",
+   "png600": "6054x2858",
+   "pixels": "8d06baad0cda7f87"
   },
   "plans and elevations: elevations-scale-2cm": {
    "json": "c943c26b8dfb6660",

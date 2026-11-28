@@ -42,3 +42,30 @@
   border: 2px solid var(--blue);
   background: #1d4ed80d;
 }
+
+/* Shapes solids (GM8.08-09, 28 Nov 2026): one bordered group per shape and per length. */
+.ev-shape,
+.ev-length {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  border: 1px solid var(--md-line);
+  border-radius: 6px;
+  padding: 6px 8px 8px;
+  min-width: 0;
+}
+.ev-shape legend {
+  padding: 0 4px;
+  font-weight: 600;
+}
+.ev-corners {
+  display: grid;
+  gap: 4px;
+}
+.ev-corners input {
+  width: 100%;
+}
+.ev-sub {
+  margin: 8px 0 0;
+  font-size: 1rem;
+}
