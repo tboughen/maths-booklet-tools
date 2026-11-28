@@ -4,10 +4,11 @@
  * every replaced version kept in each resource's history. The list and its files are served by the
  * site Worker behind staff sign-in; scripts/library/publish.mjs writes them.
  */
-import { siteBase } from "../site/routes";
+import { pageHref, siteBase } from "../site/routes";
 
 export type ResourceType = "unit-booklet" | "lesson-booklet" | "revision-lesson" | "one-off";
-export type LibraryFile = { role: "pupil" | "answers"; format: "pdf" | "docx"; name: string; bytes: number; href: string };
+/** `source` is the lesson source a build wrote: it opens the booklet in the Booklet builder rather than downloading. */
+export type LibraryFile = { role: "pupil" | "answers" | "source"; format: "pdf" | "docx" | "json"; name: string; bytes: number; href: string };
 export type Earlier = { updated: string; note?: string; files: LibraryFile[] };
 export type Resource = {
   id: string; year: number; unit: string; lesson?: string; version: string; part?: string; note?: string;
@@ -41,8 +42,17 @@ export const typeNames: Record<ResourceType, string> = {
   "revision-lesson": "Revision lesson",
   "one-off": "One-off",
 };
-const roleNames = { pupil: "Pupil", answers: "Answers" } as const;
-export const fileLabel = (file: LibraryFile) => `${roleNames[file.role]} ${file.format === "pdf" ? "PDF" : "Word"}`;
+const roleNames = { pupil: "Pupil", answers: "Answers", source: "Lesson source" } as const;
+export const fileLabel = (file: LibraryFile) => `${roleNames[file.role]} ${file.format === "pdf" ? "PDF" : file.format === "docx" ? "Word" : "file"}`;
+/** The files to download: the lesson source opens in the Booklet builder instead. */
+export const downloads = (files: LibraryFile[]) => files.filter((f) => f.role !== "source");
+/** Opens a booklet in the Booklet builder, to edit it and save it back as a new version; null without a lesson source. */
+export function editHref(r: Resource): string | null {
+  const source = r.files.find((f) => f.role === "source");
+  if (!source) return null;
+  const q = new URLSearchParams({ open: source.href, resource: r.id, version: r.version, title: r.lesson ? `${r.lesson} ${r.title}` : r.title });
+  return `${pageHref("booklets")}?${q}`;
+}
 export const fileHref = (file: LibraryFile) => siteBase() + file.href;
 
 export async function loadLibrary(fetcher: typeof fetch = fetch): Promise<Library> {

@@ -286,7 +286,9 @@ test("the Diagram builder's search shows matching examples from every tool, and 
   await page.keyboard.press("Escape");
   const examples = page.getByRole("region", { name: /Examples to start from/ });
   // Plain shapes first, then the exam-style prism and the net from the Nets tool, each saying where it opens.
-  await expect(examples.locator(".example-tile h3").first()).toHaveText("Triangular prism Plain");
+  // Plans and elevations (GM8) adds its own plain prism, so any plain one may lead.
+  await expect(examples.locator(".example-tile h3").first()).toHaveText(/^Triangular prism.* Plain$/);
+  await expect(examples.locator(".example-tile h3", { hasText: /^Triangular prism Plain$/ })).toHaveCount(1);
   await expect(examples.getByRole("link", { name: "Open Name the 3D shape in Nets of 3D shapes" })).toBeVisible();
   await expect(examples.locator("img").first()).toHaveJSProperty("complete", true);
   expect(await examples.locator("img").evaluateAll((imgs) => imgs.every((img) => (img as HTMLImageElement).naturalWidth > 0))).toBe(true);
