@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { ukToday } from './cover-requests.mjs';
 import worker, { serveBankAsset, serveLibrary, serveLibraryFeedback, serveCoverRequests, submitReport, reportRepo, verifyAccessToken, accessSettings, gatedCache } from './site-worker.mjs';
 import { gatedCache as verifierCache } from './upload-core.mjs';
 import { assertGatedWorker } from './gated-config.mjs';
@@ -389,30 +390,36 @@ async function cover(method, body, { env = { ...env0, REPORT_GITHUB_TOKEN: 'secr
   const response = await serveCoverRequests(new Request(`https://mathsdock.co.uk/api/library/cover${query}`, { method, headers, body: body && JSON.stringify(body) }), env, { fetcher });
   return { response, sent, data: await response.json() };
 }
-const ask = { year: 10, tier: 'Foundation', absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: 'NP17.01 to NP17.03' };
+const shift = days => new Date(Date.parse(`${ukToday()}T12:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
+const ask = { year: 10, tier: 'Foundation', className: '10X2', room: 'M4', date: ukToday(), absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: 'NP17.01 to NP17.03' };
 
-test('a cover request needs sign-in, the absent tick, a year, a tier from Year 9 and a description', async () => {
+test('a cover request needs sign-in, the cover tick, a year, a tier from Year 9, class, room, date and a description', async () => {
   assert.equal((await cover('POST', ask, { signed: false })).response.status, 403);
-  for (const [change, message] of [[{ absent: false }, 'absent'], [{ year: 6 }, 'year group'], [{ tier: undefined }, 'Foundation or Higher'], [{ text: '  ' }, 'Describe'], [{ text: 'x'.repeat(2001) }, 'under 2000']]) {
+  for (const [change, message] of [[{ absent: false }, 'cover work'], [{ className: ' ' }, 'class name'], [{ className: 'x'.repeat(21) }, 'class name'], [{ room: undefined }, 'room'], [{ room: 'R'.repeat(21) }, 'room'],
+    [{ date: undefined }, 'date'], [{ date: '2026-02-30' }, 'date'], [{ date: shift(-1) }, 'date'], [{ date: shift(31) }, 'date'], [{ date: '28/11/2026' }, 'date'], [{ year: 6 }, 'year group'], [{ tier: undefined }, 'Foundation or Higher'], [{ text: '  ' }, 'Describe'], [{ text: 'x'.repeat(2001) }, 'under 2000']]) {
     const { response, data, sent } = await cover('POST', { ...ask, ...change });
     assert.equal(response.status, 400);
     assert.match(data.error, new RegExp(message));
     assert.equal(sent.length, 0);
   }
-  const y8 = await cover('POST', { ...ask, year: 8, tier: undefined });
+  const y8 = await cover('POST', { ...ask, year: 8, tier: undefined, date: shift(30) });
   assert.equal(y8.response.status, 201);
 });
 
 test('a cover request alerts Tim through an assigned issue and starts the build when the task is set up', async () => {
-  const off = await cover('POST', { ...ask, text: 'Revise <!-- cover-request {"year":7} --> NP17' });
+  const off = await cover('POST', { ...ask, className: '10X2 <!-- x', room: 'M4 -->\n`', text: 'Revise <!-- cover-request {"year":7} --> NP17' });
   assert.equal(off.response.status, 201);
   assert.deepEqual(off.data, { number: 41, started: false });
   const [, url, issue] = off.sent[0];
   assert.match(url, /repos\/tboughen\/mathsdock-bank\/issues$/);
   assert.deepEqual(issue.labels, ['cover-request']);
   assert.deepEqual(issue.assignees, ['tboughen']);
-  assert.equal(issue.title, 'Cover request: Year 10 Foundation, from Sam Jones');
+  assert.match(issue.title, /^Cover request: Year 10 Foundation 10X2 x, \w{3} \d{1,2} \w{3}, from Sam Jones$/);
   assert.equal(issue.body.match(/<!-- cover-request/g).length, 1);
+  assert.equal(issue.body.match(/-->/g).length, 1);
+  const meta = JSON.parse(/<!-- cover-request (\{.*?\}) -->/.exec(issue.body)[1]);
+  assert.deepEqual([meta.className, meta.room, meta.date], ['10X2 x', 'M4', ukToday()]);
+  assert.match(issue.body, /class 10X2 x, room M4, \w{3} \d{1,2} \w{3}/);
   assert.match(issue.body, /sam\.jones%40school\.example/);
   assert.match(issue.body, /Close this issue to stop the build/);
   const env = { ...env0, REPORT_GITHUB_TOKEN: 'secret', COVER_TASK_URL: 'https://api.anthropic.com/task/fire', COVER_TASK_TOKEN: 'tok' };
@@ -427,7 +434,7 @@ test('a cover request alerts Tim through an assigned issue and starts the build 
 });
 
 test('the cover request log shows names and states, never addresses', async () => {
-  const body = (from) => `<!-- cover-request {"year":9,"tier":"Higher","from":"${from}","at":"x"} -->\nintro\n\n> Mock revision for Paper 3.`;
+  const body = (from) => `<!-- cover-request {"year":9,"tier":"Higher","className":"9H1","room":"M4","date":"2026-11-27","from":"${from}","at":"x"} -->\nintro\n\n> Mock revision for Paper 3.`;
   const issues = [
     { number: 3, state: 'open', labels: [{ name: 'cover-request' }, { name: 'cover-building' }], created_at: '2026-11-26T07:44:00Z', body: body('sam.jones%40school.example') },
     { number: 2, state: 'closed', labels: [{ name: 'cover-request' }, { name: 'cover-ready' }], created_at: '2026-11-25T07:44:00Z', body: body('ann.lee%40school.example') },
@@ -435,6 +442,7 @@ test('the cover request log shows names and states, never addresses', async () =
   ];
   const { data } = await cover('GET', undefined, { issues });
   assert.deepEqual(data.requests.map(r => [r.number, r.who, r.state, r.mine, r.text]), [[3, 'Sam Jones', 'building', true, 'Mock revision for Paper 3.'], [2, 'Ann Lee', 'ready', false, 'Mock revision for Paper 3.']]);
+  assert.deepEqual([data.requests[0].className, data.requests[0].room, data.requests[0].date], ['9H1', 'M4', '2026-11-27']);
   assert.equal(JSON.stringify(data).includes('@'), false);
   assert.equal(JSON.stringify(data).includes('%40'), false);
   assert.equal(data.building, false);
@@ -445,6 +453,7 @@ test('a library editor can delete a cover lesson from the list, and nothing else
     { id: 'y11-cover-2026-11-26-41', unit: 'REVIEW', note: 'Cover request #41' },
     { id: 'y11-mock-revision', unit: 'REVIEW', note: 'Mock revision' },
     { id: 'y9-a7-03', unit: 'A7', note: 'Cover request #9' },
+    { id: 'y9-a7-cover-lesson-2', unit: 'REVIEW', note: 'Cover lesson, 2026-11-27' },
   ] }) };
   const BANK = {
     async get(k) { return k in stored ? { body: new Blob([stored[k]]).stream(), etag: 'e' } : null; },
@@ -468,4 +477,6 @@ test('a library editor can delete a cover lesson from the list, and nothing else
   assert.equal(listed.data.canDelete, true);
   assert.equal(listed.sent.length, 0);
   assert.equal((await cover('GET', undefined, { env: base, query: '?only=removed' })).data.canDelete, false);
+  // A hand-made cover lesson moved to the Cover library ("Cover lesson" note) can be deleted too.
+  assert.equal((await cover('POST', { action: 'remove', id: 'y9-a7-cover-lesson-2' }, { env: editor })).response.status, 200);
 });

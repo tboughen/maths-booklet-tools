@@ -207,46 +207,65 @@ test("a list that cannot be loaded says so, and narrow screens do not spill side
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 
-test("an absent teacher describes a cover lesson, checks it against the scheme and presses Build now", async ({ page }) => {
+test("a teacher gives the class, room and date, describes a cover lesson, checks it against the scheme and presses Build now", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   const sent: Sent[] = [];
   const log = [{ number: 40, when: new Date(Date.now() - 3600000).toISOString(), year: 9, tier: "Higher", who: "Ann Lee", mine: false, text: "Mock revision for Paper 3.", state: "ready" }];
   await page.route("**/api/library/cover", async (route) => {
     if (route.request().method() === "POST") {
       sent.push(route.request().postDataJSON());
-      log.unshift({ number: 41, when: "2026-11-26T08:00:00Z", year: 10, tier: "Foundation", who: "Sam Jones", mine: true, text: "We're on NP17, lesson 3.", state: "building" });
+      const b = sent[0] as { className: string; room: string; date: string };
+      log.unshift({ number: 41, when: new Date().toISOString(), year: 10, tier: "Foundation", className: b.className, room: b.room, date: b.date, who: "Sam Jones", mine: true, text: "We're on NP17, lesson 3.", state: "building" } as (typeof log)[number]);
       return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ number: 41, started: true }) });
     }
     return route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: log, building: true }) });
   });
   const { main } = await open(page, "/library?view=cover");
   const form = main.locator(".cover-form");
-  await expect(form.getByRole("heading", { name: "Ask for a cover lesson" })).toBeVisible();
+  await expect(form.getByRole("heading", { name: "Create cover booklet" })).toBeVisible();
+  await expect(main.locator(".cover-log").getByRole("heading", { name: "Cover library" })).toBeVisible();
   await expect(main.locator(".cover-log")).toContainText("Ann Lee");
+  // The date starts on the next weekday.
+  const date = form.getByLabel("Date");
+  const next = await date.inputValue();
+  expect(new Date(`${next}T12:00:00`).getDay()).not.toBe(0);
+  expect(new Date(`${next}T12:00:00`).getDay()).not.toBe(6);
   await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
   await form.getByRole("button", { name: "Revise our unit up to a lesson" }).click();
-  await expect(form.getByRole("textbox")).toHaveValue("We're on unit … , lesson … . Revise the lessons so far.");
-  await form.getByRole("textbox").fill("We're on NP17, lesson 3. Revise the lessons so far.");
+  await expect(form.locator("#cover-text")).toHaveValue("We're on unit … , lesson … . Revise the lessons so far.");
+  await form.locator("#cover-text").fill("We're on NP17, lesson 3. Revise the lessons so far.");
   await form.getByRole("radio", { name: "Foundation" }).check();
+  await form.getByRole("checkbox", { name: "This is cover work for myself or a colleague." }).check();
+  // Class and room are required before it builds.
   await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
-  await form.getByRole("checkbox").check();
+  await form.getByLabel("Class (e.g. 10X2)").fill("10X2");
+  await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
+  await expect(form).toContainText("Give the room.");
+  await form.getByLabel("Room (e.g. M4)").fill("M4");
   await form.getByRole("button", { name: "Check and build" }).click();
   const check = form.getByRole("region", { name: "Check before building" });
   await expect(check).toContainText("Year 10 Foundation revising NP17.01 to NP17.03");
   await page.screenshot({ path: test.info().outputPath("library-cover.png") });
   await check.getByRole("button", { name: "Yes, build it" }).click();
-  await expect(form.getByRole("status")).toContainText("Building your cover lesson now");
-  expect(sent).toEqual([{ year: 10, tier: "Foundation", absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: expect.stringContaining("NP17.01 to NP17.03"), attachment: null }]);
-  await expect(main.locator(".cover-log li").first()).toContainText("You");
+  await expect(form.getByRole("status")).toContainText("Building your cover booklet now");
+  expect(sent).toEqual([{ year: 10, tier: "Foundation", className: "10X2", room: "M4", date: next, absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: expect.stringContaining("NP17.01 to NP17.03"), attachment: null }]);
+  const first = main.locator(".cover-log li").first();
+  await expect(first).toContainText("Class 10X2 · Room M4");
+  await expect(first).toContainText("You");
+  await page.screenshot({ path: test.info().outputPath("library-cover-sent.png") });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 
-test("cover lessons fold away after 7 days and a library editor can delete one", async ({ page }) => {
+test("cover booklets live only in the Cover library: newest date first, PDFs, a 7-day fold and Delete for editors", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
   const data = JSON.parse(fixture);
-  const today = new Date().toISOString().slice(0, 10);
-  const cover = (n: number, updated: string) => ({ id: `y9-cover-${n}`, year: 9, unit: "REVIEW", version: "Main", title: `Cover lesson ${n}`, type: "revision-lesson", status: "waiting", updated, note: `Cover request #${n}`, files: [], history: [] });
-  data.resources.push(cover(41, today), cover(30, "2026-11-01"));
+  const day = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const pdf = (id: string, role: string) => ({ role, format: "pdf", name: `${id}_${role}.pdf`, bytes: 1, href: `library-data/files/${id}_${role}.pdf` });
+  const cover = (id: string, title: string, note: string) => ({ id, year: 9, unit: "REVIEW", version: "Main", title, type: "revision-lesson", status: "waiting", updated: day(-1), note, files: [pdf(id, "pupil"), pdf(id, "answers")], history: [] });
+  data.resources.push(cover("y9-cover-41", "Cover lesson 41", `Cover request #41. Class 9H1, room M4, ${day(1)}.`), cover("y9-cover-30", "Cover lesson 30", "Cover lesson, 2026-11-01"));
+  const log = [{ number: 41, when: new Date().toISOString(), year: 9, tier: "Higher", className: "9H1", room: "M4", date: day(1), who: "Ann Lee", mine: false, text: "Mock revision", state: "ready" },
+    { number: 42, when: new Date().toISOString(), year: 10, tier: "Foundation", className: "10X2", room: "S2", date: day(3), who: "Sam Jones", mine: true, text: "NP17", state: "building" }];
   const sent: Sent[] = [];
   let removed: string[] = [];
   await page.route("**/api/library/cover*", async (route) => {
@@ -256,23 +275,35 @@ test("cover lessons fold away after 7 days and a library editor can delete one",
       removed = [...removed, body.id];
       return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, removed }) });
     }
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify(new URL(route.request().url()).searchParams.get("only") === "removed" ? { removed, canDelete: true } : { requests: [], building: false }) });
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify(new URL(route.request().url()).searchParams.get("only") === "removed" ? { removed, canDelete: true } : { requests: log, building: true }) });
   });
+  // Not on the shelf.
   const { main } = await open(page, "/library?year=9&unit=REVIEW", { list: JSON.stringify(data) });
-  const rows = main.locator(".library-rows").first();
-  await expect(rows).toContainText("Cover lesson 41");
-  await expect(rows).not.toContainText("Cover lesson 30");
-  const old = main.locator(".library-old-cover");
-  await expect(old.locator("summary")).toHaveText("Old cover lessons (1)");
-  await old.locator("summary").click();
-  await expect(old).toContainText("Cover lesson 30");
-  const row = rows.locator("li", { hasText: "Cover lesson 41" });
-  await row.getByRole("button", { name: "Delete cover lesson" }).click();
-  await row.getByRole("button", { name: "Yes, delete it" }).click();
   await expect(main).not.toContainText("Cover lesson 41");
+  await expect(main.getByRole("button", { name: /Delete cover/ })).toHaveCount(0);
+  await main.getByRole("button", { name: "Request cover booklet" }).click();
+  const lib = main.locator(".cover-log");
+  const items = lib.locator(":scope > ul > li");
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toContainText("Class 10X2 · Room S2");
+  await expect(items.nth(0)).toContainText("Building");
+  await expect(items.nth(1)).toContainText("Class 9H1 · Room M4");
+  await expect(items.nth(1)).toContainText("Ready");
+  await expect(items.nth(1).getByRole("link", { name: "Pupil PDF" })).toHaveAttribute("href", /y9-cover-41_pupil\.pdf$/);
+  await expect(items.nth(1).getByRole("link", { name: "Answers PDF" })).toHaveAttribute("href", /y9-cover-41_answers\.pdf$/);
+  const older = lib.locator(".cover-older");
+  await expect(older.locator("summary")).toHaveText("Older cover booklets (1)");
+  await older.locator("summary").click();
+  await expect(older).toContainText("Sun 1 Nov");
+  await page.screenshot({ path: test.info().outputPath("cover-library.png") });
+  await items.nth(1).getByRole("button", { name: "Delete cover booklet" }).click();
+  await items.nth(1).getByRole("button", { name: "Yes, delete it" }).click();
+  await expect(lib).not.toContainText("Class 9H1");
   expect(sent).toEqual([{ action: "remove", id: "y9-cover-41" }]);
-  // Only cover lessons have the button.
-  await expect(main.getByRole("button", { name: "Delete cover lesson" })).toHaveCount(1);
+  // Search never finds cover work.
+  await main.getByRole("searchbox").fill("Cover lesson 30");
+  await expect(main).not.toContainText("Older cover booklets");
+  await expect(main).toContainText("Nothing matches “Cover lesson 30”");
 });
 
 test("Request cover booklet sits top right in its own colour, apart from Shelves and Map", async ({ page }) => {

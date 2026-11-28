@@ -5,7 +5,7 @@
  * never reaches past the lesson the class is on. No Node or browser side effects.
  */
 import { siteBase } from "../site/routes";
-import { byLesson, type Library, type LibraryUnit } from "./model";
+import { byLesson, type Library, type LibraryUnit, type Resource } from "./model";
 
 export const COVER_TEXT_MAX = 2000;
 export const COVER_ATTACHMENT_MAX = 20000;
@@ -82,8 +82,10 @@ export async function officeText(bytes: Uint8Array): Promise<string> {
     .slice(0, COVER_ATTACHMENT_MAX);
 }
 
-export type CoverLogEntry = { number: number; when: string; year: number; tier: string | null; who: string; mine: boolean; text: string; state: "waiting" | "building" | "ready" | "stopped" };
-export type CoverRequestBody = { year: number; tier: "Foundation" | "Higher" | null; absent: true; text: string; plan: string; attachment: { name: string; text: string } | null };
+export type CoverLogEntry = { number: number; when: string; year: number; tier: string | null; className?: string | null; room?: string | null; date?: string | null; who: string; mine: boolean; text: string; state: "waiting" | "building" | "ready" | "stopped" };
+/** `absent` is the tick "This is cover work for myself or a colleague." (the field keeps its first name). */
+export type CoverRequestBody = { year: number; tier: "Foundation" | "Higher" | null; className: string; room: string; date: string; absent: true; text: string; plan: string; attachment: { name: string; text: string } | null };
+export const COVER_FIELD_MAX = 20;
 
 export type CoverLog = { requests: CoverLogEntry[]; building: boolean };
 /** The cover lessons deleted from the list, and whether the signed-in teacher may delete one. */
@@ -107,17 +109,75 @@ export async function sendCoverRequest(body: CoverRequestBody, fetcher: typeof f
   return data;
 }
 
-/** Cover lessons are short-lived (Tim, 26 Nov): a lesson a cover request built, on a Review and cover shelf. */
-export const isCoverLesson = (r: { unit: string; note?: string }) => r.unit === "REVIEW" && /^Cover request #\d+/.test(r.note ?? "");
+/**
+ * Cover work (Tim, 27 Nov): a resource on a Review and cover shelf whose note starts "Cover request #N" (built from a
+ * request) or "Cover lesson" (made by hand). It lives only in the Cover library, never on the shelves, search or Map.
+ */
+export const isCoverWork = (r: { unit: string; note?: string }) => r.unit === "REVIEW" && /^(Cover request #\d+|Cover lesson)/.test(r.note ?? "");
 export const COVER_KEEP_DAYS = 7;
-const dayMs = 86400000;
-/** After 7 days a cover lesson folds away into "Old cover lessons". */
-export const isOldCover = (r: { unit: string; note?: string; updated: string }, now = Date.now()) =>
-  isCoverLesson(r) && now - Date.parse(r.updated.length === 10 ? `${r.updated}T12:00:00` : r.updated) > COVER_KEEP_DAYS * dayMs;
-/** The requests the page lists: the last 7 days only. */
-export const recentRequests = (log: CoverLogEntry[], now = Date.now()) => log.filter((r) => now - Date.parse(r.when) <= COVER_KEEP_DAYS * dayMs);
+const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const addDays = (day: string, n: number) => { const [y, m, d] = day.split("-").map(Number); return iso(new Date(y, m - 1, d + n)); };
+/** Today on this device, YYYY-MM-DD. */
+export const localToday = (now = new Date()) => iso(now);
+/** The date box's starting value: the next weekday after today (term dates are not known here). */
+export function nextSchoolDay(now = new Date()): string {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+  return iso(d);
+}
+/** The latest date a request may name, as the Worker checks it. */
+export const lastCoverDate = (now = new Date()) => addDays(iso(now), 30);
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-11-28" as "Sat 28 Nov". */
+export function ukDay(day: string): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return `${DAYS[new Date(y, m - 1, d).getDay()]} ${d} ${MONTHS[m - 1]}`;
+}
 
-/** Deletes one cover lesson from the library list (library editors only). Its files stay in the private store. */
+/** One entry in the Cover library: a request, the booklet it built, or both. */
+export type CoverEntry = {
+  key: string; number: number | null; year: number; tier: string | null; className: string | null; room: string | null;
+  /** The lesson's date, YYYY-MM-DD. */
+  date: string; who: string | null; mine: boolean; state: CoverLogEntry["state"]; text: string; resource: Resource | null;
+};
+const noteNumber = (note = "") => { const m = /^Cover request #(\d+)/.exec(note); return m ? Number(m[1]) : null; };
+/** A build's note says "Cover request #N. Class 10X2, room M4, 2026-11-28."; a hand-made one may give only a date. */
+function fromNote(note = "") {
+  const m = /Class (.+?), room (.+?), (\d{4}-\d{2}-\d{2})/.exec(note);
+  return { className: m?.[1] ?? null, room: m?.[2] ?? null, date: m?.[3] ?? /\d{4}-\d{2}-\d{2}/.exec(note)?.[0] ?? null };
+}
+
+/**
+ * The Cover library: the request log merged with the built cover booklets (matched by "Cover request #N"), ordered by
+ * lesson date, most recent first. Entries whose lesson date is more than 7 days ago are `older`. Deleted booklets, and
+ * requests whose booklet was deleted, are left out.
+ */
+export function coverLibrary(log: CoverLogEntry[], resources: Resource[], removed: Set<string>, now = new Date()): { recent: CoverEntry[]; older: CoverEntry[] } {
+  const covers = resources.filter(isCoverWork);
+  const gone = new Set(covers.filter((r) => removed.has(r.id)).map((r) => noteNumber(r.note)).filter((n) => n !== null));
+  const live = covers.filter((r) => !removed.has(r.id));
+  const byNumber = new Map(live.map((r) => [noteNumber(r.note), r] as const).filter(([n]) => n !== null));
+  const used = new Set<Resource>();
+  const entries: CoverEntry[] = [];
+  for (const q of log) {
+    if (gone.has(q.number)) continue;
+    const r = byNumber.get(q.number) ?? null;
+    if (r) used.add(r);
+    const note = fromNote(r?.note);
+    entries.push({ key: `q${q.number}`, number: q.number, year: q.year, tier: q.tier, className: q.className ?? note.className, room: q.room ?? note.room, date: q.date ?? note.date ?? localToday(new Date(q.when)), who: q.mine ? "You" : q.who, mine: q.mine, state: r ? "ready" : q.state, text: q.text, resource: r });
+  }
+  for (const r of live) {
+    if (used.has(r)) continue;
+    const note = fromNote(r.note);
+    entries.push({ key: r.id, number: noteNumber(r.note), year: r.year, tier: null, className: note.className, room: note.room, date: note.date ?? r.updated.slice(0, 10), who: null, mine: false, state: "ready", text: r.title, resource: r });
+  }
+  entries.sort((a, b) => b.date.localeCompare(a.date) || (b.number ?? 0) - (a.number ?? 0));
+  const cut = addDays(iso(now), -COVER_KEEP_DAYS);
+  return { recent: entries.filter((e) => e.date >= cut), older: entries.filter((e) => e.date < cut) };
+}
+
+/** Deletes one cover booklet from the Cover library (library editors only). Its files stay in the private store. */
 export async function removeCoverLesson(id: string, fetcher: typeof fetch = fetch): Promise<string[]> {
   const response = await fetcher(`${siteBase()}api/library/cover`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "remove", id }) });
   const data = await response.json().catch(() => ({}));

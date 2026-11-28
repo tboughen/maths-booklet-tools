@@ -9,7 +9,7 @@
 import { canAct } from './library-feedback.mjs';
 
 export const coverRepo = { owner: 'tboughen', name: 'mathsdock-bank' };
-export const coverLimits = { text: 2000, attachment: 20000, name: 120, list: 30 };
+export const coverLimits = { text: 2000, attachment: 20000, name: 120, list: 30, field: 20, daysAhead: 30 };
 export const coverAlertTo = 'tboughen';
 const label = 'cover-request';
 const marker = /<!-- cover-request (\{[^\n]*?\}) -->/;
@@ -19,13 +19,36 @@ const clean = text => { let s = String(text ?? ''), before; do { before = s; s =
 const oneLine = (text, max) => clean(text).replace(/[\r\n`]+/g, ' ').slice(0, max);
 const nameOf = email => String(email || '').split('@')[0].split(/[._-]+/).filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join(' ') || 'A colleague';
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** A real YYYY-MM-DD as a UTC date, or null. */
+const isoDay = s => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s ?? ''))) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d ? t : null;
+};
+/** "2026-11-28" as "Sat 28 Nov". */
+export const ukDay = s => { const t = isoDay(s); return t ? `${DAYS[t.getUTCDay()]} ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]}` : ''; };
+/** Today's date in the UK, YYYY-MM-DD. */
+export const ukToday = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+
 /** The request as the build reads it, or a message saying what to fix. */
-export function coverRequest(body) {
+export function coverRequest(body, now = new Date()) {
   const year = Number(body?.year);
   if (![7, 8, 9, 10, 11].includes(year)) return { error: 'Choose a year group.' };
   const tier = year >= 9 ? body?.tier : null;
   if (year >= 9 && !['Foundation', 'Higher'].includes(tier)) return { error: 'Choose Foundation or Higher.' };
-  if (body?.absent !== true) return { error: 'Tick the box to confirm you are absent.' };
+  if (body?.absent !== true) return { error: 'Tick the box to confirm this is cover work for yourself or a colleague.' };
+  // Class, room and date print at the top right of the booklet's first side (Tim, 27 Nov 2026): all three are required.
+  const className = clean(body?.className).replace(/[\r\n`]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const room = clean(body?.room).replace(/[\r\n`]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!className || className.length > coverLimits.field) return { error: `Give the class name, up to ${coverLimits.field} characters (e.g. 10X2).` };
+  if (!room || room.length > coverLimits.field) return { error: `Give the room, up to ${coverLimits.field} characters (e.g. M4).` };
+  const date = String(body?.date ?? '');
+  const day = isoDay(date);
+  const today = isoDay(ukToday(now));
+  if (!day || day < today || day - today > coverLimits.daysAhead * 86400000) return { error: `Choose the date of the lesson: today or up to ${coverLimits.daysAhead} days ahead.` };
   const text = clean(body?.text);
   if (!text) return { error: 'Describe what the cover lesson should revise.' };
   if (text.length > coverLimits.text) return { error: `Keep the description under ${coverLimits.text} characters.` };
@@ -33,7 +56,7 @@ export function coverRequest(body) {
   const attachment = body?.attachment && typeof body.attachment === 'object'
     ? { name: oneLine(body.attachment.name, coverLimits.name) || 'attached file', text: clean(body.attachment.text).slice(0, coverLimits.attachment) }
     : null;
-  return { year, tier, text, plan, attachment };
+  return { year, tier, className, room, date, text, plan, attachment };
 }
 
 function github(env, fetcher) {
@@ -49,10 +72,10 @@ function github(env, fetcher) {
 /** The issue body: a hidden marker the build reads, then the request in words for Tim's email. */
 export function issueBody(request, email, when) {
   const group = `Year ${request.year}${request.tier ? ` ${request.tier}` : ''}`;
-  const meta = { year: request.year, tier: request.tier, from: encodeURIComponent(String(email).toLowerCase()), at: when };
+  const meta = { year: request.year, tier: request.tier, className: request.className, room: request.room, date: request.date, from: encodeURIComponent(String(email).toLowerCase()), at: when };
   return [
     `<!-- cover-request ${JSON.stringify(meta)} -->`,
-    `**${nameOf(email)}** (${oneLine(email, 200)}) is absent and asked for a cover lesson for **${group}**. They ticked "I'm absent".`,
+    `**${nameOf(email)}** (${oneLine(email, 200)}) asked for a cover lesson for **${group}**: class ${request.className}, room ${request.room}, ${ukDay(request.date)}. They ticked "This is cover work for myself or a colleague."`,
     '', '> ' + request.text.split('\n').join('\n> '),
     request.plan ? `\n**The page's check, which they confirmed:** ${request.plan}` : '',
     request.attachment ? `\n<details><summary>Text of the attached file: ${request.attachment.name}</summary>\n\n\`\`\`text\n${request.attachment.text.replace(/```/g, "'''")}\n\`\`\`\n</details>` : '',
@@ -73,7 +96,8 @@ export async function listRequests(env, fetcher, email) {
     const text = /\n> ([^\n]*)/.exec(issue.body ?? '')?.[1] ?? '';
     let who = 'A colleague';
     try { who = nameOf(decodeURIComponent(meta.from)); } catch { /* keep the default */ }
-    return [{ number: issue.number, when: issue.created_at, year: meta.year, tier: meta.tier ?? null, who, mine: meta.from === me, text: text.slice(0, 200), state }];
+    const field = v => (typeof v === 'string' ? v.slice(0, coverLimits.field) : null);
+    return [{ number: issue.number, when: issue.created_at, year: meta.year, tier: meta.tier ?? null, className: field(meta.className), room: field(meta.room), date: isoDay(meta.date) ? meta.date : null, who, mine: meta.from === me, text: text.slice(0, 200), state }];
   });
 }
 
@@ -102,13 +126,14 @@ export async function readRemoved(env) {
   if (!removed || typeof removed !== 'object' || Array.isArray(removed)) throw new Error(`${coverRemovedKey} cannot be read`);
   return { removed, etag: object.etag };
 }
-/** Only a lesson a cover request built (on a Review and cover shelf, note "Cover request #N") can be deleted. */
+/** Only cover work can be deleted: a Review and cover shelf resource whose note starts "Cover request #N" or "Cover lesson". */
+export const isCoverWork = r => r?.unit === 'REVIEW' && /^(Cover request #\d+|Cover lesson)/.test(r?.note ?? '');
 export async function isCoverLesson(env, id) {
   const object = await env.BANK?.get('library/library.json');
   if (!object) return false;
   try {
     const list = JSON.parse(await new Response(object.body).text());
-    return (list.resources ?? []).some(r => r.id === id && r.unit === 'REVIEW' && /^Cover request #\d+/.test(r.note ?? ''));
+    return (list.resources ?? []).some(r => r.id === id && isCoverWork(r));
   } catch { return false; }
 }
 async function removeLesson(env, email, id) {
@@ -152,7 +177,7 @@ export async function coverRequests(request, env, claims, fetcher = fetch) {
   const group = `Year ${parsed.year}${parsed.tier ? ` ${parsed.tier}` : ''}`;
   let issue;
   try {
-    issue = await call('POST', '/issues', { title: `Cover request: ${group}, from ${nameOf(email)}`, body: issueBody(parsed, email, when), labels: [label], assignees: [coverAlertTo] });
+    issue = await call('POST', '/issues', { title: `Cover request: ${group} ${parsed.className}, ${ukDay(parsed.date)}, from ${nameOf(email)}`, body: issueBody(parsed, email, when), labels: [label], assignees: [coverAlertTo] });
   } catch { return json(502, { error: 'The request could not be sent. Try again, or tell Tim.' }); }
   // GitHub made the issue (so Tim is already emailed) but gave no number back: say it was sent, not failed.
   if (!Number.isInteger(issue?.number)) return json(201, { number: null, started: false });

@@ -101,6 +101,29 @@ export const sectionSchema = z
   })
   .strict();
 
+/** A real calendar date written YYYY-MM-DD. */
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Write the date as YYYY-MM-DD.")
+  .refine((s) => {
+    const [y, m, d] = s.split("-").map(Number);
+    const t = new Date(Date.UTC(y, m - 1, d));
+    return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
+  }, "Use a real date.");
+
+/**
+ * A cover lesson's class, room and date (Tim, 27 November 2026). When set, the lesson uses the cover template:
+ * the check-in prints as the "Silent starter" and the start block's top right shows "Class 10X2" over "Room M4 · Fri 28 Nov".
+ */
+export const lessonCoverSchema = z
+  .object({
+    className: text(20).refine((s) => s.trim().length > 0, "Give the class name."),
+    room: text(20).refine((s) => s.trim().length > 0, "Give the room."),
+    date: isoDate,
+  })
+  .strict();
+export type LessonCover = z.infer<typeof lessonCoverSchema>;
+
 export const lessonSchema = z
   .object({
     title: text(80),
@@ -117,6 +140,8 @@ export const lessonSchema = z
     /** A one-line "Did you know?" fact on the lesson's first side (BOOKLET-STANDARD N12): where this maths is used, or a surprising fact. Printed in a small bubble under the key idea; empty prints nothing. */
     didYouKnow: text(160).default(""),
     sections: z.array(sectionSchema).min(1).max(20),
+    /** A cover lesson's class, room and date; absent for every other lesson (lessonCoverSchema). */
+    cover: lessonCoverSchema.optional(),
     /** Teacher-facing plan: purpose, misconceptions, how support fades. Never printed. */
     teacherNotes: z.string().max(6000).default(""),
   })
@@ -319,6 +344,24 @@ export function lessonLabels(lesson: Pick<Lesson, "sections">): QuestionLabel[][
     if (s.numbering === "restart") number = 0;
     return s.cards.map(() => ++number);
   });
+}
+
+/** The check-in block's banner words: "Silent starter" for a cover lesson, otherwise "Check in". */
+export function checkInWords(lesson: { cover?: unknown }): { start: string; end: string } {
+  return lesson.cover ? { start: "Silent starter", end: "End of silent starter" } : { start: "Check in", end: "End of check in" };
+}
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-11-28" as "Sat 28 Nov" (UK order). */
+export function shortUkDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return `${DAYS[t.getUTCDay()]} ${d} ${MONTHS[m - 1]}`;
+}
+/** The two lines at the start block's top right of a cover lesson: "Class 10X2" over "Room M4 · Fri 28 Nov". */
+export function coverTagLines(cover: LessonCover): [string, string] {
+  const squash = (s: string) => s.trim().replace(/\s+/g, " ");
+  return [`Class ${squash(cover.className)}`, `Room ${squash(cover.room)} · ${shortUkDate(cover.date)}`];
 }
 
 export const sectionTitle = (s: Pick<Section, "kind" | "title">) => s.title.trim() || SECTION_TITLES[s.kind];
