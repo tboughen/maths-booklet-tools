@@ -47,9 +47,15 @@ export async function presentInk(request, env, claims) {
       const record = await object.json().catch(() => null);
       return json(200, { record: soundRecord(record) ? record : null });
     }
-    const listed = await env.BANK.list({ prefix: `${inkPrefix}${folder}/${cls}/`, limit: inkLimits.builds });
-    const builds = listed.objects.map(o => ({ build: decodeURIComponent(o.key.slice(`${inkPrefix}${folder}/${cls}/`.length).replace(/\.json$/, '')), updated: o.uploaded instanceof Date ? o.uploaded.toISOString() : String(o.uploaded) }))
-      .filter(b => buildKey.test(b.build)).sort((a, b) => b.updated.localeCompare(a.updated));
+    const objects = [];
+    let cursor;
+    do {
+      const page = await env.BANK.list({ prefix: `${inkPrefix}${folder}/${cls}/`, limit: 1000, cursor });
+      objects.push(...page.objects);
+      cursor = page.truncated ? page.cursor : undefined;
+    } while (cursor && objects.length < 5000);
+    const builds = objects.map(o => ({ build: decodeURIComponent(o.key.slice(`${inkPrefix}${folder}/${cls}/`.length).replace(/\.json$/, '')), updated: o.uploaded instanceof Date ? o.uploaded.toISOString() : String(o.uploaded) }))
+      .filter(b => buildKey.test(b.build)).sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, inkLimits.builds);
     return json(200, { builds });
   }
   if (request.method !== 'PUT') return json(405, { error: 'Method not allowed' });

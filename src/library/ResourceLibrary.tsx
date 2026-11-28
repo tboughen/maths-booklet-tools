@@ -12,7 +12,7 @@ import CoverRequest from "./CoverRequest";
 import { isCoverWork, loadCoverRemoved, removeCoverLesson } from "./cover";
 import AdaptForm from "./AdaptForm";
 import { loadAdaptRequests, type AdaptAsked, type AdaptKind } from "./adapt";
-import { canPresent } from "./present/presentModel";
+import { buildAt, canPresent } from "./present/presentModel";
 
 // Present (docs/tools/PRESENT-BOOKLETS.md) loads only when a teacher opens it, with pdf.js.
 const Present = lazy(() => import("./present/Present"));
@@ -53,9 +53,10 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     loadCoverRemoved().then((c) => live && setRemoved({ ids: new Set(c.removed), canDelete: c.canDelete }), () => { /* Cover lessons then simply all show. */ });
     return () => { live = false; };
   }, []);
+  const pushedPresent = useRef(false);
   useEffect(() => {
     if (!active) return;
-    const back = () => { if (readPage() === "library") setStateValue(readState(location.search, savedYear())); };
+    const back = () => { pushedPresent.current = false; if (readPage() === "library") setStateValue(readState(location.search, savedYear())); };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, [active]);
@@ -65,6 +66,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
     function key(event: KeyboardEvent) {
       if (event.key === "Escape") { setDrawer(false); return; }
       if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (document.querySelector(".present")) return; // Present has its own keys.
       if ((event.target as HTMLElement).closest("input, textarea, select, [contenteditable='true']")) return;
       event.preventDefault();
       box.current?.focus();
@@ -112,7 +114,9 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
   }
   const openUnit = (year: number, unit: string, version?: string) => { setDrawer(false); setState({ year, unit, version, view: "shelves", q: "" }, true); };
   const found = useMemo(() => (list ? searchLibrary(list, state.q) : []), [list, state.q]);
-  const present = (id: string, at?: string) => setState({ present: id, at }, true);
+  // Opening Present adds one history entry, so closing it (or Back) returns to the same library page.
+  const present = (id: string, at?: string) => { pushedPresent.current = true; setState({ present: id, at }, true); };
+  const closePresent = () => { if (pushedPresent.current) { pushedPresent.current = false; history.back(); } else setState({ present: undefined, at: undefined }); };
 
   return (
     <FeedbackContext.Provider value={tools}>
@@ -148,7 +152,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
           : <Shelves list={list} state={state} setState={setState} />}
         {drawer && list && <Drawer list={list} close={() => setDrawer(false)} open={openUnit} />}
         {active && list && state.present && <Suspense fallback={<p className="library-message" role="status">Opening Present…</p>}>
-          <Present list={list} id={state.present} at={state.at} feedback={{ off: tools.off, send: (r, text) => act({ action: "comment", year: r.year, unit: r.unit, version: r.version, lesson: r.type === "unit-booklet" ? null : r.lesson ?? null, booklet: r.type === "unit-booklet" ? bookletName(r) : null, text }) }} onClose={() => setState({ present: undefined, at: undefined }, true)} onPick={(id, at) => setState({ present: id, at })} />
+          <Present list={list} id={state.present} at={state.at} feedback={{ off: tools.off, send: (r, text) => act({ action: "comment", year: r.year, unit: r.unit, version: r.version, lesson: r.type === "unit-booklet" ? null : r.lesson ?? null, booklet: r.type === "unit-booklet" ? bookletName(r) : null, text }) }} onClose={closePresent} onPick={(id, at) => setState({ present: id, at })} />
         </Suspense>}
       </main>
     </PresentContext.Provider>
@@ -566,7 +570,7 @@ function HistoryList({ resource: r, year, unit, version }: { resource: Resource;
       {r.history.map((old) => (
         <div key={old.updated + (old.files[0]?.href ?? "")} className="library-history-row">
           <span><b>{day(old.updated)}</b>{old.note && <small>{old.note}</small>}</span>
-          <FileLinks files={old.files} present={r.id} at={old.updated} />
+          <FileLinks files={old.files} present={r.id} at={buildAt(old.updated, old.files)} />
           {fb.canAct && r.lesson && <button type="button" className="library-chip" onClick={() => restore(old.updated)}>Make current again</button>}
         </div>
       ))}

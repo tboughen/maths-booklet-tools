@@ -60,6 +60,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const [overlay, setOverlay] = useState<Overlay>(overlayPreference);
   useEffect(() => { try { localStorage.setItem("qb-overlay", overlay); } catch { /* Optional device preference, shared with the Question Bank. */ } }, [overlay]);
   const [display, setDisplay] = useState(false);
+  const displayRef = useRef(display); displayRef.current = display;
   const [annotating, setAnnotating] = useState(false);
   const [prefs, setPrefs] = useState<AnnotationPreferences>(readAnnotationPreferences);
   useEffect(() => saveAnnotationPreferences(prefs), [prefs]);
@@ -170,6 +171,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
   const shape = useRef("");
   const pendingSite = useRef<{ cls: string; key: string; record: ClassRecord } | undefined>(undefined);
   const siteTimer = useRef<number | undefined>(undefined);
+  const saveNow = useRef<(() => void) | undefined>(undefined);
   const flushSite = useCallback((keepalive = false) => {
     window.clearTimeout(siteTimer.current); siteTimer.current = undefined;
     const job = pendingSite.current;
@@ -185,10 +187,10 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
     if (!siteTimer.current) siteTimer.current = window.setTimeout(() => flushSite(), 10_000);
   }, [flushSite]);
   useEffect(() => {
-    const away = () => { if (document.visibilityState === "hidden") flushSite(true); };
-    const leave = () => flushSite(true);
+    const away = () => { if (document.visibilityState === "hidden") { saveNow.current?.(); flushSite(true); } };
+    const leave = () => { saveNow.current?.(); flushSite(true); };
     document.addEventListener("visibilitychange", away); window.addEventListener("pagehide", leave);
-    return () => { document.removeEventListener("visibilitychange", away); window.removeEventListener("pagehide", leave); flushSite(); };
+    return () => { document.removeEventListener("visibilitychange", away); window.removeEventListener("pagehide", leave); saveNow.current?.(); flushSite(); };
   }, [flushSite]);
   const showRecord = useCallback((key: string, record: ClassRecord | undefined) => {
     const state: AnnotationState = {};
@@ -196,41 +198,77 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
     undoKeys.current = []; redoKeys.current = [];
     dispatchInk({ type: "replace", state });
     setStopped(record?.stopped); setResume(record?.stopped);
-    shape.current = record ? recordShape(record) : recordShape(classRecord({}, undefined));
   }, []);
+  // The strokes on screen for a build that are not in `base`: ink drawn before a class was chosen, or while the site
+  // copy was on its way. They are added to whatever copy is shown, never thrown away.
+  const strokesSince = useCallback((key: string, base: ClassRecord | undefined) => {
+    const added: Record<string, Stroke[]> = {};
+    for (const [k, layer] of Object.entries(inkRef.current)) {
+      if (!k.startsWith(`${key}|`)) continue;
+      const n = k.slice(key.length + 1), known = new Set((base?.sides[n] ?? []).map((st) => st.id));
+      const extra = layer.strokes.filter((st) => !known.has(st.id));
+      if (extra.length) added[n] = extra;
+    }
+    return added;
+  }, []);
+  const withStrokes = (record: ClassRecord | undefined, added: Record<string, Stroke[]>): ClassRecord | undefined => {
+    if (!Object.keys(added).length) return record;
+    const sides: Record<string, Stroke[]> = { ...(record?.sides ?? {}) };
+    for (const [n, extra] of Object.entries(added)) { const ids = new Set((sides[n] ?? []).map((st) => st.id)); sides[n] = [...(sides[n] ?? []), ...extra.filter((st) => !ids.has(st.id))]; }
+    return { schema: 1, sides, stopped: record?.stopped, updated: record?.updated ?? "" };
+  };
+  // Nothing is saved for a class until its copies are settled (the site answered, or 4 s passed), so opening a class on
+  // a slow connection never sends an older copy over a newer one.
+  const [readyFor, setReadyFor] = useState("");
+  const shown = useRef<{ key: string; base?: ClassRecord }>({ key: "" });
   useEffect(() => {
     const key = build?.key;
     if (!key) return;
-    showRecord(key, cls ? loadClass(cls, key) : undefined);
+    // Ink drawn on this build before a class was chosen goes with the class.
+    const carry = cls && !loaded.current && shown.current.key === key ? strokesSince(key, undefined) : {};
+    const here = cls ? loadClass(cls, key) : undefined;
+    showRecord(key, withStrokes(here, carry));
+    shown.current = { key, base: here };
+    shape.current = recordShape(here ?? classRecord({}, undefined));
     setSaveError(false);
     loaded.current = cls ? `${cls}|${key}` : "";
     siteReady.current = "";
+    setReadyFor("");
     if (!cls) return;
     let live = true;
+    const id = `${cls}|${key}`;
     setSite("checking");
-    void loadClassSite(cls, key).then((remote) => {
+    const late = new Promise<undefined>((done) => window.setTimeout(() => done(undefined), 4000));
+    void Promise.race([loadClassSite(cls, key), late]).then((remote) => {
       if (!live) return;
-      if (remote === undefined) { setSite("off"); return; }
-      setSite("on"); siteReady.current = `${cls}|${key}`;
-      const here = loadClass(cls, key), newer = newerRecord(here, remote ?? undefined);
-      if (remote && newer === remote && remote.updated !== here?.updated) {
-        if (!undoKeys.current.length) { showRecord(key, remote); saveClass(cls, key, remote); }
-      } else if (here && (!remote || here.updated !== remote.updated)) queueSite({ cls, key, record: here });
+      if (remote === undefined) setSite("off");
+      else {
+        setSite("on"); siteReady.current = id;
+        if (remote && newerRecord(here, remote) === remote && remote.updated !== here?.updated) {
+          showRecord(key, withStrokes(remote, strokesSince(key, here)));
+          shown.current = { key, base: remote };
+          shape.current = recordShape(remote);
+          saveClass(cls, key, remote);
+        } else if (here && (!remote || here.updated !== remote.updated)) queueSite({ cls, key, record: here });
+      }
+      setReadyFor(id);
     });
-    return () => { live = false; flushSite(); };
-  }, [cls, build?.key, showRecord, queueSite, flushSite]);
+    return () => { live = false; saveNow.current?.(); flushSite(); };
+  }, [cls, build?.key, showRecord, strokesSince, queueSite, flushSite]);
   useEffect(() => {
     if (!cls) { setSiteList([]); return; }
     let live = true;
     void siteBuilds(cls).then((list) => { if (live) setSiteList(list ?? []); });
     return () => { live = false; };
   }, [cls]);
+  const settled = !!cls && !!build && readyFor === `${cls}|${build.key}`;
   // The place moves with the teacher unless they set the flag by hand.
-  useEffect(() => { if (cls && ready) setStopped((old) => (old?.flag ? old : { side, at: new Date().toISOString(), flag: false })); }, [cls, side, ready]);
+  useEffect(() => { if (settled && ready) setStopped((old) => (old?.flag ? old : { side, at: new Date().toISOString(), flag: false })); }, [settled, side, ready]);
   useEffect(() => {
     const key = build?.key;
-    if (!cls || !key || loaded.current !== `${cls}|${key}`) return;
-    const timer = window.setTimeout(() => {
+    if (!cls || !key || !settled) return;
+    const save = () => {
+      saveNow.current = undefined;
       const sides: Record<string, Stroke[]> = {};
       for (const [k, layer] of Object.entries(ink)) if (k.startsWith(`${key}|`)) sides[k.slice(key.length + 1)] = layer.strokes;
       const record = classRecord(sides, stopped);
@@ -239,9 +277,11 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
       shape.current = recordShape(record);
       setSaveError(!saveClass(cls, key, record));
       if (siteReady.current === `${cls}|${key}`) queueSite({ cls, key, record });
-    }, 400);
+    };
+    saveNow.current = save;
+    const timer = window.setTimeout(save, 400);
     return () => window.clearTimeout(timer);
-  }, [ink, stopped, cls, build?.key, queueSite]);
+  }, [ink, stopped, cls, build?.key, settled, queueSite]);
   const chooseClass = (text: string) => { const name = className(text); if (!name) return; setRecent(rememberClass(name)); setCls(name); setTyped(""); };
   const newerBuild = useMemo(() => { if (!cls || !build) return undefined; const k = lastBuildFor(cls, builds.map((b) => b.key), siteList); return k && k !== build.key ? builds.find((b) => b.key === k) : undefined; }, [cls, build, builds, siteList]);
   const undoInk = useCallback(() => { const key = undoKeys.current.pop(); if (key && layerOf(inkRef.current, key).past.length) { redoKeys.current.push(key); dispatchInk({ type: "undo", key }); } }, []);
@@ -270,7 +310,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
     } catch (e) { setSentMessage((e as Error).message); }
     setSending(false);
   };
-  useEffect(() => { const off = () => { if (!document.fullscreenElement) setDisplay(false); }; document.addEventListener("fullscreenchange", off); return () => document.removeEventListener("fullscreenchange", off); }, []);
+  useEffect(() => { const off = () => { if (!document.fullscreenElement && displayRef.current) leaveDisplay(); }; document.addEventListener("fullscreenchange", off); return () => document.removeEventListener("fullscreenchange", off); }, [leaveDisplay]);
 
   // Keys, as in the Question Bank: arrows or Page Up/Down step sides, + − 0 zoom, P pen, A answers, Escape puts
   // the pen down first and then leaves Display.
@@ -331,7 +371,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
         <button type="button" className="qb-button" onClick={onClose}><ChevronLeft size={16} aria-hidden="true" />Library</button>
         <h1 className="present-title">{title}</h1>
         <button type="button" className="present-class-pill" aria-expanded={classOpen} onClick={() => setClassOpen(true)}>{cls ? `Teaching ${cls}` : "Choose a class"}</button>
-        <label className="present-version">Version <select value={build.key} onChange={(e) => { const b = builds.find((x) => x.key === e.target.value); if (b) onPick(b.resource.id, b.current ? undefined : b.updated); }}>
+        <label className="present-version">Version <select value={build.key} onChange={(e) => { const b = builds.find((x) => x.key === e.target.value); if (b) onPick(b.resource.id, b.current ? undefined : b.at); }}>
           {builds.map((b) => <option key={b.key} value={b.key}>{buildLabel(b)}</option>)}
         </select></label>
         {copySwitch}
@@ -377,7 +417,7 @@ export default function Present({ list, id, at, onClose, onPick, feedback }: Pro
                 <span>{resume.flag ? "You stopped" : "You were"} at side {resume.side}</span>
                 <button type="button" className="qb-button qb-primary" onClick={() => { goTo(resume.side); setResume(undefined); }}>Go to where we stopped</button>
               </div>}
-              {newerBuild && <p className="present-warning">{cls} has ink on the {buildLabel(newerBuild)} build. <button type="button" className="library-link" onClick={() => onPick(newerBuild.resource.id, newerBuild.current ? undefined : newerBuild.updated)}>Open that build</button></p>}
+              {newerBuild && <p className="present-warning">{cls} has ink on the {buildLabel(newerBuild)} build. <button type="button" className="library-link" onClick={() => onPick(newerBuild.resource.id, newerBuild.current ? undefined : newerBuild.at)}>Open that build</button></p>}
               <button type="button" className="qb-button" aria-pressed={!!stopped?.flag && stopped.side === side} onClick={() => setStopped({ side, at: new Date().toISOString(), flag: true })}>⚑ We stopped here</button>
               <p className="present-hint present-saved">{site === "on" ? <>Ink is saved on MathsDock for {cls}, so it follows you to another computer.</> : <>Ink is saved in this browser for {cls}.</>} This version only; another class has its own.</p>
               {site === "failed" && <p className="present-warning" role="status">MathsDock could not save the ink just now. It is kept in this browser and tried again shortly.</p>}

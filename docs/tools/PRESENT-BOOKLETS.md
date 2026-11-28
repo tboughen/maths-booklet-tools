@@ -30,9 +30,11 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
 ## Classes and where you got to (second step)
 
 - The Class card (top of the column, foldable; the teal pill in the top bar opens it) asks "Teaching which class?"
-  with recent classes as buttons. A class is a short label (`9 x` becomes `9X`), never pupil data.
+  with recent classes as buttons. A class is a short label of letters and digits (`9 x` becomes `9X`, `10x-Ma` becomes
+  `10XMA`), never pupil data. Ink drawn before a class is chosen goes with the class.
 - With a class chosen, its ink and place are saved for that exact build (`src/library/present/presentStore.ts`):
-  in this browser at once (key `present-ink|<class>|<resource id>@<updated>`) and on the site ten seconds later, or
+  in this browser at once (key `present-ink|<class>|<resource id>@<updated>.<tag>`, where the tag comes from the
+  pupil file so two builds published on the same day keep apart) and on the site ten seconds later, or
   as soon as the teacher leaves Present or the page closes. Another class has its own ink.
 - The place follows the current side; **⚑ We stopped here** pins it by hand and shows a flag on that side's thumbnail.
   Next time, "Last time … You stopped at side N" offers **Go to where we stopped** (never forced).
@@ -40,7 +42,9 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
   rebuilt booklet never moves a class's ink.
 - Without a class, ink is kept until you leave.
 - The site copy follows the teacher between computers. When a class opens, Present reads the site copy and keeps
-  whichever copy is newer; opening a class saves nothing, only new ink or a new place does. When the site cannot be
+  whichever copy is newer, adding any ink drawn while it waited; nothing is saved until that is settled (at most 4 s),
+  and opening a class saves nothing, only new ink or a new place does. Ink drawn just before closing is saved as
+  Present closes. When the site cannot be
   reached (or on a preview without sign-in) the card says "saved in this browser" and carries on; a failed site save
   is tried again every 30 seconds.
 

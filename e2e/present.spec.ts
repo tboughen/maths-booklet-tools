@@ -113,12 +113,15 @@ test("a library lesson opens in Present with its sides, Pupil | Answers, ink, ov
   await present.getByRole("button", { name: /Exit Display/ }).click();
   await expect(present.getByRole("complementary", { name: "Present settings" })).toBeVisible();
 
-  // Back to the library, and the browser's Back opens Present again.
+  // Back to the library, as the browser's Back does; Forward opens Present again and Back closes it.
   await present.getByRole("button", { name: "Library" }).click();
   await expect(present).toBeHidden();
   await expect(page).toHaveURL(/\/library\?year=9&unit=A7$/);
-  await page.goBack();
+  await page.goForward();
   await expect(page.getByRole("region", { name: /^Present A7\.04/ })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("region", { name: /^Present A7\.04/ })).toBeHidden();
+  await expect(page).toHaveURL(/\/library\?year=9&unit=A7$/);
 });
 
 test("an earlier build opens from the history, and a missing booklet says so", async ({ page }) => {
@@ -173,14 +176,14 @@ test("a class keeps its ink and where it stopped, and another class starts clean
 
 test("a class's ink saved on the site on another computer opens here, and new ink goes back to the site", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  const build = "y9-a7-04-lesson-booklet@2026-11-22";
+  const isBuild = (key: string | null) => /^y9-a7-04-lesson-booklet@2026-11-22\.[0-9a-z]+$/.test(key ?? "");
   const fromElsewhere = { schema: 1, sides: { "3": [{ id: "s1", kind: "pen", colour: "#1f2937", size: 3.5, scale: 1, points: [[100, 200], [200, 260]] }] }, stopped: { side: 3, at: "2026-11-27T10:00:00Z", flag: true }, updated: "2026-11-27T10:00:00Z" };
   const puts: { class: string; build: string; record: { sides: Record<string, unknown[]> } }[] = [];
   await page.route("**/api/present/ink**", (route) => {
     const request = route.request(), url = new URL(request.url());
     if (request.method() === "PUT") { puts.push(request.postDataJSON()); return route.fulfill({ contentType: "application/json", body: '{"ok":true}' }); }
-    if (url.searchParams.get("build")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ record: url.searchParams.get("build") === build && url.searchParams.get("class") === "9X" ? fromElsewhere : null }) });
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ builds: [{ build, updated: "2026-11-27T10:00:00Z" }] }) });
+    if (url.searchParams.get("build")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ record: isBuild(url.searchParams.get("build")) && url.searchParams.get("class") === "9X" ? fromElsewhere : null }) });
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ builds: [] }) });
   });
   await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
   const present = page.getByRole("region", { name: /^Present A7\.04/ });
@@ -199,8 +202,33 @@ test("a class's ink saved on the site on another computer opens here, and new in
   await present.getByRole("button", { name: "Library" }).click();
   await expect.poll(() => puts.length).toBe(1);
   expect(puts[0].class).toBe("9X");
-  expect(puts[0].build).toBe(build);
+  expect(isBuild(puts[0].build)).toBe(true);
   expect(Object.keys(puts[0].record.sides).sort()).toEqual(["1", "3"]);
+});
+
+test("ink drawn before choosing a class goes with the class, and ink drawn just before closing is kept", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "/library?year=9&unit=A7");
+  await page.locator(".library-file.is-present").first().click();
+  const present = page.getByRole("region", { name: /^Present / });
+  const strokes = (n: number) => present.locator(`.present-side[data-side="${n}"] svg.qb-annotations`);
+  await present.getByRole("button", { name: "Annotate" }).click();
+  await drawOn(page, present.locator('.present-side[data-side="1"]'));
+  await expect(strokes(1)).toHaveAttribute("data-strokes", "1");
+  const card = present.locator(".present-class");
+  await card.getByPlaceholder("For example 9X").fill("10x-Ma");
+  await card.getByRole("button", { name: "Teach" }).click();
+  await expect(present.getByRole("button", { name: "Teaching 10XMA" })).toBeVisible();
+  await expect(strokes(1)).toHaveAttribute("data-strokes", "1");
+  await page.waitForTimeout(600);
+  await drawOn(page, present.locator('.present-side[data-side="1"]'));
+  await present.getByRole("button", { name: "Library" }).click();
+  await expect(present).toHaveCount(0);
+  await expect(page).not.toHaveURL(/present=/);
+  // Back to the same lesson: both strokes are there for the class.
+  await page.locator(".library-file.is-present").first().click();
+  await page.locator(".present-recent").getByRole("button", { name: "10XMA" }).click();
+  await expect(page.locator('.present-side[data-side="1"] svg.qb-annotations')).toHaveAttribute("data-strokes", "2");
 });
 
 test("teacher notes from the answers copy show on the pupil copy on screen only, and T hides them", async ({ page }) => {

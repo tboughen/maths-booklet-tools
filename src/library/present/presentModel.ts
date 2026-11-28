@@ -5,7 +5,7 @@
 import { fileHref, type Library, type LibraryFile, type Resource } from "../model";
 
 /** One build of a booklet that can be presented: a version's current files, or an earlier build from its history. */
-export type PresentBuild = { key: string; resource: Resource; version: string; updated: string; current: boolean; pupil: LibraryFile; answers?: LibraryFile };
+export type PresentBuild = { key: string; at: string; resource: Resource; version: string; updated: string; current: boolean; pupil: LibraryFile; answers?: LibraryFile };
 
 const pdf = (files: LibraryFile[], role: LibraryFile["role"]) => files.find((f) => f.role === role && f.format === "pdf");
 export const canPresent = (files: LibraryFile[]) => !!pdf(files, "pupil");
@@ -17,6 +17,15 @@ function sameBooklet(a: Resource, b: Resource) {
   return a.lesson ? a.lesson === b.lesson : a.id === b.id;
 }
 
+/** A short, stable tag for a build's pupil file, so two builds published on the same day keep apart. */
+function fileTag(file: LibraryFile) {
+  let h = 0x811c9dc5;
+  for (const c of fileHref(file)) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
+/** The `at` that names one build in an address and in its saved ink: its date and its pupil file's tag. */
+export const buildAt = (updated: string, files: LibraryFile[]) => { const pupil = pdf(files, "pupil"); return pupil ? `${updated}.${fileTag(pupil)}` : updated; };
+
 /** Every build of this booklet: Main first, then the other versions, each newest first. */
 export function presentBuilds(list: Library, resource: Resource): PresentBuild[] {
   const family = list.resources.filter((r) => sameBooklet(r, resource));
@@ -25,22 +34,23 @@ export function presentBuilds(list: Library, resource: Resource): PresentBuild[]
   const builds: PresentBuild[] = [];
   for (const r of family) {
     const pupil = pdf(r.files, "pupil");
-    if (pupil) builds.push({ key: `${r.id}@${r.updated}`, resource: r, version: r.version, updated: r.updated, current: true, pupil, answers: pdf(r.files, "answers") });
+    if (pupil) builds.push({ key: `${r.id}@${buildAt(r.updated, r.files)}`, at: buildAt(r.updated, r.files), resource: r, version: r.version, updated: r.updated, current: true, pupil, answers: pdf(r.files, "answers") });
     for (const old of r.history) {
       const oldPupil = pdf(old.files, "pupil");
-      if (oldPupil) builds.push({ key: `${r.id}@${old.updated}`, resource: r, version: r.version, updated: old.updated, current: false, pupil: oldPupil, answers: pdf(old.files, "answers") });
+      if (oldPupil) builds.push({ key: `${r.id}@${buildAt(old.updated, old.files)}`, at: buildAt(old.updated, old.files), resource: r, version: r.version, updated: old.updated, current: false, pupil: oldPupil, answers: pdf(old.files, "answers") });
     }
   }
   return builds;
 }
 
-/** The build an address names (`?present=<id>&at=<updated>`), or that resource's current build. */
+/** The build an address names (`?present=<id>&at=<date>.<tag>`, or just a date), or that resource's current build. */
 export function findBuild(list: Library, id: string, at?: string): { builds: PresentBuild[]; build?: PresentBuild } {
   const resource = list.resources.find((r) => r.id === id);
   if (!resource) return { builds: [] };
   const builds = presentBuilds(list, resource);
   const mine = builds.filter((b) => b.resource.id === id);
-  return { builds, build: (at && mine.find((b) => b.updated === at)) || mine.find((b) => b.current) || mine[0] };
+  const named = at ? mine.find((b) => b.at === at) ?? mine.find((b) => !b.current && b.updated === at) ?? mine.find((b) => b.updated === at) : undefined;
+  return { builds, build: named || mine.find((b) => b.current) || mine[0] };
 }
 
 export const buildUrl = (file: LibraryFile) => fileHref(file);

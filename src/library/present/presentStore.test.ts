@@ -8,6 +8,7 @@ describe("Present class store", () => {
   it("tidies class names", () => {
     expect(className(" 9 x ")).toBe("9X");
     expect(className("   ")).toBe("");
+    expect(className("10x-Ma/1")).toBe("10XMA1");
   });
   it("keeps recent classes newest first, without repeats", () => {
     rememberClass("9X", "2026-11-27T09:00:00Z");

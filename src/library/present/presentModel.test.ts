@@ -15,8 +15,9 @@ describe("Present builds", () => {
 
   it("lists the same lesson in every version, Main first, with earlier builds after each", () => {
     const { builds, build } = findBuild(l, "a4");
-    expect(builds.map((b) => b.key)).toEqual(["a4@2026-11-25", "a4@2026-11-20", "a4f@2026-11-26"]);
-    expect(build?.key).toBe("a4@2026-11-25");
+    expect(builds.map((b) => b.key.replace(/\.[0-9a-z]+$/, ""))).toEqual(["a4@2026-11-25", "a4@2026-11-20", "a4f@2026-11-26"]);
+    expect(build?.key).toBe(`a4@${build?.at}`);
+    expect(build?.at).toMatch(/^2026-11-25\.[0-9a-z]+$/);
     expect(build?.answers?.role).toBe("answers");
     expect(buildLabel(builds[1])).toBe("Main · 20 Nov 2026 (earlier)");
     expect(builds[1].answers).toBeUndefined();
@@ -25,6 +26,14 @@ describe("Present builds", () => {
     expect(findBuild(l, "a4", "2026-11-20").build?.current).toBe(false);
     expect(findBuild(l, "a4", "1999-01-01").build?.current).toBe(true);
     expect(findBuild(l, "gone").build).toBeUndefined();
+  });
+  it("keeps two builds published on the same day apart", () => {
+    const twice = res({ id: "t", lesson: "A7.09", history: [{ updated: "2026-11-25", files: [file("pupil", "pdf", "c")] }] });
+    const { builds } = findBuild(list([twice]), "t");
+    expect(new Set(builds.map((b) => b.key)).size).toBe(2);
+    expect(findBuild(list([twice]), "t", builds[1].at).build?.current).toBe(false);
+    expect(findBuild(list([twice]), "t", "2026-11-25").build?.current).toBe(false);
+    expect(findBuild(list([twice]), "t").build?.current).toBe(true);
   });
   it("only offers Present for a booklet with a pupil PDF", () => {
     expect(canPresent(main.files)).toBe(true);

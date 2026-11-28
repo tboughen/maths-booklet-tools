@@ -15,9 +15,9 @@ const RECENT = "present-classes";
 const recordKey = (className: string, buildKey: string) => `present-ink|${className}|${buildKey}`;
 const MAX_RECENT = 8;
 
-/** "9 x" and "9X " are the same class. */
+/** "9 x", "9X " and "9-x" are the same class: letters and digits only, as the site keeps them. */
 export function className(text: string) {
-  return text.trim().replace(/\s+/g, "").toUpperCase().slice(0, 12);
+  return text.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
 }
 
 function read<T>(key: string): T | undefined {

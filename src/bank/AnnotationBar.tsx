@@ -82,7 +82,7 @@ export function AnnotationBar({ preferences: p, onChange, canUndo, canRedo, hasI
   const COLOUR_SLOTS = Math.max(PEN_COLOURS.length, HIGHLIGHTER_COLOURS.length);
   const place = movable?.place;
   const floating = typeof place === "object" ? place : undefined;
-  return <div className={`qb-annotate-bar${place === "left" ? " is-left" : ""}${floating ? " is-floating" : ""}`} role="toolbar" aria-orientation="vertical" aria-label="Annotation tools (screen only)" data-drawing={drawing} onKeyDown={moveAlongRail} style={floating ? { left: floating.x, top: floating.y } : undefined}>
+  return <div className={`qb-annotate-bar${place === "left" ? " is-left" : ""}${floating ? " is-floating" : ""}`} role="toolbar" aria-orientation="vertical" aria-label="Annotation tools (screen only)" data-drawing={drawing} onKeyDown={moveAlongRail} style={floating ? { left: `clamp(0px, ${floating.x}px, calc(100% - 64px))`, top: `clamp(0px, ${floating.y}px, calc(100% - 160px))` } : undefined}>
     {movable && <button type="button" className="qb-annotate-grip" title="Drag to move the pen tools · double-click to put them back" aria-label="Move the pen tools" onPointerDown={(e) => startDrag(e, movable.onPlace)} onDoubleClick={() => movable.onPlace("right")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); movable.onPlace(place === "left" ? "right" : "left"); } }}><GripHorizontal size={18}/></button>}
     <div className="qb-annotate-group" role="group" aria-label="Tool">
       {tools.map(tool => <button key={tool.value} aria-pressed={p.tool === tool.value} className="qb-annotate-tool" title={`${tool.label} · ${tool.key}`} aria-label={tool.label} onClick={press(() => set({ tool: tool.value }))}><tool.icon size={18}/></button>)}
