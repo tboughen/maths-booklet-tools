@@ -6381,22 +6381,14 @@
                       "maxItems": 12,
                       "type": "array",
                       "items": {
-                        "type": "array",
-                        "prefixItems": [
-                          {
-                            "type": "number",
-                            "minimum": -12,
-                            "maximum": 12
-                          },
-                          {
-                            "type": "number",
-                            "minimum": -12,
-                            "maximum": 12
-                          }
-                        ],
-                        "items": false,
                         "minItems": 2,
-                        "maxItems": 2
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "number",
+                          "minimum": -12,
+                          "maximum": 12
+                        }
                       }
                     },
                     "axis": {
@@ -6460,22 +6452,14 @@
                       "maxItems": 12,
                       "type": "array",
                       "items": {
-                        "type": "array",
-                        "prefixItems": [
-                          {
-                            "type": "number",
-                            "minimum": -12,
-                            "maximum": 12
-                          },
-                          {
-                            "type": "number",
-                            "minimum": -12,
-                            "maximum": 12
-                          }
-                        ],
-                        "items": false,
                         "minItems": 2,
-                        "maxItems": 2
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "number",
+                          "minimum": -12,
+                          "maximum": 12
+                        }
                       }
                     },
                     "apex": {

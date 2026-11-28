@@ -44,7 +44,7 @@ front, z up; everything inside 0 to 12):
 
 The engine (`packages/elevation-core/src/shapes.ts`) builds each shape as a closed polyhedron (round surfaces as 64
 strips), draws sharp edges plus the outline of round surfaces, cuts every edge where another crosses it in the view,
-and hides each piece that a nearer face covers. Faces two shapes share (a roof on a cube) leave no seam. A cone seen
+and hides each piece that a nearer face covers. Shapes may touch face to face (a roof on a cube leaves no seam) but may not overlap: validation names the two shapes. A corner on a straight side is dropped, so it draws no false edge. A cone seen
 along its axis gets an apex dot on the plan. Views sit on whole grid squares with one square spare.
 
 In the editor, the Solid card's "Made of" switches between cubes and shapes (one undo step that starts the other

@@ -127,10 +127,10 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     }
   }
   function patch(update: (n: Doc) => void, label?: string) {
-    if (blocked) return;
+    if (blocked) return false;
     const n = structuredClone(e);
     update(n.document);
-    commit(n, label);
+    return commit(n, label);
   }
   function setPanel(i: number, update: (p: ViewPanel) => void, label?: string) {
     patch((n) => update(n.panels[i]), label);

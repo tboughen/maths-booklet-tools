@@ -16,13 +16,18 @@ const PRISM_AXIS_NAMES: Record<Axis, string> = { y: "Runs back from its front fa
 export function ShapesEditor({ d, blocked, patch, onMessage, onHistory }: {
   d: Doc;
   blocked: boolean;
-  patch: (update: (n: Doc) => void, label?: string) => void;
+  patch: (update: (n: Doc) => void, label?: string) => boolean;
   onMessage: (text: string) => void;
   onHistory: (event: ReactKeyboardEvent<HTMLInputElement>) => boolean;
 }) {
   const shapes = d.shapes ?? [];
   const lengths = d.lengths ?? [];
   const setShape = (i: number, update: (s: Shape) => void, label: string) => patch((n) => update(n.shapes![i]), label);
+  /** A typed value that cannot be used: say why and keep it in the field to correct. */
+  const refuse = (reason: string) => {
+    onMessage(reason);
+    return false;
+  };
   /** A number of squares: whole or half, checked by the schema when it is applied. */
   const num = (i: number, name: string, value: number, apply: (s: Shape, v: number) => void, label: string) => (
     <label key={name}>
@@ -36,8 +41,8 @@ export function ShapesEditor({ d, blocked, patch, onMessage, onHistory }: {
         onHistory={onHistory}
         onCommit={(text) => {
           const v = Number(text.trim());
-          if (!text.trim() || !Number.isFinite(v)) return onMessage("Type a number of squares, such as 2 or 2.5.");
-          setShape(i, (s) => apply(s, v), label);
+          if (!text.trim() || !Number.isFinite(v)) return refuse("Type a number of squares, such as 2 or 2.5.");
+          return setShape(i, (s) => apply(s, v), label);
         }}
       />
     </label>
@@ -86,8 +91,8 @@ export function ShapesEditor({ d, blocked, patch, onMessage, onHistory }: {
                 onHistory={onHistory}
                 onCommit={(text) => {
                   const p = parsePoint(text);
-                  if (typeof p === "string") return onMessage(p);
-                  setShape(i, (x) => void (x.at = p), `move shape ${i + 1}`);
+                  if (typeof p === "string") return refuse(p);
+                  return setShape(i, (x) => void (x.at = p), `move shape ${i + 1}`);
                 }}
               />
             </label>
@@ -148,8 +153,8 @@ export function ShapesEditor({ d, blocked, patch, onMessage, onHistory }: {
                   onHistory={onHistory}
                   onCommit={(text) => {
                     const p = parsePoint(text);
-                    if (typeof p === "string") return onMessage(p);
-                    setShape(i, (x) => void (x.type === "pyramid" && (x.apex = p)), `move shape ${i + 1} apex`);
+                    if (typeof p === "string") return refuse(p);
+                    return setShape(i, (x) => void (x.type === "pyramid" && (x.apex = p)), `move shape ${i + 1} apex`);
                   }}
                 />
               </label>
@@ -166,8 +171,8 @@ export function ShapesEditor({ d, blocked, patch, onMessage, onHistory }: {
                 onHistory={onHistory}
                 onCommit={(text) => {
                   const c = parseCorners(text);
-                  if (typeof c === "string") return onMessage(c);
-                  setShape(i, (x) => {
+                  if (typeof c === "string") return refuse(c);
+                  return setShape(i, (x) => {
                     if (x.type === "prism") x.section = c;
                     if (x.type === "pyramid") x.base = c;
                   }, `change shape ${i + 1} corners`);
@@ -217,8 +222,8 @@ export function ShapesEditor({ d, blocked, patch, onMessage, onHistory }: {
                   onHistory={onHistory}
                   onCommit={(text) => {
                     const p = parsePoint(text);
-                    if (typeof p === "string") return onMessage(p);
-                    patch((n) => void (n.lengths![k][end] = p), `move length ${k + 1}`);
+                    if (typeof p === "string") return refuse(p);
+                    return patch((n) => void (n.lengths![k][end] = p), `move length ${k + 1}`);
                   }}
                 />
               </label>

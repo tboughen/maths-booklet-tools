@@ -31,7 +31,8 @@ const half = (min: number, max: number) =>
 const coord = half(0, MAX_EXTENT);
 const offset = half(-MAX_EXTENT, MAX_EXTENT);
 export const p3Schema = z.object({ x: coord, y: coord, z: coord }).strict();
-const p2 = z.tuple([offset, offset]);
+/** A corner (a, b): an array of two numbers rather than a tuple, so connector schemas stay plain arrays. */
+const p2 = z.array(offset).length(2);
 export const shapeSchema = z.discriminatedUnion("type", [
   /**
    * A prism: a cross-section of 3 to 12 corners carried `length` squares along an axis from `at`.
@@ -80,7 +81,7 @@ const AXIS: Record<Axis, V3> = { x: v3(1, 0, 0), y: v3(0, 1, 0), z: v3(0, 0, 1) 
 /** Two directions at right angles to an axis, for circles round it. */
 const FRAME: Record<Axis, [V3, V3]> = { x: [v3(0, 1, 0), v3(0, 0, 1)], y: [v3(1, 0, 0), v3(0, 0, 1)], z: [v3(1, 0, 0), v3(0, 1, 0)] };
 /** Where a section corner (a, b) goes for a prism along each axis. */
-const sectionPoint = (axis: Axis, at: V3, [a, b]: [number, number]) =>
+const sectionPoint = (axis: Axis, at: V3, [a, b]: number[]) =>
   axis === "y" ? add(at, v3(a, 0, b)) : axis === "x" ? add(at, v3(0, a, b)) : add(at, v3(a, b, 0));
 
 /** Strips round a circle; a multiple of 4, so the outline of a round solid falls exactly on an edge in every grid view. */
@@ -133,11 +134,15 @@ export function buildMesh(shapes: Shape[]): Mesh {
   };
   /** Orders a ring of corners anticlockwise seen from the `toward` side. */
   const facing = (ids: number[], toward: V3) => (dot(newell(ids.map((i) => points[i])), toward) < 0 ? [...ids].reverse() : ids);
-  shapes.forEach((s, si) => {
+  shapes.forEach((given, si) => {
+    let s = given;
     const at = v3(s.at.x, s.at.y, s.at.z);
     const which = `Shape ${si + 1} (${s.type})`;
     if (s.type === "prism" || s.type === "pyramid") {
-      const corners = s.type === "prism" ? s.section : s.base;
+      // A corner on a straight side (or a repeated corner) is not a corner of the solid: drop it, so no false edge is drawn.
+      const corners = straighten(s.type === "prism" ? s.section : s.base);
+      if (s.type === "prism") s = { ...s, section: corners };
+      else s = { ...s, base: corners };
       const flat = corners.map(([a, b]) => ({ x: a, y: b }));
       let area = 0;
       flat.forEach((p, i) => {
@@ -228,6 +233,28 @@ export function buildMesh(shapes: Shape[]): Mesh {
   return { points, faces: faces.map(({ ids, normal, solid }) => ({ ids, normal, solid })), edges: [...edgeMap.values()], apexes };
 }
 
+/** Corners with any that lie on the straight line between their neighbours (or repeat one) left out. */
+function straighten(corners: number[][]): number[][] {
+  const out = corners.map(([a, b]) => [a, b]);
+  for (let changed = true; changed && out.length > 3; ) {
+    changed = false;
+    for (let i = 0; i < out.length && out.length > 3; i++) {
+      const p = out[(i + out.length - 1) % out.length],
+        q = out[i],
+        r = out[(i + 1) % out.length];
+      const turn = (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]);
+      const ahead = (q[0] - p[0]) * (r[0] - q[0]) + (q[1] - p[1]) * (r[1] - q[1]);
+      const same = Math.hypot(q[0] - p[0], q[1] - p[1]) < 1e-9;
+      if (same || (Math.abs(turn) < 1e-9 && ahead > 0)) {
+        out.splice(i, 1);
+        changed = true;
+        i--;
+      }
+    }
+  }
+  return out;
+}
+
 function selfCrossing(pts: P[]): boolean {
   const n = pts.length;
   const crosses = (a: P, b: P, c: P, d: P) => {
@@ -283,8 +310,6 @@ export function viewLines(mesh: Mesh, view: ViewName): Lines {
       ...c,
       box: { x1: Math.min(...c.pts.map((p) => p.x)), y1: Math.min(...c.pts.map((p) => p.y)), x2: Math.max(...c.pts.map((p) => p.x)), y2: Math.max(...c.pts.map((p) => p.y)) },
     }));
-  // Every edge's shadow in the view, for cutting the drawn edges where visibility can change.
-  const all = mesh.edges.map((e) => ({ a: screen[e.a], b: screen[e.b] })).filter((s) => Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y) > EPS);
   const drawn = mesh.edges.filter((e) => {
     if (!e.smooth) return true;
     // A smooth edge is drawn only where the surface turns away: the outline of a round solid.
@@ -292,6 +317,9 @@ export function viewLines(mesh: Mesh, view: ViewName): Lines {
     if (f2 === undefined) return true;
     return faceFacing[f1] > 1e-9 !== faceFacing[f2] > 1e-9;
   });
+  // The shadows of the drawn edges, for cutting each one where visibility can change: coverage by nearer faces
+  // changes only across sharp edges and outlines, never across the hidden smooth edges inside a curved surface.
+  const all = drawn.map((e) => ({ a: screen[e.a], b: screen[e.b] })).filter((s) => Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y) > EPS);
   const strokes: { a: P; b: P; hidden: boolean }[] = [];
   const seams = new Set(mesh.faces.map((f) => f.solid)).size > 1 ? [true] : [];
   for (const e of drawn) {
@@ -540,4 +568,70 @@ function uncovered(s: Seg, visible: Seg[]): Seg[] {
     });
   }
   return free.filter(([a, b]) => (b - a) * L > 0.05).map(([a, b]) => ({ a: { x: s.a.x + d.x * a, y: s.a.y + d.y * a }, b: { x: s.a.x + d.x * b, y: s.a.y + d.y * b } }));
+}
+
+const IN = 1e-9;
+/** Strictly inside a polygon (not on or next to a side). */
+function inPolygon(pts: number[][], x: number, y: number): boolean {
+  let hit = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [ax, ay] = pts[i],
+      [bx, by] = pts[j];
+    const dx = bx - ax,
+      dy = by - ay,
+      l2 = dx * dx + dy * dy;
+    const t = l2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
+    if (Math.hypot(x - ax - t * dx, y - ay - t * dy) < 1e-7) return false;
+    if (ay > y !== by > y && x < (dx * (y - ay)) / dy + ax) hit = !hit;
+  }
+  return hit;
+}
+/** True when a point is strictly inside a shape (a point on its surface is not). */
+export function insideShape(s: Shape, p: V3): boolean {
+  const d = sub(p, v3(s.at.x, s.at.y, s.at.z));
+  switch (s.type) {
+    case "prism": {
+      const [a, b, along] = s.axis === "y" ? [d.x, d.z, d.y] : s.axis === "x" ? [d.y, d.z, d.x] : [d.x, d.y, d.z];
+      return along > IN && along < s.length - IN && inPolygon(s.section, a, b);
+    }
+    case "pyramid": {
+      const t = d.z / s.apex.z;
+      if (t <= IN || t >= 1 - IN) return false;
+      return inPolygon(s.base, (d.x - t * s.apex.x) / (1 - t), (d.y - t * s.apex.y) / (1 - t));
+    }
+    case "cylinder":
+    case "cone": {
+      const along = dot(d, AXIS[s.axis]),
+        radial = length(sub(d, mul(AXIS[s.axis], along)));
+      if (along <= IN || along >= s.h - IN) return false;
+      return radial < (s.type === "cylinder" ? s.r : s.r * (1 - along / s.h)) - 1e-7;
+    }
+    case "sphere":
+      return length(d) < s.r - 1e-7;
+    case "hemisphere":
+      return length(d) < s.r - 1e-7 && (s.flat === "down" ? d.z > IN : d.z < -IN);
+  }
+}
+/**
+ * The first two shapes (numbered from 0) whose insides overlap, or null. Shapes may touch face to face but not
+ * overlap, because lines where two solids pass through each other are not edges of either. Points on a grid of
+ * quarter squares, offset off the half-square lines, are tried inside both shapes' common box.
+ */
+export function overlappingShapes(shapes: Shape[]): [number, number] | null {
+  const boxes = shapes.map((s) => bounds(buildMesh([s])));
+  for (let i = 0; i < shapes.length; i++)
+    for (let j = i + 1; j < shapes.length; j++) {
+      const lo = v3(Math.max(boxes[i].min.x, boxes[j].min.x), Math.max(boxes[i].min.y, boxes[j].min.y), Math.max(boxes[i].min.z, boxes[j].min.z));
+      const hi = v3(Math.min(boxes[i].max.x, boxes[j].max.x), Math.min(boxes[i].max.y, boxes[j].max.y), Math.min(boxes[i].max.z, boxes[j].max.z));
+      if (lo.x >= hi.x || lo.y >= hi.y || lo.z >= hi.z) continue;
+      const step = 0.25,
+        start = (v: number) => Math.floor(v / step) * step + step / 2;
+      for (let x = start(lo.x); x < hi.x; x += step)
+        for (let y = start(lo.y); y < hi.y; y += step)
+          for (let z = start(lo.z); z < hi.z; z += step) {
+            const p = v3(x, y, z);
+            if (insideShape(shapes[i], p) && insideShape(shapes[j], p)) return [i, j];
+          }
+    }
+  return null;
 }

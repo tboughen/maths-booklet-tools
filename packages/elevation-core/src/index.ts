@@ -2,7 +2,7 @@ import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { defineEnvelope } from "../../envelope-core/src/index";
-import { buildMesh, bounds as meshBounds, lengthLabelSchema, MAX_EXTENT, MAX_LENGTH_LABELS, MAX_SHAPES, PROJECTIONS, shapeSchema, viewLines, type Lines, type Mesh, type Shape } from "./shapes";
+import { buildMesh, bounds as meshBounds, overlappingShapes, lengthLabelSchema, MAX_EXTENT, MAX_LENGTH_LABELS, MAX_SHAPES, PROJECTIONS, shapeSchema, viewLines, type LengthLabel, type Lines, type Mesh, type Shape, type V3 } from "./shapes";
 export * from "./shapes";
 
 /** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
@@ -113,6 +113,8 @@ export function validate(input: unknown): Envelope {
   } else {
     const mesh = meshOf(d);
     const b = meshBounds(mesh);
+    const both = overlappingShapes(d.shapes as Shape[]);
+    if (both) throw Error(`Shapes ${both[0] + 1} and ${both[1] + 1} overlap. Shapes may touch face to face but not overlap: move or resize one.`);
     if (b.min.x < -1e-6 || b.min.y < -1e-6 || b.min.z < -1e-6 || b.max.x > MAX_EXTENT + 1e-6 || b.max.y > MAX_EXTENT + 1e-6 || b.max.z > MAX_EXTENT + 1e-6)
       throw Error(`The solid must fit in a space of ${MAX_EXTENT} by ${MAX_EXTENT} by ${MAX_EXTENT} squares from 0. Move or shrink a shape so nothing is below 0 or above ${MAX_EXTENT}.`);
   }
@@ -398,6 +400,15 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
   maxU += pad;
   minV -= pad;
   maxV += 0.6;
+  // Lengths on the drawing (hidden ones too, so both copies match) stay inside the panel.
+  const places = lines ? lengthPlaces(d) : [];
+  for (const q of places) {
+    const box = lengthBox(q);
+    minU = Math.min(minU, box.x1 / s - 0.1);
+    maxU = Math.max(maxU, box.x2 / s + 0.1);
+    minV = Math.min(minV, -box.y2 / s - 0.1);
+    maxV = Math.max(maxV, -box.y1 / s + 0.1);
+  }
   const W = (maxU - minU) * s,
     Hh = (maxV - minV) * s;
   const X = (u: number) => (u - minU) * s,
@@ -420,7 +431,7 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
       out.push(`<path d="M${f.pts.map((q) => `${n(X(q.u))} ${n(Y(q.v))}`).join("L")}Z" fill="white" stroke="black" stroke-width="0.35" stroke-linejoin="round"/>`);
     if (lines && !ghost) {
       out.push(shapeStrokes(d, lines, X, Y, 0.35));
-      out.push(lengthLabels(d, X, Y));
+      for (const q of places) if (q.show === "show") out.push(text(q.text, X(q.x / s), Y(-q.y / s) + FONT * 0.34));
     }
     if (arrows) {
       // Front arrow points at the middle of the front face; side arrow at the middle of the left face.
@@ -429,7 +440,8 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
         const b = meshBounds(meshOf(d));
         const z = b.min.z + Math.min(0.5, (b.max.z - b.min.z) / 2);
         // With lengths on the drawing, the arrows move three quarters along, clear of a length in the middle of an edge.
-        const k = (d.lengths ?? []).some((l) => l.show === "show" && l.text.trim()) ? 0.75 : 0.5;
+        // Hidden lengths count too, so the arrows sit in the same place on both copies.
+        const k = (d.lengths ?? []).some((l) => l.text.trim()) ? 0.75 : 0.5;
         front = iso(b.min.x + (b.max.x - b.min.x) * k, b.min.y, z);
         side = iso(b.min.x, b.min.y + (b.max.y - b.min.y) * k, z);
       } else {
@@ -463,17 +475,25 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
   return { width: W, height: Hh, svg: out.join("") };
 }
 
-/** Lengths beside edges of a shapes solid's 3D drawing: on the side of the edge away from the solid where there is
- * one (an outline edge), otherwise pushed out from the middle of the drawing (an edge between two faces). */
-function lengthLabels(d: ElevationDocument, X: (u: number) => number, Y: (v: number) => number): string {
-  const ls = (d.lengths ?? []).filter((l) => l.show === "show" && l.text.trim());
-  if (!ls.length) return "";
-  const proj = PROJECTIONS.isometric.project;
+type LengthPlace = { text: string; show: LengthLabel["show"]; x: number; y: number; w: number };
+/**
+ * Where each length with text goes on the isometric drawing, in millimetres from the drawing's origin (x right,
+ * y down): on the side of its edge away from the solid where there is one (an outline edge), otherwise pushed out
+ * from the middle of the drawing (an edge between two faces). Hidden lengths are placed too, so both copies match.
+ */
+function lengthPlaces(d: ElevationDocument): LengthPlace[] {
+  const ls = (d.lengths ?? []).filter((l) => l.text.trim());
+  if (!ls.length) return [];
+  const s = 10;
+  const proj = (q: V3) => {
+    const r = PROJECTIONS.isometric.project(q);
+    return { x: r.x * s, y: -r.y * s };
+  };
   const mesh = meshOf(d);
   const b = meshBounds(mesh);
   const mid = proj({ x: (b.min.x + b.max.x) / 2, y: (b.min.y + b.max.y) / 2, z: (b.min.z + b.max.z) / 2 });
-  // The solid's shadow in the drawing: every face, in drawing millimetres.
-  const shadow = mesh.faces.map((f) => f.ids.map((i) => proj(mesh.points[i])).map((q) => ({ x: X(q.x), y: Y(q.y) })));
+  // The solid's shadow in the drawing: every face.
+  const shadow = mesh.faces.map((f) => f.ids.map((i) => proj(mesh.points[i])));
   const inside = (q: { x: number; y: number }) =>
     shadow.some((poly) => {
       let hit = false;
@@ -481,33 +501,35 @@ function lengthLabels(d: ElevationDocument, X: (u: number) => number, Y: (v: num
         if (poly[i].y > q.y !== poly[j].y > q.y && q.x < ((poly[j].x - poly[i].x) * (q.y - poly[i].y)) / (poly[j].y - poly[i].y) + poly[i].x) hit = !hit;
       return hit;
     });
-  return ls
-    .map((l) => {
-      const a = proj(l.a),
-        c = proj(l.b);
-      const m = { x: (X(a.x) + X(c.x)) / 2, y: (Y(a.y) + Y(c.y)) / 2 };
-      let nx = -(Y(c.y) - Y(a.y)),
-        ny = X(c.x) - X(a.x);
-      const len = Math.hypot(nx, ny) || 1;
-      nx /= len;
-      ny /= len;
-      const probe = 1.5;
-      const plus = inside({ x: m.x + nx * probe, y: m.y + ny * probe }),
-        minus = inside({ x: m.x - nx * probe, y: m.y - ny * probe });
-      // Outside the solid when one side is clear; otherwise away from the middle of the drawing.
-      if (plus && !minus) {
-        nx = -nx;
-        ny = -ny;
-      } else if (plus === minus && nx * (m.x - X(mid.x)) + ny * (m.y - Y(mid.y)) < 0) {
-        nx = -nx;
-        ny = -ny;
-      }
-      const t = l.text.trim(),
-        w = textWidth(t);
-      const reach = (w / 2) * Math.abs(nx) + FONT * 0.45 * Math.abs(ny) + 1.5;
-      return text(t, m.x + nx * reach, m.y + ny * reach + FONT * 0.34);
-    })
-    .join("");
+  return ls.map((l) => {
+    const a = proj(l.a),
+      c = proj(l.b);
+    const m = { x: (a.x + c.x) / 2, y: (a.y + c.y) / 2 };
+    let nx = -(c.y - a.y),
+      ny = c.x - a.x;
+    const len = Math.hypot(nx, ny) || 1;
+    nx /= len;
+    ny /= len;
+    const probe = 1.5;
+    const plus = inside({ x: m.x + nx * probe, y: m.y + ny * probe }),
+      minus = inside({ x: m.x - nx * probe, y: m.y - ny * probe });
+    // Outside the solid when one side is clear; otherwise away from the middle of the drawing.
+    if ((plus && !minus) || (plus === minus && nx * (m.x - mid.x) + ny * (m.y - mid.y) < 0)) {
+      nx = -nx;
+      ny = -ny;
+    }
+    const t = l.text.trim(),
+      w = textWidth(t);
+    const reach = (w / 2) * Math.abs(nx) + FONT * 0.45 * Math.abs(ny) + 1.5;
+    return { text: t, show: l.show, x: m.x + nx * reach, y: m.y + ny * reach, w };
+  });
+}
+/** Each length's box, in millimetres from the drawing's origin. */
+const lengthBox = (q: LengthPlace) => ({ x1: q.x - q.w / 2 - 0.5, x2: q.x + q.w / 2 + 0.5, y1: q.y - FONT * 0.55, y2: q.y + FONT * 0.55 });
+/** True when two lengths' text would print over each other. */
+export function lengthsCollide(d: ElevationDocument): boolean {
+  const boxes = d.shapes ? lengthPlaces(d).map(lengthBox) : [];
+  return boxes.some((p, i) => boxes.slice(i + 1).some((q) => p.x1 < q.x2 && q.x1 < p.x2 && p.y1 < q.y2 && q.y1 < p.y2));
 }
 
 /** Panels placed left to right, wrapping to a new row at maxWidthCm, each with its label underneath.
@@ -542,6 +564,7 @@ export function layout(saved: Envelope, view: View = "pupil") {
   // Notes describe the saved question, so both copies give the same notes.
   const sd = saved.document;
   if (sd.panels.every((p) => p.state === "drawn") && sd.panels.length > 1) notes.push("Every view is drawn, so pupils have nothing to draw. Make a view blank or an answer for a question.");
+  if (sd.panels.some((p) => p.view === "isometric") && lengthsCollide(sd)) notes.push("Two lengths on the 3D drawing print over each other. Shorten one or put it on another edge.");
   for (const p of sd.panels)
     if (p.view !== "isometric" && p.state !== "drawn" && p.squares.across) {
       const f = viewSpan(d, p.view);

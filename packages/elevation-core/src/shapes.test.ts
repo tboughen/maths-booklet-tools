@@ -106,6 +106,42 @@ describe("solids made of shapes: the views", () => {
   });
 });
 
+describe("solids made of shapes: review fixes", () => {
+  it("refuses shapes that overlap, and allows shapes that touch face to face", () => {
+    const boxA: c.Shape = { type: "prism", at: at(0, 0, 0), section: [[0, 0], [4, 0], [4, 2], [0, 2]], axis: "y", length: 2 };
+    const boxB: c.Shape = { type: "prism", at: at(0, 0, 0), section: [[0, 0], [2, 0], [2, 2], [0, 2]], axis: "y", length: 4 };
+    expect(() => shapesDoc([boxA, boxB])).toThrow(/Shapes 1 and 2 overlap/);
+    expect(() => shapesDoc([boxA, { ...boxB, at: at(0, 2, 0), length: 2 } as c.Shape])).not.toThrow();
+    expect(() => shapesDoc([cylinder, { ...cone, at: at(2, 2, 5) } as c.Shape])).not.toThrow();
+    expect(() => shapesDoc([cylinder, { ...cone, at: at(2, 2, 4.5) } as c.Shape])).toThrow(/overlap/);
+    expect(() => shapesDoc([{ type: "sphere", at: at(3, 3, 3), r: 2 }, { type: "sphere", at: at(6, 3, 3), r: 2 }])).toThrow(/overlap/);
+  });
+  it("draws no edge at a corner in the middle of a straight side", () => {
+    const withMid: c.Shape = { type: "prism", at: at(0, 0, 0), section: [[0, 0], [4, 0], [4, 4], [2, 4], [0, 4]], axis: "y", length: 3 };
+    const plain: c.Shape = { ...withMid, section: [[0, 0], [4, 0], [4, 4], [0, 4]] } as c.Shape;
+    for (const view of ["plan", "isometric"] as const) expect(lines([withMid], view)).toEqual(lines([plain], view));
+  });
+  it("keeps every length inside the 3D drawing's panel, the arrows in one place on both copies, and notes lengths that collide", () => {
+    const cube: c.Shape = { type: "prism", at: at(0, 0, 0), section: [[0, 0], [1, 0], [1, 1], [0, 1]], axis: "y", length: 1 };
+    const e = shapesDoc([cube], {
+      arrows: false,
+      panels: [c.panel("isometric"), c.panel("plan")],
+      lengths: [
+        { a: at(0, 0, 1), b: at(0, 1, 1), text: "12.5 cm long", show: "show" },
+        { a: at(1, 0, 0), b: at(1, 1, 0), text: "WWWWWWWWWWWW", show: "hidden" },
+      ],
+    });
+    const [p, a] = [c.layout(e, "pupil"), c.layout(e, "answer")];
+    expect([p.width, p.height]).toEqual([a.width, a.height]);
+    expect(p.placed[1].x).toBeGreaterThan(30);
+    const near: c.Envelope = shapesDoc([triPrism], { lengths: [{ a: at(0, 0, 0), b: at(4, 0, 0), text: "4 cm", show: "show" }, { a: at(0, 0, 0), b: at(4, 0, 0), text: "4 cm", show: "show" }] });
+    expect(c.layout(near).notes.join(" ")).toMatch(/print over each other/);
+    const arrows = (view: "pupil" | "answer") => c.renderSvg(shapesDoc([triPrism], { lengths: [{ a: at(0, 0, 0), b: at(4, 0, 0), text: "4 cm", show: "hidden" }] }), view).match(/<path d="M[^"]*" fill="black"\/>/g);
+    expect(arrows("pupil")).toHaveLength(2);
+    expect(arrows("pupil")).toEqual(arrows("answer"));
+  });
+});
+
 describe("solids made of shapes: the document", () => {
   it("needs cubes or shapes, never both, and lengths only on shapes", () => {
     const e = c.blank();
@@ -138,7 +174,7 @@ describe("solids made of shapes: the document", () => {
     expect(c.forView(e, "answer").document.lengths![0].show).toBe("show");
   });
   it("describes the solid for screen readers", () => {
-    expect(c.solidDescription(shapesDoc([triPrism, cone]).document)).toBe("Solid made of a prism and a cone");
+    expect(c.solidDescription(shapesDoc([triPrism, { ...cone, at: at(8, 2, 0) } as c.Shape]).document)).toBe("Solid made of a prism and a cone");
   });
   it("round-trips every shapes example through files and links, at one size on both copies", () => {
     const all = [...examples.map((x) => () => x.make(false)), ...examples.map((x) => () => x.make(true)), ...plainShapes.map((x) => x.make)];

@@ -7,7 +7,8 @@ export function DraftField({ id, label, value, onCommit, disabled, maxLength = 4
   id?: string;
   label: string;
   value: string;
-  onCommit: (value: string) => void;
+  /** Return false to refuse the value: the typed draft stays in the field to correct. */
+  onCommit: (value: string) => boolean | void;
   disabled?: boolean;
   maxLength?: number;
   inputMode?: "decimal" | "text";
@@ -19,8 +20,8 @@ export function DraftField({ id, label, value, onCommit, disabled, maxLength = 4
     if (!editing) setDraft(value);
   }, [value, editing]);
   const commit = () => {
+    if (draft !== value && onCommit(draft) === false) return;
     setEditing(false);
-    if (draft !== value) onCommit(draft);
   };
   return (
     <input

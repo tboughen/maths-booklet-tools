@@ -19,18 +19,28 @@ export function defaultShape(type: ShapeType, base = 0): Shape {
       return { type, at: at(2, 2), r: 2, flat: "down" };
   }
 }
-const numbers = (text: string) => (text.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+/**
+ * The numbers in a typed list such as "(0, 0) (4, 0) (-.5, 3)", or null when it holds anything else.
+ * Accepts a typographic minus and a leading point; any other character is refused rather than dropped.
+ */
+function numbers(text: string): number[] | null {
+  const t = text.replace(/\u2212/g, "-");
+  if (/[^\d\s.,;()-]/.test(t)) return null;
+  const parts = t.split(/[\s,;()]+/).filter(Boolean);
+  const v = parts.map((x) => (/^-?(\d+\.?\d*|\.\d+)$/.test(x) ? Number(x) : NaN));
+  return v.some((x) => !Number.isFinite(x)) ? null : v;
+}
 /** "(0, 0) (6, 0) (5, 3)" for a list of corners. */
-export const cornersText = (pts: [number, number][]) => pts.map(([a, b]) => `(${a}, ${b})`).join(" ");
+export const cornersText = (pts: number[][]) => pts.map(([a, b]) => `(${a}, ${b})`).join(" ");
 export const pointText = (p: { x: number; y: number; z: number }) => `(${p.x}, ${p.y}, ${p.z})`;
-export function parseCorners(text: string): [number, number][] | string {
+export function parseCorners(text: string): number[][] | string {
   const v = numbers(text);
-  if (v.length % 2 || v.length < 6) return "Type 3 to 12 corners as pairs of numbers, such as (0, 0) (4, 0) (2, 3).";
-  return Array.from({ length: v.length / 2 }, (_, i) => [v[2 * i], v[2 * i + 1]] as [number, number]);
+  if (!v || v.length % 2 || v.length < 6) return "Type 3 to 12 corners as pairs of numbers separated by commas, such as (0, 0) (4, 0) (2, 3).";
+  return Array.from({ length: v.length / 2 }, (_, i) => [v[2 * i], v[2 * i + 1]]);
 }
 export function parsePoint(text: string): { x: number; y: number; z: number } | string {
   const v = numbers(text);
-  if (v.length !== 3) return "Type a corner as three numbers (across, back, up), such as (0, 0, 3).";
+  if (!v || v.length !== 3) return "Type a corner as three numbers (across, back, up), such as (0, 0, 3).";
   return { x: v[0], y: v[1], z: v[2] };
 }
 
