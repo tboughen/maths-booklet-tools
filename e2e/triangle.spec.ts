@@ -2110,6 +2110,9 @@ test("wedge hover reveals only its own angle and leaves no selected shading behi
   await cancelLabel(page);
   // Focus comes back to the angle (its ring shows); once it has, move it on to see that nothing stays shaded.
   await expect(target).toBeFocused();
+  // Closing also gives the focus back on the next frame (closeDraft); let that frame pass first, or on a slow
+  // runner it lands after the blur below and the angle is focused (and shaded) again.
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.getByRole("heading", { name: "Triangles", exact: true }).hover();
   await clear();
