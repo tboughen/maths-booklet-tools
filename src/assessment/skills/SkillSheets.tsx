@@ -80,11 +80,11 @@ export function SkillSheets({ set, pupils, disabled }: { set: SkillSet; pupils: 
         <div className="af-topic-exclusions">{set.skills.map((s) => <label className="af-check" key={s.code}><input type="checkbox" disabled={disabled || busy} checked={excluded.includes(s.code)} onChange={(e) => { invalidate(); setExcluded((x) => (e.target.checked ? [...x, s.code] : x.filter((c) => c !== s.code))); }} />{s.title} ({s.pupilCodes}) · class {classScore(s.code)}%</label>)}</div>
       </details>
       <details open><summary>Plan · {sheets} sheets{Object.keys(overrides).length ? ` · ${Object.keys(overrides).length} changed` : ""}</summary>
-        <p className="af-help">Change any skill or level. Changes stay until you change the marks or the skills left out.</p>
+        <p className="af-help">Change any skill or level. Changes stay until you change the marks. Skills taught to the whole class are left out of every sheet.</p>
         <div className="af-table"><table aria-label="Skill sheet plan"><thead><tr><th>Student</th><th>Marks</th>{[1, 2, 3].map((n) => <th key={n}>Skill {n}</th>)}</tr></thead><tbody>
           {rows.map((r) => <tr key={r.pupil.key}><td>{r.label}{r.edited && <> <button type="button" className="af-link" disabled={disabled || busy} onClick={() => { invalidate(); setOverrides((o) => { const n = { ...o }; delete n[r.pupil.key]; return n; }); }}>Undo changes</button></>}</td><td>{r.absent ? "Absent" : `${r.total}/${max}${r.blank ? ` · ${r.blank} blank` : ""}`}</td>
             {r.absent || !r.plan.length ? <td colSpan={3}>{r.absent ? "Absent" : "No skills left"}</td> : r.plan.map((entry, i) => <td key={i}><div className="af-skill-cell">
-              <select aria-label={`${r.label} skill ${i + 1}`} disabled={disabled || busy} value={entry.code} onChange={(e) => edit(r.pupil.key, r.plan, i, { code: e.target.value })}>{set.skills.map((s) => <option key={s.code} value={s.code} disabled={s.code !== entry.code && r.plan.some((p) => p.code === s.code)}>{s.title}</option>)}</select>
+              <select aria-label={`${r.label} skill ${i + 1}`} disabled={disabled || busy} value={entry.code} onChange={(e) => edit(r.pupil.key, r.plan, i, { code: e.target.value })}>{set.skills.map((s) => <option key={s.code} value={s.code} disabled={s.code !== entry.code && (excluded.includes(s.code) || r.plan.some((p) => p.code === s.code))}>{s.title}</option>)}</select>
               <select aria-label={`${r.label} skill ${i + 1} level`} disabled={disabled || busy} value={String(entry.level)} onChange={(e) => edit(r.pupil.key, r.plan, i, { level: levelValue(e.target.value) })}>{START_LEVELS.map((l) => <option key={l} value={String(l)}>{LEVEL_NAMES[l]}</option>)}</select>
             </div></td>)}
           </tr>)}

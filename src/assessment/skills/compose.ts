@@ -109,7 +109,7 @@ export function fitSheet(set: SkillSet, label: string, plan: PlanEntry[]): Fitte
   for (let attempt = 0; attempt < 12; attempt++) {
     const { issues } = renderResource(resource, { view: "pupil" });
     problems = issues.map((i) => i.message);
-    resource.document.sides.forEach((side, s) => side.columns.forEach((c) => { if (!c.cards.length) problems.push(`${label}: side ${s + 1} column "${c.heading}" has no cards.`); }));
+    resource.document.sides.forEach((side, s) => side.columns.forEach((c) => { if (!c.cards.length) problems.push(`Side ${s + 1} column "${c.heading}" has no cards.`); }));
     const over = issues.filter((i) => /more height/.test(i.message) && i.side >= 1 && i.column >= 1);
     if (!over.length) break;
     let changed = false;
