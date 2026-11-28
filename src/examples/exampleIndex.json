@@ -1275,6 +1275,18 @@
   "tool": "construction"
  },
  {
+  "id": "construction-loci-pond",
+  "title": "Within a distance of a pond's edge",
+  "description": "A 4 m by 2 m pond at 1 cm to 1 m. Pupils draw the locus 1.5 m from its edge (lines parallel to the sides, arcs round the corners) and shade the path round it; both are the saved answer.",
+  "tool": "construction"
+ },
+ {
+  "id": "construction-bearings-parallel",
+  "title": "Bearings and parallel north lines",
+  "description": "B is on a bearing of 060° from A. The angle x between the north line at B and BA is marked; pupils use co-interior angles to find the bearing of A from B. Not drawn to scale.",
+  "tool": "construction"
+ },
+ {
   "id": "elevations-plain-row",
   "title": "Row of cubes",
   "description": "Four cubes in a row, with the plan, front and side elevations drawn.",

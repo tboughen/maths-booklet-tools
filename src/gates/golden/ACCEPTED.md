@@ -1111,3 +1111,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - nets: nets-plain-cylinder (worked): added
 - nets: nets-plain-cone: added
 - nets: nets-plain-cone (worked): added
+
+## 2026-11-28: GM8: two new construction examples (loci round a pond, bearings with parallel north lines)
+
+- constructions: construction-loci-pond: added
+- constructions: construction-loci-pond (worked): added
+- constructions: construction-bearings-parallel: added
+- constructions: construction-bearings-parallel (worked): added

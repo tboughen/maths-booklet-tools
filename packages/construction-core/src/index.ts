@@ -116,14 +116,21 @@ export const polygonSchema = z
 export const textSchema = z
   .object({ ...base, type: z.literal("text"), x: coord, y: coord, label: labelSchema, italic: z.boolean() })
   .strict();
+/** Within (or beyond) a distance of a point, a segment or a polygon's edge (the whole outline). */
+const distanceRule = z.object({ kind: z.literal("distance"), from: id, distance: cm(0.05, 40), side: z.enum(["within", "beyond"]) }).strict();
+/** Closer to one point (or segment) than to another: one side of a perpendicular or angle bisector. */
+const closerRule = z.object({ kind: z.literal("closer"), to: id, than: id }).strict();
+/** Inside (or outside) a polygon object. */
+const insideRule = z.object({ kind: z.literal("inside"), shape: id, side: z.enum(["within", "beyond"]) }).strict();
+export const simpleRuleSchema = z.discriminatedUnion("kind", [distanceRule, closerRule, insideRule]);
+export const MAX_EITHER = 4;
 /** One condition a shaded point satisfies; a region shades the points that satisfy all of them. */
 export const ruleSchema = z.discriminatedUnion("kind", [
-  /** Within (or beyond) a distance of a point or a segment. */
-  z.object({ kind: z.literal("distance"), from: id, distance: cm(0.05, 40), side: z.enum(["within", "beyond"]) }).strict(),
-  /** Closer to one point (or segment) than to another: one side of a perpendicular or angle bisector. */
-  z.object({ kind: z.literal("closer"), to: id, than: id }).strict(),
-  /** Inside (or outside) a polygon object. */
-  z.object({ kind: z.literal("inside"), shape: id, side: z.enum(["within", "beyond"]) }).strict(),
+  distanceRule,
+  closerRule,
+  insideRule,
+  /** Any one of 2 to 4 simple conditions: "within 2 cm of A or within 3 cm of B". */
+  z.object({ kind: z.literal("either"), rules: z.array(simpleRuleSchema).min(2).max(MAX_EITHER) }).strict(),
 ]);
 export const regionSchema = z
   .object({
@@ -153,6 +160,11 @@ export const documentSchema = z
     border: z.boolean(),
     /** Printed in a box under the drawing, for example "Scale: 1 cm represents 4 km". */
     caption: labelSchema,
+    /** Prints "Diagram NOT accurately drawn" under the drawing (bearings and angle questions). Only true is saved. */
+    notAccurate: z
+      .boolean()
+      .transform((v) => (v ? true : undefined))
+      .optional(),
     points: z.array(pointSchema).max(MAX_POINTS),
     objects: z.array(objectSchema).max(MAX_OBJECTS),
   })
@@ -172,6 +184,7 @@ export type ConstructionDocument = Envelope["document"];
 export type Point = z.infer<typeof pointSchema>;
 export type Obj = z.infer<typeof objectSchema>;
 export type Rule = z.infer<typeof ruleSchema>;
+export type SimpleRule = z.infer<typeof simpleRuleSchema>;
 export type Label = z.infer<typeof labelSchema>;
 export type Role = Point["role"];
 export type View = "pupil" | "answer";
@@ -198,9 +211,12 @@ const refsOf = (o: Obj): string[] => {
     case "text":
       return [];
     case "region":
-      return o.rules.flatMap((r) => (r.kind === "distance" ? [r.from] : r.kind === "closer" ? [r.to, r.than] : [r.shape]));
+      return o.rules.flatMap(ruleRefs);
   }
 };
+/** Point and object IDs a shading rule measures from. */
+export const ruleRefs = (r: Rule): string[] =>
+  r.kind === "distance" ? [r.from] : r.kind === "closer" ? [r.to, r.than] : r.kind === "inside" ? [r.shape] : r.rules.flatMap(ruleRefs);
 /** Point and object IDs that this object depends on. */
 export const references = refsOf;
 
@@ -235,24 +251,38 @@ export function validate(input: unknown): Envelope {
   for (const o of d.objects) {
     const what = `${o.type} ${o.id}`;
     if (o.type === "region") {
-      for (const r of o.rules) {
-        const refs = r.kind === "distance" ? [r.from] : r.kind === "closer" ? [r.to, r.than] : [r.shape];
-        for (const ref of refs) {
+      const check = (r: SimpleRule) => {
+        for (const ref of ruleRefs(r)) {
           const target = objects.get(ref);
           if (r.kind === "inside") {
             if (target?.type !== "polygon") throw Error(`${what} needs a polygon for "inside"; ${ref} is not one.`);
-          } else if (!points.has(ref) && target?.type !== "segment")
-            throw Error(`${what} measures from ${ref}; use a point or a segment.`);
+          } else if (r.kind === "distance") {
+            if (!points.has(ref) && target?.type !== "segment" && target?.type !== "polygon")
+              throw Error(`${what} measures from ${ref}; use a point, a segment or a polygon.`);
+          } else if (!points.has(ref) && target?.type !== "segment") throw Error(`${what} measures from ${ref}; use a point or a segment.`);
         }
         if (r.kind === "closer") {
           const kinds = [r.to, r.than].map((x) => (points.has(x) ? "point" : "segment"));
           if (r.to === r.than) throw Error(`${what}: "closer" needs two different points or segments.`);
           if (kinds[0] !== kinds[1]) throw Error(`${what}: "closer" compares two points or two segments.`);
         }
-      }
+      };
+      for (const r of o.rules) if (r.kind === "either") r.rules.forEach(check);
+      else check(r);
       continue;
     }
-    for (const ref of refsOf(o)) point(ref, what);
+    if (o.type === "angle") {
+      // An arm can be a north line at the vertex instead of a point: the angle from north at B in a bearings question.
+      point(o.at, what);
+      for (const arm of [o.from, o.to]) {
+        const north = objects.get(arm);
+        if (north?.type === "north") {
+          if (north.at !== o.at) throw Error(`${what} uses the north line ${arm}, which is at ${north.at}, not at the vertex ${o.at}.`);
+        } else point(arm, what);
+      }
+      const norths = [o.from, o.to].filter((x) => objects.get(x)?.type === "north");
+      if (norths.length === 2) throw Error(`${what} needs at least one arm through a point.`);
+    } else for (const ref of refsOf(o)) point(ref, what);
     if (o.type === "segment" && o.from === o.to) throw Error(`${what} needs two different points.`);
     if (o.type === "bearing" && o.from === o.to) throw Error(`${what} needs two different points.`);
     if (o.type === "angle" && (o.at === o.from || o.at === o.to || o.from === o.to))
@@ -274,8 +304,8 @@ export function validate(input: unknown): Envelope {
     }
     if (o.type === "angle") {
       const v = byId.get(o.at)!;
-      for (const p of [byId.get(o.from)!, byId.get(o.to)!])
-        if (Math.hypot(p.x - v.x, p.y - v.y) < 0.01) throw Error(`angle ${o.id} has a ray of zero length.`);
+      for (const p of [byId.get(o.from), byId.get(o.to)])
+        if (p && Math.hypot(p.x - v.x, p.y - v.y) < 0.01) throw Error(`angle ${o.id} has a ray of zero length.`);
     }
   }
   return e;
@@ -331,13 +361,18 @@ const dir = (deg: number): Vec => ({ x: Math.cos(rad(deg)), y: Math.sin(rad(deg)
 /** Direction of b from a in degrees anticlockwise from east. */
 export const angleOf = (a: Vec, b: Vec) => deg(Math.atan2(b.y - a.y, b.x - a.x));
 const norm360 = (v: number) => ((v % 360) + 360) % 360;
-const round = (v: number, places = 3) => Math.round(v * 10 ** places) / 10 ** places;
+// "+ 0" turns -0 into 0, so saved files compare equal after a round trip.
+const round = (v: number, places = 3) => Math.round(v * 10 ** places) / 10 ** places + 0;
 
 export function distanceToSegment(p: Vec, a: Vec, b: Vec): number {
   const ab = sub(b, a),
     l2 = dot(ab, ab);
   const t = l2 ? Math.max(0, Math.min(1, dot(sub(p, a), ab) / l2)) : 0;
   return dist(p, add(a, mul(ab, t)));
+}
+/** Distance from p to the nearest point of a closed polygon's outline. */
+export function distanceToOutline(p: Vec, poly: Vec[]): number {
+  return Math.min(...poly.map((a, i) => distanceToSegment(p, a, poly[(i + 1) % poly.length])));
 }
 export function insidePolygon(p: Vec, poly: Vec[]): boolean {
   let inside = false;
@@ -630,6 +665,118 @@ export function locusFromSegment(e: Envelope, o: HelperOptions & { a: string; b:
   return finish(dr);
 }
 
+/**
+ * The locus of points a fixed distance from a polygon's outline ("2 m from the fence round the garden"):
+ * outside, a line parallel to each side joined by arcs round the corners; inside, parallel lines meeting
+ * at the corners (arcs round any reflex corner). "both" draws the two. Pieces stay exact: lines and
+ * compass arcs centred on the polygon's corners.
+ */
+export function locusFromPolygon(e: Envelope, o: HelperOptions & { shape: string; distance: number; side?: "outside" | "inside" | "both"; dash?: boolean }): Envelope {
+  const dr = draft(e, "lg", o);
+  const poly = objectById(dr.d, o.shape);
+  if (poly?.type !== "polygon") throw Error(`Polygon ${o.shape} is not in the drawing.`);
+  const pts = poly.points.map((x) => requirePoint(dr.d, x));
+  const k = o.distance,
+    count = pts.length;
+  pts.forEach((p, i) => {
+    const q = pts[(i + 1) % count];
+    if (dist(p, q) < 0.01) throw Error(`Polygon ${o.shape} has two corners in the same place (${p.id} and ${q.id}).`);
+  });
+  for (let i = 0; i < count; i++)
+    for (let j = i + 2; j < count; j++) {
+      if (i === 0 && j === count - 1) continue;
+      const [a, b, c, e2] = [pts[i], pts[i + 1], pts[j], pts[(j + 1) % count]];
+      const side = (p: Vec, q: Vec, r: Vec) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+      if (side(a, b, c) * side(a, b, e2) < 0 && side(c, e2, a) * side(c, e2, b) < 0)
+        throw Error(`The sides of polygon ${o.shape} cross. List its corners in order round the shape.`);
+    }
+  let area = 0;
+  pts.forEach((p, i) => {
+    const q = pts[(i + 1) % count];
+    area += p.x * q.y - q.x * p.y;
+  });
+  if (Math.abs(area) < 1e-6) throw Error(`Polygon ${o.shape} has no area.`);
+  const turn = area > 0 ? 1 : -1; // anticlockwise outline: +1
+  const u = pts.map((p, i) => unit(sub(pts[(i + 1) % count], p)));
+  // Outward normal of side i (from corner i to corner i+1).
+  const out = u.map((v) => mul({ x: v.y, y: -v.x }, turn));
+  const sides = o.side === "both" ? (["outside", "inside"] as const) : ([o.side ?? "outside"] as const);
+  const pieces: { a: Vec; b: Vec }[] = [];
+  const arcs: { c: Point; start: number; sweep: number }[] = [];
+  for (const side of sides) {
+    const s = side === "outside" ? 1 : -1;
+    const tag = side === "outside" ? "o" : "i";
+    // Each side's offset line, trimmed or joined at its two corners.
+    const starts: (Vec | null)[] = Array(count).fill(null),
+      ends: (Vec | null)[] = Array(count).fill(null);
+    const ids: { start?: string; end?: string }[] = Array.from({ length: count }, () => ({}));
+    for (let i = 0; i < count; i++) {
+      const prev = (i + count - 1) % count;
+      const V = pts[i];
+      const n1 = mul(out[prev], s),
+        n2 = mul(out[i], s);
+      const cross = u[prev].x * u[i].y - u[prev].y * u[i].x;
+      if (Math.abs(cross) < 1e-9 && dot(u[prev], u[i]) > 0) {
+        // A straight-through corner: the two lines meet end to end.
+        const X = add(V, mul(n2, k));
+        ends[prev] = X;
+        starts[i] = X;
+        const id = hiddenPoint(dr, `${tag}p${i + 1}`, X);
+        ids[prev].end = id;
+        ids[i].start = id;
+        continue;
+      }
+      const convex = cross * turn > 0;
+      // A turn of under half a degree is drawn as a sharp meeting: an arc that small could not be drawn.
+      const tiny = Math.abs(deg(Math.atan2(cross, dot(u[prev], u[i])))) < 0.5;
+      if (!tiny && convex === (s === 1)) {
+        // The lines leave a gap here: a compass arc round the corner joins them.
+        const a1 = add(V, mul(n1, k)),
+          a2 = add(V, mul(n2, k));
+        ends[prev] = a1;
+        starts[i] = a2;
+        ids[prev].end = hiddenPoint(dr, `${tag}p${i + 1}a`, a1);
+        ids[i].start = hiddenPoint(dr, `${tag}p${i + 1}b`, a2);
+        const start = deg(Math.atan2(n1.y, n1.x));
+        const sweep = deg(Math.atan2(n1.x * n2.y - n1.y * n2.x, dot(n1, n2)));
+        addArc(dr, `${tag}c${i + 1}`, V.id, k, start, sweep);
+        arcs.push({ c: V, start, sweep });
+      } else {
+        // The lines cross here: each stops where they meet.
+        const p1 = add(V, mul(n1, k)),
+          p2 = add(V, mul(n2, k));
+        const den = u[prev].x * u[i].y - u[prev].y * u[i].x;
+        if (Math.abs(den) < 1e-9) throw Error(`Polygon ${o.shape} doubles back on itself at ${V.id}.`);
+        const t = ((p2.x - p1.x) * u[i].y - (p2.y - p1.y) * u[i].x) / den;
+        const X = add(p1, mul(u[prev], t));
+        ends[prev] = X;
+        starts[i] = X;
+        const id = hiddenPoint(dr, `${tag}p${i + 1}`, X);
+        ids[prev].end = id;
+        ids[i].start = id;
+      }
+    }
+    for (let i = 0; i < count; i++) {
+      const a = starts[i]!,
+        b = ends[i]!;
+      // A side whose two ends cross over is shorter than the distance allows.
+      if (dot(sub(b, a), u[i]) <= 0.05) throw Error(`A distance of ${k} cm is too large for the ${side} of polygon ${o.shape}: side ${poly.points[i]}${poly.points[(i + 1) % count]} disappears. Use a smaller distance.`);
+      dr.d.objects.push(segment(`${dr.group}-${tag}s${i + 1}`, ids[i].start!, ids[i].end!, { role: dr.role, group: dr.group, dash: !!o.dash }));
+      pieces.push({ a, b });
+    }
+  }
+  // Every piece must be exactly the distance from the outline; a narrow part of the shape can break that.
+  const outline = pts as Vec[];
+  const samples = [
+    ...pieces.flatMap(({ a, b }) => Array.from({ length: 21 }, (_, j) => add(a, mul(sub(b, a), j / 20)))),
+    ...arcs.flatMap(({ c, start, sweep }) => Array.from({ length: 9 }, (_, j) => add(c, mul(dir(start + (sweep * j) / 8), k)))),
+  ];
+  if (samples.some((v) => distanceToOutline(v, outline) < k - 0.01))
+    throw Error(`A distance of ${k} cm is too large for polygon ${o.shape}: part of the locus comes closer than ${k} cm to another side. Use a smaller distance.`);
+  if (o.dash) for (const ob of dr.d.objects) if (ob.group === dr.group && ob.type === "arc") ob.dash = true;
+  return finish(dr);
+}
+
 /** Adds a point at a bearing and distance (in drawing centimetres) from another point. */
 export function pointByBearing(
   e: Envelope,
@@ -733,6 +880,9 @@ export function setRole(e: Envelope, ids: string[], r: Role): Envelope {
 /* ---------- Layout ---------- */
 
 export const FONT = (11 * 25.4) / 72; // 11 pt in millimetres
+// The same 11 pt as every other label: type is never shrunk below the tool's baseline.
+const NOTE_FONT = FONT;
+export const NOT_ACCURATE = "Diagram NOT accurately drawn";
 const MARGIN = 1.5;
 const STROKE = 0.3;
 const THIN = 0.25;
@@ -745,10 +895,14 @@ type Path = { d: string; width: number; dash: boolean; fill?: boolean };
 
 const COMPASS: Record<Exclude<Point["labelAt"], "auto">, number> = { e: 0, ne: 45, n: 90, nw: 135, w: 180, sw: 225, s: 270, se: 315 };
 
+/** Direction (degrees anticlockwise from east) of an angle's arm: towards a point, or up a north line. */
+function armAngle(d: ConstructionDocument, V: Vec, arm: string) {
+  return objectById(d, arm)?.type === "north" ? 90 : angleOf(V, pointById(d, arm)!);
+}
 function angleSpan(d: ConstructionDocument, a: Of<"angle">) {
   const V = pointById(d, a.at)!,
-    a1 = angleOf(V, pointById(d, a.from)!),
-    a2 = angleOf(V, pointById(d, a.to)!);
+    a1 = armAngle(d, V, a.from),
+    a2 = armAngle(d, V, a.to);
   let start = a1,
     sweep = norm360(a2 - a1);
   if (sweep > 180 !== a.reflex) {
@@ -901,8 +1055,10 @@ function draw(e: Envelope, reserve?: Box) {
           if (o.label.text.trim() && o.label.show === "show") {
             const mid = start + sweep / 2,
               w = textWidth(typeset(o.label.text));
-            const off = offsetFor(w, mid, r + 0.8);
-            placeText(o.label.text, c.x + off.dx, c.y + off.dy + FONT * 0.34, false, false);
+            // A letter for an unknown angle (x, y, or x°) prints in italic, as all maths letters do.
+            const letter = /^[A-Za-z]°?$/.test(o.label.text.trim());
+            const off = offsetFor(letter ? textWidth(typeset(o.label.text), true) : w, mid, r + 0.8);
+            placeText(o.label.text, c.x + off.dx, c.y + off.dy + FONT * 0.34, letter, false);
           }
         }
         break;
@@ -1014,11 +1170,24 @@ function draw(e: Envelope, reserve?: Box) {
   const cap = d.caption;
   // What the pupil copy must reserve for the answers copy: everything but the caption, which is placed after.
   const body: Box = { x1: Math.min(...boxes.map((b) => b.x1)), y1: Math.min(...boxes.map((b) => b.y1)), x2: Math.max(...boxes.map((b) => b.x2)), y2: Math.max(...boxes.map((b) => b.y2)) };
+  const under = Math.max(...boxes.map((b) => b.y2));
   if (cap.text.trim() && cap.show === "show") {
     const w = textWidth(typeset(cap.text)) + 8;
-    const bottom = Math.max(...boxes.map((b) => b.y2));
-    captionBox = { x1: 0, y1: bottom + 3, x2: w, y2: bottom + 3 + FONT + 4 };
+    captionBox = { x1: 0, y1: under + 3, x2: w, y2: under + 3 + FONT + 4 };
     boxes.push(captionBox);
+  }
+  // "Diagram NOT accurately drawn" sits under the drawing on the right, as on Edexcel papers.
+  let noteText: Placed | null = null;
+  if (d.notAccurate) {
+    const w = textWidth(NOT_ACCURATE, false, NOTE_FONT);
+    const right = Math.max(Wmm, w);
+    let y1 = under + 3;
+    // Decided from the saved caption, shown or hidden, so the note sits in the same place on both copies.
+    const capWidth = cap.text.trim() && cap.show !== "omit" ? textWidth(typeset(cap.text)) + 8 : 0;
+    if (capWidth && capWidth + 4 > right - w) y1 = under + 3 + FONT + 4 + 2;
+    const y2 = y1 + NOTE_FONT + 2;
+    boxes.push({ x1: right - w, y1, x2: right, y2 });
+    noteText = { text: NOT_ACCURATE, x: right - w / 2, y: y1 + NOTE_FONT * 0.95, italic: false, hidden: false, width: w };
   }
 
   const left = Math.min(...boxes.map((b) => b.x1)),
@@ -1040,6 +1209,7 @@ function draw(e: Envelope, reserve?: Box) {
     paths,
     texts: texts.map((t) => ({ ...t, x: t.x + dx, y: t.y + dy })),
     marks: marks.map((m) => ({ ...m, x: m.x + dx, y: m.y + dy })),
+    note: noteText && { ...noteText, x: noteText.x + dx, y: noteText.y + dy },
     caption: captionBox && { text: typeset(cap.text), x: captionBox.x1 + dx, y: captionBox.y1 + dy, width: captionBox.x2 - captionBox.x1, height: captionBox.y2 - captionBox.y1 },
     issues,
     notes,
@@ -1061,19 +1231,21 @@ function hatch(d: ConstructionDocument, o: Of<"region">, Wmm: number, Hmm: numbe
   const distTo = (ref: string, v: Vec) => {
     const p = byId.get(ref);
     if (p) return dist(v, p);
+    const poly = polys.get(ref);
+    if (poly) return distanceToOutline(v, poly);
     const s = segs.get(ref)!;
     return distanceToSegment(v, byId.get(s.from)!, byId.get(s.to)!);
   };
-  const holds = (v: Vec) =>
-    o.rules.every((r) => {
-      if (r.kind === "distance") {
-        const k = distTo(r.from, v);
-        return r.side === "within" ? k <= r.distance : k >= r.distance;
-      }
-      if (r.kind === "closer") return distTo(r.to, v) < distTo(r.than, v);
-      const inside = insidePolygon(v, polys.get(r.shape)!);
-      return r.side === "within" ? inside : !inside;
-    });
+  const one = (r: SimpleRule, v: Vec) => {
+    if (r.kind === "distance") {
+      const k = distTo(r.from, v);
+      return r.side === "within" ? k <= r.distance : k >= r.distance;
+    }
+    if (r.kind === "closer") return distTo(r.to, v) < distTo(r.than, v);
+    const inside = insidePolygon(v, polys.get(r.shape)!);
+    return r.side === "within" ? inside : !inside;
+  };
+  const holds = (v: Vec) => o.rules.every((r) => (r.kind === "either" ? r.rules.some((x) => one(x, v)) : one(r, v)));
   const SPACING = 2.5,
     STEP = 0.25;
   const parts: string[] = [];
@@ -1167,6 +1339,8 @@ export function renderSvg(e: Envelope, view: View = "pupil"): string {
     out.push(`<rect x="${n(c.x)}" y="${n(c.y)}" width="${n(c.width)}" height="${n(c.height)}" fill="none" stroke="black" stroke-width="${THIN}"/>`);
     out.push(`<text x="${n(c.x + 4)}" y="${n(c.y + c.height / 2 + FONT * 0.34)}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="black">${esc(c.text)}</text>`);
   }
+  if (g.note)
+    out.push(`<text x="${n(g.note.x)}" y="${n(g.note.y)}" text-anchor="middle" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(NOTE_FONT)}" fill="black">${esc(g.note.text)}</text>`);
   const shown = d.points.filter((p) => p.role === "given" && p.label.text.trim() && p.label.show === "show").map((p) => p.label.text.trim());
   const description = `Construction drawing ${d.width} by ${d.height} cm${shown.length ? ` with points ${shown.join(", ")}` : ""}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(description)}">${out.join("")}</svg>`;

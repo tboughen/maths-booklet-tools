@@ -81,6 +81,9 @@ export const constructionInput = z.discriminatedUnion("type", [
   z.object({ type: z.literal("locus-point"), ...helper, point: id, distance: num.positive(), dash: z.boolean().optional() }).strict(),
   z.object({ type: z.literal("locus-segment"), ...helper, a: id, b: id, distance: num.positive(), dash: z.boolean().optional() }).strict(),
   z
+    .object({ type: z.literal("locus-polygon"), ...helper, shape: id, distance: num.positive(), side: z.enum(["outside", "inside", "both"]).optional(), dash: z.boolean().optional() })
+    .strict(),
+  z
     .object({
       type: z.literal("point-by-bearing"),
       id,
@@ -100,6 +103,8 @@ const drawing = {
   border: z.boolean().optional(),
   caption: text(40).optional(),
   captionHidden: z.boolean().optional(),
+  /** Prints "Diagram NOT accurately drawn" under the drawing. */
+  notAccurate: z.boolean().optional(),
 };
 export const outputViewSchema = z.enum(["pupil", "answer"]);
 export const specSchema = z
@@ -246,6 +251,8 @@ function construct(e: core.Envelope, c: ConstructionInput): core.Envelope {
       return core.locusFromPoint(e, { ...base, point: c.point, distance: c.distance, dash: c.dash });
     case "locus-segment":
       return core.locusFromSegment(e, { ...base, a: c.a, b: c.b, distance: c.distance, dash: c.dash });
+    case "locus-polygon":
+      return core.locusFromPolygon(e, { ...base, shape: c.shape, distance: c.distance, side: c.side, dash: c.dash });
     case "point-by-bearing":
       return core.pointByBearing(e, { id: c.id, from: c.from, bearing: c.bearing, distance: c.distance, label: c.label, mark: c.mark, role: role(c.answer, core.pointById(e.document, c.from)?.role === "answer" ? "answer" : "given") });
   }
@@ -259,6 +266,7 @@ function setDrawing(e: core.Envelope, s: Partial<Record<keyof typeof drawing, un
   if (s.border !== undefined) d.border = s.border as boolean;
   if (s.caption !== undefined) d.caption.text = s.caption as string;
   if (s.captionHidden !== undefined) d.caption.show = s.captionHidden ? "hidden" : "show";
+  if (s.notAccurate !== undefined) d.notAccurate = s.notAccurate ? true : undefined;
   return core.validate(n);
 }
 const APPLIES: Record<core.Obj["type"], string[]> = {

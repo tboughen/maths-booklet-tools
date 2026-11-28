@@ -241,6 +241,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     border: "Whether a border is drawn round the drawing area.",
     caption: "Text in a box under the drawing, such as \"Scale: 1 cm represents 4 km.\"",
     captionHidden: "true leaves the caption for the answers copy only.",
+    notAccurate: "true prints \"Diagram NOT accurately drawn\" under the drawing, for bearings and angle diagrams that are not to scale.",
     points: "Named points with x and y in centimetres from the bottom-left corner.",
     objects: "Segments, arcs, angles, north lines, bearings, polygons, text and shaded regions.",
     constructions: "Ruler-and-compasses helpers that draw their arcs; answer:true (default) shows them only on the answers copy.",

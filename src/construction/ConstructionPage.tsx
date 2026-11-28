@@ -34,6 +34,8 @@ import {
   layout,
   locusFromPoint,
   locusFromSegment,
+  locusFromPolygon,
+  MAX_EITHER,
   MAX_POINTS,
   measureAngle,
   measureBearing,
@@ -56,6 +58,7 @@ import {
   type Obj,
   type Point,
   type Role,
+  type SimpleRule,
 } from "../../packages/construction-core/src";
 import { LINK_PREFIX, constructionLink, parseConstructionLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
@@ -149,6 +152,7 @@ const CONSTRUCTIONS = {
   "perpendicular-at-point": { name: "Perpendicular at a point on a line", needs: ["point", "a", "b"], labels: ["Point on the line", "Line from", "Line to"] },
   "locus-point": { name: "Locus: fixed distance from a point", needs: ["point"], labels: ["Point"], distance: true },
   "locus-segment": { name: "Locus: fixed distance from a line", needs: ["a", "b"], labels: ["Line from", "Line to"], distance: true },
+  "locus-polygon": { name: "Locus: fixed distance from a shape's edge", needs: [], labels: [], distance: true, shape: true },
   "point-by-bearing": { name: "Point on a bearing", needs: ["from"], labels: ["From"], distance: true, bearing: true },
 } as const;
 type ConstructionType = keyof typeof CONSTRUCTIONS;
@@ -159,20 +163,24 @@ const OBJECTS = {
   circle: { name: "Circle", needs: ["center"], labels: ["Centre"], radius: true },
   angle: { name: "Angle mark", needs: ["at", "from", "to"], labels: ["Vertex", "Arm through", "Arm through"] },
   right: { name: "Right-angle mark", needs: ["at", "from", "to"], labels: ["Vertex", "Arm through", "Arm through"] },
+  "north-angle": { name: "Angle from the north line", needs: ["at", "to"], labels: ["Vertex (with a north line)", "Arm through"] },
   north: { name: "North line", needs: ["at"], labels: ["At"] },
+  polygon: { name: "Shape (joins corners in order)", needs: [], labels: [], corners: true },
   bearing: { name: "Bearing (arc from north)", needs: ["from", "to"], labels: ["From", "To"] },
 } as const;
 type ObjectType = keyof typeof OBJECTS;
 
 /** How a saved object reads in the list. */
-function describe(o: Obj): string {
+function describe(o: Obj, objects: Obj[] = []): string {
   switch (o.type) {
     case "segment":
       return o.extend[0] || o.extend[1] ? `Line through ${o.from} and ${o.to}` : `Segment ${o.from}${o.to}`;
     case "arc":
       return Math.abs(o.sweep) >= 360 ? `Circle, centre ${o.center}, radius ${o.radius} cm` : `Arc, centre ${o.center}`;
-    case "angle":
-      return `${o.style === "right" ? "Right angle" : "Angle"} ${o.from}${o.at}${o.to}`;
+    case "angle": {
+      const arm = (x: string) => (objects.some((n) => n.id === x && n.type === "north") ? "N" : x);
+      return `${o.style === "right" ? "Right angle" : "Angle"} ${arm(o.from)}${o.at}${arm(o.to)}`;
+    }
     case "north":
       return `North line at ${o.at}`;
     case "bearing":
@@ -185,6 +193,8 @@ function describe(o: Obj): string {
       return "Shaded region";
   }
 }
+const ruleText = (r: SimpleRule) =>
+  r.kind === "distance" ? `${r.side} ${r.distance} cm of ${r.from}` : r.kind === "closer" ? `closer to ${r.to} than ${r.than}` : `${r.side} ${r.shape}`;
 const GROUP_NAMES: Record<string, string> = {
   pb: "Perpendicular bisector",
   ab: "Angle bisector",
@@ -192,6 +202,7 @@ const GROUP_NAMES: Record<string, string> = {
   pa: "Perpendicular at a point",
   lp: "Locus round a point",
   ls: "Locus round a line",
+  lg: "Locus round a shape",
 };
 const groupName = (g: string) => `${GROUP_NAMES[g.replace(/\d+$/, "")] ?? "Construction"} (${g})`;
 
@@ -222,7 +233,10 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
   const [oType, setOType] = useState<ObjectType>("segment"),
     [oPoints, setOPoints] = useState<string[]>([]),
     [oRadius, setORadius] = useState("3"),
-    [oAnswer, setOAnswer] = useState(false);
+    [oAnswer, setOAnswer] = useState(false),
+    [oCorners, setOCorners] = useState("");
+  const [cShape, setCShape] = useState(""),
+    [cSide, setCSide] = useState<"outside" | "inside" | "both">("outside");
   const [scale, setScale] = useState({ cm: "1", per: "1", unit: "cm" });
   const [rule, setRule] = useState({ kind: "distance" as "distance" | "closer", from: "", distance: "2", side: "within" as "within" | "beyond", to: "", than: "", answer: true });
   const file = useRef<HTMLInputElement>(null),
@@ -238,6 +252,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
   const groups = [...new Set([...d.points, ...d.objects].map((x) => x.group).filter((x): x is string => !!x))];
   const ownPoints = d.points.filter((p) => !p.group);
   const segments = d.objects.filter((o): o is Extract<Obj, { type: "segment" }> => o.type === "segment" && !o.group);
+  const polygons = d.objects.filter((o): o is Extract<Obj, { type: "polygon" }> => o.type === "polygon" && !o.group);
   const pointName = (p: Point) => (p.label.text.trim() && p.label.text.trim() !== p.id ? `${p.label.text} (${p.id})` : p.id);
   useEffect(() => {
     if (boxAnchor && (!selectedPoint || !boxAnchor.isConnected)) setBoxAnchor(null);
@@ -415,8 +430,14 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
   }
   function addObject() {
     const spec = OBJECTS[oType];
-    const pts = spec.needs.map((_, i) => oPoints[i]);
+    const pts: string[] = spec.needs.map((_, i) => oPoints[i]);
     if (pts.some((p) => !p)) return setMessage(`Choose ${spec.needs.length === 1 ? "a point" : "every point"} for the ${spec.name.toLowerCase()}.`);
+    const corners = oCorners.split(/[\s,]+/).filter(Boolean);
+    if (oType === "polygon" && (corners.length < 3 || corners.length > 12)) return setMessage("Type 3 to 12 corners in order, for example A B C D.");
+    const missing = corners.find((c) => !d.points.some((p) => p.id === c));
+    if (oType === "polygon" && missing) return setMessage(`There is no point ${missing}. Use point names from the list, for example A B C D.`);
+    const north = d.objects.find((o) => o.type === "north" && o.at === pts[0]);
+    if (oType === "north-angle" && !north) return setMessage(`Add a north line at ${pts[0]} first.`);
     const role: Role = oAnswer ? "answer" : "given";
     const n = structuredClone(e),
       doc = n.document;
@@ -428,15 +449,21 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
       made = arc(freshId(doc, "c"), pts[0], r, 0, 360, { role });
     } else if (oType === "angle" || oType === "right")
       made = { id: freshId(doc, "angle"), type: "angle", at: pts[0], from: pts[1], to: pts[2], style: oType === "right" ? "right" : "arc", reflex: false, label: makeLabel(""), role };
+    else if (oType === "north-angle") made = { id: freshId(doc, "angle"), type: "angle", at: pts[0], from: north!.id, to: pts[1], style: "arc", reflex: false, label: makeLabel(""), role };
+    else if (oType === "polygon") made = { id: freshId(doc, "shape"), type: "polygon", points: corners, dash: false, role };
     else if (oType === "north") made = { id: freshId(doc, "north"), type: "north", at: pts[0], length: 2, role };
     else made = { id: freshId(doc, "bearing"), type: "bearing", from: pts[0], to: pts[1], northLine: true, label: makeLabel(""), role };
     doc.objects.push(made);
-    if (commit(n, `add ${spec.name.toLowerCase()}`)) setOPoints([]);
+    if (commit(n, `add ${spec.name.toLowerCase()}`)) {
+      setOPoints([]);
+      setOCorners("");
+    }
   }
   function addConstruction() {
     const spec = CONSTRUCTIONS[cType];
-    const pts = spec.needs.map((_, i) => cPoints[i]);
+    const pts: string[] = spec.needs.map((_, i) => cPoints[i]);
     if (pts.some((p) => !p)) return setMessage(`Choose every point for the ${spec.name.toLowerCase()}.`);
+    if ("shape" in spec && !cShape) return setMessage("Choose the shape whose edge the locus follows.");
     const role: Role = cShown ? "given" : "answer";
     const distance = parseNumber(cDistance);
     if ("distance" in spec && (distance === null || distance <= 0)) return setMessage("Type the distance in centimetres on the drawing, for example 3.");
@@ -454,6 +481,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
           return locusFromPoint(e, { point: pts[0], distance: distance!, role });
         case "locus-segment":
           return locusFromSegment(e, { a: pts[0], b: pts[1], distance: distance!, role });
+        case "locus-polygon":
+          return locusFromPolygon(e, { shape: cShape, distance: distance!, side: cSide, role });
         case "point-by-bearing": {
           const b = parseNumber(cBearing);
           if (b === null || b < 0 || b >= 360) throw Error("Type a bearing from 000 to 359.");
@@ -480,6 +509,19 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
       role: rule.answer ? "answer" : "given",
     });
     commit(n, "add shaded region");
+  }
+  /** Lets the region's last condition be met OR the condition below (up to four choices). */
+  function widenRegion(id: string) {
+    const ok = rule.kind === "distance" ? rule.from && parseNumber(rule.distance) !== null : rule.to && rule.than && rule.to !== rule.than;
+    if (!ok) return setMessage("Set the other condition first.");
+    const extra: SimpleRule = rule.kind === "distance" ? { kind: "distance", from: rule.from, distance: parseNumber(rule.distance)!, side: rule.side } : { kind: "closer", to: rule.to, than: rule.than };
+    patch((n) => {
+      const r = n.objects.find((o) => o.id === id);
+      if (r?.type !== "region") return;
+      const last = r.rules[r.rules.length - 1];
+      if (last.kind === "either") last.rules.push(extra);
+      else r.rules[r.rules.length - 1] = { kind: "either", rules: [last, extra] };
+    }, "widen region");
   }
   /** Adds a second rule to the latest region, so it hatches only where both hold. */
   function narrowRegion(id: string) {
@@ -815,11 +857,11 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
             <FoldCard tool="construction" title="Lines and marks" icon={PenLine} defaultOpen summary={(() => { const k = d.objects.filter((o) => !o.group && o.type !== "region").length; return k === 0 ? "None yet" : k === 1 ? "1 line or mark" : `${k} lines and marks`; })()}>
               {d.objects.filter((o) => !o.group && o.type !== "region").map((o) => (
                 <div key={o.id} className="cn-item">
-                  <span>{describe(o)}</span>
+                  <span>{describe(o, d.objects)}</span>
                   {"label" in o && o.type !== "text" && (
                     <span className="cn-inline">
                       Label
-                      <DraftField label={`Label for ${describe(o)}`} value={o.label.text} disabled={blocked} maxLength={40} onCommit={(v) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { text: string } }).label.text = v))} />
+                      <DraftField label={`Label for ${describe(o, d.objects)}`} value={o.label.text} disabled={blocked} maxLength={40} onCommit={(v) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { text: string } }).label.text = v))} />
                       <label className="pt-hide">
                         <input type="checkbox" disabled={blocked} checked={o.label.show === "hidden"} onChange={(ev) => patch((n) => void ((n.objects.find((x) => x.id === o.id) as { label: { show: string } }).label.show = ev.target.checked ? "hidden" : "show"))} />
                         {o.label.show === "omit" ? "Pupil space (left out now)" : "Pupil space"}
@@ -861,6 +903,12 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                     </select>
                   </label>
                 ))}
+                {"corners" in OBJECTS[oType] && (
+                  <label className="pt-wide">
+                    Corners in order
+                    <input aria-label="Corners of the shape in order" value={oCorners} placeholder="A B C D" disabled={blocked} onChange={(ev) => setOCorners(ev.target.value)} />
+                  </label>
+                )}
                 {"radius" in OBJECTS[oType] && (
                   <label>
                     Radius (cm)
@@ -917,6 +965,29 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                     </select>
                   </label>
                 ))}
+                {"shape" in CONSTRUCTIONS[cType] && (
+                  <>
+                    <label>
+                      Shape
+                      <select aria-label="Shape whose edge the locus follows" value={cShape} disabled={blocked} onChange={(ev) => setCShape(ev.target.value)}>
+                        <option value="">Choose</option>
+                        {polygons.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.points.join("")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Side
+                      <select aria-label="Inside or outside the shape" value={cSide} disabled={blocked} onChange={(ev) => setCSide(ev.target.value as typeof cSide)}>
+                        <option value="outside">Outside</option>
+                        <option value="inside">Inside</option>
+                        <option value="both">Both</option>
+                      </select>
+                    </label>
+                  </>
+                )}
                 {"distance" in CONSTRUCTIONS[cType] && (
                   <label>
                     Distance on the drawing (cm)
@@ -951,9 +1022,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 <div key={o.id} className="cn-item">
                   <span>
                     Shaded where{" "}
-                    {o.rules
-                      .map((r) => (r.kind === "distance" ? `${r.side} ${r.distance} cm of ${r.from}` : r.kind === "closer" ? `closer to ${r.to} than ${r.than}` : `${r.side} ${r.shape}`))
-                      .join(" and ")}
+                    {o.rules.map((r) => (r.kind === "either" ? `(${r.rules.map(ruleText).join(" or ")})` : ruleText(r))).join(" and ")}
                   </span>
                   <span className="pt-row">
                     <label className="pt-hide">
@@ -962,6 +1031,9 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                     </label>
                     <button type="button" disabled={blocked || o.rules.length >= 6} onClick={() => narrowRegion(o.id)}>
                       Also require the condition below
+                    </button>
+                    <button type="button" disabled={blocked || (o.rules[o.rules.length - 1].kind === "either" && (o.rules[o.rules.length - 1] as { rules: unknown[] }).rules.length >= MAX_EITHER)} onClick={() => widenRegion(o.id)}>
+                      Or the condition below
                     </button>
                     <button type="button" disabled={blocked} onClick={() => commit(() => remove(e, [o.id]), "remove region")}>
                       Remove
@@ -973,7 +1045,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 <label className="pt-wide">
                   Condition
                   <select aria-label="Shading condition" value={rule.kind} disabled={blocked} onChange={(ev) => setRule({ ...rule, kind: ev.target.value as "distance" | "closer" })}>
-                    <option value="distance">Distance from a point or line</option>
+                    <option value="distance">Distance from a point, line or shape's edge</option>
                     <option value="closer">Closer to one than another</option>
                   </select>
                 </label>
@@ -994,6 +1066,11 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                       Of
                       <select aria-label="Point or line to measure from" value={rule.from} disabled={blocked} onChange={(ev) => setRule({ ...rule, from: ev.target.value })}>
                         {refOptions}
+                        {polygons.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            Edge of shape {s.points.join("")}
+                          </option>
+                        ))}
                       </select>
                     </label>
                   </>
@@ -1086,6 +1163,10 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               <label className="pt-hide">
                 <input type="checkbox" disabled={blocked} checked={d.border} onChange={(ev) => patch((n) => void (n.border = ev.target.checked))} />
                 Border round the drawing area
+              </label>
+              <label className="pt-hide">
+                <input type="checkbox" disabled={blocked} checked={!!d.notAccurate} onChange={(ev) => patch((n) => void (n.notAccurate = ev.target.checked ? true : undefined), ev.target.checked ? "mark not accurately drawn" : "mark drawn to scale")} />
+                Print “Diagram NOT accurately drawn”
               </label>
               <VisibilitySwitch name="Scale caption: what pupils see" caption="Scale caption" value={d.caption.show} disabled={blocked || !d.caption.text.trim()} onChange={(v) => patch((n) => void (n.caption.show = v), visibilityStep(v, "the scale caption"))} />
               <h3>Scale for measuring lengths</h3>

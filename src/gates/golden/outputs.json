@@ -2060,6 +2060,20 @@
    "png600": "2906x1972",
    "pixels": "96841ab202d88d7c"
   },
+  "constructions: construction-bearings-parallel": {
+   "json": "6515e56572526b97",
+   "svg": "123aa2b68187b2a2",
+   "mm": "123x101.9",
+   "png600": "2906x2407",
+   "pixels": "66ef8f3989155350"
+  },
+  "constructions: construction-bearings-parallel (worked)": {
+   "json": "6515e56572526b97",
+   "svg": "123aa2b68187b2a2",
+   "mm": "123x101.9",
+   "png600": "2906x2407",
+   "pixels": "66ef8f3989155350"
+  },
   "constructions: construction-bearings-port": {
    "json": "a82fa82a565d3ff9",
    "svg": "5f4e134abc74b409",
@@ -2087,6 +2101,20 @@
    "mm": "123x93.9",
    "png600": "2906x2218",
    "pixels": "9c01fa3ac7b82e5d"
+  },
+  "constructions: construction-loci-pond": {
+   "json": "6ddf5000e03f0047",
+   "svg": "39ae796f915e7761",
+   "mm": "113x93.9",
+   "png600": "2669x2218",
+   "pixels": "1f56eeecc68f3d8e"
+  },
+  "constructions: construction-loci-pond (worked)": {
+   "json": "036e959f5de16526",
+   "svg": "16a0aaa289ccefbe",
+   "mm": "113x93.9",
+   "png600": "2669x2218",
+   "pixels": "3df424f29244d898"
   },
   "constructions: construction-locus-segment": {
    "json": "1928b2f8528d991a",
