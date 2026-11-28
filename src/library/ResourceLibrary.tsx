@@ -110,7 +110,7 @@ export default function ResourceLibrary({ active = true }: { active?: boolean })
       <main className="resource-library" id="main-content" tabIndex={-1}>
         <PageHeading title="Resource library" description="Every booklet we have made, by year and unit, at its newest version. Send a colleague a unit's link: they sign in with their school email.">
           {/* Its own colour and place, apart from the Shelves and Map switch (Tim, 27 Nov). */}
-          <button type="button" className="library-cover-button" aria-pressed={state.view === "cover"} onClick={() => setState({ view: "cover", q: "" })}><CalendarPlus size={16} aria-hidden="true" />Request cover booklet</button>
+          <button type="button" className="library-cover-button" aria-pressed={state.view === "cover"} onClick={() => setState({ view: "cover", q: "" })}><CalendarPlus size={16} aria-hidden="true" />Cover</button>
         </PageHeading>
         <div className="library-controls">
           <label className="library-search">

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { strToU8, zipSync } from "fflate";
-import { coverLibrary, coverPlan, coverSuggestions, isCoverWork, nextSchoolDay, officeText, planSentence, ukDay, type CoverLogEntry } from "./cover";
+import { buildProgress, coverLibrary, coverPlan, sparxCodes, coverSuggestions, isCoverWork, nextSchoolDay, officeText, planSentence, ukDay, type CoverLogEntry } from "./cover";
 import type { Library, Resource } from "./model";
 
 const lessons = (unit: string, n: number) => Array.from({ length: n }, (_, i) => ({ code: `${unit}.${String(i + 1).padStart(2, "0")}`, title: `${unit} lesson ${i + 1}` }));
@@ -58,16 +58,19 @@ describe("the Cover library", () => {
     expect(isCoverWork({ unit: "A7", note: "Cover lesson" })).toBe(false);
   });
 
-  it("merges requests with their booklets, most recent lesson date first, folding entries over 7 days old", () => {
+  it("merges requests with their booklets and groups them by the date the cover is for", () => {
     const resources = [res("built-41", "Cover request #41. Class 10X2, room M4, 2026-12-09."), res("a7-hand", "Cover lesson, 2026-11-26", "2026-11-26"), res("gone-30", "Cover request #30"), res("mock", "Mock revision")];
-    const { recent, older } = coverLibrary([req(42, "2026-12-11", "building"), req(41, "2026-12-09"), req(30, "2026-12-08"), req(29, null, "stopped")], resources, new Set(["gone-30"]), now);
-    expect(recent.map((e) => [e.key, e.date, e.state])).toEqual([["q42", "2026-12-11", "building"], ["q41", "2026-12-09", "ready"]]);
-    expect(recent[1].resource?.id).toBe("built-41");
+    const { today, coming, recent, older } = coverLibrary([req(44, "2026-12-14"), req(43, "2026-12-10", "building"), req(42, "2026-12-11", "building"), req(41, "2026-12-09"), req(30, "2026-12-08"), req(29, null, "stopped")], resources, new Set(["gone-30"]), now);
+    expect(today.map((e) => e.key)).toEqual(["q43"]);
+    expect(coming.map((e) => [e.key, e.date])).toEqual([["q42", "2026-12-11"], ["q44", "2026-12-14"]]);
+    expect(recent.map((e) => [e.key, e.date, e.state])).toEqual([["q41", "2026-12-09", "ready"]]);
+    expect(recent[0].resource?.id).toBe("built-41");
     expect(older.map((e) => [e.key, e.date, e.state, e.className])).toEqual([["q29", "2026-12-01", "stopped", "10X2"], ["a7-hand", "2026-11-26", "ready", null]]);
   });
 
   it("still lists a built booklet when its request is no longer in the log, reading class, room and date from its note", () => {
     const { recent } = coverLibrary([], [res("built-7", "Cover request #7. Class 9H1, room Science Lab 3, 2026-12-07.")], new Set(), now);
+    expect(recent[0].asked).toBeNull();
     expect(recent.map((e) => [e.number, e.className, e.room, e.date])).toEqual([[7, "9H1", "Science Lab 3", "2026-12-07"]]);
   });
 
@@ -75,5 +78,20 @@ describe("the Cover library", () => {
     expect(nextSchoolDay(new Date(2026, 10, 27, 7))).toBe("2026-11-30");
     expect(nextSchoolDay(new Date(2026, 10, 24, 7))).toBe("2026-11-25");
     expect(ukDay("2026-11-28")).toBe("Sat 28 Nov");
+  });
+});
+
+describe("the build bar and Sparx codes", () => {
+  it("fills to 90% over 16 minutes, then says it is taking longer", () => {
+    const start = Date.parse("2026-12-10T09:00:00Z");
+    expect(buildProgress("2026-12-10T09:00:00Z", start)).toEqual({ fraction: 0, words: "About 16 minutes left" });
+    expect(buildProgress("2026-12-10T09:00:00Z", start + 8 * 60000)).toEqual({ fraction: 0.45, words: "About 8 minutes left" });
+    expect(buildProgress("2026-12-10T09:00:00Z", start + 15.5 * 60000).words).toBe("About 1 minute left");
+    expect(buildProgress("2026-12-10T09:00:00Z", start + 40 * 60000)).toEqual({ fraction: 0.9, words: "Taking longer than usual, nearly there" });
+  });
+  it("names Sparx codes in the check", () => {
+    expect(sparxCodes("Revise Sparx codes: u449, U638 and U449")).toEqual(["U449", "U638"]);
+    expect(planSentence(coverPlan(list, 10, "Sparx U449, U638"), "Year 10 Foundation", null, "Sparx U449, U638")).toBe("I'll make one cover lesson for Year 10 Foundation revising Sparx U449, U638.");
+    expect(planSentence(coverPlan(list, 10, "NP17 lesson 1 and U449"), "Year 10 Foundation", null, "NP17 lesson 1 and U449")).toBe("I'll make one cover lesson for Year 10 Foundation revising NP17.01: NP17 lesson 1, with Sparx U449.");
   });
 });

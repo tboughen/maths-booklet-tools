@@ -226,7 +226,7 @@ test("a teacher gives the class, room and date, describes a cover lesson, checks
   await expect(main.locator(".cover-log").getByRole("heading", { name: "Cover library" })).toBeVisible();
   await expect(main.locator(".cover-log")).toContainText("Ann Lee");
   // The date starts on the next weekday.
-  const date = form.getByLabel("Date");
+  const date = form.getByLabel("Cover for (date)");
   const next = await date.inputValue();
   expect(new Date(`${next}T12:00:00`).getDay()).not.toBe(0);
   expect(new Date(`${next}T12:00:00`).getDay()).not.toBe(6);
@@ -238,20 +238,26 @@ test("a teacher gives the class, room and date, describes a cover lesson, checks
   await form.getByRole("checkbox", { name: "This is cover work for myself or a colleague." }).check();
   // Class and room are required before it builds.
   await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
-  await form.getByLabel("Class (e.g. 10X2)").fill("10X2");
+  await form.getByLabel("Class", { exact: true }).fill("10X2");
   await expect(form.getByRole("button", { name: "Check and build" })).toBeDisabled();
   await expect(form).toContainText("Give the room.");
-  await form.getByLabel("Room (e.g. M4)").fill("M4");
-  await form.getByRole("button", { name: "Check and build" }).click();
-  const check = form.getByRole("region", { name: "Check before building" });
-  await expect(check).toContainText("Year 10 Foundation revising NP17.01 to NP17.03");
+  await form.getByLabel("Room", { exact: true }).fill("M4");
+  // The check shows live under the box; one press builds (Tim, 28 Nov: tick, Check and build, done).
+  await expect(form.locator(".cover-plan")).toContainText("Year 10 Foundation revising NP17.01 to NP17.03");
+  await expect(form).not.toContainText("Requests are logged.");
+  // The notes sit behind (i) tips that open on a tap.
+  const tip = form.getByRole("button", { name: "What you can ask for" });
+  await tip.click();
+  await expect(form.locator(".cover-tip.is-open .cover-tip-box")).toBeVisible();
+  await expect(form.locator(".cover-tip.is-open .cover-tip-box")).toContainText("Sparx codes");
   await page.screenshot({ path: test.info().outputPath("library-cover.png") });
-  await check.getByRole("button", { name: "Yes, build it" }).click();
+  await tip.click();
+  await form.getByRole("button", { name: "Check and build" }).click();
   await expect(form.getByRole("status")).toContainText("Building your cover booklet now");
   expect(sent).toEqual([{ year: 10, tier: "Foundation", className: "10X2", room: "M4", date: next, absent: true, text: "We're on NP17, lesson 3. Revise the lessons so far.", plan: expect.stringContaining("NP17.01 to NP17.03"), attachment: null }]);
-  const first = main.locator(".cover-log li").first();
+  const first = main.locator(".cover-log li", { hasText: "Class 10X2" });
   await expect(first).toContainText("Class 10X2 · Room M4");
-  await expect(first).toContainText("You");
+  await expect(first).toContainText("asked by you");
   await page.screenshot({ path: test.info().outputPath("library-cover-sent.png") });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
@@ -265,7 +271,8 @@ test("cover booklets live only in the Cover library: newest date first, PDFs, a 
   const cover = (id: string, title: string, note: string) => ({ id, year: 9, unit: "REVIEW", version: "Main", title, type: "revision-lesson", status: "waiting", updated: day(-1), note, files: [pdf(id, "pupil"), pdf(id, "answers")], history: [] });
   data.resources.push(cover("y9-cover-41", "Cover lesson 41", `Cover request #41. Class 9H1, room M4, ${day(1)}.`), cover("y9-cover-30", "Cover lesson 30", "Cover lesson, 2026-11-01"));
   const log = [{ number: 41, when: new Date().toISOString(), year: 9, tier: "Higher", className: "9H1", room: "M4", date: day(1), who: "Ann Lee", mine: false, text: "Mock revision", state: "ready" },
-    { number: 42, when: new Date().toISOString(), year: 10, tier: "Foundation", className: "10X2", room: "S2", date: day(3), who: "Sam Jones", mine: true, text: "NP17", state: "building" }];
+    { number: 42, when: new Date().toISOString(), year: 10, tier: "Foundation", className: "10X2", room: "S2", date: day(3), who: "Sam Jones", mine: true, text: "NP17", state: "waiting" },
+    { number: 43, when: new Date(Date.now() - 6 * 60000).toISOString(), since: new Date(Date.now() - 4 * 60000).toISOString(), year: 11, tier: "Foundation", className: "11F3", room: "S1", date: day(0), who: "Sam Jones", mine: true, text: "Mock Paper 3", state: "building" }];
   const sent: Sent[] = [];
   let removed: string[] = [];
   await page.route("**/api/library/cover*", async (route) => {
@@ -281,36 +288,43 @@ test("cover booklets live only in the Cover library: newest date first, PDFs, a 
   const { main } = await open(page, "/library?year=9&unit=REVIEW", { list: JSON.stringify(data) });
   await expect(main).not.toContainText("Cover lesson 41");
   await expect(main.getByRole("button", { name: /Delete cover/ })).toHaveCount(0);
-  await main.getByRole("button", { name: "Request cover booklet" }).click();
+  await main.getByRole("button", { name: "Cover", exact: true }).click();
   const lib = main.locator(".cover-log");
-  const items = lib.locator(":scope > ul > li");
+  // Grouped by the date the cover is for: today, then coming up soonest first.
+  const todayItems = lib.getByRole("region", { name: "Today" }).locator("li");
+  await expect(todayItems).toHaveCount(1);
+  await expect(todayItems.first()).toContainText("Class 11F3 · Room S1");
+  await expect(todayItems.first().getByRole("progressbar", { name: "Building" })).toBeVisible();
+  await expect(todayItems.first()).toContainText(/About 1[12] minutes left/);
+  const items = lib.getByRole("region", { name: "Coming up" }).locator("li");
   await expect(items).toHaveCount(2);
-  await expect(items.nth(0)).toContainText("Class 10X2 · Room S2");
-  await expect(items.nth(0)).toContainText("Building");
-  await expect(items.nth(1)).toContainText("Class 9H1 · Room M4");
-  await expect(items.nth(1)).toContainText("Ready");
-  await expect(items.nth(1).getByRole("link", { name: "Pupil PDF" })).toHaveAttribute("href", /y9-cover-41_pupil\.pdf$/);
-  await expect(items.nth(1).getByRole("link", { name: "Answers PDF" })).toHaveAttribute("href", /y9-cover-41_answers\.pdf$/);
+  await expect(items.nth(0)).toContainText("Class 9H1 · Room M4");
+  await expect(items.nth(0)).toContainText("Ready");
+  await expect(items.nth(1)).toContainText("Class 10X2 · Room S2");
+  await expect(items.nth(1)).toContainText("Saved, waiting to start");
+  await expect(items.nth(0)).toContainText("Cover for");
+  await expect(items.nth(0).getByRole("link", { name: "Pupil PDF" })).toHaveAttribute("href", /y9-cover-41_pupil\.pdf$/);
+  await expect(items.nth(0).getByRole("link", { name: "Answers PDF" })).toHaveAttribute("href", /y9-cover-41_answers\.pdf$/);
   const older = lib.locator(".cover-older");
-  await expect(older.locator("summary")).toHaveText("Older cover booklets (1)");
+  await expect(older.locator("summary")).toHaveText("Older cover (1)");
   await older.locator("summary").click();
   await expect(older).toContainText("Sun 1 Nov");
   await page.screenshot({ path: test.info().outputPath("cover-library.png") });
-  await items.nth(1).getByRole("button", { name: "Delete cover booklet" }).click();
-  await items.nth(1).getByRole("button", { name: "Yes, delete it" }).click();
+  await items.nth(0).getByRole("button", { name: "Delete cover booklet" }).click();
+  await items.nth(0).getByRole("button", { name: "Yes, delete it" }).click();
   await expect(lib).not.toContainText("Class 9H1");
   expect(sent).toEqual([{ action: "remove", id: "y9-cover-41" }]);
   // Search never finds cover work.
   await main.getByRole("searchbox").fill("Cover lesson 30");
-  await expect(main).not.toContainText("Older cover booklets");
+  await expect(main).not.toContainText("Older cover (");
   await expect(main).toContainText("Nothing matches “Cover lesson 30”");
 });
 
-test("Request cover booklet sits top right in its own colour, apart from Shelves and Map", async ({ page }) => {
+test("the Cover button sits top right in its own colour, apart from Shelves and Map", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.route("**/api/library/cover*", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ requests: [], building: false, removed: [], canDelete: false }) }));
   const { main } = await open(page);
-  const button = main.getByRole("button", { name: "Request cover booklet" });
+  const button = main.getByRole("button", { name: "Cover", exact: true });
   await expect(main.getByRole("group", { name: "View" }).getByRole("button")).toHaveText(["Shelves", "Map"]);
   await expect(button).toHaveCSS("color", "rgb(11, 110, 117)");
   const box = (await button.boundingBox())!, views = (await main.getByRole("group", { name: "View" }).boundingBox())!;

@@ -14,6 +14,7 @@ export const COVER_FILE_MAX_BYTES = 15 * 1024 * 1024;
 /** The suggestions that fill the box: the teacher completes the gaps. Never "starter", which means something else in teaching. */
 export const coverSuggestions = [
   { label: "Revise our unit up to a lesson", text: "We're on unit … , lesson … . Revise the lessons so far." },
+  { label: "Sparx codes", text: "Revise Sparx codes: … " },
   { label: "Mock revision", text: "Mock revision for Paper … ." },
   { label: "Use the file I've attached", text: "Revise the topics in the file I've attached." },
 ] as const;
@@ -58,9 +59,14 @@ export function coverPlan(list: Library, year: number, text: string, upTo?: stri
   return { unit, lessons: all.filter((l) => lessonNo(l.code) <= lessonNo(chosen.code)), upTo: chosen.code, needsLesson: false };
 }
 
-/** The one-line check the teacher confirms, which also goes in the request for the build. */
-export function planSentence(plan: CoverPlan, group: string, attachment: string | null): string {
-  const file = attachment ? `, using the attached file (${attachment})` : "";
+/** Sparx codes named in the description (U449, u638), upper-cased, in order, once each. */
+export const sparxCodes = (text: string): string[] => [...new Set([...text.matchAll(/\bU\d{3}\b/gi)].map((m) => m[0].toUpperCase()))];
+
+/** The one-line check shown under the description, which also goes in the request for the build. */
+export function planSentence(plan: CoverPlan, group: string, attachment: string | null, text = ""): string {
+  const codes = sparxCodes(text);
+  const file = (codes.length ? `, with Sparx ${codes.join(", ")}` : "") + (attachment ? `, using the attached file (${attachment})` : "");
+  if (!plan.unit && codes.length) return `I'll make one cover lesson for ${group} revising Sparx ${codes.join(", ")}${attachment ? `, using the attached file (${attachment})` : ""}.`;
   if (!plan.unit) return `I'll make one cover lesson for ${group} from your description${file}.`;
   if (!plan.lessons.length) return `I'll make one cover lesson for ${group} on ${plan.unit.code} ${plan.unit.title}${file}.`;
   const first = plan.lessons[0].code, last = plan.lessons[plan.lessons.length - 1].code;
@@ -82,7 +88,7 @@ export async function officeText(bytes: Uint8Array): Promise<string> {
     .slice(0, COVER_ATTACHMENT_MAX);
 }
 
-export type CoverLogEntry = { number: number; when: string; year: number; tier: string | null; className?: string | null; room?: string | null; date?: string | null; who: string; mine: boolean; text: string; state: "waiting" | "building" | "ready" | "stopped" };
+export type CoverLogEntry = { number: number; when: string; since?: string | null; year: number; tier: string | null; className?: string | null; room?: string | null; date?: string | null; who: string; mine: boolean; text: string; state: "waiting" | "building" | "ready" | "stopped" };
 /** `absent` is the tick "This is cover work for myself or a colleague." (the field keeps its first name). */
 export type CoverRequestBody = { year: number; tier: "Foundation" | "Higher" | null; className: string; room: string; date: string; absent: true; text: string; plan: string; attachment: { name: string; text: string } | null };
 export const COVER_FIELD_MAX = 20;
@@ -130,6 +136,14 @@ const weekday = (day: string) => { const [y, m, d] = day.split("-").map(Number);
 export const lastCoverDate = (now = new Date()) => addDays(localToday(now), 30);
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** The build bar (Tim, 28 Nov): fills to 90% over 16 minutes, then waits there until the booklet is ready. */
+export const COVER_BUILD_MINUTES = 16;
+export function buildProgress(since: string, now = Date.now()): { fraction: number; words: string } {
+  const minutes = Math.max(0, (now - Date.parse(since)) / 60000);
+  if (minutes >= COVER_BUILD_MINUTES) return { fraction: 0.9, words: "Taking longer than usual, nearly there" };
+  const left = Math.ceil(COVER_BUILD_MINUTES - minutes);
+  return { fraction: (0.9 * minutes) / COVER_BUILD_MINUTES, words: `About ${left} minute${left === 1 ? "" : "s"} left` };
+}
 /** "2026-11-28" as "Sat 28 Nov". */
 export function ukDay(day: string): string {
   const [y, m, d] = day.split("-").map(Number);
@@ -141,6 +155,8 @@ export type CoverEntry = {
   key: string; number: number | null; year: number; tier: string | null; className: string | null; room: string | null;
   /** The lesson's date, YYYY-MM-DD. */
   date: string; who: string | null; mine: boolean; state: CoverLogEntry["state"]; text: string; resource: Resource | null;
+  /** When it was asked for (ISO), and when its build started, for the progress bar. */
+  asked: string | null; since: string | null;
 };
 const noteNumber = (note = "") => { const m = /^Cover request #(\d+)/.exec(note); return m ? Number(m[1]) : null; };
 /** A build's note says "Cover request #N. Class 10X2, room M4, 2026-11-28."; a hand-made one may give only a date. */
@@ -150,11 +166,11 @@ function fromNote(note = "") {
 }
 
 /**
- * The Cover library: the request log merged with the built cover booklets (matched by "Cover request #N"), ordered by
- * lesson date, most recent first. Entries whose lesson date is more than 7 days ago are `older`. Deleted booklets, and
- * requests whose booklet was deleted, are left out.
+ * The Cover library: the request log merged with the built cover booklets (matched by "Cover request #N"), grouped by
+ * the date the cover is for (Tim, 28 Nov): today, coming up (soonest first), the last 7 days and older (most recent first).
+ * Deleted booklets, and requests whose booklet was deleted, are left out.
  */
-export function coverLibrary(log: CoverLogEntry[], resources: Resource[], removed: Set<string>, now = new Date()): { recent: CoverEntry[]; older: CoverEntry[] } {
+export function coverLibrary(log: CoverLogEntry[], resources: Resource[], removed: Set<string>, now = new Date()): { today: CoverEntry[]; coming: CoverEntry[]; recent: CoverEntry[]; older: CoverEntry[] } {
   const covers = resources.filter(isCoverWork);
   const gone = new Set(covers.filter((r) => removed.has(r.id)).map((r) => noteNumber(r.note)).filter((n) => n !== null));
   const live = covers.filter((r) => !removed.has(r.id));
@@ -166,16 +182,22 @@ export function coverLibrary(log: CoverLogEntry[], resources: Resource[], remove
     const r = byNumber.get(q.number) ?? null;
     if (r) used.add(r);
     const note = fromNote(r?.note);
-    entries.push({ key: `q${q.number}`, number: q.number, year: q.year, tier: q.tier, className: q.className ?? note.className, room: q.room ?? note.room, date: q.date ?? note.date ?? localToday(new Date(q.when)), who: q.mine ? "You" : q.who, mine: q.mine, state: r ? "ready" : q.state, text: q.text, resource: r });
+    entries.push({ key: `q${q.number}`, number: q.number, year: q.year, tier: q.tier, className: q.className ?? note.className, room: q.room ?? note.room, date: q.date ?? note.date ?? localToday(new Date(q.when)), who: q.mine ? "You" : q.who, mine: q.mine, state: r ? "ready" : q.state, text: q.text, resource: r, asked: q.when, since: q.since ?? q.when });
   }
   for (const r of live) {
     if (used.has(r)) continue;
     const note = fromNote(r.note);
-    entries.push({ key: r.id, number: noteNumber(r.note), year: r.year, tier: null, className: note.className, room: note.room, date: note.date ?? r.updated.slice(0, 10), who: null, mine: false, state: "ready", text: r.title, resource: r });
+    entries.push({ key: r.id, number: noteNumber(r.note), year: r.year, tier: null, className: note.className, room: note.room, date: note.date ?? r.updated.slice(0, 10), who: null, mine: false, state: "ready", text: r.title, resource: r, asked: null, since: null });
   }
   entries.sort((a, b) => b.date.localeCompare(a.date) || (b.number ?? 0) - (a.number ?? 0));
-  const cut = addDays(localToday(now), -COVER_KEEP_DAYS);
-  return { recent: entries.filter((e) => e.date >= cut), older: entries.filter((e) => e.date < cut) };
+  const day = localToday(now);
+  const cut = addDays(day, -COVER_KEEP_DAYS);
+  return {
+    today: entries.filter((e) => e.date === day),
+    coming: entries.filter((e) => e.date > day).reverse(),
+    recent: entries.filter((e) => e.date < day && e.date >= cut),
+    older: entries.filter((e) => e.date < cut),
+  };
 }
 
 /** Deletes one cover booklet from the Cover library (library editors only). Its files stay in the private store. */
