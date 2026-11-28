@@ -12,7 +12,7 @@ import { AnnotationBar } from "../../bank/AnnotationBar";
 import { AnnotationLayer, type AnnotationSettings } from "../../bank/AnnotationLayer";
 import { annotationReducer, hasInk, type AnnotationAction, type AnnotationState, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, readAnnotationPreferences, saveAnnotationPreferences, SIZES, toolCursor, withTool, type AnnotationPreferences, type AnnotationTool, type Stroke } from "../../bank/annotations";
 import { overlayPreference, overlays, type Overlay } from "../../bank/overlays";
-import type { Library } from "../model";
+import type { Library, Resource } from "../model";
 import { className, lastBuildFor, loadClass, recentClasses, rememberClass, saveClass, type Stopped } from "./presentStore";
 import { hasNotes, sideNotes, type SideNotes } from "./teacherNotes";
 import { buildLabel, buildUrl, findBuild, fitScale, stepZoom, type PresentBuild, type ZoomFit } from "./presentModel";
@@ -22,7 +22,11 @@ type Size = { width: number; height: number };
 type InkAction = AnnotationAction | { type: "replace"; state: AnnotationState };
 /** The Question Bank's ink history, plus loading a class's saved ink in one go. */
 const inkReducer = (state: AnnotationState, action: InkAction) => (action.type === "replace" ? action.state : annotationReducer(state, action));
-type Props = { list: Library; id: string; at?: string; onClose: () => void; onPick: (id: string, at?: string) => void };
+/** Sends one comment on this booklet to the library feedback queue; `off` says why feedback is unavailable. */
+export type PresentFeedback = { off?: string; send: (resource: Resource, text: string) => Promise<string> };
+type Props = { list: Library; id: string; at?: string; onClose: () => void; onPick: (id: string, at?: string) => void; feedback?: PresentFeedback };
+/** A comment pinned to a spot on a side (PDF points from the top left). Quick notes come from N during a lesson. */
+type Pin = { id: number; side: number; x: number; y: number; text: string; quick: boolean };
 
 /** Both copies of one build, opened together so switching is instant. */
 function useBuildDocs(build?: PresentBuild, retry = 0) {
@@ -43,7 +47,7 @@ function useBuildDocs(build?: PresentBuild, retry = 0) {
   return docs;
 }
 
-export default function Present({ list, id, at, onClose, onPick }: Props) {
+export default function Present({ list, id, at, onClose, onPick, feedback }: Props) {
   const { builds, build } = useMemo(() => findBuild(list, id, at), [list, id, at]);
   const [retry, setRetry] = useState(0);
   const docs = useBuildDocs(build, retry);
@@ -69,6 +73,15 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   // Teacher notes from the answers copy, shown on the pupil copy on screen only (T hides them).
   const [notesOn, setNotesOn] = useState(true);
   const [notes, setNotes] = useState<Record<number, SideNotes>>({});
+  // Feedback: comments pinned to a spot on a side, sent together; never shown or offered in Display except N's flag.
+  const [pins, setPins] = useState<Pin[]>([]);
+  const [pinMode, setPinMode] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sentMessage, setSentMessage] = useState("");
+  const [askSend, setAskSend] = useState(false);
+  const lastPoint = useRef<{ side: number; x: number; y: number } | null>(null);
+  const pinCount = useRef(0);
   const root = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const [stageSize, setStageSize] = useState<Size>({ width: 1200, height: 800 });
@@ -76,7 +89,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const ready = docs.key === build?.key && !!docs.pupil;
   const showAnswers = answers && !!docs.answers;
   const pdf = showAnswers ? docs.answers : docs.pupil;
-  const sizes = ready ? docs.sizes : [];
+  const sizes = useMemo(() => (ready ? docs.sizes : []), [ready, docs.sizes]);
   useEffect(() => {
     setNotes({});
     const answers = docs.answers;
@@ -181,7 +194,19 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
   const drawing = annotating && prefs.tool !== "hand";
 
   const enterDisplay = () => { setDisplay(true); void root.current?.requestFullscreen?.().catch(() => undefined); (document.activeElement as HTMLElement | null)?.blur(); };
-  const leaveDisplay = useCallback(() => { setDisplay(false); if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined); }, []);
+  const pinsRef = useRef(pins); pinsRef.current = pins;
+  const leaveDisplay = useCallback(() => { setDisplay(false); if (pinsRef.current.some((p) => p.quick)) setAskSend(true); if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined); }, []);
+  const addPin = useCallback((side: number, x: number, y: number, quick: boolean) => { const pin = { id: ++pinCount.current, side, x, y, text: "", quick }; setPins((old) => [...old, pin]); return pin; }, []);
+  const sendPins = async () => {
+    if (!feedback || !build || !pins.length) return;
+    setSending(true); setSentMessage("");
+    const lines = pins.map((p) => `Side ${p.side} (${Math.round((p.x / (sizes[p.side - 1]?.width || 1)) * 100)}% across, ${Math.round((p.y / (sizes[p.side - 1]?.height || 1)) * 100)}% down): ${p.text.trim() || "flagged during a lesson, no words added"}`);
+    try {
+      const warning = await feedback.send(build.resource, [`From Present (${buildLabel(build)}${showAnswers ? ", answers copy" : ""}):`, ...lines].join("\n"));
+      setPins([]); setAskSend(false); setSentMessage(warning || `Sent ${lines.length} comment${lines.length === 1 ? "" : "s"} to the library feedback.`);
+    } catch (e) { setSentMessage((e as Error).message); }
+    setSending(false);
+  };
   useEffect(() => { const off = () => { if (!document.fullscreenElement) setDisplay(false); }; document.addEventListener("fullscreenchange", off); return () => document.removeEventListener("fullscreenchange", off); }, []);
 
   // Keys, as in the Question Bank: arrows or Page Up/Down step sides, + − 0 zoom, P pen, A answers, Escape puts
@@ -200,6 +225,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
       if (e.key === "+" || e.key === "=") { e.preventDefault(); changeZoom((z) => stepZoom(z, 1)); return; }
       if (e.key === "-" || e.key === "_") { e.preventDefault(); changeZoom((z) => stepZoom(z, -1)); return; }
       if (e.key === "0") { e.preventDefault(); changeZoom(1); return; }
+      if (k === "n") { e.preventDefault(); const at = lastPoint.current?.side === side ? lastPoint.current : { side, x: (sizes[side - 1]?.width ?? 595) - 40, y: 60 }; addPin(at.side, at.x, at.y, true); return; }
       if (k === "t" && !now.current.annotating) { e.preventDefault(); setNotesOn((v) => !v); return; }
       if (k === "a" && docs.answers) { e.preventDefault(); setAnswers((v) => !v); return; }
       if (k === "p") { e.preventDefault(); if (now.current.annotating && now.current.tool === "pen") setAnnotating(false); else chooseTool("pen"); return; }
@@ -213,7 +239,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [display, leaveDisplay, undoInk, redoInk, goTo, side, sizes.length, changeZoom, chooseTool, docs.answers]);
+  }, [display, leaveDisplay, undoInk, redoInk, goTo, side, sizes, changeZoom, chooseTool, docs.answers, addPin]);
 
   // Ctrl + wheel or a trackpad pinch zooms; an ordinary wheel scrolls the booklet.
   useEffect(() => {
@@ -255,7 +281,8 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
             {docs.error ? <div className="qb-view-error" role="alert"><p>{docs.error}</p><button type="button" className="qb-button" onClick={() => setRetry((n) => n + 1)}><RotateCcw size={16} aria-hidden="true" />Try again</button><a className="qb-button" href={buildUrl(build.pupil)} target="_blank" rel="noreferrer">Open PDF</a></div>
               : !ready ? <p className="qb-view-status" role="status"><LoaderCircle className="spin" size={18} aria-hidden="true" /> Opening the booklet…</p>
               : sizes.map((size, i) => <Side key={i + 1} pdf={pdf!} n={i + 1} size={size} scale={scale} tint={tint} label={`Side ${i + 1}${showAnswers ? " (answers)" : ""}`} notes={notes[i + 1]} notesFrom={!showAnswers && notesOn && !mismatch ? docs.answers : undefined}
-                  strokes={layerOf(ink, inkKey(i + 1)).strokes} active={annotating} settings={settings} onCommit={(s) => commit(inkKey(i + 1), s)} />)}
+                  strokes={layerOf(ink, inkKey(i + 1)).strokes} active={annotating} settings={settings} onCommit={(s) => commit(inkKey(i + 1), s)}
+                  pins={pins.filter((p) => p.side === i + 1)} pinMode={pinMode && !annotating} onPin={(x, y) => { addPin(i + 1, x, y, false); setPinMode(false); setFeedbackOpen(true); }} onPoint={(x, y) => { lastPoint.current = { side: i + 1, x, y }; }} />)}
           </div>
           {annotating && <AnnotationBar preferences={prefs} onChange={setPrefs} canUndo={undoKeys.current.length > 0} canRedo={redoKeys.current.length > 0} hasInk={sideHasInk} anyInk={hasInk(buildInk)} onUndo={undoInk} onRedo={redoInk} onClear={clearSide} onClearAll={clearAll} onClose={() => setAnnotating(false)} />}
           {display && <div className="qb-display-dock present-dock">
@@ -265,6 +292,11 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
             <button type="button" className="qb-button" onClick={leaveDisplay}><X size={16} aria-hidden="true" />Exit Display <kbd>Esc</kbd></button>
           </div>}
         </div>
+        {!display && askSend && pins.some((p) => p.quick) && <div className="present-ask-send" role="status">
+          <span>Send {pins.length} note{pins.length === 1 ? "" : "s"} as feedback?</span>
+          <button type="button" className="qb-button qb-primary" disabled={sending || !!feedback?.off || !feedback} onClick={() => void sendPins()}>Send</button>
+          <button type="button" className="qb-button" onClick={() => { setAskSend(false); setFeedbackOpen(true); }}>Not now</button>
+        </div>}
         {!display && <aside className="present-column" aria-label="Present settings">
           <details className="present-card present-class" open={classOpen} onToggle={(e) => setClassOpen(e.currentTarget.open)}>
             <summary>{cls ? <>Class {cls}{stopped && <span className="present-summary-note"> · {stopped.flag ? "stopped at" : "on"} side {stopped.side}</span>}</> : "Class"}</summary>
@@ -309,6 +341,21 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
               </>}
             <label className="present-check"><input type="checkbox" checked={notesOn} onChange={(e) => setNotesOn(e.target.checked)} /> Show them on the pupil copy · T</label>
           </details>
+          <details className="present-card present-feedback" open={feedbackOpen} onToggle={(e) => setFeedbackOpen(e.currentTarget.open)}>
+            <summary>Feedback on this booklet{pins.length > 0 && <span className="present-summary-note"> · {pins.length} to send</span>}</summary>
+            {feedback?.off ? <p className="present-hint">{feedback.off}</p> : <>
+              <button type="button" className="qb-button" aria-pressed={pinMode} onClick={() => setPinMode((v) => !v)}>{pinMode ? "Tap a spot on a side…" : "Pin a comment"}</button>
+              {pins.map((p, i) => <div key={p.id} className="present-pin-row">
+                <button type="button" className="present-pin-number" title={`Go to side ${p.side}`} onClick={() => goTo(p.side)}>{i + 1}</button>
+                <label><span className="present-pin-where">Side {p.side}{p.quick ? " · quick note" : ""}</span>
+                  <textarea rows={2} value={p.text} placeholder="What should change here?" onChange={(e) => setPins((old) => old.map((x) => (x.id === p.id ? { ...x, text: e.target.value } : x)))} /></label>
+                <button type="button" className="library-link" aria-label={`Remove comment ${i + 1}`} onClick={() => setPins((old) => old.filter((x) => x.id !== p.id))}>Remove</button>
+              </div>)}
+              {pins.length > 0 && <button type="button" className="qb-button qb-primary" disabled={sending || !feedback} onClick={() => void sendPins()}>{sending ? "Sending…" : `Send ${pins.length} comment${pins.length === 1 ? "" : "s"}`}</button>}
+              <p className="present-hint">Comments go to the library feedback for this lesson. In a lesson, press N to drop a quick note on the side and carry on.</p>
+            </>}
+            {sentMessage && <p className="library-status" role="status">{sentMessage}</p>}
+          </details>
           <details className="present-card" open>
             <summary>Pen</summary>
             <p className="present-hint">Press P or Annotate. Write anywhere, on a side or the grey around it. Draw and hold for a straight line or a shape; level and upright lines snap within 5°. A fist or the pen's other end rubs out.</p>
@@ -344,7 +391,7 @@ export default function Present({ list, id, at, onClose, onPick }: Props) {
 }
 
 /** One side: drawn when it is near the view, kept stretched at the old size while a zoom redraws it sharp. */
-function Side({ pdf, n, size, scale, tint, label, strokes, active, settings, onCommit, notes, notesFrom }: { pdf: PDFDocumentProxy; n: number; size: Size; scale: number; tint?: string; label: string; strokes: Stroke[]; active: boolean; settings: AnnotationSettings; onCommit: (s: Stroke[]) => void; notes?: SideNotes; notesFrom?: PDFDocumentProxy }) {
+function Side({ pdf, n, size, scale, tint, label, strokes, active, settings, onCommit, notes, notesFrom, pins, pinMode, onPin, onPoint }: { pdf: PDFDocumentProxy; n: number; size: Size; scale: number; tint?: string; label: string; strokes: Stroke[]; active: boolean; settings: AnnotationSettings; onCommit: (s: Stroke[]) => void; notes?: SideNotes; notesFrom?: PDFDocumentProxy; pins: Pin[]; pinMode: boolean; onPin: (x: number, y: number) => void; onPoint: (x: number, y: number) => void }) {
   const box = useRef<HTMLDivElement>(null), host = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(n <= 2);
   const [error, setError] = useState(false);
@@ -379,13 +426,16 @@ function Side({ pdf, n, size, scale, tint, label, strokes, active, settings, onC
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [near, pdf, n, scale, size, label, retry]);
   return (
-    <div ref={box} className="qb-pdf present-side" data-side={n} style={{ width: size.width * scale, height: size.height * scale }}>
+    <div ref={box} className={`qb-pdf present-side${pinMode ? " is-pinning" : ""}`} data-side={n} style={{ width: size.width * scale, height: size.height * scale }}
+      onPointerMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); onPoint((e.clientX - r.left) / scale, (e.clientY - r.top) / scale); }}
+      onClick={pinMode ? (e) => { const r = e.currentTarget.getBoundingClientRect(); onPin((e.clientX - r.left) / scale, (e.clientY - r.top) / scale); } : undefined}>
       <div className="qb-canvas-surface">
         <div ref={host} className="qb-canvas-host" />
         {near && notesFrom && hasNotes(notes) && <NotesCrop pdf={notesFrom} n={n} size={size} scale={scale} notes={notes!} />}
         {tint && <div className="qb-coloured-overlay" aria-hidden="true" style={{ backgroundColor: tint }} />}
         <AnnotationLayer strokes={strokes} width={size.width} height={size.height} scale={scale} active={active} settings={settings} onCommit={onCommit} />
-        {!active && notes?.links.map((l) => <a key={l.url + l.box.x + l.box.y} className="present-link-spot" href={l.url} target="_blank" rel="noreferrer" title={l.url} aria-label="NCETM link" style={{ left: l.box.x * scale, top: l.box.y * scale, width: l.box.w * scale, height: l.box.h * scale }} />)}
+        {pins.map((p) => <span key={p.id} className={`present-pin${p.quick ? " is-quick" : ""}`} style={{ left: p.x * scale, top: p.y * scale }} aria-label={`Comment on side ${n}`} />)}
+        {!active && !pinMode && notes?.links.map((l) => <a key={l.url + l.box.x + l.box.y} className="present-link-spot" href={l.url} target="_blank" rel="noreferrer" title={l.url} aria-label="NCETM link" style={{ left: l.box.x * scale, top: l.box.y * scale, width: l.box.w * scale, height: l.box.h * scale }} />)}
       </div>
       {error && <div className="qb-view-error" role="alert"><p>Side {n} could not load.</p><button type="button" className="qb-button" onClick={() => setRetry((x) => x + 1)}><RotateCcw size={16} aria-hidden="true" />Retry</button></div>}
     </div>

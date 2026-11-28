@@ -52,12 +52,18 @@ one scrolling column of sides with the Question Bank's tools and a settings colu
   side's links and its Watch for and Ask words.
 - Booklets without notes (older builds) simply show none; no rebuild is needed.
 
+## Feedback while looking or teaching
+
+- The "Feedback on this booklet" card (folded until used): **Pin a comment**, then tap a spot on a side; each pin has
+  its own box. **Send** posts one comment to the library feedback for that lesson (or unit booklet part), naming the
+  build and each pin's side and place, through the library's own feedback route.
+- In a lesson, N drops a quick-note flag on the side under the pointer (or the current side) and nothing else
+  happens. Leaving Display with quick notes shows one line, "Send N notes as feedback?", with Send and Not now.
+- Display has no feedback or version controls.
+
 ## Still to build (Tim's option A)
 
-1. A Feedback card with comments pinned to a spot on a side, sent to the library feedback queue; N for a quick-note
-   flag during a lesson and a one-line "Send as feedback?" on leaving Display. No feedback or version controls in
-   Display.
-2. A movable pen rail: drag its grip, snaps to an edge, remembered per computer, double-click resets (shared with the
+1. A movable pen rail: drag its grip, snaps to an edge, remembered per computer, double-click resets (shared with the
    Question Bank).
 
 Open questions answered with the recommended option unless Tim says otherwise: ink saved on the site behind staff

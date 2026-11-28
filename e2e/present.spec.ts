@@ -35,8 +35,13 @@ function pdf(label: string, sides = 3) {
 async function open(page: Page, address: string) {
   await page.route("**/library-data/library.json", (route) => route.fulfill({ contentType: "application/json", body: fixture }));
   await page.route("**/library-data/files/**", (route) => route.fulfill({ contentType: "application/pdf", body: pdf(route.request().url().includes("answers") ? "Answers" : "Pupil") }));
-  await page.route("**/api/library/feedback", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ threads: [], checks: {}, canAct: false, me: "Tim Boughen" }) }));
+  const sent: Record<string, unknown>[] = [];
+  await page.route("**/api/library/feedback", (route) => {
+    if (route.request().method() === "POST") { sent.push(route.request().postDataJSON()); return route.fulfill({ contentType: "application/json", body: '{"ok":true}' }); }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ threads: [], checks: {}, canAct: false, me: "Tim Boughen" }) });
+  });
   await page.goto(address);
+  return sent;
 }
 
 const drawOn = async (page: Page, side: ReturnType<Page["locator"]>) => {
@@ -188,4 +193,36 @@ test("teacher notes from the answers copy show on the pupil copy on screen only,
   await present.getByRole("button", { name: "Answers" }).click();
   await expect(side1.locator(".present-notes-crop")).toHaveCount(0);
   await expect(side1.getByRole("link", { name: "NCETM link" })).toBeVisible();
+});
+
+test("a pinned comment and a quick note from Display go to the lesson's library feedback", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const sent = await open(page, "/library?year=9&unit=A7&present=y9-a7-04-lesson-booklet");
+  const present = page.getByRole("region", { name: /^Present A7\.04/ });
+  const card = present.locator(".present-feedback");
+  await card.locator("summary").click();
+  await card.getByRole("button", { name: "Pin a comment" }).click();
+  const side1 = present.locator('.present-side[data-side="1"]');
+  await expect(side1.locator(".qb-canvas-host canvas")).toBeVisible();
+  const box = (await side1.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.2);
+  await expect(side1.locator(".present-pin")).toHaveCount(1);
+  await card.getByPlaceholder("What should change here?").fill("Q3 too hard straight after Q2");
+  await card.getByRole("button", { name: "Send 1 comment" }).click();
+  await expect(card.getByRole("status")).toHaveText("Sent 1 comment to the library feedback.");
+  expect(sent[0]).toMatchObject({ action: "comment", year: 9, unit: "A7", version: "Main", lesson: "A7.04", booklet: null });
+  expect(sent[0].text).toMatch(/^From Present \(Main · 22 Nov 2026\):\nSide 1 \(40% across, 20% down\): Q3 too hard straight after Q2$/);
+  await expect(side1.locator(".present-pin")).toHaveCount(0);
+
+  // In Display, N drops a quick note and nothing is asked until Display ends.
+  await present.getByRole("button", { name: "Display" }).click();
+  await page.keyboard.press("n");
+  await expect(side1.locator(".present-pin.is-quick")).toHaveCount(1);
+  await expect(present.locator(".present-ask-send")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  const ask = present.locator(".present-ask-send");
+  await expect(ask).toContainText("Send 1 note as feedback?");
+  await ask.getByRole("button", { name: "Send" }).click();
+  await expect(ask).toHaveCount(0);
+  expect(sent[1].text).toMatch(/Side 1 .*flagged during a lesson, no words added$/);
 });
